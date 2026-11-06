@@ -55,8 +55,8 @@ call private.describe('private.billing_renewal_consents', 'Proof that an Owner s
   'consented_by_email', 'Their sign-in address at consent, kept as evidence after the account goes.',
   'plan_code', 'Plan bought.',
   'billing_interval', 'Renewal term: Monthly or Annual.',
-  'amount_minor', 'List price of each term before tax, in minor units.',
-  'currency_code', 'Currency of the amount the statement quoted.',
+  'amount_minor', 'List price of each term in that currency before tax, in minor units.',
+  'currency_code', 'Currency Checkout was told to charge, which the statement quoted.',
   'next_charge_on', 'The date the statement gave for the first charge.',
   'text_version', 'Version of the statement''s wording (RENEWAL_TERMS_VERSION in @xos/platform).',
   'locale', 'Language the statement was shown in.',
@@ -146,19 +146,20 @@ set search_path = ''
 as $$
 declare
   v_person uuid := private.require_person();
+  v_currency text := upper(coalesce(p_currency_code, ''));
   v_monthly bigint;
   v_id uuid;
 begin
   if not private.has_capability(p_org_id, 'org.billing.manage') then
     raise exception using errcode = '42501', message = 'org.billing.manage is required';
   end if;
-  select l.monthly_minor into v_monthly from private.plan_list_prices l
-  where l.plan_code = p_plan_code and l.currency_code = 'USD' and l.monthly_minor > 0;
-  if v_monthly is null then
+  if not exists (select 1 from private.plan_list_prices l where l.plan_code = p_plan_code and l.currency_code = 'USD' and l.monthly_minor > 0) then
     perform private.refuse('plan_not_self_serve', format('The %s plan cannot be bought through Checkout.', p_plan_code));
   end if;
+  select l.monthly_minor into v_monthly from private.plan_list_prices l
+  where l.plan_code = p_plan_code and l.currency_code = v_currency and l.monthly_minor > 0;
   -- An annual price is 10 times the monthly one (annual_multiplier in packages/schemas/plans.yaml).
-  if p_amount_minor is distinct from (case p_billing_interval when 'Annual' then v_monthly * 10 else v_monthly end) then
+  if v_monthly is null or p_amount_minor is distinct from (case p_billing_interval when 'Annual' then v_monthly * 10 else v_monthly end) then
     perform private.refuse('renewal_price_mismatch', 'The price shown is not the plan''s price. Reload the page and try again.');
   end if;
   if p_next_charge_on is null or p_next_charge_on < (now() at time zone 'UTC')::date - 1 or p_next_charge_on > (now() at time zone 'UTC')::date + 16 then
@@ -179,14 +180,14 @@ begin
   insert into private.billing_renewal_consents (subject_org_id, org_name, consented_by, consented_by_email, plan_code, billing_interval,
     amount_minor, currency_code, next_charge_on, text_version, locale, statement, initials, livemode)
   select p_org_id, o.name, v_person, (select lower(u.email) from app.people p join auth.users u on u.id = p.user_id where p.id = v_person),
-    p_plan_code, p_billing_interval, p_amount_minor, 'USD', p_next_charge_on, p_text_version, p_locale, p_statement, nullif(btrim(p_initials), ''), coalesce(p_livemode, false)
+    p_plan_code, p_billing_interval, p_amount_minor, v_currency, p_next_charge_on, p_text_version, p_locale, p_statement, nullif(btrim(p_initials), ''), coalesce(p_livemode, false)
   from app.organizations o where o.id = p_org_id
   returning id into v_id;
   return v_id;
 end;
 $$;
 
-comment on function app.record_renewal_consent(uuid, text, app.billing_interval, bigint, text, date, text, text, text, text, boolean) is 'Billing and Plan, once the Owner ticked the renewal terms and Atlas has run the checkout checks: records exactly what they agreed to (org.billing.manage, 42501 otherwise). Refuses a price that is not the plan''s list price (renewal_price_mismatch), a first charge more than 16 days out (renewal_date_range), an annual plan with no initials (renewal_initials_required), and missing text. Returns the consent id.';
+comment on function app.record_renewal_consent(uuid, text, app.billing_interval, bigint, text, date, text, text, text, text, boolean) is 'Billing and Plan, once the Owner ticked the renewal terms and Atlas has run the checkout checks: records exactly what they agreed to (org.billing.manage, 42501 otherwise), in the currency Checkout will be told to charge. Refuses a price that is not the plan''s list price in that currency (renewal_price_mismatch), a first charge more than 16 days out (renewal_date_range), an annual plan with no initials (renewal_initials_required), and missing text. Returns the consent id.';
 revoke all on function app.record_renewal_consent(uuid, text, app.billing_interval, bigint, text, date, text, text, text, text, boolean) from public, anon;
 grant execute on function app.record_renewal_consent(uuid, text, app.billing_interval, bigint, text, date, text, text, text, text, boolean) to authenticated;
 
@@ -229,6 +230,8 @@ set search_path = ''
 as $$
 declare
   v_consent private.billing_renewal_consents;
+  v_period_end timestamptz;
+  v_next date;
 begin
   if new.checkout_state <> 'Completed' or old.checkout_state = 'Completed' then
     return null;
@@ -240,16 +243,28 @@ begin
     return null;
   end if;
   update private.billing_renewal_consents set confirmation_notified_at = now() where id = v_consent.id;
+  -- The next charge: what Stripe has said if its subscription has synced; else the first charge if it is still to come, as
+  -- at the end of a carried trial; else a charge just made, so one term from now, counted in UTC as Stripe counts it.
+  select l.current_period_end into v_period_end from app.stripe_subscription_links l
+  where l.org_id = new.org_id and l.billing_interval = v_consent.billing_interval and l.livemode = v_consent.livemode
+    and l.stripe_ended_at is null and l.deleted_at is null and l.created_at >= v_consent.created_at and l.current_period_end > now()
+  order by l.created_at desc limit 1;
+  v_next := case
+    when v_period_end is not null then private.org_date(new.org_id, v_period_end)
+    when v_consent.next_charge_on > private.org_date(new.org_id, v_consent.created_at) then v_consent.next_charge_on
+    else private.org_date(new.org_id, ((now() at time zone 'UTC')
+      + case v_consent.billing_interval when 'Annual' then interval '1 year' else interval '1 month' end) at time zone 'UTC')
+  end;
   perform private.notify_billing_contacts(new.org_id, 'billing.purchase_confirmed', 'private.billing_renewal_consents', v_consent.id, jsonb_build_object(
     'plan', initcap(v_consent.plan_code),
     'term', v_consent.billing_interval,
     'price', private.billing_amount_text(v_consent.amount_minor, v_consent.currency_code),
-    'nextChargeOn', private.org_day_mark(new.org_id, v_consent.next_charge_on)));
+    'nextChargeOn', private.org_day_mark(new.org_id, v_next)));
   return null;
 end;
 $$;
 
-comment on function private.confirm_purchase_terms() is 'When Stripe reports a plan Checkout completed: sends the billing owners billing.purchase_confirmed with the terms the Owner agreed to, once.';
+comment on function private.confirm_purchase_terms() is 'When Stripe reports a plan Checkout completed: sends the billing owners billing.purchase_confirmed with the terms the Owner agreed to and the next charge date, once. The next charge is the end of a carried trial, or one term after a charge made at purchase, never the day just charged.';
 revoke all on function private.confirm_purchase_terms() from public, anon, authenticated;
 
 create trigger t92_confirm_purchase after update of checkout_state on app.billing_checkouts
@@ -266,6 +281,7 @@ set search_path = ''
 as $$
 declare
   v_due record;
+  v_currency text;
   v_amount text;
   v_id uuid;
   v_count integer := 0;
@@ -278,15 +294,18 @@ begin
       and l.current_period_end > p_now and l.current_period_end <= p_now + interval '30 days'
       -- The first term of a trial that just ended a purchase: the confirmation gave these terms days ago.
       and l.created_at <= p_now - interval '30 days'
+      -- Asked to stop, or accepted before the webhook set cancel_at: this plan does not renew. A withdrawn cancel does not count.
       and not exists (select 1 from private.stripe_cancellations c
-                      where c.stripe_subscription_id = l.stripe_subscription_id and c.cancellation_state = 'Queued')
+                      where c.stripe_subscription_id = l.stripe_subscription_id and c.cancellation_state in ('Queued', 'Accepted'))
       and not exists (select 1 from private.billing_renewal_reminders r
                       where r.stripe_subscription_id = l.stripe_subscription_id and r.period_end = l.current_period_end)
   loop
+    -- What Stripe says it charges, or the plan's list price in the subscription's own currency.
+    v_currency := coalesce(v_due.currency_code, 'USD');
     v_amount := case when v_due.recurring_amount_minor is not null
-      then private.billing_amount_text(v_due.recurring_amount_minor, v_due.currency_code)
-      else (select private.billing_amount_text(p.monthly_minor * 10, 'USD') from private.plan_list_prices p
-            where p.plan_code = v_due.plan_code and p.currency_code = 'USD') end;
+      then private.billing_amount_text(v_due.recurring_amount_minor, v_currency)
+      else (select private.billing_amount_text(p.monthly_minor * 10, v_currency) from private.plan_list_prices p
+            where p.plan_code = v_due.plan_code and p.currency_code = v_currency) end;
     insert into private.billing_renewal_reminders (subject_org_id, stripe_subscription_id, period_end, amount_text)
     values (v_due.org_id, v_due.stripe_subscription_id, v_due.current_period_end, v_amount)
     returning id into v_id;
@@ -300,7 +319,7 @@ begin
 end;
 $$;
 
-comment on function private.run_billing_renewal_reminders(timestamptz) is 'Daily: reminds the billing owners of each annual plan 30 days before it renews (billing.renewal_reminder), once per subscription and term, with the amount, the date and how to cancel. Skips a plan already ending, and the first term of a subscription less than 30 days old, whose purchase confirmation just gave the same terms. Returns how many.';
+comment on function private.run_billing_renewal_reminders(timestamptz) is 'Daily: reminds the billing owners of each annual plan 30 days before it renews (billing.renewal_reminder), once per subscription and term, with the amount, the date and how to cancel. Skips a plan already ending or whose cancel is queued or accepted, and the first term of a subscription less than 30 days old, whose purchase confirmation just gave the same terms. Returns how many.';
 revoke all on function private.run_billing_renewal_reminders(timestamptz) from public, anon, authenticated;
 
 select cron.schedule('xos_daily_billing_renewal_reminders', '20 14 * * *', 'select private.run_billing_renewal_reminders()');

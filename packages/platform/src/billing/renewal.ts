@@ -10,8 +10,10 @@ export const CHECKOUT_MESSAGE_MAX = 1200;
 
 /** What Atlas records with a consent, and shows again on Stripe's own page. */
 export interface RenewalConsent {
+  /** The price of each term in `currency`, the plan's list price. */
   readonly amountMinor: number;
-  readonly currency: "USD";
+  /** The currency Checkout is told to charge, so the statement and the charge cannot differ. */
+  readonly currency: string;
   /** The first charge date as `YYYY-MM-DD`. */
   readonly nextChargeOn: string;
   readonly textVersion: string;

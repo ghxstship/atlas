@@ -53,6 +53,8 @@ export interface CheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
+  readonly currency?: string;
   /**
    * End of the org's running XOS trial (app.subscriptions.trial_ends_at, Section 14.7). Checkout then
    * collects the card now and Stripe charges it only when the trial would have ended; the webhook moves the
@@ -149,6 +151,8 @@ export async function createCheckoutSession(
   }
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
+    currency: (request.currency ?? "USD").toLowerCase(),
+    adaptive_pricing: { enabled: false },
     line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },

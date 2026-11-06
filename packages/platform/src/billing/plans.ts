@@ -1,4 +1,4 @@
-import type { AddonDefinition, PlanRegistry } from "@xos/schemas/plans";
+import type { AddonDefinition, PlanPrice, PlanRegistry } from "@xos/schemas/plans";
 
 /** Billing terms, matching app.billing_interval. */
 // eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
@@ -42,6 +42,27 @@ export function extraSeatForLookupKey(
       return { planCode: plan.code, interval: "Annual" };
   }
   return null;
+}
+
+/**
+ * What a plan or extra-seat price costs per term in one currency, from the price book stripe-setup builds Stripe's prices
+ * from. A multi-currency Stripe price states only its default currency on a subscription, so this is what a subscriber in
+ * another currency pays. Null when the key or the currency is not in the book.
+ */
+export function bookPriceFor(
+  registry: PlanRegistry,
+  lookupKey: string | null | undefined,
+  currency: string,
+): number | null {
+  const plan = planForLookupKey(registry, lookupKey);
+  const seat = plan === null ? extraSeatForLookupKey(registry, lookupKey) : null;
+  const match = plan ?? seat;
+  if (match === null) return null;
+  const definition = registry.plans.find((p) => p.code === match.planCode);
+  const book: Readonly<Record<string, PlanPrice>> | undefined =
+    plan === null ? definition?.extraSeat?.prices : definition?.prices;
+  const price = book?.[currency.toUpperCase()];
+  return (match.interval === "Annual" ? price?.annualMinor : price?.monthlyMinor) ?? null;
 }
 
 /** The one-time add-on a price lookup key sells (ADR 0035), or null. */

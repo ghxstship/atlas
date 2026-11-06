@@ -562,9 +562,9 @@ Canceling or deleting an org, and End plan on Billing and Plan, queue a cancel t
 1. Sets the Edge Function secret `XOS_BILLING_ALERT_EMAIL` to the mailbox that should hear about billing alerts: a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Mail goes through the worker's transport, so `XOS_EMAIL_ALLOWLIST` must allow it.
 2. Confirms `org-lifecycle` is scheduled every 5 minutes (`infra/runbooks/org-lifecycle.md`). It holds `STRIPE_SECRET_KEY`, retries cancels and sends alerts. Without the schedule, cancels Atlas could not finish stay queued, and pg_cron still tells the billing owners after 15 minutes.
 3. Creates a Sentry alert rule on the `billing_attention_needed` log event of the Edge Functions, so an alert also reaches on-call when mail cannot.
-4. Sets Stripe's retries and end-of-retry behavior (Dashboard, Billing, Revenue recovery). Failed retries that cancel the subscription now settle as a confirmed end.
+4. Sets Stripe's retries and end-of-retry behavior (Dashboard, Billing, Revenue recovery). Failed retries that cancel the subscription now settle as an end on record, with no cancellation notice to the customer.
 
-When an alert arrives, read it in the console's Tenants page. `charged_after_cancel` names the invoice: refund it in the Stripe Dashboard and tell the Owner, as Terms 11.4 promises. Alerts clear themselves once Stripe accepts the cancel, except a charge, which stays until closed.
+When an alert arrives, read it in the console's Tenants page. `charged_after_cancel` names the invoice: refund it in the Stripe Dashboard and tell the Owner, as Terms 11.4 promises. `active_on_deleted_org` and `active_after_cancel` mean a subscription Stripe called live when it should not have been: check Stripe for a charge and refund any. Those three stay open until you close them with what you did, even after Stripe accepts the cancel. Only `cancel_delayed` and `deletion_blocked` clear themselves once Stripe accepts.
 
 ### 5. Opening billing in production
 

@@ -156,7 +156,7 @@ const request = {
   cancelUrl: "https://atlas.test/northwind/settings/billing-and-plan?checkout=canceled",
   consent: () => ({
     amountMinor: 14900,
-    currency: "USD" as const,
+    currency: "USD",
     nextChargeOn: "2026-10-23",
     textVersion: "2026-11-06",
     locale: "en-US",
@@ -190,6 +190,17 @@ describe("startPlanCheckout", () => {
     ]);
     const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
     expect(JSON.stringify(created)).toContain("Core renews automatically every month.");
+    expect(created?.params).toMatchObject({ currency: "usd", adaptive_pricing: { enabled: false } });
+  });
+
+  it("tells Checkout the currency the Owner agreed to, so the statement and the charge cannot differ", async () => {
+    const stripe = fakeStripe();
+    await startPlanCheckout(stripe.client, registry, accountStore().store, {
+      ...request,
+      consent: () => ({ ...request.consent(), amountMinor: 13900, currency: "EUR" }),
+    });
+    const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
+    expect(created?.params).toMatchObject({ currency: "eur" });
   });
 
   it("records no consent and calls no Stripe when the database refuses or the terms changed", async () => {

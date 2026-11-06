@@ -144,7 +144,6 @@ function optionalText(
   return typeof value === "string" ? value : null;
 }
 
-/** BillingStore over the 0560, 1250 and 1640 RPCs. */
 /** The Stripe cancels of the org-lifecycle worker, over the 6140 RPCs (ADR 0161). */
 export function stripeCancellationStore(db: PlatformDb): StripeCancellationStore {
   return {
@@ -197,6 +196,7 @@ export function stripeCancellationStore(db: PlatformDb): StripeCancellationStore
   };
 }
 
+/** BillingStore over the 0560, 1250, 1640 and 6140 RPCs. */
 export function billingStore(db: PlatformDb): BillingStore {
   return {
     async recordStripeEvent(event) {

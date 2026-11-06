@@ -1,6 +1,11 @@
 import type Stripe from "stripe";
 import type { PlanRegistry } from "@xos/schemas/plans";
-import { extraSeatForLookupKey, planForLookupKey, type BillingInterval } from "./plans.ts";
+import {
+  bookPriceFor,
+  extraSeatForLookupKey,
+  planForLookupKey,
+  type BillingInterval,
+} from "./plans.ts";
 
 /** What the webhook handler needs from the database (implemented over the 0560, 1250 and 1640 RPCs). */
 export interface BillingStore {
@@ -170,19 +175,33 @@ function pauseCollectionOf(
   };
 }
 
-/** What the subscription charges each period, before tax, or null when a price does not say. */
+/**
+ * What the subscription charges each period before tax, in the currency it pays in. A multi-currency price (stripe-setup
+ * gives each one currency_options) states only its default currency on the subscription, so a subscriber in another currency
+ * reads the price's own option when the event expanded it, else the price book. The amount is null when none of them says,
+ * so a notice never quotes the default currency's amount to someone Stripe charges in another.
+ */
 function recurringAmount(
+  registry: PlanRegistry,
   subscription: Stripe.Subscription,
-): { readonly amountMinor: number; readonly currency: string } | null {
+): { readonly amountMinor: number | null; readonly currency: string | null } {
+  const items = subscription.items.data;
+  const currency = subscription.currency ?? items[0]?.price.currency ?? null;
+  if (currency === null) return { amountMinor: null, currency: null };
   let amountMinor = 0;
-  let currency: string | null = null;
-  for (const item of subscription.items.data) {
-    const unit = item.price.unit_amount;
-    if (typeof unit !== "number") return null;
+  for (const item of items) {
+    const { price } = item;
+    const option = price.currency_options?.[currency]?.unit_amount;
+    const unit =
+      typeof option === "number"
+        ? option
+        : price.currency === currency && typeof price.unit_amount === "number"
+          ? price.unit_amount
+          : bookPriceFor(registry, price.lookup_key, currency);
+    if (unit === null) return { amountMinor: null, currency };
     amountMinor += unit * (item.quantity ?? 1);
-    currency = item.price.currency;
   }
-  return currency === null ? null : { amountMinor, currency };
+  return { amountMinor, currency };
 }
 
 /** When Stripe will end the subscription because a cancel was accepted, or null while it renews. */
@@ -342,12 +361,12 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
         pauseCollection: pauseCollectionOf(subscription),
         eventCreatedAt,
       });
-      const amount = recurringAmount(subscription);
+      const amount = recurringAmount(request.registry, subscription);
       await request.store.noteSubscriptionTerms({
         subscriptionId: subscription.id,
         cancelAt: status === "canceled" ? null : cancelAtOf(subscription, read.periodEnd),
-        amountMinor: amount?.amountMinor ?? null,
-        currency: amount?.currency ?? null,
+        amountMinor: amount.amountMinor,
+        currency: amount.currency,
         eventCreatedAt,
       });
       return state;

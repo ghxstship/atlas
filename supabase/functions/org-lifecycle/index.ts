@@ -38,6 +38,7 @@ import {
   runDeletionCertificates,
   runDomainJobs,
   runStripeCancellations,
+  STRIPE_WORKER_LIMITS,
   stripeCancellationStore,
   supabaseDomainJobStore,
   supabasePurgeStorage,
@@ -113,19 +114,24 @@ function billingAlertSink(mailer: ReportMailer) {
   };
 }
 
-/** Stripe cancels and billing alerts. A failure here is logged and never stops certificates or domains. */
+/**
+ * Stripe cancels and billing alerts. A failure here is logged and never stops certificates or domains, and the step's time
+ * limits (STRIPE_WORKER_LIMITS, a budget per run) leave them the rest of the function's wall clock if Stripe hangs.
+ */
 async function stripeCancellations(worker: string) {
   try {
     const billing = readBillingEnv(Deno.env.toObject());
     const run = await runStripeCancellations({
-      stripe: billing.STRIPE_SECRET_KEY ? await createStripeClient(billing) : null,
+      stripe: billing.STRIPE_SECRET_KEY
+        ? await createStripeClient(billing, undefined, STRIPE_WORKER_LIMITS)
+        : null,
       store: stripeCancellationStore(serviceDb()),
       worker,
       livemode: billingLivemode(billing),
       sink: billingAlertSink(lifecycleMailer()),
     });
     // Sentry and the log drain see this whatever the mail does.
-    if (run.failed > 0 || run.alertsWaiting > 0) {
+    if (run.failed > 0 || run.alertsWaiting > 0 || run.outOfTime) {
       console.error(JSON.stringify({ event: "billing_attention_needed", ...run }));
     }
     return run;

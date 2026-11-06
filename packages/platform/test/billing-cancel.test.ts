@@ -5,7 +5,11 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CHECKOUT_MESSAGE_MAX,
   RENEWAL_TERMS_VERSION,
+  STRIPE_WORKER_BUDGET_MS,
+  STRIPE_WORKER_LIMITS,
+  createStripeClient,
   firstChargeOn,
+  readBillingEnv,
   runStripeCancellations,
   sendStripeCancel,
   stripeCancelIdempotencyKey,
@@ -214,10 +218,11 @@ function memoryStore(
   const closed: string[] = [];
   const sent: string[] = [];
   const claims: unknown[] = [];
+  const due = [...jobs];
   const store: StripeCancellationStore = {
     claim: async (input) => {
       claims.push(input);
-      return jobs;
+      return due.splice(0, input.limit);
     },
     finish: async (input) => {
       finished.push(input);
@@ -226,7 +231,7 @@ function memoryStore(
     closeCheckout: async (id) => {
       closed.push(id);
     },
-    alertsToSend: async () => options.alerts ?? [],
+    alertsToSend: async () => (options.alerts ?? []).filter((a) => !sent.includes(a.alertId)),
     markAlertSent: async (id) => {
       sent.push(id);
     },
@@ -264,8 +269,10 @@ describe("runStripeCancellations", () => {
       checkoutsClosed: 0,
       alertsSent: 0,
       alertsWaiting: 0,
+      outOfTime: false,
     });
-    expect(memory.claims).toEqual([{ worker: "w", livemode: true, limit: 20 }]);
+    const claim = { worker: "w", livemode: true, limit: 1 };
+    expect(memory.claims).toEqual([claim, claim, claim]);
     expect(memory.finished).toEqual([
       { cancellationId: "c-1", outcome: { accepted: false, error: "Stripe is down" } },
       { cancellationId: "c-2", outcome: { accepted: true, stripeStatus: "active" } },
@@ -319,6 +326,77 @@ describe("runStripeCancellations", () => {
       }),
     ).resolves.toMatchObject({ alertsSent: 0, alertsWaiting: 1 });
     expect(failing.sent).toEqual([]);
+  });
+
+  it("sends open alerts before it calls Stripe, so an alert cannot clear unseen, and again for what the run raised", async () => {
+    const order: string[] = [];
+    const raised: BillingAlert = { ...ALERT, alertId: "a-2", kind: "cancel_delayed" };
+    const stripe = fakeStripe({
+      cancel: () => {
+        order.push("stripe");
+        throw new Error("down");
+      },
+    });
+    const open = [{ ...ALERT, kind: "active_on_deleted_org" }];
+    const memory = memoryStore([IMMEDIATE]);
+    memory.store.alertsToSend = async () => open.splice(0);
+    memory.store.finish = async () => {
+      open.push(raised);
+    };
+    const run = await runStripeCancellations({
+      stripe: stripe.client,
+      store: memory.store,
+      worker: "w",
+      livemode: false,
+      sink: {
+        send: async (alert) => {
+          order.push(alert.kind);
+        },
+      },
+    });
+    expect(order).toEqual(["active_on_deleted_org", "stripe", "cancel_delayed"]);
+    expect(run).toMatchObject({ alertsSent: 2, alertsWaiting: 0, failed: 1 });
+  });
+
+  it("stops at its time budget with the rest still due and unclaimed, and still sends alerts", async () => {
+    let time = 0;
+    const clock = () => (time += 20_000);
+    const jobs = ["c-1", "c-2", "c-3", "c-4"].map((id) => ({ ...IMMEDIATE, cancellationId: id }));
+    const memory = memoryStore(jobs, { alerts: [ALERT], sessions: ["cs_test_1"] });
+    const delivered: string[] = [];
+    const run = await runStripeCancellations({
+      stripe: fakeStripe().client,
+      store: memory.store,
+      worker: "w",
+      livemode: false,
+      sink: {
+        send: async (alert) => {
+          delivered.push(alert.alertId);
+        },
+      },
+      clock,
+      budgetMs: 45_000,
+    });
+    expect(run).toMatchObject({ accepted: 2, checkoutsClosed: 0, alertsSent: 1, outOfTime: true });
+    expect(memory.finished.map((f) => f.cancellationId)).toEqual(["c-1", "c-2"]);
+    expect(memory.claims).toHaveLength(2);
+    expect(memory.closed).toEqual([]);
+    expect(delivered).toEqual(["a-1"]);
+  });
+
+  it("gives the worker's Stripe client a short limit per call and no retries of its own", async () => {
+    expect(STRIPE_WORKER_LIMITS.timeoutMs * 5).toBeLessThanOrEqual(STRIPE_WORKER_BUDGET_MS);
+    const env = readBillingEnv({ STRIPE_SECRET_KEY: "sk_test_abcdefghij" });
+    const limited = (await createStripeClient(env, undefined, STRIPE_WORKER_LIMITS)) as unknown as {
+      getApiField: (key: string) => unknown;
+      getMaxNetworkRetries: () => number;
+    };
+    expect(limited.getApiField("timeout")).toBe(STRIPE_WORKER_LIMITS.timeoutMs);
+    expect(limited.getMaxNetworkRetries()).toBe(0);
+    const plain = (await createStripeClient(env)) as unknown as {
+      getMaxNetworkRetries: () => number;
+    };
+    expect(plain.getMaxNetworkRetries()).toBe(2);
   });
 
   it("expires Checkout sessions on an org that is ending, and leaves one just paid to reconciliation", async () => {
@@ -620,6 +698,67 @@ describe("handleStripeWebhook reconciliation", () => {
       }),
     );
     expect(m.log[2]).toBe("terms:none:null:null");
+  });
+
+  it("notes what a subscriber in another currency pays, not the price's default currency", async () => {
+    const plan = registry.plans.find((p) => p.stripe !== null);
+    const seat = plan?.extraSeat;
+    const item = (fields: Record<string, unknown>) => ({
+      id: "si_1",
+      quantity: 1,
+      current_period_end: 1,
+      ...fields,
+    });
+    const usdPrice = {
+      lookup_key: plan?.stripe?.monthlyPriceLookupKey,
+      unit_amount: plan?.prices.USD.monthlyMinor,
+      currency: "usd",
+    };
+    const book = memory({});
+    await deliver(
+      book.store,
+      "customer.subscription.updated",
+      subscription({
+        currency: "eur",
+        items: {
+          data: [
+            item({ price: usdPrice }),
+            item({
+              quantity: 2,
+              price: {
+                lookup_key: seat?.monthlyPriceLookupKey,
+                unit_amount: seat?.prices.USD.monthlyMinor,
+                currency: "usd",
+              },
+            }),
+          ],
+        },
+      }),
+    );
+    const total =
+      (plan?.prices.EUR.monthlyMinor ?? 0) + 2 * (seat?.prices.EUR.monthlyMinor ?? 0);
+    expect(book.log[2]).toBe(`terms:none:${String(total)}:eur`);
+
+    const expanded = memory({});
+    await deliver(
+      expanded.store,
+      "customer.subscription.updated",
+      subscription({
+        currency: "gbp",
+        items: {
+          data: [item({ price: { ...usdPrice, currency_options: { gbp: { unit_amount: 777 } } } })],
+        },
+      }),
+    );
+    expect(expanded.log[2]).toBe("terms:none:777:gbp");
+
+    const unknown = memory({});
+    await deliver(
+      unknown.store,
+      "customer.subscription.updated",
+      subscription({ currency: "jpy", items: { data: [item({ price: usdPrice })] } }),
+    );
+    expect(unknown.log[2]).toBe("terms:none:null:jpy");
   });
 
   it("reconciles a subscription of any price, and then ignores one that sells no plan", async () => {

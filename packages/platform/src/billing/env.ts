@@ -110,6 +110,14 @@ export function stripeHost(
   return { host: url.hostname, port: url.port, protocol: "http" };
 }
 
+/** A caller that cannot wait on Stripe sets these; left out, the SDK waits 80 seconds a try. */
+export interface StripeClientLimits {
+  /** How long one try may take before it counts as failed. */
+  readonly timeoutMs: number;
+  /** How many times the SDK itself retries a failed call. */
+  readonly maxNetworkRetries: number;
+}
+
 /**
  * Creates the Stripe client from the environment, using the fetch HTTP client so the same code runs
  * in Node and in the Deno Edge runtime. The SDK loads only here, when a request needs Stripe, so a
@@ -118,13 +126,15 @@ export function stripeHost(
 export async function createStripeClient(
   env: BillingEnv,
   make?: (key: string) => StripeClient,
+  limits?: StripeClientLimits,
 ): Promise<StripeClient> {
   if (env.STRIPE_SECRET_KEY === undefined) throw new BillingNotConfiguredError("STRIPE_SECRET_KEY");
   if (make !== undefined) return make(env.STRIPE_SECRET_KEY);
   const { default: StripeSdk } = await import("stripe");
   return new StripeSdk(env.STRIPE_SECRET_KEY, {
     httpClient: StripeSdk.createFetchHttpClient(),
-    maxNetworkRetries: 2,
+    maxNetworkRetries: limits?.maxNetworkRetries ?? 2,
+    ...(limits === undefined ? {} : { timeout: limits.timeoutMs }),
     ...stripeHost(env),
   });
 }

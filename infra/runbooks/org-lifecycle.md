@@ -57,7 +57,8 @@ provider.
 
 The worker also sends each Stripe cancel that is due, retrying until Stripe accepts it (ADR 0161, migration 6140), and
 closes Checkout sessions on orgs that are ending. It does this first, because an org cannot finish deletion until its cancel
-is accepted. To see what is waiting: `select cancellation_state, attempts, last_error, next_attempt_at from
+is accepted, and it spends at most about a minute on it, so a Stripe that hangs leaves certificates and domains their time.
+To see what is waiting: `select cancellation_state, attempts, last_error, next_attempt_at from
 private.stripe_cancellations where cancellation_state = 'Queued';` and `select alert_kind, detail from private.billing_alerts
 where resolved_at is null;`. Secrets and owner steps are in `production.md`, section "Stopping Stripe".
 

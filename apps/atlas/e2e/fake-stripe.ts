@@ -38,6 +38,8 @@ interface FakeSession {
   trialEnd: number | null;
   /** The renewal terms Checkout repeats above its pay button (ADR 0161). */
   renewalMessage: string | null;
+  /** The currency Checkout was told to charge. */
+  currency: string;
   lineItems: { price: string; quantity: number }[];
   successUrl: string;
   cancelUrl: string;
@@ -48,6 +50,7 @@ interface FakeSubscription {
   id: string;
   object: "subscription";
   customer: string;
+  currency: string;
   status: string;
   cancel_at_period_end: boolean;
   cancel_at: number | null;
@@ -187,6 +190,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
       id: subscription,
       object: "subscription",
       customer,
+      currency: session.currency,
       status: session.trialEnd === null ? "active" : "trialing",
       cancel_at_period_end: false,
       cancel_at: null,
@@ -279,6 +283,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
         customerEmail: form.get("customer_email"),
         trialEnd: trialEnd === null ? null : Number(trialEnd),
         renewalMessage,
+        currency: form.get("currency") ?? "usd",
         lineItems,
         successUrl: form.get("success_url") ?? "",
         cancelUrl: form.get("cancel_url") ?? "",

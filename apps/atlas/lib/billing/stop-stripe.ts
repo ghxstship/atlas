@@ -8,6 +8,9 @@ import { observability } from "@/lib/observability";
 /** How long a person waits on Stripe before the page answers; the worker carries on regardless. */
 const WAIT_MS = 8_000;
 
+/** How long a page waits to read what Stripe says about a cancel. */
+const READ_MS = 3_000;
+
 /**
  * Asks Stripe to stop now, for the person waiting (ADR 0161). The cancel is already queued in the database and the
  * org-lifecycle worker retries it until Stripe accepts it, so a failure here loses nothing, and nothing is recorded from
@@ -21,7 +24,10 @@ export async function askStripeToStopNow(db: XosClient, orgId: string): Promise<
   const queued = cancellations.data.filter((c) => c.state === "Queued");
   if (queued.length === 0) return;
   try {
-    const stripe = await createStripeClient(billing);
+    const stripe = await createStripeClient(billing, undefined, {
+      timeoutMs: WAIT_MS,
+      maxNetworkRetries: 0,
+    });
     const sends = Promise.all(
       queued.map((c) =>
         sendStripeCancel(stripe, {
@@ -49,7 +55,10 @@ export async function stripeHasStopped(
   const billing = atlasBillingEnv();
   if (!billingConfigured(billing)) return false;
   try {
-    const stripe = await createStripeClient(billing);
+    const stripe = await createStripeClient(billing, undefined, {
+      timeoutMs: READ_MS,
+      maxNetworkRetries: 0,
+    });
     const read = stripe.subscriptions
       .retrieve(stripeSubscriptionId)
       .then((subscription) =>
@@ -57,7 +66,7 @@ export async function stripeHasStopped(
           ? subscription.status === "canceled"
           : subscription.cancel_at_period_end || subscription.cancel_at !== null,
       );
-    const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3_000));
+    const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), READ_MS));
     return await Promise.race([read, timeout]);
   } catch {
     return false;

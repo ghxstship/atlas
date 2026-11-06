@@ -26,7 +26,7 @@ import {
   checkoutAccountStore,
   pauseAccountStore,
 } from "@/lib/billing/stripe";
-import { renewalWording } from "@/lib/billing/renewal-terms";
+import { CHECKOUT_CURRENCY, renewalWording } from "@/lib/billing/renewal-terms";
 import { askStripeToStopNow } from "@/lib/billing/stop-stripe";
 import { env } from "@/lib/env";
 import { contextFor } from "@/lib/platform/action-context";
@@ -120,6 +120,7 @@ export async function startCheckoutAction(
           const terms = word({
             planCode: parsed.data.plan,
             interval: parsed.data.interval,
+            currency: CHECKOUT_CURRENCY,
             trialEndsAt,
             zone,
           });
@@ -127,7 +128,7 @@ export async function startCheckoutAction(
           if (terms.hash !== parsed.data.hash) throw new RenewalTermsChangedError();
           return {
             amountMinor: terms.amountMinor,
-            currency: "USD",
+            currency: terms.currency,
             nextChargeOn: terms.nextChargeOn,
             textVersion: RENEWAL_TERMS_VERSION,
             locale,

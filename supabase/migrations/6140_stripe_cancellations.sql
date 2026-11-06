@@ -14,7 +14,9 @@
 --     org, on an org being canceled or deleted, or after an accepted cancel, never creates a subscription again: it is
 --     queued for cancel and raises a billing alert.
 --   * private.billing_alerts: what the platform owner must look at. The worker emails each one and logs it for Sentry, and
---     the console lists the open ones. It also survives the purge.
+--     the console lists the open ones. It also survives the purge. A subscription Stripe called live on a deleted or canceled
+--     org asks a person to look for a charge, so that alert stays open until an operator closes it, even after Stripe
+--     accepts the cancel. Only a delay and a waiting deletion clear themselves.
 --   * app.request_plan_end: ending a paid plan from Billing and Plan, online and with no second factor, as easy as buying.
 --     It sets cancel_at_period_end, and the plan runs to the end of the period paid for.
 -- Refunds follow Terms 5.10: no refund for unused time unless the law requires it. Nothing here refunds; a charge that
@@ -25,8 +27,8 @@
 create type app.stripe_cancel_mode as enum ('Immediately', 'At Period End');
 comment on type app.stripe_cancel_mode is 'How a Stripe subscription is stopped: at once with no proration, when the org is canceled or deleted; or at the end of the period paid for, when the Owner ends a paid plan.';
 
-create type app.stripe_cancel_source as enum ('Organization Canceled', 'Organization Deleted', 'Plan Ended', 'Stripe Portal', 'Reconciliation');
-comment on type app.stripe_cancel_source is 'Why XOS asked Stripe to stop: the org was canceled, the org is being deleted, the Owner ended the plan in Billing and Plan, the Owner did so in the Stripe portal (recorded from the webhook), or reconciliation found a subscription Stripe still calls live, or that ended in Stripe without XOS asking.';
+create type app.stripe_cancel_source as enum ('Organization Canceled', 'Organization Deleted', 'Plan Ended', 'Stripe Portal', 'Reconciliation', 'Ended In Stripe');
+comment on type app.stripe_cancel_source is 'Why this cancel is on record: the org was canceled, the org is being deleted, the Owner ended the plan in Billing and Plan, the Owner did so in the Stripe portal (recorded from the webhook), reconciliation found a subscription Stripe still calls live, or the subscription ended in Stripe without anyone asking XOS, such as after failed retries or in the Dashboard. The last sends the customer no cancellation notice, since they did not cancel.';
 
 create type app.stripe_cancellation_state as enum ('Queued', 'Accepted', 'Withdrawn');
 comment on type app.stripe_cancellation_state is 'Where a Stripe cancel stands: Queued until Stripe accepts it, Accepted once it did, Withdrawn when the customer undid a cancel at period end in the Stripe portal.';
@@ -201,7 +203,7 @@ create table private.billing_alerts (
 create unique index billing_alerts_open_key on private.billing_alerts (dedupe_key) where resolved_at is null;
 create index billing_alerts_unsent_idx on private.billing_alerts (raised_at) where sent_at is null and resolved_at is null;
 
-call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0161): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Open alerts are unique by dedupe_key, and a repeat counts up. Survives the tenant purge.', array[
+call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0161): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Open alerts are unique by dedupe_key, and a repeat counts up. A delay and a waiting deletion clear when Stripe accepts; the others ask a person to check for or refund a charge, and stay open until an operator closes them. Survives the tenant purge.', array[
   'id', 'Alert id.',
   'alert_kind', 'cancel_delayed, active_on_deleted_org, active_after_cancel, charged_after_cancel or deletion_blocked.',
   'dedupe_key', 'What makes it the same alert: its kind and its subscription, org or invoice.',
@@ -212,7 +214,7 @@ call private.describe('private.billing_alerts', 'What the platform owner must lo
   'last_seen_at', 'When it was last raised again.',
   'occurrences', 'How many times it has been raised.',
   'sent_at', 'When the worker emailed it to the platform owner.',
-  'resolved_at', 'When the cause cleared, or the owner closed it.'
+  'resolved_at', 'When a delay or a waiting deletion cleared, or an operator closed the alert.'
 ]);
 
 alter table private.billing_alerts enable row level security;
@@ -420,14 +422,16 @@ begin
   end if;
   insert into private.stripe_cancellation_attempts (cancellation_id, via, accepted, reported_status)
   values (v_row.id, p_via, true, left(p_status, 100));
+  -- Only the delay is over. A subscription that was live on a deleted or canceled org may have charged, so that alert waits
+  -- for a person, however fast Stripe accepted the cancel.
   update private.billing_alerts a set resolved_at = now()
-  where a.resolved_at is null and a.stripe_subscription_id = v_row.stripe_subscription_id
-    and a.alert_kind in ('cancel_delayed', 'active_on_deleted_org', 'active_after_cancel');
+  where a.resolved_at is null and a.stripe_subscription_id = v_row.stripe_subscription_id and a.alert_kind = 'cancel_delayed';
   if not private.org_stripe_cancel_open(v_row.subject_org_id) then
     update private.billing_alerts a set resolved_at = now()
     where a.resolved_at is null and a.subject_org_id = v_row.subject_org_id and a.alert_kind = 'deletion_blocked';
   end if;
-  if v_row.confirmation_notified_at is not null then
+  -- Nobody canceled a subscription that ended in Stripe on its own, so nobody is told they did.
+  if v_row.confirmation_notified_at is not null or v_row.source = 'Ended In Stripe' then
     return;
   end if;
   update private.stripe_cancellations c set confirmation_notified_at = now() where c.id = v_row.id;
@@ -442,7 +446,7 @@ begin
 end;
 $$;
 
-comment on function private.accept_stripe_cancellation(uuid, text, text) is 'Records that Stripe accepted a queued cancel: the attempt, the alerts it clears, and once, the confirmation to the billing owners (billing.cancellation_confirmed for an immediate cancel, billing.plan_ending for one at period end). Does nothing for a cancel that is not queued.';
+comment on function private.accept_stripe_cancellation(uuid, text, text) is 'Records that Stripe accepted a queued cancel: the attempt, the cancel_delayed and deletion_blocked alerts it clears, and once, the confirmation to the billing owners (billing.cancellation_confirmed for an immediate cancel, billing.plan_ending for one at period end; none for a subscription that ended in Stripe on its own). Leaves an alert about a live subscription or a charge open for an operator. Does nothing for a cancel that is not queued.';
 revoke all on function private.accept_stripe_cancellation(uuid, text, text) from public, anon, authenticated;
 
 -- Every way an org ends queues the cancel ----------------------------------------------------------------------------
@@ -841,16 +845,15 @@ begin
   if v_ended then
     update app.stripe_subscription_links l set stripe_ended_at = coalesce(l.stripe_ended_at, v_event), cancel_at = null
     where l.stripe_subscription_id = p_stripe_subscription_id;
-    -- Ended in Stripe with nothing asked of XOS, such as in the Dashboard or after failed retries: still confirmed.
+    -- Ended in Stripe with nothing asked of XOS, such as in the Dashboard or after failed retries: recorded, not confirmed.
     if v_exists and not exists (select 1 from private.stripe_cancellations c where c.stripe_subscription_id = p_stripe_subscription_id) then
-      v_id := private.queue_stripe_cancellation(p_org_id, p_stripe_subscription_id, p_stripe_customer_id, coalesce(p_livemode, false), 'Immediately', 'Reconciliation', null);
+      v_id := private.queue_stripe_cancellation(p_org_id, p_stripe_subscription_id, p_stripe_customer_id, coalesce(p_livemode, false), 'Immediately', 'Ended In Stripe', null);
     end if;
     perform private.accept_stripe_cancellation(c.id, p_stripe_status, 'Webhook')
     from private.stripe_cancellations c
     where c.stripe_subscription_id = p_stripe_subscription_id and c.cancellation_state = 'Queued';
     update private.billing_alerts a set resolved_at = now()
-    where a.resolved_at is null and a.stripe_subscription_id = p_stripe_subscription_id
-      and a.alert_kind in ('cancel_delayed', 'active_on_deleted_org', 'active_after_cancel');
+    where a.resolved_at is null and a.stripe_subscription_id = p_stripe_subscription_id and a.alert_kind = 'cancel_delayed';
     return case when v_exists and v_reason is distinct from 'canceled' and v_reason is distinct from 'deletion' then 'proceed' else 'ended' end;
   end if;
 
@@ -878,16 +881,16 @@ begin
   end if;
   if not v_exists then
     perform private.raise_billing_alert('active_on_deleted_org', 'active_on_deleted_org:' || p_stripe_subscription_id, p_org_id, p_stripe_subscription_id,
-      format('Stripe says %s is %s, but org %s has been deleted. Its cancel is queued. Check that the customer was not charged.', p_stripe_subscription_id, p_stripe_status, p_org_id));
+      format('Stripe says %s is %s, but org %s has been deleted. Its cancel is queued. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   elsif v_row.id is null or v_row.cancellation_state = 'Accepted' then
     perform private.raise_billing_alert('active_after_cancel', 'active_after_cancel:' || p_stripe_subscription_id, p_org_id, p_stripe_subscription_id,
-      format('Stripe says %s is %s after org %s was canceled or its cancel accepted. The cancel is queued again. Check that the customer was not charged.', p_stripe_subscription_id, p_stripe_status, p_org_id));
+      format('Stripe says %s is %s after org %s was canceled or its cancel accepted. The cancel is queued again. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   end if;
   return 'queued';
 end;
 $$;
 
-comment on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) is 'Stripe webhook API (service role), before the subscription sync. A subscription that ended settles its cancels and returns proceed for a live org, so the sync moves it to Access, or ended for one that is ending or gone. A live subscription returns proceed for a live org XOS never asked to stop. On a purged org, an org being canceled or deleted, or a subscription whose immediate cancel was accepted more than 10 minutes before the event, it queues the cancel, raises an alert and returns queued, so no subscription is created again. An event from before that acceptance returns stale.';
+comment on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) is 'Stripe webhook API (service role), before the subscription sync. A subscription that ended settles its cancels and returns proceed for a live org, so the sync moves it to Access, or ended for one that is ending or gone. One that ended with nothing asked of XOS is recorded as Ended In Stripe, with no notice to the customer. A live subscription returns proceed for a live org XOS never asked to stop. On a purged org, an org being canceled or deleted, or a subscription whose immediate cancel was accepted more than 10 minutes before the event, it queues the cancel, raises an alert and returns queued, so no subscription is created again. An event from before that acceptance returns stale.';
 revoke all on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) from public, anon, authenticated;
 grant execute on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) to service_role;
 
@@ -979,16 +982,22 @@ grant execute on function app.note_stripe_charge(text, text, bigint, text, text,
 
 -- What is already out there --------------------------------------------------------------------------------------------
 
--- A subscription already ended by the sync is ended; one on an org already canceled or deleting gets its cancel queued now.
-update app.stripe_subscription_links l set stripe_ended_at = l.updated_at
-from app.subscriptions s
-where s.id = l.subscription_id and s.subscription_state = 'canceled'
-  and not exists (select 1 from app.org_cancellations c where c.org_id = l.org_id and c.reactivated_at is null and c.deleted_at is null)
-  and not exists (select 1 from app.org_deletion_requests r where r.org_id = l.org_id and r.recovered_at is null and r.deleted_at is null);
-
-select private.queue_org_stripe_cancellations(o.org_id, 'Reconciliation', null)
+-- Only Stripe's own event says a subscription ended. A canceled row in XOS does not: an org canceled under the old code and
+-- later reactivated has one, and its Stripe subscription was never stopped. Every other link on an org that is ending, or
+-- whose subscription XOS calls canceled, gets its cancel queued, and Stripe answers: a subscription it no longer has counts
+-- as accepted. Decision 59 means production has none of these today.
+update app.stripe_subscription_links l set stripe_ended_at = e.ended_at
 from (
-  select c.org_id from app.org_cancellations c where c.reactivated_at is null and c.deleted_at is null
-  union
-  select r.org_id from app.org_deletion_requests r where r.recovered_at is null and r.deleted_at is null
-) o;
+  select e.payload -> 'data' -> 'object' ->> 'id' as stripe_subscription_id, max(e.stripe_created_at) as ended_at
+  from app.stripe_events e
+  where e.event_type = 'customer.subscription.deleted'
+  group by 1
+) e
+where e.stripe_subscription_id = l.stripe_subscription_id;
+
+select private.queue_stripe_cancellation(l.org_id, l.stripe_subscription_id, l.stripe_customer_id, l.livemode, 'Immediately', 'Reconciliation', null)
+from app.stripe_subscription_links l
+where l.stripe_ended_at is null and l.deleted_at is null and (
+  exists (select 1 from app.subscriptions s where s.id = l.subscription_id and s.subscription_state = 'canceled')
+  or exists (select 1 from app.org_cancellations c where c.org_id = l.org_id and c.reactivated_at is null and c.deleted_at is null)
+  or exists (select 1 from app.org_deletion_requests r where r.org_id = l.org_id and r.recovered_at is null and r.deleted_at is null));

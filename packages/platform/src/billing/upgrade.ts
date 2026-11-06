@@ -152,6 +152,7 @@ export async function startPlanCheckout(
     ...(account.trialEndsAt === null ? {} : { trialEnd: account.trialEndsAt }),
     successUrl: request.successUrl,
     cancelUrl: request.cancelUrl,
+    currency: consent.currency,
     renewalMessage: consent.statement,
     ...(request.now === undefined ? {} : { now: request.now }),
   });

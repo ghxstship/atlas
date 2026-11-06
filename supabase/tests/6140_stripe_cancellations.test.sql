@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(75);
+select plan(79);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -161,10 +161,16 @@ select ok(exists (select 1 from private.billing_alerts where alert_kind = 'activ
 select pg_temp.as_service();
 select is(app.reconcile_stripe_subscription(pg_temp.id('org_a'), 'cus_N0rth', 'sub_N0rth', 'canceled', false, now() + interval '12 minutes'), 'ended', 'once it ends');
 select pg_temp.as_platform();
-select ok(not exists (select 1 from private.billing_alerts where stripe_subscription_id = 'sub_N0rth' and resolved_at is null and alert_kind = 'active_after_cancel'), 'the alert clears');
+select ok(exists (select 1 from private.billing_alerts where stripe_subscription_id = 'sub_N0rth' and resolved_at is null and alert_kind = 'active_after_cancel'), 'the alert stays open, since it may have charged, until a person closes it');
 select is(pg_temp.notices('billing.cancellation_confirmed', 'org_a'), 1, 'and the owners are not told a second time');
 select pg_temp.as_service();
 select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_T1d3', 'active', false, now()), 'proceed', 'an ordinary subscription on a live org goes to the sync');
+-- A subscription that ended in Stripe on its own, such as after failed retries: on record, and nobody is told they canceled.
+select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Unasked', 'canceled', false, now()), 'proceed', 'a subscription that ended unasked goes on to the sync');
+select pg_temp.as_platform();
+select results_eq($$select cancellation_state::text, source::text from private.stripe_cancellations where stripe_subscription_id = 'sub_Unasked'$$,
+  $$values ('Accepted'::text, 'Ended In Stripe'::text)$$, 'it is on record as having ended in Stripe');
+select is(pg_temp.notices('billing.cancellation_confirmed', 'org_c'), 0, 'and the customer is not told they canceled');
 
 -- The deletion gate ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user_stepped_up('xavier');
@@ -206,13 +212,16 @@ select is(app.reconcile_stripe_subscription('00000000-0000-4000-8000-00000000dea
 select pg_temp.as_platform();
 select ok(exists (select 1 from private.billing_alerts where alert_kind = 'active_on_deleted_org' and stripe_subscription_id = 'sub_G0ne' and resolved_at is null), 'and raises an alert');
 select pg_temp.as_service();
+-- The normal case: Stripe accepts the cancel on the worker's next run, before anyone has been told. The alert must survive it.
+select is(app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', false, 10) where stripe_subscription_id = 'sub_G0ne'), true, 'canceled')::text,
+  'Accepted', 'Stripe accepts the cancel before the alert was sent');
 select results_eq($$select alert_kind from app.billing_alerts_to_send(50) where stripe_subscription_id = 'sub_G0ne'$$,
-  $$values ('active_on_deleted_org'::text)$$, 'which the worker sends to the platform owner');
+  $$values ('active_on_deleted_org'::text)$$, 'and the alert still goes to the platform owner');
 select app.mark_billing_alert_sent((select alert_id from app.billing_alerts_to_send(50) where stripe_subscription_id = 'sub_G0ne'));
 select is((select count(*)::integer from app.billing_alerts_to_send(50) where stripe_subscription_id = 'sub_G0ne'), 0, 'once');
 select is(app.reconcile_stripe_subscription('00000000-0000-4000-8000-00000000dead', 'cus_G0ne', 'sub_G0ne', 'canceled', false, now()), 'ended', 'and when it ends');
 select pg_temp.as_platform();
-select ok(not exists (select 1 from private.billing_alerts where stripe_subscription_id = 'sub_G0ne' and resolved_at is null), 'the alert clears');
+select ok(exists (select 1 from private.billing_alerts where stripe_subscription_id = 'sub_G0ne' and resolved_at is null), 'it stays open until someone has looked for a charge');
 
 -- A charge after a cancel ------------------------------------------------------------------------------------------------
 select pg_temp.as_service();

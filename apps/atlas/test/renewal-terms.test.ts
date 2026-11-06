@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
  */
 const PINNED = {
   version: "2026-11-06",
-  sha256: "b65cbbe17d7e822bdd7deeccb4ed0e68bafbee0ca13580b2a36fb162fbb6eecf",
+  sha256: "bc60855a67ae6a71decbf85b5880e60c80c618d1d34318dd0c3b977866882912",
 };
 
 function renewal(locale: "en-US" | "es-US") {
@@ -47,9 +47,12 @@ describe("the renewal terms", () => {
     for (const locale of ["en-US", "es-US"] as const) {
       const r = renewal(locale);
       for (const statement of [r.statementMonthly, r.statementAnnual]) {
-        for (const field of ["{plan}", "{price}", "{date}"]) expect(statement).toContain(field);
+        for (const field of ["{plan}", "{price}", "{currency}", "{date}"]) expect(statement).toContain(field);
       }
     }
+    // Checkout is told the currency, so no statement hedges that another may apply.
+    expect(renewal("en-US").statementMonthly).not.toContain("another currency");
+    expect(renewal("es-US").statementMonthly).not.toContain("otra moneda");
     expect(renewal("en-US").statementMonthly).toContain("End plan");
     expect(renewal("es-US").statementMonthly).toContain("Terminar plan");
     expect(renewal("en-US").statementAnnual).toContain("30 days before each renewal");

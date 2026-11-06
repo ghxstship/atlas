@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(29);
+select plan(38);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -70,6 +70,38 @@ select pg_temp.as_service();
 select app.finish_billing_checkout_from_stripe('cs_live_W1thConsent', 'Completed');
 select pg_temp.as_platform();
 select is((select count(*)::integer from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n')), 1, 'once');
+select is((select (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n')),
+  private.org_day_mark(pg_temp.id('org_n'), private.org_date(pg_temp.id('org_n'), ((now() at time zone 'UTC') + interval '1 month') at time zone 'UTC')),
+  'charged at purchase, the next charge is a term on, never the day just charged');
+
+-- The currency Checkout charges, a carried trial, and what Stripe has already said ---------------------------------------
+select pg_temp.as_user('nina');
+select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'EUR', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
+  'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'the price must be the plan''s in that currency');
+select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'XXX', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
+  'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'and a currency the price book does not have is refused');
+insert into world values ('consent_trial', app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Annual', 139000, 'eur', (now() at time zone 'UTC')::date + 10, '2026-11-06', 'en-US', 'Core renews every year.', 'NL', true));
+select pg_temp.as_platform();
+select is((select currency_code from private.billing_renewal_consents where id = pg_temp.id('consent_trial')), 'EUR', 'the consent records the currency agreed to');
+select pg_temp.as_user_stepped_up('nina');
+select app.record_billing_checkout(pg_temp.id('org_n'), 'core', 'Annual', 'cs_live_Tr1al', true, now() + interval '1 hour');
+select pg_temp.as_service();
+select app.finish_billing_checkout_from_stripe('cs_live_Tr1al', 'Completed');
+select pg_temp.as_platform();
+select results_eq($$select message_args ->> 'price', (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n') and message_args ->> 'term' = 'Annual'$$,
+  $$values ('1,390.00 EUR'::text, private.org_day_mark(pg_temp.id('org_n'), (now() at time zone 'UTC')::date + 10))$$,
+  'with a carried trial the next charge is when it ends, in the currency agreed to');
+select pg_temp.as_user('nina');
+select app.record_renewal_consent(pg_temp.id('org_n'), 'pro', 'Monthly', 39900, 'USD', (now() at time zone 'UTC')::date, '2026-11-06', 'en-US', 'Pro renews every month.', '', true);
+select pg_temp.as_user_stepped_up('nina');
+select app.record_billing_checkout(pg_temp.id('org_n'), 'pro', 'Monthly', 'cs_live_Sync3d', true, now() + interval '1 hour');
+select pg_temp.as_service();
+select app.sync_subscription_from_stripe(pg_temp.id('org_n'), 'cus_N1na', 'sub_N1na', 'pro', 'Monthly', 'active', now() + interval '20 days', true);
+select app.finish_billing_checkout_from_stripe('cs_live_Sync3d', 'Completed');
+select pg_temp.as_platform();
+select is((select (message_args ->> 'nextChargeOn')::bigint from app.notifications where kind = 'billing.purchase_confirmed' and org_id = pg_temp.id('org_n') and message_args ->> 'plan' = 'Pro'),
+  private.org_day_mark(pg_temp.id('org_n'), private.org_date(pg_temp.id('org_n'), now() + interval '20 days')),
+  'and once its subscription has synced, the date Stripe gave');
 
 -- Before an annual renewal -------------------------------------------------------------------------------------------------
 select pg_temp.as_service();
@@ -77,20 +109,35 @@ select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb', 'sub_H
 select app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rth', 'sub_N0rth', 'team', 'Monthly', 'active', now() + interval '200 days', false);
 select app.sync_subscription_from_stripe(pg_temp.id('org_p'), 'cus_Blu3', 'sub_Blu3', 'team', 'Annual', 'active', now() + interval '20 days', false);
 select app.note_stripe_subscription_terms('sub_H4rb', null, 149000, 'usd', now());
+select app.sync_subscription_from_stripe(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Eur0', 'team', 'Annual', 'active', now() + interval '200 days', false);
+select app.note_stripe_subscription_terms('sub_Eur0', null, null, 'eur', now());
 select pg_temp.as_platform();
 select is(private.run_billing_renewal_reminders(now()), 0, 'a subscription bought within the month has its purchase confirmation, and one a long way off waits');
 select is(private.run_billing_renewal_reminders(now() + interval '169 days'), 0, 'more than 30 days before a renewal nothing is sent');
-select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 1, 'only the annual plan is reminded, 30 days ahead');
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 2, 'only the annual plans are reminded, 30 days ahead');
 select results_eq($$select message_args ->> 'plan', message_args ->> 'price', (message_args ->> 'renewsOn') is not null from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_b') limit 1$$,
   $$values ('Team'::text, '1,490.00 USD'::text, true)$$, 'with the plan, the amount Stripe charges and the date');
+select is((select message_args ->> 'price' from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_c') limit 1), '8,290.00 EUR', 'and a price Stripe did not state comes from the book, in the subscription''s own currency');
 select is((select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_a')), 0, 'never a monthly plan');
 select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'and once per term');
 select ok(exists (select 1 from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb' and amount_text = '1,490.00 USD'), 'with proof of notice');
-delete from private.billing_renewal_reminders;
+delete from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb';
 select pg_temp.as_service();
 select app.note_stripe_subscription_terms('sub_H4rb', now() + interval '200 days', null, null, now() + interval '1 minute');
 select pg_temp.as_platform();
 select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'a plan already ending gets no reminder');
+select pg_temp.as_service();
+select app.note_stripe_subscription_terms('sub_H4rb', null, null, null, now() + interval '2 minutes');
+select pg_temp.as_platform();
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 1, 'keeping the plan in the portal brings the reminder back');
+delete from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb';
+-- The worker can record that Stripe accepted the end of a plan before the webhook sets its date.
+select pg_temp.as_user('xavier');
+select * from app.request_plan_end(pg_temp.id('org_b'), false);
+select pg_temp.as_service();
+select app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', false, 10)), true, 'active');
+select pg_temp.as_platform();
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'so a cancel Stripe accepted stops the reminder before that date is known');
 
 -- Retention -----------------------------------------------------------------------------------------------------------
 select is(private.run_billing_evidence_retention(now() + interval '6 years'), 0, 'evidence is kept for 7 years');

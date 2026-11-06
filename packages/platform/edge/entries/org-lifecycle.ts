@@ -12,5 +12,9 @@ export {
 export { lazyResendClient, readEmailEnv } from "@xos/email/env";
 export { recipientAllowed } from "@xos/email/transport";
 export { billingLivemode, createStripeClient, readBillingEnv } from "../../src/billing/env.ts";
-export { runStripeCancellations, type BillingAlert } from "../../src/billing/cancel.ts";
+export {
+  runStripeCancellations,
+  STRIPE_WORKER_LIMITS,
+  type BillingAlert,
+} from "../../src/billing/cancel.ts";
 export { stripeCancellationStore } from "../../src/stores.ts";

@@ -147,7 +147,9 @@ test("when Stripe is unreachable the org is canceled, the page tells the truth, 
 
     const notice = page.getByTestId("stripe-cancellation").first();
     await expect(notice).toContainText("Cancellation not confirmed yet");
+    await expect(notice).toContainText("We have your cancellation and are sending it to Stripe");
     await expect(notice).not.toContainText("Stripe has accepted");
+    await expect(notice).not.toContainText("We sent");
     expect(stripe.subscriptions.get(subscription.id)?.status).not.toBe("canceled");
 
     // The worker fails too: still not confirmed, and now the owners are told by email as well.

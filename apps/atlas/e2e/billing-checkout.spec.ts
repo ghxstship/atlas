@@ -94,7 +94,7 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
   const before = stripe.requests.length;
   await page.getByRole("link", { name: "Choose Core" }).click();
   const statement = page.getByTestId("renewal-statement");
-  await expect(statement).toContainText("Core renews automatically every month at $149");
+  await expect(statement).toContainText("Core renews automatically every month at $149 USD a month");
   await expect(statement).toContainText("choose End plan in Settings, Billing and Plan");
   const agree = page.getByRole("checkbox", { name: /I agree to these renewal terms/ });
   await expect(agree).not.toBeChecked();

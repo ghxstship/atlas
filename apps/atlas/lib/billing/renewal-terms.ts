@@ -2,9 +2,10 @@ import "server-only";
 import { dateIn } from "@xos/data/calendar";
 import type { BillingInterval } from "@xos/data/billing";
 import { firstChargeOn, stripeTrialEnd } from "@xos/platform/billing";
+import type { PlanPrice } from "@xos/schemas/plans";
 import { createHash } from "node:crypto";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { PLANS } from "@/lib/plans.generated";
+import { PLAN_REGISTRY } from "@/lib/billing/plan-registry.generated";
 
 /**
  * The renewal terms of a paid plan (ADR 0161): the one statement the Owner sees before Checkout, agrees to, and has
@@ -14,6 +15,8 @@ import { PLANS } from "@/lib/plans.generated";
 export interface RenewalTerms {
   readonly planCode: string;
   readonly interval: BillingInterval;
+  /** The currency Checkout is told to charge, and the one the statement quotes. */
+  readonly currency: string;
   readonly amountMinor: number;
   readonly price: string;
   readonly nextChargeOn: string;
@@ -24,10 +27,17 @@ export interface RenewalTerms {
 export type RenewalWording = (input: {
   readonly planCode: string;
   readonly interval: BillingInterval;
+  readonly currency: string;
   readonly trialEndsAt: string | null;
   readonly zone: string | null;
   readonly now?: Date;
 }) => RenewalTerms | null;
+
+/**
+ * The currency Billing and Plan quotes and Checkout charges. Both read this, and Checkout is told to use it, so what an Owner
+ * agrees to and what Stripe charges cannot differ.
+ */
+export const CHECKOUT_CURRENCY = "USD";
 
 /** The wording function in the person's language. Null for a plan sold by quote or free. */
 export async function renewalWording(): Promise<RenewalWording> {
@@ -35,13 +45,15 @@ export async function renewalWording(): Promise<RenewalWording> {
     getTranslations("shell.settings.billing.renewal"),
     getFormatter(),
   ]);
-  return ({ planCode, interval, trialEndsAt, zone, now = new Date() }) => {
-    const plan = PLANS.find((p) => p.code === planCode);
-    const amountMinor = interval === "Annual" ? plan?.usdAnnualMinor : plan?.usdMonthlyMinor;
-    if (!plan?.selfServe || amountMinor === null || amountMinor === undefined) return null;
+  return ({ planCode, interval, currency, trialEndsAt, zone, now = new Date() }) => {
+    const plan = PLAN_REGISTRY.plans.find((p) => p.code === planCode);
+    if (plan === undefined || plan.stripe === null) return null;
+    const list = (plan.prices as Readonly<Record<string, PlanPrice | undefined>>)[currency];
+    const amountMinor = interval === "Annual" ? list?.annualMinor : list?.monthlyMinor;
+    if (amountMinor === null || amountMinor === undefined) return null;
     const price = format.number(amountMinor / 100, {
       style: "currency",
-      currency: "USD",
+      currency,
       maximumFractionDigits: amountMinor % 100 === 0 ? 0 : 2,
     });
     const nextChargeOn = firstChargeOn(
@@ -52,6 +64,7 @@ export async function renewalWording(): Promise<RenewalWording> {
     const values = {
       plan: t(`planNames.${plan.code}` as never),
       price,
+      currency,
       date: format.dateTime(new Date(`${nextChargeOn}T12:00:00Z`), {
         dateStyle: "long",
         timeZone: "UTC",
@@ -62,6 +75,7 @@ export async function renewalWording(): Promise<RenewalWording> {
     return {
       planCode,
       interval,
+      currency,
       amountMinor,
       price,
       nextChargeOn,

@@ -14,7 +14,7 @@ import {
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
-import { renewalWording } from "@/lib/billing/renewal-terms";
+import { CHECKOUT_CURRENCY, renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -83,6 +83,7 @@ export default async function BillingSettingsPage({
       ? word({
           planCode: reviewCode,
           interval: term,
+          currency: CHECKOUT_CURRENCY,
           trialEndsAt: subscription.data.trialEndsAt,
           zone,
         })

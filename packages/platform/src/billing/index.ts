@@ -14,6 +14,7 @@ export {
   stripeHost,
   type BillingEnv,
   type StripeClient,
+  type StripeClientLimits,
 } from "./env.ts";
 export {
   NotSelfServeError,
@@ -49,6 +50,8 @@ export {
 export {
   runStripeCancellations,
   sendStripeCancel,
+  STRIPE_WORKER_BUDGET_MS,
+  STRIPE_WORKER_LIMITS,
   stripeCancelIdempotencyKey,
   type BillingAlert,
   type BillingAlertSink,

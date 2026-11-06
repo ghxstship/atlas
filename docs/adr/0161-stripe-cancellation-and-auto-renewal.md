@@ -28,21 +28,26 @@ Automatic renewal is a negative option. ROSCA (15 U.S.C. 8403) asks for clear di
 2. Ending a plan is `cancel_at_period_end: true`. It needs no second factor and asks no reason, because stopping a charge must be no harder than starting one. Checkout's own step-up stays, since it starts a charge.
 3. Each try has its own idempotency key (`xos-stripe-cancel:<id>:<attempt>`). Stripe replays a stored failure for 24 hours under one key, so a per-row key would turn one 500 into a day of failures. Repeating is safe regardless: a second cancel answers `resource_missing`, which counts as accepted, since a subscription Stripe does not have cannot charge.
 4. A failure retries after 5 minutes, doubling to 6 hours, and never gives up. A worker that dies mid-call only delays the row: its claim can be taken again after 10 minutes.
+5. A Stripe that hangs cannot stop the rest of the worker. Each call has 8 seconds and no retries inside the SDK, the Stripe step has a budget of 45 seconds per run, and cancels are claimed one at a time, so what a run cannot reach stays due and unclaimed. Alerts go out before Stripe is called and again afterward.
 
 ### D3. The truth when Stripe does not answer
 
 The first failed attempt, or 15 minutes in the queue if the worker never ran (`private.run_stripe_cancellation_watch`, on pg_cron), does two things once: `billing.cancellation_delayed` tells the billing owners it is not confirmed, and a `cancel_delayed` alert goes to the platform owner. The alert is durable (`private.billing_alerts`, listed in the console) and emailed by the worker to `XOS_BILLING_ALERT_EMAIL`. If that variable is not set the alert waits, the console shows it and the worker logs an error for Sentry. An accepted cancel clears it and sends the confirmation.
 
+The customer copy says what is known. Atlas's own call can fail or time out without leaving a trace, so until Stripe accepts, the pages and the email say the request is with us and on its way to Stripe, never that it reached Stripe.
+
 ### D4. Reconciliation
 
 `app.reconcile_stripe_subscription` runs before the sync, for a subscription of any price:
 
-- ended: settles the cancels and marks the link ended, with a confirmation even when nothing asked XOS, such as after Stripe gave up retrying
+- ended: settles the cancels and marks the link ended. When nothing asked XOS, such as after Stripe gave up retrying, it is recorded as `Ended In Stripe` with no cancellation notice, since the customer did not cancel
 - live on a purged org: queues the cancel and raises `active_on_deleted_org`
 - live on an org being canceled or deleted, or more than 10 minutes after its cancel was accepted: queues the cancel and raises `active_after_cancel`, and never creates a subscription again
 - an event older than the acceptance: stale, since Stripe does not order its events
 
 `app.record_stripe_event` now stores an event naming a purged org with no org, rather than failing a foreign key for days. A paid invoice on a subscription XOS was asked to stop raises `charged_after_cancel`, for the owner to refund by hand.
+
+The three alerts that ask a person to look for or refund a charge (`active_on_deleted_org`, `active_after_cancel`, `charged_after_cancel`) stay open until an operator closes them with what was done, however quickly Stripe accepts the cancel. Stripe accepting ends the risk of the next charge, not of one already made. Only `cancel_delayed` and `deletion_blocked` clear themselves.
 
 ### D5. The deletion gate
 
@@ -58,9 +63,11 @@ The gate can delay a deletion for as long as Stripe will not accept. That tensio
 4. `private.billing_renewal_consents` keeps the statement word for word, its text version (`RENEWAL_TERMS_VERSION`; a test pins the wording to it), language, price, term, date, person, email and session. It cannot be changed, and it outlives the org for 7 years, which covers California's 3 years or 1 year after the contract ends.
 5. A live Checkout cannot be recorded without a consent (`renewal_consent_required`). Test mode is exempt, because that backstop needs no fixture and Atlas itself refuses without one.
 
+6. Checkout is told the currency (`currency`, with adaptive pricing off), so Stripe cannot show one the statement did not quote. The statement, the consent, the database's price check and the session all carry that one currency, today USD through `CHECKOUT_CURRENCY`.
+
 ### D7. Notices
 
-`billing.purchase_confirmed` repeats the terms when Checkout completes. `billing.renewal_reminder` goes 30 days before an annual renewal, inside California's 15 to 45 days, New York's 15 to 30 and Wisconsin's 15 to 60. A first term under 30 days old is skipped, since its confirmation just gave the same terms. `billing.cancellation_confirmed` and `billing.plan_ending` confirm a cancel, a portal cancel included. All are in the `account` category, which nobody can turn off.
+`billing.purchase_confirmed` repeats the terms when Checkout completes, with the next charge date: what Stripe has said if the subscription has synced, else the end of a carried trial, else one term after the charge just made. Renewal notices quote what Stripe charges in the subscription's own currency: a multi-currency price states only its default currency on a subscription, so the amount comes from the price's currency option when the event expanded it, else the price book that built the price. `billing.renewal_reminder` goes 30 days before an annual renewal, inside California's 15 to 45 days, New York's 15 to 30 and Wisconsin's 15 to 60. A first term under 30 days old is skipped, since its confirmation just gave the same terms. `billing.cancellation_confirmed` and `billing.plan_ending` confirm a cancel, a portal cancel included. All are in the `account` category, which nobody can turn off.
 
 ## Consequences
 

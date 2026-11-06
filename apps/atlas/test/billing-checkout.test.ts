@@ -380,7 +380,13 @@ describe("billing once the key is set", () => {
     let consent: unknown;
     const page = await import("@/lib/billing/renewal-terms");
     const word = await page.renewalWording();
-    const terms = word({ planCode: "core", interval: "Monthly", trialEndsAt: null, zone: "UTC" });
+    const terms = word({
+      planCode: "core",
+      interval: "Monthly",
+      currency: "USD",
+      trialEndsAt: null,
+      zone: "UTC",
+    });
     platform.startPlanCheckout.mockImplementation(async (_s, _r, _store, request) => {
       consent = (request as { consent: (a: { trialEndsAt: null }) => unknown }).consent({
         trialEndsAt: null,
