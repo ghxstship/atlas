@@ -202,6 +202,7 @@
     "intakeLoadIn": "Indica el primer y el último día de montaje, el último igual o posterior al primero.",
     "intakeLoadOut": "Indica el primer y el último día de desmontaje, el último igual o posterior al primero.",
     "intakeCopyParts": "Elige al menos una parte para copiar.",
+    "intakeCopySource": "Elige el proyecto anterior del que copiar.",
     "intakeCopyOffset": "Indica un número entero de días, hasta 3,660 en cualquier sentido."
   },
   "transition": {

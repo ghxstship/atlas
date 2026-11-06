@@ -7,22 +7,48 @@ export type IntakeStep = "start" | "bands" | "basics" | "days" | "details" | "co
 export type StartFrom = "type" | "template" | "project" | "blank";
 
 /**
- * Start, Scale and audience (with an event type), Basics, Load-in and load-out, Details, Copy (from a past project) and
- * Review.
+ * Start, Scale and audience (with an event type), Basics, Load-in and load-out, Details (when it has anything to show),
+ * Copy (from a past project) and Review.
  */
 export function intakeSteps(choice: {
   readonly hasType: boolean;
   readonly startFrom: StartFrom;
+  readonly hasDetails: boolean;
 }): IntakeStep[] {
   return [
     "start",
     ...(choice.hasType ? (["bands"] as const) : []),
     "basics",
     "days",
-    "details",
+    ...(choice.hasDetails ? (["details"] as const) : []),
     ...(choice.startFrom === "project" ? (["copy"] as const) : []),
     "review",
   ];
+}
+
+/**
+ * Whether the Details step has anything to show. With an event type, the type's own fields, its guidance or a field the
+ * org requires of every project (shown whatever the type); without one, any project field.
+ */
+export function detailsApply(input: {
+  readonly type: {
+    readonly fields: readonly unknown[];
+    readonly intakeGuidance: string | null;
+  } | null;
+  readonly hasProjectFields: boolean;
+  readonly hasRequiredProjectFields: boolean;
+}): boolean {
+  if (!input.type) return input.hasProjectFields;
+  return (
+    input.type.fields.length > 0 ||
+    Boolean(input.type.intakeGuidance) ||
+    input.hasRequiredProjectFields
+  );
+}
+
+/** A start from a past project names the project: without one nothing is copied, and Review says it would be. */
+export function copySourceMissing(startFrom: string, copyFromProjectId: string | null): boolean {
+  return startFrom === "project" && copyFromProjectId === null;
 }
 
 const FIELD_STEPS: Readonly<Record<string, IntakeStep>> = {

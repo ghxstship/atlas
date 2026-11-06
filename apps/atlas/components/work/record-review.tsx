@@ -171,7 +171,10 @@ export function RecordReview({
             value={reviewer}
             options={[
               { value: "", label: t("review.chooseReviewer") },
-              ...reviewers.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+              ...reviewers.map((p) => ({
+                value: p.personId,
+                label: p.name ?? t("values.unnamed"),
+              })),
             ]}
             onChange={(e) => setReviewer(e.target.value)}
           />

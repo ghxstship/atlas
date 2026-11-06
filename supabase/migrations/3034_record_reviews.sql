@@ -189,6 +189,9 @@ begin
   for v_record in
     select r.record_kind, r.title, r.phase_code, r.xyz, r.due_at, r.requires_review from app.records r
     where r.project_id = v_project.id and r.deleted_at is null and r.record_state not in ('Canceled', 'Complete')
+      -- A review of another record belongs to this project's work, never to a plan: as a template item it would come
+      -- back in every new project, about nothing, under a title naming a record here.
+      and not exists (select 1 from app.record_approval a where a.record_id = r.id and a.subject_record_id is not null)
     order by r.record_number
   loop
     v_order := v_order + 1;
@@ -204,7 +207,7 @@ begin
 end;
 $$;
 
-comment on function app.create_template_from_project(uuid, text, text, boolean) is 'Saves a project as a new template, as the caller: its defaults, its show and standing venue scope nodes and its open records (due dates kept relative to the project start, or none when p_keep_dates is false, and each record''s requires_review flag, B14) become a published first version. Needs projects.template.write. Returns the template id.';
+comment on function app.create_template_from_project(uuid, text, text, boolean) is 'Saves a project as a new template, as the caller: its defaults, its show and standing venue scope nodes and its open records (due dates kept relative to the project start, or none when p_keep_dates is false, and each record''s requires_review flag, B14; leaving out the Approval records of open reviews) become a published first version. Needs projects.template.write. Returns the template id.';
 revoke all on function app.create_template_from_project(uuid, text, text, boolean) from public, anon;
 grant execute on function app.create_template_from_project(uuid, text, text, boolean) to authenticated, service_role;
 

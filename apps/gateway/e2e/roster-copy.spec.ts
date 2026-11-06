@@ -64,9 +64,8 @@ test("roster reuse: preview, then add last event's invitation as a draft", async
       .context()
       .addCookies([{ name: "xos-acting", value: accountId, url: new URL(page.url()).origin }]);
     await page.goto(`/work/engagements/${toDisplayKey("engagement", current)}/crew`);
-    const panel = page.locator("section", {
-      has: page.getByRole("heading", { name: "Reuse a roster from a past event" }),
-    });
+    // Named by its heading, so it is this one region and not the tab's section around it.
+    const panel = page.getByRole("region", { name: "Reuse a roster from a past event" });
     await expect(panel).toBeVisible();
     // The panel renders on arrival, so its first click works; a retry covers a click before hydration.
     await expect(async () => {

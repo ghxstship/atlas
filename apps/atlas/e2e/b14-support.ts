@@ -1,4 +1,4 @@
-import { expect, settle, type Page } from "./engine-test";
+import { expect, settle, type Locator, type Page } from "./engine-test";
 import { cognitiveLoadProblems } from "./a11y/checks";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
@@ -10,6 +10,15 @@ export async function newOwnerOrg(page: Page, prefix: string, name: string): Pro
   await signUp(page, { name, email: testEmail("owner", id) });
   await createOrganization(page, { name: `${name} ${id}`, slug });
   return slug;
+}
+
+/** Waits until React has taken over a control, so its first click or change is not lost before hydration. */
+export async function whenHydrated(control: Locator): Promise<void> {
+  await expect
+    .poll(() =>
+      control.evaluate((el) => Object.keys(el).some((key) => key.startsWith("__reactProps"))),
+    )
+    .toBe(true);
 }
 
 /** Adds a project custom field in Settings, Custom fields. */
@@ -38,7 +47,9 @@ export async function addEventType(page: Page, slug: string, name: string): Prom
     .getByLabel("Intake guidance")
     .fill("Have the site plan and the licensed capacity ready.");
   await form.getByRole("button", { name: "Add event type" }).click();
-  await expect(page.getByRole("list", { name: "Event types" }).getByText(name)).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Event types" }).getByText(name, { exact: true }),
+  ).toBeVisible();
 }
 
 export async function addDocumentType(page: Page, slug: string, name: string): Promise<void> {
@@ -46,7 +57,9 @@ export async function addDocumentType(page: Page, slug: string, name: string): P
   const form = page.getByRole("form", { name: "Add a document type" });
   await form.getByLabel("Name", { exact: true }).fill(name);
   await form.getByRole("button", { name: "Add document type" }).click();
-  await expect(page.getByRole("list", { name: "Document types" }).getByText(name)).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Document types" }).getByText(name, { exact: true }),
+  ).toBeVisible();
 }
 
 /** Opens an event type's editor disclosure in Settings, Templates. */

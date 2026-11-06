@@ -30,7 +30,7 @@ import { getOrgContext } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { createProjectFromIntake, getEventType, type ProjectCopyPart } from "@xos/data/event-types";
 import { PROJECT_COPY_PARTS } from "@xos/data/project-copy";
-import { bumpRefusalField } from "@/components/projects/intake-steps";
+import { bumpRefusalField, copySourceMissing } from "@/components/projects/intake-steps";
 import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
 import { withEcho } from "./echo";
 
@@ -236,6 +236,7 @@ async function createProjectActionImpl(_: ActionState, form: FormData): Promise<
 
 const intakeFields = z
   .object({
+    startFrom: z.string(),
     eventTypeId: optional.pipe(z.uuid().nullable()),
     eventScale: optional.pipe(z.enum(EVENT_SCALES).nullable()),
     eventAudience: optional.pipe(z.enum(EVENT_AUDIENCES).nullable()),
@@ -258,6 +259,9 @@ const intakeFields = z
     ),
   })
   .refine((v) => v.templateChoice !== "template" || v.templateId !== null, { path: ["templateId"] })
+  .refine((v) => !copySourceMissing(v.startFrom, v.copyFromProjectId), {
+    path: ["copyFromProjectId"],
+  })
   .refine(
     (v) =>
       (v.loadInFrom === null) === (v.loadInTo === null) &&
@@ -276,6 +280,7 @@ const intakeFields = z
 
 const INTAKE_FIELD_ERRORS: Record<string, string> = {
   templateId: "intakeTemplate",
+  copyFromProjectId: "intakeCopySource",
   loadInTo: "intakeLoadIn",
   loadOutTo: "intakeLoadOut",
   copyParts: "intakeCopyParts",
@@ -290,6 +295,7 @@ async function createProjectFromIntakeActionImpl(
   if (!ctx) notFound();
   const parsed = parseProject(form);
   const intake = intakeFields.safeParse({
+    startFrom: field(form, "startFrom"),
     eventTypeId: field(form, "eventTypeId"),
     eventScale: field(form, "eventScale"),
     eventAudience: field(form, "eventAudience"),

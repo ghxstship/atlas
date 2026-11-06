@@ -23,6 +23,7 @@ export function FileReviewControls({
   reviews,
   me,
   canReview,
+  vendorSees = false,
 }: {
   org: string;
   attachments: readonly Attachment[];
@@ -30,6 +31,8 @@ export function FileReviewControls({
   reviews: readonly VersionReview[];
   me: string | null;
   canReview: boolean;
+  /** A submittal's vendor reads the decision and note (api_external.submittal_files); a record's file reaches no vendor. */
+  vendorSees?: boolean;
 }) {
   const t = useTranslations("procurement.fileReview") as unknown as Translate;
   const format = useFormatter();
@@ -92,6 +95,7 @@ export function FileReviewControls({
                         org={org}
                         versionId={v.id}
                         mine={v.uploadedBy !== null && v.uploadedBy === me}
+                        vendorSees={vendorSees}
                       />
                     ) : null}
                     {history.length > 0 ? (
@@ -127,7 +131,17 @@ export function FileReviewControls({
   );
 }
 
-function ReviewForm({ org, versionId, mine }: { org: string; versionId: string; mine: boolean }) {
+function ReviewForm({
+  org,
+  versionId,
+  mine,
+  vendorSees,
+}: {
+  org: string;
+  versionId: string;
+  mine: boolean;
+  vendorSees: boolean;
+}) {
   const t = useTranslations("procurement.fileReview") as unknown as Translate;
   const [note, setNote] = useState("");
   const { pending, error, run } = useAction();
@@ -142,7 +156,7 @@ function ReviewForm({ org, versionId, mine }: { org: string; versionId: string; 
       <Textarea
         id={`file-review-note-${versionId}`}
         label={t("note")}
-        help={t("noteHelp")}
+        help={t(vendorSees ? "noteHelpVendor" : "noteHelp")}
         maxLength={1000}
         width="100%"
         value={note}

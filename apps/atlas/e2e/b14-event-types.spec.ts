@@ -49,41 +49,46 @@ test("an event type picks the intake's details and holds a gate until its docume
   await page.goto(`/${slug}/projects/all`);
   await page.getByRole("button", { name: "New project" }).first().click();
   const dialog = page.getByRole("dialog", { name: "New project" });
+  const next = () => dialog.getByRole("button", { name: "Next" }).press("Enter");
   await expect(dialog.getByRole("heading", { name: "Start" })).toBeVisible();
   await expect(dialog.getByText("Step 1 of 5, Start")).toBeAttached();
   await expectAccessible(page);
   await expectCalmScreen(page);
-  await dialog.getByLabel("Music Festival").check();
-  await dialog.getByRole("button", { name: "Next" }).click();
+  // Space picks a radio and Enter presses a button: the walk needs no pointer.
+  await dialog.getByLabel("Music Festival").press("Space");
+  await expect(dialog.getByLabel("Music Festival")).toBeChecked();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Scale and audience" })).toBeFocused();
   await expect(dialog.getByText("Step 2 of 6, Scale and audience")).toBeAttached();
-  await dialog.getByLabel("Large, 10,000 to 50,000 people").check();
-  await dialog.getByRole("button", { name: "Next" }).press("Enter");
+  await dialog.getByLabel("Large, 10,000 to 50,000 people").press("Space");
+  await expect(dialog.getByLabel("Large, 10,000 to 50,000 people")).toBeChecked();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Basics" })).toBeFocused();
   await expectCalmScreen(page);
   await dialog.getByLabel("Project key").fill("MFE");
   await dialog.getByLabel("Project name").fill("Music Festival Edition");
   await dialog.getByLabel("First production day").fill("2027-06-10");
   await dialog.getByLabel("Last production day").fill("2027-06-12");
-  await dialog.getByRole("button", { name: "Next" }).click();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Load-in and load-out" })).toBeFocused();
   await expectCalmScreen(page);
   // A last load-in day after the first show day, which the save refuses.
   await dialog.getByLabel("First load-in day").fill("2027-06-09");
   await dialog.getByLabel("Last load-in day").fill("2027-06-11");
-  await dialog.getByRole("button", { name: "Next" }).click();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Details" })).toBeFocused();
   await expect(
     dialog.getByText("Have the site plan and the licensed capacity ready."),
   ).toBeVisible();
   await settle(page);
-  await dialog.getByRole("button", { name: "Next" }).click();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Details" })).toBeVisible();
   await dialog.getByLabel(/Licensed capacity/).fill("12000");
-  await dialog.getByRole("button", { name: "Next" }).click();
+  await next();
   await expect(dialog.getByRole("heading", { name: "Review" })).toBeFocused();
-  await expect(dialog.getByText("Site Plan")).toBeVisible();
-  await dialog.getByRole("button", { name: "Create project" }).click();
+  // Exact: the Details step's hidden guidance also says "site plan".
+  await expect(dialog.getByText("Site Plan", { exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Create project" }).press("Enter");
 
   // Refused: back on the step that holds the dates, with every answer still there.
   await expect(dialog.getByRole("heading", { name: "Load-in and load-out" })).toBeFocused();
@@ -113,7 +118,7 @@ test("an event type picks the intake's details and holds a gate until its docume
   await dialog.getByRole("button", { name: "Create project" }).click();
   await page.waitForURL(`**/${slug}/p/MFE/overview`);
   await expect(page.getByText("Music Festival").first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Setup" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Setup", exact: true })).toBeVisible();
 
   // The type and bands save on their own, and General keeps seven fields and the one primary action.
   await page.goto(`/${slug}/p/MFE/settings`);
@@ -170,7 +175,7 @@ test("an org without event types keeps the single screen and reaches the staged 
   const other = dialog.getByRole("button", { name: "Start from a template or a past project" });
   await expect(other).toBeVisible();
   await expect(dialog.getByLabel("Project key")).toBeVisible();
-  await expect(dialog.getByRole("radiogroup")).toHaveCount(0);
+  await expect(dialog.getByRole("radio")).toHaveCount(0);
   await expectCalmScreen(page);
 
   await other.click();

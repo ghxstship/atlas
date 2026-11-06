@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect as baseExpect, settle, test } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
-import { expectCalmScreen } from "./b14-support";
+import { expectCalmScreen, whenHydrated } from "./b14-support";
 import { createProject, createTask, newOwnerOrg } from "./b4-support";
 import { DEMO_ORG, reloadUntil, signInAs } from "./a36-support";
 
@@ -33,16 +33,22 @@ async function move(page: Page, next: string, reason: string): Promise<Locator> 
   return sheet;
 }
 
+/** The switch shows what the server saved, so it turns on after the action and its refresh, never at the click. */
+async function requireReview(review: Locator): Promise<void> {
+  const toggle = review.getByRole("switch", { name: "Requires review", exact: true });
+  await whenHydrated(toggle);
+  await toggle.click();
+  await expect(toggle).toBeChecked();
+  await expect(toggle).toBeEnabled();
+}
+
 async function askForReview(review: Locator, note: string): Promise<void> {
-  await review.getByLabel("Reviewer").selectOption({ label: "Demo Admin" });
-  await review.getByLabel("Note for the reviewer").fill(note);
-  // The panel renders on arrival, so its first click works; a retry covers a click before hydration.
-  await expect(async () => {
-    await review.getByRole("button", { name: "Ask for review" }).click();
-    await expect(review.getByText("Review open", { exact: true }).first()).toBeVisible({
-      timeout: 5_000,
-    });
-  }).toPass();
+  const reviewer = review.getByLabel("Reviewer", { exact: true });
+  await expect(reviewer).toBeVisible();
+  await whenHydrated(reviewer);
+  await reviewer.selectOption({ label: "Demo Admin" });
+  await review.getByLabel("Note for the reviewer", { exact: true }).fill(note);
+  await review.getByRole("button", { name: "Ask for review" }).click();
   // The first tag is the latest review's; the history, when there is one, repeats it.
   await expect(review.getByText("Review open", { exact: true }).first()).toBeVisible();
 }
@@ -60,8 +66,7 @@ test("a task that requires review waits for an approved review", async ({ page }
   await page.goto(`/${slug}/r/${key}`);
   await settle(page);
   const review = reviewPanel(page);
-  await review.getByLabel("Requires review").check();
-  await expect(review.getByLabel("Requires review")).toBeChecked();
+  await requireReview(review);
   await expectAccessible(page);
 
   // Start the work.
@@ -102,8 +107,7 @@ test("a reviewer asks for changes from Inbox, then approves, and the owner compl
   await owner.goto(`/${DEMO_ORG}/r/${key}`);
   await settle(owner);
   const review = reviewPanel(owner);
-  await review.getByLabel("Requires review").check();
-  await expect(review.getByLabel("Requires review")).toBeChecked();
+  await requireReview(review);
   for (const next of ["Ready", "Active"]) {
     await expect(await move(owner, next, "Moving on.")).toBeHidden();
   }

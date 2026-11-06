@@ -63,6 +63,7 @@ async function SubmittalFileReviews({
       reviews={reviews.ok ? reviews.data : []}
       me={ctx.viewer.person?.id ?? null}
       canReview={ctx.capabilities.has("procurement.po.write")}
+      vendorSees
     />
   );
 }

@@ -12,7 +12,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(64);
+select plan(65);
 
 create function pg_temp.new_record(p_key text, p_title text, p_review boolean default true) returns uuid
 language plpgsql as $$
@@ -330,6 +330,19 @@ insert into world select 'tpl2', app.create_template_from_project(pg_temp.id('pr
 select is((select bool_and(i.requires_review) from app.template_items i join app.templates t on t.current_version_id = i.template_version_id
            where t.id = pg_temp.id('tpl2') and i.item_kind = 'Record'), true,
   'saving the project as a template keeps the flag');
+
+-- A review under way is this project's work, not its plan; an Approval made on purpose is still a plan item.
+insert into app.records (project_id, record_kind, title, xyz, xyz_basis)
+  values (pg_temp.id('prj_t'), 'Approval', 'Review of NWR-1', 'Y', 'Declared');
+insert into app.record_approval (record_id, subject_record_id, requester_person_id)
+  select r.id, (select s.id from app.records s where s.project_id = pg_temp.id('prj_t') and s.record_kind = 'Task' limit 1), pg_temp.id('carol')
+  from app.records r where r.project_id = pg_temp.id('prj_t') and r.title = 'Review of NWR-1';
+insert into app.records (project_id, record_kind, title, xyz, xyz_basis)
+  values (pg_temp.id('prj_t'), 'Approval', 'Sign off the budget', 'Y', 'Declared');
+insert into world select 'tpl3', app.create_template_from_project(pg_temp.id('prj_t'), 'Reviewed Plan Once More');
+select is((select array_agg(i.name order by i.name) from app.template_items i join app.templates t on t.current_version_id = i.template_version_id
+           where t.id = pg_temp.id('tpl3') and i.item_kind = 'Record' and i.record_kind = 'Approval'), array['Sign off the budget'],
+  'saving a project as a template leaves out the Approval records of open reviews');
 
 select * from finish();
 rollback;

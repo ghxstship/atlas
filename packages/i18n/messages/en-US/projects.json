@@ -202,6 +202,7 @@
     "intakeLoadIn": "Give the first and last load-in days, the last on or after the first.",
     "intakeLoadOut": "Give the first and last load-out days, the last on or after the first.",
     "intakeCopyParts": "Choose at least one part to copy.",
+    "intakeCopySource": "Choose the past project to copy from.",
     "intakeCopyOffset": "Give a whole number of days, up to 3,660 either way."
   },
   "transition": {

@@ -3,7 +3,7 @@ import { expectAccessible, uniqueId } from "./support";
 import { DEMO_ORG, signInAs } from "./a36-support";
 import { createProject, createTask, newOwnerOrg } from "./b4-support";
 import { uploadAttachment } from "./attachment-support";
-import { expectCalmScreen } from "./b14-support";
+import { expectCalmScreen, whenHydrated } from "./b14-support";
 
 /**
  * B14 file review (RRR-238; G-268): a file attached to a record shows its versions with their review state; the person
@@ -35,9 +35,7 @@ test("a record's file lists its versions and is not reviewed by its uploader", a
     },
     "e2e-b14-file-review",
   );
-  const reviews = page
-    .locator("section")
-    .filter({ has: page.getByRole("heading", { name: "File reviews" }) });
+  const reviews = page.getByRole("region", { name: "File reviews", exact: true });
   await expect(reviews.getByText("spot-plot.pdf").first()).toBeVisible();
   await expect(reviews.getByText("Version 1")).toBeVisible();
   await expect(reviews.getByText("Not reviewed").first()).toBeVisible();
@@ -79,18 +77,15 @@ test("someone else reviews a record's two files, and the page keeps one primary 
   const admin = await (await browser.newContext()).newPage();
   await signInAs(admin, "admin@example.com", DEMO_ORG);
   await admin.goto(`/${DEMO_ORG}/r/${key}`);
-  const reviews = admin
-    .locator("section")
-    .filter({ has: admin.getByRole("heading", { name: "File reviews" }) });
+  const reviews = admin.getByRole("region", { name: "File reviews", exact: true });
   await expect(reviews.getByRole("button", { name: "Approve", exact: true })).toHaveCount(2);
   await expectCalmScreen(admin);
   await expectAccessible(admin);
-  // The control renders on arrival, so a retry only covers a click that came before hydration.
-  await expect(async () => {
-    await reviews.getByRole("button", { name: "Approve", exact: true }).first().click();
-    await expect(reviews.getByText("Approved", { exact: true }).first()).toBeVisible({
-      timeout: 5_000,
-    });
-  }).toPass();
+  // A record's file reaches no vendor, so its note does not say one sees it.
+  await expect(reviews.getByText("The vendor sees it", { exact: false })).toHaveCount(0);
+  const approve = reviews.getByRole("button", { name: "Approve", exact: true }).first();
+  await whenHydrated(approve);
+  await approve.click();
+  await expect(reviews.getByText("Approved", { exact: true }).first()).toBeVisible();
   await admin.context().close();
 });

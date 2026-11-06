@@ -38,6 +38,8 @@ export interface IntakeOptions {
   readonly pastProjects: readonly CopySourceProject[];
   /** The org has project custom fields, which take their own Details step. */
   readonly hasProjectFields: boolean;
+  /** One of them is required of every project, so Details shows it whatever the event type. */
+  readonly hasRequiredProjectFields: boolean;
 }
 
 const EMPTY: IntakeOptions = {
@@ -45,6 +47,7 @@ const EMPTY: IntakeOptions = {
   templates: [],
   pastProjects: [],
   hasProjectFields: false,
+  hasRequiredProjectFields: false,
 };
 
 /** The org's live event types, templates and past projects for the wizard; empty lists on any read failure. */
@@ -69,6 +72,7 @@ export async function loadIntakeOptionsAction(org: string): Promise<IntakeOption
       : [],
     pastProjects: projects.ok ? projects.data : [],
     hasProjectFields: fields.ok && fields.data.length > 0,
+    hasRequiredProjectFields: fields.ok && fields.data.some((f) => f.required),
   };
 }
 

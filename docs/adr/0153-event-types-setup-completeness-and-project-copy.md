@@ -104,7 +104,9 @@ Asking for changes needs a note and moves the record back to Active only while i
 decisions reuse approval.requested and approval.decided about the review's Approval record, with the reviewed record's
 title and key; Inbox and Compass's push actions decide them through `app.act_on_notification`, restated from A127's
 2200 so its accept, decline and reply actions stay. Email one-tap links are not offered for record reviews
-(`private.notification_link_actions` is not restated). Turning the flag off needs projects.settings.write.
+(`private.notification_link_actions` is not restated). Turning the flag off needs projects.settings.write. Saving a project as a
+template leaves out the Approval records of open reviews, since each would come back in every new project about a
+record that is not there; an Approval record with no subject is still a plan item.
 
 **D6. File review is per attachment version.** `app.attachment_version_reviews` is append-only; the latest review of
 a version is its decision and a new version starts unreviewed. The uploader never reviews their own version (a new

@@ -19,6 +19,7 @@ import { ActionError, fieldError } from "./action-error";
 import { CopyPreviewList } from "./copy-preview-list";
 import { ProjectFields, type ProjectFormOptions } from "./project-fields";
 import {
+  detailsApply,
   intakeSteps,
   stepOfField,
   submitIntake,
@@ -67,6 +68,7 @@ export function CreateProjectWizard({
   const [detailsPage, setDetailsPage] = useState(0);
   const [announce, setAnnounce] = useState("");
   const [copyPreview, setCopyPreview] = useState<CopyPreviewState | null>(null);
+  const [sourceMissing, setSourceMissing] = useState(false);
   const form = useRef<HTMLFormElement>(null);
   const details = useRef<CustomFieldInputsHandle>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -78,7 +80,13 @@ export function CreateProjectWizard({
       (loaded) => live && setIntake(loaded),
       () =>
         live &&
-        setIntake({ eventTypes: [], templates: [], pastProjects: [], hasProjectFields: false }),
+        setIntake({
+          eventTypes: [],
+          templates: [],
+          pastProjects: [],
+          hasProjectFields: false,
+          hasRequiredProjectFields: false,
+        }),
     );
     return () => {
       live = false;
@@ -88,7 +96,12 @@ export function CreateProjectWizard({
   const type: EventType | null = intake?.eventTypes.find((e) => e.id === typeId) ?? null;
   const hasTypes = (intake?.eventTypes.length ?? 0) > 0;
   const staged = hasTypes || Boolean(intake?.hasProjectFields) || startFrom !== "blank";
-  const steps = intakeSteps({ hasType: type !== null, startFrom });
+  const hasDetails = detailsApply({
+    type,
+    hasProjectFields: Boolean(intake?.hasProjectFields),
+    hasRequiredProjectFields: Boolean(intake?.hasRequiredProjectFields),
+  });
+  const steps = intakeSteps({ hasType: type !== null, startFrom, hasDetails });
   const step: IntakeStep = steps[Math.min(index, steps.length - 1)] ?? "start";
 
   // A refusal or field error the action returns opens the step that holds the field.
@@ -173,6 +186,13 @@ export function CreateProjectWizard({
       setDetailsPage(details.current.problemPage() ?? detailsPage);
       return false;
     }
+    // Starting from a past project needs the project, or Review would promise a copy that never happens.
+    const source = box.querySelector<HTMLSelectElement>("#intake-copy-source");
+    if (step === "copy" && source && !source.value) {
+      setSourceMissing(true);
+      source.focus();
+      return false;
+    }
     return true;
   };
 
@@ -213,11 +233,16 @@ export function CreateProjectWizard({
       label: t("intake.startFrom.template"),
       help: t("intake.startFrom.templateHelp"),
     },
-    {
-      value: "project",
-      label: t("intake.startFrom.project"),
-      help: t("intake.startFrom.projectHelp"),
-    },
+    // Nothing to copy from yet: the Copy step could not be finished.
+    ...(intake.pastProjects.length > 0
+      ? [
+          {
+            value: "project",
+            label: t("intake.startFrom.project"),
+            help: t("intake.startFrom.projectHelp"),
+          },
+        ]
+      : []),
     { value: "blank", label: t("intake.startFrom.blank"), help: t("intake.startFrom.blankHelp") },
   ];
 
@@ -415,29 +440,31 @@ export function CreateProjectWizard({
         : null}
       {section("basics", <ProjectFields idPrefix="create" options={options} state={state} />)}
       {section("days", loadDays)}
-      {section(
-        "details",
-        <>
-          {type?.intakeGuidance ? (
-            <p className="m-0 text-text-13 text-text-secondary">{type.intakeGuidance}</p>
-          ) : null}
-          <CustomFieldInputs
-            ref={details}
-            table="app.projects"
-            page={detailsPage}
-            pageSize={DETAILS_PAGE_SIZE}
-            {...(type
-              ? {
-                  fieldKeys: type.fields.map((f) => f.fieldKey ?? "").filter(Boolean),
-                  requiredKeys: type.fields
-                    .filter((f) => f.requiredForType)
-                    .map((f) => f.fieldKey ?? "")
-                    .filter(Boolean),
-                }
-              : {})}
-          />
-        </>,
-      )}
+      {hasDetails
+        ? section(
+            "details",
+            <>
+              {type?.intakeGuidance ? (
+                <p className="m-0 text-text-13 text-text-secondary">{type.intakeGuidance}</p>
+              ) : null}
+              <CustomFieldInputs
+                ref={details}
+                table="app.projects"
+                page={detailsPage}
+                pageSize={DETAILS_PAGE_SIZE}
+                {...(type
+                  ? {
+                      fieldKeys: type.fields.map((f) => f.fieldKey ?? "").filter(Boolean),
+                      requiredKeys: type.fields
+                        .filter((f) => f.requiredForType)
+                        .map((f) => f.fieldKey ?? "")
+                        .filter(Boolean),
+                    }
+                  : {})}
+              />
+            </>,
+          )
+        : null}
       {startFrom === "project"
         ? section(
             "copy",
@@ -448,6 +475,8 @@ export function CreateProjectWizard({
               state={state}
               preview={copyPreview}
               setPreview={setCopyPreview}
+              sourceMissing={sourceMissing}
+              onSource={() => setSourceMissing(false)}
             />,
           )
         : null}
@@ -497,12 +526,13 @@ export function CreateProjectWizard({
             {t("intake.back")}
           </Button>
         ) : null}
+        {/* Keys: a reused node would turn into the submit button during Next's own click and post the form. */}
         {last ? (
-          <Button type="submit" variant="primary" loading={pending}>
+          <Button key="submit" type="submit" variant="primary" loading={pending}>
             {t("create.submit")}
           </Button>
         ) : (
-          <Button type="button" variant="primary" onClick={forward}>
+          <Button key="next" type="button" variant="primary" onClick={forward}>
             {t("intake.next")}
           </Button>
         )}
@@ -519,6 +549,8 @@ function CopyStep({
   state,
   preview,
   setPreview,
+  sourceMissing,
+  onSource,
 }: {
   org: string;
   intake: IntakeOptions;
@@ -526,6 +558,9 @@ function CopyStep({
   state: ActionState;
   preview: CopyPreviewState | null;
   setPreview: (preview: CopyPreviewState | null) => void;
+  /** Next found no project chosen. */
+  sourceMissing: boolean;
+  onSource: () => void;
 }) {
   const t = useTranslations("projects") as unknown as Translate;
   const [source, setSource] = useState("");
@@ -557,7 +592,13 @@ function CopyStep({
           setSource(e.target.value);
           setPreview(null);
           prefill(e.target.value);
+          onSource();
         }}
+        error={
+          sourceMissing
+            ? t("errors.intakeCopySource")
+            : fieldError(t as never, state, "copyFromProjectId")
+        }
       />
       <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
         <legend className="mb-8 text-text-13 font-medium">{t("copy.parts")}</legend>

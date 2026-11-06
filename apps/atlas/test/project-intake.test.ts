@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   bumpRefusalField,
+  copySourceMissing,
+  detailsApply,
   intakeSteps,
   stepOfField,
   submitIntake,
@@ -20,7 +22,7 @@ import type { CustomFieldForm } from "../lib/custom-fields/types";
 
 describe("intake steps", () => {
   it("runs Start, Scale and audience, Basics, days, Details, Copy and Review for a typed copy", () => {
-    expect(intakeSteps({ hasType: true, startFrom: "project" })).toEqual([
+    expect(intakeSteps({ hasType: true, startFrom: "project", hasDetails: true })).toEqual([
       "start",
       "bands",
       "basics",
@@ -32,14 +34,14 @@ describe("intake steps", () => {
   });
 
   it("asks for bands only with an event type, and Copy only from a past project", () => {
-    expect(intakeSteps({ hasType: false, startFrom: "template" })).toEqual([
+    expect(intakeSteps({ hasType: false, startFrom: "template", hasDetails: true })).toEqual([
       "start",
       "basics",
       "days",
       "details",
       "review",
     ]);
-    expect(intakeSteps({ hasType: true, startFrom: "type" })).toEqual([
+    expect(intakeSteps({ hasType: true, startFrom: "type", hasDetails: true })).toEqual([
       "start",
       "bands",
       "basics",
@@ -47,6 +49,41 @@ describe("intake steps", () => {
       "details",
       "review",
     ]);
+  });
+
+  it("skips Details when it has nothing to show", () => {
+    expect(intakeSteps({ hasType: false, startFrom: "project", hasDetails: false })).toEqual([
+      "start",
+      "basics",
+      "days",
+      "copy",
+      "review",
+    ]);
+    const bare = { fields: [], intakeGuidance: null };
+    const none = { hasProjectFields: false, hasRequiredProjectFields: false };
+    expect(detailsApply({ type: null, ...none })).toBe(false);
+    expect(detailsApply({ type: null, ...none, hasProjectFields: true })).toBe(true);
+    // An event type narrows the fields: an optional one outside its set does not show, a required one always does.
+    expect(detailsApply({ type: bare, ...none, hasProjectFields: true })).toBe(false);
+    expect(
+      detailsApply({
+        type: bare,
+        hasProjectFields: true,
+        hasRequiredProjectFields: true,
+      }),
+    ).toBe(true);
+    expect(detailsApply({ type: { ...bare, fields: [{}] }, ...none })).toBe(true);
+    expect(detailsApply({ type: { ...bare, intakeGuidance: "Bring the plan." }, ...none })).toBe(
+      true,
+    );
+  });
+
+  it("holds a start from a past project until the project is named", () => {
+    expect(copySourceMissing("project", null)).toBe(true);
+    expect(copySourceMissing("project", "9f1c2d3e-0000-4000-8000-000000000001")).toBe(false);
+    expect(copySourceMissing("blank", null)).toBe(false);
+    expect(copySourceMissing("", null)).toBe(false);
+    expect(stepOfField("copyFromProjectId")).toBe("copy");
   });
 
   it("opens the step that holds a refused field", () => {
