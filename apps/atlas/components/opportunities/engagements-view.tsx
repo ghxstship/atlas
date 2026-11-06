@@ -30,6 +30,7 @@ import {
   transitionEngagementAction,
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
+import { AllInCost } from "@/components/finance/all-in-cost";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
@@ -694,6 +695,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           />
         ) : null}
       </Section>
+      <AllInCost ctx={ctx} projectId={e.projectId} projectKey={e.projectKey} engagementId={e.id} />
       <Section id="engagement-reengage" title={t("engagements.reengagement")}>
         {canPool && poolOptions.length > 0 && (e.personId || e.accountId) ? (
           <ActionForm

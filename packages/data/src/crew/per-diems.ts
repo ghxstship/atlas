@@ -11,6 +11,8 @@ import {
  * Per diems (migrations 0341, 0981 and 2603): one allowance a day for a member or for the person of an
  * engagement. Atlas Crew > Per Diems adds a run of days through app.add_per_diems, which needs
  * crew.time_entry.write on the project; removing one is a soft delete under the same write policy.
+ * A per diem's payment (3014) is a recorded fact: the date and reference a person holding
+ * finance.payment.write records, never money XOS moves (decision 20).
  */
 
 export interface PerDiem {
@@ -25,9 +27,12 @@ export interface PerDiem {
   readonly day: string;
   readonly amountMinor: number;
   readonly currencyCode: string;
+  /** The date the allowance was recorded as paid; null while unpaid. */
+  readonly paidOn: string | null;
+  readonly paidReference: string | null;
 }
 
-const PER_DIEM_SELECT = `id, project_id, membership_id, engagement_id, day, amount_minor, currency_code, project:projects!per_diems_project_id_fkey(project_key), membership:memberships!per_diems_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement:engagements!per_diems_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
+const PER_DIEM_SELECT = `id, project_id, membership_id, engagement_id, day, amount_minor, currency_code, paid_on, paid_reference, project:projects!per_diems_project_id_fkey(project_key), membership:memberships!per_diems_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement:engagements!per_diems_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
 
 interface PerDiemRow {
   id: string;
@@ -37,6 +42,8 @@ interface PerDiemRow {
   day: string;
   amount_minor: number;
   currency_code: string;
+  paid_on: string | null;
+  paid_reference: string | null;
   project: { project_key: string } | null;
   membership: MembershipRow | null;
   engagement: EngagementRow | null;
@@ -54,6 +61,8 @@ function toPerDiem(r: PerDiemRow): PerDiem {
     day: r.day,
     amountMinor: Number(r.amount_minor),
     currencyCode: r.currency_code,
+    paidOn: r.paid_on,
+    paidReference: r.paid_reference,
   };
 }
 
@@ -126,6 +135,40 @@ export async function removePerDiem(db: XosClient, id: string): Promise<Result<n
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Records that per diems were paid on a date (app.record_per_diem_payments). Refusals come back typed:
+ * per_diem_payment_batch, per_diem_payment_date, per_diem_already_paid and sod_reimbursement_payee.
+ */
+export async function recordPerDiemPayments(
+  db: XosClient,
+  input: {
+    readonly perDiemIds: readonly string[];
+    readonly paidOn: string;
+    readonly reference: string | null;
+  },
+): Promise<Result<{ count: number }>> {
+  const { data, error } = await db.rpc("record_per_diem_payments", {
+    p_per_diem_ids: [...input.perDiemIds],
+    p_paid_on: input.paidOn,
+    ...(input.reference === null ? {} : { p_reference: input.reference }),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ count: Number(data ?? 0) });
+}
+
+/** Undoes a per diem payment recorded in error, with a reason (app.clear_per_diem_payment). */
+export async function clearPerDiemPayment(
+  db: XosClient,
+  input: { readonly id: string; readonly reason: string },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("clear_per_diem_payment", {
+    p_per_diem_id: input.id,
+    p_reason: input.reason,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }
 
 /** The project's currency (app.projects.currency, migration 0950), the default for new per diems. */

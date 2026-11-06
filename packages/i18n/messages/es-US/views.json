@@ -516,7 +516,16 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "credit_of_expense_id": "Crédito del gasto",
+      "is_reimbursable": "Reembolsable",
+      "reimbursement_id": "Reembolso",
+      "paid_reference": "Referencia del pago",
+      "paid_minor": "Importe pagado",
+      "voided_at": "Anulado el",
+      "voided_by": "Anulado por",
+      "void_reason": "Motivo de la anulación",
+      "instalment_number": "Número de cuota"
     }
   }
 }

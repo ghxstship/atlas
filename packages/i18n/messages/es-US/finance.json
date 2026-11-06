@@ -343,7 +343,33 @@
     "deliverable_fee_fixed": "Un hito aceptado conserva su tarifa.",
     "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos.",
     "sod_document_creator": "Su organización no permite que quien creó un documento lo apruebe. Pida a otro aprobador.",
-    "sod_change_order_requester_steps": "Su organización no permite que quien solicita una orden de cambio decida un paso de su aprobación. Pida a otro aprobador."
+    "sod_change_order_requester_steps": "Su organización no permite que quien solicita una orden de cambio decida un paso de su aprobación. Pida a otro aprobador.",
+    "expense_credit_original": "Un crédito se registra contra un gasto vigente, aprobado o pagado, de esta organización, que no sea a su vez un crédito.",
+    "expense_credit_line": "Un crédito se registra en la partida del gasto que acredita.",
+    "expense_credit_exceeds": "Los créditos de este gasto superarían su importe. Reduce este o cancela otro.",
+    "expense_credit_reimbursed": "Este gasto ya se reembolsó a quien lo pagó, así que el reembolso del proveedor le corresponde a esa persona.",
+    "expense_credit_immutable": "Un crédito sigue ligado al gasto que acredita y conserva su proveedor.",
+    "expense_credit_posted": "Un crédito aprobado ya registró su reversión, así que no va a la Papelera.",
+    "expense_credit_original_unposted": "El gasto de este crédito no tiene un asiento registrado que revertir.",
+    "expense_credit_engagement": "Un crédito sigue al gasto que acredita y no nombra un acto propio.",
+    "expense_engagement_project": "Elige un acto vigente del proyecto de este presupuesto.",
+    "expense_reimbursable_locked": "Si un gasto es reembolsable solo cambia mientras está propuesto.",
+    "expense_reimbursement_rpc": "Un gasto se reembolsa registrando su reembolso en Finanzas > Pagos.",
+    "expense_reimbursed_locked": "Un gasto reembolsado conserva su motivo y no va a la Papelera. Anula primero el reembolso.",
+    "expense_has_credits": "Un gasto con créditos no va a la Papelera mientras estos sigan vigentes. Cancélalos o recházalos primero.",
+    "expense_paid_final": "Un gasto pagado sigue pagado. Anula su reembolso para reabrirlo.",
+    "expense_reimbursement_use_rpc": "Un gasto reembolsable se paga registrando su reembolso.",
+    "expense_reimbursement_batch": "Un reembolso liquida de 1 a 200 gastos.",
+    "expense_reimbursement_date": "Indica la fecha en que se movió el dinero.",
+    "expense_reimbursement_expense": "Reembolsa gastos vigentes, aprobados y reembolsables que esta persona registró y que aún se le deben.",
+    "expense_reimbursement_currency": "Un reembolso liquida gastos en una sola moneda.",
+    "expense_reimbursement_pending_credit": "Uno de estos gastos tiene un crédito pendiente de aprobación. Decídelo primero.",
+    "expense_reimbursement_void_reason": "Di por qué se anula el reembolso, en hasta 500 caracteres.",
+    "expense_reimbursement_voided": "Este reembolso ya está anulado.",
+    "sod_reimbursement_payee": "No puedes registrar un reembolso ni un pago de viáticos a tu nombre. Pídeselo a otra persona de finanzas.",
+    "per_diem_payment_batch": "Marca de 1 a 500 viáticos como pagados a la vez.",
+    "per_diem_payment_date": "Indica la fecha en que se pagaron los viáticos.",
+    "per_diem_already_paid": "Uno de estos viáticos ya está pagado."
   },
   "collab": {
     "attachments": "Adjuntos",
@@ -504,7 +530,34 @@
     },
     "kind": "Gasto",
     "loadError": "Los gastos no se pudieron cargar. Vuelva a intentarlo.",
-    "ownExpense": "Usted envió este gasto, así que otra persona lo aprueba."
+    "ownExpense": "Usted envió este gasto, así que otra persona lo aprueba.",
+    "credit": "Crédito",
+    "creditTitle": "Crédito: {description}",
+    "creditSentence": "Un reembolso o crédito del proveedor contra este gasto. Toma la partida, la moneda y el proveedor del gasto.",
+    "recordCredit": "Registrar crédito",
+    "credited": "Acreditado",
+    "pendingCredits": "Créditos pendientes",
+    "net": "Neto",
+    "credits": "Créditos",
+    "openOriginal": "Crédito de {description}",
+    "refundReceived": "Reembolso recibido",
+    "refundReason": "Reembolso recibido del proveedor.",
+    "paidMyself": "Lo pagué yo",
+    "forAct": "Para un acto",
+    "forActNone": "Sin acto",
+    "reimbursement": "Reembolso",
+    "openReimbursements": "Abrir reembolsos",
+    "status": {
+      "Recorded": "Registrado",
+      "Owed": "Adeudado",
+      "Paid": "Pagado",
+      "Notowed": "No adeudado"
+    },
+    "duplicate": {
+      "title": "Posible duplicado",
+      "body": "Se parece a {count} {count, plural, one {gasto} other {gastos}}. Revisa antes de aprobar o pagar.",
+      "open": "Abrir gasto"
+    }
   },
   "changeOrders": {
     "addLine": "Agregar línea",
@@ -610,12 +663,20 @@
     "noApplications": "Aún no se aplicó a ninguna factura.",
     "tab": {
       "payments": "Pagos",
-      "settlements": "Liquidaciones"
+      "settlements": "Liquidaciones",
+      "due": "Por pagar",
+      "reimbursements": "Reembolsos",
+      "actCosts": "Costos por acto"
     },
-    "tabs": "Pagos y liquidaciones",
+    "tabs": "Secciones de pagos",
     "unapplied": "Sin aplicar",
     "unnumbered": "Factura sin número",
-    "individualPayee": "{name} (individual)"
+    "individualPayee": "{name} (individual)",
+    "notice": {
+      "reimbursementRecorded": "Reembolso registrado. XOS registra este pago. No mueve dinero.",
+      "reimbursementVoided": "Reembolso anulado. Sus gastos se adeudan de nuevo.",
+      "perDiemsPaid": "Pago de viáticos registrado. XOS registra este pago. No mueve dinero."
+    }
   },
   "journal": {
     "addLine": "Agregar línea",
@@ -808,6 +869,116 @@
       "address": "Dirección",
       "payments": "Pagos",
       "amount": "Pagado en el año"
+    }
+  },
+  "due": {
+    "empty": "No hay nada por pagar en este momento.",
+    "emptyAction": "Ir a Finanzas",
+    "loadError": "No se pudo cargar lo que está por pagar. Inténtalo de nuevo.",
+    "summary": "Totales según su vencimiento",
+    "recordOnly": "XOS registra este pago. No mueve dinero.",
+    "perDiemOn": "Viático del {day}",
+    "unpricedCount": "Sin precio ({count} sin precio)",
+    "billedOffsetHelp": "Las facturas ya cubren parte de esto, así que aquí solo aparece el resto.",
+    "buckets": {
+      "overdue": "Vencido",
+      "thisWeek": "Esta semana",
+      "later": "Más adelante",
+      "undated": "Sin fecha de vencimiento"
+    },
+    "fields": {
+      "bucket": "Cuándo",
+      "due": "Vence",
+      "kind": "Tipo",
+      "payee": "Beneficiario",
+      "what": "Qué",
+      "scheduled": "Programado",
+      "billedOffset": "Cubierto por facturas"
+    },
+    "kinds": {
+      "invoice": "Factura",
+      "instalment": "Cuota",
+      "settlement": "Liquidación",
+      "per_diem": "Viático",
+      "reimbursement": "Reembolso",
+      "expense": "Gasto"
+    },
+    "open": {
+      "invoice": "Abrir factura",
+      "instalment": "Abrir calendario de pagos",
+      "settlement": "Abrir liquidación",
+      "reimbursement": "Abrir reembolsos",
+      "expense": "Abrir gasto",
+      "perDiem": "Abrir viático"
+    },
+    "markPaid": {
+      "title": "Marcar viáticos como pagados",
+      "perDiems": "Viáticos"
+    }
+  },
+  "reimbursements": {
+    "empty": "Todavía nadie ha pagado algo de su bolsillo.",
+    "emptyAction": "Ir a Finanzas",
+    "loadError": "No se pudieron cargar los reembolsos. Inténtalo de nuevo.",
+    "kind": "Reembolsos",
+    "countAndAmount": "{count} · {amount}",
+    "record": "Registrar reembolso",
+    "recordIn": "Registrar reembolso en {currency}",
+    "show": "Ver reembolsos",
+    "void": "Anular reembolso",
+    "voidSentence": "Di por qué este reembolso se registró por error. Sus gastos se adeudan de nuevo.",
+    "status": {
+      "Owed": "Adeudado",
+      "NotOwed": "No adeudado"
+    },
+    "fields": {
+      "payee": "Beneficiario",
+      "recorded": "Registrado",
+      "owed": "Adeudado",
+      "paid": "Pagado",
+      "lastPaid": "Último pago"
+    },
+    "sheet": {
+      "expenses": "Gastos por reembolsar",
+      "netTotal": "Total neto",
+      "pendingNote": "{count, plural, one {# gasto tiene un crédito pendiente de aprobación, así que no está seleccionado. Decide primero el crédito.} other {# gastos tienen un crédito pendiente de aprobación, así que no están seleccionados. Decide primero los créditos.}}"
+    },
+    "history": {
+      "title": "Reembolsos registrados",
+      "empty": "Todavía no hay reembolsos registrados para esta persona.",
+      "standing": "Registrado",
+      "voided": "Anulado: {reason}"
+    }
+  },
+  "actCosts": {
+    "pickProject": "Elige un proyecto para ver cuánto cuestan sus actos.",
+    "emptyAction": "Ir a Finanzas",
+    "empty": "Todavía no hay costos atribuidos a los actos de este proyecto.",
+    "loadError": "No se pudieron cargar los costos por acto. Inténtalo de nuevo.",
+    "kind": "Costo por acto",
+    "allIn": "Costo total",
+    "open": "Abrir costos por acto",
+    "items": "De qué se compone",
+    "noCurrency": "Sin moneda",
+    "unpricedTotal": "Sin precio ({count} sin precio)",
+    "noFee": "Aún no se factura ni se liquida el pago; este total no lo incluye.",
+    "partly": "Una factura cuenta solo por la parte que supera las liquidaciones del acto en esa moneda, así un pago liquidado no se cuenta dos veces.",
+    "fields": {
+      "party": "Acto",
+      "pricedTotal": "Total con precio",
+      "component": "Parte",
+      "item": "Elemento",
+      "counted": "Contado"
+    },
+    "components": {
+      "settlement": "Liquidación",
+      "invoice": "Facturas",
+      "travel": "Viajes",
+      "lodging": "Hospedaje",
+      "perDiem": "Viáticos",
+      "hospitality": "Hospitalidad",
+      "expense": "Gastos",
+      "purchaseOrder": "Órdenes de compra"
     }
   }
 }

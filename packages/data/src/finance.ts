@@ -1568,6 +1568,31 @@ export async function createExpenseCredit(
   );
 }
 
+/**
+ * Edits a Proposed credit: its amount, date and description. A credit never sends is_reimbursable or engagement_id,
+ * which its check constraint and expense_credit_engagement refuse, and keeps its vendor (expense_credit_immutable).
+ */
+export async function updateExpenseCredit(
+  db: XosClient,
+  creditId: string,
+  input: {
+    readonly amountMinor: number;
+    readonly incurredOn: string;
+    readonly description: string;
+  },
+): Promise<Result<null>> {
+  return done(
+    untyped(db)
+      .from("expenses")
+      .update({
+        amount_minor: input.amountMinor,
+        incurred_on: input.incurredOn,
+        description: input.description.trim(),
+      })
+      .eq("id", creditId),
+  );
+}
+
 /** A look-alike of an expense (3016): a warning, never a refusal. */
 export interface ExpenseDuplicate {
   readonly expenseId: string | null;
@@ -2850,24 +2875,38 @@ export function toCsv(header: readonly string[], body: readonly (readonly string
 
 // Payments due (B12, 3015) ------------------------------------------------------------------------------------------
 
-export type PaymentDueKind = "invoice" | "instalment" | "settlement" | "per_diem" | "reimbursement";
+export type PaymentDueKind =
+  | "invoice"
+  | "instalment"
+  | "settlement"
+  | "per_diem"
+  | "reimbursement"
+  | "expense";
 
 /** One outstanding payable of app.payments_due: what the org owes, to whom and when. */
 export interface PaymentDue {
   readonly kind: PaymentDueKind;
   readonly sourceId: string;
+  /** The order an instalment pays; null for every other kind. */
+  readonly purchaseOrderId: string | null;
   readonly projectId: string;
   readonly projectKey: string;
+  /** Today on the project's calendar: a row's bucket is decided by its own project's day. */
+  readonly projectToday: string;
   readonly counterpartyId: string | null;
+  readonly counterpartyName: string | null;
   readonly payeePersonId: string | null;
+  /** From app.person_names; null while the person stays hidden, and the id is kept. */
   readonly payeeName: string | null;
   readonly label: string | null;
   readonly dueOn: string | null;
   readonly currency: string;
-  /** Outstanding after Approved payments; null only for an unpriced bill or settlement (Section 3.7). */
+  /** Outstanding, net of what bills already claim; null only when unpriced (Section 3.7). */
   readonly amountMinor: number | null;
   /** What Proposed payments will apply. */
   readonly scheduledMinor: number;
+  /** What the bills of an engagement or order took off the row; null when that is unknown. */
+  readonly billedOffsetMinor: number | null;
   readonly sourceState: string | null;
 }
 
@@ -2875,28 +2914,51 @@ export function toPaymentDue(r: Raw): PaymentDue {
   return {
     kind: str(r["kind"]) as PaymentDueKind,
     sourceId: str(r["source_id"]),
+    purchaseOrderId: strOrNull(r["purchase_order_id"]),
     projectId: str(r["project_id"]),
     projectKey: str(r["project_key"]),
+    projectToday: str(r["project_today"]),
     counterpartyId: strOrNull(r["counterparty_id"]),
+    counterpartyName: strOrNull(r["counterparty_name"]),
     payeePersonId: strOrNull(r["payee_person_id"]),
-    payeeName: strOrNull(r["payee_name"]),
+    payeeName: null,
     label: strOrNull(r["label"]),
     dueOn: strOrNull(r["due_on"]),
     currency: str(r["currency_code"]).trim(),
     amountMinor: numOrNull(r["amount_minor"]),
     scheduledMinor: num(r["scheduled_minor"]),
+    billedOffsetMinor: numOrNull(r["billed_offset_minor"]),
     sourceState: strOrNull(r["source_state"]),
   };
 }
 
-/** The org's outstanding payables (app.payments_due), optionally one project. Needs finance.payment.read. */
+/** Whether the viewer reads the ledger (app.can_read_payments_due): all five capabilities at organization reach. */
+export async function canReadPaymentsDue(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(untyped(db).rpc("can_read_payments_due", { p_org_id: orgId }));
+  return r.ok && r.data === true;
+}
+
+/** The org's outstanding payables (app.payments_due), optionally one project, with payees named. */
 export async function listPaymentsDue(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<PaymentDue[]>> {
-  return rows(
-    untyped(db).rpc("payments_due", { p_org_id: input.orgId, p_project_id: input.projectId ?? null }),
+  const result = await rows(
+    untyped(db).rpc("payments_due", {
+      p_org_id: input.orgId,
+      p_project_id: input.projectId ?? null,
+    }),
     toPaymentDue,
+  );
+  if (!result.ok) return result;
+  return ok(
+    await fillPersonNames(
+      db,
+      result.data,
+      (d) => d.payeePersonId,
+      (d) => d.payeeName,
+      (d, payeeName) => ({ ...d, payeeName }),
+    ),
   );
 }
 
@@ -2931,7 +2993,7 @@ export function endOfWeek(today: string, weekStart: 0 | 1): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Which bucket a due date falls in on the org's calendar `today`, with the org's payroll week. */
+/** Which bucket a due date falls in on a project's `today`, with the org's payroll week. */
 export function paymentDueBucket(
   dueOn: string | null,
   today: string,
@@ -2944,15 +3006,14 @@ export function paymentDueBucket(
 
 /**
  * Groups the ledger into Overdue (before today), This week (today to the end of the org's week, payroll.week_start),
- * Later and No due date, each with per-currency subtotals through nullAwareSum. Pure: `today` is the org calendar's.
+ * Later and No due date, each with per-currency subtotals through nullAwareSum. Each row is compared with its own
+ * project's day (project_today), never an org-wide one, so a project on Pacific time and one in Sydney each read their
+ * own date. Rows stay in the order given within a bucket. Pure.
  */
-export function groupPaymentsDue(
-  due: readonly PaymentDue[],
-  today: string,
-  weekStart: 0 | 1,
-): PaymentDueGroup[] {
+export function groupPaymentsDue(due: readonly PaymentDue[], weekStart: 0 | 1): PaymentDueGroup[] {
   const buckets = new Map<PaymentDueBucket, PaymentDue[]>(PAYMENT_DUE_BUCKETS.map((b) => [b, []]));
-  for (const row of due) buckets.get(paymentDueBucket(row.dueOn, today, weekStart))?.push(row);
+  for (const row of due)
+    buckets.get(paymentDueBucket(row.dueOn, row.projectToday, weekStart))?.push(row);
   return PAYMENT_DUE_BUCKETS.map((bucket) => {
     const list = buckets.get(bucket) ?? [];
     const currencies = [...new Set(list.map((r) => r.currency))].sort();
@@ -2978,6 +3039,7 @@ export function groupPaymentsDue(
 
 export interface ReimbursementBalance {
   readonly payeePersonId: string;
+  /** From app.person_names; null while the person stays hidden, and the id is kept. */
   readonly payeeName: string | null;
   readonly currency: string;
   readonly recordedCount: number;
@@ -2988,19 +3050,30 @@ export interface ReimbursementBalance {
   readonly lastPaidOn: string | null;
 }
 
-/** Recorded, Owed and Paid per payee and currency (app.reimbursement_balances). Needs finance.payment.read. */
+/** Whether the viewer reads reimbursements (app.can_read_reimbursements): both capabilities at organization reach. */
+export async function canReadReimbursements(db: XosClient, orgId: string): Promise<boolean> {
+  const r = await rpcValue<boolean>(
+    untyped(db).rpc("can_read_reimbursements", { p_org_id: orgId }),
+  );
+  return r.ok && r.data === true;
+}
+
+/**
+ * Recorded, Owed and Paid per payee and currency (app.reimbursement_balances): most owed first, then by name, with
+ * names filled through app.person_names.
+ */
 export async function listReimbursementBalances(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<ReimbursementBalance[]>> {
-  return rows(
+  const result = await rows(
     untyped(db).rpc("reimbursement_balances", {
       p_org_id: input.orgId,
       p_project_id: input.projectId ?? null,
     }),
-    (r) => ({
+    (r): ReimbursementBalance => ({
       payeePersonId: str(r["payee_person_id"]),
-      payeeName: strOrNull(r["payee_name"]),
+      payeeName: null,
       currency: str(r["currency_code"]).trim(),
       recordedCount: num(r["recorded_count"]),
       recordedMinor: num(r["recorded_minor"]),
@@ -3009,6 +3082,22 @@ export async function listReimbursementBalances(
       paidMinor: num(r["paid_minor"]),
       lastPaidOn: strOrNull(r["last_paid_on"]),
     }),
+  );
+  if (!result.ok) return result;
+  const named = await fillPersonNames(
+    db,
+    result.data,
+    (b) => b.payeePersonId,
+    (b) => b.payeeName,
+    (b, payeeName) => ({ ...b, payeeName }),
+  );
+  return ok(
+    named.sort(
+      (a, b) =>
+        b.owedMinor - a.owedMinor ||
+        (a.payeeName ?? "").localeCompare(b.payeeName ?? "") ||
+        a.payeePersonId.localeCompare(b.payeePersonId),
+    ),
   );
 }
 
@@ -3019,17 +3108,24 @@ export interface OwedExpense {
   readonly incurredOn: string;
   readonly currency: string;
   readonly netMinor: number;
+  /** What Proposed credits would take: recording this charge is refused until they are decided. */
+  readonly pendingCreditMinor: number;
 }
 
-/** The Approved reimbursable charges a payee is owed (app.owed_reimbursable_expenses), at their net. */
+/** The Approved reimbursable charges a payee is owed (app.owed_reimbursable_expenses), each with net above zero. */
 export async function listOwedExpenses(
   db: XosClient,
-  input: { readonly orgId: string; readonly payeePersonId: string },
+  input: {
+    readonly orgId: string;
+    readonly payeePersonId: string;
+    readonly projectId?: string | null;
+  },
 ): Promise<Result<OwedExpense[]>> {
   return rows(
     untyped(db).rpc("owed_reimbursable_expenses", {
       p_org_id: input.orgId,
       p_payee_person_id: input.payeePersonId,
+      p_project_id: input.projectId ?? null,
     }),
     (r) => ({
       expenseId: str(r["expense_id"]),
@@ -3038,6 +3134,7 @@ export async function listOwedExpenses(
       incurredOn: str(r["incurred_on"]),
       currency: str(r["currency_code"]).trim(),
       netMinor: num(r["net_minor"]),
+      pendingCreditMinor: num(r["pending_credit_minor"]),
     }),
   );
 }
@@ -3061,7 +3158,9 @@ export async function listReimbursements(
   return rows(
     untyped(db)
       .from("expense_reimbursements")
-      .select("id, payee_person_id, currency_code, paid_minor, paid_on, reference_identifier, voided_at, void_reason")
+      .select(
+        "id, payee_person_id, currency_code, paid_minor, paid_on, reference_identifier, voided_at, void_reason",
+      )
       .eq("org_id", input.orgId)
       .eq("payee_person_id", input.payeePersonId)
       .is("deleted_at", null)

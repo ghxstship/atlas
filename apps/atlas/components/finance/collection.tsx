@@ -82,6 +82,8 @@ export function FinanceCollection({
     noMatches: string;
     clearLabel: string;
     icon?: string;
+    /** The page already holds its primary action, or adds none, so the button is secondary (gate 27). */
+    secondary?: boolean;
   };
   detail?: RecordDetail | null;
   sheet?: ReactNode;
@@ -162,6 +164,7 @@ export function FinanceCollection({
       <EmptyPanel
         icon={empty.icon ?? "Inbox"}
         sentence={filtered ? empty.noMatches : empty.sentence}
+        secondary={empty.secondary ?? false}
         actionLabel={filtered ? empty.clearLabel : empty.actionLabel}
         href={
           filtered

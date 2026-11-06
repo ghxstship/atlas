@@ -68,6 +68,7 @@ returns table (
   component text,
   source_table text,
   source_id uuid,
+  parent_id uuid,
   occurred_on date,
   label text,
   currency_code text,
@@ -116,10 +117,10 @@ begin
   ),
   items as (
     select x.engagement_id as engagement, 'settlement'::text as component, 'settlements'::text as source_table, x.id as source_id,
-      x.settled_on as occurred_on, x.title as label, x.currency_code::text as currency, x.amount, x.amount as counted
+      null::uuid as parent_id, x.settled_on as occurred_on, x.title as label, x.currency_code::text as currency, x.amount, x.amount as counted
     from settlements x
     union all
-    select b.engagement_id, 'invoice', 'invoices', b.id, coalesce(b.issued_on, b.due_on), b.invoice_number,
+    select b.engagement_id, 'invoice', 'invoices', b.id, null::uuid, coalesce(b.issued_on, b.due_on), b.invoice_number,
       b.currency_code::text, b.total_minor,
       case when b.total_minor is null or b.prior_unpriced > 0 or coalesce(st.is_unknown, false) then null
            else greatest(b.total_minor - greatest(coalesce(st.settled_minor, 0) - b.prior_minor, 0), 0) end
@@ -128,7 +129,7 @@ begin
     union all
     select coalesce(private.allocation_engagement(t.allocation_id), t.engagement_id,
         private.cost_engagement_for_person(t.project_id, t.person_id)),
-      'travel', 'travel_segments', t.id, private.zone_date(t.departs_at, t.departs_time_zone),
+      'travel', 'travel_segments', t.id, null::uuid, private.zone_date(t.departs_at, t.departs_time_zone),
       t.departs_from || ' – ' || t.arrives_at_place, t.currency_code::text,
       case when t.currency_code is not null then t.price_minor end,
       case when t.currency_code is not null then t.price_minor end
@@ -136,7 +137,7 @@ begin
     where t.project_id = p_project_id and t.deleted_at is null
     union all
     select coalesce(private.allocation_engagement(a.allocation_id), private.cost_engagement_for_person(bk.project_id, a.person_id)),
-      'lodging', 'accommodation_assignments', a.id, a.check_in_on, bk.title, bk.currency_code::text,
+      'lodging', 'accommodation_assignments', a.id, bk.id, a.check_in_on, bk.title, bk.currency_code::text,
       case when bk.currency_code is not null then ((a.check_out_on - a.check_in_on) * bk.nightly_rate_minor)::bigint end,
       case when bk.currency_code is not null then ((a.check_out_on - a.check_in_on) * bk.nightly_rate_minor)::bigint end
     from app.accommodation_assignments a
@@ -145,19 +146,19 @@ begin
     union all
     select coalesce(private.allocation_engagement(d.allocation_id), d.engagement_id,
         (select r.engagement_id from app.engagement_roster_entries r where r.id = d.roster_entry_id)),
-      'per_diem', 'per_diems', d.id, d.day, null::text, d.currency_code::text, d.amount_minor, d.amount_minor
+      'per_diem', 'per_diems', d.id, null::uuid, d.day, null::text, d.currency_code::text, d.amount_minor, d.amount_minor
     from app.per_diems d
     where d.project_id = p_project_id and d.deleted_at is null
     union all
     select coalesce(private.allocation_engagement(fl.allocation_id), private.cost_engagement_for_person(f.project_id, fl.person_id)),
-      'hospitality', 'fulfillment_lines', fl.id, private.zone_date(f.starts_at, v_zone), fl.description, fl.currency_code::text,
+      'hospitality', 'fulfillment_lines', fl.id, f.id, private.zone_date(f.starts_at, v_zone), fl.description, fl.currency_code::text,
       case when fl.currency_code is not null then private.extended_minor(fl.quantity, fl.unit_price_minor) end,
       case when fl.currency_code is not null then private.extended_minor(fl.quantity, fl.unit_price_minor) end
     from app.fulfillment_lines fl
     join app.fulfillments f on f.id = fl.fulfillment_id and f.deleted_at is null
     where f.project_id = p_project_id and fl.deleted_at is null and f.fulfillment_kind in ('Catering', 'Amenity')
     union all
-    select x.engagement_id, 'expense', 'expenses', x.id, x.incurred_on, x.description, x.currency_code::text,
+    select x.engagement_id, 'expense', 'expenses', x.id, null::uuid, x.incurred_on, x.description, x.currency_code::text,
       (x.amount_minor - private.expense_credited_minor(x.id))::bigint,
       (x.amount_minor - private.expense_credited_minor(x.id))::bigint
     from app.expenses x
@@ -166,14 +167,14 @@ begin
     where b.project_id = p_project_id and x.deleted_at is null and x.engagement_id is not null
       and x.credit_of_expense_id is null and x.expense_state in ('Approved', 'Paid')
     union all
-    select pl.engagement_id, 'purchase_order', 'po_lines', pl.id, private.zone_date(po.created_at, v_zone), pl.description,
+    select pl.engagement_id, 'purchase_order', 'po_lines', pl.id, po.id, private.zone_date(po.created_at, v_zone), pl.description,
       po.currency_code::text, private.extended_minor(pl.quantity, pl.unit_price_minor), private.extended_minor(pl.quantity, pl.unit_price_minor)
     from app.po_lines pl
     join app.purchase_orders po on po.id = pl.purchase_order_id and po.deleted_at is null
     where po.project_id = p_project_id and pl.deleted_at is null and pl.engagement_id is not null
       and po.po_state in ('Approved', 'Sent', 'Closed')
   )
-  select i.engagement, i.component, i.source_table, i.source_id, i.occurred_on, i.label, i.currency,
+  select i.engagement, i.component, i.source_table, i.source_id, i.parent_id, i.occurred_on, i.label, i.currency,
     case when i.currency is not null then i.amount end,
     case when i.currency is not null then i.counted end
   from items i
@@ -183,7 +184,7 @@ begin
 end;
 $$;
 
-comment on function app.engagement_cost_items(uuid, uuid) is 'Every cost of the project''s engagements, or of one (G-186), each attributed to exactly one engagement: by its allocation, then an explicit engagement or roster entry, then the person it names (private.cost_engagement_for_person). Components settlement (Accepted or Paid; Guarantee, Bonus, Split and Expense less Deduction, Withholding not subtracted), invoice (Approved or Disputed payable bills of the engagement including tax), travel, lodging (nights times nightly rate), per_diem, hospitality (Catering and Amenity lines), expense (Approved and Paid charges net of credits) and purchase_order (lines of Approved, Sent and Closed orders without header tax and shipping). amount_minor and currency_code are NULL when unpriced. counted_minor is what the item adds to the total: a settlement in full; an engagement bill only the part above its engagement''s Accepted and Paid settlements in that currency, in order of date then id, NULL when it, an earlier bill or a settlement is unpriced; any other item its amount. Needs finance.invoice.read, finance.expense.read, procurement.po.read, crew.time_entry.read, hospitality.fulfillment.read and opportunities.engagement.read on the project (42501). Reads no Restricted column.';
+comment on function app.engagement_cost_items(uuid, uuid) is 'Every cost of the project''s engagements, or of one (G-186), each attributed to exactly one engagement: by its allocation, then an explicit engagement or roster entry, then the person it names (private.cost_engagement_for_person). Components settlement (Accepted or Paid; Guarantee, Bonus, Split and Expense less Deduction, Withholding not subtracted), invoice (Approved or Disputed payable bills of the engagement including tax), travel, lodging (nights times nightly rate), per_diem, hospitality (Catering and Amenity lines), expense (Approved and Paid charges net of credits) and purchase_order (lines of Approved, Sent and Closed orders without header tax and shipping). amount_minor and currency_code are NULL when unpriced. counted_minor is what the item adds to the total: a settlement in full; an engagement bill only the part above its engagement''s Accepted and Paid settlements in that currency, in order of date then id, NULL when it, an earlier bill or a settlement is unpriced; any other item its amount. parent_id names the record the item opens under: a line''s order, a fulfillment line''s fulfillment, a room''s block. Needs finance.invoice.read, finance.expense.read, procurement.po.read, crew.time_entry.read, hospitality.fulfillment.read and opportunities.engagement.read on the project (42501). Reads no Restricted column.';
 revoke all on function app.engagement_cost_items(uuid, uuid) from public, anon;
 grant execute on function app.engagement_cost_items(uuid, uuid) to authenticated, service_role;
 

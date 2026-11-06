@@ -12,6 +12,7 @@ import {
   parseAmount,
   postableLines,
   readReceipt,
+  reimbursementStatusOf,
   type AuroraState,
   type BudgetLineRow,
   type CaptureSource,
@@ -34,6 +35,7 @@ import {
   ListRow,
   Screen,
   Sheet,
+  Switch,
   Tag,
   Text,
   TextField,
@@ -184,6 +186,7 @@ function ReceiptForm({
             capturedAt: capture.capturedAt,
             // Only fields the person kept from Aurora's reading carry its provenance (Section 4.7).
             suggestionId: proposal?.suggestionId ?? null,
+            isReimbursable: draft.isReimbursable ?? false,
           },
           Date.now(),
         ),
@@ -295,6 +298,13 @@ function ReceiptForm({
           confidence("incurredOn", "incurred_on") ?? t("compassExpenses.form.dateHelp"),
         )}
       />
+      <Switch
+        testID="expense-reimbursable"
+        label={t("compassExpenses.form.paidMyself")}
+        help={t("compassExpenses.form.paidMyselfHelp")}
+        value={draft.isReimbursable ?? false}
+        onChange={(isReimbursable) => setDraft((d) => ({ ...d, isReimbursable }))}
+      />
       <Button
         testID="expense-save"
         size="lg"
@@ -364,6 +374,10 @@ function ExpensesBody(): ReactElement {
   const lineName = (id: string) => {
     const l = allLines.find((x) => x.id === id);
     return l ? `${l.line_number}. ${l.description}` : "";
+  };
+  const reimbursementText = (e: ExpenseRow) => {
+    const status = reimbursementStatusOf(e);
+    return status ? t(`compassExpenses.reimbursement.${status}`) : null;
   };
   const begin = (image: ReceiptImage, source: CaptureSource) => {
     setSaved(false);
@@ -454,9 +468,15 @@ function ExpensesBody(): ReactElement {
               icon="receipt"
               title={e.description}
               subtitle={[
-                formatMoney(e.amount_minor, e.currency_code, i18n.language),
+                e.credit_of_expense_id ? t("compassExpenses.list.credit") : null,
+                formatMoney(
+                  e.credit_of_expense_id ? -e.amount_minor : e.amount_minor,
+                  e.currency_code,
+                  i18n.language,
+                ),
                 formatCalendarDay(e.incurred_on, i18n.language),
                 lineName(e.budget_line_id),
+                reimbursementText(e),
               ]
                 .filter(Boolean)
                 .join(" · ")}

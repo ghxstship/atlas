@@ -76,6 +76,13 @@ onFlowComplete:
 - extendedWaitUntil:
     visible: ".*42\\.50.*"
     timeout: 10000
+# The crew member paid this out of pocket (3012); the list then says it is recorded for reimbursement.
+- scrollUntilVisible:
+    element:
+      id: "expense-reimbursable"
+    timeout: 20000
+- tapOn:
+    id: "expense-reimbursable"
 - runFlow:
     when:
       platform: Android
@@ -101,6 +108,7 @@ onFlowComplete:
       id: "expense-saved"
     timeout: 20000
 - assertVisible: ".*Ice and water for the crew.*"
+- assertVisible: ".*Recorded.*"
 - assertVisible: "Waiting to upload"
 - runFlow:
     when:

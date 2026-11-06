@@ -702,6 +702,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "amount_minor",
     "currency_code",
     "expense_state",
+    "credit_of_expense_id",
+    "is_reimbursable",
+    "engagement_id",
   ]),
   "finance/invoices": source("app.invoices", [
     "invoice_number",

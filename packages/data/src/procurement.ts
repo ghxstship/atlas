@@ -462,6 +462,8 @@ export interface PoLine {
   /** Rental lines only: when the hire starts and ends (ISO instants). */
   readonly hireStartsAt: string | null;
   readonly hireEndsAt: string | null;
+  /** The act's engagement the line is bought for (3017). */
+  readonly engagementId: string | null;
 }
 
 /** A tstzrange as PostgREST returns it (`["2027-06-01 12:00:00+00","2027-06-05 12:00:00+00")`), split into its bounds. */
@@ -498,7 +500,7 @@ export async function listPoLines(
     db
       .from("po_lines")
       .select(
-        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, receipt_lines(quantity_received, deleted_at)",
+        "id, line_number, description, element_id, budget_line_id, quantity, unit_basis, unit_price_minor, acquisition_kind, hire_period, engagement_id, receipt_lines(quantity_received, deleted_at)",
       )
       .eq("purchase_order_id", purchaseOrderId)
       .is("deleted_at", null)
@@ -509,6 +511,7 @@ export async function listPoLines(
       description: row.description,
       elementId: row.element_id,
       budgetLineId: row.budget_line_id,
+      engagementId: row.engagement_id,
       quantity: row.quantity,
       unitBasis: row.unit_basis,
       unitPriceMinor: row.unit_price_minor,
@@ -624,6 +627,192 @@ export async function updatePoLine(
 
 export async function removePoLine(db: XosClient, id: string): Promise<Result<null>> {
   return touched(db.from("po_lines").update(deletedNow()).eq("id", id).select("id"));
+}
+
+/** Names the act a line is bought for; an Approved or Sent order's line may change this and nothing else (3017). */
+export async function setPoLineEngagement(
+  db: XosClient,
+  id: string,
+  engagementId: string | null,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_lines").update({ engagement_id: engagementId }).eq("id", id).select("id"),
+  );
+}
+
+// Payment schedule (B12, 3013) ----------------------------------------------------------------------------------
+
+export type PoInstalmentStatus = "Scheduled" | "Invoiced" | "Part paid" | "Paid";
+
+/**
+ * One instalment of an order's payment schedule (app.po_instalment_schedule). A Canceled or soft-deleted bill is no
+ * bill. Withheld columns are null with their flag: never partial.
+ */
+export interface PoInstalment {
+  readonly id: string;
+  readonly number: number;
+  readonly label: string;
+  readonly dueOn: string;
+  readonly amountMinor: number;
+  readonly currencyCode: string;
+  readonly invoiceId: string | null;
+  readonly invoiceNumber: string | null;
+  readonly invoiceTotalMinor: number | null;
+  readonly paidMinor: number | null;
+  readonly scheduledMinor: number | null;
+  readonly status: PoInstalmentStatus;
+  readonly isInvoiceWithheld: boolean;
+  readonly isPaymentWithheld: boolean;
+  readonly scheduleTotalMinor: number;
+  /** Lines, approved change orders, tax and shipping; null while a line is unpriced. */
+  readonly orderTotalMinor: number | null;
+}
+
+export async function listPoInstalments(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PoInstalment[]>> {
+  return readRows(
+    db.rpc("po_instalment_schedule", { p_purchase_order_id: purchaseOrderId }),
+    (row) => ({
+      id: row.instalment_id,
+      number: row.instalment_number,
+      label: row.label,
+      dueOn: row.due_on,
+      amountMinor: row.amount_minor,
+      currencyCode: row.currency_code.trim(),
+      invoiceId: row.invoice_id,
+      invoiceNumber: row.invoice_number,
+      invoiceTotalMinor: row.invoice_total_minor,
+      paidMinor: row.paid_minor,
+      scheduledMinor: row.scheduled_minor,
+      status: row.status as PoInstalmentStatus,
+      isInvoiceWithheld: row.is_invoice_withheld,
+      isPaymentWithheld: row.is_payment_withheld,
+      scheduleTotalMinor: row.schedule_total_minor,
+      orderTotalMinor: row.order_total_minor,
+    }),
+  );
+}
+
+/** Adds an instalment at the next number of the live schedule. */
+export async function addPoInstalment(
+  db: XosClient,
+  input: {
+    readonly purchaseOrderId: string;
+    readonly label: string;
+    readonly dueOn: string;
+    readonly amountMinor: number;
+  },
+): Promise<Result<{ id: string }>> {
+  const last = await db
+    .from("po_payment_instalments")
+    .select("instalment_number")
+    .eq("purchase_order_id", input.purchaseOrderId)
+    .is("deleted_at", null)
+    .order("instalment_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (last.error) return fail(toDataError(last.error));
+  return insertedId(
+    db
+      .from("po_payment_instalments")
+      .insert({
+        purchase_order_id: input.purchaseOrderId,
+        instalment_number: (last.data?.instalment_number ?? 0) + 1,
+        label: input.label.trim(),
+        due_on: input.dueOn,
+        amount_minor: input.amountMinor,
+      } as Tables["po_payment_instalments"]["Insert"])
+      .select("id")
+      .single(),
+  );
+}
+
+export async function removePoInstalment(db: XosClient, id: string): Promise<Result<null>> {
+  return touched(db.from("po_payment_instalments").update(deletedNow()).eq("id", id).select("id"));
+}
+
+/** Links a vendor bill to an unbilled instalment; the guard refuses a bill it does not accept (po_instalment_invoice). */
+export async function linkPoInstalmentBill(
+  db: XosClient,
+  id: string,
+  invoiceId: string,
+): Promise<Result<null>> {
+  return touched(
+    db.from("po_payment_instalments").update({ invoice_id: invoiceId }).eq("id", id).select("id"),
+  );
+}
+
+export interface LinkableBill {
+  readonly id: string;
+  readonly number: string | null;
+}
+
+/**
+ * The bills an order's instalment can link, exactly as the guard accepts them: live, non-Canceled payables of the
+ * order's project, vendor and currency, not matched to another order and linked to no live instalment. A reader without
+ * finance.invoice.read gets none, and the select stays hidden.
+ */
+export async function listLinkableBills(
+  db: XosClient,
+  order: { readonly id: string; readonly projectId: string; readonly vendorId: string; readonly currencyCode: string },
+): Promise<Result<LinkableBill[]>> {
+  const vendor = await db.from("vendors").select("counterparty_id").eq("id", order.vendorId).maybeSingle();
+  if (vendor.error) return fail(toDataError(vendor.error));
+  if (!vendor.data?.counterparty_id) return ok([]);
+  const bills = await db
+    .from("invoices")
+    .select("id, invoice_number")
+    .eq("project_id", order.projectId)
+    .eq("direction", "Payable")
+    .eq("counterparty_id", vendor.data.counterparty_id)
+    .eq("currency_code", order.currencyCode)
+    .neq("invoice_state", "Canceled")
+    .is("deleted_at", null);
+  if (bills.error) return fail(toDataError(bills.error));
+  const ids = bills.data.map((b) => b.id);
+  if (ids.length === 0) return ok([]);
+  const [matches, linked] = await Promise.all([
+    db
+      .from("invoice_matches")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .neq("purchase_order_id", order.id)
+      .is("deleted_at", null),
+    db.from("po_payment_instalments").select("invoice_id").in("invoice_id", ids).is("deleted_at", null),
+  ]);
+  if (matches.error) return fail(toDataError(matches.error));
+  if (linked.error) return fail(toDataError(linked.error));
+  const taken = new Set(
+    [...matches.data, ...linked.data].flatMap((r) => (r.invoice_id ? [r.invoice_id] : [])),
+  );
+  return ok(
+    bills.data.filter((b) => !taken.has(b.id)).map((b) => ({ id: b.id, number: b.invoice_number })),
+  );
+}
+
+/** A look-alike of an order (3016): a warning, never a refusal. */
+export interface PurchaseOrderDuplicate {
+  readonly candidateId: string;
+  readonly sameVendor: boolean;
+  readonly totalDeltaMinor: number;
+  readonly dayGap: number;
+}
+
+export async function listPurchaseOrderDuplicates(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<PurchaseOrderDuplicate[]>> {
+  return readRows(
+    db.rpc("purchase_order_duplicate_candidates", { p_purchase_order_ids: [purchaseOrderId] }),
+    (row) => ({
+      candidateId: row.candidate_id,
+      sameVendor: row.same_vendor,
+      totalDeltaMinor: row.total_delta_minor,
+      dayGap: row.day_gap,
+    }),
+  );
 }
 
 /**

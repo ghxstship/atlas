@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -165,6 +166,7 @@ export interface EngagementRef {
   readonly state: string;
   readonly currency: string | null;
   readonly counterpartyId: string | null;
+  readonly personId: string | null;
   readonly personName: string | null;
 }
 
@@ -176,21 +178,33 @@ export async function listEngagementRefs(
   let query = untyped(db)
     .from("engagements")
     .select(
-      "id, project_id, role_type, engagement_state, currency_code, counterparty_id, person:people!engagements_person_id_fkey(full_name)",
+      "id, project_id, role_type, engagement_state, currency_code, counterparty_id, person_id, person:people!engagements_person_id_fkey(full_name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (input.projectId) query = query.eq("project_id", input.projectId);
-  return rows(query, (r) => ({
+  const refs = await rows(query, (r) => ({
     id: str(r["id"]),
     projectId: str(r["project_id"]),
     roleType: str(r["role_type"]),
     state: str(r["engagement_state"]),
     currency: strOrNull(r["currency_code"])?.trim() ?? null,
     counterpartyId: strOrNull(r["counterparty_id"]),
+    personId: strOrNull(r["person_id"]),
     personName: strOrNull(obj(r["person"])?.["full_name"]),
   }));
+  if (!refs.ok) return refs;
+  // The people embed hides engaged externals, so their names come through the one name resolution (1275).
+  return ok(
+    await fillPersonNames(
+      db,
+      refs.data,
+      (e) => e.personId,
+      (e) => e.personName,
+      (e, personName) => ({ ...e, personName }),
+    ),
+  );
 }
 
 /** Drafts a settlement; the project and number come from the engagement and its sequence. */
@@ -316,4 +330,121 @@ export async function generateSelfBilledInvoice(
     }),
   );
   return r.ok ? ok({ id: r.data }) : r;
+}
+
+// The all-in cost of an act (B12, 3018) ----------------------------------------------------------------------------
+
+export type EngagementCostComponent =
+  | "settlement"
+  | "invoice"
+  | "travel"
+  | "lodging"
+  | "per_diem"
+  | "hospitality"
+  | "expense"
+  | "purchase_order";
+
+/** One engagement's cost in one currency. Components are null while one of their items is unpriced. */
+export interface EngagementCost {
+  readonly engagementId: string;
+  readonly counterpartyId: string | null;
+  readonly personId: string | null;
+  readonly roleType: string;
+  /** Null only on the one row of an engagement whose items are all unpriced. */
+  readonly currency: string | null;
+  readonly settlementMinor: number | null;
+  readonly invoiceMinor: number | null;
+  readonly travelMinor: number | null;
+  readonly lodgingMinor: number | null;
+  readonly perDiemMinor: number | null;
+  readonly hospitalityMinor: number | null;
+  readonly expenseMinor: number | null;
+  readonly purchaseOrderMinor: number | null;
+  readonly pricedTotalMinor: number;
+  /** Null while any counted item of the engagement is unpriced (Section 3.7). */
+  readonly totalMinor: number | null;
+  readonly unpricedCount: number;
+}
+
+/** One cost attributed to an engagement, with what it adds to the total. */
+export interface EngagementCostItem {
+  readonly engagementId: string;
+  readonly component: EngagementCostComponent;
+  readonly sourceTable: string;
+  readonly sourceId: string;
+  /** The record the item opens under: a line's order, a fulfillment line's fulfillment, a room's block. */
+  readonly parentId: string | null;
+  readonly occurredOn: string | null;
+  readonly label: string | null;
+  readonly currency: string | null;
+  readonly amountMinor: number | null;
+  /** An engagement bill counts only the part above its settlements; any other item counts in full. */
+  readonly countedMinor: number | null;
+}
+
+/**
+ * Whether the viewer reads a project's act costs (app.can_read_engagement_costs): every capability whose rows the
+ * roll-up reads, on the project. For showing the Act costs tab and the All-in cost sections.
+ */
+export async function canReadEngagementCosts(db: XosClient, projectId: string): Promise<boolean> {
+  const { data, error } = await untyped(db).rpc("can_read_engagement_costs", {
+    p_project_id: projectId,
+  });
+  return !error && data === true;
+}
+
+/** One row per engagement and currency on a project, or for one engagement (app.engagement_costs). */
+export async function listEngagementCosts(
+  db: XosClient,
+  input: { readonly projectId: string; readonly engagementId?: string | null },
+): Promise<Result<EngagementCost[]>> {
+  return rows(
+    untyped(db).rpc("engagement_costs", {
+      p_project_id: input.projectId,
+      p_engagement_id: input.engagementId ?? null,
+    }),
+    (r) => ({
+      engagementId: str(r["engagement_id"]),
+      counterpartyId: strOrNull(r["counterparty_id"]),
+      personId: strOrNull(r["person_id"]),
+      roleType: str(r["role_type"]),
+      currency: strOrNull(r["currency_code"])?.trim() ?? null,
+      settlementMinor: numOrNull(r["settlement_minor"]),
+      invoiceMinor: numOrNull(r["invoice_minor"]),
+      travelMinor: numOrNull(r["travel_minor"]),
+      lodgingMinor: numOrNull(r["lodging_minor"]),
+      perDiemMinor: numOrNull(r["per_diem_minor"]),
+      hospitalityMinor: numOrNull(r["hospitality_minor"]),
+      expenseMinor: numOrNull(r["expense_minor"]),
+      purchaseOrderMinor: numOrNull(r["purchase_order_minor"]),
+      pricedTotalMinor: num(r["priced_total_minor"]),
+      totalMinor: numOrNull(r["total_minor"]),
+      unpricedCount: num(r["unpriced_count"]),
+    }),
+  );
+}
+
+/** Every cost behind an engagement's figures (app.engagement_cost_items), for the drill-down. */
+export async function listEngagementCostItems(
+  db: XosClient,
+  input: { readonly projectId: string; readonly engagementId?: string | null },
+): Promise<Result<EngagementCostItem[]>> {
+  return rows(
+    untyped(db).rpc("engagement_cost_items", {
+      p_project_id: input.projectId,
+      p_engagement_id: input.engagementId ?? null,
+    }),
+    (r) => ({
+      engagementId: str(r["engagement_id"]),
+      component: str(r["component"]) as EngagementCostComponent,
+      sourceTable: str(r["source_table"]),
+      sourceId: str(r["source_id"]),
+      parentId: strOrNull(r["parent_id"]),
+      occurredOn: strOrNull(r["occurred_on"]),
+      label: strOrNull(r["label"]),
+      currency: strOrNull(r["currency_code"])?.trim() ?? null,
+      amountMinor: numOrNull(r["amount_minor"]),
+      countedMinor: numOrNull(r["counted_minor"]),
+    }),
+  );
 }
