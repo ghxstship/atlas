@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "./engine-test";
+import { expect, settle, test, type Page } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /**
@@ -28,6 +28,9 @@ async function expectAccessible(page: Page): Promise<void> {
     blocking.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`),
   ).toEqual([]);
 }
+
+/** A standby reaches a follower within 2 s (ADR 0131), which a production build shows; next dev compiles on the way. */
+const FOLLOW_MS = process.env["E2E_PRODUCTION_BUILD"] === "1" ? 2_000 : 10_000;
 
 /**
  * Presses a Stream Deck key. Playwright's US keyboard layout stops at F12 and refuses F13 to F20, so the key is
@@ -172,13 +175,13 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await expect(console_).toBeFocused();
   await pressDeckKey(page, "F16");
   await expect(watch.getByRole("status").filter({ hasText: "Standby: House to Half" })).toBeVisible(
-    { timeout: 2_000 },
+    { timeout: FOLLOW_MS },
   );
   await pressDeckKey(page, "F16");
   await expect(
     watch.getByRole("status").filter({ hasText: "Standby: House Lights Up" }),
   ).toBeVisible({
-    timeout: 2_000,
+    timeout: FOLLOW_MS,
   });
   await pressDeckKey(page, "F14");
   // F13 calls the selected cue; House to Half, jumped past, is now skipped.
@@ -227,7 +230,11 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   const toggle = page
     .getByRole("switch", { name: "Keyboard shortcuts" })
     .or(page.getByRole("checkbox", { name: "Keyboard shortcuts" }));
+  // A settings form saves with its Save button, and the console reads the preference on load.
+  await settle(page);
   await toggle.uncheck();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Saved.", { exact: true }).first()).toBeVisible();
   await page.goto(`${runUrl}&live=1`);
   await expect(page.getByRole("region", { name: "Showcaller console" })).toBeFocused();
   const standbyLine = page.getByRole("status").filter({ hasText: /^(Standby|Next):/ });

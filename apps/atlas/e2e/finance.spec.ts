@@ -285,9 +285,12 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
 
     // The undo restores the row Keep mine replaced, the other person's two sets, never the original line.
     await page.getByRole("heading", { name, exact: false }).first().click();
-    await page.keyboard.press("ControlOrMeta+z");
-    // An undo waits its turn behind the page's rereads, on the server action queue.
-    await expect(grid(page)).toContainText("Delay towers, two sets", { timeout: 15_000 });
+    // The save goes on the undo stack as its answer arrives, so the press repeats until it finds the entry. A press
+    // once the entry is undone finds the stack empty and does nothing.
+    await expect(async () => {
+      await page.keyboard.press("ControlOrMeta+z");
+      await expect(grid(page)).toContainText("Delay towers, two sets", { timeout: 3_000 });
+    }).toPass({ timeout: 20_000 });
     await settle(page);
     await other.reload();
     await expect(grid(other)).toContainText("Delay towers, two sets");
