@@ -311,21 +311,25 @@ select is((select count(*)::int from api_public.person_profile_shared_ratings((s
 select pg_temp.as_user('alice');
 with e as (
   insert into app.engagements (project_id, counterparty_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-06-01')
+  values (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement', '2027-06-01')
   returning id)
 insert into world select 'eng_v_live', id from e;
+select pg_temp.as_platform();
+insert into world select 'sam_in_acct_v', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam');
 select pg_temp.as_user('victor');
-select app.assign_engagement_member(pg_temp.id('eng_v_live'),
-  (select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam')), 'Advancing Lead');
+select app.assign_engagement_member(pg_temp.id('eng_v_live'), pg_temp.id('sam_in_acct_v'), 'Advancing Lead');
 select pg_temp.as_user('sam');
+select set_config('role', 'postgres', true);
 select ok(private.can_manage_roster(pg_temp.id('eng_v_live')), 'an Advancing Lead manages that engagement''s roster');
+select pg_temp.as_user('sam');
 select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
   'so reads no shared rating, with no other access');
 select pg_temp.as_user('victor');
-select app.assign_engagement_member(pg_temp.id('eng_v_live'),
-  (select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam')), 'Member');
+select app.assign_engagement_member(pg_temp.id('eng_v_live'), pg_temp.id('sam_in_acct_v'), 'Member');
 select pg_temp.as_user('sam');
+select set_config('role', 'postgres', true);
 select ok(not private.can_manage_roster(pg_temp.id('eng_v_live')), 'a Member duty manages nothing');
+select pg_temp.as_user('sam');
 select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'so it leaves the profile open');
 
 select pg_temp.as_platform();
@@ -359,7 +363,9 @@ select pg_temp.as_user('rory');
 select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'and revoking it opens it again');
 
 select pg_temp.as_user('art');
+select set_config('role', 'postgres', true);
 select ok(private.can_manage_roster(pg_temp.id('eng_art_a')), 'an artist manages their own roster');
+select pg_temp.as_user('art');
 select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
   'so reads no shared rating');
 select pg_temp.as_user('quinn');
