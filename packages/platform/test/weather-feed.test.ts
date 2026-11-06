@@ -99,7 +99,9 @@ describe("units", () => {
       wind_mph: 11.2,
       heat_f: null,
     });
-    expect(readObservation(fixture("observation"), new Date("2027-06-02T20:30:00Z"))).not.toBeNull();
+    expect(
+      readObservation(fixture("observation"), new Date("2027-06-02T20:30:00Z")),
+    ).not.toBeNull();
     expect(readObservation(fixture("observation"), new Date("2027-06-02T20:54:00Z"))).toBeNull();
   });
 
