@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   SETTLEMENT_ORG_NEXT,
   addSettlementLine,
+  canReadEngagementCosts,
   createSettlement,
   deleteSettlementLine,
   generateSelfBilledInvoice,
+  listEngagementCostItems,
+  listEngagementCosts,
   listEngagementRefs,
   listSettlementLines,
   listSettlements,
@@ -154,5 +157,111 @@ describe("settlements", () => {
     expect(refused.ok === false && refused.error.kind === "refusal" && refused.error.rule).toBe(
       "self_billing_not_agreed",
     );
+  });
+});
+
+describe("the all-in cost of an act (3018)", () => {
+  it("keeps an unpriced component and total NULL, never zero", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:engagement_costs": [
+        okResponse([
+          {
+            engagement_id: "e1",
+            counterparty_id: null,
+            person_id: "art",
+            role_type: "Artist",
+            currency_code: "USD",
+            settlement_minor: 100000,
+            invoice_minor: 0,
+            travel_minor: null,
+            lodging_minor: 0,
+            per_diem_minor: 0,
+            hospitality_minor: 0,
+            expense_minor: 0,
+            purchase_order_minor: 0,
+            priced_total_minor: 100000,
+            total_minor: null,
+            unpriced_count: 2,
+          },
+        ]),
+      ],
+    });
+    const result = await listEngagementCosts(db, { projectId: "p1", engagementId: "e1" });
+    expect(result.ok && result.data[0]).toMatchObject({
+      personId: "art",
+      travelMinor: null,
+      totalMinor: null,
+      pricedTotalMinor: 100000,
+      unpricedCount: 2,
+    });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_project_id: "p1", p_engagement_id: "e1" });
+  });
+
+  it("reads a bill's counted part beside its amount, and the record an item opens under", async () => {
+    const { db } = fakeClient({
+      "rpc:engagement_cost_items": [
+        okResponse([
+          {
+            engagement_id: "e1",
+            component: "invoice",
+            source_table: "invoices",
+            source_id: "i1",
+            parent_id: null,
+            occurred_on: "2027-06-01",
+            label: "BILL-1",
+            currency_code: "USD",
+            amount_minor: 120000,
+            counted_minor: 20000,
+          },
+          {
+            engagement_id: "e1",
+            component: "purchase_order",
+            source_table: "po_lines",
+            source_id: "l1",
+            parent_id: "po1",
+            occurred_on: "2027-06-01",
+            label: "Riser",
+            currency_code: "USD",
+            amount_minor: 500,
+            counted_minor: 500,
+          },
+        ]),
+      ],
+    });
+    const result = await listEngagementCostItems(db, { projectId: "p1" });
+    expect(result.ok && result.data.map((i) => [i.amountMinor, i.countedMinor, i.parentId])).toEqual([
+      [120000, 20000, null],
+      [500, 500, "po1"],
+    ]);
+  });
+
+  it("reads the gate from the database, and a failure is no", async () => {
+    const { db } = fakeClient({
+      "rpc:can_read_engagement_costs": [okResponse(true), errorResponse("08006", "down")],
+    });
+    expect(await canReadEngagementCosts(db, "p1")).toBe(true);
+    expect(await canReadEngagementCosts(db, "p1")).toBe(false);
+  });
+
+  it("fills an engaged person's name that the embed hides", async () => {
+    const { db } = fakeClient({
+      "from:engagements": [
+        okResponse([
+          {
+            id: "e1",
+            project_id: "p1",
+            role_type: "Artist",
+            engagement_state: "Active",
+            currency_code: "USD",
+            counterparty_id: null,
+            person_id: "art",
+            person: null,
+          },
+        ]),
+      ],
+      "rpc:person_names": [okResponse([{ person_id: "art", full_name: "Arturo Bell" }])],
+    });
+    const result = await listEngagementRefs(db, { orgId: "o1" });
+    expect(result.ok && result.data[0]).toMatchObject({ personId: "art", personName: "Arturo Bell" });
   });
 });

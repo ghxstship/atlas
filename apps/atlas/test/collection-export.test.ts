@@ -114,6 +114,12 @@ describe("export sources (Section 4.6.4)", () => {
     }
   });
 
+  it("exports what tells a credit from a charge", () => {
+    expect(EXPORT_SOURCES["finance/expenses"]?.columns).toEqual(
+      expect.arrayContaining(["credit_of_expense_id", "is_reimbursable", "engagement_id"]),
+    );
+  });
+
   it("reads one relation per source and never the medical encounter tables", () => {
     for (const source of allExportSources()) {
       expect(source.relation).toMatch(/^(app|xpms)\.[a-z][a-z0-9_]*$/);
