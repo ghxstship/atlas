@@ -250,9 +250,36 @@ describe("the disclosure contact", () => {
     expect(read("SECURITY.md")).toContain("security@ghxstship.tech");
   });
 
-  it("leaves a way in if the mailbox fails, and asks for no details in public", () => {
-    const policy = read("SECURITY.md");
-    expect(policy).toContain("If your email bounces");
-    expect(policy).toContain("with no details of it");
+  describe("the way in if the mailbox fails", () => {
+    const templates = ".github/ISSUE_TEMPLATE";
+    const form = read(`${templates}/security_private_channel.yml`);
+    const chooser = read(`${templates}/config.yml`);
+    const formName = /^name: (.+)$/m.exec(form)?.[1] ?? "";
+
+    it("is a form the policy links to by name and by file", () => {
+      expect(formName).not.toBe("");
+      const policy = read("SECURITY.md");
+      expect(policy).toContain("If your email bounces");
+      expect(policy).toContain(
+        `[${formName}](https://github.com/ghxstship/atlas/issues/new?template=security_private_channel.yml)`,
+      );
+      expect(policy).toContain("Add no details of the finding");
+    });
+
+    it("asks for no details of a finding, and warns against giving them", () => {
+      expect(form).toContain("This issue is public. Do not describe the finding here");
+      const fields = [...form.matchAll(/^ {2}- type: (\w+)$/gm)].map((match) => match[1]);
+      expect(fields).toEqual(["markdown", "dropdown", "checkboxes"]);
+    });
+
+    it("is not contradicted by the issue chooser", () => {
+      expect(chooser).toMatch(/^blank_issues_enabled: false$/m);
+      const link = /^ {4}url: (.+)$/m.exec(chooser)?.[1];
+      expect(link).toBe("https://github.com/ghxstship/atlas/security/policy");
+      const about = /^ {4}about: (.+)$/m.exec(chooser)?.[1] ?? "";
+      expect(about).toContain("security@ghxstship.tech");
+      expect(about).toContain("use the form on this page");
+      expect(about).not.toMatch(/never in a public issue/i);
+    });
   });
 });
