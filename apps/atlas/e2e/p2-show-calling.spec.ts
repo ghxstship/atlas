@@ -193,8 +193,9 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await jump.getByLabel("Find a cue").fill("Headliner");
   await jump.getByRole("button", { name: /Headliner On/ }).click();
   await console_.getByRole("button", { name: /^Go: call Headliner On/ }).click();
+  // Headliner On is the last cue now, so the show reads complete and names what was jumped past.
   await expect(
-    page.getByRole("status").filter({ hasText: "Current cue: Headliner On" }),
+    page.getByRole("status").filter({ hasText: "The show is complete. 3 skipped cues" }),
   ).toBeVisible();
   await expect(watch.getByRole("listitem").filter({ hasText: "Walk-in Music Out" })).toContainText(
     "Skipped",

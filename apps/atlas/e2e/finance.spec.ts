@@ -275,7 +275,10 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    // The typed value shows throughout, and the save goes on the undo stack only once it commits.
+    const kept = page.waitForResponse((r) => r.request().method() === "POST");
     await dialog.getByRole("button", { name: "Keep mine" }).click();
+    await kept;
     await expect(dialog).toBeHidden();
     await expect(grid(page)).toContainText("Delay towers, one set");
     await settle(page);

@@ -29,8 +29,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "availability.requested": "updates.kinds.availabilityRequested",
 };
 
-/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
-const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
+/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin, with an optional section. */
+const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}(#[A-Za-z0-9._~-]{1,64})?$/;
 
 /**
  * Gateway Home's For Your Information list (A127; Section 11.10 rule 5, one inbox model), beside Needs You: the
