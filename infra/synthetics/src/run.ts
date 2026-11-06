@@ -115,6 +115,83 @@ export function formatAlerts(results: readonly CheckResult[], repositoryUrl: str
     );
 }
 
+/** A required check alerts on its second failure in a row, so one lost request wakes no one. */
+export const CONFIRM_AFTER_FAILS = 2;
+/** Then it reminds at this interval, about every six hours at one run every five minutes. */
+export const REMIND_EVERY_FAILS = 72;
+
+export interface AlertDecision {
+  /** Lines to post now: the failures just confirmed or due a reminder, and the recoveries. */
+  readonly lines: readonly string[];
+  /** True when a failure line is among them: this run reports an alert and is marked failed. */
+  readonly alerted: boolean;
+  /** Required checks that are failing, confirmed or not. */
+  readonly failing: readonly CheckResult[];
+  /** True when a check started or stopped failing, so the status page has something new to say. */
+  readonly changed: boolean;
+}
+
+/**
+ * Decides what a run says, from the history before it and after it. An outage posts once when it is
+ * confirmed, again at each reminder and once when it ends, not on every run. A check that is not
+ * required shows on the status page and never alerts.
+ */
+export function decideAlerts(
+  checks: readonly CheckDefinition[],
+  results: readonly CheckResult[],
+  before: StatusHistory,
+  after: StatusHistory,
+  repositoryUrl: string,
+): AlertDecision {
+  const required = new Set(checks.filter((c) => c.required).map((c) => c.id));
+  const failure: CheckResult[] = [];
+  const recovered: string[] = [];
+  let changed = false;
+  for (const result of results) {
+    if (result.status === "skipped") continue;
+    const previous = before.regions[result.region]?.[result.id];
+    const streak = after.regions[result.region]?.[result.id]?.failStreak ?? 0;
+    const previousStreak = previous?.failStreak ?? 0;
+    if (previous === undefined || (streak === 0) !== (previousStreak === 0)) changed = true;
+    if (!required.has(result.id)) continue;
+    const due =
+      streak === CONFIRM_AFTER_FAILS ||
+      (streak > CONFIRM_AFTER_FAILS && streak % REMIND_EVERY_FAILS === 0);
+    if (due) failure.push(result);
+    if (streak === 0 && previousStreak >= CONFIRM_AFTER_FAILS) {
+      recovered.push(
+        `[${result.region}] ${result.id} (${result.component}) recovered after ${previousStreak} failed runs.`,
+      );
+    }
+  }
+  return {
+    lines: [...formatAlerts(failure, repositoryUrl), ...recovered],
+    alerted: failure.length > 0,
+    failing: failingRequired(checks, results),
+    changed,
+  };
+}
+
+/** Posts alert lines to the on-call webhook. A webhook that fails is a warning for the run, never a crash. */
+export async function postAlerts(
+  webhook: string | undefined,
+  lines: readonly string[],
+  fetcher: typeof fetch = fetch,
+): Promise<string | null> {
+  if (!webhook || lines.length === 0) return null;
+  try {
+    const response = await fetcher(webhook, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: lines.join("\n") }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    return response.ok ? null : `Alert webhook answered ${response.status}.`;
+  } catch (error) {
+    return `Alert webhook could not be reached: ${errorDetail(error)}.`;
+  }
+}
+
 // History ---------------------------------------------------------------------------------------------
 
 export interface DayCounts {
@@ -129,6 +206,8 @@ export interface CheckHistory {
   days: Record<string, DayCounts>;
   /** The latest non-skipped result, or the latest result when every run was skipped. */
   last: CheckResult | null;
+  /** Failed runs in a row; absent on history written before alerts were confirmed. */
+  failStreak?: number;
 }
 
 export interface StatusHistory {
@@ -163,6 +242,7 @@ export function recordRun(
     const counts = (entry.days[day] ??= { pass: 0, degraded: 0, fail: 0 });
     counts[result.status] += 1;
     entry.last = result;
+    entry.failStreak = result.status === "fail" ? (entry.failStreak ?? 0) + 1 : 0;
   }
   const cutoff = new Date(at.getTime() - HISTORY_DAYS * 86_400_000).toISOString().slice(0, 10);
   for (const region of Object.values(next.regions)) {

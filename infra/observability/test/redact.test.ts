@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   REDACTED,
@@ -136,6 +138,12 @@ describe("redactString", () => {
       "Set-Cookie: xos_link_grant=[token]; HttpOnly",
     );
     expect(redactString(`realtime join xlink:xlch_${hex}`)).toBe("realtime join xlink:[token]");
+    // A127 (ADR 0106): a one-tap action link's nonce and its signature both go.
+    const action = `xact_${"a".repeat(48)}.${"b".repeat(32)}`;
+    expect(redactUrl(`/auth/act/${action}`)).toBe("/auth/act/[token]");
+    expect(redactString(`GET https://gateway.example.test/auth/act/${action}?next=1 200`)).toBe(
+      "GET https://gateway.example.test/auth/act/[token]?next=1 200",
+    );
     expect(redactString("/share/")).toBe("/share/");
     expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
     expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(
@@ -325,5 +333,62 @@ describe("redactAttributes", () => {
     expect(redactAttributes({ notes: "kept" }, { allowKeys: ["notes"] })).toEqual({
       notes: "kept",
     });
+  });
+});
+
+describe("the log drain's transform (infra/runbooks/production.md, finding A69-012)", () => {
+  const repo = fileURLToPath(new URL("../../../", import.meta.url));
+  const prefixesIn = (text: string, marker: RegExp) =>
+    [...(marker.exec(text)?.[1] ?? "").split("|")].filter(Boolean).toSorted();
+
+  const redactSource = readFileSync(`${repo}infra/observability/src/redact.ts`, "utf8");
+  const runbook = readFileSync(`${repo}infra/runbooks/production.md`, "utf8");
+  const appPrefixes = prefixesIn(redactSource, /\/\(\?:(xa[^)]+)\)_\[0-9a-f\]\{16,\}/);
+
+  it("masks every prefix the app's redactor masks", () => {
+    expect(appPrefixes.length).toBeGreaterThan(10);
+    expect(prefixesIn(runbook, /r'\(\?i\)\(\?:(xa[^)]+)\)_\[0-9a-f\]\{16,\}/)).toEqual(appPrefixes);
+  });
+
+  it("masks tokens in the paths and shapes the routes use", () => {
+    // VRL runs Rust's regex; these two patterns need nothing JavaScript reads differently, once (?i) is a flag.
+    const transform = runbook.slice(runbook.indexOf("# A69-012:"));
+    const [paths, tokens] = [...transform.matchAll(/, r'([^']+)'/g)].map((match) => match[1] ?? "");
+    const pathPattern = new RegExp(paths ?? "", "g");
+    const tokenPattern = new RegExp((tokens ?? "").replace("(?i)", ""), "gi");
+    const mask = (line: string) =>
+      line.replace(pathPattern, "$1$2[token]").replace(tokenPattern, "[token]");
+    const hex = "d".repeat(64);
+    for (const [line, masked] of [
+      [`GET /share/xshr_${hex}`, "GET /share/[token]"],
+      [`GET /share/view/xshv_${hex}`, "GET /share/view/[token]"],
+      [`GET /share/screen/xscr_${hex}/open`, "GET /share/screen/[token]/open"],
+      [`GET /advance/xadv_${hex}`, "GET /advance/[token]"],
+      [`GET /sign/xdoc_${hex}`, "GET /sign/[token]"],
+      [`GET /auth/invite/xinv_${hex}`, "GET /auth/invite/[token]"],
+      [`GET /ical/xcal_${hex}`, "GET /ical/[token]"],
+      [`GET /auth/act/xact_${"a".repeat(48)}.${"b".repeat(32)}`, "GET /auth/act/[token]"],
+      [`cookie xlgr_${hex}`, "cookie [token]"],
+      [`action xact_${"a".repeat(48)}.${"b".repeat(32)} used`, "action [token] used"],
+    ] as const) {
+      expect(mask(line)).toBe(masked);
+    }
+  });
+
+  it("masks every token prefix the database mints", () => {
+    const directory = `${repo}supabase/migrations`;
+    const minted = new Set<string>();
+    for (const file of readdirSync(directory)) {
+      for (const match of readFileSync(`${directory}/${file}`, "utf8").matchAll(
+        /'(x[a-z]{3})_'/g,
+      )) {
+        minted.add(match[1] ?? "");
+      }
+    }
+    expect(minted.size).toBeGreaterThan(10);
+    expect(
+      [...minted].filter((prefix) => !appPrefixes.includes(prefix)),
+      "A migration mints a bearer token with a prefix redact.ts and the runbook's transform do not mask.",
+    ).toEqual([]);
   });
 });

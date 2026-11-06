@@ -1,12 +1,13 @@
 {
   "title": "Estado de XOS",
-  "description": "Disponibilidad en vivo de Atlas, Gateway, la API, Realtime, la sincronización de Compass y las notificaciones, revisada cada pocos minutos.",
+  "description": "Disponibilidad en vivo de Atlas, Gateway, la API, la documentación, Realtime, la sincronización de Compass y las notificaciones, revisada cada pocos minutos.",
   "skipLink": "Saltar a los componentes",
   "overall": {
     "operational": "Todos los sistemas funcionan con normalidad",
     "degraded": "Algunos sistemas están más lentos de lo normal. Los estamos vigilando.",
     "outage": "Algunos sistemas no están disponibles. Estamos trabajando en ello; las novedades aparecen abajo.",
-    "unknown": "Las revisiones de estado aún no han informado. Se ejecutan cada cinco minutos; actualice esta página en breve."
+    "unknown": "Las revisiones de estado aún no han informado. Se ejecutan cada cinco minutos; actualice esta página en breve.",
+    "partial": "Los componentes que revisamos funcionan con normalidad. Los marcados como Sin datos aún no se revisan."
   },
   "state": {
     "operational": "Operativo",
@@ -18,6 +19,7 @@
     "atlas": "Atlas",
     "gateway": "Gateway",
     "api": "API",
+    "docs": "Documentación",
     "realtime": "Realtime",
     "sync": "Sincronización de Compass",
     "notifications": "Notificaciones"

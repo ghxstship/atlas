@@ -197,7 +197,7 @@ describe("renderStatusPage", () => {
     expect(html.indexOf("Errores de la API")).toBeLessThan(html.indexOf("inc-untitled"));
   });
 
-  it("shows all systems operational when every known check passes", () => {
+  it("does not claim all systems while a component has no data", () => {
     const h = history([result("gateway.home", "gateway", "pass", "2026-10-16T11:58:00Z")]);
     const html = renderStatusPage({
       locale: "en-US",
@@ -208,7 +208,27 @@ describe("renderStatusPage", () => {
       now: NOW,
       tokenCss,
     });
-    expect(html).toContain('data-state="operational">All systems operational');
+    expect(html).not.toContain("All systems operational");
+    expect(html).toContain('data-state="operational">The components we check are operational.');
     expect(html).toContain("100.00% uptime over the last 30 days");
+  });
+
+  it("shows all systems operational when every component passes", () => {
+    const h = history(
+      config.components.map((component) =>
+        result(`${component}.check`, component, "pass", "2026-10-16T11:58:00Z"),
+      ),
+    );
+    const html = renderStatusPage({
+      locale: "es-US",
+      messages: messages("es-US"),
+      config,
+      history: h,
+      incidents: [],
+      now: NOW,
+      tokenCss,
+    });
+    expect(html).toContain('data-state="operational">Todos los sistemas funcionan con normalidad');
+    expect(html).toContain("Documentación");
   });
 });

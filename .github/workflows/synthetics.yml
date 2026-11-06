@@ -1,0 +1,99 @@
+name: Synthetics
+
+# Section 5.1: read-only checks of the public hosts, with no credential and no test data (infra/synthetics,
+# infra/ci/README.md section 2). Every check is an anonymous GET a visitor could make. A required check alerts on its
+# second failure in a row, through XOS_ALERT_WEBHOOK_URL when it is set and by marking that one run failed, then every
+# 6 hours until it recovers. Other runs in an outage stay green and quiet; their summary and the status page show it.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+    # The status page also redeploys on any change in what fails; this keeps "last checked" within the hour.
+    - cron: "2 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: synthetics
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Public host checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write # Only to force-push the single-commit status-data branch.
+    outputs:
+      changed: ${{ steps.run.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The checks are plain Node with no dependencies, so a run installs nothing.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Fetch the history
+        run: infra/ci/status-history.sh fetch "$RUNNER_TEMP/status-data"
+      - name: Run the checks
+        id: run
+        env:
+          XOS_SYNTHETICS_REGION: us-east
+          XOS_ATLAS_URL: https://atlas.ghxstship.tech
+          XOS_GATEWAY_URL: https://gateway.ghxstship.tech
+          XOS_API_URL: https://api.ghxstship.tech
+          XOS_DOCS_URL: https://docs.ghxstship.tech
+          XOS_ALERT_WEBHOOK_URL: ${{ secrets.XOS_ALERT_WEBHOOK_URL }}
+        run: node --experimental-strip-types --no-warnings infra/synthetics/src/cli.ts --history "$RUNNER_TEMP/status-data/history.json"
+      # A push that fails turns the run red: without the history no failure could reach its second run, so nothing
+      # would ever alert.
+      - name: Publish the history
+        if: always() && steps.run.outcome != 'skipped'
+        run: infra/ci/status-history.sh publish "$RUNNER_TEMP/status-data"
+
+  page:
+    name: Status page
+    needs: check
+    if: always() && (needs.check.outputs.changed == 'true' || github.event.schedule == '2 * * * *' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Skip without the Vercel token
+        id: gate
+        env:
+          HAS_SECRET: ${{ secrets.VERCEL_STATUS_TOKEN != '' }}
+        run: |
+          if [ "$HAS_SECRET" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Status page not published::Add the VERCEL_STATUS_TOKEN repository secret to publish status.ghxstship.tech (infra/runbooks/security-owner-steps.md)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.gate.outputs.run == 'true'
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      # The page inlines the token stylesheets; nothing else needs installing.
+      - if: steps.gate.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile --filter "@xos/tokens..."
+      - if: steps.gate.outputs.run == 'true'
+        run: pnpm --filter @xos/tokens build
+      - name: Build the page
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          infra/ci/status-history.sh fetch "$RUNNER_TEMP/status-data"
+          node --experimental-strip-types --no-warnings infra/status/src/cli.ts \
+            --history "$RUNNER_TEMP/status-data/history.json" --out "$RUNNER_TEMP/status-site"
+      # A static Vercel project, status.ghxstship.tech. The CLI version is pinned like every other tool here.
+      - name: Deploy the page
+        if: steps.gate.outputs.run == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_STATUS_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_STATUS_PROJECT_ID }}
+        run: npx --yes vercel@63.1.2 deploy "$RUNNER_TEMP/status-site" --prod --yes --token "$VERCEL_TOKEN"

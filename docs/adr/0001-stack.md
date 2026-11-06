@@ -244,3 +244,11 @@ pdfkit writes new PDFs only, so it cannot put the Section 8.6 watermark on a PDF
 | Area | Package                                                                                          | Version |
 | ---- | ------------------------------------------------------------------------------------------------ | ------- |
 | Data | `pdf-lib` (server only; the viewer watermark on uploaded Confidential and Restricted PDFs, A103) | 1.17.1  |
+
+## Amendment (2026-11-06): CodeQL as a workflow (RRR-248)
+
+`github/codeql-action` joins the pinned actions for `.github/workflows/codeql.yml`. Decision 15 of ADR 0033 said GitHub's default setup; a workflow does the same analysis with the configuration and the pin held in the repository, and turning it on needs no repository setting. Default setup stays off, because GitHub refuses a workflow's upload while it is on.
+
+| Action                 | Tag     | SHA                                        |
+| ---------------------- | ------- | ------------------------------------------ |
+| `github/codeql-action` | v4.39.1 | `9b3254085494b55a0f7c4c2b3d2d52cc712ce370` |

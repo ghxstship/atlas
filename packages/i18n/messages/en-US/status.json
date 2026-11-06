@@ -1,12 +1,13 @@
 {
   "title": "XOS status",
-  "description": "Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.",
+  "description": "Live availability of Atlas, Gateway, the API, the documentation, Realtime, Compass sync and notifications, checked every few minutes.",
   "skipLink": "Skip to components",
   "overall": {
     "operational": "All systems operational",
     "degraded": "Some systems are slower than normal. We are watching them.",
     "outage": "Some systems are unavailable. We are working on it; updates appear below.",
-    "unknown": "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly."
+    "unknown": "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly.",
+    "partial": "The components we check are operational. Those marked No data are not checked yet."
   },
   "state": {
     "operational": "Operational",
@@ -18,6 +19,7 @@
     "atlas": "Atlas",
     "gateway": "Gateway",
     "api": "API",
+    "docs": "Documentation",
     "realtime": "Realtime",
     "sync": "Compass sync",
     "notifications": "Notifications"

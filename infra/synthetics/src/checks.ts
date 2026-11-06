@@ -129,6 +129,46 @@ export const apiDocument: CheckDefinition = {
   },
 };
 
+export const apiHostGuard: CheckDefinition = {
+  id: "api.host_guard",
+  component: "api",
+  requires: ["XOS_API_URL"],
+  budgetMs: 600,
+  required: true,
+  runbook: `${RUNBOOK}#api-errors-or-latency`,
+  async probe(context) {
+    // The public API host, asked for a resource with no credential: refusing proves the host routes to
+    // the API and its credential check answers. It reads nothing and creates nothing.
+    const response = await request(
+      context,
+      `${base(context.env["XOS_API_URL"])}/v1/canon/departments`,
+      { headers: { accept: "application/json" } },
+    );
+    const bad = expectStatus(response, 401);
+    if (bad) return bad;
+    return (response.headers.get("content-type") ?? "").includes("application/problem+json")
+      ? ok
+      : failed("not_a_problem");
+  },
+};
+
+export const docsHome: CheckDefinition = {
+  id: "docs.home",
+  component: "docs",
+  requires: ["XOS_DOCS_URL"],
+  budgetMs: 800,
+  required: true,
+  runbook: `${RUNBOOK}#documentation-unavailable`,
+  async probe(context) {
+    // The root negotiates a locale and redirects, so this asks for the page a visitor lands on.
+    const response = await request(context, `${base(context.env["XOS_DOCS_URL"])}/en-US`);
+    const bad = expectStatus(response, 200);
+    if (bad) return bad;
+    const html = await response.text();
+    return /<html[\s>]/i.test(html) ? ok : failed("not_html");
+  },
+};
+
 export const apiRead: CheckDefinition = {
   id: "api.read",
   component: "api",
@@ -263,4 +303,6 @@ export const CHECKS: readonly CheckDefinition[] = [
   realtimeJoin,
   syncLiveness,
   notificationsReachable,
+  apiHostGuard,
+  docsHome,
 ];

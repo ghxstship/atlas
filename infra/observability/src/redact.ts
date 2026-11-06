@@ -157,12 +157,13 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // tickets (xdlt_), kiosk device keys (xkio_), subprocessor notice links (xspn_, xspu_) and
   // personal access tokens (xos_pat_). P1 (ADR 0130): so do live links to a saved view
   // (/share/view/xshv_...) and display screens (/share/screen/xscr_...), their device grants
-  // (xlgr_) and their Realtime channel keys (xlch_).
+  // (xlgr_) and their Realtime channel keys (xlch_). A127 (ADR 0106): so do one-tap action links
+  // (/auth/act/xact_...), whose token is a nonce, a dot and a signature.
   // No leading word boundary: a token right after a percent escape (%22, %2F) is still a token,
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xact|xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,

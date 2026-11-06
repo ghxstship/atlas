@@ -15,8 +15,10 @@ CI uses.
 | Supabase advisors, staging   | `ci.yml` `supabase-advisors-staging` (pushes to main)         | `node --experimental-strip-types infra/security/src/cli.ts advisors <ref>` | Any WARN or ERROR not in `advisors-accepted.json`                                          |
 | ZAP baseline against staging | `nightly.yml` `zap-baseline`                                  | `sh infra/security/zap-baseline.sh https://atlas-staging.ghxstship.tech`   | An alert of a FAIL rule, or any High alert not ignored                                     |
 | Secret scan                  | `ci.yml` `secrets`                                            | gitleaks in `ghcr.io/gitleaks/gitleaks:v8.30.1`                            | Any secret in history                                                                      |
+| CodeQL                       | `codeql.yml`, on pull requests, on main and weekly            | JavaScript, TypeScript and Python, with no build                           | An analysis that cannot finish; alerts appear under the Security tab                       |
+| Repository controls          | A unit test on every `pnpm test`                              | `infra/security/test/repo-controls.test.ts`                                | A CI job missing from `CI required checks`, or a stated control quietly removed            |
 
-CodeQL is a repository setting the owner turns on (ADR 0033, decision 15); it is not a workflow here.
+CodeQL is a workflow, so it needs no repository setting (ADR 0001, amendment of 2026-11-06). Leave GitHub's default setup off, since it refuses this workflow's uploads. What only the owner can switch on is in `infra/runbooks/security-owner-steps.md`.
 
 ## Accepted findings
 

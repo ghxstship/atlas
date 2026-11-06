@@ -26,12 +26,43 @@ OUT="${2:?output directory}"
 MODE="${3:-cli}"
 KEY="infra/backup/backup-public-key.asc"
 [[ "$MODE" == cli || "$MODE" == --reader ]] || { echo "The third argument is --reader or nothing." >&2; exit 2; }
-[[ -n "${XOS_BACKUP_DB_URL:-}" ]] || { echo "XOS_BACKUP_DB_URL is not set." >&2; exit 1; }
-[[ -f "$KEY" ]] || { echo "${KEY} is missing; the owner provides the public backup key first." >&2; exit 1; }
+
+# Everything a run needs, reported together, so one failed run names every missing piece. No secret value
+# is printed: XOS_BACKUP_SECRET_NAME only names the GitHub secret the workflow reads the URL from.
+PROBLEMS=()
+[[ -n "${XOS_BACKUP_DB_URL:-}" ]] ||
+  PROBLEMS+=("The connection string is empty: set the secret ${XOS_BACKUP_SECRET_NAME:-XOS_BACKUP_DB_URL}.")
+[[ -f "$KEY" ]] ||
+  PROBLEMS+=("${KEY} is missing: the owner commits the public backup key.")
+if [[ ${#PROBLEMS[@]} -gt 0 ]]; then
+  for problem in "${PROBLEMS[@]}"; do
+    echo "::error title=Weekly backup, ${ENVIRONMENT}::${problem}" >&2
+  done
+  echo "Steps: infra/runbooks/security-owner-steps.md, Secret values for the backup." >&2
+  exit 1
+fi
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+
+# The key is read before anything is dumped, so a bad key costs seconds and no data leaves the database.
+export GNUPGHOME="$WORK/gnupg"
+mkdir -m 700 "$GNUPGHOME"
+gpg --batch --quiet --import "$KEY" ||
+  { echo "::error title=Weekly backup, ${ENVIRONMENT}::${KEY} is not a key gpg can read." >&2; exit 1; }
+RECIPIENT="$(gpg --batch --with-colons --list-keys | awk -F: '/^fpr:/ {print $10; exit}')"
+# Validity is the second field: e expired, r revoked. Capabilities in the twelfth carry a capital E
+# while a usable encryption subkey exists.
+KEY_STATE="$(gpg --batch --with-colons --list-keys "$RECIPIENT" | awk -F: '/^pub:/ {print $2 "|" $12; exit}')"
+if [[ "${KEY_STATE%%|*}" == [er] || "${KEY_STATE##*|}" != *E* ]]; then
+  echo "::error title=Weekly backup, ${ENVIRONMENT}::${KEY} is expired, revoked or cannot encrypt." >&2
+  exit 1
+fi
+KEY_EXPIRES="$(gpg --batch --with-colons --list-keys "$RECIPIENT" | awk -F: '/^pub:/ {print $7; exit}')"
+if [[ -n "$KEY_EXPIRES" ]] && (( KEY_EXPIRES < $(date +%s) + 60 * 86400 )); then
+  echo "::warning title=Weekly backup, ${ENVIRONMENT}::${KEY} expires within 60 days; the owner extends it and commits it again."
+fi
 
 # Schemas the platform maintains, as `supabase db dump` 2.120.0 leaves them out of a schema dump, and
 # the roles it never recreates. Everything else is an application schema.
@@ -153,11 +184,6 @@ fi
 for file in "${FILES[@]}"; do
   [[ -s "$WORK/$file" ]] || { echo "${file} is empty." >&2; exit 1; }
 done
-
-export GNUPGHOME="$WORK/gnupg"
-mkdir -m 700 "$GNUPGHOME"
-gpg --batch --quiet --import "$KEY"
-RECIPIENT="$(gpg --batch --with-colons --list-keys | awk -F: '/^fpr:/ {print $10; exit}')"
 
 mkdir -p "$OUT"
 ARCHIVE="$OUT/xos-${ENVIRONMENT}-${STAMP}.tar.gz.gpg"

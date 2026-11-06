@@ -135,11 +135,12 @@ Migrations 1560 to 1563 (ADR 0055). Apply to staging, then production:
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 
-The owner chose self-hosted ClamAV, `clamav/clamav` 1.5.4 (decision 10, ADR 0034). Files never leave XOS
-infrastructure, so there is no new subprocessor.
+The owner chose self-hosted ClamAV, `clamav/clamav` 1.5.4 (decision 10, ADR 0034). File bytes reach the machine at
+Fly.io that runs it, so Fly.io is on the Subprocessor List (ADR 0034, amendment of 2026-11-06).
 
-1. Run clamd as described in `production.md`, "Upload scanning (ClamAV)".
-2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`.
+1. Run clamd as described in `infra/scanning/fly/README.md`.
+2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`, and `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and
+   `XOS_CLAMAV_TLS_KEY` (all three or none) as its step 4 shows.
 3. Schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
 
 Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and claims nothing. Every upload stays quarantined,

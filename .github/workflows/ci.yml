@@ -568,3 +568,40 @@ jobs:
             apps/${{ matrix.app }}/node_modules/.cache/playwright-visual
             /tmp/app.log
           if-no-files-found: ignore
+
+  # The one check the main ruleset requires (infra/security/github/main-ruleset.json), so a new job or a new matrix shard
+  # never needs a repository setting changed. A skipped or cancelled job fails it. Add every new job to needs;
+  # infra/security/test/repo-controls.test.ts fails when one is missing. supabase-advisors-staging runs only on a push to
+  # main, after the merge, so it stays out.
+  required:
+    name: CI required checks
+    if: always()
+    needs:
+      - checks
+      - database
+      - secrets
+      - route-js-budget
+      - visual
+      - e2e
+      - e2e-pseudo-locales
+      - e2e-pseudo-locale-routes
+      - verapdf
+      - api-breaking-changes
+      - canon
+      - semgrep
+      - dependency-audit
+      - supply-chain
+      - core-screen-visual
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Every required job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error title=CI required checks::A required job ended as $result: $RESULTS"
+              exit 1
+            fi
+          done

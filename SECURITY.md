@@ -2,17 +2,17 @@
 
 ## Reporting a vulnerability
 
-Report vulnerabilities privately through GitHub private vulnerability reporting on this repository (Security tab, "Report a vulnerability"). Do not open a public issue.
+Email **security@ghxstship.tech**. Do not open a public issue. If this repository's Security tab shows "Report a vulnerability", you may use GitHub private vulnerability reporting instead.
 
-Include the affected surface (Atlas, Gateway, Compass, API or SDK), the steps to reproduce, and the impact you observed. We acknowledge reports within 3 business days and share a remediation plan within 10 business days.
+Include the affected surface (Atlas, Gateway, Compass, API, SDK, CLI or MCP server), the steps to reproduce, and the impact you observed. Keep other people's data out of your report. We acknowledge reports within 3 business days and share a remediation plan within 10 business days. We do not pay bounties.
 
 ## Scope
 
-In scope: the code in this repository and the hosted XOS services. Out of scope: denial of service through volume, social engineering of staff, and findings in third-party services that XOS integrates with, which go to those vendors.
+In scope: the code in this repository, the published SDKs, CLI and MCP server, the Compass apps GHXSTSHIP publishes, and the hosted XOS services at `atlas.ghxstship.tech`, `gateway.ghxstship.tech`, `api.ghxstship.tech`, `docs.ghxstship.tech`, `status.ghxstship.tech` and `console.ghxstship.tech`. Out of scope: denial of service through volume, social engineering of staff, self-hosted deployments run by others, and findings in third-party services that XOS integrates with or runs on, which go to those vendors.
 
 ## Safe harbor
 
-We will not pursue legal action for research that follows this policy, avoids privacy violations and service disruption, and gives us reasonable time to fix an issue before disclosure.
+We will not pursue legal action for research that follows this policy, avoids privacy violations and service disruption, and gives us reasonable time to fix an issue before disclosure. We can authorize testing only of systems we control, and this does not cover a demand for payment in exchange for keeping or disclosing a finding. The Responsible Disclosure Policy (`legal/responsible-disclosure-policy.md`) gives the full rules of engagement. Once it is published at `/legal`, the published version controls.
 
 ## Supported versions
 

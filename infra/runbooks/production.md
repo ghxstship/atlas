@@ -235,7 +235,7 @@ Every release is a tag `vX.Y.Z` on `main`. Each step starts only when the one be
 
 ### 0. Preflight (release owner)
 
-1. CI is green on the tagged commit: `checks`, `database`, `secrets`, `route-js-budget`, `visual`, `ai-evals`, `e2e`, `e2e-pseudo-locales`, `verapdf`, and `api-breaking-changes` (gate 20, `infra/ci/oasdiff.sh`) once the orchestrator adds it.
+1. CI is green on the release pull request: `CI required checks`, which fails unless every CI job passed, and `Analyze (javascript-typescript)` and `Analyze (python)`.
 2. The release drill passed on the tagged commit: `infra/drills/release-drill.sh`. Attach the report to the release.
 3. No High or Critical finding is open (`legal/security/findings`, `legal/accessibility/findings`, `legal/qa/findings`).
 4. The status page shows the last 30 days inside the error budget (`incident-response.md`, After the incident).
@@ -283,6 +283,8 @@ How the functions are bundled (A85, RRR-130):
 Kiosk re-keying: a kiosk whose device key was retired or revoked in Atlas answers every punch with `kiosk_device_unregistered`, and Compass shows "This device is no longer registered as a kiosk". Register a new kiosk in Atlas, then on the device, signed in as a supervisor, choose **Forget this kiosk** and enter the new key (Compass help, Kiosk).
 
 ### 3. Apps
+
+`main` moves only through a pull request (`security-owner-steps.md`, Branch protection on main, which has the commands). Open the release's pull request before the migrations, so its checks are green first, and merge it here with a merge commit. Never push or fast-forward `main`: production deploys from it.
 
 1. Vercel builds `atlas`, `gateway`, `docs` and `console` for the tagged commit as preview deployments against staging. Let Atlas and Gateway run there for 30 minutes with the synthetic checks green.
 2. Promote `atlas` through its Rolling Release: 5, 25 and 100 percent, each stage approved by hand when the release gate (`progressive-delivery.md`) says promote. The plan includes Rolling Releases for one project, and `atlas` has it (ADR 0033, decision 50).
@@ -423,27 +425,27 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 
 ### GitHub Actions (repository secrets and variables)
 
-| Name                                            | Kind     | Used by                                                             |
-| ----------------------------------------------- | -------- | ------------------------------------------------------------------- |
-| `NPM_TOKEN`                                     | Secret   | `publish-packages.yml`, only until npm trusted publishing is set up |
-| PyPI trusted publisher (no secret)              | pypi.org | `publish-packages.yml`                                              |
-| `EXPO_TOKEN`                                    | Secret   | A Compass build workflow, if builds move to CI                      |
-| `STAGING_DB_URL`                                | Secret   | `backup-weekly.yml`                                                 |
-| `PRODUCTION_BACKUP_DB_URL`                      | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
-| `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD` | Secret   | `synthetics.yml`                                                    |
-| `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
-| `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
-| `XOS_STAGING_*` URLs and the staging anon key   | Variable | `synthetics.yml`                                                    |
-| `GOOGLE_CLOUD_PROJECT`                          | Variable | `translate.yml`, machine translation (ADR 0037); not a secret       |
-| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`              | Variable | `translate.yml`, the glossary upload; not a secret                  |
-| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER`             | Variable | `translate.yml`, Workload Identity Federation; no key               |
-| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`              | Variable | `translate.yml`, the account CI impersonates; no key                |
+| Name                                | Kind     | Used by                                                             |
+| ----------------------------------- | -------- | ------------------------------------------------------------------- |
+| `NPM_TOKEN`                         | Secret   | `publish-packages.yml`, only until npm trusted publishing is set up |
+| PyPI trusted publisher (no secret)  | pypi.org | `publish-packages.yml`                                              |
+| `EXPO_TOKEN`                        | Secret   | A Compass build workflow, if builds move to CI                      |
+| `STAGING_DB_URL`                    | Secret   | `backup-weekly.yml`; its job skips with a notice until it is set    |
+| `PRODUCTION_BACKUP_DB_URL`          | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
+| `XOS_ALERT_WEBHOOK_URL`             | Secret   | `synthetics.yml` and `backup-weekly.yml`, alerts to on-call         |
+| `VERCEL_STATUS_TOKEN`               | Secret   | `synthetics.yml`, publishes the status page                         |
+| `ANTHROPIC_API_KEY`                 | Secret   | `ai-evals` (gate 21)                                                |
+| `GOOGLE_CLOUD_PROJECT`              | Variable | `translate.yml`, machine translation (ADR 0037); not a secret       |
+| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`  | Variable | `translate.yml`, the glossary upload; not a secret                  |
+| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` | Variable | `translate.yml`, Workload Identity Federation; no key               |
+| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`  | Variable | `translate.yml`, the account CI impersonates; no key                |
 
 ## Upload scanning (ClamAV)
 
 Uploads are scanned by self-hosted ClamAV (owner decision 10, ADR 0034). Until clamd answers, every upload
 stays quarantined: attachments cannot be downloaded, imports wait, and private uploads reach only their
-uploader. Files never leave XOS infrastructure, so ClamAV is not a subprocessor.
+uploader. ClamAV is software XOS runs itself, but the file bytes reach a machine at Fly.io to be scanned, so Fly.io is
+on the Subprocessor List.
 
 **Hosting (owner approved 2026-10-24):** one always-on Fly.io machine with stunnel in front of clamd, reached by the
 Edge Functions over mutual TLS. The files and the owner's steps are in `infra/scanning/fly/README.md`. The rest of this
@@ -471,9 +473,10 @@ section describes clamd itself, for that machine or any other host.
 
 **Connect the functions**
 
-```sh
-supabase secrets set --project-ref <production-ref> XOS_CLAMAV_HOST=<private address> XOS_CLAMAV_PORT=3310
-```
+Production uses the host, port and three mutual TLS secrets of `infra/scanning/fly/README.md`, step 4:
+`XOS_CLAMAV_HOST=xos-clamav.fly.dev`, `XOS_CLAMAV_PORT=3311` and `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT` and
+`XOS_CLAMAV_TLS_KEY`. The three are all or none: the function refuses to choose a scanner with only some of them. A
+clamd reached over a private network instead takes only the host and port, 3310 by default.
 
 Then call `upload-scan` once with the service key. A 200 with `"scanner": "clamav"` means it is connected.
 A 503 `scanner-not-configured` means the secret is missing. The `retrying` outcome, with "clamd is
@@ -495,8 +498,8 @@ becomes downloadable after the next run.
 
 **Upgrade**
 
-Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
-together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+Renovate proposes new `clamav/clamav` tags. Update ADR 0001, `infra/scanning/docker-compose.yaml` and
+`infra/scanning/fly/Dockerfile` together. Roll hosts one at a time; while one restarts, scans retry with backoff.
 
 ## Legal change notices (OWNER)
 
@@ -909,30 +912,33 @@ Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both 
 
 ## Monitoring and alerting
 
-| Signal        | Where                                                                                                                                                            | Alert                                                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                           |
-| Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain |
-| Uptime        | `synthetics.yml` every 5 minutes from `us-east`: sign-in, Gateway, API, Realtime, sync, notifications; Better Stack every minute from five regions (decision 45) | A failed required check posts to `XOS_ALERT_WEBHOOK_URL` and turns the status page red                                                                        |
-| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `status-data`, incidents in `infra/status/incidents.json`                 | Public; updated every synthetics run                                                                                                                          |
-| Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                      |
-| Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                            |
-| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                       | A failed scheduled run emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4)                 |
+| Signal        | Where                                                                                                                                                                                                                            | Alert                                                                                                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                                                                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                                               |
+| Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                                                                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain                     |
+| Uptime        | `synthetics.yml` every 5 minutes from `us-east`, anonymous and read-only: the sign-in pages, the API document and host, and the docs. Better Stack every minute from five regions once the owner adds its monitors (decision 45) | A required check that fails twice in a row posts once to `XOS_ALERT_WEBHOOK_URL` and marks that run failed, again every 6 hours, and posts when it recovers                       |
+| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `status-data`, incidents in `infra/status/incidents.json`                                                                                 | Public; republished when a check starts or stops failing and at least hourly, once `VERCEL_STATUS_TOKEN` is set                                                                   |
+| Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                                          |
+| Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                                                |
+| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                                                                                       | A failed run posts to `XOS_ALERT_WEBHOOK_URL`; GitHub also emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4) |
 
-One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks, sign in only as the synthetic account and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
+One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
 
 **Mask bearer tokens in the log drains (OWNER, finding A69-012).** Vercel's request log records every path, and some
-paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/auth/invite/` and `/ical/`. The app's redactor never
-sees that log, so each Better Stack source that receives a drain (Vercel's and Supabase's) masks the tokens before it
-stores anything. In Better Stack, open the source, then Transformations, and add this VRL (approved by the owner on
-2026-10-24):
+paths carry a bearer token: `/share/`, `/share/view/`, `/share/screen/`, `/advance/`, `/sign/`, `/auth/invite/`,
+`/auth/act/` and `/ical/`. The app's redactor never sees that log, so each Better Stack source that receives a drain
+(Vercel's and Supabase's) masks the tokens before it stores anything. In Better Stack, open the source, then
+Transformations, and add this VRL. The owner approved its first version on 2026-10-24; this one also masks the live
+links (P1) and one-tap action links (A127) added since, so a source that has the old one replaces it.
+`infra/observability/test/redact.test.ts` fails when the app's redactor or a migration names a token prefix this does
+not mask.
 
 ```
 # A69-012: a bearer token in a request path or a prefixed secret never reaches the log store.
 . = map_values(., recursive: true) -> |v| {
   if is_string(v) {
-    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
-    replace(s, r'(?i)(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
+    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share(?:/(?:view|screen))?|advance|sign|auth/invite|auth/act|ical)/)[^/?#\s"]+', "$1$2[token]")
+    replace(s, r'(?i)(?:xact|xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?', "[token]")
   } else {
     v
   }

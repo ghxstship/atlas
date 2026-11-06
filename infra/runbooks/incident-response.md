@@ -44,7 +44,7 @@ Never delete data, accounts or cloud resources during an incident. Pause or isol
 
 ### Atlas or Gateway unavailable
 
-Checks: `atlas.sign_in_page`, `gateway.home`.
+Checks: `atlas.sign_in_page`, `gateway.home`. An alert means a check failed twice in a row, about 5 minutes apart. It repeats every 6 hours while the check keeps failing, and another line says when it recovers.
 
 1. Vercel, the project, Deployments: did a deploy land in the last hour? If yes, roll back first and investigate after.
 2. Vercel, Observability or Logs, filtered on `level:error`. Each log line is JSON with `service`, `request_id`, `trace_id` and `http_route`.
@@ -54,25 +54,32 @@ Checks: `atlas.sign_in_page`, `gateway.home`.
 
 ### Sign-in failing
 
-Check: `atlas.sign_in`.
+Check: `atlas.sign_in`, which runs only where a synthetic account is set. `synthetics.yml` checks the public hosts with no credential, so it sees the sign-in page and not a sign-in: this section starts from a user's report or a Better Stack monitor.
 
 1. Supabase, the project, Auth logs: rate limits, `invalid_grant` for every user, or provider outages.
-2. Check the synthetic user still exists and is not locked. A locked synthetic user is SEV4: fix the account and close.
+2. Where a synthetic account is set, check it still exists and is not locked. A locked synthetic user is SEV4: fix the account and close.
 3. Check the custom access token hook (`0920_active_org_token_hook.sql`). A failing hook blocks every sign-in. The Auth logs show `hook` errors.
 4. Recent changes to Auth settings (Supabase, Auth, Settings) are a common cause. Revert them through the dashboard and record the change in the timeline.
 
 ### API errors or latency
 
-Checks: `api.openapi`, `api.read`.
+Checks: `api.openapi` (the document on Atlas's host), `api.host_guard` (the API host refuses a request with no key, as `application/problem+json`) and `api.read` (only where a synthetic account is set).
 
 1. Errors: Vercel logs for `/api/v1`, grouped by `http_route` and status. A wave of 5xx after a deploy means roll back.
 2. Latency: Supabase, Reports, Database. Look for CPU, connections and slow queries (`pg_stat_statements`). Connections near the limit point at pooling: the API must use Supavisor in transaction mode (Section 5.1).
 3. The RLS benchmark (gate 17) catches policy regressions. A slow list query usually means a policy without an index; `explain analyze` it as the affected role.
 4. If the API is slow only for one tenant, check that tenant's import or export jobs (`app.import_jobs`, `app.export_jobs`) and pause the job.
 
+### Documentation unavailable
+
+Check: `docs.home`. The docs site is not a Covered Service under the SLA, so this is usually SEV3.
+
+1. Vercel, project `docs`, Deployments: did a deploy land in the last hour? If yes, roll back first and investigate after.
+2. The site is static, so check `https://www.vercel-status.com` next.
+
 ### Realtime or sync degraded
 
-Checks: `realtime.join`, and `sync.liveness` once PowerSync runs (it is skipped while `XOS_POWERSYNC_URL` is unset).
+Checks: `realtime.join`, and `sync.liveness` once PowerSync runs. `synthetics.yml` sets neither for now, so the status page shows these as No data and this section starts from a user's report.
 
 1. Realtime: Supabase, Realtime inspector; check concurrent connection and message quotas on the plan page.
    If only co-editing fails (Edit together keeps falling back to the slow pull) while live lists still update, check
@@ -85,7 +92,7 @@ Checks: `realtime.join`, and `sync.liveness` once PowerSync runs (it is skipped 
 
 ### Notifications delayed
 
-Check: `notifications.function`.
+Check: `notifications.function`, not set in `synthetics.yml` for now, so the status page shows No data.
 
 1. Supabase, Edge Functions, `notification-dispatch`: invocations and errors. The function answers 401 without the service key, which is what the check expects.
 2. Check the scheduled job that calls it (`cron.job_run_details` for the dispatch job) and the provider status (Resend).
@@ -137,10 +144,10 @@ Check: `notifications.function`.
 
 ## On-call setup (orchestrator)
 
-| Item                 | Setting                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Alert channel        | A Slack incoming webhook for the on-call channel, saved as the `XOS_ALERT_WEBHOOK_URL` repository secret                 |
-| GitHub notifications | Watch the repository for failed `synthetics` runs (Actions notifications for the on-call engineers)                      |
-| Synthetic user       | One staging user with no org data of value, `XOS_SYNTHETIC_EMAIL` and `XOS_SYNTHETIC_PASSWORD` secrets                   |
-| Sentry alerts        | Projects `atlas` and `gateway`: alert on a new issue and on more than 10 events in 5 minutes, routed to the same channel |
-| Rotation             | Weekly primary and secondary; the handover note lists open incidents and frozen deploys                                  |
+| Item                 | Setting                                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alert channel        | A Slack incoming webhook for the on-call channel, saved as the `XOS_ALERT_WEBHOOK_URL` repository secret. `synthetics.yml` and `backup-weekly.yml` post to it |
+| GitHub notifications | Watch the repository for failed `synthetics` runs (Actions notifications for the on-call engineers). A run is marked failed only when it alerts               |
+| Synthetic user       | None for now: `synthetics.yml` checks the public hosts with no credential and writes no data to production                                                    |
+| Sentry alerts        | Projects `atlas` and `gateway`: alert on a new issue and on more than 10 events in 5 minutes, routed to the same channel                                      |
+| Rotation             | Weekly primary and secondary; the handover note lists open incidents and frozen deploys                                                                       |

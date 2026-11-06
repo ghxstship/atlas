@@ -17,7 +17,8 @@ export interface StatusMessages {
   title: string;
   description: string;
   skipLink: string;
-  overall: Record<ComponentState, string>;
+  /** `partial`: everything checked is working, and some components are not checked. */
+  overall: Record<ComponentState | "partial", string>;
   state: Record<ComponentState, string>;
   component: Record<ComponentId, string>;
   region: Record<string, string>;
@@ -281,6 +282,11 @@ export function renderStatusPage(input: RenderInput): string {
 
   const known = allStates.filter((s) => s !== "unknown");
   const overall: ComponentState = known.length === 0 ? "unknown" : worst(known);
+  // "All systems operational" is a claim about every row, so a row with no data keeps it from showing.
+  const overallText =
+    overall === "operational" && known.length < allStates.length
+      ? m.overall.partial
+      : m.overall[overall];
 
   const windowStart = now.getTime() - config.incidentWindowDays * 86_400_000;
   const recent = input.incidents
@@ -320,7 +326,7 @@ ${PAGE_CSS}</style>
 <main>
 <h1>${escapeHtml(m.title)}</h1>
 <p class="lede">${escapeHtml(m.description)}</p>
-<p class="banner" role="status" data-state="${overall}">${escapeHtml(m.overall[overall])}</p>
+<p class="banner" role="status" data-state="${overall}">${escapeHtml(overallText)}</p>
 <div id="components">${regionSections.join("")}</div>
 <section aria-labelledby="incidents"><h2 id="incidents">${escapeHtml(m.incidents.heading)}</h2>${incidents}</section>
 <footer>${escapeHtml(m.footer)}</footer>
