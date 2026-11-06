@@ -30221,7 +30221,6 @@ export type Database = {
           first_response_due_at: string | null;
           id: string;
           item_state: Database["app"]["Enums"]["legal_queue_state"];
-          matter: Database["app"]["Enums"]["legal_queue_matter"];
           received_at: string;
           reference: string;
           related_item_id: string | null;
@@ -30249,7 +30248,6 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
-          matter: Database["app"]["Enums"]["legal_queue_matter"];
           received_at: string;
           reference: string;
           related_item_id?: string | null;
@@ -30276,7 +30274,6 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
-          matter?: Database["app"]["Enums"]["legal_queue_matter"];
           received_at?: string;
           reference?: string;
           related_item_id?: string | null;
