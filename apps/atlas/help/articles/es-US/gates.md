@@ -28,4 +28,8 @@ La compuerta 8 contiene la **Medición**: registre las cifras de residuos, energ
 
 Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.
 
+## Documentos y detalles obligatorios
+
+Cuando un proyecto tiene un tipo de evento, sus compuertas también revisan lo que el tipo requiere. Cada tipo de documento Obligatorio para la compuerta necesita un documento del proyecto de ese tipo con al menos una versión, y cada detalle obligatorio necesita un valor. Bajo cada compuerta, **Documentos y detalles obligatorios** muestra lo que está listo y lo que falta, y el botón para pasar nombra lo que falta. Los elementos recomendados aparecen en la lista y en la tarjeta Configuración del Resumen, pero nunca detienen una compuerta. Un proyecto sin tipo de evento pasa sus compuertas igual que antes.
+
 Relacionado: [Glosario](help:glossary).

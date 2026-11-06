@@ -35,3 +35,11 @@ Los pendientes son los arreglos menores encontrados en inspecciones y recorridos
 ## Trabajo recurrente
 
 El trabajo recurrente crea registros según un calendario, como revisiones diarias o informes semanales.
+
+## Revisiones
+
+Active **Requiere revisión** en un registro, o en un elemento de registro de una plantilla, cuando el trabajo deba revisarse antes de terminarse. Un registro que requiere revisión queda Completo solo después de aprobarse su última revisión. Mientras el registro está Activo, elija **Pedir revisión**, escoja a quien revisa y agregue una nota: el registro pasa a En revisión y se avisa a quien revisa. Quien revisa, o cualquier otro aprobador que pueda cambiar los registros del proyecto, elige **Aprobar** o **Pedir cambios** con una nota; pedir cambios regresa el registro a Activo con la nota en su historial. Quien pidió la revisión nunca la decide. Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.
+
+## Revisión de archivos
+
+En una presentación o un registro, cada versión de un archivo puede aprobarse o devolverse con lo que hay que cambiar, por alguien distinto de quien la subió. Cada versión conserva su propio historial y una versión nueva empieza sin revisar. Una presentación no puede aprobarse mientras la versión actual de uno de sus archivos tenga cambios solicitados.

@@ -222,6 +222,7 @@ function ItemList({
                         ? t("templates.items.noDue")
                         : t("templates.items.dueIn", { days: i.dueOffsetDays }),
                   })}
+              {i.kind === "Record" && i.requiresReview ? ` · ${t("templates.items.reviewed")}` : ""}
             </span>
           </span>
           {removable ? <RemoveItemButton org={org} id={i.id} name={i.name} /> : null}

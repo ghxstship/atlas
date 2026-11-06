@@ -17,3 +17,7 @@ La lista se abre mientras la contratación está en incorporación y se cierra c
 La organización puede fijar un cierre de nombres: una fecha y hora después de la cual tu empresa ya no nombra más gente para la contratación. Equipo muestra cuándo se cierran los nombres y, después, ya no puedes agregar, invitar ni enviar nombres nuevos. Una entrada devuelta sigue siendo editable y se puede volver a enviar, y aún puedes retirar entradas. Para agregar a alguien después del cierre, pide a la organización que lo mueva o lo quite.
 
 Cada fila muestra si el viaje, las tallas de uniforme y el vehículo de la persona están registrados para el proyecto. Datos del proyecto los abre; como con Ver perfil, cada vez que los abres la persona puede ver que lo hiciste. Cuando la organización lo permite, puedes ingresar un tipo de dato que la persona todavía no ingresó; se le avisa y puede corregirlo. Lo que la persona ingresó por su cuenta solo lo cambia ella.
+
+## Reutilizar una lista de un evento anterior
+
+Si administró la lista de un evento anterior con la misma organización, para la misma empresa o artista, **Reutilizar una lista de un evento anterior** agrega aquí a esas personas. Primero vea la vista previa: muestra a quién se agrega, qué direcciones de correo se invitan de nuevo y a quién se omite y por qué. Las personas se agregan como borradores con su llegada movida a las nuevas fechas; cada persona acepta de nuevo y usted todavía envía la lista para que la organización la revise. Las invitaciones se envían por correo solo cuando elige Agregar a la lista.

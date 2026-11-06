@@ -366,6 +366,10 @@ export function AddItemForm({
             help={t("templates.items.dueOffsetHelp")}
             width="100%"
           />
+          {/* An Approval record is decided, not reviewed (template_items_review_not_approval). */}
+          {recordKind === "Approval" ? null : (
+            <Checkbox name="requiresReview" label={t("templates.items.requiresReview")} />
+          )}
         </div>
       )}
     </ActionForm>

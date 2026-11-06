@@ -599,6 +599,8 @@ export interface TemplateItem {
   readonly xyz: string | null;
   readonly phaseCode: string | null;
   readonly dueOffsetDays: number | null;
+  /** B14 (6264): records it creates need an approved review before they are Complete. */
+  readonly requiresReview?: boolean;
 }
 
 export interface TemplateVersion {
@@ -648,7 +650,7 @@ export async function listTemplates(db: XosClient, orgId: string): Promise<Resul
       u
         .from("template_items")
         .select(
-          "id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days",
+          "id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days, requires_review",
         )
         .eq("org_id", orgId)
         .is("deleted_at", null)
@@ -691,6 +693,7 @@ export async function listTemplates(db: XosClient, orgId: string): Promise<Resul
               xyz: strOrNull(i["xyz"])?.trim() ?? null,
               phaseCode: strOrNull(i["phase_code"]),
               dueOffsetDays: numOrNull(i["due_offset_days"]),
+              requiresReview: i["requires_review"] === true,
             })),
         })),
     })),
@@ -771,6 +774,7 @@ export async function createDraftVersion(
         xyz: i.xyz,
         phase_code: i.phaseCode,
         due_offset_days: i.dueOffsetDays,
+        requires_review: i.requiresReview ?? false,
       })),
     );
   return error ? fail(toDataError(error)) : version;
@@ -810,6 +814,8 @@ export interface TemplateItemInput {
   readonly xyz: "X" | "Y" | "Z" | null;
   readonly phaseCode: string | null;
   readonly dueOffsetDays: number | null;
+  /** Record items only (template_items_review_records). */
+  readonly requiresReview?: boolean;
 }
 
 export async function addTemplateItem(
@@ -841,6 +847,7 @@ export async function addTemplateItem(
         xyz: scope ? null : input.xyz,
         phase_code: scope ? null : input.phaseCode,
         due_offset_days: scope ? null : input.dueOffsetDays,
+        requires_review: scope ? false : (input.requiresReview ?? false),
       })
       .select("id")
       .single(),

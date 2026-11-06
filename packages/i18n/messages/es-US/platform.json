@@ -85,6 +85,9 @@
     "approval_approver_capability": "Aprobar este documento requiere su permiso de aprobación.",
     "approval_one_step_per_approver": "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     "approval_rejection_reason": "Diga por qué cuando rechace una aprobación.",
+    "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
+    "record_review_note_required": "Diga qué cambiar cuando solicite cambios.",
+    "sod_record_review_owner": "Usted es responsable de este registro, así que otra persona lo revisa.",
     "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide.",
     "calendar_feed_limit": "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
     "calendar_feed_revoked": "Un calendario revocado sigue revocado. Agregue uno nuevo.",
@@ -144,7 +147,17 @@
     "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
     "holiday_preset_unknown": "Elija los feriados federales de EE. UU.",
     "holiday_preset_year": "Elija un año de 2021 a 2100.",
-    "holiday_preset_names": "El nombre de un feriado tiene de 1 a 100 caracteres."
+    "holiday_preset_names": "El nombre de un feriado tiene de 1 a 100 caracteres.",
+    "event_type_taken": "Ya existe un tipo de evento con este nombre.",
+    "document_type_taken": "Ya existe un tipo de documento con este nombre.",
+    "event_type_in_use": "Archiva el tipo de evento; todavía hay proyectos que lo usan.",
+    "document_type_in_use": "Quita primero los requisitos de los tipos de evento para este tipo de documento.",
+    "event_type_template_kind": "Elige una plantilla de proyecto vigente.",
+    "event_type_template_type_immutable": "Una regla de plantilla se queda con su tipo de evento.",
+    "event_type_field_target": "Elige un campo personalizado vigente de proyectos.",
+    "event_type_field_immutable": "Un campo de un tipo conserva su tipo y su campo; quítalo y agrega otro.",
+    "event_type_requirement_document_type": "Elige un tipo de documento vigente.",
+    "event_type_requirement_immutable": "Un requisito conserva su tipo y su tipo de documento; quítalo y agrega otro."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",

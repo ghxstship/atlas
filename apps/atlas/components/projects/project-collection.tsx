@@ -144,6 +144,8 @@ export function ProjectCollection({
   };
 
   const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
+  // B14 (6260): the event type, read with the list (event_type:event_types(name)), as a column when any project has one.
+  const hasEventTypes = projects.some((p) => Boolean(p.eventTypeName));
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q === ""
@@ -265,20 +267,22 @@ export function ProjectCollection({
       />
     );
   } else if (view === "table") {
+    const columns = [
+      { key: "key", label: t("fields.key"), type: "code" as const, width: 88 },
+      { key: "name", label: t("fields.name"), wrap: true },
+      { key: "state", label: t("fields.state"), type: "state" as const, width: 128 },
+      { key: "phase", label: t("fields.phase"), width: 160 },
+      ...(hasEventTypes ? [{ key: "eventType", label: t("eventTypes.field"), width: 160 }] : []),
+      { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code" as const, width: 180 },
+      { key: "venue", label: t("fields.venue"), width: 180 },
+      { key: "dates", label: t("fields.dates"), width: 220 },
+      ...custom.columns,
+    ];
     body = (
       <>
         <DataTable
           caption={t("list.caption")}
-          columns={[
-            { key: "key", label: t("fields.key"), type: "code", width: 88 },
-            { key: "name", label: t("fields.name"), wrap: true },
-            { key: "state", label: t("fields.state"), type: "state", width: 128 },
-            { key: "phase", label: t("fields.phase"), width: 160 },
-            { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
-            { key: "venue", label: t("fields.venue"), width: 180 },
-            { key: "dates", label: t("fields.dates"), width: 220 },
-            ...custom.columns,
-          ]}
+          columns={columns}
           pinStart={["key"]}
           rows={shown.map((p) => ({
             id: p.id,
@@ -286,6 +290,7 @@ export function ProjectCollection({
             name: p.name,
             state: { state: stateIcon(p.projectState), label: stateLabel(p) },
             phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
+            eventType: p.eventTypeName ?? t("values.none"),
             jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
             venue: p.venueName ?? t("values.none"),
             dates: dates(p),

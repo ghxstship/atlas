@@ -64,6 +64,7 @@ const EXPLAINED = new Set([
   "same_project",
   "sod_approval_requester",
   "approval_decided",
+  "approval_subject_immutable",
   "approval_not_eligible",
   "time_zone_unknown",
   // B4 scheduling depth (migrations 6200 to 6206).
@@ -103,6 +104,21 @@ const EXPLAINED = new Set([
   "showcaller_link_caller_name",
   "showcaller_link_revoked",
   "org_read_only",
+  // B14 record reviews and file reviews (migrations 6264 and 6265).
+  "record_review_required",
+  "record_review_pending",
+  "record_review_changes_requested",
+  "record_review_flag_locked",
+  "record_review_kind",
+  "record_review_undecided",
+  "record_review_state",
+  "record_review_open",
+  "record_review_note_required",
+  "sod_record_review_owner",
+  "sod_file_review_uploader",
+  "file_review_not_clean",
+  "file_review_subject",
+  "file_review_note_required",
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */

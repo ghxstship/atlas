@@ -167,6 +167,15 @@ export const KNOWN_REFUSALS = [
   // P8: an availability poll takes answers until it closes, for its own days only (migration 6123).
   "availability_poll_closed",
   "availability_poll_answer",
+  // B14: reusing a roster from a past event (migration 6267).
+  "roster_copy_source",
+  // A127 one-tap email links and push actions.
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_not_yours",
+  "notification_action_invalid",
+  "notification_action_reason",
+  "notification_action_elsewhere",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

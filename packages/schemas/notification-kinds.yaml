@@ -161,6 +161,9 @@ kinds:
       # P9: a pass or dock booking an approval rule matched asks its current step's approvers.
       - emitter: supabase/migrations/5860_approval_rules.sql#private.notify_subject_step_approvers
         test: supabase/tests/5860_approval_rules.test.sql
+      # B14 (6264): a record review asks the named reviewer, with the record's title and key.
+      - emitter: supabase/migrations/6264_record_reviews.sql#app.request_record_review
+        test: supabase/tests/6264_record_reviews.test.sql
   # B16 (6052, ADR 0155 D2): a connected app proposed a change for the person to confirm. In App and Push only, never
   # Email: the body names the app and the operation, never the agent-written summary, which XOS mail must not carry.
   - kind: agent.change_proposed
@@ -178,6 +181,9 @@ kinds:
       # P9: the requester hears when a subject approval is approved or rejected.
       - emitter: supabase/migrations/5860_approval_rules.sql#private.decide_subject_approval_as
         test: supabase/tests/5860_approval_rules.test.sql
+      # B14 (6264): a record review's decision tells the requester.
+      - emitter: supabase/migrations/6264_record_reviews.sql#app.decide_record_review
+        test: supabase/tests/6264_record_reviews.test.sql
   # P9 (G-261): the approvers of a step that waits are reminded, hourly or by the requester's nudge.
   - kind: approval.reminder
     category: approvals

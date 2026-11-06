@@ -18,3 +18,7 @@ order: 32
 - **Handbook**: publish handbook articles.
 - **Forms**: build forms with conditional logic, required photos and signatures. Crew can complete them in Compass, offline, and each submission becomes a record of the right kind.
 - **Training**: build short courses for your crew.
+
+## Document types
+
+File each document under one of your organization's **document types**, such as a site plan or an insurance certificate. Manage them in **Settings, Templates, Document types**, where **Add standard types** adds the XOS Standard Library's types you do not have yet. On a project's Documents tab, **Required documents** shows how many of the event type's Required and Recommended documents are on file; choose **Add** beside a missing one to create it with its type already chosen.

@@ -172,11 +172,19 @@ export function intervalMinutes(value: string | null): number | null {
   if (value === null) return null;
   const match = /^(?:(\d+) days? ?)?(\d+):(\d{2}):(\d{2})/.exec(value.trim());
   if (!match) return null;
-  return Number(match[1] ?? 0) * 1440 + Number(match[2]) * 60 + Number(match[3]) + Math.round(Number(match[4]) / 60);
+  return (
+    Number(match[1] ?? 0) * 1440 +
+    Number(match[2]) * 60 +
+    Number(match[3]) +
+    Math.round(Number(match[4]) / 60)
+  );
 }
 
 /** A running order's live cues in running order, for the cue grid. */
-export async function listCueGridRows(db: XosClient, runOfShowId: string): Promise<Result<CueGridSource[]>> {
+export async function listCueGridRows(
+  db: XosClient,
+  runOfShowId: string,
+): Promise<Result<CueGridSource[]>> {
   const { data, error } = await db
     .from("cues")
     .select("id, position, label, planned_at, duration, segment, start_tbc, called_at")

@@ -3,6 +3,7 @@ import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import { RecordHistory } from "@/components/history/record-history";
 import { Region } from "@/components/shell/region";
+import type { ReactNode } from "react";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabClient } from "./collab-client";
@@ -14,6 +15,8 @@ interface CollabPanelsProps {
   id: string;
   /** `false` leaves the history to a page that words it with labels of its own. */
   history?: boolean;
+  /** Follow the panels, in the same region. */
+  children?: ReactNode;
 }
 
 /**
@@ -30,7 +33,13 @@ export function CollabPanels(props: CollabPanelsProps) {
 }
 
 /** Loads the comments and attachments of one A16 row and renders their panels. */
-async function LoadedCollabPanels({ ctx, table, id, history = true }: CollabPanelsProps) {
+async function LoadedCollabPanels({
+  ctx,
+  table,
+  id,
+  history = true,
+  children,
+}: CollabPanelsProps) {
   const db = ctx.viewer.db;
   const subject = { table, id };
   const [threads, attachments, members, t] = await Promise.all([
@@ -75,6 +84,7 @@ async function LoadedCollabPanels({ ctx, table, id, history = true }: CollabPane
         comments={comments}
         attachments={files}
       />
+      {children}
     </>
   );
 }

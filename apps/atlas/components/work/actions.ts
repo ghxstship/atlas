@@ -137,6 +137,8 @@ const versionedSchema = z.object({
   expect: fieldsSchema.partial().optional(),
   version: z.string().min(1).max(64).nullable().optional(),
   replanReason: z.string().trim().min(1).max(500).nullable().optional(),
+  // B14 (6264): turning it off needs projects.settings.write (record_review_flag_locked).
+  requiresReview: z.boolean().optional(),
 });
 
 export type RecordFieldsInput = z.input<typeof versionedSchema>;

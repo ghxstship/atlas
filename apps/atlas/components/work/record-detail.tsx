@@ -14,12 +14,15 @@ import {
   listRecurrences,
   listReplans,
   listScopeNodeRefs,
+  listEligibleReviewers,
+  listRecordReviews,
   listStateHistory,
   nextStates,
   replanShift,
   type Assignment,
   type ChecklistItem,
   type ExtensionValues,
+  type RecordReview as Review,
   type RecordSummary,
   type Recurrence,
   type ReplanEntry,
@@ -67,6 +70,9 @@ import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
 import { ArchiveControls } from "@/components/archive/archive-controls";
 import { AnchorPin } from "@/components/schedule/anchor-pin";
+import { RecordReview } from "./record-review";
+import { FileReviewControls } from "@/components/files/file-review";
+import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -117,6 +123,13 @@ export interface RecordDetail {
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
   readonly scheduleView: ScheduleView;
+  /** B14 (6264): the record's reviews, latest first, and whether the viewer may turn Requires review off. */
+  readonly reviews: readonly Review[];
+  /** Who may be asked for a review: filled only for a writer on an Active record (app.eligible_record_reviewers). */
+  readonly reviewers: readonly { readonly personId: string; readonly name: string | null }[];
+  readonly canClearReviewFlag: boolean;
+  /** B14 (6265): reviews of the versions of the record's files, newest first. */
+  readonly fileReviews: readonly VersionReview[];
 }
 
 /** The record a display key names, with all it shows, or null when it is not visible. */
@@ -182,6 +195,18 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
   ]);
+  const versionIds = conversation.attachments.flatMap((a) => a.versions.map((v) => v.id));
+  const canWrite = caps.has("work.record.write") && !record.deletedAt;
+  const [reviews, fileReviews, reviewers] = await Promise.all([
+    record.kind === "Approval"
+      ? Promise.resolve(null)
+      : listRecordReviews(db, record.id, record.projectId),
+    versionIds.length > 0 ? listVersionReviews(db, versionIds) : Promise.resolve(null),
+    // Only someone who may ask, about a record that can be asked about, needs the list (42501 otherwise).
+    canWrite && record.state === "Active" && record.kind !== "Approval"
+      ? listEligibleReviewers(db, record.id)
+      : Promise.resolve(null),
+  ]);
   return {
     record,
     meta,
@@ -211,7 +236,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     actual: regionOf("record.actuals", () => must(actual, "actuals")),
     punch: regionOf("record.punch", () => must(punch, "punch item")),
     conversation,
-    canWrite: caps.has("work.record.write") && !record.deletedAt,
+    canWrite,
     canArchive:
       !record.deletedAt &&
       (caps.has("work.record.write") ||
@@ -220,6 +245,10 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
+    reviews: reviews?.ok ? reviews.data : [],
+    reviewers: reviewers?.ok ? reviewers.data : [],
+    canClearReviewFlag: caps.has("projects.settings.write"),
+    fileReviews: fileReviews?.ok ? fileReviews.data : [],
   };
 }
 
@@ -410,6 +439,20 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
+      {record.kind === "Approval" || record.deletedAt ? null : (
+        <RecordReview
+          org={org}
+          recordId={record.id}
+          state={record.state}
+          requiresReview={record.requiresReview ?? false}
+          reviews={detail.reviews}
+          reviewers={detail.reviewers}
+          me={me}
+          ownerId={record.ownerId}
+          canWrite={detail.canWrite}
+          canClearFlag={detail.canClearReviewFlag}
+        />
+      )}
       <RegionContent data={detail.attributes}>
         {(attributes) => (
           <ExtensionForm
@@ -604,6 +647,17 @@ export async function RecordBody({
             names={{ ...names, ...conversation.names }}
             me={me}
             canPost={!record.deletedAt}
+          />
+        )}
+      </RegionContent>
+      <RegionContent data={detail.conversation}>
+        {(conversation) => (
+          <FileReviewControls
+            org={org}
+            attachments={conversation.attachments}
+            reviews={detail.fileReviews}
+            me={me}
+            canReview={detail.canWrite}
           />
         )}
       </RegionContent>

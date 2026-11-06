@@ -3,7 +3,7 @@ import {
   OBJECTIVES_CRITERION,
   measurementEvidenceUri,
 } from "@xos/data/measurements";
-import { listAssertionRanks } from "@xos/data/projects";
+import { listAssertionRanks, listSetupProgress } from "@xos/data/projects";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { GatesView } from "@/components/projects/gates-view";
@@ -33,10 +33,11 @@ export default async function GatesPage({
   const search = await searchParams;
   const t = await getTranslations("projects");
   const view = search["view"] === "board" ? "board" : "list";
-  const [gates, ranks, measurement] = await Promise.all([
+  const [gates, ranks, measurement, setup] = await Promise.all([
     loadGates(ctx),
     listAssertionRanks(ctx.org.viewer.db),
     view === "list" ? loadMeasurementData(ctx) : Promise.resolve(null),
+    listSetupProgress(ctx.org.viewer.db, ctx.project.id),
   ]);
   const canAttest = ctx.capabilities.has("projects.gate.evidence.write");
   const canPass =
@@ -89,6 +90,7 @@ export default async function GatesPage({
         canPass={canPass}
         views={["list", "board"]}
         view={view}
+        setup={setup.ok ? setup.data : []}
         {...(gatePanels ? { gatePanels } : {})}
       />
     </TemplateCollection>

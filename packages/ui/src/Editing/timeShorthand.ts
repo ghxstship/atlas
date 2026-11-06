@@ -45,7 +45,11 @@ const ONE =
   /^(\d{1,4})(?:[:.h](\d{2}))?\s*(a|am|a\.m\.|a\.\s?m\.|p|pm|p\.m\.|p\.\s?m\.|h|hrs|horas)?$/u;
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  return text
+    .toLowerCase()
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function readOne(raw: string): Clock | null {
@@ -96,7 +100,7 @@ function hhmm(minutes: number): string {
   return `${String(Math.floor(within / 60)).padStart(2, "0")}:${String(within % 60).padStart(2, "0")}`;
 }
 
-const RANGE = /\s*(?:-|–|—|\bto\b|\bhasta\b|\s(?:a)\s(?=\d))\s*/u;
+const RANGE = /\s*(?:-|\u2013|\u2014|\bto\b|\bhasta\b|\s(?:a)\s(?=\d))\s*/u;
 
 /** Reads a time or a time range typed as shorthand, or null when the text is not shorthand. */
 export function parseTimeShorthand(
