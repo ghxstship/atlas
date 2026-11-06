@@ -40054,7 +40054,7 @@
           "type": "app.legal_queue_matter"
         },
         {
-          "comment": "A short description. For a fed item, the listing title or the kind of request.",
+          "comment": "A short description. For a fed item the kind of request, or Marketplace listing: the console reads the listing's own title from its source, so deleting the org leaves no tenant data here.",
           "name": "title",
           "nullable": false,
           "references": null,
@@ -40075,8 +40075,8 @@
           "type": "text"
         },
         {
-          "comment": "Tenant the item concerns, when it is a fed item.",
-          "name": "org_id",
+          "comment": "Tenant a fed item concerns. Not org_id: this is the platform's record, not the tenant's, so deleting the org clears this link and keeps the evidence the clock was met.",
+          "name": "tenant_org_id",
           "nullable": true,
           "references": "app.organizations.id",
           "type": "uuid"

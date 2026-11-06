@@ -30222,7 +30222,6 @@ export type Database = {
           id: string;
           item_state: Database["app"]["Enums"]["legal_queue_state"];
           matter: Database["app"]["Enums"]["legal_queue_matter"];
-          org_id: string | null;
           received_at: string;
           reference: string;
           related_item_id: string | null;
@@ -30231,6 +30230,7 @@ export type Database = {
           source_id: string | null;
           source_table: string | null;
           subject_person_id: string | null;
+          tenant_org_id: string | null;
           title: string;
           updated_at: string;
         };
@@ -30250,7 +30250,6 @@ export type Database = {
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
           matter: Database["app"]["Enums"]["legal_queue_matter"];
-          org_id?: string | null;
           received_at: string;
           reference: string;
           related_item_id?: string | null;
@@ -30259,6 +30258,7 @@ export type Database = {
           source_id?: string | null;
           source_table?: string | null;
           subject_person_id?: string | null;
+          tenant_org_id?: string | null;
           title: string;
           updated_at?: string;
         };
@@ -30277,7 +30277,6 @@ export type Database = {
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
           matter?: Database["app"]["Enums"]["legal_queue_matter"];
-          org_id?: string | null;
           received_at?: string;
           reference?: string;
           related_item_id?: string | null;
@@ -30286,6 +30285,7 @@ export type Database = {
           source_id?: string | null;
           source_table?: string | null;
           subject_person_id?: string | null;
+          tenant_org_id?: string | null;
           title?: string;
           updated_at?: string;
         };
@@ -30295,13 +30295,6 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "legal_queue_items_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
           {
@@ -30316,6 +30309,13 @@ export type Database = {
             columns: ["subject_person_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_tenant_org_id_fkey";
+            columns: ["tenant_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
