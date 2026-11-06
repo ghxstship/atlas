@@ -234,7 +234,7 @@ create table app.legal_queue_items (
   title text not null,
   details text,
   requester_contact text,
-  org_id uuid references app.organizations (id),
+  tenant_org_id uuid references app.organizations (id) on delete set null,
   subject_person_id uuid references app.people (id),
   related_item_id uuid references app.legal_queue_items (id) on delete set null,
   source_table text,
@@ -268,7 +268,7 @@ create unique index legal_queue_items_one_per_source on app.legal_queue_items (s
 create index legal_queue_items_open_idx on app.legal_queue_items (due_at) where closed_at is null;
 create index legal_queue_items_closed_idx on app.legal_queue_items (closed_at) where closed_at is not null;
 create index legal_queue_items_rule_idx on app.legal_queue_items (rule_code);
-create index legal_queue_items_org_idx on app.legal_queue_items (org_id);
+create index legal_queue_items_tenant_org_idx on app.legal_queue_items (tenant_org_id);
 create index legal_queue_items_subject_idx on app.legal_queue_items (subject_person_id, matter);
 create index legal_queue_items_related_idx on app.legal_queue_items (related_item_id);
 create index legal_queue_items_created_by_idx on app.legal_queue_items (created_by);
@@ -278,10 +278,10 @@ call private.describe('app.legal_queue_items', 'One piece of legal or security w
   'reference', 'What alerts and notes call the item, for example LQ-2026-00001. Carries no personal data.',
   'rule_code', 'Clock rule (private.legal_queue_rules).',
   'matter', 'What the item is about, from its rule.',
-  'title', 'A short description. For a fed item, the listing title or the kind of request.',
+  'title', 'A short description. For a fed item the kind of request, or Marketplace listing: the console reads the listing''s own title from its source, so deleting the org leaves no tenant data here.',
   'details', 'What the matter asks, with no more personal data than the work needs.',
   'requester_contact', 'Who to answer, for an item added by hand. Fed items never hold one.',
-  'org_id', 'Tenant the item concerns, when it is a fed item.',
+  'tenant_org_id', 'Tenant a fed item concerns. Not org_id: this is the platform''s record, not the tenant''s, so deleting the org clears this link and keeps the evidence the clock was met.',
   'subject_person_id', 'Account a DMCA notice or repeat infringer review is about, which the repeat infringer count reads.',
   'related_item_id', 'The DMCA notice a counter-notice answers.',
   'source_table', 'Table of the record that fed the item; null for an item added by hand.',
@@ -349,21 +349,34 @@ create trigger t95_append_only before update or delete on app.legal_queue_events
 
 call private.install_default_retention('app.legal_queue_events');
 
--- The lifecycle: every open state may close; closed is closed.
-insert into private.lifecycle_transition_rules (lifecycle, from_state, to_state) values
-  ('legal_queue_item', 'Received', 'In Progress'),
-  ('legal_queue_item', 'Received', 'Waiting'),
-  ('legal_queue_item', 'Received', 'Completed'),
-  ('legal_queue_item', 'Received', 'Refused'),
-  ('legal_queue_item', 'Received', 'Withdrawn'),
-  ('legal_queue_item', 'In Progress', 'Waiting'),
-  ('legal_queue_item', 'In Progress', 'Completed'),
-  ('legal_queue_item', 'In Progress', 'Refused'),
-  ('legal_queue_item', 'In Progress', 'Withdrawn'),
-  ('legal_queue_item', 'Waiting', 'In Progress'),
-  ('legal_queue_item', 'Waiting', 'Completed'),
-  ('legal_queue_item', 'Waiting', 'Refused'),
-  ('legal_queue_item', 'Waiting', 'Withdrawn');
+-- The lifecycle: every open state may close; closed is closed. It keeps its own rule table, as subscriptions do
+-- (0560), because private.transition_lifecycle (0300) needs an org on every row, and an item has none.
+create table private.legal_queue_transition_rules (
+  from_state app.legal_queue_state not null,
+  to_state app.legal_queue_state not null,
+  primary key (from_state, to_state)
+);
+comment on table private.legal_queue_transition_rules is 'The moves a legal queue item may make (ADR 0167). app.console_transition_legal_queue_item refuses any other, with legal_queue_item_transition_not_allowed.';
+comment on column private.legal_queue_transition_rules.from_state is 'State the item is in.';
+comment on column private.legal_queue_transition_rules.to_state is 'State it may move to.';
+alter table private.legal_queue_transition_rules enable row level security;
+revoke all on private.legal_queue_transition_rules from public, anon, authenticated;
+grant select on private.legal_queue_transition_rules to service_role;
+
+insert into private.legal_queue_transition_rules (from_state, to_state) values
+  ('Received', 'In Progress'),
+  ('Received', 'Waiting'),
+  ('Received', 'Completed'),
+  ('Received', 'Refused'),
+  ('Received', 'Withdrawn'),
+  ('In Progress', 'Waiting'),
+  ('In Progress', 'Completed'),
+  ('In Progress', 'Refused'),
+  ('In Progress', 'Withdrawn'),
+  ('Waiting', 'In Progress'),
+  ('Waiting', 'Completed'),
+  ('Waiting', 'Refused'),
+  ('Waiting', 'Withdrawn');
 
 -- Backup contact and outside reviewer ----------------------------------------------------------------------------------
 
@@ -464,7 +477,7 @@ begin
   if v_rule.code is null then
     perform private.refuse('legal_queue_rule', 'Choose what this item is.');
   end if;
-  insert into app.legal_queue_items (reference, rule_code, matter, title, details, requester_contact, org_id,
+  insert into app.legal_queue_items (reference, rule_code, matter, title, details, requester_contact, tenant_org_id,
     subject_person_id, related_item_id, source_table, source_id, received_at, first_response_due_at, earliest_action_at,
     due_at, created_by)
   values (
@@ -524,22 +537,20 @@ declare
 begin
   -- Open appeals of moderation decisions.
   for v_row in
-    select a.id, a.org_id, a.filed_at, o.title
+    select a.id, a.org_id, a.filed_at
     from app.moderation_appeals a
-    join app.moderation_actions m on m.id = a.moderation_action_id
-    join app.opportunities o on o.id = m.opportunity_id
     where a.appeal_state = 'Open' and a.deleted_at is null
       and not exists (select 1 from app.legal_queue_items i
                       where i.source_table = 'app.moderation_appeals' and i.source_id = a.id)
   loop
-    perform private.open_legal_queue_item('moderation_appeal', v_row.title, v_row.filed_at, p_org_id => v_row.org_id,
+    perform private.open_legal_queue_item('moderation_appeal', 'Marketplace listing', v_row.filed_at, p_org_id => v_row.org_id,
       p_source_table => 'app.moderation_appeals', p_source_id => v_row.id);
     v_new := v_new + 1;
   end loop;
 
   -- Open reports of marketplace listings, the abuse reports the platform itself decides.
   for v_row in
-    select r.id, o.org_id, r.reported_at, o.title
+    select r.id, o.org_id, r.reported_at
     from app.listing_reports r
     join app.opportunities o on o.id = r.opportunity_id
     where r.deleted_at is null
@@ -547,7 +558,7 @@ begin
       and not exists (select 1 from app.legal_queue_items i
                       where i.source_table = 'app.listing_reports' and i.source_id = r.id)
   loop
-    perform private.open_legal_queue_item('listing_report', v_row.title, v_row.reported_at, p_org_id => v_row.org_id,
+    perform private.open_legal_queue_item('listing_report', 'Marketplace listing', v_row.reported_at, p_org_id => v_row.org_id,
       p_source_table => 'app.listing_reports', p_source_id => v_row.id);
     v_new := v_new + 1;
   end loop;

@@ -27,6 +27,7 @@ call private.describe('app.moderation_appeals', 'An appeal of a moderation decis
 
 create table private.moderation_appeal_reviews (
   moderation_appeal_id uuid primary key references app.moderation_appeals (id) on delete cascade,
+  org_id uuid not null references app.organizations (id),
   recorded_by uuid not null references app.people (id),
   same_reviewer boolean not null,
   outside_reviewer_id uuid references private.legal_outside_reviewers (id),
@@ -39,11 +40,13 @@ create table private.moderation_appeal_reviews (
   constraint moderation_appeal_reviews_told check (told_by in ('Notification', 'Email')),
   constraint moderation_appeal_reviews_told_at check ((told_by is null) = (told_at is null))
 );
+create index moderation_appeal_reviews_org_idx on private.moderation_appeal_reviews (org_id);
 create index moderation_appeal_reviews_recorded_by_idx on private.moderation_appeal_reviews (recorded_by);
 create index moderation_appeal_reviews_outside_idx on private.moderation_appeal_reviews (outside_reviewer_id);
 
 comment on table private.moderation_appeal_reviews is 'The documented re-review behind each appeal outcome (6168): who recorded it, whether the person who made the first decision re-reviewed it, any outside reviewer, what was looked at again and how the appellant was told. Kept apart from app.moderation_appeals because the appellant and the org read that table. Appeals decided before 6168 have no row.';
 comment on column private.moderation_appeal_reviews.moderation_appeal_id is 'Appeal.';
+comment on column private.moderation_appeal_reviews.org_id is 'Org the appeal belongs to, so the org purge takes this row with it (1351 refuses rows it cannot tie to the org).';
 comment on column private.moderation_appeal_reviews.recorded_by is 'Operator who recorded the outcome.';
 comment on column private.moderation_appeal_reviews.same_reviewer is 'The operator who made the decision appealed did this re-review.';
 comment on column private.moderation_appeal_reviews.outside_reviewer_id is 'The outside reviewer who decided, when one is appointed.';
@@ -224,9 +227,9 @@ begin
   v_told := private.tell_moderation_party(v_appeal.org_id, v_appeal.appellant_person_id, 'moderation_appeal.decided', v_opp.id,
     v_opp.project_id, jsonb_build_object('title', v_opp.title, 'outcome', p_outcome, 'statement', btrim(p_statement),
       'reviewer', v_reviewer, 'reviewerName', coalesce(v_outside.reviewer_name, ''), 'actorName', 'XOS'));
-  insert into private.moderation_appeal_reviews (moderation_appeal_id, recorded_by, same_reviewer, outside_reviewer_id,
+  insert into private.moderation_appeal_reviews (moderation_appeal_id, org_id, recorded_by, same_reviewer, outside_reviewer_id,
     re_review_notes, told_by, told_at)
-  values (v_appeal.id, v_operator, v_same, v_outside.id, btrim(p_re_review_notes), v_told, case when v_told is not null then now() end);
+  values (v_appeal.id, v_appeal.org_id, v_operator, v_same, v_outside.id, btrim(p_re_review_notes), v_told, case when v_told is not null then now() end);
   perform private.log_operator_action('moderation_appeal.decided', v_appeal.org_id, 'app.moderation_appeals', v_appeal.id,
     p_statement, jsonb_build_object('outcome', p_outcome, 'new_decision', v_new, 'reviewer', v_reviewer, 'told', v_told));
   -- The queue item closes with its appeal, not at the next sweep.

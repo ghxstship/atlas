@@ -1127,7 +1127,7 @@
   },
   "moderation": {
     "title": "Decisiones de moderación",
-    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses; otra persona decide la apelación.",
+    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses. Revisamos cada apelación desde cero, dejamos constancia de los motivos y te avisamos del resultado.",
     "loadError": "No se pudieron cargar las decisiones de moderación.",
     "none": "No hay decisiones de moderación sobre tus anuncios.",
     "decision": "{title}: {action} el {when}",
@@ -1141,7 +1141,7 @@
       "No Action": "sin medidas"
     },
     "appeal": "Apelar esta decisión",
-    "appealed": "Apelación enviada. Otra persona la decidirá.",
+    "appealed": "Apelación enviada. La revisaremos desde cero y te avisaremos del resultado.",
     "grounds": "¿Por qué es incorrecta la decisión?",
     "groundsHelp": "Explica qué pasó por alto la revisión. Puedes apelar una vez.",
     "appealUntil": "Puedes apelar hasta el {until}.",

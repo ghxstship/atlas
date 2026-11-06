@@ -1127,7 +1127,7 @@
   },
   "moderation": {
     "title": "Moderation decisions",
-    "description": "When the XOS platform team removes, restricts or restores one of your listings after a report, the decision and its statement of reasons appear here. You can appeal a removal or restriction within six months; another reviewer decides the appeal.",
+    "description": "When the XOS platform team removes, restricts or restores one of your listings after a report, the decision and its statement of reasons appear here. You can appeal a removal or restriction within six months. We look at each appeal afresh, record the reasons and tell you the result.",
     "loadError": "Moderation decisions could not be loaded.",
     "none": "No moderation decision on your listings.",
     "decision": "{title}: {action} on {when}",
@@ -1141,7 +1141,7 @@
       "No Action": "no action taken"
     },
     "appeal": "Appeal this decision",
-    "appealed": "Appeal sent. Another reviewer will decide it.",
+    "appealed": "Appeal sent. We will look at it afresh and tell you the result.",
     "grounds": "Why is the decision wrong?",
     "groundsHelp": "Explain what the reviewer missed. You can appeal once.",
     "appealUntil": "You can appeal until {until}.",

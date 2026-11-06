@@ -79,6 +79,11 @@ const ownRules: Record<string, { refused: string[]; movers: string[] }> = {
   },
   // The phase ledger (app.project_phase_transitions) moves only through app.pass_gate (invariant 9).
   project_phase: { refused: ["gate_criteria_unmet"], movers: ["app.pass_gate"] },
+  // A legal queue item has no org, which private.transition_lifecycle needs (ADR 0167).
+  legal_queue_item: {
+    refused: ["legal_queue_item_transition_not_allowed"],
+    movers: ["app.console_transition_legal_queue_item"],
+  },
 };
 
 const lifecycles = new Set(

@@ -1,7 +1,8 @@
 -- 6166_legal_queue_console.sql
 -- The console's side of the legal queue (RRR-248; ADR 0167). A new console permission, legal.queue, held only by the
 -- Administrator role: a queue can hold a government request that the law forbids telling anyone about. Every RPC checks
--- it and the second factor first, writes the console ledger, and logs what it did to the item.
+-- it and the second factor first, writes the console ledger, and logs what it did to the item. Ledger rows name no target
+-- org, even for a fed item: a row with target_org_id would make the org purge (1351) refuse that org.
 --   * app.console_legal_queue: the list, with the repeat infringer counts, the government request count per calendar
 --     year (DPA 13.6), who gets alerts and whether alerts are actually leaving.
 --   * app.console_legal_queue_item: one item and its log. Each view is logged.
@@ -114,8 +115,14 @@ set search_path = ''
 as $$
   select jsonb_build_object(
     'id', p_item.id, 'reference', p_item.reference, 'matter', p_item.matter, 'rule_code', p_item.rule_code,
-    'basis', r.basis, 'customer_clock', r.customer_clock, 'title', p_item.title, 'state', p_item.item_state,
-    'org_name', (select o.name from app.organizations o where o.id = p_item.org_id),
+    'basis', r.basis, 'customer_clock', r.customer_clock, 'state', p_item.item_state,
+    -- A fed report or appeal shows its listing's title, read live, so nothing of the tenant's is kept in the item.
+    'title', coalesce(case p_item.source_table
+      when 'app.listing_reports' then (select o.title from app.listing_reports x join app.opportunities o on o.id = x.opportunity_id where x.id = p_item.source_id)
+      when 'app.moderation_appeals' then (select o.title from app.moderation_appeals x join app.moderation_actions m on m.id = x.moderation_action_id
+                                          join app.opportunities o on o.id = m.opportunity_id where x.id = p_item.source_id)
+    end, p_item.title),
+    'org_name', (select o.name from app.organizations o where o.id = p_item.tenant_org_id),
     'received_at', p_item.received_at, 'first_response_due_at', p_item.first_response_due_at,
     'first_response_at', p_item.first_response_at, 'earliest_action_at', p_item.earliest_action_at,
     'due_at', p_item.due_at, 'next_clock_at', private.legal_queue_next_clock(p_item),
@@ -212,7 +219,7 @@ begin
   if v_item.id is null then
     raise exception using errcode = '42501', message = 'legal queue item not found';
   end if;
-  perform private.log_operator_action('legal_queue.viewed', v_item.org_id, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
+  perform private.log_operator_action('legal_queue.viewed', null, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
   return private.legal_queue_item_json(v_item, v_now) || jsonb_build_object(
     'time_zone', private.legal_clock_time_zone(), 'details', v_item.details, 'requester_contact', v_item.requester_contact,
     'extension_reason', v_item.extension_reason, 'court_action_filed', v_item.court_action_filed,
@@ -228,9 +235,9 @@ begin
         select m.opportunity_id from app.moderation_appeals a join app.moderation_actions m on m.id = a.moderation_action_id
         where a.id = v_item.source_id) end,
     'next_states', case when v_item.source_id is not null then '[]'::jsonb else coalesce((
-      select jsonb_agg(t.to_state order by array_position(enum_range(null::app.legal_queue_state), t.to_state::app.legal_queue_state))
-      from private.lifecycle_transition_rules t
-      where t.lifecycle = 'legal_queue_item' and t.from_state = v_item.item_state::text), '[]'::jsonb) end,
+      select jsonb_agg(t.to_state order by t.to_state)
+      from private.legal_queue_transition_rules t
+      where t.from_state = v_item.item_state), '[]'::jsonb) end,
     'events', coalesce((
       select jsonb_agg(jsonb_build_object('id', e.id, 'kind', e.event_kind, 'from_state', e.from_state, 'to_state', e.to_state,
           'note', e.note, 'at', e.created_at, 'actor_name', p.full_name) order by e.created_at desc, e.id desc)
@@ -349,7 +356,7 @@ begin
   insert into app.legal_queue_events (legal_queue_item_id, event_kind, note, actor_person_id)
   values (v_item.id, 'Note', btrim(p_note), v_operator)
   returning id into v_id;
-  perform private.log_operator_action('legal_queue.noted', v_item.org_id, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
+  perform private.log_operator_action('legal_queue.noted', null, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
   return v_id;
 end;
 $$;
@@ -379,7 +386,7 @@ begin
   insert into app.legal_queue_events (legal_queue_item_id, event_kind, note, actor_person_id)
   values (v_item.id, 'First Response', btrim(p_note), v_operator)
   returning id into v_id;
-  perform private.log_operator_action('legal_queue.first_response', v_item.org_id, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
+  perform private.log_operator_action('legal_queue.first_response', null, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
   return v_id;
 end;
 $$;
@@ -412,8 +419,8 @@ begin
   if p_reason is null or char_length(btrim(p_reason)) not between 1 and 4000 then
     perform private.refuse('transition_reason_required', 'Every state change carries a reason.');
   end if;
-  if not exists (select 1 from private.lifecycle_transition_rules r
-                 where r.lifecycle = 'legal_queue_item' and r.from_state = p_expected::text and r.to_state = p_next::text) then
+  if not exists (select 1 from private.legal_queue_transition_rules r
+                 where r.from_state = p_expected and r.to_state = p_next) then
     perform private.refuse('legal_queue_item_transition_not_allowed', format('A legal queue item cannot move from %s to %s.', p_expected, p_next));
   end if;
   if v_item.item_state <> p_expected then
@@ -438,7 +445,7 @@ begin
   insert into app.legal_queue_events (legal_queue_item_id, event_kind, from_state, to_state, note, actor_person_id)
   values (v_item.id, 'State Changed', p_expected, p_next, btrim(p_reason), v_operator)
   returning id into v_id;
-  perform private.log_operator_action('legal_queue.moved', v_item.org_id, 'app.legal_queue_items', v_item.id, p_reason,
+  perform private.log_operator_action('legal_queue.moved', null, 'app.legal_queue_items', v_item.id, p_reason,
     jsonb_build_object('from', p_expected, 'to', p_next));
   if v_closing and v_item.matter = 'DMCA Notice' then
     perform private.queue_repeat_infringer_review(v_item.subject_person_id, v_operator);
@@ -486,7 +493,7 @@ begin
   where id = v_item.id;
   insert into app.legal_queue_events (legal_queue_item_id, event_kind, note, actor_person_id)
   values (v_item.id, 'Extended', btrim(p_reason), v_operator);
-  perform private.log_operator_action('legal_queue.extended', v_item.org_id, 'app.legal_queue_items', v_item.id, p_reason,
+  perform private.log_operator_action('legal_queue.extended', null, 'app.legal_queue_items', v_item.id, p_reason,
     jsonb_build_object('due_at', v_due));
   return v_due;
 end;

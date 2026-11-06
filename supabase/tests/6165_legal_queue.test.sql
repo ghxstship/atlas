@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(110);
+select plan(112);
 
 create function pg_temp.as_op(p_key text, p_aal text default 'aal2') returns void
 language plpgsql as $$
@@ -224,7 +224,11 @@ select is((select count(*)::int from app.legal_queue_items where source_id = pg_
   'a request already closed, as an account deletion writes it, opens nothing');
 select is((select row(title, details, requester_contact, subject_person_id)::text from pg_temp.item('fed_dsar')), '(Erasure,,,)',
   'a Customer''s register feeds the kind of request and never the person or their words');
-select is((select org_id from pg_temp.item('fed_dsar')), pg_temp.id('org_a'), 'and says which org');
+select is((select tenant_org_id from pg_temp.item('fed_dsar')), pg_temp.id('org_a'), 'and says which org');
+select ok(not exists (select 1 from pg_catalog.pg_attribute a where a.attrelid = 'app.legal_queue_items'::regclass and a.attname = 'org_id'),
+  'an item is the platform''s record, so the org purge (1351), which takes every org_id row, leaves it');
+select is((select k.confdeltype::text from pg_catalog.pg_constraint k where k.conrelid = 'app.legal_queue_items'::regclass
+           and k.confrelid = 'app.organizations'::regclass), 'n', 'and deleting the org only clears the link, so it never blocks the purge');
 select pg_temp.as_op('olga');
 select throws_ok(format($$select app.console_transition_legal_queue_item(%L, 'Received', 'Completed', 'No.')$$, pg_temp.id('fed_dsar')), 'XR001',
   'legal_queue_fed: This item follows its source. Act on the source, and it follows.', 'a fed item follows its source');

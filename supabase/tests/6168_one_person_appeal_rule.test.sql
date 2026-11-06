@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(35);
+select plan(36);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -92,6 +92,8 @@ select is((select item_state::text from app.legal_queue_items where source_id = 
 select is((select details ->> 'reviewer' from app.platform_operator_actions where action = 'moderation_appeal.decided' and subject_id = pg_temp.id('appeal_same')), 'same',
   'the console ledger records it');
 select hasnt_column('app'::name, 'moderation_appeals'::name, 're_review_notes'::name, 'the appellant''s table holds no internal notes');
+select is((select org_id from private.moderation_appeal_reviews where moderation_appeal_id = pg_temp.id('appeal_same')), pg_temp.id('org_a'),
+  'the record carries its org, so the org purge (1351) takes it instead of refusing');
 select pg_temp.as_user('rae');
 select throws_ok($$select * from private.moderation_appeal_reviews$$, '42501', null, 'and they cannot reach the review record');
 select pg_temp.as_op('olga');
