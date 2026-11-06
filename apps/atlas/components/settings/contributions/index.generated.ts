@@ -30,6 +30,7 @@ import { contributions as from_a96 } from "./a96";
 import { contributions as from_a99 } from "./a99";
 import { contributions as from_b14 } from "./b14";
 import { contributions as from_b16 } from "./b16";
+import { contributions as from_b9 } from "./b9";
 import { contributions as from_r3 } from "./r3";
 import { contributions as from_wp18 } from "./wp18";
 
@@ -63,6 +64,7 @@ export const CONTRIBUTIONS: readonly SettingsContribution[] = [
   ...from_a99,
   ...from_b14,
   ...from_b16,
+  ...from_b9,
   ...from_r3,
   ...from_wp18,
 ];

@@ -1,4 +1,4 @@
--- 6499_notification_kind_seed.test.sql
+-- 6799_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -78,6 +78,10 @@ select set_eq(
   ('approval.decided', 'Email', 'approvals', 'notification'),
   ('approval.decided', 'SMS', 'approvals', null::text),
   ('approval.decided', 'Push', 'approvals', null::text),
+  ('rfq.quote_reminder', 'In App', 'opportunities', null::text),
+  ('rfq.quote_reminder', 'Email', 'opportunities', 'notification'),
+  ('rfq.not_awarded', 'In App', 'opportunities', null::text),
+  ('rfq.not_awarded', 'Email', 'opportunities', 'notification'),
   ('approval.reminder', 'In App', 'approvals', null::text),
   ('approval.reminder', 'Email', 'approvals', 'notification'),
   ('approval.reminder', 'SMS', 'approvals', null::text),
@@ -100,6 +104,18 @@ select set_eq(
   ('availability.requested', 'Email', 'schedule', 'notification'),
   ('availability.requested', 'SMS', 'schedule', null::text),
   ('availability.requested', 'Push', 'schedule', null::text),
+  ('shift.reconfirm', 'In App', 'schedule', null::text),
+  ('shift.reconfirm', 'Email', 'schedule', 'notification'),
+  ('shift.reconfirm', 'SMS', 'schedule', null::text),
+  ('shift.reconfirm', 'Push', 'schedule', null::text),
+  ('shift.reconfirm_declined', 'In App', 'schedule', null::text),
+  ('shift.reconfirm_declined', 'Email', 'schedule', 'notification'),
+  ('shift.reconfirm_declined', 'SMS', 'schedule', null::text),
+  ('shift.reconfirm_declined', 'Push', 'schedule', null::text),
+  ('shift.no_show', 'In App', 'schedule', null::text),
+  ('shift.no_show', 'Email', 'schedule', 'notification'),
+  ('shift.no_show', 'SMS', 'schedule', null::text),
+  ('shift.no_show', 'Push', 'schedule', null::text),
   ('event.invited', 'In App', 'schedule', null::text),
   ('event.invited', 'Email', 'schedule', 'notification'),
   ('event.invited', 'SMS', 'schedule', null::text),
@@ -120,6 +136,10 @@ select set_eq(
   ('invoice.paid', 'Email', 'finance', 'notification'),
   ('invoice.paid', 'SMS', 'finance', null::text),
   ('invoice.paid', 'Push', 'finance', null::text),
+  ('quote.accepted', 'In App', 'finance', null::text),
+  ('quote.accepted', 'Email', 'finance', 'notification'),
+  ('quote.accepted', 'SMS', 'finance', null::text),
+  ('quote.accepted', 'Push', 'finance', null::text),
   ('incident.reported', 'In App', 'safety', null::text),
   ('incident.reported', 'Email', 'safety', 'notification'),
   ('incident.reported', 'SMS', 'safety', null::text),
@@ -308,6 +328,8 @@ select set_eq(
   ('offer.sent', 'In App', 'opportunities', null::text),
   ('offer.sent', 'Email', 'opportunities', 'notification'),
   ('offer.sent', 'Push', 'opportunities', null::text),
+  ('vendor_intake.submitted', 'In App', 'opportunities', null::text),
+  ('vendor_intake.submitted', 'Email', 'opportunities', 'notification'),
   ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
   ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
   ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),
@@ -395,7 +417,18 @@ select set_eq(
   ('credential.revoked', 'In App', 'assignments', null::text),
   ('credential.revoked', 'Email', 'assignments', 'notification'),
   ('credential.revoked', 'SMS', 'assignments', null::text),
-  ('credential.revoked', 'Push', 'assignments', null::text)$$,
+  ('credential.revoked', 'Push', 'assignments', null::text),
+  ('crew_registration.decided', 'In App', 'approvals', null::text),
+  ('crew_registration.decided', 'Email', 'approvals', 'notification'),
+  ('crew_registration.decided', 'SMS', 'approvals', null::text),
+  ('crew_registration.decided', 'Push', 'approvals', null::text),
+  ('crew_registration.invited', 'In App', 'opportunities', null::text),
+  ('crew_registration.invited', 'Email', 'opportunities', 'notification'),
+  ('crew_registration.invited', 'Push', 'opportunities', null::text),
+  ('engagement_document.sent', 'In App', 'approvals', null::text),
+  ('engagement_document.sent', 'Email', 'approvals', 'notification'),
+  ('engagement_document.sent', 'SMS', 'approvals', null::text),
+  ('engagement_document.sent', 'Push', 'approvals', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(
@@ -403,6 +436,7 @@ select set_eq(
   $$values
   ('shift.assigned', interval '12 hours'),
   ('shift.changed', interval '12 hours'),
+  ('shift.reconfirm', interval '12 hours'),
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),

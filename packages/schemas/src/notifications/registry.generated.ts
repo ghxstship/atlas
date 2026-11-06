@@ -239,6 +239,30 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "rfq.quote_reminder",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.rfq.quote_reminder.subject",
+      body: "kinds.rfq.quote_reminder.body",
+    },
+  },
+  {
+    kind: "rfq.not_awarded",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.rfq.not_awarded.subject",
+      body: "kinds.rfq.not_awarded.body",
+    },
+  },
+  {
     kind: "approval.reminder",
     category: "approvals",
     emailTemplate: "notification",
@@ -315,6 +339,44 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "shift.reconfirm",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: 12,
+    },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.reconfirm.subject",
+      body: "kinds.shift.reconfirm.body",
+    },
+  },
+  {
+    kind: "shift.reconfirm_declined",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.reconfirm_declined.subject",
+      body: "kinds.shift.reconfirm_declined.body",
+    },
+  },
+  {
+    kind: "shift.no_show",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.no_show.subject",
+      body: "kinds.shift.no_show.body",
+    },
+  },
+  {
     kind: "event.invited",
     category: "schedule",
     emailTemplate: "notification",
@@ -372,6 +434,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.invoice.paid.subject",
       body: "kinds.invoice.paid.body",
+    },
+  },
+  {
+    kind: "quote.accepted",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.quote.accepted.subject",
+      body: "kinds.quote.accepted.body",
     },
   },
   {
@@ -969,6 +1043,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "vendor_intake.submitted",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.vendor_intake.submitted.subject",
+      body: "kinds.vendor_intake.submitted.body",
+    },
+  },
+  {
     kind: "onboarding.item_expiring",
     category: "expiry_reminders",
     emailTemplate: "notification",
@@ -1230,6 +1316,42 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.credential.revoked.subject",
       body: "kinds.credential.revoked.body",
+    },
+  },
+  {
+    kind: "crew_registration.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crew_registration.decided.subject",
+      body: "kinds.crew_registration.decided.body",
+    },
+  },
+  {
+    kind: "crew_registration.invited",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.crew_registration.invited.subject",
+      body: "kinds.crew_registration.invited.body",
+    },
+  },
+  {
+    kind: "engagement_document.sent",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.engagement_document.sent.subject",
+      body: "kinds.engagement_document.sent.body",
     },
   },
 ];

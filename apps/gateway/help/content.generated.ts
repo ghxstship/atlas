@@ -88,6 +88,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "crew-shifts",
+        title: "My shifts by link",
+        summary: "See and accept your shifts from a link and a code, without signing in.",
+        kind: "page",
+        nodes: ["crew-shifts"],
+        order: 62,
+      },
+      {
         slug: "documents",
         title: "Documents",
         summary:
@@ -555,6 +563,22 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "quote-requests",
+        title: "Quote requests",
+        summary: "What companies have asked your account to quote for, and how to answer.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
+        order: 1,
+      },
+      {
+        slug: "registration",
+        title: "Registering with an organization",
+        summary: "Join an organization's crew list from its registration page.",
+        kind: "page",
+        nodes: ["registration"],
+        order: 63,
+      },
+      {
         slug: "settings-accessibility",
         title: "Accessibility settings",
         summary: "Text size, contrast, motion, haptics, sounds and captions.",
@@ -789,6 +813,14 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "workflow",
         nodes: ["*"],
         order: 1,
+      },
+      {
+        slug: "crew-shifts",
+        title: "Mis turnos por enlace",
+        summary: "Ve y acepta tus turnos con un enlace y un código, sin iniciar sesión.",
+        kind: "page",
+        nodes: ["crew-shifts"],
+        order: 62,
       },
       {
         slug: "documents",
@@ -1264,6 +1296,22 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "page",
         nodes: ["profile"],
         order: 1,
+      },
+      {
+        slug: "quote-requests",
+        title: "Solicitudes de cotización",
+        summary: "Lo que las empresas pidieron cotizar a tu cuenta y cómo responder.",
+        kind: "workflow",
+        nodes: ["work.quote-requests"],
+        order: 1,
+      },
+      {
+        slug: "registration",
+        title: "Registrarte con una organización",
+        summary: "Únete a la lista de equipo de una organización desde su página de registro.",
+        kind: "page",
+        nodes: ["registration"],
+        order: 63,
       },
       {
         slug: "settings-accessibility",
