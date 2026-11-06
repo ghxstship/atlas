@@ -53312,7 +53312,7 @@
           "training_course_id",
           "certification_id"
         ],
-        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422)."
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422)."
       },
       "CredentialCategoryRequirementCreate": {
         "type": "object",
@@ -149046,7 +149046,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List credential category requirement rows",
-        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -149096,7 +149096,7 @@
         "x-xos-capability": "credentials.category.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
         "summary": "Create a credential category requirement",
-        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -149153,7 +149153,7 @@
         "x-xos-capability": "credentials.credential.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
         "summary": "Get a credential category requirement",
-        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -149208,7 +149208,7 @@
         "x-xos-capability": "credentials.category.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
         "summary": "Delete a credential category requirement",
-        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.",
+        "description": "A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.",
         "parameters": [
           {
             "schema": {

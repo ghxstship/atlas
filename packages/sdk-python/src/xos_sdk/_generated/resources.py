@@ -33176,7 +33176,7 @@ class CredentialCategoryRequirementsResource(Resource):
     ) -> Page[CredentialCategoryRequirement]:
         """List credential category requirement rows
 
-        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /credential-category-requirements`` (operation ``credentialCategoryRequirements.list``).
         Requires the capability ``credentials.credential.read``.
@@ -33194,7 +33194,7 @@ class CredentialCategoryRequirementsResource(Resource):
     ) -> Iterator[CredentialCategoryRequirement]:
         """List credential category requirement rows
 
-        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns a cursor page of credential category requirement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -33212,7 +33212,7 @@ class CredentialCategoryRequirementsResource(Resource):
     ) -> ApiResponse[CredentialCategoryRequirement]:
         """Create a credential category requirement
 
-        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Creates a credential category requirement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /credential-category-requirements`` (operation ``credentialCategoryRequirements.create``).
         Requires the capability ``credentials.category.write``.
@@ -33228,7 +33228,7 @@ class CredentialCategoryRequirementsResource(Resource):
     ) -> ApiResponse[CredentialCategoryRequirement]:
         """Get a credential category requirement
 
-        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Returns one credential category requirement with its `ETag`. A credential category requirement the caller may not see returns 404.
 
         ``GET /credential-category-requirements/{id}`` (operation ``credentialCategoryRequirements.get``).
         Requires the capability ``credentials.credential.read``.
@@ -33243,7 +33243,7 @@ class CredentialCategoryRequirementsResource(Resource):
     ) -> ApiResponse[None]:
         """Delete a credential category requirement
 
-        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.
+        A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422). Soft-deletes the credential category requirement: it moves to Trash and can be restored for its table's retention period.
 
         ``DELETE /credential-category-requirements/{id}`` (operation ``credentialCategoryRequirements.delete``).
         Requires the capability ``credentials.category.write``.

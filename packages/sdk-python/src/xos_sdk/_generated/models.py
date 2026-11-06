@@ -21953,7 +21953,7 @@ class CredentialCategoryRequirementPage(TypedDict):
 
 
 class CredentialCategoryRequirement(TypedDict):
-    """A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422)."""
+    """A training course or a certification a credential category requires before it is issued (gap G-148): issuing the category to someone who does not meet it now is refused (credential_training_incomplete, 422, naming what is missing). Only a published course can be required (credential_requirement_course_state, 422)."""
 
     #: Identifier of the credential category requirement.
     id: str
