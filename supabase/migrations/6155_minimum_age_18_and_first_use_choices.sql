@@ -307,6 +307,10 @@ begin
       -- Their own profile data or another reference holds the row: delete it the usual way, leaving no deletion record.
       perform app.delete_my_account(v_email);
       delete from private.account_deletions where person_id = v_person;
+      -- Erasing work details logs it in the person's own access log, which would otherwise keep the row.
+      perform private.begin_trusted_operation('retention_purge');
+      delete from app.work_detail_events where person_id = v_person and org_id is null;
+      perform private.end_trusted_operation('retention_purge');
       begin
         delete from app.people where id = v_person;
       exception when foreign_key_violation or restrict_violation then

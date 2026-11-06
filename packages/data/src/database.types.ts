@@ -73207,7 +73207,6 @@ export type Database = {
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
-      minimum_age_outdated: { Args: Record<PropertyKey, never>; Returns: boolean };
       mint_approval_link_code: { Args: { p_delivery_id: string }; Returns: string };
       mint_notification_action_tokens: {
         Args: { p_delivery_id: string };

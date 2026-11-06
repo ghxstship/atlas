@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(1);
+select plan(77);
 
 create function pg_temp.sign_up(p_key text, p_email text, p_meta jsonb) returns void
 language plpgsql as $$
@@ -65,9 +65,11 @@ select throws_like($$select app.create_organization('Fresh Org', 'fresh-org-age1
 select pg_temp.claims('fresh');
 select throws_like($$insert into app.memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('fresh'))$$,
   'minimum_age_unconfirmed%', 'nor add themselves to one, whichever function does it');
-select throws_like($$insert into app.account_memberships (org_id, person_id, account_id)
-    select a.org_id, pg_temp.id('fresh'), a.id from app.accounts a limit 1$$,
+select throws_like($$insert into app.account_memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('fresh'))$$,
   'minimum_age_unconfirmed%', 'nor to a company account');
+select pg_temp.as_platform();
+select throws_like($$select pg_temp.join_org('bob', 'org_a', 'fresh', 'field')$$,
+  'minimum_age_unconfirmed%', 'nor accept an invitation');
 select pg_temp.as_platform();
 select lives_ok($$select pg_temp.provision('worker', 'org_a')$$,
   'a provisioning service can still add them: the person is asked before their first page');
@@ -169,7 +171,9 @@ select pg_temp.as_platform();
 select is((select count(*)::int from private.age_refusal_holds where person_id = pg_temp.id('owner')), 1,
   'but the hold stays, so the conflict stays visible to the platform team');
 delete from private.age_confirmations where person_id = pg_temp.id('owner');
-update app.memberships set deleted_at = now() where person_id = pg_temp.id('owner');
+-- Someone else takes on the org, so nothing blocks closing any more.
+insert into world select 'olive', o.id from app.organizations o where o.slug = 'olive-owns-age18';
+select pg_temp.join_org('owner', 'olive', 'adult', 'owner');
 select pg_temp.as_user('owner');
 select is((app.my_legal_standing() ->> 'closing_blocked')::boolean, false, 'once nothing blocks it');
 select is(app.refuse_minimum_age('Atlas') ->> 'outcome', 'Account Closed', 'answering again closes the account');
