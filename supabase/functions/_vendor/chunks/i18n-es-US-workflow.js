@@ -80,8 +80,8 @@ var refusals = {
   approval_rule_active_delete: "Retire una regla Activa antes de eliminarla.",
   approval_rule_filter_project:
     "El filtro debe pertenecer a la organización de este proyecto, y una categoría de credencial a este proyecto.",
-  approval_rule_equipment_pending:
-    "Las reglas de equipo se aplican cuando las solicitudes de equipo vienen de los avances. Mantenga esta regla en Borrador hasta entonces.",
+  approval_rule_class_no_offering:
+    "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase no retendría nada. Elija una de esas clases.",
   approval_rule_pending:
     "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
   approval_step_engagement:
@@ -192,6 +192,9 @@ var approvals = {
     reasonHelp: "Se guarda en el historial de la aprobación.",
     submit: "Retirar aprobación",
     done: "Aprobación retirada.",
+    equipmentHelp:
+      "Se guarda en el historial de la aprobación. También retira la solicitud de equipo, y quien la pidió ve el motivo.",
+    equipmentDone: "Aprobación y solicitud de equipo retiradas.",
   },
   submit: {
     title: "Enviar un documento para aprobación",

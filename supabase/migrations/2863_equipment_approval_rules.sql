@@ -12,9 +12,12 @@
 --     Allocations queue whichever of R9 and this migration is applied last (review correction C12).
 --   * Rejecting a step declines the allocation inside the trusted operation subject_approval_decline, with the reason
 --     "Rejected at {step}: {comment}". Withdrawing, declining or deleting the allocation withdraws an approval in review.
+--   * Withdrawing the approval withdraws the request, whoever does it, so a canceled approval never leaves an allocation
+--     a reviewer could approve with no step having approved it. A step nobody can decide (review correction C11) ends the
+--     same way: the requester hears why, and asks again once the rule is fixed, or a reviewer assigns directly.
 --   * The approval helpers of 2860 and 2862 learn the allocation: its holder is the beneficiary, its readers read the
 --     approval, advancing.packet.write is the subject's writer, its title is "{class} x{quantity}", and a Withdrawn or
---     decided allocation is no longer reminded. Equipment rules may now be activated.
+--     decided allocation is no longer reminded. Equipment rules may now be activated, for a class an offering provides.
 --   * private.party_org_ids takes both of its open-work definitions: A127's applicants with an open offer (2200) and R4's
 --     roster entries (2641). Each was written from 1131 alone, so whichever sorts last would drop the other.
 -- subject_approvals stays out of Trash (2860): an approval is withdrawn by Cancel, never restored.
@@ -318,7 +321,7 @@ as $$
   limit 1;
 $$;
 
-comment on function private.allocation_approval_pending(uuid) is 'The refusal sentence of approval_rule_pending when an allocation''s live approval is not Approved (In Review at a named step, or Rejected), naming the rule; NULL when no approval holds the allocation (P9, 2863). A canceled approval does not hold it.';
+comment on function private.allocation_approval_pending(uuid) is 'The refusal sentence of approval_rule_pending when an allocation''s live approval is not Approved (In Review at a named step, or Rejected), naming the rule; NULL when no approval holds the allocation (P9, 2863). A canceled approval holds nothing because cancelling it moves the allocation out of Requested (private.withdraw_canceled_allocation), so decide_allocation refuses allocation_state_conflict first.';
 revoke all on function private.allocation_approval_pending(uuid) from public, anon, authenticated;
 
 create or replace function app.decide_allocation(p_allocation_id uuid, p_decision app.approval_decision, p_reason text default null,
@@ -461,6 +464,44 @@ create trigger t91_cancel_equipment_approval after update of allocation_state, d
                      or (old.deleted_at is null and new.deleted_at is not null))
   execute function private.cancel_equipment_approval();
 
+-- Withdrawing the approval withdraws the request: no canceled approval leaves an allocation Requested. Every cancel passes
+-- through private.cancel_subject_approval_row, so the trigger covers the requester, the subject's writer and a rule writer. When
+-- the allocation moved first (t91_cancel_equipment_approval above) it is no longer Requested, and this does nothing.
+create or replace function private.withdraw_canceled_allocation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_allocation app.advance_allocations;
+begin
+  select al.* into v_allocation from app.advance_allocations al
+  where al.id = new.advance_allocation_id and al.deleted_at is null
+  for update;
+  if v_allocation.id is null or v_allocation.allocation_state <> 'Requested' then
+    return null;
+  end if;
+  perform private.release_allocation_holds(v_allocation.id, 'Withdrawn');
+  perform private.withdraw_allocation_row(v_allocation.id, 'Requested',
+    case when new.canceled_by is not null and new.canceled_by = new.requested_by then 'Requester' else 'Reviewer' end::app.allocation_withdraw_cause,
+    format('Approval withdrawn: %s', new.cancel_reason));
+  perform private.notify_allocation(v_allocation.id, 'allocation.withdrawn',
+    array[private.allocation_person(v_allocation), new.requested_by],
+    jsonb_build_object('reason', new.cancel_reason));
+  return null;
+end;
+$$;
+
+comment on function private.withdraw_canceled_allocation() is 'Withdrawing an Equipment approval withdraws its Requested allocation, whoever may cancel it (the requester, a rule writer or the subject''s writer), with "Approval withdrawn: {reason}" in the ledger and allocation.withdrawn to the person and the requester (P9, 2863). The cause is Requester when the requester cancelled and Reviewer otherwise, as app.withdraw_allocation records it. So an allocation is approved only after every step of its approval has, and cancelling never lifts the gate. A rule writer may therefore end a request they could not withdraw directly: the escape for a step nobody can decide (C11).';
+revoke all on function private.withdraw_canceled_allocation() from public, anon, authenticated;
+
+create trigger t91_withdraw_canceled_allocation after update of canceled_at on app.subject_approvals
+  for each row when (old.canceled_at is null and new.canceled_at is not null and new.advance_allocation_id is not null)
+  execute function private.withdraw_canceled_allocation();
+
+comment on function app.cancel_subject_approval(uuid, text) is 'Withdraws a subject approval in review, with a reason (P9): the requester, a rule writer (projects.settings.write or org.approval_policies.write) or the subject''s writer (private.is_subject_writer). A canceled approval no longer gates its pass; canceling an Equipment approval also withdraws its Requested allocation (2863). Returns the approval id.';
+
 -- 8. Equipment rules may be activated (from 2860) ----------------------------------------------------------------------------------
 
 create or replace function app.transition_approval_rule(
@@ -488,6 +529,11 @@ begin
     if not exists (select 1 from app.approval_rule_steps s where s.approval_rule_id = v_rule.id and s.deleted_at is null) then
       perform private.refuse('approval_rule_no_steps', format('Add at least one step to %s before activating it.', v_rule.name));
     end if;
+    if v_rule.subject = 'Equipment' and v_rule.asset_class_id is not null and not exists (
+      select 1 from app.asset_classes c where c.id = v_rule.asset_class_id and c.offering is not null) then
+      perform private.refuse('approval_rule_class_no_offering',
+        format('%s names a class no offering provides, so it would gate nothing. Requests come only for Radios and Carts.', v_rule.name));
+    end if;
     for v_step in
       select s.id, s.name from app.approval_rule_steps s
       where s.approval_rule_id = v_rule.id and s.deleted_at is null and s.approver_engagement_id is not null
@@ -504,7 +550,7 @@ begin
 end;
 $$;
 
-comment on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) is 'Activates or retires an approval rule with compare-and-set (projects.settings.write on its project or org.approval_policies.write, P9). Activation needs at least one step (approval_rule_no_steps), and every engagement step must name someone with an XOS account (approval_step_no_approver). Equipment rules gate radio and cart requests from advances (2863). A second Active rule of the same project, subject and filter is refused by approval_rules_one_active. Returns the ledger entry id.';
+comment on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) is 'Activates or retires an approval rule with compare-and-set (projects.settings.write on its project or org.approval_policies.write, P9). Activation needs at least one step (approval_rule_no_steps), and every engagement step must name someone with an XOS account (approval_step_no_approver). Equipment rules gate radio and cart requests from advances (2863), so one filtered to a class with no offering is refused (approval_rule_class_no_offering): it would gate nothing. A second Active rule of the same project, subject and filter is refused by approval_rules_one_active. Returns the ledger entry id.';
 revoke all on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) from public, anon;
 grant execute on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) to authenticated, service_role;
 

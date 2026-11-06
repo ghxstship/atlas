@@ -2,10 +2,12 @@
 -- activates; a radio request on the project opens one approval with private.allocation_requester as its requester and
 -- the person it is for as its beneficiary, while an assigned allocation and a class with no offering open none; a
 -- reviewer cannot approve the allocation (approval_rule_pending) until every step approves, and R9's answer review
--- leaves it Requested instead of rolling back; an Approved approval does not approve the allocation by itself; a
+-- leaves it Requested instead of rolling back (simulated: R9 is not on this base, see the merge train); an Approved approval does not approve the allocation by itself; a
 -- rejected step declines the allocation with "Rejected at {step}: {comment}"; withdrawing or declining the allocation
--- withdraws an approval in review, and nobody is reminded about it; readers of allocations read the approval, an
--- outsider does not.
+-- or deleting it withdraws an approval in review, and nobody is reminded about it; withdrawing the approval withdraws
+-- the request whoever does it (the requester, the subject's writer, a rule writer who also reviews), so a reviewer can
+-- never approve a request no step approved, and anyone else is refused; a rule on a class with no offering does not
+-- activate; readers of allocations read the approval, an outsider does not.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -13,7 +15,7 @@ set search_path = extensions, public;
 \ir 2654_project_facts_world.psql
 \ir 2691_allocation_world.psql
 
-select plan(39);
+select plan(76);
 
 create function pg_temp.approval_of(p_allocation text) returns uuid
 language sql security definer as $$
@@ -23,6 +25,23 @@ create function pg_temp.approval_state(p_allocation text) returns text
 language sql security definer as $$ select private.subject_approval_state(pg_temp.approval_of(p_allocation))::text $$;
 create function pg_temp.cancel_reason(p_allocation text) returns text
 language sql security definer as $$ select a.cancel_reason from app.subject_approvals a where a.id = pg_temp.approval_of(p_allocation) $$;
+create function pg_temp.is_subject_writer(p_allocation text) returns boolean
+language sql security definer as $$ select private.is_subject_writer(pg_temp.approval_of(p_allocation)) $$;
+create function pg_temp.writes_the_rule(p_allocation text) returns boolean
+language sql security definer as $$
+  select private.can_write_approval_rule(a.org_id, a.project_id) from app.subject_approvals a where a.id = pg_temp.approval_of(p_allocation)
+$$;
+create function pg_temp.withdrawal(p_allocation text) returns text
+language sql security definer as $$
+  select al.withdraw_cause::text || ': ' || tr.reason from app.advance_allocations al
+  join app.advance_allocation_state_transitions tr on tr.advance_allocation_id = al.id and tr.to_state = 'Withdrawn'
+  where al.id = pg_temp.id(p_allocation)
+$$;
+create function pg_temp.notified(p_who text, p_kind text, p_allocation text) returns integer
+language sql security definer as $$
+  select count(*)::integer from app.notifications n
+  where n.recipient_person_id = pg_temp.id(p_who) and n.kind = p_kind and n.subject_table = 'advance_allocations' and n.subject_id = pg_temp.id(p_allocation)
+$$;
 -- R9's answer review, as its trigger runs it: inside the trusted operation advance_answer_review (2711).
 create function pg_temp.in_answer_review(p_allocation text) returns boolean
 language plpgsql security definer as $$
@@ -33,6 +52,29 @@ begin
   v := app.decide_allocation(pg_temp.id(p_allocation), 'Approved', null, null);
   perform private.end_trusted_operation('advance_answer_review');
   return v;
+end $$;
+-- The body of private.on_answer_reviewed on batch-c (4711), for one allocation: a perform inside a subtransaction that
+-- catches only the refusals it leaves for the queue, and rolls the review back for anything else, approval_rule_pending included.
+create function pg_temp.answer_review_loop(p_allocation text, p_outcome text default 'Accepted', p_return_reason text default null) returns void
+language plpgsql security definer as $$
+declare
+  v_hint text;
+begin
+  perform private.begin_trusted_operation('advance_answer_review');
+  if p_outcome = 'Accepted' then
+    begin
+      perform app.decide_allocation(pg_temp.id(p_allocation), 'Approved', null, null);
+    exception when sqlstate 'XR001' then
+      get stacked diagnostics v_hint = pg_exception_hint;
+      if v_hint not in ('allocation_sources_required', 'reservation_over_capacity', 'allocation_over_allowance_reason',
+                        'allocation_entry_not_accepted') then
+        raise;
+      end if;
+    end;
+  else
+    perform app.decide_allocation(pg_temp.id(p_allocation), 'Rejected', p_return_reason, null);
+  end if;
+  perform private.end_trusted_operation('advance_answer_review');
 end $$;
 
 -- An Equipment rule for the org's radios on prj_a: bob decides -----------------------------------------------------------------
@@ -82,6 +124,9 @@ select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_t
 select is(pg_temp.in_answer_review('a_kai'), false, 'inside R9''s answer review the gate returns false instead of refusing');
 select is(pg_temp.state_of(pg_temp.id('a_kai')), 'Requested', 'and the allocation stays Requested for the Allocations queue');
 select pg_temp.as_user('carol');
+select lives_ok($$select pg_temp.answer_review_loop('a_kai')$$, 'R9''s trigger body commits its review with the rule pending');
+select is(pg_temp.state_of(pg_temp.id('a_kai')), 'Requested', 'and still leaves the allocation Requested');
+select pg_temp.as_user('carol');
 select ok(app.decide_allocation(pg_temp.id('a_cable'), 'Approved'), 'an allocation no rule gates is approved as before');
 
 select pg_temp.as_user('bob');
@@ -122,12 +167,93 @@ select app.withdraw_allocation(pg_temp.id('a_w'), 'No longer needed.');
 select pg_temp.as_platform();
 select is(pg_temp.cancel_reason('a_w'), 'The equipment request was withdrawn.', 'withdrawing the allocation withdraws its approval');
 select is(private.reminder_subject_live('subject_approvals', pg_temp.approval_of('a_w'), now()), false, 'and nobody is reminded about it');
+select is(pg_temp.withdrawal('a_w'), 'Requester: No longer needed.', 'the withdrawal keeps its own reason, not the approval''s');
 
 insert into world select 'a_d', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
 select pg_temp.as_user('carol');
 select app.decide_allocation(pg_temp.id('a_d'), 'Rejected', 'Over the radio budget.');
 select pg_temp.as_platform();
 select is(pg_temp.cancel_reason('a_d'), 'The equipment request was declined.', 'a reviewer declining the allocation withdraws its approval in review');
+select is(private.reminder_subject_live('subject_approvals', pg_temp.approval_of('a_d'), now()), false, 'and nobody is reminded about a declined request');
+select is(private.reminder_subject_live('subject_approvals', pg_temp.approval_of('a_kai'), now()), false, 'nor about one a reviewer has approved');
+
+-- R9 returning an answer declines the allocation the same way.
+insert into world select 'a_ret', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('carol');
+select lives_ok($$select pg_temp.answer_review_loop('a_ret', 'Returned', 'Ask for this on the crew sheet.')$$, 'R9''s return declines a gated request');
+select pg_temp.as_platform();
+select is(pg_temp.state_of(pg_temp.id('a_ret')), 'Declined', 'the allocation is Declined');
+select is(pg_temp.cancel_reason('a_ret'), 'The equipment request was declined.', 'and its approval is withdrawn');
+
+insert into world select 'a_del', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_platform();
+select is(private.reminder_subject_live('subject_approvals', pg_temp.approval_of('a_del'), now()), true, 'an approval in review on a live request is reminded');
+update app.advance_allocations set deleted_at = now() where id = pg_temp.id('a_del');
+select is(pg_temp.cancel_reason('a_del'), 'The equipment request was deleted.', 'deleting the allocation withdraws its approval in review');
+select is(private.reminder_subject_live('subject_approvals', pg_temp.approval_of('a_del'), now()), false, 'and nobody is reminded about it');
+select is(pg_temp.state_of(pg_temp.id('a_del')), 'Requested', 'a deleted row keeps its state: the cancel does not move it');
+
+-- 4b. Withdrawing the approval withdraws the request, whoever does it, so it never lifts the gate -----------------------------------
+-- The requester, from Approvals. Without this, carol could approve a request no step approved.
+insert into world select 'a_req', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('dave');
+select is(pg_temp.is_subject_writer('a_req') and not pg_temp.writes_the_rule('a_req'), true, 'dave writes advance requests and not the rule');
+select throws_like(format($$select app.cancel_subject_approval(%L, ' ')$$, pg_temp.approval_of('a_req')),
+  'approval_cancel_reason:%', 'withdrawing the approval needs a reason');
+select is(pg_temp.state_of(pg_temp.id('a_req')), 'Requested', 'and a refused cancel moves nothing');
+select pg_temp.as_user('dave');
+select lives_ok(format($$select app.cancel_subject_approval(%L, 'Kai borrowed one.')$$, pg_temp.approval_of('a_req')),
+  'the requester withdraws the approval');
+select is(pg_temp.approval_state('a_req'), 'Canceled', 'the approval is Canceled');
+select is(pg_temp.state_of(pg_temp.id('a_req')), 'Withdrawn', 'and the request is Withdrawn with it');
+select is(pg_temp.withdrawal('a_req'), 'Requester: Approval withdrawn: Kai borrowed one.', 'by the requester, with the approval''s reason in the ledger');
+select is(pg_temp.notified('kai', 'allocation.withdrawn', 'a_req'), 1, 'the person it was for hears');
+select is(pg_temp.notified('dave', 'allocation.withdrawn', 'a_req'), 0, 'the requester, who did it, does not');
+select pg_temp.as_user('carol');
+select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_temp.id('a_req')),
+  'allocation_state_conflict:%', 'a reviewer cannot approve what the requester withdrew');
+
+-- The subject's writer: dave writes advance requests, so he may withdraw one carol asked for, and it is withdrawn too.
+insert into world select 'a_wr', pg_temp.alloc('request', 'carol', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('dave');
+select lives_ok(format($$select app.cancel_subject_approval(%L, 'Asked twice.')$$, pg_temp.approval_of('a_wr')),
+  'the subject''s writer withdraws the approval, through advancing.packet.write alone');
+select is(pg_temp.state_of(pg_temp.id('a_wr')), 'Withdrawn', 'and the request is Withdrawn');
+select is(pg_temp.withdrawal('a_wr'), 'Reviewer: Approval withdrawn: Asked twice.', 'by someone other than its requester');
+select is(pg_temp.notified('carol', 'allocation.withdrawn', 'a_wr'), 1, 'the requester hears');
+
+-- A rule writer who also reviews cannot do both steps alone: carol manages, so she writes rules and reviews.
+insert into world select 'a_both', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('carol');
+select ok(pg_temp.writes_the_rule('a_both'), 'carol writes the rule');
+select lives_ok(format($$select app.cancel_subject_approval(%L, 'Nobody can decide this step.')$$, pg_temp.approval_of('a_both')),
+  'a rule writer withdraws the approval');
+select is(pg_temp.state_of(pg_temp.id('a_both')), 'Withdrawn', 'and the request is Withdrawn');
+select pg_temp.as_user('carol');
+select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_temp.id('a_both')),
+  'allocation_state_conflict:%', 'so a reviewer who writes rules cannot cancel the gate and then approve');
+select is(pg_temp.notified('dave', 'allocation.withdrawn', 'a_both'), 1, 'the requester hears why');
+select is((select message_args ->> 'reason' from app.notifications where kind = 'allocation.withdrawn' and subject_id = pg_temp.id('a_both')
+           and recipient_person_id = pg_temp.id('dave')), 'Nobody can decide this step.', 'in the rule writer''s words');
+
+-- Anyone else is refused, and the gate still holds.
+insert into world select 'a_no', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('gina');
+select is(pg_temp.is_subject_writer('a_no') or pg_temp.writes_the_rule('a_no'), false, 'gina neither writes advance requests nor the rule');
+select throws_ok(format($$select app.cancel_subject_approval(%L, 'Not mine to withdraw.')$$, pg_temp.approval_of('a_no')), '42501', null,
+  'and is refused');
+select is(pg_temp.state_of(pg_temp.id('a_no')), 'Requested', 'the request stays Requested');
+select is(pg_temp.approval_state('a_no'), 'In Review', 'and its approval In Review');
+
+-- A rule that could never fire does not activate.
+select pg_temp.as_user('alice');
+with x as (insert into app.approval_rules (project_id, subject, name, asset_class_id)
+           values (pg_temp.id('prj_a'), 'Equipment', 'Cable requests', pg_temp.id('cls_cable')) returning id)
+  insert into world select 'rule_cable', id from x;
+insert into app.approval_rule_steps (approval_rule_id, step_order, name, approver_membership_id)
+values (pg_temp.id('rule_cable'), 1, 'Quartermaster', pg_temp.id('bob@org_a'));
+select throws_like(format($$select app.transition_approval_rule(%L, 'Draft', 'Active', 'Gate cable.')$$, pg_temp.id('rule_cable')),
+  'approval_rule_class_no_offering:%', 'an Equipment rule on a class with no offering does not activate');
 
 -- 5. Who reads it ------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

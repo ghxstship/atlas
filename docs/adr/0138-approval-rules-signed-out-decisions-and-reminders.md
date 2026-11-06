@@ -97,9 +97,16 @@ false` only when the recipient answers through such a step and has no active mem
    A rejected step declines the allocation with "Rejected at {step}: {comment}", inside the trusted operation
    `subject_approval_decline`, since the rule, not `advancing.submission.review`, named the approver. Withdrawing,
    declining or deleting the allocation withdraws an approval still In Review; a decided one is kept as decided.
+   Withdrawing the approval withdraws the request in the same transaction, whoever may do it (the requester, the
+   subject's writer or a rule writer), so cancelling never lifts the gate: nobody, reviewer or not, can cancel an
+   approval and then approve the allocation with no step having approved it. That is also how a step nobody can decide
+   ends for equipment: the requester hears why, and asks again once the rule is fixed, or a reviewer assigns directly.
+   A rule writer can thereby end a request they could not withdraw through `app.withdraw_allocation`, because the
+   rule is theirs. A rule on a class with no offering is refused at activation (`approval_rule_class_no_offering`),
+   since no request could reach it.
    Readers of allocations (`advancing.packet.read`, R7's read rule) read the approval as `assets.asset.read` does, and
-   `advancing.packet.write` is the subject's writer. Allocations show the approval's state as a chip; there is no
-   second allocation-approval screen.
+   `advancing.packet.write` is the subject's writer. Allocations show the approval's state in the row, the table and
+   the peek; there is no second allocation-approval screen.
 
 ## Consequences
 

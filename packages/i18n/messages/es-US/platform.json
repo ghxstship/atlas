@@ -126,6 +126,7 @@
     "approval_subject_beneficiary": "Esta aprobación es para usted, así que otra persona la decide.",
     "approval_step_no_approver": "Nadie de los que nombra este paso tiene una cuenta de XOS para recibir correos de aprobación.",
     "approval_rule_pending": "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
+    "approval_rule_class_no_offering": "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase no retendría nada. Elija una de esas clases.",
     "approval_link_email_off": "Los correos de aprobación están desactivados, así que no se puede enviar un código. Inicie sesión para decidir.",
     "approval_reminder_too_soon": "Se notificó a los aprobadores hace menos de 4 horas. Intente más tarde.",
     "approval_reminder_limit": "Ya se enviaron todos los recordatorios que permite este paso."

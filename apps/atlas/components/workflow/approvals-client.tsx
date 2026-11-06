@@ -79,10 +79,13 @@ export function CancelForm({
   org,
   id,
   kind = "spend",
+  withdrawsRequest = false,
 }: {
   org: string;
   id: string;
   kind?: ApprovalKind;
+  /** An Equipment approval: withdrawing it withdraws the request too (2863), so the form says so. */
+  withdrawsRequest?: boolean;
 }) {
   const t = useWorkflowT();
   const [open, setOpen] = useState(false);
@@ -100,14 +103,14 @@ export function CancelForm({
       label={t("approvals.cancel.label")}
       submitLabel={t("approvals.cancel.submit")}
       submitVariant="danger"
-      success={t("approvals.cancel.done")}
+      success={t(withdrawsRequest ? "approvals.cancel.equipmentDone" : "approvals.cancel.done")}
       announce
       onDone={() => setOpen(false)}
     >
       <Textarea
         name="reason"
         label={t("approvals.cancel.reason")}
-        help={t("approvals.cancel.reasonHelp")}
+        help={t(withdrawsRequest ? "approvals.cancel.equipmentHelp" : "approvals.cancel.reasonHelp")}
         maxLength={500}
         rows={2}
         width="100%"

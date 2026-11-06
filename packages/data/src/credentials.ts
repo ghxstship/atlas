@@ -863,6 +863,7 @@ export const MODULE_CAPABILITIES = [
   "safety.incident.close",
   "safety.radio_channel.write",
   "data.restricted.read.medical",
+  "advancing.packet.write",
 ] as const;
 export type ModuleCapability = (typeof MODULE_CAPABILITIES)[number];
 

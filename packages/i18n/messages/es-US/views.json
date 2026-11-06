@@ -145,7 +145,6 @@
       "unexpected": "No se pudo completar la exportación. Inténtalo de nuevo."
     },
     "columns": {
-      "advance_allocation_id": "Solicitud de equipo",
       "access_level_enum_id": "Nivel de acceso",
       "account_code": "Cuenta",
       "account_name": "Nombre de la cuenta",
@@ -153,6 +152,7 @@
       "act_code": "Acto",
       "actor_person_id": "Quién",
       "actual_minor": "Real (unidades menores)",
+      "advance_allocation_id": "Solicitud de equipo",
       "advance_packet_id": "Paquete de avance",
       "aggregation": "Agregación",
       "agreement_kind": "Tipo",

@@ -48,9 +48,9 @@ type Tab = "waiting" | "mine" | "all";
 /**
  * Who sees Withdraw on a subject approval in review, as app.cancel_subject_approval allows: its requester, a rule
  * writer (org.approval_policies.write, or projects.settings.write at organization reach) on every row, and the
- * subject's writer on the rows of projects where they issue or revoke passes or book dock slots. A row whose
- * requester is gone (C10) or whose step no one may decide (C11) is withdrawn by a rule writer. It only shapes the
- * control: the function decides, and a failed capability read hides Withdraw rather than the page.
+ * subject's writer on the rows of projects where they issue or revoke passes, book dock slots or write advance
+ * requests. A row whose requester is gone (C10) or whose step no one may decide (C11) is withdrawn by a rule writer.
+ * It only shapes the control: the function decides, and a failed capability read hides Withdraw rather than the page.
  */
 async function subjectWithdrawal(
   ctx: OrgContext,
@@ -65,12 +65,16 @@ async function subjectWithdrawal(
     return inReview;
   }
   const others = subjects.filter((s) => inReview(s) && s.requestedBy !== personId);
-  const passProjects = [
-    ...new Set(others.filter((s) => s.credentialId !== null).map((s) => s.projectId)),
+  const moduleProjects = [
+    ...new Set(
+      others
+        .filter((s) => s.credentialId !== null || s.advanceAllocationId !== null)
+        .map((s) => s.projectId),
+    ),
   ];
   const db = ctx.viewer.db;
   const [held, operations] = await Promise.all([
-    Promise.all(passProjects.map(async (id) => [id, await myModuleCapabilities(db, id)] as const)),
+    Promise.all(moduleProjects.map(async (id) => [id, await myModuleCapabilities(db, id)] as const)),
     others.some((s) => s.dockSlotId !== null) ? getOperationsAccess(db, ctx.org.id) : null,
   ]);
   const passWriter = new Set(
@@ -83,10 +87,14 @@ async function subjectWithdrawal(
       )
       .map(([id]) => id),
   );
+  const allocationWriter = new Set(
+    held.filter(([, caps]) => caps.ok && caps.data.has("advancing.packet.write")).map(([id]) => id),
+  );
   return (s) =>
     inReview(s) &&
     (s.requestedBy === personId ||
       (s.credentialId !== null && passWriter.has(s.projectId)) ||
+      (s.advanceAllocationId !== null && allocationWriter.has(s.projectId)) ||
       (s.dockSlotId !== null &&
         operations?.ok === true &&
         operations.data.can(s.projectId, "logistics.dock_slot.write")));
@@ -512,7 +520,14 @@ function SubjectApprovalItem({
         </section>
       ) : null}
       {reminders}
-      {mayWithdraw ? <CancelForm org={org} id={a.id} kind="subject" /> : null}
+      {mayWithdraw ? (
+        <CancelForm
+          org={org}
+          id={a.id}
+          kind="subject"
+          withdrawsRequest={a.advanceAllocationId !== null}
+        />
+      ) : null}
     </li>
   );
 }

@@ -329,6 +329,7 @@ export async function AllocationsCollection({
             { key: "status", label: t("advancing.allocations.columns.status") },
             { key: "allowance", label: t("advancing.allocations.columns.allowance") },
             { key: "channels", label: t("advancing.allocations.columns.channels") },
+            { key: "approval", label: t("advancing.allocations.approval.label") },
           ]}
           bulk={allocationBulkConfig(ctx.org.slug, can.review, {
             state: t("advancing.allocations.bulk.state"),
@@ -347,6 +348,7 @@ export async function AllocationsCollection({
             status: statusLabel(a.status),
             allowance: allowanceLabel(a),
             channels: channelsLabel(a),
+            approval: approvalLabel(a.id) ?? "",
           }))}
         />
       ) : view === "matrix" && matrix ? (

@@ -145,7 +145,6 @@
       "unexpected": "The export could not finish. Try again."
     },
     "columns": {
-      "advance_allocation_id": "Equipment request",
       "access_level_enum_id": "Access level",
       "account_code": "Account",
       "account_name": "Account name",
@@ -153,6 +152,7 @@
       "act_code": "Act",
       "actor_person_id": "Who",
       "actual_minor": "Actual (minor units)",
+      "advance_allocation_id": "Equipment request",
       "advance_packet_id": "Advance packet",
       "aggregation": "Aggregation",
       "agreement_kind": "Kind",
