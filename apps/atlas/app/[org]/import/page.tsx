@@ -53,9 +53,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/i
       ? text("runOfShow")
       : target.destination === "purchase_order_id"
         ? text("purchaseOrder")
-      : target.destination === "budget_id"
-        ? text("budget")
-        : text("project");
+        : target.destination === "budget_id"
+          ? text("budget")
+          : text("project");
   const destinations = new Map<string, ImportDestination[]>();
   await Promise.all(
     targets.data

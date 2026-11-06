@@ -114,9 +114,9 @@ function DestinationSelect({
             ? "imports.new.destinationRun"
             : dest.kind === "purchase_order_id"
               ? "imports.new.destinationOrder"
-            : dest.kind === "budget_id"
-              ? "imports.new.destinationBudget"
-              : "imports.new.destinationProject",
+              : dest.kind === "budget_id"
+                ? "imports.new.destinationBudget"
+                : "imports.new.destinationProject",
         )
       }
       help={t("imports.new.destinationHelp")}

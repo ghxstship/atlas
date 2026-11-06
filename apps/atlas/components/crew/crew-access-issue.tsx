@@ -25,13 +25,7 @@ const INITIAL: IssueState = {};
 const workerKey = (w: CrewAccessWorkerRef) => JSON.stringify(w);
 
 /** The link and code of one worker, once, with a card to print. */
-function IssuedCard({
-  link,
-  projectName,
-}: {
-  link: IssuedLink;
-  projectName: string;
-}) {
+function IssuedCard({ link, projectName }: { link: IssuedLink; projectName: string }) {
   const t = useTranslations("crew.crewAccess.result");
   const format = useFormatter();
   const [copied, setCopied] = useState<"link" | "code" | null>(null);
@@ -98,11 +92,7 @@ function ResultPanel({ state, closeHref }: { state: IssueState; closeHref: strin
       <InlineAlert tone="warning">{t("once")}</InlineAlert>
       <ul className="m-0 flex list-none flex-col gap-12 p-0">
         {links.map((link) => (
-          <IssuedCard
-            key={link.linkId}
-            link={link}
-            projectName={state.projectName ?? ""}
-          />
+          <IssuedCard key={link.linkId} link={link} projectName={state.projectName ?? ""} />
         ))}
       </ul>
       <div className="flex flex-wrap gap-8 print:hidden">

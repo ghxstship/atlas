@@ -221,8 +221,8 @@ derived:
     reason: A booking for an engagement without a set time names the engagement directly, so the board, Gateway and the act's filter read one column either way
     adr: "0144"
 
-# Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
-# never follows a foreign key made only of them.
+  # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
+  # never follows a foreign key made only of them.
   - objects:
       - app.vendor_intake_requests.project_id
     source: "`app.vendor_intake_links.project_id`"
@@ -236,8 +236,8 @@ derived:
     reason: The draft becomes invoice lines only once the engagement exists and its money area opens, so no invoice row can hold it before
     adr: "0141"
 
-# Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
-# never follows a foreign key made only of them.
+  # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
+  # never follows a foreign key made only of them.
   - objects:
       - app.shift_no_shows.project_id
       - app.shift_responses.project_id

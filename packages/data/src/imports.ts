@@ -39,7 +39,8 @@ export interface ImportTargetField {
 }
 
 /** The import column that names where a target's rows go: none for an org-wide target. */
-export type ImportDestinationKind = "run_of_show_id" | "project_id" | "purchase_order_id" | "budget_id";
+export type ImportDestinationKind =
+  "run_of_show_id" | "project_id" | "purchase_order_id" | "budget_id";
 
 export interface ImportTarget {
   readonly code: string;

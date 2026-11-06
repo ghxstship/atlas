@@ -61,11 +61,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
-          <XOSProvider
-            locale={formatting}
-            preferences={preferences}
-            messages={overrides}
-          >
+          <XOSProvider locale={formatting} preferences={preferences} messages={overrides}>
             {bannerOff ? null : <CookieBanner />}
             {children}
             <PwaRuntime analytics={analytics && !publicLive} />

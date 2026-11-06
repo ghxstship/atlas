@@ -43,7 +43,14 @@ describe("the channels a category's kinds reach", () => {
     // A89's marketplace match, A127's offer that waits on the applicant (5200), B2's intake request (6505), and B10's registration invitation (6522).
     expect(
       NOTIFICATION_KINDS.filter((k) => k.category === "opportunities").map((k) => k.kind),
-    ).toEqual(["rfq.quote_reminder", "rfq.not_awarded", "opportunity.matched", "offer.sent", "vendor_intake.submitted", "crew_registration.invited"]);
+    ).toEqual([
+      "rfq.quote_reminder",
+      "rfq.not_awarded",
+      "opportunity.matched",
+      "offer.sent",
+      "vendor_intake.submitted",
+      "crew_registration.invited",
+    ]);
     expect(notificationCategoryChannels("opportunities")).toEqual(["In App", "Email", "Push"]);
     expect(notificationCategoryChannels("not-a-category")).toEqual([]);
   });
