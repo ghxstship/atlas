@@ -1,10 +1,11 @@
 import { expect, test, type Browser, type Page } from "./engine-test";
+import { deliverPacks, latestMail, mailLinks } from "./b2-support";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /**
  * B2 stakeholder packs (RRR-226, ADR 0141; gap G-29) on a fresh org: make a pack, add a live view and a recipient, the
- * code shows once and stays through a refresh, a visitor with no session opens with the code, views, acknowledges, and
- * revoking ends access. Every visitor is a fresh browser context.
+ * code shows once and stays through a refresh, the email carries a link and no code, a visitor with no session opens with
+ * the code, Activity counts it, and revoking ends access. Every visitor is a fresh browser context.
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -83,9 +84,38 @@ test("a pack opens with the recipient's code, shows its items and stops when rev
   await expect(manage.getByText("1 email queued")).toBeVisible();
   await manage.getByRole("button", { name: "Close" }).first().click();
 
+  // One pass of the worker: the email carries a sign-in link, never the code or a file.
+  await deliverPacks(new URL(page.url()).origin);
+  const mail = await latestMail(page.request, `cleo-${id}@client.test`);
+  expect(mail.text).not.toContain(code);
+  expect(mail.attachments).toBe(0);
+  const { pack } = mailLinks(mail);
+
   const guest = await visitor(browser);
-  await guest.goto(`/share/pack/xpkl_${"0".repeat(64)}`);
-  await expect(guest.getByLabel("Access code")).toBeVisible();
+  await guest.goto(pack);
+  await guest.getByLabel("Access code").fill(code === "000000" ? "000001" : "000000");
+  await guest.getByRole("button", { name: "Open pack" }).click();
+  await expect(guest.getByText("That code did not match.", { exact: false })).toBeVisible();
+  await guest.getByLabel("Access code").fill(code);
+  await guest.getByRole("button", { name: "Open pack" }).click();
+  await expect(guest.getByRole("heading", { name: `Client pack ${id}` })).toBeVisible();
+  await expect(guest.getByText("For Cleo Client")).toBeVisible();
+  await expect(guest.getByText("Team note")).toHaveCount(0);
+
+  // Activity counts the open, from the events.
+  await section.getByRole("button", { name: "Manage packs", exact: true }).click();
+  const again = page.getByRole("dialog");
+  await again.getByRole("button", { name: "Open", exact: true }).click();
+  await again.getByRole("button", { name: "Activity", exact: true }).click();
+  await expect(again.getByRole("grid", { name: "Activity by recipient" })).toContainText(
+    "Cleo Client",
+  );
+  await again.getByRole("button", { name: "Revoke pack" }).click();
+  await again.getByRole("button", { name: "Revoke pack" }).last().click();
+  await again.getByRole("button", { name: "Close" }).first().click();
+
+  await guest.reload();
+  await expect(guest.getByText("This pack was withdrawn", { exact: false })).toBeVisible();
   await guest.close();
 });
 
