@@ -910,13 +910,18 @@ function mailpitMailer(baseUrl, from, fetchImpl = fetch) {
           Subject: email.subject,
           Text: email.text,
           HTML: email.html,
-          Attachments: [
-            {
-              Content: toBase64(email.attachment.content),
-              Filename: email.attachment.filename,
-              ContentType: email.attachment.contentType,
-            },
-          ],
+          ...(email.headers ? { Headers: email.headers } : {}),
+          ...(email.attachment
+            ? {
+                Attachments: [
+                  {
+                    Content: toBase64(email.attachment.content),
+                    Filename: email.attachment.filename,
+                    ContentType: email.attachment.contentType,
+                  },
+                ],
+              }
+            : {}),
         }),
       });
       if (!response.ok)
@@ -940,13 +945,18 @@ function resendMailer(client, from, allowed) {
         subject: email.subject,
         text: email.text,
         html: email.html,
-        attachments: [
-          {
-            filename: email.attachment.filename,
-            content: toBase64(email.attachment.content),
-            contentType: email.attachment.contentType,
-          },
-        ],
+        ...(email.headers ? { headers: { ...email.headers } } : {}),
+        ...(email.attachment
+          ? {
+              attachments: [
+                {
+                  filename: email.attachment.filename,
+                  content: toBase64(email.attachment.content),
+                  contentType: email.attachment.contentType,
+                },
+              ],
+            }
+          : {}),
       });
       if (error || !data) throw new Error(`Resend refused the message: ${error?.message ?? ""}`);
       return { messageId: data.id };

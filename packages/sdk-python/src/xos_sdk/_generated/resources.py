@@ -569,6 +569,14 @@ if TYPE_CHECKING:
         FieldHistoryEventPage,
         Form1099NecRowPage,
         FormDecisionRequest,
+        FormLink,
+        FormLinkPage,
+        FormLinkRegenerated,
+        FormLinkRequest,
+        FormLinkResponse,
+        FormLinkResponseDecision,
+        FormLinkResponsePage,
+        FormLinkToken,
         FormSubmission,
         FormSubmissionCreate,
         FormSubmissionPage,
@@ -886,6 +894,8 @@ if TYPE_CHECKING:
         OrganizationRelationshipPage,
         OrganizationRelationshipUpdate,
         OrganizationUpdate,
+        OutsideAccessRow,
+        OutsideAccessRowPage,
         OvertimeRule,
         OvertimeRulePage,
         OwnershipTransfer,
@@ -1290,6 +1300,25 @@ if TYPE_CHECKING:
         SponsorEntitlementCreate,
         SponsorEntitlementPage,
         SponsorEntitlementUpdate,
+        StakeholderPack,
+        StakeholderPackChange,
+        StakeholderPackEvent,
+        StakeholderPackEventPage,
+        StakeholderPackItem,
+        StakeholderPackItemPage,
+        StakeholderPackItemRemoved,
+        StakeholderPackItemRequest,
+        StakeholderPackPage,
+        StakeholderPackRecipient,
+        StakeholderPackRecipientCode,
+        StakeholderPackRecipientCodeReset,
+        StakeholderPackRecipientPage,
+        StakeholderPackRecipientRequest,
+        StakeholderPackRequest,
+        StakeholderPackSchedule,
+        StakeholderPackScheduleRequest,
+        StakeholderPackSendRequest,
+        StakeholderPackSent,
         StdCode,
         StdDocument,
         StdDocumentPage,
@@ -1448,6 +1477,15 @@ if TYPE_CHECKING:
         VendorClassPage,
         VendorClassUpdate,
         VendorCreate,
+        VendorIntakeApproval,
+        VendorIntakeDecline,
+        VendorIntakeLink,
+        VendorIntakeLinkPage,
+        VendorIntakeLinkRegenerated,
+        VendorIntakeLinkRequest,
+        VendorIntakeLinkToken,
+        VendorIntakeRequest,
+        VendorIntakeRequestPage,
         VendorPage,
         VendorProduct,
         VendorProductCreate,
@@ -36436,6 +36474,814 @@ class LiveLinksResource(Resource):
         Requires the capability ``projects.project.read``.
         """
         return self._client.request(OPERATIONS["liveLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class StakeholderPacksResource(Resource):
+    """Operations on ``stakeholderPacks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[StakeholderPack]:
+        """List stakeholder pack rows
+
+        A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /stakeholder-packs`` (operation ``stakeholderPacks.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["stakeholderPacks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[StakeholderPack]:
+        """List stakeholder pack rows
+
+        A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /stakeholder-packs`` (operation ``stakeholderPacks.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["stakeholderPacks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPack]:
+        """Get a stakeholder pack
+
+        A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns one stakeholder pack with its `ETag`. A stakeholder pack the caller may not see returns 404.
+
+        ``GET /stakeholder-packs/{id}`` (operation ``stakeholderPacks.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create(
+        self,
+        body: StakeholderPackRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPack]:
+        """Create a stakeholder pack
+
+        Makes a pack on a project through app.create_stakeholder_pack. Needs membership of the project's org and projects.settings.write on the project (a partner org never qualifies), an org that is not read-only (422 `org_read_only`), and an expiry after now and within 90 days (422 `stakeholder_pack_expiry_range`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-packs/create`` (operation ``stakeholderPacks.create``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: StakeholderPackChange,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPack]:
+        """Change a stakeholder pack
+
+        Changes the name, message, note and expiry through app.update_stakeholder_pack. An earlier expiry stops every link and device grant at once. Refused for a revoked pack (422 `stakeholder_pack_revoked`) and a read-only org (422 `org_read_only`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-packs/{id}/update`` (operation ``stakeholderPacks.update``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.update"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPack]:
+        """Revoke a stakeholder pack
+
+        Revokes the pack through app.revoke_stakeholder_pack: every device grant is deleted and every emailed link revoked. Allowed in a read-only org, since it withdraws access. Revoking a revoked pack answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-packs/{id}/revoke`` (operation ``stakeholderPacks.revoke``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def set_schedule(
+        self,
+        id: str,
+        body: StakeholderPackScheduleRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackSchedule]:
+        """Set a pack's delivery schedule
+
+        Sets when the pack emails its recipients a fresh sign-in link through app.set_stakeholder_pack_schedule: Daily, Weekly (weekday 1 to 7) or Monthly (day 1 to 28) at a local hour, in the project's zone by default. A slot after the pack's expiry is refused (422 `stakeholder_pack_schedule_past_expiry`). Outside recipients get a link, never a report file. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-packs/{id}/schedule`` (operation ``stakeholderPacks.setSchedule``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.setSchedule"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def clear_schedule(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPack]:
+        """Clear a pack's delivery schedule
+
+        Turns the schedule off through app.clear_stakeholder_pack_schedule; deliveries already queued still go. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-packs/{id}/schedule/clear`` (operation ``stakeholderPacks.clearSchedule``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPacks.clearSchedule"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class StakeholderPackItemsResource(Resource):
+    """Operations on ``stakeholderPackItems``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[StakeholderPackItem]:
+        """List stakeholder pack item rows
+
+        One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /stakeholder-pack-items`` (operation ``stakeholderPackItems.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["stakeholderPackItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[StakeholderPackItem]:
+        """List stakeholder pack item rows
+
+        One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /stakeholder-pack-items`` (operation ``stakeholderPackItems.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["stakeholderPackItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def add(
+        self,
+        body: StakeholderPackItemRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackItem]:
+        """Add an item to a stakeholder pack
+
+        Adds one live link or one file, last in order, through app.add_stakeholder_pack_item. A live link must be one the caller may manage, on the pack's project, neither revoked nor expired (422 `stakeholder_pack_item_link`). A file must be readable by the caller, of the pack's project, with a clean current version (422 `stakeholder_pack_item_file`), and Public or Internal (422 `stakeholder_pack_item_classified`). At most 30 items (422 `stakeholder_pack_item_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-items/add`` (operation ``stakeholderPackItems.add``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackItems.add"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def remove(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackItemRemoved]:
+        """Remove an item from a stakeholder pack
+
+        Removes the item through app.remove_stakeholder_pack_item; recipients stop seeing it at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-items/{id}/remove`` (operation ``stakeholderPackItems.remove``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackItems.remove"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class StakeholderPackRecipientsResource(Resource):
+    """Operations on ``stakeholderPackRecipients``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[StakeholderPackRecipient]:
+        """List stakeholder pack recipient rows
+
+        One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /stakeholder-pack-recipients`` (operation ``stakeholderPackRecipients.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["stakeholderPackRecipients.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[StakeholderPackRecipient]:
+        """List stakeholder pack recipient rows
+
+        One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /stakeholder-pack-recipients`` (operation ``stakeholderPackRecipients.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["stakeholderPackRecipients.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackRecipient]:
+        """Get a stakeholder pack recipient
+
+        One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns one stakeholder pack recipient with its `ETag`. A stakeholder pack recipient the caller may not see returns 404.
+
+        ``GET /stakeholder-pack-recipients/{id}`` (operation ``stakeholderPackRecipients.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackRecipients.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def add(
+        self,
+        body: StakeholderPackRecipientRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackRecipientCode]:
+        """Add a recipient to a stakeholder pack
+
+        Adds a person through app.add_stakeholder_pack_recipient and answers their 6-digit access code once, to give by phone or message. Refuses a revoked pack, a read-only org, a malformed email (422 `stakeholder_pack_recipient_email`), a second live recipient with the same email (422 `stakeholder_pack_recipient_duplicate`), more than 200 recipients (422 `stakeholder_pack_recipient_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-recipients/add`` (operation ``stakeholderPackRecipients.add``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackRecipients.add"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def reset_code(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackRecipientCodeReset]:
+        """Reset a recipient's access code
+
+        Draws a new 6-digit code through app.reset_stakeholder_pack_recipient_code, answered once. Wrong-code attempts reset, which unlocks a locked recipient, and every device grant is dropped. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-recipients/{id}/reset-code`` (operation ``stakeholderPackRecipients.resetCode``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackRecipients.resetCode"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackRecipient]:
+        """Revoke a recipient
+
+        Revokes one recipient through app.revoke_stakeholder_pack_recipient: their device grants are deleted and emailed links revoked. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-recipients/{id}/revoke`` (operation ``stakeholderPackRecipients.revoke``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackRecipients.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def send(
+        self,
+        body: StakeholderPackSendRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[StakeholderPackSent]:
+        """Email a pack's sign-in links now
+
+        Queues an Invite or Resend per recipient through app.send_stakeholder_pack. Revoked and unsubscribed recipients, addresses on the org's suppression list, and any recipient already sent 3 manual emails in the last hour are skipped. The email never carries the access code. Answers how many were queued. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /stakeholder-pack-recipients/send`` (operation ``stakeholderPackRecipients.send``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["stakeholderPackRecipients.send"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class StakeholderPackEventsResource(Resource):
+    """Operations on ``stakeholderPackEvents``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[StakeholderPackEvent]:
+        """List stakeholder pack event rows
+
+        What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /stakeholder-pack-events`` (operation ``stakeholderPackEvents.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["stakeholderPackEvents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[StakeholderPackEvent]:
+        """List stakeholder pack event rows
+
+        What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /stakeholder-pack-events`` (operation ``stakeholderPackEvents.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["stakeholderPackEvents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class VendorIntakeLinksResource(Resource):
+    """Operations on ``vendorIntakeLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[VendorIntakeLink]:
+        """List vendor intake link rows
+
+        A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /vendor-intake-links`` (operation ``vendorIntakeLinks.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request_page(OPERATIONS["vendorIntakeLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[VendorIntakeLink]:
+        """List vendor intake link rows
+
+        A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /vendor-intake-links`` (operation ``vendorIntakeLinks.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.paginate(OPERATIONS["vendorIntakeLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeLink]:
+        """Get a vendor intake link
+
+        A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns one vendor intake link with its `ETag`. A vendor intake link the caller may not see returns 404.
+
+        ``GET /vendor-intake-links/{id}`` (operation ``vendorIntakeLinks.get``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create(
+        self,
+        body: VendorIntakeLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeLinkToken]:
+        """Create a vendor intake link
+
+        Makes a reusable link through app.create_vendor_intake_link. Needs membership of the project's org and opportunities.engagement.write on the project. Refuses an employee classification (422 `vendor_intake_classification`), a Vendor link without a counterparty type (422 `vendor_intake_counterparty_type`), terms that are not one rate card row (422 `vendor_intake_rate_card`), an expiry past 90 days (422 `vendor_intake_expiry_range`), an agreement without a clean upload (422 `intake_agreement_file`) or above Internal (422 `intake_agreement_classified`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /vendor-intake-links/create`` (operation ``vendorIntakeLinks.create``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def regenerate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeLinkRegenerated]:
+        """Regenerate a vendor intake link
+
+        Draws a new token and code through app.regenerate_vendor_intake_link; wrong-code attempts reset, which unlocks a locked link, and every grant is dropped. A revoked link (422 `vendor_intake_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /vendor-intake-links/{id}/regenerate`` (operation ``vendorIntakeLinks.regenerate``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeLinks.regenerate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeLink]:
+        """Revoke a vendor intake link
+
+        Revokes the link through app.revoke_vendor_intake_link so it never opens again; requests already sent stay for the team to decide. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /vendor-intake-links/{id}/revoke`` (operation ``vendorIntakeLinks.revoke``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class VendorIntakeRequestsResource(Resource):
+    """Operations on ``vendorIntakeRequests``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[VendorIntakeRequest]:
+        """List vendor intake request rows
+
+        What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /vendor-intake-requests`` (operation ``vendorIntakeRequests.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request_page(OPERATIONS["vendorIntakeRequests.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[VendorIntakeRequest]:
+        """List vendor intake request rows
+
+        What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /vendor-intake-requests`` (operation ``vendorIntakeRequests.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.paginate(OPERATIONS["vendorIntakeRequests.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeRequest]:
+        """Get a vendor intake request
+
+        What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns one vendor intake request with its `ETag`. A vendor intake request the caller may not see returns 404.
+
+        ``GET /vendor-intake-requests/{id}`` (operation ``vendorIntakeRequests.get``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeRequests.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def approve(
+        self,
+        id: str,
+        body: VendorIntakeApproval,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeRequest]:
+        """Approve a vendor intake request
+
+        Approves into an Onboarding engagement on the link's terms through app.decide_vendor_intake: the org's counterparty for the account is reused or added, Tax Form and Payout Details items are marked submitted but never verified, and the agreement is signed for the pinned version or stays Sent. The requester and anyone in the vendor account are refused (422 `sod_vendor_intake_self`); a decided request answers 422 `vendor_intake_not_pending`; the plan limit surfaces its own code. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /vendor-intake-requests/{id}/approve`` (operation ``vendorIntakeRequests.approve``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeRequests.approve"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def decline(
+        self,
+        id: str,
+        body: VendorIntakeDecline,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VendorIntakeRequest]:
+        """Decline a vendor intake request
+
+        Declines through app.decide_vendor_intake with a reason of at least 10 characters (422 `vendor_intake_decline_reason`). The tax form and payout reference written for it are soft-deleted when nothing else needs them. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /vendor-intake-requests/{id}/decline`` (operation ``vendorIntakeRequests.decline``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["vendorIntakeRequests.decline"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class FormLinksResource(Resource):
+    """Operations on ``formLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[FormLink]:
+        """List form link rows
+
+        A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /form-links`` (operation ``formLinks.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request_page(OPERATIONS["formLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[FormLink]:
+        """List form link rows
+
+        A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /form-links`` (operation ``formLinks.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.paginate(OPERATIONS["formLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLink]:
+        """Get a form link
+
+        A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns one form link with its `ETag`. A form link the caller may not see returns 404.
+
+        ``GET /form-links/{id}`` (operation ``formLinks.get``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def create(
+        self,
+        body: FormLinkRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLinkToken]:
+        """Create a public form link
+
+        Makes a public link through app.create_form_link. Needs membership and knowledge.sop.publish, a Published form (422 `form_not_published`) with no photo field, signature or GPS stamp (422 `form_link_unsupported`), and an expiry within 90 days (422 `form_link_expiry_range`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-links/create`` (operation ``formLinks.create``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def regenerate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLinkRegenerated]:
+        """Regenerate a public form link
+
+        Draws a new token and code through app.regenerate_form_link; wrong-code attempts reset and every grant is dropped. A revoked link and a read-only org are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-links/{id}/regenerate`` (operation ``formLinks.regenerate``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinks.regenerate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLink]:
+        """Revoke a public form link
+
+        Revokes the link through app.revoke_form_link; responses already in stay. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-links/{id}/revoke`` (operation ``formLinks.revoke``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class FormLinkResponsesResource(Resource):
+    """Operations on ``formLinkResponses``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[FormLinkResponse]:
+        """List form link response rows
+
+        A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /form-link-responses`` (operation ``formLinkResponses.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request_page(OPERATIONS["formLinkResponses.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[FormLinkResponse]:
+        """List form link response rows
+
+        A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /form-link-responses`` (operation ``formLinkResponses.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.paginate(OPERATIONS["formLinkResponses.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLinkResponse]:
+        """Get a form link response
+
+        A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns one form link response with its `ETag`. A form link response the caller may not see returns 404.
+
+        ``GET /form-link-responses/{id}`` (operation ``formLinkResponses.get``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinkResponses.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def decide(
+        self,
+        id: str,
+        body: FormLinkResponseDecision,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormLinkResponse]:
+        """Approve or reject a public form response
+
+        Decides through app.decide_form_submission as a holder of the form's approver role or knowledge.sop.publish. A rejection needs a note. Approving a response on a project makes its record of the form's kind and subtype. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-link-responses/{id}/decide`` (operation ``formLinkResponses.decide``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formLinkResponses.decide"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class OutsideAccessResource(Resource):
+    """Operations on ``outsideAccess``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[OutsideAccessRow]:
+        """List outside access row rows
+
+        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /outside-access`` (operation ``outsideAccess.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["outsideAccess.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[OutsideAccessRow]:
+        """List outside access row rows
+
+        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /outside-access`` (operation ``outsideAccess.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["outsideAccess.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class PersonCalendarFeedsResource(Resource):

@@ -1097,6 +1097,18 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
+      { t: "h2", v: "Public form links" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A Published form without a photo, signature or GPS stamp can have a " },
+          { t: "strong", v: "Public link" },
+          {
+            t: "text",
+            v: ". People outside the organization open it with an access code and answer without an account. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.",
+          },
+        ],
+      },
     ],
     logistics: [
       { t: "h2", v: "Shipments" },
@@ -1521,6 +1533,43 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Project settings hold the name, dates, currency and time zone. Some settings are locked by your organization; the page shows where a locked value comes from.",
+          },
+        ],
+      },
+      { t: "h2", v: "Outside access" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The last section of Project settings lists everything that reaches the project from outside the organization: live links, file links, advance and signing links, roster invitations, stakeholder pack recipients, intake links, form links and engagements. Each row shows who has it, its state, when it ends and how often it was opened. Revoke or regenerate from the row. A new link and code show once, above the list, until you dismiss them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A " },
+          { t: "strong", v: "stakeholder pack" },
+          {
+            t: "text",
+            v: " bundles live links and Public or Internal files for people outside the organization. Each recipient gets an access code you give by phone or message; it is never emailed. Packs can email a fresh sign-in link on a schedule. Report files themselves stay with members.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "An " },
+          { t: "strong", v: "intake link" },
+          {
+            t: "text",
+            v: " lets many vendors or contractors send a request through one link. Each signs in to Gateway, gives a tax form and a payout reference, and signs the agreement. Approve requests from ",
+          },
+          { t: "strong", v: "Intake requests" },
+          {
+            t: "text",
+            v: " on the Engagements tab; approving makes an Onboarding engagement, and a reviewer still verifies its items. Never ask for bank numbers: the link refuses them.",
           },
         ],
       },
@@ -3451,6 +3500,21 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
+      { t: "h2", v: "Enlaces públicos de formularios" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un ",
+          },
+          { t: "strong", v: "Enlace público" },
+          {
+            t: "text",
+            v: ". Personas fuera de la organización lo abren con un código de acceso y responden sin cuenta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.",
+          },
+        ],
+      },
     ],
     logistics: [
       { t: "h2", v: "Envíos" },
@@ -3839,6 +3903,43 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Algunas configuraciones del proyecto están bloqueadas por su organización; la página indica de dónde proviene el valor.",
+          },
+        ],
+      },
+      { t: "h2", v: "Acceso externo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La última sección de Configuración del proyecto muestra todo lo que llega al proyecto desde fuera de la organización: enlaces en vivo, enlaces de archivo, enlaces de avance y de firma, invitaciones al equipo, destinatarios de paquetes, enlaces de alta, enlaces de formulario y contrataciones. Cada fila muestra quién lo tiene, su estado, cuándo termina y cuántas veces se abrió. Revoca o regenera desde la fila. Un enlace y un código nuevos se muestran una vez, arriba de la lista, hasta que los descartes.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un " },
+          { t: "strong", v: "paquete para interesados" },
+          {
+            t: "text",
+            v: " reúne enlaces en vivo y archivos Públicos o Internos para personas fuera de la organización. Cada destinatario recibe un código de acceso que le das por teléfono o mensaje; nunca se envía por correo. Los paquetes pueden enviar un enlace de acceso nuevo según una programación. Los archivos de informes siguen siendo solo para miembros.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un " },
+          { t: "strong", v: "enlace de alta" },
+          {
+            t: "text",
+            v: " permite que muchos proveedores o contratistas envíen una solicitud por un solo enlace. Cada uno inicia sesión en Gateway, da un formulario fiscal y una referencia de pago, y firma el acuerdo. Aprueba las solicitudes desde ",
+          },
+          { t: "strong", v: "Solicitudes de alta" },
+          {
+            t: "text",
+            v: " en la pestaña Contrataciones; al aprobar se crea una contratación en incorporación, y un revisor aún verifica sus elementos. Nunca pidas números de cuenta bancaria: el enlace los rechaza.",
           },
         ],
       },

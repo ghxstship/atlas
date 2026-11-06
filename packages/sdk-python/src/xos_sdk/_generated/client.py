@@ -396,6 +396,15 @@ from .resources import (
     PartnerStandingGrantsResource,
     ShareLinksResource,
     LiveLinksResource,
+    StakeholderPacksResource,
+    StakeholderPackItemsResource,
+    StakeholderPackRecipientsResource,
+    StakeholderPackEventsResource,
+    VendorIntakeLinksResource,
+    VendorIntakeRequestsResource,
+    FormLinksResource,
+    FormLinkResponsesResource,
+    OutsideAccessResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
@@ -841,6 +850,15 @@ class XosClient(XosClientCore):
     partner_standing_grants: PartnerStandingGrantsResource
     share_links: ShareLinksResource
     live_links: LiveLinksResource
+    stakeholder_packs: StakeholderPacksResource
+    stakeholder_pack_items: StakeholderPackItemsResource
+    stakeholder_pack_recipients: StakeholderPackRecipientsResource
+    stakeholder_pack_events: StakeholderPackEventsResource
+    vendor_intake_links: VendorIntakeLinksResource
+    vendor_intake_requests: VendorIntakeRequestsResource
+    form_links: FormLinksResource
+    form_link_responses: FormLinkResponsesResource
+    outside_access: OutsideAccessResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
@@ -1274,6 +1292,15 @@ class XosClient(XosClientCore):
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
         self.share_links = ShareLinksResource(self)
         self.live_links = LiveLinksResource(self)
+        self.stakeholder_packs = StakeholderPacksResource(self)
+        self.stakeholder_pack_items = StakeholderPackItemsResource(self)
+        self.stakeholder_pack_recipients = StakeholderPackRecipientsResource(self)
+        self.stakeholder_pack_events = StakeholderPackEventsResource(self)
+        self.vendor_intake_links = VendorIntakeLinksResource(self)
+        self.vendor_intake_requests = VendorIntakeRequestsResource(self)
+        self.form_links = FormLinksResource(self)
+        self.form_link_responses = FormLinkResponsesResource(self)
+        self.outside_access = OutsideAccessResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)

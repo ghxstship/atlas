@@ -1479,6 +1479,44 @@ __all__ = [
     "LiveDisplayLinkToken",
     "LiveDisplayLinkRequest",
     "LiveLinkRegenerated",
+    "StakeholderPackPage",
+    "StakeholderPack",
+    "StakeholderPackRequest",
+    "StakeholderPackChange",
+    "StakeholderPackSchedule",
+    "StakeholderPackScheduleRequest",
+    "StakeholderPackItemPage",
+    "StakeholderPackItem",
+    "StakeholderPackItemRequest",
+    "StakeholderPackItemRemoved",
+    "StakeholderPackRecipientPage",
+    "StakeholderPackRecipient",
+    "StakeholderPackRecipientCode",
+    "StakeholderPackRecipientRequest",
+    "StakeholderPackRecipientCodeReset",
+    "StakeholderPackSent",
+    "StakeholderPackSendRequest",
+    "StakeholderPackEventPage",
+    "StakeholderPackEvent",
+    "VendorIntakeLinkPage",
+    "VendorIntakeLink",
+    "VendorIntakeLinkToken",
+    "VendorIntakeLinkRequest",
+    "VendorIntakeLinkRegenerated",
+    "VendorIntakeRequestPage",
+    "VendorIntakeRequest",
+    "VendorIntakeApproval",
+    "VendorIntakeDecline",
+    "FormLinkPage",
+    "FormLink",
+    "FormLinkToken",
+    "FormLinkRequest",
+    "FormLinkRegenerated",
+    "FormLinkResponsePage",
+    "FormLinkResponse",
+    "FormLinkResponseDecision",
+    "OutsideAccessRowPage",
+    "OutsideAccessRow",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -24350,6 +24388,732 @@ class LiveLinkRegenerated(TypedDict):
     access_code: str
     #: When the link stops opening; regenerating keeps the expiry.
     expires_at: str
+
+
+class StakeholderPackPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPack]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPack(TypedDict):
+    """A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once."""
+
+    #: Identifier of the stakeholder pack.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project the pack shares from.
+    project_id: str
+    #: Pack name shown to recipients.
+    name: str
+    #: Message shown to recipients at the top of the pack.
+    message: Optional[str]
+    #: What the pack is for, for the team. Never on a token page or in an email.
+    note: Optional[str]
+    #: When the pack stops opening: after now and within 90 days.
+    expires_at: str
+    #: When the pack was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the pack.
+    revoked_by: Optional[str]
+
+
+class _StakeholderPackRequestRequired(TypedDict):
+    #: Identifier of the project the pack shares from.
+    project_id: str
+    #: Pack name shown to recipients.
+    name: str
+    #: When the pack stops opening.
+    expires_at: str
+
+
+class StakeholderPackRequest(_StakeholderPackRequestRequired, total=False):
+    """A new stakeholder pack."""
+
+    #: Message shown to recipients.
+    message: str
+    #: For the team; never shown to recipients.
+    note: str
+
+
+class StakeholderPackChange(TypedDict):
+    """A stakeholder pack's new details."""
+
+    #: Pack name shown to recipients.
+    name: str
+    #: When the pack stops opening.
+    expires_at: str
+    #: Message shown to recipients.
+    message: Optional[str]
+    #: For the team; never shown to recipients.
+    note: Optional[str]
+
+
+class StakeholderPackSchedule(TypedDict):
+    """When a stakeholder pack emails its recipients a fresh sign-in link."""
+
+    #: The schedule.
+    id: str
+    #: The pack.
+    stakeholder_pack_id: str
+    #: How often a fresh sign-in link goes out.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Hour of the day it sends, 0 to 23, in time_zone.
+    local_hour: int
+    #: Weekly only: day of the week, 1 (Monday) to 7.
+    weekday: Optional[int]
+    #: Monthly only: day of the month, 1 to 28.
+    month_day: Optional[int]
+    #: IANA time zone the hour is in.
+    time_zone: str
+    #: Next slot.
+    next_run_at: str
+    #: When the scheduler ended the schedule at the pack's expiry.
+    paused_at: Optional[str]
+
+
+class _StakeholderPackScheduleRequestRequired(TypedDict):
+    #: How often a fresh sign-in link goes out.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Hour of the day it sends, 0 to 23.
+    local_hour: int
+
+
+class StakeholderPackScheduleRequest(_StakeholderPackScheduleRequestRequired, total=False):
+    """When a pack sends."""
+
+    #: Weekly only: 1 (Monday) to 7.
+    weekday: int
+    #: Monthly only: 1 to 28.
+    month_day: int
+    #: IANA time zone; the project's by default.
+    time_zone: str
+
+
+class StakeholderPackItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackItem(TypedDict):
+    """One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it."""
+
+    #: Identifier of the stakeholder pack item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the pack the item belongs to.
+    stakeholder_pack_id: str
+    #: Live Link, one P1 live link of the project; File, one Public or Internal file of the project.
+    item_kind: Literal["Live Link", "File"]
+    #: Identifier of the live link the item opens.
+    live_link_id: Optional[str]
+    #: Identifier of the file the item downloads.
+    attachment_id: Optional[str]
+    #: Item title shown to recipients.
+    title: str
+    #: Order in the pack, from 0.
+    position: int
+    #: True when each recipient is asked to type their name to acknowledge the item: a receipt, not a signature of a contract.
+    requires_acknowledgement: bool
+
+
+class _StakeholderPackItemRequestRequired(TypedDict):
+    #: Identifier of the pack the item joins.
+    stakeholder_pack_id: str
+    #: Item title shown to recipients.
+    title: str
+
+
+class StakeholderPackItemRequest(_StakeholderPackItemRequestRequired, total=False):
+    """An item for a stakeholder pack."""
+
+    #: Identifier of the live link to share.
+    live_link_id: str
+    #: Identifier of the file to share.
+    attachment_id: str
+    #: Ask each recipient to type their name.
+    requires_acknowledgement: bool
+
+
+class StakeholderPackItemRemoved(TypedDict):
+    """The item removed."""
+
+    #: The item removed.
+    id: str
+
+
+class StakeholderPackRecipientPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackRecipient]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackRecipient(TypedDict):
+    """One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here."""
+
+    #: Identifier of the stakeholder pack recipient.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the pack the recipient may open.
+    stakeholder_pack_id: str
+    #: Recipient's name as the team entered it.
+    full_name: str
+    #: Where the pack's sign-in links go, lower case.
+    email: str
+    #: Identifier of the supplier the recipient works for.
+    counterparty_id: Optional[str]
+    #: Group the recipient belongs to, for example a department.
+    label: Optional[str]
+    #: Wrong access codes since the code was set; the recipient locks at 5.
+    failed_attempts: int
+    #: When the recipient stopped the pack's emails.
+    unsubscribed_at: Optional[str]
+    #: When the recipient was revoked.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the recipient.
+    revoked_by: Optional[str]
+
+
+class StakeholderPackRecipientCode(TypedDict):
+    """A new recipient and their access code, shown once."""
+
+    #: The new recipient.
+    recipient_id: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+
+
+class _StakeholderPackRecipientRequestRequired(TypedDict):
+    #: Identifier of the pack the recipient may open.
+    stakeholder_pack_id: str
+    #: Recipient's name.
+    full_name: str
+    #: Recipient's email.
+    email: str
+
+
+class StakeholderPackRecipientRequest(_StakeholderPackRecipientRequestRequired, total=False):
+    """A recipient for a stakeholder pack."""
+
+    #: Identifier of the supplier the recipient works for.
+    counterparty_id: str
+    #: Group, for example a department.
+    label: str
+
+
+class StakeholderPackRecipientCodeReset(TypedDict):
+    """A recipient's new access code, shown once."""
+
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+
+
+class StakeholderPackSent(TypedDict):
+    """How many deliveries were queued."""
+
+    #: Deliveries queued.
+    queued: int
+
+
+class _StakeholderPackSendRequestRequired(TypedDict):
+    #: Identifier of the pack to send.
+    stakeholder_pack_id: str
+
+
+class StakeholderPackSendRequest(_StakeholderPackSendRequestRequired, total=False):
+    """Which recipients to email."""
+
+    #: Only these recipients; every live recipient when left out.
+    recipient_ids: List[str]
+
+
+class StakeholderPackEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackEvent(TypedDict):
+    """What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept."""
+
+    #: Identifier of the stakeholder pack event.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the pack the event belongs to.
+    stakeholder_pack_id: str
+    #: Identifier of the recipient who acted.
+    recipient_id: str
+    #: Identifier of the item viewed, downloaded or signed.
+    item_id: Optional[str]
+    #: What happened.
+    action: Literal["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"]
+    #: Name typed to acknowledge the item; Signed only.
+    signer_name: Optional[str]
+    #: When it happened.
+    occurred_at: str
+
+
+class VendorIntakeLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[VendorIntakeLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class VendorIntakeLink(TypedDict):
+    """A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes."""
+
+    #: Identifier of the vendor intake link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the engagements join.
+    project_id: str
+    #: Vendor, a company account engages; Contractor, the signed-in person engages.
+    role_type: Literal["Vendor", "Contractor"]
+    #: Canon role the engagements take.
+    role_code: str
+    #: Canon worker classification; never an employee one.
+    worker_classification: str
+    #: Canon pay basis.
+    pay_basis: Optional[str]
+    #: Canon arrangement.
+    arrangement: Optional[str]
+    #: Canon counterparty type a new vendor gets; required for Vendor.
+    counterparty_type: Optional[str]
+    #: First day of the engagements.
+    start_date: str
+    #: Last day of the engagements, when known.
+    end_date: Optional[str]
+    #: Identifier of the Knowledge document each requester signs.
+    agreement_document_id: Optional[str]
+    #: Identifier of the version pinned when the link was made.
+    agreement_version_id: Optional[str]
+    #: What the link is for, shown on the public page.
+    title: str
+    #: Instructions shown on the public page.
+    instructions: Optional[str]
+    #: What the link is for, for the team. Never on the public page.
+    note: Optional[str]
+    #: True when a request must carry a tax form.
+    collect_tax_form: bool
+    #: True when the intake asks for a payout reference.
+    collect_payout: bool
+    #: True when a request may carry a first invoice draft.
+    collect_invoice: bool
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Most requests the link takes, 1 to 500.
+    max_requests: int
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class VendorIntakeLinkToken(TypedDict):
+    """A new intake link with its token and access code, shown once."""
+
+    #: The new link.
+    vendor_intake_link_id: str
+    #: The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _VendorIntakeLinkRequestRequired(TypedDict):
+    #: Identifier of the project the engagements join.
+    project_id: str
+    #: What the link is for, shown on the public page.
+    title: str
+    #: Vendor or Contractor.
+    role_type: Literal["Vendor", "Contractor"]
+    #: Canon role.
+    role_code: str
+    #: Canon worker classification.
+    worker_classification: str
+    #: Canon pay basis.
+    pay_basis: str
+    #: Canon arrangement.
+    arrangement: str
+    #: First day of the engagements.
+    start_date: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class VendorIntakeLinkRequest(_VendorIntakeLinkRequestRequired, total=False):
+    """A new vendor intake link."""
+
+    #: Last day of the engagements.
+    end_date: str
+    #: Counterparty type a new vendor gets.
+    counterparty_type: str
+    #: Identifier of the Knowledge document each requester signs.
+    agreement_document_id: str
+    #: Instructions on the public page.
+    instructions: str
+    #: For the team.
+    note: str
+    #: Ask for a tax form.
+    collect_tax_form: bool
+    #: Ask for a payout reference.
+    collect_payout: bool
+    #: Take a first invoice draft.
+    collect_invoice: bool
+    #: Most requests the link takes, 1 to 500.
+    max_requests: int
+
+
+class VendorIntakeLinkRegenerated(TypedDict):
+    """A regenerated intake link's new token and access code, shown once."""
+
+    #: The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
+class VendorIntakeRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[VendorIntakeRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class VendorIntakeRequest(TypedDict):
+    """What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here."""
+
+    #: Identifier of the vendor intake request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the intake link the request came through.
+    vendor_intake_link_id: str
+    #: Identifier of the project of the link.
+    project_id: str
+    #: Identifier of the person who sent the request.
+    requested_by: str
+    #: Identifier of the company account, for a Vendor link.
+    account_id: Optional[str]
+    #: Identifier of the the requester's own tax form.
+    tax_form_id: Optional[str]
+    #: Identifier of the the requester's own payout reference.
+    payout_account_id: Optional[str]
+    #: Name typed to sign the agreement.
+    signer_name: Optional[str]
+    #: When the requester signed.
+    signed_at: Optional[str]
+    #: Identifier of the agreement version signed.
+    signed_version_id: Optional[str]
+    #: Optional first invoice: invoice_number, issue_date, due_date, currency_code and up to 50 lines.
+    invoice_draft: Optional[Dict[str, Any]]
+    #: Pending, Approved, Declined or Withdrawn.
+    request_state: Literal["Pending", "Approved", "Declined", "Withdrawn"]
+    #: Identifier of the member who decided.
+    decided_by: Optional[str]
+    #: When it was decided.
+    decided_at: Optional[str]
+    #: Why it was declined, or a note on approval.
+    decision_reason: Optional[str]
+    #: Identifier of the engagement the approval created.
+    engagement_id: Optional[str]
+    #: Identifier of the invoice the draft became.
+    invoice_id: Optional[str]
+
+
+class VendorIntakeApproval(TypedDict, total=False):
+    """An optional note."""
+
+    #: Why, at least 10 characters to decline.
+    reason: str
+
+
+class VendorIntakeDecline(TypedDict):
+    """Why it is declined."""
+
+    #: Why, at least 10 characters to decline.
+    reason: str
+
+
+class FormLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FormLink(TypedDict):
+    """A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes."""
+
+    #: Identifier of the form link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the form the link answers.
+    form_template_id: str
+    #: Identifier of the project the responses belong to.
+    project_id: Optional[str]
+    #: What the link is for, for the team. Never on the public page.
+    note: Optional[str]
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Most responses in any 24 hours, 1 to 1000.
+    daily_cap: int
+    #: Most responses in all, 1 to 10000, or none.
+    max_responses: Optional[int]
+    #: True when each email address answers the link once.
+    one_per_email: bool
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class FormLinkToken(TypedDict):
+    """A new form link with its token and access code, shown once."""
+
+    #: The new link.
+    form_link_id: str
+    #: The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _FormLinkRequestRequired(TypedDict):
+    #: Identifier of the form the link answers.
+    form_template_id: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class FormLinkRequest(_FormLinkRequestRequired, total=False):
+    """A new public form link."""
+
+    #: Identifier of the project the responses belong to.
+    project_id: str
+    #: Most responses in any 24 hours, 1 to 1000.
+    daily_cap: int
+    #: Most responses in all, 1 to 10000.
+    max_responses: int
+    #: Each email answers once.
+    one_per_email: bool
+    #: For the team.
+    note: str
+
+
+class FormLinkRegenerated(TypedDict):
+    """A regenerated form link's new token and access code, shown once."""
+
+    #: The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
+class FormLinkResponsePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormLinkResponse]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FormLinkResponse(TypedDict):
+    """A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only."""
+
+    #: Identifier of the form link response.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the public link the response came through.
+    form_link_id: str
+    #: Identifier of the form answered.
+    form_template_id: str
+    #: Identifier of the version answered.
+    form_template_version_id: str
+    #: Identifier of the project the response belongs to.
+    project_id: Optional[str]
+    #: Identifier of the record the approval made.
+    record_id: Optional[str]
+    #: Name the respondent gave.
+    respondent_name: str
+    #: Email the respondent gave, lower case.
+    respondent_email: str
+    #: Answers keyed by field key.
+    answers: Dict[str, Any]
+    #: Points earned.
+    score: Optional[float]
+    #: Points available on the shown fields.
+    max_score: Optional[float]
+    #: Whether the pass score was met.
+    passed: Optional[bool]
+    #: Where the response stands.
+    submission_state: Literal["Submitted", "Approved", "Rejected", "Recorded"]
+    #: Identifier of the member who decided.
+    decided_by_membership_id: Optional[str]
+    #: Why it was rejected, or a note on approval.
+    decision_note: Optional[str]
+
+
+class _FormLinkResponseDecisionRequired(TypedDict):
+    #: True to approve, false to reject.
+    approve: bool
+
+
+class FormLinkResponseDecision(_FormLinkResponseDecisionRequired, total=False):
+    """The decision on a public form response."""
+
+    #: Why it is rejected, or a note on approval.
+    note: str
+
+
+class OutsideAccessRowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OutsideAccessRow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OutsideAccessRow(TypedDict):
+    """One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably."""
+
+    #: Project reached.
+    project_id: str
+    #: What kind of access it is.
+    source: Literal["Live view link", "Display link", "File link", "Advance link", "Signing link", "Roster invitation", "Pack recipient", "Intake link", "Form link", "Engagement"]
+    #: Id of the row in its source table, for its own revoke or regenerate operation.
+    source_id: str
+    #: What the row is.
+    label: str
+    #: Who it was sent to, when the source names one.
+    recipient_email: Optional[str]
+    #: Last four characters of the token.
+    token_hint: Optional[str]
+    #: Active, Locked, Expired, Revoked or Used for links; a roster invitation's or engagement's state.
+    link_state: str
+    #: When it stops working; null for an engagement.
+    expires_at: Optional[str]
+    #: Successful opens, where the source counts them.
+    open_count: Optional[int]
+    #: Last successful open, where the source records it.
+    last_opened_at: Optional[str]
+    #: When it was made.
+    created_at: str
+    #: Person who made it.
+    created_by: Optional[str]
 
 
 class PersonCalendarFeedPage(TypedDict):

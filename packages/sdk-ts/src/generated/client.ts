@@ -390,6 +390,15 @@ import {
   PartnerStandingGrantsResource,
   ShareLinksResource,
   LiveLinksResource,
+  StakeholderPacksResource,
+  StakeholderPackItemsResource,
+  StakeholderPackRecipientsResource,
+  StakeholderPackEventsResource,
+  VendorIntakeLinksResource,
+  VendorIntakeRequestsResource,
+  FormLinksResource,
+  FormLinkResponsesResource,
+  OutsideAccessResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -1323,6 +1332,31 @@ export class XosClient extends XosClientCore {
   readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
   /** Platform: operations on `liveLinks`. */
   readonly liveLinks: LiveLinksResource = new LiveLinksResource(this);
+  /** Platform: operations on `stakeholderPacks`. */
+  readonly stakeholderPacks: StakeholderPacksResource = new StakeholderPacksResource(this);
+  /** Platform: operations on `stakeholderPackItems`. */
+  readonly stakeholderPackItems: StakeholderPackItemsResource = new StakeholderPackItemsResource(
+    this,
+  );
+  /** Platform: operations on `stakeholderPackRecipients`. */
+  readonly stakeholderPackRecipients: StakeholderPackRecipientsResource =
+    new StakeholderPackRecipientsResource(this);
+  /** Platform: operations on `stakeholderPackEvents`. */
+  readonly stakeholderPackEvents: StakeholderPackEventsResource = new StakeholderPackEventsResource(
+    this,
+  );
+  /** Platform: operations on `vendorIntakeLinks`. */
+  readonly vendorIntakeLinks: VendorIntakeLinksResource = new VendorIntakeLinksResource(this);
+  /** Platform: operations on `vendorIntakeRequests`. */
+  readonly vendorIntakeRequests: VendorIntakeRequestsResource = new VendorIntakeRequestsResource(
+    this,
+  );
+  /** Platform: operations on `formLinks`. */
+  readonly formLinks: FormLinksResource = new FormLinksResource(this);
+  /** Platform: operations on `formLinkResponses`. */
+  readonly formLinkResponses: FormLinkResponsesResource = new FormLinkResponsesResource(this);
+  /** Platform: operations on `outsideAccess`. */
+  readonly outsideAccess: OutsideAccessResource = new OutsideAccessResource(this);
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */

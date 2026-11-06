@@ -412,6 +412,12 @@ import type {
   FieldHistoryEventPage,
   Form1099NecRowPage,
   FormDecisionRequest,
+  FormLink,
+  FormLinkRegenerated,
+  FormLinkRequest,
+  FormLinkResponse,
+  FormLinkResponseDecision,
+  FormLinkToken,
   FormSubmission,
   FormSubmissionCreate,
   FormTemplate,
@@ -649,6 +655,7 @@ import type {
   OrganizationRelationshipCreate,
   OrganizationRelationshipUpdate,
   OrganizationUpdate,
+  OutsideAccessRow,
   OvertimeRule,
   OwnershipTransfer,
   OwnershipTransferOfferRequest,
@@ -947,6 +954,21 @@ import type {
   SponsorEntitlement,
   SponsorEntitlementCreate,
   SponsorEntitlementUpdate,
+  StakeholderPack,
+  StakeholderPackChange,
+  StakeholderPackEvent,
+  StakeholderPackItem,
+  StakeholderPackItemRemoved,
+  StakeholderPackItemRequest,
+  StakeholderPackRecipient,
+  StakeholderPackRecipientCode,
+  StakeholderPackRecipientCodeReset,
+  StakeholderPackRecipientRequest,
+  StakeholderPackRequest,
+  StakeholderPackSchedule,
+  StakeholderPackScheduleRequest,
+  StakeholderPackSendRequest,
+  StakeholderPackSent,
   StdCode,
   StdDocument,
   StdEmergencyCode,
@@ -1058,6 +1080,13 @@ import type {
   VendorClassCreate,
   VendorClassUpdate,
   VendorCreate,
+  VendorIntakeApproval,
+  VendorIntakeDecline,
+  VendorIntakeLink,
+  VendorIntakeLinkRegenerated,
+  VendorIntakeLinkRequest,
+  VendorIntakeLinkToken,
+  VendorIntakeRequest,
   VendorProduct,
   VendorProductCreate,
   VendorProductUpdate,
@@ -39259,6 +39288,906 @@ export class LiveLinksResource extends $Resource {
     return this.client.request<LiveLink>(
       $OPERATIONS["liveLinks.revoke"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPacks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPacksResource extends $Resource {
+  /**
+   * List stakeholder pack rows
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-packs` (operation `stakeholderPacks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPack>> {
+    return this.client.requestPage<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack rows
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-packs` (operation `stakeholderPacks.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPack, void, undefined> {
+    return this.client.paginate<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a stakeholder pack
+   *
+   * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns one stakeholder pack with its `ETag`. A stakeholder pack the caller may not see returns 404.
+   *
+   * `GET /stakeholder-packs/{id}` (operation `stakeholderPacks.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<StakeholderPack>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a stakeholder pack
+   *
+   * Makes a pack on a project through app.create_stakeholder_pack. Needs membership of the project's org and projects.settings.write on the project (a partner org never qualifies), an org that is not read-only (422 `org_read_only`), and an expiry after now and within 90 days (422 `stakeholder_pack_expiry_range`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/create` (operation `stakeholderPacks.create`).
+   * Requires the capability `projects.project.read`.
+   */
+  create(
+    body: StakeholderPackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Change a stakeholder pack
+   *
+   * Changes the name, message, note and expiry through app.update_stakeholder_pack. An earlier expiry stops every link and device grant at once. Refused for a revoked pack (422 `stakeholder_pack_revoked`) and a read-only org (422 `org_read_only`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/update` (operation `stakeholderPacks.update`).
+   * Requires the capability `projects.project.read`.
+   */
+  update(
+    id: string,
+    body: StakeholderPackChange,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a stakeholder pack
+   *
+   * Revokes the pack through app.revoke_stakeholder_pack: every device grant is deleted and every emailed link revoked. Allowed in a read-only org, since it withdraws access. Revoking a revoked pack answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/revoke` (operation `stakeholderPacks.revoke`).
+   * Requires the capability `projects.project.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Set a pack's delivery schedule
+   *
+   * Sets when the pack emails its recipients a fresh sign-in link through app.set_stakeholder_pack_schedule: Daily, Weekly (weekday 1 to 7) or Monthly (day 1 to 28) at a local hour, in the project's zone by default. A slot after the pack's expiry is refused (422 `stakeholder_pack_schedule_past_expiry`). Outside recipients get a link, never a report file. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/schedule` (operation `stakeholderPacks.setSchedule`).
+   * Requires the capability `projects.project.read`.
+   */
+  setSchedule(
+    id: string,
+    body: StakeholderPackScheduleRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackSchedule>> {
+    return this.client.request<StakeholderPackSchedule>(
+      $OPERATIONS["stakeholderPacks.setSchedule"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Clear a pack's delivery schedule
+   *
+   * Turns the schedule off through app.clear_stakeholder_pack_schedule; deliveries already queued still go. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-packs/{id}/schedule/clear` (operation `stakeholderPacks.clearSchedule`).
+   * Requires the capability `projects.project.read`.
+   */
+  clearSchedule(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPack>> {
+    return this.client.request<StakeholderPack>(
+      $OPERATIONS["stakeholderPacks.clearSchedule"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackItems`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackItemsResource extends $Resource {
+  /**
+   * List stakeholder pack item rows
+   *
+   * One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-items` (operation `stakeholderPackItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackItem>> {
+    return this.client.requestPage<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack item rows
+   *
+   * One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-items` (operation `stakeholderPackItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackItem, void, undefined> {
+    return this.client.paginate<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Add an item to a stakeholder pack
+   *
+   * Adds one live link or one file, last in order, through app.add_stakeholder_pack_item. A live link must be one the caller may manage, on the pack's project, neither revoked nor expired (422 `stakeholder_pack_item_link`). A file must be readable by the caller, of the pack's project, with a clean current version (422 `stakeholder_pack_item_file`), and Public or Internal (422 `stakeholder_pack_item_classified`). At most 30 items (422 `stakeholder_pack_item_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-items/add` (operation `stakeholderPackItems.add`).
+   * Requires the capability `projects.project.read`.
+   */
+  add(
+    body: StakeholderPackItemRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackItem>> {
+    return this.client.request<StakeholderPackItem>(
+      $OPERATIONS["stakeholderPackItems.add"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Remove an item from a stakeholder pack
+   *
+   * Removes the item through app.remove_stakeholder_pack_item; recipients stop seeing it at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-items/{id}/remove` (operation `stakeholderPackItems.remove`).
+   * Requires the capability `projects.project.read`.
+   */
+  remove(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackItemRemoved>> {
+    return this.client.request<StakeholderPackItemRemoved>(
+      $OPERATIONS["stakeholderPackItems.remove"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackRecipients`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackRecipientsResource extends $Resource {
+  /**
+   * List stakeholder pack recipient rows
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-recipients` (operation `stakeholderPackRecipients.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackRecipient>> {
+    return this.client.requestPage<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack recipient rows
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-recipients` (operation `stakeholderPackRecipients.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackRecipient, void, undefined> {
+    return this.client.paginate<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a stakeholder pack recipient
+   *
+   * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns one stakeholder pack recipient with its `ETag`. A stakeholder pack recipient the caller may not see returns 404.
+   *
+   * `GET /stakeholder-pack-recipients/{id}` (operation `stakeholderPackRecipients.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<StakeholderPackRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipient>> {
+    return this.client.request<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Add a recipient to a stakeholder pack
+   *
+   * Adds a person through app.add_stakeholder_pack_recipient and answers their 6-digit access code once, to give by phone or message. Refuses a revoked pack, a read-only org, a malformed email (422 `stakeholder_pack_recipient_email`), a second live recipient with the same email (422 `stakeholder_pack_recipient_duplicate`), more than 200 recipients (422 `stakeholder_pack_recipient_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/add` (operation `stakeholderPackRecipients.add`).
+   * Requires the capability `projects.project.read`.
+   */
+  add(
+    body: StakeholderPackRecipientRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipientCode>> {
+    return this.client.request<StakeholderPackRecipientCode>(
+      $OPERATIONS["stakeholderPackRecipients.add"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Reset a recipient's access code
+   *
+   * Draws a new 6-digit code through app.reset_stakeholder_pack_recipient_code, answered once. Wrong-code attempts reset, which unlocks a locked recipient, and every device grant is dropped. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/{id}/reset-code` (operation `stakeholderPackRecipients.resetCode`).
+   * Requires the capability `projects.project.read`.
+   */
+  resetCode(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackRecipientCodeReset>> {
+    return this.client.request<StakeholderPackRecipientCodeReset>(
+      $OPERATIONS["stakeholderPackRecipients.resetCode"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a recipient
+   *
+   * Revokes one recipient through app.revoke_stakeholder_pack_recipient: their device grants are deleted and emailed links revoked. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/{id}/revoke` (operation `stakeholderPackRecipients.revoke`).
+   * Requires the capability `projects.project.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<StakeholderPackRecipient>> {
+    return this.client.request<StakeholderPackRecipient>(
+      $OPERATIONS["stakeholderPackRecipients.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Email a pack's sign-in links now
+   *
+   * Queues an Invite or Resend per recipient through app.send_stakeholder_pack. Revoked and unsubscribed recipients, addresses on the org's suppression list, and any recipient already sent 3 manual emails in the last hour are skipped. The email never carries the access code. Answers how many were queued. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /stakeholder-pack-recipients/send` (operation `stakeholderPackRecipients.send`).
+   * Requires the capability `projects.project.read`.
+   */
+  send(
+    body: StakeholderPackSendRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<StakeholderPackSent>> {
+    return this.client.request<StakeholderPackSent>(
+      $OPERATIONS["stakeholderPackRecipients.send"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `stakeholderPackEvents`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class StakeholderPackEventsResource extends $Resource {
+  /**
+   * List stakeholder pack event rows
+   *
+   * What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /stakeholder-pack-events` (operation `stakeholderPackEvents.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<StakeholderPackEvent>,
+    options?: $RequestOptions,
+  ): Promise<$Page<StakeholderPackEvent>> {
+    return this.client.requestPage<StakeholderPackEvent>(
+      $OPERATIONS["stakeholderPackEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List stakeholder pack event rows
+   *
+   * What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /stakeholder-pack-events` (operation `stakeholderPackEvents.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<StakeholderPackEvent>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<StakeholderPackEvent, void, undefined> {
+    return this.client.paginate<StakeholderPackEvent>(
+      $OPERATIONS["stakeholderPackEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `vendorIntakeLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class VendorIntakeLinksResource extends $Resource {
+  /**
+   * List vendor intake link rows
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /vendor-intake-links` (operation `vendorIntakeLinks.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(
+    params?: $ListParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): Promise<$Page<VendorIntakeLink>> {
+    return this.client.requestPage<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List vendor intake link rows
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /vendor-intake-links` (operation `vendorIntakeLinks.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<VendorIntakeLink, void, undefined> {
+    return this.client.paginate<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a vendor intake link
+   *
+   * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns one vendor intake link with its `ETag`. A vendor intake link the caller may not see returns 404.
+   *
+   * `GET /vendor-intake-links/{id}` (operation `vendorIntakeLinks.get`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<VendorIntakeLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<VendorIntakeLink>> {
+    return this.client.request<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a vendor intake link
+   *
+   * Makes a reusable link through app.create_vendor_intake_link. Needs membership of the project's org and opportunities.engagement.write on the project. Refuses an employee classification (422 `vendor_intake_classification`), a Vendor link without a counterparty type (422 `vendor_intake_counterparty_type`), terms that are not one rate card row (422 `vendor_intake_rate_card`), an expiry past 90 days (422 `vendor_intake_expiry_range`), an agreement without a clean upload (422 `intake_agreement_file`) or above Internal (422 `intake_agreement_classified`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/create` (operation `vendorIntakeLinks.create`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  create(
+    body: VendorIntakeLinkRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeLinkToken>> {
+    return this.client.request<VendorIntakeLinkToken>(
+      $OPERATIONS["vendorIntakeLinks.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Regenerate a vendor intake link
+   *
+   * Draws a new token and code through app.regenerate_vendor_intake_link; wrong-code attempts reset, which unlocks a locked link, and every grant is dropped. A revoked link (422 `vendor_intake_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/{id}/regenerate` (operation `vendorIntakeLinks.regenerate`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  regenerate(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeLinkRegenerated>> {
+    return this.client.request<VendorIntakeLinkRegenerated>(
+      $OPERATIONS["vendorIntakeLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a vendor intake link
+   *
+   * Revokes the link through app.revoke_vendor_intake_link so it never opens again; requests already sent stay for the team to decide. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-links/{id}/revoke` (operation `vendorIntakeLinks.revoke`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<VendorIntakeLink>> {
+    return this.client.request<VendorIntakeLink>(
+      $OPERATIONS["vendorIntakeLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `vendorIntakeRequests`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class VendorIntakeRequestsResource extends $Resource {
+  /**
+   * List vendor intake request rows
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /vendor-intake-requests` (operation `vendorIntakeRequests.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(
+    params?: $ListParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): Promise<$Page<VendorIntakeRequest>> {
+    return this.client.requestPage<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List vendor intake request rows
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /vendor-intake-requests` (operation `vendorIntakeRequests.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<VendorIntakeRequest, void, undefined> {
+    return this.client.paginate<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a vendor intake request
+   *
+   * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns one vendor intake request with its `ETag`. A vendor intake request the caller may not see returns 404.
+   *
+   * `GET /vendor-intake-requests/{id}` (operation `vendorIntakeRequests.get`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<VendorIntakeRequest>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Approve a vendor intake request
+   *
+   * Approves into an Onboarding engagement on the link's terms through app.decide_vendor_intake: the org's counterparty for the account is reused or added, Tax Form and Payout Details items are marked submitted but never verified, and the agreement is signed for the pinned version or stays Sent. The requester and anyone in the vendor account are refused (422 `sod_vendor_intake_self`); a decided request answers 422 `vendor_intake_not_pending`; the plan limit surfaces its own code. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-requests/{id}/approve` (operation `vendorIntakeRequests.approve`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  approve(
+    id: string,
+    body: VendorIntakeApproval,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.approve"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Decline a vendor intake request
+   *
+   * Declines through app.decide_vendor_intake with a reason of at least 10 characters (422 `vendor_intake_decline_reason`). The tax form and payout reference written for it are soft-deleted when nothing else needs them. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendor-intake-requests/{id}/decline` (operation `vendorIntakeRequests.decline`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  decline(
+    id: string,
+    body: VendorIntakeDecline,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<VendorIntakeRequest>> {
+    return this.client.request<VendorIntakeRequest>(
+      $OPERATIONS["vendorIntakeRequests.decline"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class FormLinksResource extends $Resource {
+  /**
+   * List form link rows
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-links` (operation `formLinks.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  list(params?: $ListParams<FormLink>, options?: $RequestOptions): Promise<$Page<FormLink>> {
+    return this.client.requestPage<FormLink>(
+      $OPERATIONS["formLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form link rows
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-links` (operation `formLinks.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  listAll(
+    params?: $ListAllParams<FormLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormLink, void, undefined> {
+    return this.client.paginate<FormLink>(
+      $OPERATIONS["formLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a form link
+   *
+   * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns one form link with its `ETag`. A form link the caller may not see returns 404.
+   *
+   * `GET /form-links/{id}` (operation `formLinks.get`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormLink>> {
+    return this.client.request<FormLink>(
+      $OPERATIONS["formLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a public form link
+   *
+   * Makes a public link through app.create_form_link. Needs membership and knowledge.sop.publish, a Published form (422 `form_not_published`) with no photo field, signature or GPS stamp (422 `form_link_unsupported`), and an expiry within 90 days (422 `form_link_expiry_range`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/create` (operation `formLinks.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(body: FormLinkRequest, options?: $MutationOptions): Promise<$ApiResponse<FormLinkToken>> {
+    return this.client.request<FormLinkToken>($OPERATIONS["formLinks.create"], { body }, options);
+  }
+
+  /**
+   * Regenerate a public form link
+   *
+   * Draws a new token and code through app.regenerate_form_link; wrong-code attempts reset and every grant is dropped. A revoked link and a read-only org are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/{id}/regenerate` (operation `formLinks.regenerate`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  regenerate(id: string, options?: $MutationOptions): Promise<$ApiResponse<FormLinkRegenerated>> {
+    return this.client.request<FormLinkRegenerated>(
+      $OPERATIONS["formLinks.regenerate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a public form link
+   *
+   * Revokes the link through app.revoke_form_link; responses already in stay. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-links/{id}/revoke` (operation `formLinks.revoke`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<FormLink>> {
+    return this.client.request<FormLink>(
+      $OPERATIONS["formLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formLinkResponses`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class FormLinkResponsesResource extends $Resource {
+  /**
+   * List form link response rows
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-link-responses` (operation `formLinkResponses.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  list(
+    params?: $ListParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): Promise<$Page<FormLinkResponse>> {
+    return this.client.requestPage<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form link response rows
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-link-responses` (operation `formLinkResponses.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  listAll(
+    params?: $ListAllParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormLinkResponse, void, undefined> {
+    return this.client.paginate<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a form link response
+   *
+   * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns one form link response with its `ETag`. A form link response the caller may not see returns 404.
+   *
+   * `GET /form-link-responses/{id}` (operation `formLinkResponses.get`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormLinkResponse>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormLinkResponse>> {
+    return this.client.request<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Approve or reject a public form response
+   *
+   * Decides through app.decide_form_submission as a holder of the form's approver role or knowledge.sop.publish. A rejection needs a note. Approving a response on a project makes its record of the form's kind and subtype. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-link-responses/{id}/decide` (operation `formLinkResponses.decide`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  decide(
+    id: string,
+    body: FormLinkResponseDecision,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormLinkResponse>> {
+    return this.client.request<FormLinkResponse>(
+      $OPERATIONS["formLinkResponses.decide"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `outsideAccess`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class OutsideAccessResource extends $Resource {
+  /**
+   * List outside access row rows
+   *
+   * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /outside-access` (operation `outsideAccess.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<OutsideAccessRow>,
+    options?: $RequestOptions,
+  ): Promise<$Page<OutsideAccessRow>> {
+    return this.client.requestPage<OutsideAccessRow>(
+      $OPERATIONS["outsideAccess.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List outside access row rows
+   *
+   * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /outside-access` (operation `outsideAccess.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<OutsideAccessRow>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<OutsideAccessRow, void, undefined> {
+    return this.client.paginate<OutsideAccessRow>(
+      $OPERATIONS["outsideAccess.list"],
+      { query: params },
       options,
     );
   }

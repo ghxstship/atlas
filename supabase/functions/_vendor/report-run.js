@@ -2,6 +2,7 @@
 // Never edit by hand; the @xos/platform tests fail when this file differs from the build output.
 import { defaultLocale, isLaunchLocale } from "./chunks/i18n-locales.js";
 import { READ_REPLICA_ENV, readReplicaUrl } from "./chunks/data-report-files.js";
+import "./chunks/data-result.js";
 import { lazyResendClient, readEmailEnv, recipientAllowed } from "./chunks/email-env.js";
 import {
   REPORT_DELIVER_JOB,
@@ -17,6 +18,196 @@ import {
   supabaseResultFiles,
   supabaseResultStorage,
 } from "./chunks/data-report-deliveries.js";
+//#region ../data/src/stakeholder-packs.ts
+function packPath(token) {
+  return `/share/pack/${token}`;
+}
+function packUnsubscribePath(token) {
+  return `/share/pack/unsubscribe/${token}`;
+}
+var str = (v) => (typeof v === "string" ? v : "");
+var strOrNull = (v) => (typeof v === "string" ? v : null);
+var PACK_DELIVER_JOB = "pack.deliver";
+var escapeHtml = (s) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/** The expiry as the recipient reads it: in the project's zone, with the zone's name. */
+function packExpiryText(expiresAt, locale, timeZone) {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+    timeZoneName: "short",
+  }).format(new Date(expiresAt));
+}
+/** The email of one delivery. It carries a sign-in link, never a code and never a file. */
+function packEmail(link, copy, env) {
+  const facts = link.email;
+  const url = `${env.appUrl}${packPath(link.token)}`;
+  const stopUrl = `${env.appUrl}${packUnsubscribePath(link.unsubscribeToken)}`;
+  const words = {
+    sender: facts.senderName ?? facts.brandName,
+    pack: facts.packName,
+  };
+  const date = packExpiryText(link.expiresAt, facts.locale, facts.timeZone);
+  const paragraphs = [
+    copy.intro(words),
+    ...(facts.message ? [copy.message({ message: facts.message })] : []),
+    ...(facts.itemTitles.length > 0 ? [copy.items({ items: facts.itemTitles.join(", ") })] : []),
+    copy.open({ url }),
+    copy.expires({ date }),
+    copy.code(),
+  ];
+  const footer = [
+    copy.sentBy({
+      org: facts.orgName,
+      address: env.postalAddress,
+    }),
+    copy.stop({ url: stopUrl }),
+  ];
+  return {
+    to: facts.recipientEmail,
+    toName: facts.recipientName,
+    subject: copy.subject(words),
+    text: [...paragraphs, ...footer].join("\n\n"),
+    html: [
+      ...paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`),
+      ...footer.map((p) => `<p><small>${escapeHtml(p)}</small></p>`),
+    ].join(""),
+    headers: {
+      "List-Unsubscribe": `<${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  };
+}
+/** One pass of the pack.deliver worker: claim, mint, send, finish. */
+async function runPackDeliveries(options) {
+  const { store, mailer, copy, env, worker } = options;
+  const claimed = await store.claim(worker, options.limit ?? 25);
+  const results = [];
+  for (const job of claimed)
+    try {
+      if (!env.appUrl) throw new Error("XOS_APP_URL is not set, so a pack link cannot be built.");
+      if (!env.postalAddress)
+        throw new Error("XOS_POSTAL_ADDRESS is not set, so a pack email has no CAN-SPAM footer.");
+      const link = await store.mint(job.deliveryId);
+      if (!link) {
+        await store.finishJob(job.jobId, true, null);
+        results.push({
+          jobId: job.jobId,
+          deliveryId: job.deliveryId,
+          status: "Skipped",
+        });
+        continue;
+      }
+      const email = packEmail(link, await copy(link.email.locale), {
+        appUrl: env.appUrl,
+        postalAddress: env.postalAddress,
+        apiUrl: env.apiUrl,
+      });
+      const sent = await mailer.send(email);
+      await store.finish(job.deliveryId, {
+        sent: true,
+        messageId: sent.messageId,
+      });
+      await store.finishJob(job.jobId, true, null);
+      results.push({
+        jobId: job.jobId,
+        deliveryId: job.deliveryId,
+        status: "Sent",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const willRetry = (await store.finishJob(job.jobId, false, message)) === "Queued";
+      await store.finish(job.deliveryId, {
+        sent: false,
+        error: message,
+        willRetry,
+      });
+      results.push({
+        jobId: job.jobId,
+        deliveryId: job.deliveryId,
+        status: willRetry ? "Queued" : "Failed",
+        error: message,
+      });
+    }
+  return results;
+}
+/** PackDeliveryStore over the service-role client: the 0510 queue RPCs and the 2913 RPCs. */
+function supabasePackDeliveryStore(client) {
+  const app = client.schema("app");
+  const call = async (fn, args) => {
+    const { data, error } = await app.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  return {
+    async claim(worker, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: "pack.deliver",
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        jobId: str(r["id"]),
+        deliveryId: str(r["subject_id"]),
+      }));
+    },
+    async mint(deliveryId) {
+      const r = (await call("mint_stakeholder_pack_link", { p_delivery_id: deliveryId }))?.[0];
+      if (!r) return null;
+      const e = r["email"] ?? {};
+      return {
+        token: str(r["token"]),
+        unsubscribeToken: str(r["unsubscribe_token"]),
+        expiresAt: str(r["expires_at"]),
+        email: {
+          recipientName: str(e["recipient_name"]),
+          recipientEmail: str(e["recipient_email"]),
+          locale: str(e["locale"]) || "en-US",
+          orgName: str(e["org_name"]),
+          brandName: str(e["brand_name"]),
+          packName: str(e["pack_name"]),
+          message: strOrNull(e["message"]),
+          itemTitles: (Array.isArray(e["item_titles"]) ? e["item_titles"] : []).map(str),
+          senderName: strOrNull(e["sender_name"]),
+          expiresAt: str(e["expires_at"]),
+          timeZone: str(e["time_zone"]) || "UTC",
+        },
+      };
+    },
+    async finish(deliveryId, outcome) {
+      await call(
+        "finish_stakeholder_pack_delivery",
+        outcome.sent
+          ? {
+              p_delivery_id: deliveryId,
+              p_sent: true,
+              p_provider_message_id: outcome.messageId,
+            }
+          : {
+              p_delivery_id: deliveryId,
+              p_sent: false,
+              p_error: outcome.error,
+              p_retry: outcome.willRetry,
+            },
+      );
+    },
+    async finishJob(jobId, succeeded, error) {
+      return String(
+        await call("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+//#endregion
 //#region edge/reports.ts
 /**
  * The report.run and report.deliver workers for the Edge bundle (A35, RRR-79; A43, RRR-87). The
@@ -119,23 +310,47 @@ async function reportDeliveryCopy(locale) {
     body: (values) => fill(email("body"), values),
   };
 }
+/**
+ * The stakeholder pack email in a locale (B2, ADR 0141), from the same reporting namespace, which is loaded
+ * only when a pack job exists. Its footer carries the org's name and postal address (ADR 0033 decision 41).
+ */
+async function packEmailCopy(locale) {
+  const messages = await messagesFor(locale);
+  const line = (key, values = {}) =>
+    fill(lookup(messages, ["reporting", "packEmail", key]) ?? key, values);
+  return {
+    subject: (values) => line("subject", values),
+    intro: (values) => line("intro", values),
+    message: (values) => line("message", values),
+    items: (values) => line("items", values),
+    open: (values) => line("open", values),
+    expires: (values) => line("expires", values),
+    code: () => line("code"),
+    sentBy: (values) => line("sentBy", values),
+    stop: (values) => line("stop", values),
+  };
+}
 //#endregion
 export {
+  PACK_DELIVER_JOB,
   READ_REPLICA_ENV,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
   lazyResendClient,
   mailpitMailer,
+  packEmailCopy,
   readEmailEnv,
   readReplicaUrl,
   recipientAllowed,
   reportDeliveryCopy,
   reportRunLabels,
   resendMailer,
+  runPackDeliveries,
   runReportDeliveries,
   runReportJobs,
   runScheduledReports,
+  supabasePackDeliveryStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
