@@ -12,8 +12,6 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
 import { logisticsFieldHomes } from "./parts/playbook-field-homes.ts";
 import {
-  deliveryWindowBookAction,
-  deliveryWindowGenerateAction,
   dockSlotCancelBookingAction,
   logisticsFollowOnResources,
 } from "./parts/supply-follow-ons.ts";
@@ -33,7 +31,6 @@ const shipment = (what: string) => ({
 export const additions = defineAdditions("Logistics", {
   resources: logisticsFollowOnResources,
   actions: {
-    deliveryWindows: [deliveryWindowGenerateAction, deliveryWindowBookAction],
     dockSlots: [dockSlotCancelBookingAction],
   },
   capabilities: {
@@ -55,8 +52,8 @@ export const additions = defineAdditions("Logistics", {
       apply: editShape({
         add: {
           delivery_window_id: { schema: orNull(fields.ref("delivery window the booking holds a place in")) },
-          reference_code: { schema: orNull(fields.shortText("Label to quote at the gate.", "K7M2QX")) },
-          vehicle_identifier: { schema: orNull(fields.shortText("Plate or trailer number expected.", "FL ABC 123")) },
+          reference_code: { schema: orNull(fields.text("Label to quote at the gate.", "K7M2QX")) },
+          vehicle_identifier: { schema: orNull(fields.text("Plate or trailer number expected.", "FL ABC 123")) },
         },
       }),
     },

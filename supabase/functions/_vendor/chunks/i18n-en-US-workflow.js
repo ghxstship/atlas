@@ -18,6 +18,18 @@ var settings = {
     label: "Reminders per step",
     help: "From 1 to 10. Automatic reminders and Remind approvers both count.",
   },
+  quoteChaseEnabled: {
+    label: "Remind vendors about quotes",
+    help: "When on, vendors invited to an issued RFQ who have not answered are reminded automatically. RFQs already open at release are not chased.",
+  },
+  quoteChaseInterval: {
+    label: "Hours between quote reminders",
+    help: "How long to wait after an RFQ is issued, and between reminders.",
+  },
+  quoteChaseLimit: {
+    label: "Most reminders per vendor",
+    help: "Reminders stop at this number, when the vendor answers, or when the RFQ leaves Issued.",
+  },
 };
 var common = {
   errorTitle: "Something went wrong",

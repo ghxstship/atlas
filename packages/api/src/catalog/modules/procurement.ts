@@ -4,7 +4,6 @@
  * (RFQs, purchase orders, receipts, matches, catalog), 0491 (match results) and 0492 (submittals).
  */
 import {
-  needConsolidateAction,
   procurementFollowOnResources,
   rfqCreateSubHireAction,
 } from "./parts/supply-follow-ons.ts";
@@ -45,7 +44,6 @@ export const additions = defineAdditions("Procurement", {
   actions: {
     purchaseOrders: [fieldHistoryAction("purchase order"), ...purchaseOrderSupplyActions],
     poLines: [poLineHireWindowQuery],
-    procurementNeeds: [needConsolidateAction],
     rfqs: [rfqCreateSubHireAction],
   },
   capabilities: {

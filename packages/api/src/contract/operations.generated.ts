@@ -1061,6 +1061,7 @@ export interface Components {
     description: string;
     cost_minor: number | null;
     currency_code: string | null;
+    maintenance_plan_id: string | null;
   };
   AssetMaintenanceCreate: {
     asset_unit_id: string;
@@ -1068,13 +1069,64 @@ export interface Components {
     description: string;
     cost_minor?: number | null;
     currency_code?: string | null;
+    maintenance_plan_id?: string | null;
+  };
+  AssetMaintenanceDue: {
+    plan_id: string;
+    asset_unit_id: string;
+    title: string;
+    last_performed_on: string | null;
+    due_on: string | null;
+    due_status: "Pending" | "Overdue" | "Completed";
+  };
+  AssetMaintenanceDuePage: {
+    data: Array<Components["AssetMaintenanceDue"]>;
+    next_cursor: string | null;
   };
   AssetMaintenancePage: { data: Array<Components["AssetMaintenance"]>; next_cursor: string | null };
+  AssetMaintenancePlan: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    asset_unit_id: string | null;
+    asset_class_id: string | null;
+    title: string;
+    instructions: string | null;
+    first_due_on: string;
+    every_count: number | null;
+    every_unit: "Day" | "Week" | "Month" | "Year" | null;
+  };
+  AssetMaintenancePlanCreate: {
+    asset_unit_id?: string | null;
+    asset_class_id?: string | null;
+    title: string;
+    instructions?: string | null;
+    first_due_on: string;
+    every_count?: number | null;
+    every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+  };
+  AssetMaintenancePlanPage: {
+    data: Array<Components["AssetMaintenancePlan"]>;
+    next_cursor: string | null;
+  };
+  AssetMaintenancePlanUpdate: {
+    asset_unit_id?: string | null;
+    asset_class_id?: string | null;
+    title?: string;
+    instructions?: string | null;
+    first_due_on?: string;
+    every_count?: number | null;
+    every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+  };
   AssetMaintenanceUpdate: {
     performed_on?: string;
     description?: string;
     cost_minor?: number | null;
     currency_code?: string | null;
+    maintenance_plan_id?: string | null;
   };
   AssetReservation: {
     id: string;
@@ -1140,6 +1192,19 @@ export interface Components {
       | null;
     on_hand: number | null;
   };
+  AssetShortage: {
+    project_id: string;
+    asset_class_id: string;
+    class_name: string;
+    element_id: string;
+    unit_basis: string | null;
+    short_quantity: number;
+    window_from: string;
+    window_to: string;
+    open_need_id: string | null;
+    open_rfq_id: string | null;
+  };
+  AssetShortages: { data: Array<Components["AssetShortage"]> };
   AssetTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   AssetUnit: {
     id: string;
@@ -1243,7 +1308,7 @@ export interface Components {
     verbiage?: Array<{ term: string; preferred: string }>;
   };
   AuroraExtractRequest: {
-    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "material_list";
     document_id?: string | null;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
@@ -2977,6 +3042,54 @@ export interface Components {
     data: Array<Components["DeletionCertificate"]>;
     next_cursor: string | null;
   };
+  DeliveryWindow: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    project_id: string;
+    zone_id: string;
+    starts_at: string;
+    ends_at: string;
+    vehicle_limit: number;
+    is_open: boolean;
+  };
+  DeliveryWindowBookRequest: {
+    engagement_id?: string | null;
+    vehicle_identifier?: string | null;
+    shipment_id?: string | null;
+  };
+  DeliveryWindowBookResult: { dock_slot_id: string; reference_code: string };
+  DeliveryWindowCreate: {
+    project_id: string;
+    zone_id: string;
+    starts_at: string;
+    ends_at: string;
+    vehicle_limit: number;
+    is_open: boolean;
+  };
+  DeliveryWindowGenerateRequest: {
+    project_id: string;
+    zone_id: string;
+    first_day: string;
+    last_day: string;
+    from_time: string;
+    to_time: string;
+    slot_minutes: number;
+    vehicle_limit: number;
+  };
+  DeliveryWindowGenerateResult: { data: Array<string> };
+  DeliveryWindowPage: { data: Array<Components["DeliveryWindow"]>; next_cursor: string | null };
+  DeliveryWindowUpdate: {
+    project_id?: string;
+    zone_id?: string;
+    starts_at?: string;
+    ends_at?: string;
+    vehicle_limit?: number;
+    is_open?: boolean;
+  };
   DeptCode: string;
   DietaryNeed:
     | "Vegetarian"
@@ -3039,10 +3152,14 @@ export interface Components {
     starts_at: string;
     ends_at: string;
     checked_in_at: string | null;
+    delivery_window_id: string | null;
+    reference_code: string | null;
+    vehicle_identifier: string | null;
     project_id: string;
     zone_id: string;
     checked_in_by: string | null;
   };
+  DockSlotCancelBookingResult: { id: string };
   DockSlotCreate: {
     shipment_id?: string | null;
     starts_at: string;
@@ -6132,6 +6249,7 @@ export interface Components {
     quantity: number;
     unit_basis: Components["UnitCode"] | null;
     unit_price_minor: number | null;
+    procurement_need_id: string | null;
     line_number: number;
     acquisition_kind: "Purchase" | "Rental";
     hire_starts_at: string | null;
@@ -6317,6 +6435,66 @@ export interface Components {
   PriceBookPage: { data: Array<Components["PriceBook"]>; next_cursor: string | null };
   PriceBookUpdate: { name?: string; currency_code?: string };
   Problem: { type: string; title: string; status: number; detail?: string; instance?: string };
+  ProcurementNeed: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    project_id: string;
+    need_number: number;
+    description: string;
+    quantity: number;
+    unit_basis: string | null;
+    asset_class_id: string | null;
+    element_id: string | null;
+    needed_from: string | null;
+    needed_to: string | null;
+    note: string | null;
+  };
+  ProcurementNeedConsolidateRequest: { allocation_ids: Array<string>; need_id?: string | null };
+  ProcurementNeedConsolidateResult: { data: Array<string> };
+  ProcurementNeedCreate: {
+    project_id: string;
+    need_number: number;
+    description: string;
+    quantity: number;
+    unit_basis?: string | null;
+    asset_class_id?: string | null;
+    element_id?: string | null;
+    needed_from?: string | null;
+    needed_to?: string | null;
+    note?: string | null;
+  };
+  ProcurementNeedPage: { data: Array<Components["ProcurementNeed"]>; next_cursor: string | null };
+  ProcurementNeedStatus: {
+    need_id: string;
+    project_id: string;
+    description: string;
+    quantity: number;
+    requested_quantity: number;
+    drafted_quantity: number;
+    ordered_quantity: number;
+    received_quantity: number;
+    need_status: "Needs Ordered" | "Short" | "On Order" | "Excess";
+  };
+  ProcurementNeedStatusPage: {
+    data: Array<Components["ProcurementNeedStatus"]>;
+    next_cursor: string | null;
+  };
+  ProcurementNeedUpdate: {
+    project_id?: string;
+    need_number?: number;
+    description?: string;
+    quantity?: number;
+    unit_basis?: string | null;
+    asset_class_id?: string | null;
+    element_id?: string | null;
+    needed_from?: string | null;
+    needed_to?: string | null;
+    note?: string | null;
+  };
   ProfileShare: {
     id: string;
     created_at: string;
@@ -7584,6 +7762,8 @@ export interface Components {
     responses_due_at: string | null;
   };
   RfqCreate: { project_id: string; title: string; responses_due_at?: string | null };
+  RfqCreateSubHireRequest: { project_id: string; asset_class_ids: Array<string>; title: string };
+  RfqCreateSubHireResult: { id: string };
   RfqInvitation: {
     id: string;
     org_id: string;
@@ -7596,6 +7776,49 @@ export interface Components {
   };
   RfqInvitationCreate: { rfq_id: string; vendor_id: string };
   RfqInvitationPage: { data: Array<Components["RfqInvitation"]>; next_cursor: string | null };
+  RfqLine: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    rfq_id: string;
+    line_number: number;
+    description: string;
+    element_id: string | null;
+    quantity: number;
+    unit_basis: string | null;
+    acquisition_kind: "Purchase" | "Rental";
+    hire_starts_at: string | null;
+    hire_ends_at: string | null;
+    procurement_need_id: string | null;
+  };
+  RfqLineCreate: {
+    rfq_id: string;
+    line_number: number;
+    description: string;
+    element_id?: string | null;
+    quantity: number;
+    unit_basis?: string | null;
+    acquisition_kind: "Purchase" | "Rental";
+    hire_starts_at?: string | null;
+    hire_ends_at?: string | null;
+    procurement_need_id?: string | null;
+  };
+  RfqLinePage: { data: Array<Components["RfqLine"]>; next_cursor: string | null };
+  RfqLineUpdate: {
+    rfq_id?: string;
+    line_number?: number;
+    description?: string;
+    element_id?: string | null;
+    quantity?: number;
+    unit_basis?: string | null;
+    acquisition_kind?: "Purchase" | "Rental";
+    hire_starts_at?: string | null;
+    hire_ends_at?: string | null;
+    procurement_need_id?: string | null;
+  };
   RfqPage: { data: Array<Components["Rfq"]>; next_cursor: string | null };
   RfqResponse: {
     id: string;
@@ -7628,6 +7851,7 @@ export interface Components {
     quantity: number | null;
     unit_price_minor: number | null;
     currency_code: string;
+    rfq_line_id: string | null;
     element_id: string | null;
   };
   RfqResponseLineCreate: {
@@ -12349,6 +12573,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["DockSlot"] };
   };
+  "dockSlots.cancelBooking": {
+    module: "Logistics";
+    method: "post";
+    path: "/dock-slots/{id}/cancel-booking";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["DockSlotCancelBookingResult"] };
+  };
   "gateQueueEntries.list": {
     module: "Logistics";
     method: "get";
@@ -13062,6 +13295,15 @@ export interface Operations {
     query: { from: string; to: string };
     body: undefined;
     responses: { 200: Components["AssetClassAvailability"] };
+  };
+  "assetClasses.shortages": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-classes/shortages";
+    params: Record<string, never>;
+    query: { project_id?: string };
+    body: undefined;
+    responses: { 200: Components["AssetShortages"] };
   };
   "assetUnits.list": {
     module: "Assets";
@@ -15966,6 +16208,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["RFQTransitionRequest"];
     responses: { 200: Components["Rfq"] };
+  };
+  "rfqs.createSubHire": {
+    module: "Procurement";
+    method: "post";
+    path: "/rfqs/sub-hire";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RfqCreateSubHireRequest"];
+    responses: { 200: Components["RfqCreateSubHireResult"] };
   };
   "rfqInvitations.list": {
     module: "Procurement";
@@ -24523,6 +24774,75 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "deliveryWindows.list": {
+    module: "Logistics";
+    method: "get";
+    path: "/delivery-windows";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["DeliveryWindowPage"] };
+  };
+  "deliveryWindows.create": {
+    module: "Logistics";
+    method: "post";
+    path: "/delivery-windows";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["DeliveryWindowCreate"];
+    responses: { 201: Components["DeliveryWindow"] };
+  };
+  "deliveryWindows.get": {
+    module: "Logistics";
+    method: "get";
+    path: "/delivery-windows/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["DeliveryWindow"] };
+  };
+  "deliveryWindows.update": {
+    module: "Logistics";
+    method: "patch";
+    path: "/delivery-windows/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["DeliveryWindowUpdate"];
+    responses: { 200: Components["DeliveryWindow"] };
+  };
+  "deliveryWindows.delete": {
+    module: "Logistics";
+    method: "delete";
+    path: "/delivery-windows/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "deliveryWindows.generate": {
+    module: "Logistics";
+    method: "post";
+    path: "/delivery-windows/generate";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["DeliveryWindowGenerateRequest"];
+    responses: { 200: Components["DeliveryWindowGenerateResult"] };
+  };
+  "deliveryWindows.book": {
+    module: "Logistics";
+    method: "post";
+    path: "/delivery-windows/{id}/book";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["DeliveryWindowBookRequest"];
+    responses: { 200: Components["DeliveryWindowBookResult"] };
+  };
   "rosterEntries.list": {
     module: "Advancing";
     method: "get";
@@ -24898,6 +25218,72 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "assetMaintenancePlans.list": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-maintenance-plans";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AssetMaintenancePlanPage"] };
+  };
+  "assetMaintenancePlans.create": {
+    module: "Assets";
+    method: "post";
+    path: "/asset-maintenance-plans";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AssetMaintenancePlanCreate"];
+    responses: { 201: Components["AssetMaintenancePlan"] };
+  };
+  "assetMaintenancePlans.get": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-maintenance-plans/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AssetMaintenancePlan"] };
+  };
+  "assetMaintenancePlans.update": {
+    module: "Assets";
+    method: "patch";
+    path: "/asset-maintenance-plans/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AssetMaintenancePlanUpdate"];
+    responses: { 200: Components["AssetMaintenancePlan"] };
+  };
+  "assetMaintenancePlans.delete": {
+    module: "Assets";
+    method: "delete";
+    path: "/asset-maintenance-plans/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "assetMaintenanceDue.list": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-maintenance-due";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AssetMaintenanceDuePage"] };
+  };
   "assetUnitHire.list": {
     module: "Assets";
     method: "get";
@@ -25017,6 +25403,132 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["PoLineHireWarningPage"] };
+  };
+  "procurementNeeds.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/procurement-needs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProcurementNeedPage"] };
+  };
+  "procurementNeeds.create": {
+    module: "Procurement";
+    method: "post";
+    path: "/procurement-needs";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProcurementNeedCreate"];
+    responses: { 201: Components["ProcurementNeed"] };
+  };
+  "procurementNeeds.get": {
+    module: "Procurement";
+    method: "get";
+    path: "/procurement-needs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProcurementNeed"] };
+  };
+  "procurementNeeds.update": {
+    module: "Procurement";
+    method: "patch";
+    path: "/procurement-needs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProcurementNeedUpdate"];
+    responses: { 200: Components["ProcurementNeed"] };
+  };
+  "procurementNeeds.delete": {
+    module: "Procurement";
+    method: "delete";
+    path: "/procurement-needs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "procurementNeeds.consolidate": {
+    module: "Procurement";
+    method: "post";
+    path: "/procurement-needs/consolidate";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProcurementNeedConsolidateRequest"];
+    responses: { 200: Components["ProcurementNeedConsolidateResult"] };
+  };
+  "procurementNeedStatus.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/procurement-need-status";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProcurementNeedStatusPage"] };
+  };
+  "rfqLines.list": {
+    module: "Procurement";
+    method: "get";
+    path: "/rfq-lines";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RfqLinePage"] };
+  };
+  "rfqLines.create": {
+    module: "Procurement";
+    method: "post";
+    path: "/rfq-lines";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RfqLineCreate"];
+    responses: { 201: Components["RfqLine"] };
+  };
+  "rfqLines.get": {
+    module: "Procurement";
+    method: "get";
+    path: "/rfq-lines/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["RfqLine"] };
+  };
+  "rfqLines.update": {
+    module: "Procurement";
+    method: "patch";
+    path: "/rfq-lines/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RfqLineUpdate"];
+    responses: { 200: Components["RfqLine"] };
+  };
+  "rfqLines.delete": {
+    module: "Procurement";
+    method: "delete";
+    path: "/rfq-lines/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
   };
   "insuranceCertificateInsureds.list": {
     module: "Vendors";
@@ -28510,6 +29022,7 @@ export interface ModuleOperations {
     | "dockSlots.update"
     | "dockSlots.delete"
     | "dockSlots.checkIn"
+    | "dockSlots.cancelBooking"
     | "gateQueueEntries.list"
     | "gateQueueEntries.create"
     | "gateQueueEntries.get"
@@ -28517,7 +29030,14 @@ export interface ModuleOperations {
     | "gateQueueEntries.release"
     | "marshallingLogEntries.list"
     | "marshallingLogEntries.create"
-    | "marshallingLogEntries.get";
+    | "marshallingLogEntries.get"
+    | "deliveryWindows.list"
+    | "deliveryWindows.create"
+    | "deliveryWindows.get"
+    | "deliveryWindows.update"
+    | "deliveryWindows.delete"
+    | "deliveryWindows.generate"
+    | "deliveryWindows.book";
   Advancing:
     | "advancePackets.list"
     | "advancePackets.create"
@@ -28620,6 +29140,7 @@ export interface ModuleOperations {
     | "assetClasses.update"
     | "assetClasses.delete"
     | "assetClasses.availability"
+    | "assetClasses.shortages"
     | "assetUnits.list"
     | "assetUnits.create"
     | "assetUnits.get"
@@ -28653,6 +29174,12 @@ export interface ModuleOperations {
     | "assetDamageReports.get"
     | "assetDamageReports.update"
     | "assetDamageReports.delete"
+    | "assetMaintenancePlans.list"
+    | "assetMaintenancePlans.create"
+    | "assetMaintenancePlans.get"
+    | "assetMaintenancePlans.update"
+    | "assetMaintenancePlans.delete"
+    | "assetMaintenanceDue.list"
     | "assetUnitHire.list"
     | "assetReservations.list"
     | "assetReservations.get"
@@ -29004,6 +29531,7 @@ export interface ModuleOperations {
     | "rfqs.delete"
     | "rfqs.issue"
     | "rfqs.transition"
+    | "rfqs.createSubHire"
     | "rfqInvitations.list"
     | "rfqInvitations.create"
     | "rfqInvitations.get"
@@ -29062,7 +29590,19 @@ export interface ModuleOperations {
     | "goodsReturns.get"
     | "returnLines.list"
     | "returnLines.get"
-    | "poLineHireWarnings.list";
+    | "poLineHireWarnings.list"
+    | "procurementNeeds.list"
+    | "procurementNeeds.create"
+    | "procurementNeeds.get"
+    | "procurementNeeds.update"
+    | "procurementNeeds.delete"
+    | "procurementNeeds.consolidate"
+    | "procurementNeedStatus.list"
+    | "rfqLines.list"
+    | "rfqLines.create"
+    | "rfqLines.get"
+    | "rfqLines.update"
+    | "rfqLines.delete";
   Vendors:
     | "vendors.list"
     | "vendors.create"

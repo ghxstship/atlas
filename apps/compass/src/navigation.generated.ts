@@ -112,6 +112,13 @@ export const navigation = {
               children: [],
             },
             {
+              id: "logistics.gate",
+              label: "nav.compass.more.logisticsGate",
+              route: "/logistics-gate",
+              access: "full",
+              children: [],
+            },
+            {
               id: "show",
               label: "nav.compass.more.show",
               route: "/show",
@@ -388,6 +395,13 @@ export const navigation = {
               id: "logistics",
               label: "nav.compass.more.logistics",
               route: "/logistics",
+              access: "full",
+              children: [],
+            },
+            {
+              id: "logistics.gate",
+              label: "nav.compass.more.logisticsGate",
+              route: "/logistics-gate",
               access: "full",
               children: [],
             },

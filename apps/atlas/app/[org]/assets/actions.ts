@@ -55,6 +55,8 @@ export interface AssetActionState {
 
 /** Refusal rules with their own copy in `assets.errors`; anything else reads as unexpected. */
 const KNOWN_RULES = new Set([
+  // B11 (G-95): a plan covers its unit or the units of its class.
+  "maintenance_plan_unit",
   "asset_class_in_use",
   "asset_lot_count_negative",
   "asset_lot_insufficient",

@@ -190,6 +190,7 @@ __all__ = [
     "DockSlot",
     "DockSlotCreate",
     "DockSlotUpdate",
+    "DockSlotCancelBookingResult",
     "GateQueueEntryPage",
     "GateQueueEntry",
     "GateQueueEntryCreate",
@@ -249,6 +250,8 @@ __all__ = [
     "AssetClassCreate",
     "AssetClassUpdate",
     "AssetClassAvailability",
+    "AssetShortages",
+    "AssetShortage",
     "AssetUnitPage",
     "AssetUnit",
     "AssetUnitCreate",
@@ -497,6 +500,8 @@ __all__ = [
     "RfqCreate",
     "RfqUpdate",
     "RFQTransitionRequest",
+    "RfqCreateSubHireResult",
+    "RfqCreateSubHireRequest",
     "RfqInvitationPage",
     "RfqInvitation",
     "RfqInvitationCreate",
@@ -1253,6 +1258,14 @@ __all__ = [
     "CueCall",
     "CueCallCreate",
     "CueCallUpdate",
+    "DeliveryWindowPage",
+    "DeliveryWindow",
+    "DeliveryWindowCreate",
+    "DeliveryWindowUpdate",
+    "DeliveryWindowGenerateResult",
+    "DeliveryWindowGenerateRequest",
+    "DeliveryWindowBookResult",
+    "DeliveryWindowBookRequest",
     "RosterEntryPage",
     "RosterEntry",
     "RosterEntryState",
@@ -1312,6 +1325,12 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "AssetMaintenancePlanPage",
+    "AssetMaintenancePlan",
+    "AssetMaintenancePlanCreate",
+    "AssetMaintenancePlanUpdate",
+    "AssetMaintenanceDuePage",
+    "AssetMaintenanceDue",
     "AssetUnitHirePage",
     "AssetUnitHire",
     "AssetReservationPage",
@@ -1325,6 +1344,18 @@ __all__ = [
     "ReturnLine",
     "PoLineHireWarningPage",
     "PoLineHireWarning",
+    "ProcurementNeedPage",
+    "ProcurementNeed",
+    "ProcurementNeedCreate",
+    "ProcurementNeedUpdate",
+    "ProcurementNeedConsolidateResult",
+    "ProcurementNeedConsolidateRequest",
+    "ProcurementNeedStatusPage",
+    "ProcurementNeedStatus",
+    "RfqLinePage",
+    "RfqLine",
+    "RfqLineCreate",
+    "RfqLineUpdate",
     "InsuranceCertificateInsuredPage",
     "InsuranceCertificateInsured",
     "InsuranceCertificateInsuredCreate",
@@ -4428,6 +4459,12 @@ class DockSlot(TypedDict):
     ends_at: str
     #: When the vehicle checked in.
     checked_in_at: Optional[str]
+    #: Identifier of the delivery window the booking holds a place in.
+    delivery_window_id: Optional[str]
+    #: Label to quote at the gate.
+    reference_code: Optional[str]
+    #: Plate or trailer number expected.
+    vehicle_identifier: Optional[str]
     #: Identifier of the project whose site the dock is at.
     project_id: str
     #: Identifier of the loading dock zone of the project.
@@ -4465,6 +4502,13 @@ class DockSlotUpdate(TypedDict, total=False):
     ends_at: str
     #: Identifier of the loading dock zone of the project.
     zone_id: str
+
+
+class DockSlotCancelBookingResult(TypedDict):
+    """The booking canceled."""
+
+    #: The booking.
+    id: str
 
 
 class GateQueueEntryPage(TypedDict):
@@ -5417,6 +5461,38 @@ class AssetClassAvailability(TypedDict):
     unit_basis: str
 
 
+class AssetShortages(TypedDict):
+    """What is short against own stock."""
+
+    #: Shortages.
+    data: List[AssetShortage]
+
+
+class AssetShortage(TypedDict):
+    """A class short against own stock on a project."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the asset class.
+    asset_class_id: str
+    #: Name of the class.
+    class_name: str
+    #: Catalog element of the class.
+    element_id: str
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: How many more the open allocations want than can supply them.
+    short_quantity: float
+    #: When the allocations that are short begin.
+    window_from: str
+    #: When the allocations that are short end.
+    window_to: str
+    #: Identifier of the live need of the class overlapping the window.
+    open_need_id: Optional[str]
+    #: Identifier of the RFQ in Proposed or Issued sourcing that need.
+    open_rfq_id: Optional[str]
+
+
 class AssetUnitPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -5787,6 +5863,8 @@ class AssetMaintenance(TypedDict):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class _AssetMaintenanceCreateRequired(TypedDict):
@@ -5805,6 +5883,8 @@ class AssetMaintenanceCreate(_AssetMaintenanceCreateRequired, total=False):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class AssetMaintenanceUpdate(TypedDict, total=False):
@@ -5818,6 +5898,8 @@ class AssetMaintenanceUpdate(TypedDict, total=False):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class AssetDamagePage(TypedDict):
@@ -9534,6 +9616,24 @@ class RFQTransitionRequest(_RFQTransitionRequestRequired, total=False):
     reason: str
 
 
+class RfqCreateSubHireResult(TypedDict):
+    """The RFQ drafted."""
+
+    #: The RFQ drafted.
+    id: str
+
+
+class RfqCreateSubHireRequest(TypedDict):
+    """A sub-hire draft."""
+
+    #: Identifier of the project short of them.
+    project_id: str
+    #: Classes that are short.
+    asset_class_ids: List[str]
+    #: What is being sourced.
+    title: str
+
+
 class RfqInvitationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -9690,6 +9790,8 @@ class RfqResponseLine(TypedDict):
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Identifier of the request line this quoted line answers.
+    rfq_line_id: Optional[str]
     #: Catalog element quoted.
     element_id: Optional[str]
 
@@ -9963,6 +10065,8 @@ class PoLine(TypedDict):
     unit_basis: Optional[UnitCode]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: Identifier of the need this line serves.
+    procurement_need_id: Optional[str]
     #: Order of the line within the purchase order.
     line_number: int
     #: Whether the line buys or hires its item.
@@ -20801,6 +20905,126 @@ class CueCallUpdate(TypedDict, total=False):
     instruction: str
 
 
+class DeliveryWindowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DeliveryWindow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DeliveryWindow(TypedDict):
+    """A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone."""
+
+    #: Identifier of the delivery window.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowCreate(TypedDict):
+    """Fields accepted when creating a DeliveryWindow."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowUpdate(TypedDict, total=False):
+    """Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowGenerateResult(TypedDict):
+    """The windows added."""
+
+    #: The windows added.
+    data: List[str]
+
+
+class DeliveryWindowGenerateRequest(TypedDict):
+    """A schedule of windows."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate.
+    zone_id: str
+    #: First day.
+    first_day: str
+    #: Last day.
+    last_day: str
+    #: Local start time.
+    from_time: str
+    #: Local end time.
+    to_time: str
+    #: Length of each window in minutes, up to 1440.
+    slot_minutes: int
+    #: How many vehicles each takes, up to 500.
+    vehicle_limit: int
+
+
+class DeliveryWindowBookResult(TypedDict):
+    """The booking."""
+
+    #: The booking.
+    dock_slot_id: str
+    #: Label to quote at the gate.
+    reference_code: str
+
+
+class DeliveryWindowBookRequest(TypedDict, total=False):
+    """A place in a window."""
+
+    #: Identifier of the Vendor engagement the booking is for.
+    engagement_id: Optional[str]
+    #: Plate or trailer number.
+    vehicle_identifier: Optional[str]
+    #: Identifier of the shipment the vendor carries.
+    shipment_id: Optional[str]
+
+
 class RosterEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21744,6 +21968,113 @@ class GuestDecisionRequest(TypedDict):
     outcome: Literal["Approved", "Declined"]
 
 
+class AssetMaintenancePlanPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetMaintenancePlan]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetMaintenancePlan(TypedDict):
+    """Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null."""
+
+    #: Identifier of the asset maintenance plan.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: What is to be done.
+    title: str
+    #: How to do it.
+    instructions: Optional[str]
+    #: Day the work is first due.
+    first_due_on: str
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class _AssetMaintenancePlanCreateRequired(TypedDict):
+    #: What is to be done.
+    title: str
+    #: Day the work is first due.
+    first_due_on: str
+
+
+class AssetMaintenancePlanCreate(_AssetMaintenancePlanCreateRequired, total=False):
+    """Fields accepted when creating a AssetMaintenancePlan."""
+
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: How to do it.
+    instructions: Optional[str]
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class AssetMaintenancePlanUpdate(TypedDict, total=False):
+    """Fields accepted when updating a AssetMaintenancePlan. Omitted fields are unchanged."""
+
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: What is to be done.
+    title: str
+    #: How to do it.
+    instructions: Optional[str]
+    #: Day the work is first due.
+    first_due_on: str
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class AssetMaintenanceDuePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetMaintenanceDue]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetMaintenanceDue(TypedDict):
+    """Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log."""
+
+    #: Identifier of the plan.
+    plan_id: str
+    #: Identifier of the unit.
+    asset_unit_id: str
+    #: What is to be done.
+    title: str
+    #: Latest log entry of this plan on this unit.
+    last_performed_on: Optional[str]
+    #: When it is next due; null when work done once is done.
+    due_on: Optional[str]
+    #: Computed on the org's calendar.
+    due_status: Literal["Pending", "Overdue", "Completed"]
+
+
 class AssetUnitHirePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21945,6 +22276,255 @@ class PoLineHireWarning(TypedDict):
     site_closes_at: Optional[str]
     #: The window rule the hire breaks.
     warning: Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]
+
+
+class ProcurementNeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProcurementNeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProcurementNeed(TypedDict):
+    """What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element."""
+
+    #: Identifier of the procurement need.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project buying.
+    project_id: str
+    #: Number from the project's display key sequence, issued on insert.
+    need_number: int
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class _ProcurementNeedCreateRequired(TypedDict):
+    #: Identifier of the project buying.
+    project_id: str
+    #: Number from the project's display key sequence, issued on insert.
+    need_number: int
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+
+
+class ProcurementNeedCreate(_ProcurementNeedCreateRequired, total=False):
+    """Fields accepted when creating a ProcurementNeed."""
+
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class ProcurementNeedUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged."""
+
+    #: Identifier of the project buying.
+    project_id: str
+    #: Number from the project's display key sequence, issued on insert.
+    need_number: int
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class ProcurementNeedConsolidateResult(TypedDict):
+    """The needs linked or added."""
+
+    #: The needs linked or added.
+    data: List[str]
+
+
+class _ProcurementNeedConsolidateRequestRequired(TypedDict):
+    #: Allocations of one project.
+    allocation_ids: List[str]
+
+
+class ProcurementNeedConsolidateRequest(_ProcurementNeedConsolidateRequestRequired, total=False):
+    """Requests to consolidate."""
+
+    #: Identifier of the need to link them to.
+    need_id: Optional[str]
+
+
+class ProcurementNeedStatusPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProcurementNeedStatus]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProcurementNeedStatus(TypedDict):
+    """Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted."""
+
+    #: Identifier of the need.
+    need_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Live requests linked, with their Split children.
+    requested_quantity: float
+    #: On lines of Proposed orders: shown, never counted.
+    drafted_quantity: float
+    #: On lines of Approved, Sent or Closed orders, less returns.
+    ordered_quantity: float
+    #: Received on those lines.
+    received_quantity: float
+    #: Computed from ordered against quantity.
+    need_status: Literal["Needs Ordered", "Short", "On Order", "Excess"]
+
+
+class RfqLinePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RfqLine]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RfqLine(TypedDict):
+    """What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response."""
+
+    #: Identifier of the rfq line.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the RFQ the line belongs to.
+    rfq_id: str
+    #: Order of the line within the RFQ, assigned on create.
+    line_number: int
+    #: What is asked for.
+    description: str
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Quantity asked for.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
+
+
+class _RfqLineCreateRequired(TypedDict):
+    #: Identifier of the RFQ the line belongs to.
+    rfq_id: str
+    #: Order of the line within the RFQ, assigned on create.
+    line_number: int
+    #: What is asked for.
+    description: str
+    #: Quantity asked for.
+    quantity: float
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+
+
+class RfqLineCreate(_RfqLineCreateRequired, total=False):
+    """Fields accepted when creating a RfqLine."""
+
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
+
+
+class RfqLineUpdate(TypedDict, total=False):
+    """Fields accepted when updating a RfqLine. Omitted fields are unchanged."""
+
+    #: Identifier of the RFQ the line belongs to.
+    rfq_id: str
+    #: Order of the line within the RFQ, assigned on create.
+    line_number: int
+    #: What is asked for.
+    description: str
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Quantity asked for.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
 
 
 class InsuranceCertificateInsuredPage(TypedDict):
@@ -22248,7 +22828,7 @@ class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
 
 class _AuroraExtractRequestRequired(TypedDict):
     #: What the document is.
-    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote"]
+    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote", "material_list"]
     #: Media type of the content.
     media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"]
     #: The document content in base64, read by the caller from storage.

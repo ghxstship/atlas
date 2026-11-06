@@ -23,7 +23,7 @@ const NEED_STATUSES = ["Needs Ordered", "Short", "On Order", "Excess"] as const;
 const DUE_STATUSES = ["Pending", "Overdue", "Completed"] as const;
 const INTERVAL_UNITS = ["Day", "Week", "Month", "Year"] as const;
 
-const unitBasis = (what: string) => orNull(fields.shortText(`Unit of ${what}.`, "each"));
+const unitBasis = (what: string) => orNull(fields.text(`Unit of ${what}.`, "each"));
 
 // Needs ---------------------------------------------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ const AssetShortage = z
   .object({
     project_id: fields.ref("project"),
     asset_class_id: fields.ref("asset class"),
-    class_name: fields.shortText("Name of the class.", "Truss Sections"),
+    class_name: fields.text("Name of the class.", "Truss Sections"),
     element_id: fields.code("Catalog element of the class.", "3000.05.01-GHXST-014"),
     unit_basis: unitBasis("the quantity"),
     short_quantity: fields.quantity("How many more the open allocations want than can supply them.", 5),
@@ -150,7 +150,7 @@ export const rfqCreateSubHireAction = collectionAction("createSubHire", {
         description: "Classes that are short.",
         example: ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
       }),
-      title: fields.shortText("What is being sourced.", "Sub-hire truss"),
+      title: fields.text("What is being sourced.", "Sub-hire truss"),
     })
     .meta({ id: "RfqCreateSubHireRequest", description: "A sub-hire draft." }),
   response: z
@@ -169,10 +169,10 @@ const AssetMaintenancePlan = defineResource({
   fields: {
     asset_unit_id: orNull(fields.ref("unit the plan applies to; exactly one of unit and class")),
     asset_class_id: orNull(fields.ref("class whose units the plan applies to")),
-    title: fields.shortText("What is to be done.", "Inspect welds"),
+    title: fields.text("What is to be done.", "Inspect welds"),
     instructions: orNull(fields.longText("How to do it.", "Replace any cracked section.")),
     first_due_on: fields.date("Day the work is first due."),
-    every_count: orNull(fields.int("How many intervals between doing it.", 3, 1, 999)),
+    every_count: orNull(fields.int("How many intervals between doing it, up to 999.", 3, 1)),
     every_unit: orNull(
       z.enum(INTERVAL_UNITS).meta({ description: "Unit of the interval.", example: "Month" }),
     ),
@@ -188,7 +188,7 @@ const AssetMaintenanceDue = defineResource({
   fields: {
     plan_id: fields.ref("plan"),
     asset_unit_id: fields.ref("unit"),
-    title: fields.shortText("What is to be done.", "Inspect welds"),
+    title: fields.text("What is to be done.", "Inspect welds"),
     last_performed_on: orNull(fields.date("Latest log entry of this plan on this unit.")),
     due_on: orNull(fields.date("When it is next due; null when work done once is done.")),
     due_status: z
@@ -209,7 +209,7 @@ const DeliveryWindow = defineResource({
     zone_id: fields.ref("gate: a live zone of the org"),
     starts_at: fields.instant("When the window opens."),
     ends_at: fields.instant("When the window closes."),
-    vehicle_limit: fields.int("How many vehicles it takes.", 5, 1, 500),
+    vehicle_limit: fields.int("How many vehicles it takes, up to 500.", 5, 1),
     is_open: fields.bool("False stops new bookings; bookings already made stay.", true),
   },
 });
@@ -224,10 +224,10 @@ export const deliveryWindowGenerateAction = collectionAction("generate", {
       zone_id: fields.ref("gate"),
       first_day: fields.date("First day."),
       last_day: fields.date("Last day."),
-      from_time: fields.shortText("Local start time.", "08:00"),
-      to_time: fields.shortText("Local end time.", "18:00"),
-      slot_minutes: fields.int("Length of each window in minutes.", 60, 5, 1440),
-      vehicle_limit: fields.int("How many vehicles each takes.", 5, 1, 500),
+      from_time: fields.text("Local start time.", "08:00"),
+      to_time: fields.text("Local end time.", "18:00"),
+      slot_minutes: fields.int("Length of each window in minutes, up to 1440.", 60, 5),
+      vehicle_limit: fields.int("How many vehicles each takes, up to 500.", 5, 1),
     })
     .meta({ id: "DeliveryWindowGenerateRequest", description: "A schedule of windows." }),
   response: z
@@ -248,14 +248,14 @@ export const deliveryWindowBookAction = itemAction("book", {
   body: z
     .object({
       engagement_id: orNull(fields.ref("Vendor engagement the booking is for")).optional(),
-      vehicle_identifier: orNull(fields.shortText("Plate or trailer number.", "FL ABC 123")).optional(),
+      vehicle_identifier: orNull(fields.text("Plate or trailer number.", "FL ABC 123")).optional(),
       shipment_id: orNull(fields.ref("shipment the vendor carries")).optional(),
     })
     .meta({ id: "DeliveryWindowBookRequest", description: "A place in a window." }),
   response: z
     .object({
       dock_slot_id: fields.uuid("The booking."),
-      reference_code: fields.shortText("Label to quote at the gate.", "K7M2QX"),
+      reference_code: fields.text("Label to quote at the gate.", "K7M2QX"),
     })
     .meta({ id: "DeliveryWindowBookResult", description: "The booking." }),
   rpc: "app.book_delivery_window",
@@ -274,6 +274,7 @@ export const dockSlotCancelBookingAction = itemAction("cancelBooking", {
 export const procurementFollowOnResources: readonly ResourceSpec[] = [
   resource("Procurement", "/procurement-needs", ProcurementNeed, {
     order: { by: ["need_number"], numeric: true },
+    actions: [needConsolidateAction],
   }),
   resource("Procurement", "/procurement-need-status", NeedStatusRow, {
     verbs: ["list"],
@@ -299,5 +300,6 @@ export const assetFollowOnResources: readonly ResourceSpec[] = [
 export const logisticsFollowOnResources: readonly ResourceSpec[] = [
   resource("Logistics", "/delivery-windows", DeliveryWindow, {
     order: { by: ["starts_at"], numeric: false },
+    actions: [deliveryWindowGenerateAction, deliveryWindowBookAction],
   }),
 ];

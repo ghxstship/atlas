@@ -18,6 +18,18 @@ var settings = {
     label: "Recordatorios por paso",
     help: "De 1 a 10. Cuentan los recordatorios automáticos y Recordar a los aprobadores.",
   },
+  quoteChaseEnabled: {
+    label: "Recordar cotizaciones a los proveedores",
+    help: "Si está activado, a los proveedores invitados a una solicitud emitida que no han respondido se les recuerda automáticamente. Las solicitudes abiertas al momento del lanzamiento no se recuerdan.",
+  },
+  quoteChaseInterval: {
+    label: "Horas entre recordatorios de cotización",
+    help: "Cuánto esperar después de emitir una solicitud y entre recordatorios.",
+  },
+  quoteChaseLimit: {
+    label: "Máximo de recordatorios por proveedor",
+    help: "Los recordatorios terminan en este número, cuando el proveedor responde o cuando la solicitud deja de estar emitida.",
+  },
 };
 var common = {
   errorTitle: "Algo salió mal",

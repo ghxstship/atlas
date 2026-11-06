@@ -5565,6 +5565,21 @@ export interface DockSlot {
    */
   readonly checked_in_at: string | null;
   /**
+   * Identifier of the delivery window the booking holds a place in.
+   * Format: `uuid`.
+   */
+  readonly delivery_window_id: string | null;
+  /**
+   * Label to quote at the gate.
+   * Length: 1 to 300.
+   */
+  readonly reference_code: string | null;
+  /**
+   * Plate or trailer number expected.
+   * Length: 1 to 300.
+   */
+  readonly vehicle_identifier: string | null;
+  /**
    * Identifier of the project whose site the dock is at.
    * Format: `uuid`.
    */
@@ -5636,6 +5651,17 @@ export interface DockSlotUpdate {
    * Format: `uuid`.
    */
   readonly zone_id?: string;
+}
+
+/**
+ * The booking canceled.
+ */
+export interface DockSlotCancelBookingResult {
+  /**
+   * The booking.
+   * Format: `uuid`.
+   */
+  readonly id: string;
 }
 
 /**
@@ -7504,6 +7530,71 @@ export interface AssetClassAvailability {
 }
 
 /**
+ * What is short against own stock.
+ */
+export interface AssetShortages {
+  /**
+   * Shortages.
+   */
+  readonly data: ReadonlyArray<AssetShortage>;
+}
+
+/**
+ * A class short against own stock on a project.
+ */
+export interface AssetShortage {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the asset class.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string;
+  /**
+   * Name of the class.
+   * Length: 1 to 300.
+   */
+  readonly class_name: string;
+  /**
+   * Catalog element of the class.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * How many more the open allocations want than can supply them.
+   */
+  readonly short_quantity: number;
+  /**
+   * When the allocations that are short begin.
+   * Format: `date-time`.
+   */
+  readonly window_from: string;
+  /**
+   * When the allocations that are short end.
+   * Format: `date-time`.
+   */
+  readonly window_to: string;
+  /**
+   * Identifier of the live need of the class overlapping the window.
+   * Format: `uuid`.
+   */
+  readonly open_need_id: string | null;
+  /**
+   * Identifier of the RFQ in Proposed or Issued sourcing that need.
+   * Format: `uuid`.
+   */
+  readonly open_rfq_id: string | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface AssetUnitPage {
@@ -8230,6 +8321,11 @@ export interface AssetMaintenance {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id: string | null;
 }
 
 /**
@@ -8261,6 +8357,11 @@ export interface AssetMaintenanceCreate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id?: string | null;
 }
 
 /**
@@ -8287,6 +8388,11 @@ export interface AssetMaintenanceUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id?: string | null;
 }
 
 /**
@@ -15573,6 +15679,37 @@ export interface RFQTransitionRequest {
 }
 
 /**
+ * The RFQ drafted.
+ */
+export interface RfqCreateSubHireResult {
+  /**
+   * The RFQ drafted.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+}
+
+/**
+ * A sub-hire draft.
+ */
+export interface RfqCreateSubHireRequest {
+  /**
+   * Identifier of the project short of them.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Classes that are short.
+   */
+  readonly asset_class_ids: ReadonlyArray<string>;
+  /**
+   * What is being sourced.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface RfqInvitationPage {
@@ -15875,6 +16012,11 @@ export interface RfqResponseLine {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code: string;
+  /**
+   * Identifier of the request line this quoted line answers.
+   * Format: `uuid`.
+   */
+  readonly rfq_line_id: string | null;
   /**
    * Catalog element quoted.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -16377,6 +16519,11 @@ export interface PoLine {
    * Format: `int64`.
    */
   readonly unit_price_minor: number | null;
+  /**
+   * Identifier of the need this line serves.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id: string | null;
   /**
    * Order of the line within the purchase order.
    * Range: 1 to unbounded.
@@ -37441,6 +37588,248 @@ export interface CueCallUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface DeliveryWindowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<DeliveryWindow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone.
+ */
+export interface DeliveryWindow {
+  /**
+   * Identifier of the delivery window.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open: boolean;
+}
+
+/**
+ * Fields accepted when creating a DeliveryWindow.
+ */
+export interface DeliveryWindowCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open: boolean;
+}
+
+/**
+ * Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged.
+ */
+export interface DeliveryWindowUpdate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string;
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at?: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at?: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit?: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open?: boolean;
+}
+
+/**
+ * The windows added.
+ */
+export interface DeliveryWindowGenerateResult {
+  /**
+   * The windows added.
+   */
+  readonly data: ReadonlyArray<string>;
+}
+
+/**
+ * A schedule of windows.
+ */
+export interface DeliveryWindowGenerateRequest {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * First day.
+   * Format: `date`.
+   */
+  readonly first_day: string;
+  /**
+   * Last day.
+   * Format: `date`.
+   */
+  readonly last_day: string;
+  /**
+   * Local start time.
+   * Length: 1 to 300.
+   */
+  readonly from_time: string;
+  /**
+   * Local end time.
+   * Length: 1 to 300.
+   */
+  readonly to_time: string;
+  /**
+   * Length of each window in minutes, up to 1440.
+   * Range: 5 to unbounded.
+   */
+  readonly slot_minutes: number;
+  /**
+   * How many vehicles each takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+}
+
+/**
+ * The booking.
+ */
+export interface DeliveryWindowBookResult {
+  /**
+   * The booking.
+   * Format: `uuid`.
+   */
+  readonly dock_slot_id: string;
+  /**
+   * Label to quote at the gate.
+   * Length: 1 to 300.
+   */
+  readonly reference_code: string;
+}
+
+/**
+ * A place in a window.
+ */
+export interface DeliveryWindowBookRequest {
+  /**
+   * Identifier of the Vendor engagement the booking is for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * Plate or trailer number.
+   * Length: 1 to 300.
+   */
+  readonly vehicle_identifier?: string | null;
+  /**
+   * Identifier of the shipment the vendor carries.
+   * Format: `uuid`.
+   */
+  readonly shipment_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface RosterEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -39283,6 +39672,219 @@ export interface GuestDecisionRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AssetMaintenancePlanPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetMaintenancePlan>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null.
+ */
+export interface AssetMaintenancePlan {
+  /**
+   * Identifier of the asset maintenance plan.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * Fields accepted when creating a AssetMaintenancePlan.
+ */
+export interface AssetMaintenancePlanCreate {
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions?: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count?: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * Fields accepted when updating a AssetMaintenancePlan. Omitted fields are unchanged.
+ */
+export interface AssetMaintenancePlanUpdate {
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title?: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions?: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on?: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count?: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetMaintenanceDuePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetMaintenanceDue>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log.
+ */
+export interface AssetMaintenanceDue {
+  /**
+   * Identifier of the plan.
+   * Format: `uuid`.
+   */
+  readonly plan_id: string;
+  /**
+   * Identifier of the unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Latest log entry of this plan on this unit.
+   * Format: `date`.
+   */
+  readonly last_performed_on: string | null;
+  /**
+   * When it is next due; null when work done once is done.
+   * Format: `date`.
+   */
+  readonly due_on: string | null;
+  /**
+   * Computed on the org's calendar.
+   */
+  readonly due_status: "Pending" | "Overdue" | "Completed";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface AssetUnitHirePage {
   /**
    * Items on this page, in the documented default order.
@@ -39686,6 +40288,505 @@ export interface PoLineHireWarning {
     | "Hire Beyond Site Window"
     | "Delivery Docks Full"
     | "Return Docks Full";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProcurementNeedPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProcurementNeed>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element.
+ */
+export interface ProcurementNeed {
+  /**
+   * Identifier of the procurement need.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project buying.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number from the project's display key sequence, issued on insert.
+   * Range: 1 to unbounded.
+   */
+  readonly need_number: number;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProcurementNeed.
+ */
+export interface ProcurementNeedCreate {
+  /**
+   * Identifier of the project buying.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number from the project's display key sequence, issued on insert.
+   * Range: 1 to unbounded.
+   */
+  readonly need_number: number;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from?: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to?: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged.
+ */
+export interface ProcurementNeedUpdate {
+  /**
+   * Identifier of the project buying.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string;
+  /**
+   * Number from the project's display key sequence, issued on insert.
+   * Range: 1 to unbounded.
+   */
+  readonly need_number?: number;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from?: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to?: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * The needs linked or added.
+ */
+export interface ProcurementNeedConsolidateResult {
+  /**
+   * The needs linked or added.
+   */
+  readonly data: ReadonlyArray<string>;
+}
+
+/**
+ * Requests to consolidate.
+ */
+export interface ProcurementNeedConsolidateRequest {
+  /**
+   * Allocations of one project.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+  /**
+   * Identifier of the need to link them to.
+   * Format: `uuid`.
+   */
+  readonly need_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProcurementNeedStatusPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProcurementNeedStatus>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted.
+ */
+export interface ProcurementNeedStatus {
+  /**
+   * Identifier of the need.
+   * Format: `uuid`.
+   */
+  readonly need_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Live requests linked, with their Split children.
+   */
+  readonly requested_quantity: number;
+  /**
+   * On lines of Proposed orders: shown, never counted.
+   */
+  readonly drafted_quantity: number;
+  /**
+   * On lines of Approved, Sent or Closed orders, less returns.
+   */
+  readonly ordered_quantity: number;
+  /**
+   * Received on those lines.
+   */
+  readonly received_quantity: number;
+  /**
+   * Computed from ordered against quantity.
+   */
+  readonly need_status: "Needs Ordered" | "Short" | "On Order" | "Excess";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RfqLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RfqLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response.
+ */
+export interface RfqLine {
+  /**
+   * Identifier of the rfq line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the RFQ the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly rfq_id: string;
+  /**
+   * Order of the line within the RFQ, assigned on create.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a RfqLine.
+ */
+export interface RfqLineCreate {
+  /**
+   * Identifier of the RFQ the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly rfq_id: string;
+  /**
+   * Order of the line within the RFQ, assigned on create.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id?: string | null;
+}
+
+/**
+ * Fields accepted when updating a RfqLine. Omitted fields are unchanged.
+ */
+export interface RfqLineUpdate {
+  /**
+   * Identifier of the RFQ the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly rfq_id?: string;
+  /**
+   * Order of the line within the RFQ, assigned on create.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number?: number;
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id?: string | null;
 }
 
 /**
@@ -40295,7 +41396,8 @@ export interface AuroraExtractRequest {
   /**
    * What the document is.
    */
-  readonly kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+  readonly kind:
+    "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "material_list";
   /**
    * Identifier of the stored document read, when the file is one.
    * Format: `uuid`.

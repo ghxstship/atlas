@@ -274,6 +274,20 @@ export const sitemap: Sitemap = {
               list: { views: ["list", "table", "board"], default: "list" },
             },
             {
+              id: "work.quote-requests",
+              kind: "page",
+              label: "nav.gateway.work.quoteRequests",
+              route: "/work/quote-requests",
+              visibility: {
+                individual: "hidden",
+                "account-owner": "full",
+                "account-admin": "full",
+                "account-finance": "hidden",
+                "account-member": "hidden",
+              },
+              list: { views: ["list"], default: "list" },
+            },
+            {
               id: "engagement",
               kind: "record",
               label: "nav.gateway.work.engagement",

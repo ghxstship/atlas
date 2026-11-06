@@ -348,6 +348,7 @@ from .resources import (
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
     CueCallsResource,
+    DeliveryWindowsResource,
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
@@ -355,12 +356,17 @@ from .resources import (
     AdvanceSubmissionLinesResource,
     AdvanceSubmissionFilesResource,
     GuestListEntriesResource,
+    AssetMaintenancePlansResource,
+    AssetMaintenanceDueResource,
     AssetUnitHireResource,
     AssetReservationsResource,
     Form1099NecResource,
     GoodsReturnsResource,
     ReturnLinesResource,
     PoLineHireWarningsResource,
+    ProcurementNeedsResource,
+    ProcurementNeedStatusResource,
+    RfqLinesResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
     CanonStdEmergencyProtocolsResource,
@@ -792,6 +798,7 @@ class XosClient(XosClientCore):
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
+    delivery_windows: DeliveryWindowsResource
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
@@ -799,12 +806,17 @@ class XosClient(XosClientCore):
     advance_submission_lines: AdvanceSubmissionLinesResource
     advance_submission_files: AdvanceSubmissionFilesResource
     guest_list_entries: GuestListEntriesResource
+    asset_maintenance_plans: AssetMaintenancePlansResource
+    asset_maintenance_due: AssetMaintenanceDueResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
     form1099_nec: Form1099NecResource
     goods_returns: GoodsReturnsResource
     return_lines: ReturnLinesResource
     po_line_hire_warnings: PoLineHireWarningsResource
+    procurement_needs: ProcurementNeedsResource
+    procurement_need_status: ProcurementNeedStatusResource
+    rfq_lines: RfqLinesResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
     canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
@@ -1224,6 +1236,7 @@ class XosClient(XosClientCore):
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.delivery_windows = DeliveryWindowsResource(self)
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
@@ -1231,12 +1244,17 @@ class XosClient(XosClientCore):
         self.advance_submission_lines = AdvanceSubmissionLinesResource(self)
         self.advance_submission_files = AdvanceSubmissionFilesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.asset_maintenance_plans = AssetMaintenancePlansResource(self)
+        self.asset_maintenance_due = AssetMaintenanceDueResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.goods_returns = GoodsReturnsResource(self)
         self.return_lines = ReturnLinesResource(self)
         self.po_line_hire_warnings = PoLineHireWarningsResource(self)
+        self.procurement_needs = ProcurementNeedsResource(self)
+        self.procurement_need_status = ProcurementNeedStatusResource(self)
+        self.rfq_lines = RfqLinesResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)

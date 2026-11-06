@@ -121,12 +121,17 @@ import type {
   AssetLotUpdate,
   AssetMaintenance,
   AssetMaintenanceCreate,
+  AssetMaintenanceDue,
+  AssetMaintenancePlan,
+  AssetMaintenancePlanCreate,
+  AssetMaintenancePlanUpdate,
   AssetMaintenanceUpdate,
   AssetReservation,
   AssetReservationConflict,
   AssetReservationRelease,
   AssetScanEvent,
   AssetScanResult,
+  AssetShortages,
   AssetTransitionRequest,
   AssetUnit,
   AssetUnitBulkEditRequest,
@@ -346,6 +351,13 @@ import type {
   DelegationCreate,
   DelegationUpdate,
   DeletionCertificate,
+  DeliveryWindow,
+  DeliveryWindowBookRequest,
+  DeliveryWindowBookResult,
+  DeliveryWindowCreate,
+  DeliveryWindowGenerateRequest,
+  DeliveryWindowGenerateResult,
+  DeliveryWindowUpdate,
   DeptCode,
   DirectConversationRequest,
   DirectoryEntryPage,
@@ -355,6 +367,7 @@ import type {
   DispatchAssignmentUpdate,
   DisposeLostItemRequest,
   DockSlot,
+  DockSlotCancelBookingResult,
   DockSlotCreate,
   DockSlotUpdate,
   Document,
@@ -712,6 +725,12 @@ import type {
   PriceBook,
   PriceBookCreate,
   PriceBookUpdate,
+  ProcurementNeed,
+  ProcurementNeedConsolidateRequest,
+  ProcurementNeedConsolidateResult,
+  ProcurementNeedCreate,
+  ProcurementNeedStatus,
+  ProcurementNeedUpdate,
   ProfileShare,
   ProfileShareCreate,
   ProfileVisibilityRule,
@@ -831,8 +850,13 @@ import type {
   ReturnLine,
   Rfq,
   RfqCreate,
+  RfqCreateSubHireRequest,
+  RfqCreateSubHireResult,
   RfqInvitation,
   RfqInvitationCreate,
+  RfqLine,
+  RfqLineCreate,
+  RfqLineUpdate,
   RfqResponse,
   RfqResponseCreate,
   RfqResponseLine,
@@ -5415,6 +5439,25 @@ export class DockSlotsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Cancel a delivery booking
+   *
+   * Cancels a booking and frees its place, before check-in and before the window starts: for its engagement or a dock writer. Its approval is canceled with it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /dock-slots/{id}/cancel-booking` (operation `dockSlots.cancelBooking`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  cancelBooking(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DockSlotCancelBookingResult>> {
+    return this.client.request<DockSlotCancelBookingResult>(
+      $OPERATIONS["dockSlots.cancelBooking"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -7033,6 +7076,30 @@ export class AssetClassesResource extends $Resource {
     return this.client.request<AssetClassAvailability>(
       $OPERATIONS["assetClasses.availability"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * What is short against own stock
+   *
+   * One row per project and asset class whose open allocations want more than can supply them: serviceable units, lot quantity and quantity on order that covers the window. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. No prices or names. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /asset-classes/shortages` (operation `assetClasses.shortages`).
+   * Requires the capability `procurement.po.read`.
+   */
+  shortages(
+    params?: {
+      /**
+       * Identifier of the project to narrow to.
+       */
+      readonly project_id?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetShortages>> {
+    return this.client.request<AssetShortages>(
+      $OPERATIONS["assetClasses.shortages"],
+      { query: params },
       options,
     );
   }
@@ -13566,6 +13633,25 @@ export class RfqsResource extends $Resource {
     return this.client.request<Rfq>(
       $OPERATIONS["rfqs.transition"],
       { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Draft a sub-hire RFQ
+   *
+   * Drafts a Proposed RFQ with one Rental line per short class, reusing a live need whose window overlaps or adding one of the short quantity. Vendors are invited as on any RFQ. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /rfqs/sub-hire` (operation `rfqs.createSubHire`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  createSubHire(
+    body: RfqCreateSubHireRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<RfqCreateSubHireResult>> {
+    return this.client.request<RfqCreateSubHireResult>(
+      $OPERATIONS["rfqs.createSubHire"],
+      { body },
       options,
     );
   }
@@ -34454,6 +34540,167 @@ export class CueCallsResource extends $Resource {
 }
 
 /**
+ * Operations on `deliveryWindows`, in the Logistics module.
+ *
+ * Shipments, dock slots, gate queue, staging and release (Section 4.2).
+ */
+export class DeliveryWindowsResource extends $Resource {
+  /**
+   * List delivery window rows
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /delivery-windows` (operation `deliveryWindows.list`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  list(
+    params?: $ListParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): Promise<$Page<DeliveryWindow>> {
+    return this.client.requestPage<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List delivery window rows
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /delivery-windows` (operation `deliveryWindows.list`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<DeliveryWindow, void, undefined> {
+    return this.client.paginate<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Creates a delivery window. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /delivery-windows` (operation `deliveryWindows.create`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  create(
+    body: DeliveryWindowCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns one delivery window with its `ETag`. A delivery window the caller may not see returns 404.
+   *
+   * `GET /delivery-windows/{id}` (operation `deliveryWindows.get`).
+   * Requires the capability `logistics.shipment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<DeliveryWindow>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /delivery-windows/{id}` (operation `deliveryWindows.update`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  update(
+    id: string,
+    body: DeliveryWindowUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<DeliveryWindow>> {
+    return this.client.request<DeliveryWindow>(
+      $OPERATIONS["deliveryWindows.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a delivery window
+   *
+   * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Soft-deletes the delivery window: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /delivery-windows/{id}` (operation `deliveryWindows.delete`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["deliveryWindows.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Add a schedule of delivery windows
+   *
+   * Adds windows at a gate for each day, from a local start to a local end in slots of a length, on the project's calendar. A local time the clocks skip gets no window. At most 500 windows. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /delivery-windows/generate` (operation `deliveryWindows.generate`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  generate(
+    body: DeliveryWindowGenerateRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindowGenerateResult>> {
+    return this.client.request<DeliveryWindowGenerateResult>(
+      $OPERATIONS["deliveryWindows.generate"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Book a place in a delivery window
+   *
+   * Books a place for a vehicle: for a dock writer on the project, or for a Vendor engagement of the project the caller reaches in the operational area. Returns the dock slot with its reference code. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /delivery-windows/{id}/book` (operation `deliveryWindows.book`).
+   * Requires the capability `logistics.dock_slot.write`.
+   */
+  book(
+    id: string,
+    body: DeliveryWindowBookRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<DeliveryWindowBookResult>> {
+    return this.client.request<DeliveryWindowBookResult>(
+      $OPERATIONS["deliveryWindows.book"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `rosterEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -35372,6 +35619,175 @@ export class GuestListEntriesResource extends $Resource {
 }
 
 /**
+ * Operations on `assetMaintenancePlans`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetMaintenancePlansResource extends $Resource {
+  /**
+   * List asset maintenance plan rows
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-maintenance-plans` (operation `assetMaintenancePlans.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetMaintenancePlan>> {
+    return this.client.requestPage<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List asset maintenance plan rows
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-maintenance-plans` (operation `assetMaintenancePlans.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetMaintenancePlan, void, undefined> {
+    return this.client.paginate<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Creates an asset maintenance plan. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /asset-maintenance-plans` (operation `assetMaintenancePlans.create`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  create(
+    body: AssetMaintenancePlanCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns one asset maintenance plan with its `ETag`. A asset maintenance plan the caller may not see returns 404.
+   *
+   * `GET /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.get`).
+   * Requires the capability `assets.asset.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AssetMaintenancePlan>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.update`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  update(
+    id: string,
+    body: AssetMaintenancePlanUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<AssetMaintenancePlan>> {
+    return this.client.request<AssetMaintenancePlan>(
+      $OPERATIONS["assetMaintenancePlans.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an asset maintenance plan
+   *
+   * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Soft-deletes the asset maintenance plan: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /asset-maintenance-plans/{id}` (operation `assetMaintenancePlans.delete`).
+   * Requires the capability `assets.maintenance.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["assetMaintenancePlans.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `assetMaintenanceDue`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetMaintenanceDueResource extends $Resource {
+  /**
+   * List maintenance due rows
+   *
+   * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-maintenance-due` (operation `assetMaintenanceDue.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetMaintenanceDue>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetMaintenanceDue>> {
+    return this.client.requestPage<AssetMaintenanceDue>(
+      $OPERATIONS["assetMaintenanceDue.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List maintenance due rows
+   *
+   * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-maintenance-due` (operation `assetMaintenanceDue.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetMaintenanceDue>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetMaintenanceDue, void, undefined> {
+    return this.client.paginate<AssetMaintenanceDue>(
+      $OPERATIONS["assetMaintenanceDue.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `assetUnitHire`, in the Assets module.
  *
  * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
@@ -35706,6 +36122,298 @@ export class PoLineHireWarningsResource extends $Resource {
     return this.client.paginate<PoLineHireWarning>(
       $OPERATIONS["poLineHireWarnings.list"],
       { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `procurementNeeds`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class ProcurementNeedsResource extends $Resource {
+  /**
+   * List procurement need rows
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /procurement-needs` (operation `procurementNeeds.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(
+    params?: $ListParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProcurementNeed>> {
+    return this.client.requestPage<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List procurement need rows
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /procurement-needs` (operation `procurementNeeds.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProcurementNeed, void, undefined> {
+    return this.client.paginate<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Creates a procurement need. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /procurement-needs` (operation `procurementNeeds.create`).
+   * Requires the capability `procurement.po.write`.
+   */
+  create(
+    body: ProcurementNeedCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns one procurement need with its `ETag`. A procurement need the caller may not see returns 404.
+   *
+   * `GET /procurement-needs/{id}` (operation `procurementNeeds.get`).
+   * Requires the capability `procurement.po.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProcurementNeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /procurement-needs/{id}` (operation `procurementNeeds.update`).
+   * Requires the capability `procurement.po.write`.
+   */
+  update(
+    id: string,
+    body: ProcurementNeedUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProcurementNeed>> {
+    return this.client.request<ProcurementNeed>(
+      $OPERATIONS["procurementNeeds.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a procurement need
+   *
+   * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Soft-deletes the procurement need: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /procurement-needs/{id}` (operation `procurementNeeds.delete`).
+   * Requires the capability `procurement.po.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["procurementNeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Consolidate requests onto needs
+   *
+   * Links allocations onto a need when `need_id` is given, leaving its quantity alone; otherwise adds one need per asset class with the sum of the selection. Needs procurement.po.write and advancing.packet.read on the project. Requested may be linked as well as Approved. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /procurement-needs/consolidate` (operation `procurementNeeds.consolidate`).
+   * Requires the capability `procurement.po.write`.
+   */
+  consolidate(
+    body: ProcurementNeedConsolidateRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProcurementNeedConsolidateResult>> {
+    return this.client.request<ProcurementNeedConsolidateResult>(
+      $OPERATIONS["procurementNeeds.consolidate"],
+      { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `procurementNeedStatus`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class ProcurementNeedStatusResource extends $Resource {
+  /**
+   * List need status rows
+   *
+   * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /procurement-need-status` (operation `procurementNeedStatus.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  list(
+    params?: $ListParams<ProcurementNeedStatus>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProcurementNeedStatus>> {
+    return this.client.requestPage<ProcurementNeedStatus>(
+      $OPERATIONS["procurementNeedStatus.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List need status rows
+   *
+   * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /procurement-need-status` (operation `procurementNeedStatus.list`).
+   * Requires the capability `procurement.po.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProcurementNeedStatus>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProcurementNeedStatus, void, undefined> {
+    return this.client.paginate<ProcurementNeedStatus>(
+      $OPERATIONS["procurementNeedStatus.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `rfqLines`, in the Procurement module.
+ *
+ * RFQs, purchase orders, receipts, three-way match and catalog bindings (Section 4.2).
+ */
+export class RfqLinesResource extends $Resource {
+  /**
+   * List rfq line rows
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /rfq-lines` (operation `rfqLines.list`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  list(params?: $ListParams<RfqLine>, options?: $RequestOptions): Promise<$Page<RfqLine>> {
+    return this.client.requestPage<RfqLine>(
+      $OPERATIONS["rfqLines.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List rfq line rows
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /rfq-lines` (operation `rfqLines.list`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RfqLine>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RfqLine, void, undefined> {
+    return this.client.paginate<RfqLine>($OPERATIONS["rfqLines.list"], { query: params }, options);
+  }
+
+  /**
+   * Create a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Creates a rfq line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /rfq-lines` (operation `rfqLines.create`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  create(body: RfqLineCreate, options?: $MutationOptions): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>($OPERATIONS["rfqLines.create"], { body }, options);
+  }
+
+  /**
+   * Get a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns one rfq line with its `ETag`. A rfq line the caller may not see returns 404.
+   *
+   * `GET /rfq-lines/{id}` (operation `rfqLines.get`).
+   * Requires the capability `procurement.rfq.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RfqLine>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>(
+      $OPERATIONS["rfqLines.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /rfq-lines/{id}` (operation `rfqLines.update`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  update(id: string, body: RfqLineUpdate, options: $UpdateOptions): Promise<$ApiResponse<RfqLine>> {
+    return this.client.request<RfqLine>(
+      $OPERATIONS["rfqLines.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a rfq line
+   *
+   * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Soft-deletes the rfq line: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /rfq-lines/{id}` (operation `rfqLines.delete`).
+   * Requires the capability `procurement.rfq.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["rfqLines.delete"],
+      { path: { id } },
       options,
     );
   }

@@ -342,6 +342,7 @@ import {
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
   CueCallsResource,
+  DeliveryWindowsResource,
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
@@ -349,12 +350,17 @@ import {
   AdvanceSubmissionLinesResource,
   AdvanceSubmissionFilesResource,
   GuestListEntriesResource,
+  AssetMaintenancePlansResource,
+  AssetMaintenanceDueResource,
   AssetUnitHireResource,
   AssetReservationsResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
   PoLineHireWarningsResource,
+  ProcurementNeedsResource,
+  ProcurementNeedStatusResource,
+  RfqLinesResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
   CanonStdEmergencyProtocolsResource,
@@ -1210,6 +1216,8 @@ export class XosClient extends XosClientCore {
     new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
+  /** Logistics: operations on `deliveryWindows`. */
+  readonly deliveryWindows: DeliveryWindowsResource = new DeliveryWindowsResource(this);
   /** Advancing: operations on `rosterEntries`. */
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `advanceAllocations`. */
@@ -1229,6 +1237,12 @@ export class XosClient extends XosClientCore {
     new AdvanceSubmissionFilesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Assets: operations on `assetMaintenancePlans`. */
+  readonly assetMaintenancePlans: AssetMaintenancePlansResource = new AssetMaintenancePlansResource(
+    this,
+  );
+  /** Assets: operations on `assetMaintenanceDue`. */
+  readonly assetMaintenanceDue: AssetMaintenanceDueResource = new AssetMaintenanceDueResource(this);
   /** Assets: operations on `assetUnitHire`. */
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */
@@ -1241,6 +1255,14 @@ export class XosClient extends XosClientCore {
   readonly returnLines: ReturnLinesResource = new ReturnLinesResource(this);
   /** Procurement: operations on `poLineHireWarnings`. */
   readonly poLineHireWarnings: PoLineHireWarningsResource = new PoLineHireWarningsResource(this);
+  /** Procurement: operations on `procurementNeeds`. */
+  readonly procurementNeeds: ProcurementNeedsResource = new ProcurementNeedsResource(this);
+  /** Procurement: operations on `procurementNeedStatus`. */
+  readonly procurementNeedStatus: ProcurementNeedStatusResource = new ProcurementNeedStatusResource(
+    this,
+  );
+  /** Procurement: operations on `rfqLines`. */
+  readonly rfqLines: RfqLinesResource = new RfqLinesResource(this);
   /** Vendors: operations on `insuranceCertificateInsureds`. */
   readonly insuranceCertificateInsureds: InsuranceCertificateInsuredsResource =
     new InsuranceCertificateInsuredsResource(this);

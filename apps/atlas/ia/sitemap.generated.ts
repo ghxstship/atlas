@@ -1252,6 +1252,13 @@ export const sitemap: Sitemap = {
           module: "procurement",
           children: [
             {
+              id: "procurement.needs",
+              kind: "page",
+              label: "nav.atlas.pages.procurement.needs",
+              route: "/{org}/procurement/needs",
+              list: { views: ["table", "list", "board"], default: "table" },
+            },
+            {
               id: "procurement.rfqs",
               kind: "page",
               label: "nav.atlas.pages.procurement.rfqs",

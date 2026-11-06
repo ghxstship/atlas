@@ -7713,6 +7713,26 @@
             "description": "When the vehicle checked in.",
             "example": "2026-10-08T14:30:00Z"
           },
+          "delivery_window_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the delivery window the booking holds a place in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reference_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Label to quote at the gate.",
+            "example": "K7M2QX"
+          },
+          "vehicle_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Plate or trailer number expected.",
+            "example": "FL ABC 123"
+          },
           "project_id": {
             "type": "string",
             "format": "uuid",
@@ -7743,6 +7763,9 @@
           "starts_at",
           "ends_at",
           "checked_in_at",
+          "delivery_window_id",
+          "reference_code",
+          "vehicle_identifier",
           "project_id",
           "zone_id",
           "checked_in_by"
@@ -7815,6 +7838,19 @@
           }
         },
         "description": "Fields accepted when updating a DockSlot. Omitted fields are unchanged."
+      },
+      "DockSlotCancelBookingResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The booking.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["id"],
+        "description": "The booking canceled."
       },
       "GateQueueEntryPage": {
         "type": "object",
@@ -10244,6 +10280,97 @@
         ],
         "description": "How many of an asset class are free over a window (G-93)."
       },
+      "AssetShortages": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetShortage" },
+            "description": "Shortages."
+          }
+        },
+        "required": ["data"],
+        "description": "What is short against own stock."
+      },
+      "AssetShortage": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset class.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "class_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name of the class.",
+            "example": "Truss Sections"
+          },
+          "element_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element of the class.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "short_quantity": {
+            "type": "number",
+            "description": "How many more the open allocations want than can supply them.",
+            "example": 5
+          },
+          "window_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the allocations that are short begin.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "window_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the allocations that are short end.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "open_need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the live need of the class overlapping the window.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "open_rfq_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the RFQ in Proposed or Issued sourcing that need.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "project_id",
+          "asset_class_id",
+          "class_name",
+          "element_id",
+          "unit_basis",
+          "short_quantity",
+          "window_from",
+          "window_to",
+          "open_need_id",
+          "open_rfq_id"
+        ],
+        "description": "A class short against own stock on a project."
+      },
       "AssetUnitPage": {
         "type": "object",
         "properties": {
@@ -11188,6 +11315,12 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "maintenance_plan_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the plan this work fulfilled.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -11201,7 +11334,8 @@
           "performed_on",
           "description",
           "cost_minor",
-          "currency_code"
+          "currency_code",
+          "maintenance_plan_id"
         ],
         "description": "A maintenance event for an asset unit."
       },
@@ -11238,6 +11372,12 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "maintenance_plan_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the plan this work fulfilled.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": ["asset_unit_id", "performed_on", "description"],
@@ -11270,6 +11410,12 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "maintenance_plan_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the plan this work fulfilled.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a AssetMaintenance. Omitted fields are unchanged."
@@ -21027,6 +21173,47 @@
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
       },
+      "RfqCreateSubHireResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The RFQ drafted.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["id"],
+        "description": "The RFQ drafted."
+      },
+      "RfqCreateSubHireRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project short of them.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Classes that are short.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What is being sourced.",
+            "example": "Sub-hire truss"
+          }
+        },
+        "required": ["project_id", "asset_class_ids", "title"],
+        "description": "A sub-hire draft."
+      },
       "RfqInvitationPage": {
         "type": "object",
         "properties": {
@@ -21408,6 +21595,12 @@
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
+          "rfq_line_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the request line this quoted line answers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "element_id": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -21427,6 +21620,7 @@
           "quantity",
           "unit_price_minor",
           "currency_code",
+          "rfq_line_id",
           "element_id"
         ],
         "description": "A line of an RFQ response."
@@ -22059,6 +22253,12 @@
             "example": 4500,
             "format": "int64"
           },
+          "procurement_need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the need this line serves.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "line_number": {
             "type": "integer",
             "minimum": 1,
@@ -22098,6 +22298,7 @@
           "quantity",
           "unit_basis",
           "unit_price_minor",
+          "procurement_need_id",
           "line_number",
           "acquisition_kind",
           "hire_starts_at",
@@ -50274,6 +50475,321 @@
         },
         "description": "Fields accepted when updating a CueCall. Omitted fields are unchanged."
       },
+      "DeliveryWindowPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DeliveryWindow" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "DeliveryWindow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the delivery window.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the gate: a live zone of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window opens.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window closes.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "vehicle_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "How many vehicles it takes, up to 500.",
+            "example": 5
+          },
+          "is_open": {
+            "type": "boolean",
+            "description": "False stops new bookings; bookings already made stay.",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "zone_id",
+          "starts_at",
+          "ends_at",
+          "vehicle_limit",
+          "is_open"
+        ],
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone."
+      },
+      "DeliveryWindowCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the gate: a live zone of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window opens.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window closes.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "vehicle_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "How many vehicles it takes, up to 500.",
+            "example": 5
+          },
+          "is_open": {
+            "type": "boolean",
+            "description": "False stops new bookings; bookings already made stay.",
+            "example": true
+          }
+        },
+        "required": ["project_id", "zone_id", "starts_at", "ends_at", "vehicle_limit", "is_open"],
+        "description": "Fields accepted when creating a DeliveryWindow."
+      },
+      "DeliveryWindowUpdate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the gate: a live zone of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window opens.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the window closes.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "vehicle_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "How many vehicles it takes, up to 500.",
+            "example": 5
+          },
+          "is_open": {
+            "type": "boolean",
+            "description": "False stops new bookings; bookings already made stay.",
+            "example": true
+          }
+        },
+        "description": "Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged."
+      },
+      "DeliveryWindowGenerateResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "The windows added.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["data"],
+        "description": "The windows added."
+      },
+      "DeliveryWindowGenerateRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the gate.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "first_day": {
+            "type": "string",
+            "format": "date",
+            "description": "First day.",
+            "example": "2026-10-08"
+          },
+          "last_day": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day.",
+            "example": "2026-10-08"
+          },
+          "from_time": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Local start time.",
+            "example": "08:00"
+          },
+          "to_time": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Local end time.",
+            "example": "18:00"
+          },
+          "slot_minutes": {
+            "type": "integer",
+            "minimum": 5,
+            "description": "Length of each window in minutes, up to 1440.",
+            "example": 60
+          },
+          "vehicle_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "How many vehicles each takes, up to 500.",
+            "example": 5
+          }
+        },
+        "required": [
+          "project_id",
+          "zone_id",
+          "first_day",
+          "last_day",
+          "from_time",
+          "to_time",
+          "slot_minutes",
+          "vehicle_limit"
+        ],
+        "description": "A schedule of windows."
+      },
+      "DeliveryWindowBookResult": {
+        "type": "object",
+        "properties": {
+          "dock_slot_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The booking.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reference_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Label to quote at the gate.",
+            "example": "K7M2QX"
+          }
+        },
+        "required": ["dock_slot_id", "reference_code"],
+        "description": "The booking."
+      },
+      "DeliveryWindowBookRequest": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Vendor engagement the booking is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Plate or trailer number.",
+            "example": "FL ABC 123"
+          },
+          "shipment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the shipment the vendor carries.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "A place in a window."
+      },
       "RosterEntryPage": {
         "type": "object",
         "properties": {
@@ -52721,6 +53237,293 @@
         "required": ["outcome"],
         "description": "Decision on a requested guest."
       },
+      "AssetMaintenancePlanPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetMaintenancePlan" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AssetMaintenancePlan": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset maintenance plan.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the unit the plan applies to; exactly one of unit and class.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the class whose units the plan applies to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What is to be done.",
+            "example": "Inspect welds"
+          },
+          "instructions": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "How to do it.",
+            "example": "Replace any cracked section."
+          },
+          "first_due_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the work is first due.",
+            "example": "2026-10-08"
+          },
+          "every_count": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "How many intervals between doing it, up to 999.",
+            "example": 3
+          },
+          "every_unit": {
+            "type": ["string", "null"],
+            "enum": ["Day", "Week", "Month", "Year", null],
+            "description": "Unit of the interval.",
+            "example": "Month"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "asset_unit_id",
+          "asset_class_id",
+          "title",
+          "instructions",
+          "first_due_on",
+          "every_count",
+          "every_unit"
+        ],
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null."
+      },
+      "AssetMaintenancePlanCreate": {
+        "type": "object",
+        "properties": {
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the unit the plan applies to; exactly one of unit and class.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the class whose units the plan applies to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What is to be done.",
+            "example": "Inspect welds"
+          },
+          "instructions": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "How to do it.",
+            "example": "Replace any cracked section."
+          },
+          "first_due_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the work is first due.",
+            "example": "2026-10-08"
+          },
+          "every_count": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "How many intervals between doing it, up to 999.",
+            "example": 3
+          },
+          "every_unit": {
+            "type": ["string", "null"],
+            "enum": ["Day", "Week", "Month", "Year", null],
+            "description": "Unit of the interval.",
+            "example": "Month"
+          }
+        },
+        "required": ["title", "first_due_on"],
+        "description": "Fields accepted when creating a AssetMaintenancePlan."
+      },
+      "AssetMaintenancePlanUpdate": {
+        "type": "object",
+        "properties": {
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the unit the plan applies to; exactly one of unit and class.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the class whose units the plan applies to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What is to be done.",
+            "example": "Inspect welds"
+          },
+          "instructions": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "How to do it.",
+            "example": "Replace any cracked section."
+          },
+          "first_due_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the work is first due.",
+            "example": "2026-10-08"
+          },
+          "every_count": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "How many intervals between doing it, up to 999.",
+            "example": 3
+          },
+          "every_unit": {
+            "type": ["string", "null"],
+            "enum": ["Day", "Week", "Month", "Year", null],
+            "description": "Unit of the interval.",
+            "example": "Month"
+          }
+        },
+        "description": "Fields accepted when updating a AssetMaintenancePlan. Omitted fields are unchanged."
+      },
+      "AssetMaintenanceDuePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetMaintenanceDue" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AssetMaintenanceDue": {
+        "type": "object",
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the plan.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the unit.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What is to be done.",
+            "example": "Inspect welds"
+          },
+          "last_performed_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Latest log entry of this plan on this unit.",
+            "example": "2026-10-08"
+          },
+          "due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "When it is next due; null when work done once is done.",
+            "example": "2026-10-08"
+          },
+          "due_status": {
+            "type": "string",
+            "enum": ["Pending", "Overdue", "Completed"],
+            "description": "Computed on the org's calendar.",
+            "example": "Pending"
+          }
+        },
+        "required": [
+          "plan_id",
+          "asset_unit_id",
+          "title",
+          "last_performed_on",
+          "due_on",
+          "due_status"
+        ],
+        "description": "Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log."
+      },
       "AssetUnitHirePage": {
         "type": "object",
         "properties": {
@@ -53277,6 +54080,661 @@
           "warning"
         ],
         "description": "A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line."
+      },
+      "ProcurementNeedPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProcurementNeed" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProcurementNeed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the procurement need.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project buying.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "need_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence, issued on insert.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is needed.",
+            "example": "Truss Sections"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "How much the event will get.",
+            "example": 15
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class the need is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element the need is for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "needed_from": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed from; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed until; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the buyer noted.",
+            "example": "Black, not silver."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "need_number",
+          "description",
+          "quantity",
+          "unit_basis",
+          "asset_class_id",
+          "element_id",
+          "needed_from",
+          "needed_to",
+          "note"
+        ],
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element."
+      },
+      "ProcurementNeedCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project buying.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "need_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence, issued on insert.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is needed.",
+            "example": "Truss Sections"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "How much the event will get.",
+            "example": 15
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class the need is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element the need is for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "needed_from": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed from; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed until; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the buyer noted.",
+            "example": "Black, not silver."
+          }
+        },
+        "required": ["project_id", "need_number", "description", "quantity"],
+        "description": "Fields accepted when creating a ProcurementNeed."
+      },
+      "ProcurementNeedUpdate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project buying.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "need_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence, issued on insert.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is needed.",
+            "example": "Truss Sections"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "How much the event will get.",
+            "example": 15
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "asset_class_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the asset class the need is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element the need is for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "needed_from": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed from; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it is needed until; both or neither.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the buyer noted.",
+            "example": "Black, not silver."
+          }
+        },
+        "description": "Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged."
+      },
+      "ProcurementNeedConsolidateResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "The needs linked or added.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["data"],
+        "description": "The needs linked or added."
+      },
+      "ProcurementNeedConsolidateRequest": {
+        "type": "object",
+        "properties": {
+          "allocation_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "Allocations of one project.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the need to link them to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["allocation_ids"],
+        "description": "Requests to consolidate."
+      },
+      "ProcurementNeedStatusPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProcurementNeedStatus" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProcurementNeedStatus": {
+        "type": "object",
+        "properties": {
+          "need_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the need.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is needed.",
+            "example": "Truss Sections"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "How much the event will get.",
+            "example": 15
+          },
+          "requested_quantity": {
+            "type": "number",
+            "description": "Live requests linked, with their Split children.",
+            "example": 15
+          },
+          "drafted_quantity": {
+            "type": "number",
+            "description": "On lines of Proposed orders: shown, never counted.",
+            "example": 0
+          },
+          "ordered_quantity": {
+            "type": "number",
+            "description": "On lines of Approved, Sent or Closed orders, less returns.",
+            "example": 5
+          },
+          "received_quantity": {
+            "type": "number",
+            "description": "Received on those lines.",
+            "example": 0
+          },
+          "need_status": {
+            "type": "string",
+            "enum": ["Needs Ordered", "Short", "On Order", "Excess"],
+            "description": "Computed from ordered against quantity.",
+            "example": "Short"
+          }
+        },
+        "required": [
+          "need_id",
+          "project_id",
+          "description",
+          "quantity",
+          "requested_quantity",
+          "drafted_quantity",
+          "ordered_quantity",
+          "received_quantity",
+          "need_status"
+        ],
+        "description": "Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted."
+      },
+      "RfqLinePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RfqLine" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RfqLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the rfq line.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "rfq_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the RFQ the line belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the RFQ, assigned on create.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is asked for.",
+            "example": "Truss Sections"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element asked for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "quantity": { "type": "number", "description": "Quantity asked for.", "example": 5 },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Purchase, or Rental for a hire.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "procurement_need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the need of the same project the line sources.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "rfq_id",
+          "line_number",
+          "description",
+          "element_id",
+          "quantity",
+          "unit_basis",
+          "acquisition_kind",
+          "hire_starts_at",
+          "hire_ends_at",
+          "procurement_need_id"
+        ],
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response."
+      },
+      "RfqLineCreate": {
+        "type": "object",
+        "properties": {
+          "rfq_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the RFQ the line belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the RFQ, assigned on create.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is asked for.",
+            "example": "Truss Sections"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element asked for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "quantity": { "type": "number", "description": "Quantity asked for.", "example": 5 },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Purchase, or Rental for a hire.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "procurement_need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the need of the same project the line sources.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["rfq_id", "line_number", "description", "quantity", "acquisition_kind"],
+        "description": "Fields accepted when creating a RfqLine."
+      },
+      "RfqLineUpdate": {
+        "type": "object",
+        "properties": {
+          "rfq_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the RFQ the line belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the RFQ, assigned on create.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What is asked for.",
+            "example": "Truss Sections"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element asked for.",
+            "example": "3000.05.01-GHXST-014"
+          },
+          "quantity": { "type": "number", "description": "Quantity asked for.", "example": 5 },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Unit of the quantity.",
+            "example": "each"
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Purchase, or Rental for a hire.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines only: when the hire ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "procurement_need_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the need of the same project the line sources.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "Fields accepted when updating a RfqLine. Omitted fields are unchanged."
       },
       "InsuranceCertificateInsuredPage": {
         "type": "object",
@@ -54107,7 +55565,14 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["rider", "insurance_certificate", "invoice", "receipt", "quote"],
+            "enum": [
+              "rider",
+              "insurance_certificate",
+              "invoice",
+              "receipt",
+              "quote",
+              "material_list"
+            ],
             "description": "What the document is.",
             "example": "insurance_certificate"
           },
@@ -78533,6 +79998,9 @@
                       "starts_at": "2026-10-08T14:30:00Z",
                       "ends_at": "2026-10-08T14:30:00Z",
                       "checked_in_at": "2026-10-08T14:30:00Z",
+                      "delivery_window_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reference_code": "K7M2QX",
+                      "vehicle_identifier": "FL ABC 123",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -78595,6 +80063,9 @@
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
                   "checked_in_at": "2026-10-08T14:30:00Z",
+                  "delivery_window_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reference_code": "K7M2QX",
+                  "vehicle_identifier": "FL ABC 123",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -78657,6 +80128,9 @@
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
                   "checked_in_at": "2026-10-08T14:30:00Z",
+                  "delivery_window_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reference_code": "K7M2QX",
+                  "vehicle_identifier": "FL ABC 123",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -78730,6 +80204,9 @@
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
                   "checked_in_at": "2026-10-08T14:30:00Z",
+                  "delivery_window_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reference_code": "K7M2QX",
+                  "vehicle_identifier": "FL ABC 123",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -78824,11 +80301,63 @@
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
                   "checked_in_at": "2026-10-08T14:30:00Z",
+                  "delivery_window_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reference_code": "K7M2QX",
+                  "vehicle_identifier": "FL ABC 123",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DockSlot" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/dock-slots/{id}/cancel-booking": {
+      "post": {
+        "operationId": "dockSlots.cancelBooking",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.dock_slots",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "x-xos-rpc": "app.cancel_delivery_booking",
+        "summary": "Cancel a delivery booking",
+        "description": "Cancels a booking and frees its place, before check-in and before the window starts: for its engagement or a dock writer. Its approval is canceled with it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the dock slot.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the dock slot.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/DockSlotCancelBookingResult" }
               }
             }
           },
@@ -82900,6 +84429,67 @@
         }
       }
     },
+    "/asset-classes/shortages": {
+      "get": {
+        "operationId": "assetClasses.shortages",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_classes",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.asset_shortages",
+        "summary": "What is short against own stock",
+        "description": "One row per project and asset class whose open allocations want more than can supply them: serviceable units, lot quantity and quantity on order that covers the window. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. No prices or names. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project to narrow to.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": false,
+            "description": "Identifier of the project to narrow to.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "class_name": "Truss Sections",
+                      "element_id": "3000.05.01-GHXST-014",
+                      "unit_basis": "each",
+                      "short_quantity": 5,
+                      "window_from": "2026-10-08T14:30:00Z",
+                      "window_to": "2026-10-08T14:30:00Z",
+                      "open_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "open_rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AssetShortages" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/asset-units": {
       "get": {
         "operationId": "assetUnits.list",
@@ -84259,7 +85849,8 @@
                       "performed_on": "2026-10-08",
                       "description": "Replaced the spigots.",
                       "cost_minor": 12000,
-                      "currency_code": "USD"
+                      "currency_code": "USD",
+                      "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -84291,7 +85882,8 @@
                 "performed_on": "2026-10-08",
                 "description": "Replaced the spigots.",
                 "cost_minor": 12000,
-                "currency_code": "USD"
+                "currency_code": "USD",
+                "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AssetMaintenanceCreate" }
             }
@@ -84319,7 +85911,8 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency_code": "USD"
+                  "currency_code": "USD",
+                  "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -84379,7 +85972,8 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency_code": "USD"
+                  "currency_code": "USD",
+                  "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -84422,7 +86016,8 @@
                 "performed_on": "2026-10-08",
                 "description": "Replaced the spigots.",
                 "cost_minor": 12000,
-                "currency_code": "USD"
+                "currency_code": "USD",
+                "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AssetMaintenanceUpdate" }
             }
@@ -84450,7 +86045,8 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency_code": "USD"
+                  "currency_code": "USD",
+                  "maintenance_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -99968,6 +101564,53 @@
         }
       }
     },
+    "/rfqs/sub-hire": {
+      "post": {
+        "operationId": "rfqs.createSubHire",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfqs",
+        "x-xos-capability": "procurement.rfq.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.create_sub_hire_rfq",
+        "summary": "Draft a sub-hire RFQ",
+        "description": "Drafts a Proposed RFQ with one Rental line per short class, reusing a live need whose window overlaps or adding one of the short quantity. Vendors are invited as on any RFQ. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                "title": "Sub-hire truss"
+              },
+              "schema": { "$ref": "#/components/schemas/RfqCreateSubHireRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/RfqCreateSubHireResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/rfq-invitations": {
       "get": {
         "operationId": "rfqInvitations.list",
@@ -100372,6 +102015,7 @@
                       "quantity": 1,
                       "unit_price_minor": 1800000,
                       "currency_code": "USD",
+                      "rfq_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "element_id": "0000.01.01-XOS-001"
                     }
                   ],
@@ -100434,6 +102078,7 @@
                   "quantity": 1,
                   "unit_price_minor": 1800000,
                   "currency_code": "USD",
+                  "rfq_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
@@ -100495,6 +102140,7 @@
                   "quantity": 1,
                   "unit_price_minor": 1800000,
                   "currency_code": "USD",
+                  "rfq_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
@@ -100568,6 +102214,7 @@
                   "quantity": 1,
                   "unit_price_minor": 1800000,
                   "currency_code": "USD",
+                  "rfq_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
@@ -101396,6 +103043,7 @@
                       "quantity": 24,
                       "unit_basis": "each",
                       "unit_price_minor": 4500,
+                      "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "line_number": 1,
                       "acquisition_kind": "Rental",
                       "hire_starts_at": "2026-10-08T14:30:00Z",
@@ -101468,6 +103116,7 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "line_number": 1,
                   "acquisition_kind": "Rental",
                   "hire_starts_at": "2026-10-08T14:30:00Z",
@@ -101534,6 +103183,7 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "line_number": 1,
                   "acquisition_kind": "Rental",
                   "hire_starts_at": "2026-10-08T14:30:00Z",
@@ -101617,6 +103267,7 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "line_number": 1,
                   "acquisition_kind": "Rental",
                   "hire_starts_at": "2026-10-08T14:30:00Z",
@@ -144989,6 +146640,407 @@
         }
       }
     },
+    "/delivery-windows": {
+      "get": {
+        "operationId": "deliveryWindows.list",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.shipment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "x-xos-order": { "by": ["starts_at"], "numeric": false },
+        "summary": "List delivery window rows",
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of delivery window rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "starts_at": "2026-10-08T14:30:00Z",
+                      "ends_at": "2026-10-08T14:30:00Z",
+                      "vehicle_limit": 5,
+                      "is_open": true
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindowPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "deliveryWindows.create",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "summary": "Create a delivery window",
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Creates a delivery window. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "starts_at": "2026-10-08T14:30:00Z",
+                "ends_at": "2026-10-08T14:30:00Z",
+                "vehicle_limit": 5,
+                "is_open": true
+              },
+              "schema": { "$ref": "#/components/schemas/DeliveryWindowCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created delivery window.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "vehicle_limit": 5,
+                  "is_open": true
+                },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindow" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/delivery-windows/{id}": {
+      "get": {
+        "operationId": "deliveryWindows.get",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.shipment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "summary": "Get a delivery window",
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns one delivery window with its `ETag`. A delivery window the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the delivery window.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the delivery window.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The delivery window.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "vehicle_limit": 5,
+                  "is_open": true
+                },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindow" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "deliveryWindows.update",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "summary": "Update a delivery window",
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the delivery window.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the delivery window.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "starts_at": "2026-10-08T14:30:00Z",
+                "ends_at": "2026-10-08T14:30:00Z",
+                "vehicle_limit": 5,
+                "is_open": true
+              },
+              "schema": { "$ref": "#/components/schemas/DeliveryWindowUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated delivery window.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "vehicle_limit": 5,
+                  "is_open": true
+                },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindow" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "deliveryWindows.delete",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "summary": "Delete a delivery window",
+        "description": "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Soft-deletes the delivery window: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the delivery window.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the delivery window.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The delivery window moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/delivery-windows/generate": {
+      "post": {
+        "operationId": "deliveryWindows.generate",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "x-xos-rpc": "app.create_delivery_windows",
+        "summary": "Add a schedule of delivery windows",
+        "description": "Adds windows at a gate for each day, from a local start to a local end in slots of a length, on the project's calendar. A local time the clocks skip gets no window. At most 500 windows. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "first_day": "2026-10-08",
+                "last_day": "2026-10-08",
+                "from_time": "08:00",
+                "to_time": "18:00",
+                "slot_minutes": 60,
+                "vehicle_limit": 5
+              },
+              "schema": { "$ref": "#/components/schemas/DeliveryWindowGenerateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindowGenerateResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/delivery-windows/{id}/book": {
+      "post": {
+        "operationId": "deliveryWindows.book",
+        "tags": ["Logistics"],
+        "x-xos-table": "app.delivery_windows",
+        "x-xos-capability": "logistics.dock_slot.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
+        "x-xos-rpc": "app.book_delivery_window",
+        "summary": "Book a place in a delivery window",
+        "description": "Books a place for a vehicle: for a dock writer on the project, or for a Vendor engagement of the project the caller reaches in the operational area. Returns the dock slot with its reference code. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the delivery window.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the delivery window.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "vehicle_identifier": "FL ABC 123",
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/DeliveryWindowBookRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reference_code": "K7M2QX"
+                },
+                "schema": { "$ref": "#/components/schemas/DeliveryWindowBookResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/roster-entries": {
       "get": {
         "operationId": "rosterEntries.list",
@@ -147544,6 +149596,346 @@
         }
       }
     },
+    "/asset-maintenance-plans": {
+      "get": {
+        "operationId": "assetMaintenancePlans.list",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_plans",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List asset maintenance plan rows",
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of asset maintenance plan rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Inspect welds",
+                      "instructions": "Replace any cracked section.",
+                      "first_due_on": "2026-10-08",
+                      "every_count": 3,
+                      "every_unit": "Month"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AssetMaintenancePlanPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "assetMaintenancePlans.create",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_plans",
+        "x-xos-capability": "assets.maintenance.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "summary": "Create an asset maintenance plan",
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Creates an asset maintenance plan. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "Inspect welds",
+                "instructions": "Replace any cracked section.",
+                "first_due_on": "2026-10-08",
+                "every_count": 3,
+                "every_unit": "Month"
+              },
+              "schema": { "$ref": "#/components/schemas/AssetMaintenancePlanCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created asset maintenance plan.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Inspect welds",
+                  "instructions": "Replace any cracked section.",
+                  "first_due_on": "2026-10-08",
+                  "every_count": 3,
+                  "every_unit": "Month"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetMaintenancePlan" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-maintenance-plans/{id}": {
+      "get": {
+        "operationId": "assetMaintenancePlans.get",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_plans",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "summary": "Get an asset maintenance plan",
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns one asset maintenance plan with its `ETag`. A asset maintenance plan the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset maintenance plan.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset maintenance plan.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The asset maintenance plan.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Inspect welds",
+                  "instructions": "Replace any cracked section.",
+                  "first_due_on": "2026-10-08",
+                  "every_count": 3,
+                  "every_unit": "Month"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetMaintenancePlan" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "assetMaintenancePlans.update",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_plans",
+        "x-xos-capability": "assets.maintenance.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "summary": "Update an asset maintenance plan",
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset maintenance plan.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset maintenance plan.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "Inspect welds",
+                "instructions": "Replace any cracked section.",
+                "first_due_on": "2026-10-08",
+                "every_count": 3,
+                "every_unit": "Month"
+              },
+              "schema": { "$ref": "#/components/schemas/AssetMaintenancePlanUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated asset maintenance plan.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Inspect welds",
+                  "instructions": "Replace any cracked section.",
+                  "first_due_on": "2026-10-08",
+                  "every_count": 3,
+                  "every_unit": "Month"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetMaintenancePlan" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "assetMaintenancePlans.delete",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_plans",
+        "x-xos-capability": "assets.maintenance.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "summary": "Delete an asset maintenance plan",
+        "description": "Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Soft-deletes the asset maintenance plan: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset maintenance plan.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset maintenance plan.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The asset maintenance plan moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-maintenance-due": {
+      "get": {
+        "operationId": "assetMaintenanceDue.list",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_maintenance_due",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-order": { "by": ["due_on"], "numeric": false },
+        "summary": "List maintenance due rows",
+        "description": "Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of maintenance due rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Inspect welds",
+                      "last_performed_on": "2026-10-08",
+                      "due_on": "2026-10-08",
+                      "due_status": "Pending"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AssetMaintenanceDuePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/asset-unit-hire": {
       "get": {
         "operationId": "assetUnitHire.list",
@@ -148120,6 +150512,721 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/procurement-needs": {
+      "get": {
+        "operationId": "procurementNeeds.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["need_number"], "numeric": true },
+        "summary": "List procurement need rows",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of procurement need rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "need_number": 1,
+                      "description": "Truss Sections",
+                      "quantity": 15,
+                      "unit_basis": "each",
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "element_id": "3000.05.01-GHXST-014",
+                      "needed_from": "2026-10-08T14:30:00Z",
+                      "needed_to": "2026-10-08T14:30:00Z",
+                      "note": "Black, not silver."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeedPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "procurementNeeds.create",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Create a procurement need",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Creates a procurement need. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "need_number": 1,
+                "description": "Truss Sections",
+                "quantity": 15,
+                "unit_basis": "each",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "element_id": "3000.05.01-GHXST-014",
+                "needed_from": "2026-10-08T14:30:00Z",
+                "needed_to": "2026-10-08T14:30:00Z",
+                "note": "Black, not silver."
+              },
+              "schema": { "$ref": "#/components/schemas/ProcurementNeedCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created procurement need.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "need_number": 1,
+                  "description": "Truss Sections",
+                  "quantity": 15,
+                  "unit_basis": "each",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "note": "Black, not silver."
+                },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/procurement-needs/{id}": {
+      "get": {
+        "operationId": "procurementNeeds.get",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Get a procurement need",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns one procurement need with its `ETag`. A procurement need the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the procurement need.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the procurement need.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The procurement need.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "need_number": 1,
+                  "description": "Truss Sections",
+                  "quantity": 15,
+                  "unit_basis": "each",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "note": "Black, not silver."
+                },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "procurementNeeds.update",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Update a procurement need",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the procurement need.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the procurement need.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "need_number": 1,
+                "description": "Truss Sections",
+                "quantity": 15,
+                "unit_basis": "each",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "element_id": "3000.05.01-GHXST-014",
+                "needed_from": "2026-10-08T14:30:00Z",
+                "needed_to": "2026-10-08T14:30:00Z",
+                "note": "Black, not silver."
+              },
+              "schema": { "$ref": "#/components/schemas/ProcurementNeedUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated procurement need.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "need_number": 1,
+                  "description": "Truss Sections",
+                  "quantity": 15,
+                  "unit_basis": "each",
+                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "note": "Black, not silver."
+                },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "procurementNeeds.delete",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Delete a procurement need",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Soft-deletes the procurement need: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the procurement need.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the procurement need.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The procurement need moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/procurement-needs/consolidate": {
+      "post": {
+        "operationId": "procurementNeeds.consolidate",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_needs",
+        "x-xos-capability": "procurement.po.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.consolidate_allocations",
+        "summary": "Consolidate requests onto needs",
+        "description": "Links allocations onto a need when `need_id` is given, leaving its quantity alone; otherwise adds one need per asset class with the sum of the selection. Needs procurement.po.write and advancing.packet.read on the project. Requested may be linked as well as Approved. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "allocation_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                "need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ProcurementNeedConsolidateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeedConsolidateResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/procurement-need-status": {
+      "get": {
+        "operationId": "procurementNeedStatus.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.procurement_need_status",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["need_id"], "numeric": false },
+        "summary": "List need status rows",
+        "description": "Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of need status rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "description": "Truss Sections",
+                      "quantity": 15,
+                      "requested_quantity": 15,
+                      "drafted_quantity": 0,
+                      "ordered_quantity": 5,
+                      "received_quantity": 0,
+                      "need_status": "Short"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProcurementNeedStatusPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/rfq-lines": {
+      "get": {
+        "operationId": "rfqLines.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfq_lines",
+        "x-xos-capability": "procurement.rfq.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["line_number"], "numeric": true },
+        "summary": "List rfq line rows",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of rfq line rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "line_number": 1,
+                      "description": "Truss Sections",
+                      "element_id": "3000.05.01-GHXST-014",
+                      "quantity": 5,
+                      "unit_basis": "each",
+                      "acquisition_kind": "Rental",
+                      "hire_starts_at": "2026-10-08T14:30:00Z",
+                      "hire_ends_at": "2026-10-08T14:30:00Z",
+                      "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RfqLinePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "rfqLines.create",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfq_lines",
+        "x-xos-capability": "procurement.rfq.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Create a rfq line",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Creates a rfq line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "line_number": 1,
+                "description": "Truss Sections",
+                "element_id": "3000.05.01-GHXST-014",
+                "quantity": 5,
+                "unit_basis": "each",
+                "acquisition_kind": "Rental",
+                "hire_starts_at": "2026-10-08T14:30:00Z",
+                "hire_ends_at": "2026-10-08T14:30:00Z",
+                "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/RfqLineCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created rfq line.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "line_number": 1,
+                  "description": "Truss Sections",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "quantity": 5,
+                  "unit_basis": "each",
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z",
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/RfqLine" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/rfq-lines/{id}": {
+      "get": {
+        "operationId": "rfqLines.get",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfq_lines",
+        "x-xos-capability": "procurement.rfq.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Get a rfq line",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns one rfq line with its `ETag`. A rfq line the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the rfq line.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the rfq line.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The rfq line.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "line_number": 1,
+                  "description": "Truss Sections",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "quantity": 5,
+                  "unit_basis": "each",
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z",
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/RfqLine" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "rfqLines.update",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfq_lines",
+        "x-xos-capability": "procurement.rfq.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Update a rfq line",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the rfq line.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the rfq line.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "line_number": 1,
+                "description": "Truss Sections",
+                "element_id": "3000.05.01-GHXST-014",
+                "quantity": 5,
+                "unit_basis": "each",
+                "acquisition_kind": "Rental",
+                "hire_starts_at": "2026-10-08T14:30:00Z",
+                "hire_ends_at": "2026-10-08T14:30:00Z",
+                "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/RfqLineUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated rfq line.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "line_number": 1,
+                  "description": "Truss Sections",
+                  "element_id": "3000.05.01-GHXST-014",
+                  "quantity": 5,
+                  "unit_basis": "each",
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z",
+                  "procurement_need_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/RfqLine" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "rfqLines.delete",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.rfq_lines",
+        "x-xos-capability": "procurement.rfq.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Delete a rfq line",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Soft-deletes the rfq line: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the rfq line.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the rfq line.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The rfq line moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

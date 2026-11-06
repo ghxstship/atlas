@@ -154,7 +154,13 @@ if TYPE_CHECKING:
         AssetLotUpdate,
         AssetMaintenance,
         AssetMaintenanceCreate,
+        AssetMaintenanceDue,
+        AssetMaintenanceDuePage,
         AssetMaintenancePage,
+        AssetMaintenancePlan,
+        AssetMaintenancePlanCreate,
+        AssetMaintenancePlanPage,
+        AssetMaintenancePlanUpdate,
         AssetMaintenanceUpdate,
         AssetReservation,
         AssetReservationConflict,
@@ -163,6 +169,7 @@ if TYPE_CHECKING:
         AssetReservationRelease,
         AssetScanEvent,
         AssetScanResult,
+        AssetShortages,
         AssetTransitionRequest,
         AssetUnit,
         AssetUnitBulkEditRequest,
@@ -483,6 +490,14 @@ if TYPE_CHECKING:
         DelegationUpdate,
         DeletionCertificate,
         DeletionCertificatePage,
+        DeliveryWindow,
+        DeliveryWindowBookRequest,
+        DeliveryWindowBookResult,
+        DeliveryWindowCreate,
+        DeliveryWindowGenerateRequest,
+        DeliveryWindowGenerateResult,
+        DeliveryWindowPage,
+        DeliveryWindowUpdate,
         DeptCode,
         DirectConversationRequest,
         DirectoryEntryPage,
@@ -493,6 +508,7 @@ if TYPE_CHECKING:
         DispatchAssignmentUpdate,
         DisposeLostItemRequest,
         DockSlot,
+        DockSlotCancelBookingResult,
         DockSlotCreate,
         DockSlotPage,
         DockSlotUpdate,
@@ -974,6 +990,14 @@ if TYPE_CHECKING:
         PriceBookCreate,
         PriceBookPage,
         PriceBookUpdate,
+        ProcurementNeed,
+        ProcurementNeedConsolidateRequest,
+        ProcurementNeedConsolidateResult,
+        ProcurementNeedCreate,
+        ProcurementNeedPage,
+        ProcurementNeedStatus,
+        ProcurementNeedStatusPage,
+        ProcurementNeedUpdate,
         ProfileShare,
         ProfileShareCreate,
         ProfileSharePage,
@@ -1136,9 +1160,15 @@ if TYPE_CHECKING:
         ReturnLinePage,
         Rfq,
         RfqCreate,
+        RfqCreateSubHireRequest,
+        RfqCreateSubHireResult,
         RfqInvitation,
         RfqInvitationCreate,
         RfqInvitationPage,
+        RfqLine,
+        RfqLineCreate,
+        RfqLinePage,
+        RfqLineUpdate,
         RfqPage,
         RfqResponse,
         RfqResponseCreate,
@@ -5602,6 +5632,22 @@ class DockSlotsResource(Resource):
         """
         return self._client.request(OPERATIONS["dockSlots.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
+    def cancel_booking(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DockSlotCancelBookingResult]:
+        """Cancel a delivery booking
+
+        Cancels a booking and frees its place, before check-in and before the window starts: for its engagement or a dock writer. Its approval is canceled with it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /dock-slots/{id}/cancel-booking`` (operation ``dockSlots.cancelBooking``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["dockSlots.cancelBooking"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
 
 class GateQueueEntriesResource(Resource):
     """Operations on ``gateQueueEntries``, in the Logistics module."""
@@ -7105,6 +7151,21 @@ class AssetClassesResource(Resource):
         Requires the capability ``assets.asset.read``.
         """
         return self._client.request(OPERATIONS["assetClasses.availability"], path={"id": id}, query={"from": from_, "to": to}, options=options)
+
+    def shortages(
+        self,
+        *,
+        project_id: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetShortages]:
+        """What is short against own stock
+
+        One row per project and asset class whose open allocations want more than can supply them: serviceable units, lot quantity and quantity on order that covers the window. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. No prices or names. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /asset-classes/shortages`` (operation ``assetClasses.shortages``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["assetClasses.shortages"], query={"project_id": project_id}, options=options)
 
 
 class AssetUnitsResource(Resource):
@@ -13234,6 +13295,22 @@ class RfqsResource(Resource):
         Requires the capability ``procurement.rfq.write``.
         """
         return self._client.request(OPERATIONS["rfqs.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def create_sub_hire(
+        self,
+        body: RfqCreateSubHireRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RfqCreateSubHireResult]:
+        """Draft a sub-hire RFQ
+
+        Drafts a Proposed RFQ with one Rental line per short class, reusing a live need whose window overlaps or adding one of the short quantity. Vendors are invited as on any RFQ. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /rfqs/sub-hire`` (operation ``rfqs.createSubHire``).
+        Requires the capability ``procurement.rfq.write``.
+        """
+        return self._client.request(OPERATIONS["rfqs.createSubHire"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class RfqInvitationsResource(Resource):
@@ -32145,6 +32222,146 @@ class CueCallsResource(Resource):
         return self._client.request(OPERATIONS["cueCalls.delete"], path={"id": id}, options=options)
 
 
+class DeliveryWindowsResource(Resource):
+    """Operations on ``deliveryWindows``, in the Logistics module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[DeliveryWindow]:
+        """List delivery window rows
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /delivery-windows`` (operation ``deliveryWindows.list``).
+        Requires the capability ``logistics.shipment.read``.
+        """
+        return self._client.request_page(OPERATIONS["deliveryWindows.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[DeliveryWindow]:
+        """List delivery window rows
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns a cursor page of delivery window rows the caller may see. The default order is `starts_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /delivery-windows`` (operation ``deliveryWindows.list``).
+        Requires the capability ``logistics.shipment.read``.
+        """
+        return self._client.paginate(OPERATIONS["deliveryWindows.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: DeliveryWindowCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeliveryWindow]:
+        """Create a delivery window
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Creates a delivery window. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /delivery-windows`` (operation ``deliveryWindows.create``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeliveryWindow]:
+        """Get a delivery window
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Returns one delivery window with its `ETag`. A delivery window the caller may not see returns 404.
+
+        ``GET /delivery-windows/{id}`` (operation ``deliveryWindows.get``).
+        Requires the capability ``logistics.shipment.read``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: DeliveryWindowUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeliveryWindow]:
+        """Update a delivery window
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /delivery-windows/{id}`` (operation ``deliveryWindows.update``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a delivery window
+
+        A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone. Soft-deletes the delivery window: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /delivery-windows/{id}`` (operation ``deliveryWindows.delete``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.delete"], path={"id": id}, options=options)
+
+    def generate(
+        self,
+        body: DeliveryWindowGenerateRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeliveryWindowGenerateResult]:
+        """Add a schedule of delivery windows
+
+        Adds windows at a gate for each day, from a local start to a local end in slots of a length, on the project's calendar. A local time the clocks skip gets no window. At most 500 windows. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /delivery-windows/generate`` (operation ``deliveryWindows.generate``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.generate"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def book(
+        self,
+        id: str,
+        body: DeliveryWindowBookRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeliveryWindowBookResult]:
+        """Book a place in a delivery window
+
+        Books a place for a vehicle: for a dock writer on the project, or for a Vendor engagement of the project the caller reaches in the operational area. Returns the dock slot with its reference code. Each request's `Idempotency-Key` replays the stored response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /delivery-windows/{id}/book`` (operation ``deliveryWindows.book``).
+        Requires the capability ``logistics.dock_slot.write``.
+        """
+        return self._client.request(OPERATIONS["deliveryWindows.book"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
 class RosterEntriesResource(Resource):
     """Operations on ``rosterEntries``, in the Advancing module."""
 
@@ -32933,6 +33150,156 @@ class GuestListEntriesResource(Resource):
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class AssetMaintenancePlansResource(Resource):
+    """Operations on ``assetMaintenancePlans``, in the Assets module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetMaintenancePlan]:
+        """List asset maintenance plan rows
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-maintenance-plans`` (operation ``assetMaintenancePlans.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetMaintenancePlans.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetMaintenancePlan]:
+        """List asset maintenance plan rows
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns a cursor page of asset maintenance plan rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-maintenance-plans`` (operation ``assetMaintenancePlans.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetMaintenancePlans.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: AssetMaintenancePlanCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetMaintenancePlan]:
+        """Create an asset maintenance plan
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Creates an asset maintenance plan. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /asset-maintenance-plans`` (operation ``assetMaintenancePlans.create``).
+        Requires the capability ``assets.maintenance.write``.
+        """
+        return self._client.request(OPERATIONS["assetMaintenancePlans.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetMaintenancePlan]:
+        """Get an asset maintenance plan
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Returns one asset maintenance plan with its `ETag`. A asset maintenance plan the caller may not see returns 404.
+
+        ``GET /asset-maintenance-plans/{id}`` (operation ``assetMaintenancePlans.get``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request(OPERATIONS["assetMaintenancePlans.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: AssetMaintenancePlanUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssetMaintenancePlan]:
+        """Update an asset maintenance plan
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /asset-maintenance-plans/{id}`` (operation ``assetMaintenancePlans.update``).
+        Requires the capability ``assets.maintenance.write``.
+        """
+        return self._client.request(OPERATIONS["assetMaintenancePlans.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an asset maintenance plan
+
+        Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null. Soft-deletes the asset maintenance plan: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /asset-maintenance-plans/{id}`` (operation ``assetMaintenancePlans.delete``).
+        Requires the capability ``assets.maintenance.write``.
+        """
+        return self._client.request(OPERATIONS["assetMaintenancePlans.delete"], path={"id": id}, options=options)
+
+
+class AssetMaintenanceDueResource(Resource):
+    """Operations on ``assetMaintenanceDue``, in the Assets module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetMaintenanceDue]:
+        """List maintenance due rows
+
+        Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-maintenance-due`` (operation ``assetMaintenanceDue.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetMaintenanceDue.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetMaintenanceDue]:
+        """List maintenance due rows
+
+        Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log. Returns a cursor page of maintenance due rows the caller may see. The default order is `due_on` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-maintenance-due`` (operation ``assetMaintenanceDue.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetMaintenanceDue.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
 class AssetUnitHireResource(Resource):
     """Operations on ``assetUnitHire``, in the Assets module."""
 
@@ -33230,6 +33597,279 @@ class PoLineHireWarningsResource(Resource):
         Requires the capability ``procurement.po.read``.
         """
         return self._client.paginate(OPERATIONS["poLineHireWarnings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class ProcurementNeedsResource(Resource):
+    """Operations on ``procurementNeeds``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProcurementNeed]:
+        """List procurement need rows
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /procurement-needs`` (operation ``procurementNeeds.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["procurementNeeds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProcurementNeed]:
+        """List procurement need rows
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /procurement-needs`` (operation ``procurementNeeds.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["procurementNeeds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProcurementNeedCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProcurementNeed]:
+        """Create a procurement need
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Creates a procurement need. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /procurement-needs`` (operation ``procurementNeeds.create``).
+        Requires the capability ``procurement.po.write``.
+        """
+        return self._client.request(OPERATIONS["procurementNeeds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProcurementNeed]:
+        """Get a procurement need
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns one procurement need with its `ETag`. A procurement need the caller may not see returns 404.
+
+        ``GET /procurement-needs/{id}`` (operation ``procurementNeeds.get``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["procurementNeeds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProcurementNeedUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProcurementNeed]:
+        """Update a procurement need
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /procurement-needs/{id}`` (operation ``procurementNeeds.update``).
+        Requires the capability ``procurement.po.write``.
+        """
+        return self._client.request(OPERATIONS["procurementNeeds.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a procurement need
+
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Soft-deletes the procurement need: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /procurement-needs/{id}`` (operation ``procurementNeeds.delete``).
+        Requires the capability ``procurement.po.write``.
+        """
+        return self._client.request(OPERATIONS["procurementNeeds.delete"], path={"id": id}, options=options)
+
+    def consolidate(
+        self,
+        body: ProcurementNeedConsolidateRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProcurementNeedConsolidateResult]:
+        """Consolidate requests onto needs
+
+        Links allocations onto a need when `need_id` is given, leaving its quantity alone; otherwise adds one need per asset class with the sum of the selection. Needs procurement.po.write and advancing.packet.read on the project. Requested may be linked as well as Approved. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /procurement-needs/consolidate`` (operation ``procurementNeeds.consolidate``).
+        Requires the capability ``procurement.po.write``.
+        """
+        return self._client.request(OPERATIONS["procurementNeeds.consolidate"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class ProcurementNeedStatusResource(Resource):
+    """Operations on ``procurementNeedStatus``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProcurementNeedStatus]:
+        """List need status rows
+
+        Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /procurement-need-status`` (operation ``procurementNeedStatus.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["procurementNeedStatus.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProcurementNeedStatus]:
+        """List need status rows
+
+        Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted. Returns a cursor page of need status rows the caller may see. The default order is `need_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /procurement-need-status`` (operation ``procurementNeedStatus.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["procurementNeedStatus.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class RfqLinesResource(Resource):
+    """Operations on ``rfqLines``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RfqLine]:
+        """List rfq line rows
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /rfq-lines`` (operation ``rfqLines.list``).
+        Requires the capability ``procurement.rfq.read``.
+        """
+        return self._client.request_page(OPERATIONS["rfqLines.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RfqLine]:
+        """List rfq line rows
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /rfq-lines`` (operation ``rfqLines.list``).
+        Requires the capability ``procurement.rfq.read``.
+        """
+        return self._client.paginate(OPERATIONS["rfqLines.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: RfqLineCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RfqLine]:
+        """Create a rfq line
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Creates a rfq line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /rfq-lines`` (operation ``rfqLines.create``).
+        Requires the capability ``procurement.rfq.write``.
+        """
+        return self._client.request(OPERATIONS["rfqLines.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RfqLine]:
+        """Get a rfq line
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns one rfq line with its `ETag`. A rfq line the caller may not see returns 404.
+
+        ``GET /rfq-lines/{id}`` (operation ``rfqLines.get``).
+        Requires the capability ``procurement.rfq.read``.
+        """
+        return self._client.request(OPERATIONS["rfqLines.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: RfqLineUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RfqLine]:
+        """Update a rfq line
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /rfq-lines/{id}`` (operation ``rfqLines.update``).
+        Requires the capability ``procurement.rfq.write``.
+        """
+        return self._client.request(OPERATIONS["rfqLines.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a rfq line
+
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Soft-deletes the rfq line: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /rfq-lines/{id}`` (operation ``rfqLines.delete``).
+        Requires the capability ``procurement.rfq.write``.
+        """
+        return self._client.request(OPERATIONS["rfqLines.delete"], path={"id": id}, options=options)
 
 
 class InsuranceCertificateInsuredsResource(Resource):
