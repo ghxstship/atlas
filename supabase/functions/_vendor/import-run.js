@@ -44,6 +44,13 @@ function parseDelimited(text, delimiter) {
   }
   return rows;
 }
+var SENSITIVE_PATTERN = new RegExp(
+  `(${"allerg|alerg|dietary|diet\\M|dieta\\M|dietétic|dietetic|vegan|vegetarian|pescatarian|kosher|halal|gluten|celiac|celíac|nut[- ]free|intoleran|anaphyla|anafila|epipen|wheelchair|silla de ruedas|disabilit|disabled|discapacid|accesibilidad|accessibility|service animal|animal de servicio|sign language|lengua de señas|interpreter|intérprete|medical condition|condición médica|supplier diversity|minority[- ]owned|women[- ]owned|veteran[- ]owned|lgbt".replaceAll("\\M", "\\b")})`,
+  "i",
+);
+function looksSensitive(text) {
+  return SENSITIVE_PATTERN.test(text);
+}
 /** A cue number as a positive whole number: '12', 'Q12', 'CUE-07' or 'Cue 7'. Null for '12.5', 0 or anything else. */
 function cuePosition(text) {
   const m = /^(?:(?:q|cue)[\s#-]*|#\s*)?(\d{1,9})$/i.exec(text.trim());
@@ -700,6 +707,7 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
     case "guest_list_entries": {
       const projectId = destination.project?.id ?? null;
       for (const f of ["guest_name", "note"]) bounded(f);
+      await set("note", (v) => (looksSensitive(v) ? null : v), "sensitive_note");
       await set(
         "plus_ones",
         (v) => {
