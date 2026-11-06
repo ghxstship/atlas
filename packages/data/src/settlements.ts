@@ -387,7 +387,7 @@ export interface EngagementCostItem {
  * roll-up reads, on the project. For showing the Act costs tab and the All-in cost sections.
  */
 export async function canReadEngagementCosts(db: XosClient, projectId: string): Promise<boolean> {
-  const { data, error } = await untyped(db).rpc("can_read_engagement_costs", {
+  const { data, error } = await db.rpc("can_read_engagement_costs", {
     p_project_id: projectId,
   });
   return !error && data === true;
@@ -399,9 +399,9 @@ export async function listEngagementCosts(
   input: { readonly projectId: string; readonly engagementId?: string | null },
 ): Promise<Result<EngagementCost[]>> {
   return rows(
-    untyped(db).rpc("engagement_costs", {
+    db.rpc("engagement_costs", {
       p_project_id: input.projectId,
-      p_engagement_id: input.engagementId ?? null,
+      ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
     }),
     (r) => ({
       engagementId: str(r["engagement_id"]),
@@ -430,9 +430,9 @@ export async function listEngagementCostItems(
   input: { readonly projectId: string; readonly engagementId?: string | null },
 ): Promise<Result<EngagementCostItem[]>> {
   return rows(
-    untyped(db).rpc("engagement_cost_items", {
+    db.rpc("engagement_cost_items", {
       p_project_id: input.projectId,
-      p_engagement_id: input.engagementId ?? null,
+      ...(input.engagementId ? { p_engagement_id: input.engagementId } : {}),
     }),
     (r) => ({
       engagementId: str(r["engagement_id"]),

@@ -1440,7 +1440,7 @@ export async function listExpenseBalances(
   const out = new Map<string, ExpenseBalance>();
   for (let i = 0; i < expenseIds.length; i += 150) {
     const chunk = expenseIds.slice(i, i + 150);
-    const { data, error } = await untyped(db)
+    const { data, error } = await db
       .from("expense_balances")
       .select(BALANCE_COLUMNS)
       .in("expense_id", chunk);
@@ -1457,7 +1457,7 @@ export async function listExpenses(
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<Expense[]>> {
   const result = await rows(
-    untyped(db)
+    db
       .from("expenses")
       .select(EXPENSE_COLUMNS)
       .eq("org_id", input.orgId)
@@ -1497,7 +1497,7 @@ export async function createExpense(
   input: ExpenseInput,
 ): Promise<Result<{ id: string }>> {
   return one(
-    untyped(db)
+    db
       .from("expenses")
       .insert({
         org_id: orgId,
@@ -1528,7 +1528,7 @@ export function expenseCreditRow(
   orgId: string,
   original: { readonly budgetLineId: string; readonly currency: string },
   input: ExpenseCreditInput,
-): Record<string, unknown> {
+): Database["app"]["Tables"]["expenses"]["Insert"] {
   return {
     org_id: orgId,
     budget_line_id: original.budgetLineId,
@@ -1551,7 +1551,7 @@ export async function createExpenseCredit(
   input: ExpenseCreditInput,
 ): Promise<Result<{ id: string }>> {
   const original = await one(
-    untyped(db)
+    db
       .from("expenses")
       .select("id, budget_line_id, currency_code")
       .eq("id", input.originalId)
@@ -1560,7 +1560,7 @@ export async function createExpenseCredit(
   );
   if (!original.ok) return original;
   return one(
-    untyped(db)
+    db
       .from("expenses")
       .insert(expenseCreditRow(orgId, original.data, input))
       .select("id")
@@ -1583,7 +1583,7 @@ export async function updateExpenseCredit(
   },
 ): Promise<Result<null>> {
   return done(
-    untyped(db)
+    db
       .from("expenses")
       .update({
         amount_minor: input.amountMinor,
@@ -1625,12 +1625,12 @@ export async function findExpenseDuplicates(
   },
 ): Promise<Result<ExpenseDuplicate[]>> {
   return rows(
-    untyped(db).rpc("find_expense_duplicates", {
+    db.rpc("find_expense_duplicates", {
       p_budget_line_id: input.budgetLineId,
-      p_counterparty_id: input.counterpartyId,
+      p_counterparty_id: input.counterpartyId as string,
       p_amount_minor: input.amountMinor,
       p_incurred_on: input.incurredOn,
-      p_exclude_expense_id: input.excludeExpenseId ?? null,
+      ...(input.excludeExpenseId ? { p_exclude_expense_id: input.excludeExpenseId } : {}),
     }),
     toExpenseDuplicate,
   );
@@ -1644,8 +1644,8 @@ export async function listExpenseDuplicates(
   const out = new Map<string, ExpenseDuplicate[]>();
   for (let i = 0; i < expenseIds.length; i += 500) {
     const result = await rows(
-      untyped(db).rpc("expense_duplicate_candidates", {
-        p_expense_ids: expenseIds.slice(i, i + 500),
+      db.rpc("expense_duplicate_candidates", {
+        p_expense_ids: [...expenseIds.slice(i, i + 500)],
       }),
       toExpenseDuplicate,
     );
@@ -1665,7 +1665,7 @@ export async function updateExpense(
   input: Omit<ExpenseInput, "budgetLineId">,
 ): Promise<Result<null>> {
   return done(
-    untyped(db)
+    db
       .from("expenses")
       .update({
         counterparty_id: input.counterpartyId,
@@ -2930,7 +2930,7 @@ export function toPaymentDue(r: Raw): PaymentDue {
 
 /** Whether the viewer reads the ledger (app.can_read_payments_due): all five capabilities at organization reach. */
 export async function canReadPaymentsDue(db: XosClient, orgId: string): Promise<boolean> {
-  const r = await rpcValue<boolean>(untyped(db).rpc("can_read_payments_due", { p_org_id: orgId }));
+  const r = await rpcValue<boolean>(db.rpc("can_read_payments_due", { p_org_id: orgId }));
   return r.ok && r.data === true;
 }
 
@@ -2940,9 +2940,9 @@ export async function listPaymentsDue(
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<PaymentDue[]>> {
   const result = await rows(
-    untyped(db).rpc("payments_due", {
+    db.rpc("payments_due", {
       p_org_id: input.orgId,
-      p_project_id: input.projectId ?? null,
+      ...(input.projectId ? { p_project_id: input.projectId } : {}),
     }),
     toPaymentDue,
   );
@@ -3048,9 +3048,7 @@ export interface ReimbursementBalance {
 
 /** Whether the viewer reads reimbursements (app.can_read_reimbursements): both capabilities at organization reach. */
 export async function canReadReimbursements(db: XosClient, orgId: string): Promise<boolean> {
-  const r = await rpcValue<boolean>(
-    untyped(db).rpc("can_read_reimbursements", { p_org_id: orgId }),
-  );
+  const r = await rpcValue<boolean>(db.rpc("can_read_reimbursements", { p_org_id: orgId }));
   return r.ok && r.data === true;
 }
 
@@ -3063,9 +3061,9 @@ export async function listReimbursementBalances(
   input: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<ReimbursementBalance[]>> {
   const result = await rows(
-    untyped(db).rpc("reimbursement_balances", {
+    db.rpc("reimbursement_balances", {
       p_org_id: input.orgId,
-      p_project_id: input.projectId ?? null,
+      ...(input.projectId ? { p_project_id: input.projectId } : {}),
     }),
     (r): ReimbursementBalance => ({
       payeePersonId: str(r["payee_person_id"]),
@@ -3118,10 +3116,10 @@ export async function listOwedExpenses(
   },
 ): Promise<Result<OwedExpense[]>> {
   return rows(
-    untyped(db).rpc("owed_reimbursable_expenses", {
+    db.rpc("owed_reimbursable_expenses", {
       p_org_id: input.orgId,
       p_payee_person_id: input.payeePersonId,
-      p_project_id: input.projectId ?? null,
+      ...(input.projectId ? { p_project_id: input.projectId } : {}),
     }),
     (r) => ({
       expenseId: str(r["expense_id"]),
@@ -3152,7 +3150,7 @@ export async function listReimbursements(
   input: { readonly orgId: string; readonly payeePersonId: string },
 ): Promise<Result<Reimbursement[]>> {
   return rows(
-    untyped(db)
+    db
       .from("expense_reimbursements")
       .select(
         "id, payee_person_id, currency_code, paid_minor, paid_on, reference_identifier, voided_at, void_reason",
@@ -3185,11 +3183,11 @@ export async function recordExpenseReimbursement(
   },
 ): Promise<Result<{ id: string }>> {
   const r = await rpcValue<string>(
-    untyped(db).rpc("record_expense_reimbursement", {
+    db.rpc("record_expense_reimbursement", {
       p_payee_person_id: input.payeePersonId,
-      p_expense_ids: input.expenseIds,
+      p_expense_ids: [...input.expenseIds],
       p_paid_on: input.paidOn,
-      p_reference: input.reference,
+      ...(input.reference === null ? {} : { p_reference: input.reference }),
     }),
   );
   return r.ok ? ok({ id: r.data }) : r;
@@ -3201,7 +3199,7 @@ export async function voidExpenseReimbursement(
   input: { readonly id: string; readonly reason: string },
 ): Promise<Result<null>> {
   const r = await rpcValue(
-    untyped(db).rpc("void_expense_reimbursement", {
+    db.rpc("void_expense_reimbursement", {
       p_reimbursement_id: input.id,
       p_reason: input.reason,
     }),
@@ -3211,6 +3209,6 @@ export async function voidExpenseReimbursement(
 
 /** Whether the viewer records payments in the org (app.can_record_payments): for showing controls only. */
 export async function canRecordPayments(db: XosClient, orgId: string): Promise<boolean> {
-  const r = await rpcValue<boolean>(untyped(db).rpc("can_record_payments", { p_org_id: orgId }));
+  const r = await rpcValue<boolean>(db.rpc("can_record_payments", { p_org_id: orgId }));
   return r.ok && r.data === true;
 }
