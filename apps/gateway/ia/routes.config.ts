@@ -34,6 +34,12 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
   "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
+  "/onboard/{token}/open":
+    "Route handler: opens a vendor intake link with its access code and sets the grant (B2, ADR 0141).",
+  "/onboard/{token}/agreement":
+    "Route handler: downloads an intake link's pinned agreement by a single-use ticket (B2, ADR 0141).",
+  "/forms/{token}/open":
+    "Route handler: opens a public form link with its access code and sets the grant (B2, ADR 0141).",
   "/ical/{feedFile}":
     "Route handler: a calendar subscription feed, <token>.ics only (Section 4.5.8, Section 4.6.5, ADR 0040).",
   "/.well-known/apple-app-site-association":

@@ -109,6 +109,27 @@ Residual risk: the hosted Supabase edge may add a trusted hop to `X-Forwarded-Fo
 count is checked on staging (`infra/runbooks/hosted-security-settings.md`), a per-IP limit there may
 count a proxy's address and so be shared by many callers; it never counts the client's own text.
 
+### Stakeholder packs, intake links and public forms (B2, ADR 0141)
+
+Twelve more anon RPCs: `open_stakeholder_pack`, `stakeholder_pack`, `stakeholder_pack_item`, `stakeholder_pack_file`,
+`sign_stakeholder_pack_item`, `unsubscribe_stakeholder_pack`, `open_vendor_intake`, `vendor_intake`,
+`vendor_intake_agreement`, `open_form_link`, `public_form` and `submit_public_form`.
+
+| STRIDE | Threat | Control | Evidence |
+| ------ | ------ | ------- | -------- |
+| S | A guessed or leaked pack, intake or form link | 256-bit tokens and a 6-digit code, stored as hashes (a pack recipient's code salted per recipient); 5 wrong codes lock; every link expires within 90 days; a pack's emailed link lasts 7 days and carries no code | pgTAP 2912, 2914, 2916 |
+| T | A guessing run over many tokens | `pack_link.failure`, `vendor_intake.failure` and `form_link.failure`, 20 per relayed address in 10 minutes, and their `hop_failure` twins at 2000 per reaching address in 15; a valid grant is spared; a regenerated or superseded token counts no failure | pgTAP 2912, 2914 |
+| I | A token page answering more than it renders | Reads are built from named columns with exact key sets: never a pack's note, other recipients, a rate, an agreement's body, an org's id, form points or the approver | pgTAP 2912, 2914, 2916 |
+| I | Confidential or Restricted data on a token surface | Pack items are Public or Internal only, checked at add, read and ticket consumption; a current version that is not clean makes the item unavailable; no tax identifier or bank number passes a token RPC | pgTAP 2910, 2912, 2915 |
+| E | A device grant outliving its pack | A grant expires at the earliest of 7 days, the link and the pack; each read checks the pack and recipient again; revoking deletes grants and revokes links | pgTAP 2912 |
+| D | Spam through a public form | A 2-hour grant, a 3-second minimum fill, 10 submits an hour per relayed address, 500 per reaching address, a cap in any rolling 24 hours counted under the link's row lock, one response per email, 32 KB of answers, and a honeypot that answers ok and stores nothing. A response makes no record until approved. No CAPTCHA by design: it would need an external service account | pgTAP 2916 |
+| T | A stranger locking a reusable link with 5 wrong codes | Accepted: Outside access shows Locked with Regenerate (ADR 0141 decision 7) | pgTAP 2914 |
+| R | Denying what a recipient did | Append-only pack events; file downloads also in `app.file_access_log` as Share Link Opened. No visitor address is kept | pgTAP 2912 |
+
+Each grant lives in one HttpOnly, SameSite=Lax cookie: `xos_pack_grant` on `/share/pack` (up to 8 grants),
+`xos_intake_grant` on `/onboard/{token}` (24 hours) and `xos_form_grant` on `/forms/{token}` (2 hours). The service worker
+never keeps these paths, and the redactor replaces `xpkl_`, `xpkg_`, `xpku_`, `xvin_`, `xvig_`, `xfrm_` and `xfrg_` tokens.
+
 ## 2. External party to api_external
 
 External users (Client, Vendor, Contractor, Crew, Staff, Artist, Artist Representative, Sponsor)
@@ -123,6 +144,11 @@ internal-only except for tables with no internal columns.
 | I      | Reading internal columns (margins, notes, Do Not Engage) | Column allowlists; internal-only columns never appear in a view                                          | 0750 suite; gate 24 crawl (A24)                |
 | I      | Reading after the engagement closes                      | Time box by state: areas narrow at Complete and close 18 months later, except own tax forms and payments | 0761 suite                                     |
 | E      | An external user reaching Atlas data                     | External role types are not org roles; anon and unrelated users read no view rows                        | 0750 suite; `9901_security_cross_tenant_reads` |
+
+Vendor intake (B2, ADR 0141): the requester reads through `api_external.my_vendor_intake_requests`, column-allowlisted and
+self-filtered, and never the table. `app.submit_vendor_intake`, `app.add_intake_payout_reference` and `app.vendor_intake_org`
+need a session as well as the token and grant, and anon cannot execute them. A bank-shaped payout reference is refused, also
+when inserted directly under 0730's grant (`payout_reference_bank_number`, pgTAP 2915).
 
 ## 3. Tenant member to app
 
@@ -197,6 +223,12 @@ Outbound calls (webhook dispatch, the ticketing API feed) pass `isPublicAddress`
 written as IPv6 (mapped, compatible, NAT64) by the IPv4 rules and refuses every special-purpose block
 (A69-004). Residual risk: the host is resolved for the check and again by `fetch`, so DNS rebinding
 can still reach an internal address; the Edge runtime's `fetch` cannot connect to a checked address.
+
+The `email-unsubscribe` function (verify_jwt false) gained a stakeholder pack branch (B2, ADR 0141). A POST with an `xpku_`
+token calls the service-role `app.unsubscribe_pack_by_token`, which counts no failures: behind the function the reaching
+address is the function's own, so counting would let 20 bad tokens stop every recipient's unsubscribe, and the token is 256
+bits with an idempotent, low-harm effect. A GET answers 303 to Atlas's confirm page without acting, because mail scanners
+follow links. `report-run` mints each link with the service role; the email never carries the access code or a file.
 
 ## 6. Webhooks: Stripe, inbound email and kiosk punch
 

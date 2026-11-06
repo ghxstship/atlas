@@ -30,6 +30,7 @@ import {
   transitionEngagementAction,
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
+import { IntakeRequestsAction } from "@/components/projects/outside-access/intake-requests-action";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
@@ -72,10 +73,13 @@ import { must, type PageSetup } from "@/lib/opportunities/page";
 export async function EngagementsView({
   page,
   projectId,
+  intake,
   emptyHref,
 }: {
   page: PageSetup;
   projectId?: string;
+  /** The project tab only: Intake requests, from reusable vendor intake links (B2, ADR 0141). */
+  intake?: { readonly org: string; readonly projectKey: string };
   emptyHref: string;
 }) {
   const { ctx, t, param } = page;
@@ -105,6 +109,7 @@ export async function EngagementsView({
         <PageHeader
           title={t("engagements.title")}
           count={rows.length}
+          actions={intake ? <IntakeRequestsAction refs={intake} /> : undefined}
           views={
             <ViewSwitch
               label={t("views.label")}

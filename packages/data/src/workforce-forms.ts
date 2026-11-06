@@ -304,8 +304,12 @@ export interface FormSubmission {
   readonly version: number | null;
   readonly projectId: string | null;
   readonly recordId: string | null;
-  readonly submittedByMembershipId: string;
+  /** Null for a public link response (B2, ADR 0141), which has the respondent's name and email instead. */
+  readonly submittedByMembershipId: string | null;
   readonly submittedByName: string | null;
+  readonly formLinkId: string | null;
+  readonly respondentName: string | null;
+  readonly respondentEmail: string | null;
   readonly answers: FormAnswers;
   readonly score: number | null;
   readonly maxScore: number | null;
@@ -327,7 +331,7 @@ export async function listFormSubmissions(
   let query = untyped(db)
     .from("form_submissions")
     .select(
-      `id, form_template_id, project_id, record_id, submitted_by_membership_id, answers, score, max_score, passed, latitude, longitude,
+      `id, form_template_id, project_id, record_id, submitted_by_membership_id, form_link_id, respondent_name, respondent_email, answers, score, max_score, passed, latitude, longitude,
        signer_name, signed_at, submission_state, decision_note, created_at, template:form_templates(name),
        version:form_template_versions(version), submitter:memberships!form_submissions_submitted_by_membership_id_fkey(${MEMBER_EMBED})`,
     )
@@ -342,8 +346,11 @@ export async function listFormSubmissions(
     version: numOrNull((r["version"] as Raw | null)?.["version"]),
     projectId: strOrNull(r["project_id"]),
     recordId: strOrNull(r["record_id"]),
-    submittedByMembershipId: str(r["submitted_by_membership_id"]),
+    submittedByMembershipId: strOrNull(r["submitted_by_membership_id"]),
     submittedByName: memberName(r["submitter"]),
+    formLinkId: strOrNull(r["form_link_id"]),
+    respondentName: strOrNull(r["respondent_name"]),
+    respondentEmail: strOrNull(r["respondent_email"]),
     answers: (r["answers"] as FormAnswers | null) ?? {},
     score: numOrNull(r["score"]),
     maxScore: numOrNull(r["max_score"]),

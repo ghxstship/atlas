@@ -7,6 +7,8 @@
 export const CLIENT_ERROR_ROUTES: readonly string[] = [
   "/advance/[token]",
   "/sign/[token]",
+  "/onboard/[token]",
+  "/forms/[token]",
   "/u/[handle]",
   "/c/[companyHandle]",
   "/messages/[threadKey]",

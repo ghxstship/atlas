@@ -12,7 +12,9 @@ import {
   type Revealed,
 } from "@/lib/outside-access/actions";
 
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has?: (key: string) => boolean;
+};
 
 interface Who {
   title: string;

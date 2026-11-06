@@ -22,7 +22,9 @@ import { RevealPanel } from "./reveal-panel";
 const packEditor = onDemand(() => import("./pack-editor-dialog"));
 const intakeDialog = onDemand(() => import("./intake-link-dialog"));
 
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has?: (key: string) => boolean;
+};
 
 export interface OutsideCan {
   readonly packs: boolean;

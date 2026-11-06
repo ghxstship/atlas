@@ -18,3 +18,8 @@ order: 32
 - **Manual**: publique artículos del manual.
 - **Formularios**: cree formularios con lógica condicional, fotos obligatorias y firmas. El personal puede completarlos en Compass, sin conexión, y cada envío se convierte en un registro del tipo correcto.
 - **Capacitación**: cree cursos breves para su personal.
+
+
+## Enlaces públicos de formularios
+
+Un formulario Publicado sin foto, firma ni ubicación GPS puede tener un **Enlace público**. Personas fuera de la organización lo abren con un código de acceso y responden sin cuenta. Una respuesta se vuelve un registro solo cuando alguien la aprueba. Las respuestas aparecen en Envíos con la etiqueta Enlace público.

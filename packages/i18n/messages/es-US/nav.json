@@ -261,7 +261,9 @@
       "legal": "Legal",
       "advanceForm": "Formulario de coordinación previa",
       "agreementSigning": "Firma de acuerdo",
-      "calendarFeed": "Suscripción de calendario"
+      "calendarFeed": "Suscripción de calendario",
+      "vendorIntake": "Alta de Proveedor",
+      "publicForm": "Formulario Público"
     },
     "partner": {
       "clientOrgs": "Organizaciones cliente",
@@ -450,7 +452,9 @@
       "personProfile": "Perfil de persona",
       "companyProfile": "Perfil de empresa",
       "advanceForm": "Formulario de coordinación previa",
-      "agreementSigning": "Firma de acuerdo"
+      "agreementSigning": "Firma de acuerdo",
+      "vendorIntake": "Alta de Proveedor",
+      "publicForm": "Formulario Público"
     }
   },
   "compass": {

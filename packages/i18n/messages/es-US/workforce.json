@@ -315,7 +315,23 @@
     "stillNeeded": "Falta completar",
     "submittedTitle": "Enviado",
     "submittedBody": "Recibimos tu formulario. Llénalo de nuevo para otra revisión.",
-    "submit": "Enviar formulario"
+    "submit": "Enviar formulario",
+    "publicLink": {
+      "title": "Enlace público",
+      "badge": "Enlace público",
+      "by": "{name} ({email}), enlace público",
+      "create": "Nuevo enlace público",
+      "unsupported": "Los formularios con fotos, firmas o ubicación GPS solo los llenan los miembros.",
+      "description": "Personas fuera de la organización abren este formulario con un código de acceso y responden sin cuenta. Las respuestas se vuelven registros solo al aprobarse.",
+      "close": "Cerrar",
+      "project": "Proyecto",
+      "projectHelp": "Una respuesta aprobada se vuelve un registro en este proyecto.",
+      "noProject": "Sin proyecto",
+      "expiresOn": "Disponible hasta",
+      "dailyCap": "Máximo de respuestas en cualquier periodo de 24 horas",
+      "onePerEmail": "Una respuesta por correo",
+      "submit": "Crear enlace"
+    }
   },
   "training": {
     "title": "Capacitación",

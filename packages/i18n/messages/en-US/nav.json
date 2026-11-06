@@ -261,7 +261,9 @@
       "legal": "Legal",
       "advanceForm": "Advance Form",
       "agreementSigning": "Agreement Signing",
-      "calendarFeed": "Calendar Feed"
+      "calendarFeed": "Calendar Feed",
+      "vendorIntake": "Vendor Intake",
+      "publicForm": "Public Form"
     },
     "partner": {
       "clientOrgs": "Client Orgs",
@@ -450,7 +452,9 @@
       "personProfile": "Person Profile",
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
-      "agreementSigning": "Agreement Signing"
+      "agreementSigning": "Agreement Signing",
+      "vendorIntake": "Vendor Intake",
+      "publicForm": "Public Form"
     }
   },
   "compass": {

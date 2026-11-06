@@ -59924,6 +59924,2021 @@
         "required": ["token", "access_code", "expires_at"],
         "description": "A regenerated live link's new token and access code, shown once."
       },
+      "StakeholderPackPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StakeholderPack" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "StakeholderPack": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stakeholder pack.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the pack shares from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Pack name shown to recipients.",
+            "example": "Client pack"
+          },
+          "message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Message shown to recipients at the top of the pack.",
+            "example": "Welcome to the show."
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the pack is for, for the team. Never on a token page or in an email.",
+            "example": "For the client's finance team"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the pack stops opening: after now and within 90 days.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the pack was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the pack.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "name",
+          "message",
+          "note",
+          "expires_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once."
+      },
+      "StakeholderPackRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the pack shares from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Pack name shown to recipients.",
+            "example": "Client pack"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the pack stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Message shown to recipients.",
+            "example": "Welcome."
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "For the team; never shown to recipients.",
+            "example": "Finance"
+          }
+        },
+        "required": ["project_id", "name", "expires_at"],
+        "description": "A new stakeholder pack."
+      },
+      "StakeholderPackChange": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Pack name shown to recipients.",
+            "example": "Client pack"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the pack stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Message shown to recipients.",
+            "example": "Welcome."
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "For the team; never shown to recipients.",
+            "example": "Finance"
+          }
+        },
+        "required": ["name", "expires_at", "message", "note"],
+        "description": "A stakeholder pack's new details."
+      },
+      "StakeholderPackSchedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The schedule.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The pack.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "cadence": {
+            "type": "string",
+            "enum": ["Daily", "Weekly", "Monthly"],
+            "description": "How often a fresh sign-in link goes out.",
+            "example": "Weekly"
+          },
+          "local_hour": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Hour of the day it sends, 0 to 23, in time_zone.",
+            "example": 9
+          },
+          "weekday": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Weekly only: day of the week, 1 (Monday) to 7.",
+            "example": 1
+          },
+          "month_day": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Monthly only: day of the month, 1 to 28.",
+            "example": 1
+          },
+          "time_zone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "IANA time zone the hour is in.",
+            "example": "America/New_York"
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Next slot.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "paused_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the scheduler ended the schedule at the pack's expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "stakeholder_pack_id",
+          "cadence",
+          "local_hour",
+          "weekday",
+          "month_day",
+          "time_zone",
+          "next_run_at",
+          "paused_at"
+        ],
+        "description": "When a stakeholder pack emails its recipients a fresh sign-in link."
+      },
+      "StakeholderPackScheduleRequest": {
+        "type": "object",
+        "properties": {
+          "cadence": {
+            "type": "string",
+            "enum": ["Daily", "Weekly", "Monthly"],
+            "description": "How often a fresh sign-in link goes out.",
+            "example": "Weekly"
+          },
+          "local_hour": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Hour of the day it sends, 0 to 23.",
+            "example": 9
+          },
+          "weekday": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Weekly only: 1 (Monday) to 7.",
+            "example": 1
+          },
+          "month_day": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Monthly only: 1 to 28.",
+            "example": 1
+          },
+          "time_zone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "IANA time zone; the project's by default.",
+            "example": "America/New_York"
+          }
+        },
+        "required": ["cadence", "local_hour"],
+        "description": "When a pack sends."
+      },
+      "StakeholderPackItemPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StakeholderPackItem" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "StakeholderPackItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stakeholder pack item.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack the item belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Live Link", "File"],
+            "description": "Live Link, one P1 live link of the project; File, one Public or Internal file of the project.",
+            "example": "File"
+          },
+          "live_link_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the live link the item opens.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the file the item downloads.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Item title shown to recipients.",
+            "example": "Floor plan"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Order in the pack, from 0.",
+            "example": 0
+          },
+          "requires_acknowledgement": {
+            "type": "boolean",
+            "description": "True when each recipient is asked to type their name to acknowledge the item: a receipt, not a signature of a contract.",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "stakeholder_pack_id",
+          "item_kind",
+          "live_link_id",
+          "attachment_id",
+          "title",
+          "position",
+          "requires_acknowledgement"
+        ],
+        "description": "One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it."
+      },
+      "StakeholderPackItemRequest": {
+        "type": "object",
+        "properties": {
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack the item joins.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "live_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the live link to share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the file to share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Item title shown to recipients.",
+            "example": "Floor plan"
+          },
+          "requires_acknowledgement": {
+            "type": "boolean",
+            "description": "Ask each recipient to type their name.",
+            "example": false
+          }
+        },
+        "required": ["stakeholder_pack_id", "title"],
+        "description": "An item for a stakeholder pack."
+      },
+      "StakeholderPackItemRemoved": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The item removed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["id"],
+        "description": "The item removed."
+      },
+      "StakeholderPackRecipientPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StakeholderPackRecipient" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "StakeholderPackRecipient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stakeholder pack recipient.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack the recipient may open.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Recipient's name as the team entered it.",
+            "example": "Cleo Client"
+          },
+          "email": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Where the pack's sign-in links go, lower case.",
+            "example": "cleo@example.com"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the supplier the recipient works for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Group the recipient belongs to, for example a department.",
+            "example": "Finance"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the code was set; the recipient locks at 5.",
+            "example": 0
+          },
+          "unsubscribed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the recipient stopped the pack's emails.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the recipient was revoked.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the recipient.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "stakeholder_pack_id",
+          "full_name",
+          "email",
+          "counterparty_id",
+          "label",
+          "failed_attempts",
+          "unsubscribed_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here."
+      },
+      "StakeholderPackRecipientCode": {
+        "type": "object",
+        "properties": {
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new recipient.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          }
+        },
+        "required": ["recipient_id", "access_code"],
+        "description": "A new recipient and their access code, shown once."
+      },
+      "StakeholderPackRecipientRequest": {
+        "type": "object",
+        "properties": {
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack the recipient may open.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Recipient's name.",
+            "example": "Cleo Client"
+          },
+          "email": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Recipient's email.",
+            "example": "cleo@example.com"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the supplier the recipient works for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Group, for example a department.",
+            "example": "Finance"
+          }
+        },
+        "required": ["stakeholder_pack_id", "full_name", "email"],
+        "description": "A recipient for a stakeholder pack."
+      },
+      "StakeholderPackRecipientCodeReset": {
+        "type": "object",
+        "properties": {
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          }
+        },
+        "required": ["access_code"],
+        "description": "A recipient's new access code, shown once."
+      },
+      "StakeholderPackSent": {
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Deliveries queued.",
+            "example": 3
+          }
+        },
+        "required": ["queued"],
+        "description": "How many deliveries were queued."
+      },
+      "StakeholderPackSendRequest": {
+        "type": "object",
+        "properties": {
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack to send.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "recipient_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "description": "Only these recipients; every live recipient when left out.",
+            "example": []
+          }
+        },
+        "required": ["stakeholder_pack_id"],
+        "description": "Which recipients to email."
+      },
+      "StakeholderPackEventPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StakeholderPackEvent" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "StakeholderPackEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stakeholder pack event.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "stakeholder_pack_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the pack the event belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient who acted.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the item viewed, downloaded or signed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"],
+            "description": "What happened.",
+            "example": "Opened"
+          },
+          "signer_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name typed to acknowledge the item; Signed only.",
+            "example": "Cleo Client"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it happened.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "stakeholder_pack_id",
+          "recipient_id",
+          "item_id",
+          "action",
+          "signer_name",
+          "occurred_at"
+        ],
+        "description": "What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept."
+      },
+      "VendorIntakeLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VendorIntakeLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "VendorIntakeLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the vendor intake link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the engagements join.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "role_type": {
+            "type": "string",
+            "enum": ["Vendor", "Contractor"],
+            "description": "Vendor, a company account engages; Contractor, the signed-in person engages.",
+            "example": "Vendor"
+          },
+          "role_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Canon role the engagements take.",
+            "example": "9000.50.02"
+          },
+          "worker_classification": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon worker classification; never an employee one.",
+            "example": "VENDOR_SUPPLIED"
+          },
+          "pay_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon pay basis.",
+            "example": "Day Rate"
+          },
+          "arrangement": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon arrangement.",
+            "example": "Per Engagement"
+          },
+          "counterparty_type": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Canon counterparty type a new vendor gets; required for Vendor.",
+            "example": "AV Integrator"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the engagements.",
+            "example": "2026-10-08"
+          },
+          "end_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day of the engagements, when known.",
+            "example": "2026-10-08"
+          },
+          "agreement_document_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Knowledge document each requester signs.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "agreement_version_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the version pinned when the link was made.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "What the link is for, shown on the public page.",
+            "example": "Audio vendors"
+          },
+          "instructions": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Instructions shown on the public page.",
+            "example": "Send us your details."
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for, for the team. Never on the public page.",
+            "example": "Summer season"
+          },
+          "collect_tax_form": {
+            "type": "boolean",
+            "description": "True when a request must carry a tax form.",
+            "example": true
+          },
+          "collect_payout": {
+            "type": "boolean",
+            "description": "True when the intake asks for a payout reference.",
+            "example": true
+          },
+          "collect_invoice": {
+            "type": "boolean",
+            "description": "True when a request may carry a first invoice draft.",
+            "example": false
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token, to tell links apart.",
+            "example": "3f9a"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days of when it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "max_requests": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Most requests the link takes, 1 to 500.",
+            "example": 50
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the link was made or regenerated; it locks at 5.",
+            "example": 0
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last regenerated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "role_type",
+          "role_code",
+          "worker_classification",
+          "pay_basis",
+          "arrangement",
+          "counterparty_type",
+          "start_date",
+          "end_date",
+          "agreement_document_id",
+          "agreement_version_id",
+          "title",
+          "instructions",
+          "note",
+          "collect_tax_form",
+          "collect_payout",
+          "collect_invoice",
+          "token_hint",
+          "expires_at",
+          "max_requests",
+          "failed_attempts",
+          "rotated_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes."
+      },
+      "VendorIntakeLinkToken": {
+        "type": "object",
+        "properties": {
+          "vendor_intake_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xvin_[0-9a-f]{64}$",
+            "description": "The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.",
+            "example": "xvin_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["vendor_intake_link_id", "token", "access_code", "expires_at"],
+        "description": "A new intake link with its token and access code, shown once."
+      },
+      "VendorIntakeLinkRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the engagements join.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "What the link is for, shown on the public page.",
+            "example": "Audio vendors"
+          },
+          "role_type": {
+            "type": "string",
+            "enum": ["Vendor", "Contractor"],
+            "description": "Vendor or Contractor.",
+            "example": "Vendor"
+          },
+          "role_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Canon role.",
+            "example": "9000.50.02"
+          },
+          "worker_classification": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon worker classification.",
+            "example": "VENDOR_SUPPLIED"
+          },
+          "pay_basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon pay basis.",
+            "example": "Day Rate"
+          },
+          "arrangement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Canon arrangement.",
+            "example": "Per Engagement"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the engagements.",
+            "example": "2026-10-08"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the engagements.",
+            "example": "2026-10-08"
+          },
+          "counterparty_type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Counterparty type a new vendor gets.",
+            "example": "AV Integrator"
+          },
+          "agreement_document_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Knowledge document each requester signs.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Instructions on the public page.",
+            "example": "Send us your details."
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "For the team.",
+            "example": "Summer season"
+          },
+          "collect_tax_form": {
+            "type": "boolean",
+            "description": "Ask for a tax form.",
+            "example": true
+          },
+          "collect_payout": {
+            "type": "boolean",
+            "description": "Ask for a payout reference.",
+            "example": true
+          },
+          "collect_invoice": {
+            "type": "boolean",
+            "description": "Take a first invoice draft.",
+            "example": false
+          },
+          "max_requests": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Most requests the link takes, 1 to 500.",
+            "example": 50
+          }
+        },
+        "required": [
+          "project_id",
+          "title",
+          "role_type",
+          "role_code",
+          "worker_classification",
+          "pay_basis",
+          "arrangement",
+          "start_date",
+          "expires_at"
+        ],
+        "description": "A new vendor intake link."
+      },
+      "VendorIntakeLinkRegenerated": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^xvin_[0-9a-f]{64}$",
+            "description": "The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.",
+            "example": "xvin_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; regenerating keeps the expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["token", "access_code", "expires_at"],
+        "description": "A regenerated intake link's new token and access code, shown once."
+      },
+      "VendorIntakeRequestPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VendorIntakeRequest" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "VendorIntakeRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the vendor intake request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vendor_intake_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the intake link the request came through.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "requested_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who sent the request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the company account, for a Vendor link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "tax_form_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the requester's own tax form.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "payout_account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the requester's own payout reference.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "signer_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name typed to sign the agreement.",
+            "example": "Victor Osei"
+          },
+          "signed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the requester signed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "signed_version_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the agreement version signed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "invoice_draft": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "Optional first invoice: invoice_number, issue_date, due_date, currency_code and up to 50 lines.",
+            "example": null
+          },
+          "request_state": {
+            "type": "string",
+            "enum": ["Pending", "Approved", "Declined", "Withdrawn"],
+            "description": "Pending, Approved, Declined or Withdrawn.",
+            "example": "Pending"
+          },
+          "decided_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who decided.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was decided.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "decision_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why it was declined, or a note on approval.",
+            "example": "We already have this crew booked."
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the approval created.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "invoice_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the invoice the draft became.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "vendor_intake_link_id",
+          "project_id",
+          "requested_by",
+          "account_id",
+          "tax_form_id",
+          "payout_account_id",
+          "signer_name",
+          "signed_at",
+          "signed_version_id",
+          "invoice_draft",
+          "request_state",
+          "decided_by",
+          "decided_at",
+          "decision_reason",
+          "engagement_id",
+          "invoice_id"
+        ],
+        "description": "What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here."
+      },
+      "VendorIntakeApproval": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why, at least 10 characters to decline.",
+            "example": "We already have this crew booked."
+          }
+        },
+        "description": "An optional note."
+      },
+      "VendorIntakeDecline": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why, at least 10 characters to decline.",
+            "example": "We already have this crew booked."
+          }
+        },
+        "required": ["reason"],
+        "description": "Why it is declined."
+      },
+      "FormLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FormLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "FormLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the form link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the form the link answers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the responses belong to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for, for the team. Never on the public page.",
+            "example": "Supplier check-in"
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token, to tell links apart.",
+            "example": "3f9a"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days of when it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "daily_cap": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Most responses in any 24 hours, 1 to 1000.",
+            "example": 200
+          },
+          "max_responses": {
+            "type": ["integer", "null"],
+            "description": "Most responses in all, 1 to 10000, or none.",
+            "example": null
+          },
+          "one_per_email": {
+            "type": "boolean",
+            "description": "True when each email address answers the link once.",
+            "example": true
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes since the link was made or regenerated; it locks at 5.",
+            "example": 0
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last regenerated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "form_template_id",
+          "project_id",
+          "note",
+          "token_hint",
+          "expires_at",
+          "daily_cap",
+          "max_responses",
+          "one_per_email",
+          "failed_attempts",
+          "rotated_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes."
+      },
+      "FormLinkToken": {
+        "type": "object",
+        "properties": {
+          "form_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xfrm_[0-9a-f]{64}$",
+            "description": "The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.",
+            "example": "xfrm_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["form_link_id", "token", "access_code", "expires_at"],
+        "description": "A new form link with its token and access code, shown once."
+      },
+      "FormLinkRequest": {
+        "type": "object",
+        "properties": {
+          "form_template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the form the link answers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the responses belong to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "daily_cap": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Most responses in any 24 hours, 1 to 1000.",
+            "example": 200
+          },
+          "max_responses": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Most responses in all, 1 to 10000.",
+            "example": 500
+          },
+          "one_per_email": {
+            "type": "boolean",
+            "description": "Each email answers once.",
+            "example": true
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "For the team.",
+            "example": "Supplier check-in"
+          }
+        },
+        "required": ["form_template_id", "expires_at"],
+        "description": "A new public form link."
+      },
+      "FormLinkRegenerated": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^xfrm_[0-9a-f]{64}$",
+            "description": "The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.",
+            "example": "xfrm_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code. Shown once; send it apart from the link, never by email.",
+            "example": "042424"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops opening; regenerating keeps the expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["token", "access_code", "expires_at"],
+        "description": "A regenerated form link's new token and access code, shown once."
+      },
+      "FormLinkResponsePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FormLinkResponse" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "FormLinkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the form link response.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the public link the response came through.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the form answered.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_template_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the version answered.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the response belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the approval made.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "respondent_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the respondent gave.",
+            "example": "Rae Ortiz"
+          },
+          "respondent_email": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Email the respondent gave, lower case.",
+            "example": "rae@example.com"
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Answers keyed by field key.",
+            "example": { "hoist_ok": true }
+          },
+          "score": { "type": ["number", "null"], "description": "Points earned.", "example": 3 },
+          "max_score": {
+            "type": ["number", "null"],
+            "description": "Points available on the shown fields.",
+            "example": 3
+          },
+          "passed": {
+            "type": ["boolean", "null"],
+            "description": "Whether the pass score was met.",
+            "example": true
+          },
+          "submission_state": {
+            "type": "string",
+            "enum": ["Submitted", "Approved", "Rejected", "Recorded"],
+            "description": "Where the response stands.",
+            "example": "Submitted"
+          },
+          "decided_by_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who decided.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decision_note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why it was rejected, or a note on approval.",
+            "example": "Thanks."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "form_link_id",
+          "form_template_id",
+          "form_template_version_id",
+          "project_id",
+          "record_id",
+          "respondent_name",
+          "respondent_email",
+          "answers",
+          "score",
+          "max_score",
+          "passed",
+          "submission_state",
+          "decided_by_membership_id",
+          "decision_note"
+        ],
+        "description": "A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only."
+      },
+      "FormLinkResponseDecision": {
+        "type": "object",
+        "properties": {
+          "approve": {
+            "type": "boolean",
+            "description": "True to approve, false to reject.",
+            "example": true
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why it is rejected, or a note on approval.",
+            "example": "Thanks."
+          }
+        },
+        "required": ["approve"],
+        "description": "The decision on a public form response."
+      },
+      "OutsideAccessRowPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OutsideAccessRow" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "OutsideAccessRow": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Project reached.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "Live view link",
+              "Display link",
+              "File link",
+              "Advance link",
+              "Signing link",
+              "Roster invitation",
+              "Pack recipient",
+              "Intake link",
+              "Form link",
+              "Engagement"
+            ],
+            "description": "What kind of access it is.",
+            "example": "Intake link"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Id of the row in its source table, for its own revoke or regenerate operation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400,
+            "description": "What the row is.",
+            "example": "Audio vendors"
+          },
+          "recipient_email": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Who it was sent to, when the source names one.",
+            "example": "cleo@example.com"
+          },
+          "token_hint": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token.",
+            "example": "3f9a"
+          },
+          "link_state": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Active, Locked, Expired, Revoked or Used for links; a roster invitation's or engagement's state.",
+            "example": "Active"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it stops working; null for an engagement.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "open_count": {
+            "type": ["integer", "null"],
+            "description": "Successful opens, where the source counts them.",
+            "example": 3
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Last successful open, where the source records it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who made it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "project_id",
+          "source",
+          "source_id",
+          "label",
+          "recipient_email",
+          "token_hint",
+          "link_state",
+          "expires_at",
+          "open_count",
+          "last_opened_at",
+          "created_at",
+          "created_by"
+        ],
+        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably."
+      },
       "PersonCalendarFeedPage": {
         "type": "object",
         "properties": {
@@ -156949,6 +158964,2245 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs": {
+      "get": {
+        "operationId": "stakeholderPacks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List stakeholder pack rows",
+        "description": "A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns a cursor page of stakeholder pack rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of stakeholder pack rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "name": "Client pack",
+                      "message": "Welcome to the show.",
+                      "note": "For the client's finance team",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/{id}": {
+      "get": {
+        "operationId": "stakeholderPacks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a stakeholder pack",
+        "description": "A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once. Returns one stakeholder pack with its `ETag`. A stakeholder pack the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The stakeholder pack.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Client pack",
+                  "message": "Welcome to the show.",
+                  "note": "For the client's finance team",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPack" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/create": {
+      "post": {
+        "operationId": "stakeholderPacks.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_stakeholder_pack",
+        "summary": "Create a stakeholder pack",
+        "description": "Makes a pack on a project through app.create_stakeholder_pack. Needs membership of the project's org and projects.settings.write on the project (a partner org never qualifies), an org that is not read-only (422 `org_read_only`), and an expiry after now and within 90 days (422 `stakeholder_pack_expiry_range`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "name": "Client pack",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "message": "Welcome.",
+                "note": "Finance"
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Client pack",
+                  "message": "Welcome to the show.",
+                  "note": "For the client's finance team",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPack" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/{id}/update": {
+      "post": {
+        "operationId": "stakeholderPacks.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "update_stakeholder_pack",
+        "summary": "Change a stakeholder pack",
+        "description": "Changes the name, message, note and expiry through app.update_stakeholder_pack. An earlier expiry stops every link and device grant at once. Refused for a revoked pack (422 `stakeholder_pack_revoked`) and a read-only org (422 `org_read_only`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Client pack",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "message": "Welcome.",
+                "note": "Finance"
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackChange" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Client pack",
+                  "message": "Welcome to the show.",
+                  "note": "For the client's finance team",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPack" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/{id}/revoke": {
+      "post": {
+        "operationId": "stakeholderPacks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "revoke_stakeholder_pack",
+        "summary": "Revoke a stakeholder pack",
+        "description": "Revokes the pack through app.revoke_stakeholder_pack: every device grant is deleted and every emailed link revoked. Allowed in a read-only org, since it withdraws access. Revoking a revoked pack answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Client pack",
+                  "message": "Welcome to the show.",
+                  "note": "For the client's finance team",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPack" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/{id}/schedule": {
+      "post": {
+        "operationId": "stakeholderPacks.setSchedule",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "set_stakeholder_pack_schedule",
+        "summary": "Set a pack's delivery schedule",
+        "description": "Sets when the pack emails its recipients a fresh sign-in link through app.set_stakeholder_pack_schedule: Daily, Weekly (weekday 1 to 7) or Monthly (day 1 to 28) at a local hour, in the project's zone by default. A slot after the pack's expiry is refused (422 `stakeholder_pack_schedule_past_expiry`). Outside recipients get a link, never a report file. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "cadence": "Weekly",
+                "local_hour": 9,
+                "weekday": 1,
+                "month_day": 1,
+                "time_zone": "America/New_York"
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackScheduleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "cadence": "Weekly",
+                  "local_hour": 9,
+                  "weekday": 1,
+                  "month_day": 1,
+                  "time_zone": "America/New_York",
+                  "next_run_at": "2026-10-08T14:30:00Z",
+                  "paused_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackSchedule" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-packs/{id}/schedule/clear": {
+      "post": {
+        "operationId": "stakeholderPacks.clearSchedule",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_packs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "clear_stakeholder_pack_schedule",
+        "summary": "Clear a pack's delivery schedule",
+        "description": "Turns the schedule off through app.clear_stakeholder_pack_schedule; deliveries already queued still go. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Client pack",
+                  "message": "Welcome to the show.",
+                  "note": "For the client's finance team",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPack" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-items": {
+      "get": {
+        "operationId": "stakeholderPackItems.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List stakeholder pack item rows",
+        "description": "One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it. Returns a cursor page of stakeholder pack item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of stakeholder pack item rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "item_kind": "File",
+                      "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Floor plan",
+                      "position": 0,
+                      "requires_acknowledgement": false
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackItemPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-items/add": {
+      "post": {
+        "operationId": "stakeholderPackItems.add",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "add_stakeholder_pack_item",
+        "summary": "Add an item to a stakeholder pack",
+        "description": "Adds one live link or one file, last in order, through app.add_stakeholder_pack_item. A live link must be one the caller may manage, on the pack's project, neither revoked nor expired (422 `stakeholder_pack_item_link`). A file must be readable by the caller, of the pack's project, with a clean current version (422 `stakeholder_pack_item_file`), and Public or Internal (422 `stakeholder_pack_item_classified`). At most 30 items (422 `stakeholder_pack_item_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "Floor plan",
+                "requires_acknowledgement": false
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackItemRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "item_kind": "File",
+                  "live_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Floor plan",
+                  "position": 0,
+                  "requires_acknowledgement": false
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-items/{id}/remove": {
+      "post": {
+        "operationId": "stakeholderPackItems.remove",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "remove_stakeholder_pack_item",
+        "summary": "Remove an item from a stakeholder pack",
+        "description": "Removes the item through app.remove_stakeholder_pack_item; recipients stop seeing it at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackItemRemoved" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients": {
+      "get": {
+        "operationId": "stakeholderPackRecipients.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List stakeholder pack recipient rows",
+        "description": "One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns a cursor page of stakeholder pack recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of stakeholder pack recipient rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "full_name": "Cleo Client",
+                      "email": "cleo@example.com",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "label": "Finance",
+                      "failed_attempts": 0,
+                      "unsubscribed_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackRecipientPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients/{id}": {
+      "get": {
+        "operationId": "stakeholderPackRecipients.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a stakeholder pack recipient",
+        "description": "One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here. Returns one stakeholder pack recipient with its `ETag`. A stakeholder pack recipient the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The stakeholder pack recipient.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Cleo Client",
+                  "email": "cleo@example.com",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "label": "Finance",
+                  "failed_attempts": 0,
+                  "unsubscribed_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients/add": {
+      "post": {
+        "operationId": "stakeholderPackRecipients.add",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "add_stakeholder_pack_recipient",
+        "summary": "Add a recipient to a stakeholder pack",
+        "description": "Adds a person through app.add_stakeholder_pack_recipient and answers their 6-digit access code once, to give by phone or message. Refuses a revoked pack, a read-only org, a malformed email (422 `stakeholder_pack_recipient_email`), a second live recipient with the same email (422 `stakeholder_pack_recipient_duplicate`), more than 200 recipients (422 `stakeholder_pack_recipient_limit`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "full_name": "Cleo Client",
+                "email": "cleo@example.com",
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "label": "Finance"
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackRecipientRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "access_code": "042424"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackRecipientCode" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients/{id}/reset-code": {
+      "post": {
+        "operationId": "stakeholderPackRecipients.resetCode",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "reset_stakeholder_pack_recipient_code",
+        "summary": "Reset a recipient's access code",
+        "description": "Draws a new 6-digit code through app.reset_stakeholder_pack_recipient_code, answered once. Wrong-code attempts reset, which unlocks a locked recipient, and every device grant is dropped. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "access_code": "042424" },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackRecipientCodeReset" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients/{id}/revoke": {
+      "post": {
+        "operationId": "stakeholderPackRecipients.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "revoke_stakeholder_pack_recipient",
+        "summary": "Revoke a recipient",
+        "description": "Revokes one recipient through app.revoke_stakeholder_pack_recipient: their device grants are deleted and emailed links revoked. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the stakeholder pack recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the stakeholder pack recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Cleo Client",
+                  "email": "cleo@example.com",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "label": "Finance",
+                  "failed_attempts": 0,
+                  "unsubscribed_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-recipients/send": {
+      "post": {
+        "operationId": "stakeholderPackRecipients.send",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_recipients",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "send_stakeholder_pack",
+        "summary": "Email a pack's sign-in links now",
+        "description": "Queues an Invite or Resend per recipient through app.send_stakeholder_pack. Revoked and unsubscribed recipients, addresses on the org's suppression list, and any recipient already sent 3 manual emails in the last hour are skipped. The email never carries the access code. Answers how many were queued. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "recipient_ids": []
+              },
+              "schema": { "$ref": "#/components/schemas/StakeholderPackSendRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "queued": 3 },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackSent" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/stakeholder-pack-events": {
+      "get": {
+        "operationId": "stakeholderPackEvents.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.stakeholder_pack_events",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List stakeholder pack event rows",
+        "description": "What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept. Returns a cursor page of stakeholder pack event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of stakeholder pack event rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "stakeholder_pack_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "action": "Opened",
+                      "signer_name": "Cleo Client",
+                      "occurred_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/StakeholderPackEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-links": {
+      "get": {
+        "operationId": "vendorIntakeLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_links",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List vendor intake link rows",
+        "description": "A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns a cursor page of vendor intake link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of vendor intake link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "role_type": "Vendor",
+                      "role_code": "9000.50.02",
+                      "worker_classification": "VENDOR_SUPPLIED",
+                      "pay_basis": "Day Rate",
+                      "arrangement": "Per Engagement",
+                      "counterparty_type": "AV Integrator",
+                      "start_date": "2026-10-08",
+                      "end_date": "2026-10-08",
+                      "agreement_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "agreement_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Audio vendors",
+                      "instructions": "Send us your details.",
+                      "note": "Summer season",
+                      "collect_tax_form": true,
+                      "collect_payout": true,
+                      "collect_invoice": false,
+                      "token_hint": "3f9a",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "max_requests": 50,
+                      "failed_attempts": 0,
+                      "rotated_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-links/{id}": {
+      "get": {
+        "operationId": "vendorIntakeLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_links",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "summary": "Get a vendor intake link",
+        "description": "A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes. Returns one vendor intake link with its `ETag`. A vendor intake link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vendor intake link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "role_type": "Vendor",
+                  "role_code": "9000.50.02",
+                  "worker_classification": "VENDOR_SUPPLIED",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "counterparty_type": "AV Integrator",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08",
+                  "agreement_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "agreement_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Audio vendors",
+                  "instructions": "Send us your details.",
+                  "note": "Summer season",
+                  "collect_tax_form": true,
+                  "collect_payout": true,
+                  "collect_invoice": false,
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "max_requests": 50,
+                  "failed_attempts": 0,
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-links/create": {
+      "post": {
+        "operationId": "vendorIntakeLinks.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_links",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "create_vendor_intake_link",
+        "summary": "Create a vendor intake link",
+        "description": "Makes a reusable link through app.create_vendor_intake_link. Needs membership of the project's org and opportunities.engagement.write on the project. Refuses an employee classification (422 `vendor_intake_classification`), a Vendor link without a counterparty type (422 `vendor_intake_counterparty_type`), terms that are not one rate card row (422 `vendor_intake_rate_card`), an expiry past 90 days (422 `vendor_intake_expiry_range`), an agreement without a clean upload (422 `intake_agreement_file`) or above Internal (422 `intake_agreement_classified`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "Audio vendors",
+                "role_type": "Vendor",
+                "role_code": "9000.50.02",
+                "worker_classification": "VENDOR_SUPPLIED",
+                "pay_basis": "Day Rate",
+                "arrangement": "Per Engagement",
+                "start_date": "2026-10-08",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "end_date": "2026-10-08",
+                "counterparty_type": "AV Integrator",
+                "agreement_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "instructions": "Send us your details.",
+                "note": "Summer season",
+                "collect_tax_form": true,
+                "collect_payout": true,
+                "collect_invoice": false,
+                "max_requests": 50
+              },
+              "schema": { "$ref": "#/components/schemas/VendorIntakeLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "vendor_intake_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xvin_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-links/{id}/regenerate": {
+      "post": {
+        "operationId": "vendorIntakeLinks.regenerate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_links",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "regenerate_vendor_intake_link",
+        "summary": "Regenerate a vendor intake link",
+        "description": "Draws a new token and code through app.regenerate_vendor_intake_link; wrong-code attempts reset, which unlocks a locked link, and every grant is dropped. A revoked link (422 `vendor_intake_link_revoked`) and a read-only org (422 `org_read_only`) are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "xvin_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeLinkRegenerated" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-links/{id}/revoke": {
+      "post": {
+        "operationId": "vendorIntakeLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_links",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "revoke_vendor_intake_link",
+        "summary": "Revoke a vendor intake link",
+        "description": "Revokes the link through app.revoke_vendor_intake_link so it never opens again; requests already sent stay for the team to decide. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "role_type": "Vendor",
+                  "role_code": "9000.50.02",
+                  "worker_classification": "VENDOR_SUPPLIED",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "counterparty_type": "AV Integrator",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08",
+                  "agreement_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "agreement_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Audio vendors",
+                  "instructions": "Send us your details.",
+                  "note": "Summer season",
+                  "collect_tax_form": true,
+                  "collect_payout": true,
+                  "collect_invoice": false,
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "max_requests": 50,
+                  "failed_attempts": 0,
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-requests": {
+      "get": {
+        "operationId": "vendorIntakeRequests.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_requests",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List vendor intake request rows",
+        "description": "What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns a cursor page of vendor intake request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of vendor intake request rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "vendor_intake_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "tax_form_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "payout_account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "signer_name": "Victor Osei",
+                      "signed_at": "2026-10-08T14:30:00Z",
+                      "signed_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "invoice_draft": null,
+                      "request_state": "Pending",
+                      "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_at": "2026-10-08T14:30:00Z",
+                      "decision_reason": "We already have this crew booked.",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeRequestPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-requests/{id}": {
+      "get": {
+        "operationId": "vendorIntakeRequests.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_requests",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "summary": "Get a vendor intake request",
+        "description": "What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here. Returns one vendor intake request with its `ETag`. A vendor intake request the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vendor intake request.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vendor_intake_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tax_form_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payout_account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "signer_name": "Victor Osei",
+                  "signed_at": "2026-10-08T14:30:00Z",
+                  "signed_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_draft": null,
+                  "request_state": "Pending",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decision_reason": "We already have this crew booked.",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-requests/{id}/approve": {
+      "post": {
+        "operationId": "vendorIntakeRequests.approve",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_requests",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "decide_vendor_intake",
+        "summary": "Approve a vendor intake request",
+        "description": "Approves into an Onboarding engagement on the link's terms through app.decide_vendor_intake: the org's counterparty for the account is reused or added, Tax Form and Payout Details items are marked submitted but never verified, and the agreement is signed for the pinned version or stays Sent. The requester and anyone in the vendor account are refused (422 `sod_vendor_intake_self`); a decided request answers 422 `vendor_intake_not_pending`; the plan limit surfaces its own code. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "We already have this crew booked." },
+              "schema": { "$ref": "#/components/schemas/VendorIntakeApproval" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vendor_intake_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tax_form_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payout_account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "signer_name": "Victor Osei",
+                  "signed_at": "2026-10-08T14:30:00Z",
+                  "signed_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_draft": null,
+                  "request_state": "Pending",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decision_reason": "We already have this crew booked.",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendor-intake-requests/{id}/decline": {
+      "post": {
+        "operationId": "vendorIntakeRequests.decline",
+        "tags": ["Platform"],
+        "x-xos-table": "app.vendor_intake_requests",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "decide_vendor_intake",
+        "summary": "Decline a vendor intake request",
+        "description": "Declines through app.decide_vendor_intake with a reason of at least 10 characters (422 `vendor_intake_decline_reason`). The tax form and payout reference written for it are soft-deleted when nothing else needs them. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor intake request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor intake request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "We already have this crew booked." },
+              "schema": { "$ref": "#/components/schemas/VendorIntakeDecline" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vendor_intake_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tax_form_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payout_account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "signer_name": "Victor Osei",
+                  "signed_at": "2026-10-08T14:30:00Z",
+                  "signed_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_draft": null,
+                  "request_state": "Pending",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decision_reason": "We already have this crew booked.",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/VendorIntakeRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-links": {
+      "get": {
+        "operationId": "formLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_links",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List form link rows",
+        "description": "A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns a cursor page of form link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of form link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "note": "Supplier check-in",
+                      "token_hint": "3f9a",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "daily_cap": 200,
+                      "max_responses": null,
+                      "one_per_email": true,
+                      "failed_attempts": 0,
+                      "rotated_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-links/{id}": {
+      "get": {
+        "operationId": "formLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_links",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "summary": "Get a form link",
+        "description": "A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes. Returns one form link with its `ETag`. A form link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the form link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the form link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The form link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Supplier check-in",
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "daily_cap": 200,
+                  "max_responses": null,
+                  "one_per_email": true,
+                  "failed_attempts": 0,
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/FormLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-links/create": {
+      "post": {
+        "operationId": "formLinks.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_links",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "create_form_link",
+        "summary": "Create a public form link",
+        "description": "Makes a public link through app.create_form_link. Needs membership and knowledge.sop.publish, a Published form (422 `form_not_published`) with no photo field, signature or GPS stamp (422 `form_link_unsupported`), and an expiry within 90 days (422 `form_link_expiry_range`). Answers 201 with the token and code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "expires_at": "2026-10-08T14:30:00Z",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "daily_cap": 200,
+                "max_responses": 500,
+                "one_per_email": true,
+                "note": "Supplier check-in"
+              },
+              "schema": { "$ref": "#/components/schemas/FormLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "form_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xfrm_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-links/{id}/regenerate": {
+      "post": {
+        "operationId": "formLinks.regenerate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_links",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "regenerate_form_link",
+        "summary": "Regenerate a public form link",
+        "description": "Draws a new token and code through app.regenerate_form_link; wrong-code attempts reset and every grant is dropped. A revoked link and a read-only org are refused. Answers them once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the form link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the form link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "xfrm_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkRegenerated" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-links/{id}/revoke": {
+      "post": {
+        "operationId": "formLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_links",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "revoke_form_link",
+        "summary": "Revoke a public form link",
+        "description": "Revokes the link through app.revoke_form_link; responses already in stay. Allowed in a read-only org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the form link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the form link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Supplier check-in",
+                  "token_hint": "3f9a",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "daily_cap": 200,
+                  "max_responses": null,
+                  "one_per_email": true,
+                  "failed_attempts": 0,
+                  "rotated_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/FormLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-link-responses": {
+      "get": {
+        "operationId": "formLinkResponses.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_submissions",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List form link response rows",
+        "description": "A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns a cursor page of form link response rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of form link response rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "form_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "form_template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "respondent_name": "Rae Ortiz",
+                      "respondent_email": "rae@example.com",
+                      "answers": { "hoist_ok": true },
+                      "score": 3,
+                      "max_score": 3,
+                      "passed": true,
+                      "submission_state": "Submitted",
+                      "decided_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decision_note": "Thanks."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkResponsePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-link-responses/{id}": {
+      "get": {
+        "operationId": "formLinkResponses.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_submissions",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "summary": "Get a form link response",
+        "description": "A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only. Returns one form link response with its `ETag`. A form link response the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the form link response.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the form link response.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The form link response.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "respondent_name": "Rae Ortiz",
+                  "respondent_email": "rae@example.com",
+                  "answers": { "hoist_ok": true },
+                  "score": 3,
+                  "max_score": 3,
+                  "passed": true,
+                  "submission_state": "Submitted",
+                  "decided_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decision_note": "Thanks."
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/form-link-responses/{id}/decide": {
+      "post": {
+        "operationId": "formLinkResponses.decide",
+        "tags": ["Platform"],
+        "x-xos-table": "app.form_submissions",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "decide_form_submission",
+        "summary": "Approve or reject a public form response",
+        "description": "Decides through app.decide_form_submission as a holder of the form's approver role or knowledge.sop.publish. A rejection needs a note. Approving a response on a project makes its record of the form's kind and subtype. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the form link response.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the form link response.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "approve": true, "note": "Thanks." },
+              "schema": { "$ref": "#/components/schemas/FormLinkResponseDecision" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "respondent_name": "Rae Ortiz",
+                  "respondent_email": "rae@example.com",
+                  "answers": { "hoist_ok": true },
+                  "score": 3,
+                  "max_score": 3,
+                  "passed": true,
+                  "submission_state": "Submitted",
+                  "decided_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decision_note": "Thanks."
+                },
+                "schema": { "$ref": "#/components/schemas/FormLinkResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/outside-access": {
+      "get": {
+        "operationId": "outsideAccess.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.project_outside_access",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["project_id"], "numeric": false },
+        "summary": "List outside access row rows",
+        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of outside access row rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "source": "Intake link",
+                      "source_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "label": "Audio vendors",
+                      "recipient_email": "cleo@example.com",
+                      "token_hint": "3f9a",
+                      "link_state": "Active",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "open_count": 3,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/OutsideAccessRowPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

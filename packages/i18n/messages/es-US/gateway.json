@@ -123,7 +123,25 @@
       "guest_list_closed": "La lista de invitados se abre cuando la organización confirma tu contratación. Vuelve más tarde.",
       "guest_name_length": "Escribe el nombre del invitado, de hasta 200 caracteres.",
       "guest_plus_ones": "Los acompañantes van de 0 a 20.",
-      "guest_note_length": "La nota puede tener hasta 500 caracteres."
+      "guest_note_length": "La nota puede tener hasta 500 caracteres.",
+      "payout_reference_bank_number": "Un número simple de 6 o más dígitos parece una cuenta bancaria. Usa la referencia con sus letras o prefijo.",
+      "payout_reference_length": "Escribe una referencia de hasta 200 caracteres.",
+      "vendor_intake_account": "Elige una cuenta de empresa en la que seas Propietario o Administrador de cuenta.",
+      "vendor_intake_tax_form": "Da tu propio formulario fiscal para esta organización: W-9 o W-8BEN para ti, W-9 o W-8BEN-E para una empresa.",
+      "vendor_intake_payout": "Da tu propia referencia de pago para esta organización.",
+      "vendor_intake_signature": "Escribe tu nombre para firmar el acuerdo.",
+      "vendor_intake_invoice_draft": "Revisa la primera factura: un número, fechas, una moneda y de 1 a 50 líneas.",
+      "vendor_intake_invoice_not_collected": "Este enlace de alta no recibe una primera factura.",
+      "vendor_intake_rate_limited": "Enviaste 3 solicitudes por este enlace hoy. Inténtalo mañana.",
+      "vendor_intake_pending": "Ya tienes una solicitud en espera en este enlace.",
+      "vendor_intake_not_pending": "Esta solicitud ya se decidió o se retiró.",
+      "intake_link_full": "Este enlace ya recibió todas las solicitudes que puede. Pide uno nuevo a la organización.",
+      "intake_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "intake_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "intake_link_rate_limited": "Demasiados intentos desde esta dirección. Espera unos minutos e inténtalo de nuevo.",
+      "intake_grant": "Abre el enlace de nuevo y escribe su código de acceso.",
+      "intake_invoice_used": "La primera factura de esta solicitud ya se envió.",
+      "intake_invoice_none": "Esta solicitud no tiene una primera factura en espera."
     }
   },
   "common": {
@@ -1543,6 +1561,18 @@
         "decline": "Rechazar",
         "share": "Compartir datos de trabajo"
       }
+    },
+    "intake": {
+      "title": "Solicitudes que enviaste",
+      "sentOn": "Enviada {date}",
+      "states": {
+        "Pending": "En espera",
+        "Approved": "Aprobada",
+        "Declined": "Rechazada",
+        "Withdrawn": "Retirada"
+      },
+      "withdraw": "Retirar",
+      "submitInvoice": "Envía la factura de tu alta"
     }
   },
   "messages": {
@@ -1856,7 +1886,37 @@
       "roster_person_duplicate": "Esta persona ya está en la lista.",
       "invitation_email": "Escribe una sola dirección de correo.",
       "roster_arrival_window": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "intake_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "intake_link_rate_limited": "Demasiados intentos desde esta dirección. Espera unos minutos e inténtalo de nuevo.",
+      "intake_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "intake_link_full": "Este enlace ya recibió todas las solicitudes que puede. Pide uno nuevo a la organización.",
+      "intake_link_locked": "Demasiados códigos incorrectos. Pide un enlace nuevo a la organización.",
+      "intake_access_code_required": "Escribe tu código de acceso.",
+      "intake_access_code": "Ese código no coincide. Revísalo e inténtalo de nuevo.",
+      "intake_grant": "Escribe tu código de acceso de nuevo.",
+      "intake_agreement_unavailable": "El acuerdo no está disponible en este momento. Pregunta a la organización.",
+      "form_link_invalid": "Este enlace ya no está disponible. Pide uno nuevo a la organización.",
+      "form_link_rate_limited": "Demasiadas respuestas en este momento. Inténtalo más tarde.",
+      "form_link_expired": "Este enlace venció. Pide a la organización que te envíe uno nuevo.",
+      "form_link_locked": "Demasiados códigos incorrectos. Pide un enlace nuevo a la organización.",
+      "form_link_access_code_required": "Escribe tu código de acceso.",
+      "form_link_access_code": "Ese código no coincide. Revísalo e inténtalo de nuevo.",
+      "form_link_grant": "Escribe tu código de acceso de nuevo.",
+      "form_link_too_fast": "Fue muy rápido. Revisa tus respuestas y envía de nuevo.",
+      "form_link_already_answered": "Este correo ya respondió este formulario.",
+      "form_answers_too_large": "Tus respuestas son demasiado largas. Acórtalas y envía de nuevo.",
+      "form_not_published": "Este formulario ya no recibe respuestas.",
+      "form_respondent_name": "Escribe tu nombre.",
+      "form_respondent_email": "Escribe un correo válido.",
+      "form_answers": "No se pudieron leer tus respuestas. Recarga la página.",
+      "form_answer_hidden": "Una respuesta ya no aplica. Vuelve y bórrala.",
+      "form_answer_required": "Responde todas las preguntas obligatorias.",
+      "form_answer_type": "Una respuesta tiene un tipo de valor incorrecto. Revísala y envía de nuevo.",
+      "form_answer_choice": "Elige una de las opciones de la lista.",
+      "form_answer_date": "Escribe las fechas como fecha.",
+      "form_answer_length": "Una respuesta es demasiado larga. Acórtala y envía de nuevo.",
+      "org_read_only": "Esta organización no recibe respuestas nuevas en este momento."
     }
   },
   "settings": {
@@ -2467,5 +2527,22 @@
       "nothingToRedo": "No hay nada que rehacer.",
       "dismiss": "Descartar"
     }
+  },
+  "publicForm": {
+    "title": "Formulario",
+    "codeIntro": "Escribe el código de acceso de la persona que te envió este enlace.",
+    "poweredBy": "Con tecnología de XOS",
+    "name": "Tu nombre",
+    "email": "Tu correo",
+    "website": "Deja esto vacío",
+    "choose": "Elegir",
+    "yes": "Sí",
+    "no": "No",
+    "window": "Página {current} de {total}",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "thanks": "Gracias. Tus respuestas se enviaron.",
+    "unexpected": "No se pudo completar. Inténtalo de nuevo."
   }
 }

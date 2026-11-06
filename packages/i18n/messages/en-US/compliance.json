@@ -378,5 +378,46 @@
       "live_link_view_unsupported": "This view changed and can no longer be shown on a public link. Ask the sender.",
       "live_link_reclassified": "This information can no longer be shared on a public link. Ask the sender."
     }
+  },
+  "stakeholderPack": {
+    "title": "Stakeholder pack",
+    "intro": "Enter the access code you were given by phone or message. It never comes by email.",
+    "accessCode": "Access code",
+    "accessCodeHelp": "Six digits.",
+    "submit": "Open pack",
+    "for": "For {name}",
+    "download": "Download",
+    "view": "View",
+    "unavailable": "Not available",
+    "signedOn": "You acknowledged this on {date}.",
+    "signerName": "Type your name to acknowledge",
+    "signerHelp": "This is a receipt that you saw this item, not a signature of a contract.",
+    "sign": "Acknowledge",
+    "noItems": "Nothing has been added to this pack yet.",
+    "expires": "This pack is available until {date}.",
+    "poweredBy": "Powered by XOS",
+    "back": "Back to the pack",
+    "refusals": {
+      "pack_link_invalid": "This link is no longer available. Ask the person who shared this pack for a new one.",
+      "pack_link_rate_limited": "Too many tries from this address. Wait a few minutes and try again.",
+      "pack_link_expired": "This link expired. Ask the person who shared this pack to send a new one.",
+      "pack_revoked": "This pack was withdrawn and no longer opens.",
+      "pack_recipient_revoked": "You no longer have access to this pack.",
+      "pack_locked": "Too many wrong codes. Ask the person who shared this pack for a new code.",
+      "pack_access_code_required": "Enter your access code to open this pack.",
+      "pack_access_code": "That code did not match. Check it and try again.",
+      "pack_grant": "Enter your access code to open this pack.",
+      "pack_item_unavailable": "This item is not available right now.",
+      "pack_item_not_acknowledgeable": "This item does not ask for an acknowledgement.",
+      "pack_signer_name": "Type your name, up to 200 characters.",
+      "already_signed": "You already acknowledged this item."
+    },
+    "unsubscribe": {
+      "title": "Stop these emails",
+      "intro": "Confirm to stop emails about this pack and others from the same organization. The pack still opens with your link and code.",
+      "confirm": "Stop these emails",
+      "done": "Done. You will not get these emails again.",
+      "failed": "That did not work. The link may be old. Ask the person who shared the pack to take you off the list."
+    }
   }
 }

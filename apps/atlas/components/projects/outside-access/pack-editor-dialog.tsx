@@ -23,7 +23,9 @@ import {
 import { dayInZone } from "@/lib/stakeholder-packs/expiry";
 import type { PackSummary } from "@xos/data/stakeholder-packs";
 
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has?: (key: string) => boolean;
+};
 
 const STEPS = ["details", "items", "recipients", "delivery", "activity"] as const;
 type Step = (typeof STEPS)[number];
