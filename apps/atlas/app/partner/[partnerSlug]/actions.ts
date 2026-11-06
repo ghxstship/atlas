@@ -14,7 +14,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { checkAccent } from "@/lib/brand/contrast";
 import { env } from "@/lib/env";
-import { currentOffering } from "@/lib/offering";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
@@ -113,13 +112,13 @@ export async function setClientPriceAction(
   form: FormData,
 ): Promise<PlatformActionState> {
   const ctx = await contextFor(form);
-  const offering = await currentOffering();
   const parsed = z
     .object({
       client: z.uuid(),
       amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
-      // A closed territory's currency is not a price anyone can set (ADR 0160).
-      currency: z.enum(offering.currencies as [string, ...string[]]),
+      // The database decides which currencies are open (ADR 0160): a price already in a closed one can keep it and change
+      // its amount, which a list of offered currencies here would refuse.
+      currency: z.string().regex(/^[A-Z]{3}$/),
     })
     .safeParse({
       client: field(form, "client"),

@@ -462,20 +462,24 @@ set search_path = ''
 as $$
 declare
   v_person uuid := private.require_person();
-  v_country text;
+  v_recorded text;
   v_exception uuid;
 begin
   if p_account_id is null
      or p_account_id not in (select private.my_account_ids(array['Account Owner']::app.account_role[])) then
     raise exception using errcode = '42501', message = 'only the account''s Account Owner subscribes it';
   end if;
-  select coalesce(p_country_code, o.country_code) into v_country
+  select o.country_code into v_recorded
   from app.organizations o where o.id = p_account_id and o.deleted_at is null for update;
   if exists (select 1 from app.subscriptions s where s.org_id = p_account_id and s.deleted_at is null) then
     perform private.refuse('account_already_subscribed', 'This company already uses Atlas; open it from the organization switcher.');
   end if;
-  v_exception := private.territory_clearance(v_country, private.my_confirmed_email());
-  update app.organizations o set country_code = v_country where o.id = p_account_id;
+  -- A country on record stays: stating another must not rewrite it, or take the company off the operators' review list.
+  if v_recorded is not null and p_country_code is not null and p_country_code <> v_recorded then
+    perform private.refuse('organization_country_recorded', 'This company''s country is on record. Ask support to change it.');
+  end if;
+  v_exception := private.territory_clearance(coalesce(p_country_code, v_recorded), private.my_confirmed_email());
+  update app.organizations o set country_code = coalesce(p_country_code, v_recorded) where o.id = p_account_id;
   perform private.use_territory_exception(v_exception, p_account_id);
   perform private.start_trial(p_account_id, private.trial_plan(), private.org_window_end(p_account_id, private.trial_days()),
     'External account started using Atlas: a 14-day Pro trial with no card.');
@@ -491,7 +495,7 @@ begin
   return p_account_id;
 end;
 $$;
-comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country they state, or the one on its record if they omit it; a country outside the offered territories is refused territory_not_offered unless an exception names this person''s confirmed email and that country (ADR 0160), and the exception that created a company account is already used. Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
+comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country on its record, or the one they state when it has none. Stating a different country from the one on record is refused organization_country_recorded, so the record cannot be rewritten here. A country outside the offered territories is refused territory_not_offered unless an exception names this person''s confirmed email and that country (ADR 0160), and the exception that created a company account is already used. Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
 revoke all on function app.subscribe_external_account(uuid, text) from public, anon;
 grant execute on function app.subscribe_external_account(uuid, text) to authenticated, service_role;
 
@@ -593,7 +597,8 @@ create or replace function app.console_save_territory(
   p_country_codes text[],
   p_currency_codes text[],
   p_locale_codes text[],
-  p_reason text
+  p_reason text,
+  p_is_new boolean
 )
 returns text
 language plpgsql
@@ -609,6 +614,18 @@ begin
   perform private.require_territory_reason(p_reason);
   if v_code is null or v_code !~ '^[A-Z][A-Z0-9]{1,7}$' then
     perform private.refuse('territory_code', 'Use 2 to 8 capital letters or digits, starting with a letter.');
+  end if;
+  select to_jsonb(t) || jsonb_build_object('countries', private.territory_country_list(t.code),
+           'currencies', private.territory_currency_list(t.code), 'locales', private.territory_locale_list(t.code))
+    into v_before
+  from private.territories t where t.code = v_code for update;
+  -- Saving replaces the lists, so a form that started empty must not reach a territory that holds them: adding names a
+  -- free code, and editing names one that exists.
+  if v_before is not null and p_is_new is distinct from false then
+    perform private.refuse('territory_code_taken', 'A territory already has that code. Edit it from the list.');
+  end if;
+  if v_before is null and p_is_new is not true then
+    perform private.refuse('territory_unknown', 'Choose a territory from the list.');
   end if;
   if p_name_en is null or p_name_es is null
      or char_length(btrim(p_name_en)) not between 1 and 100 or char_length(btrim(p_name_es)) not between 1 and 100 then
@@ -630,15 +647,15 @@ begin
     perform private.refuse('territory_locale_unknown', 'Choose languages XOS has.');
   end if;
 
-  select to_jsonb(t) || jsonb_build_object('countries', private.territory_country_list(t.code),
-           'currencies', private.territory_currency_list(t.code), 'locales', private.territory_locale_list(t.code))
-    into v_before
-  from private.territories t where t.code = v_code for update;
-  insert into private.territories as t (code, name_en, name_es, changed_at, changed_by, change_reason)
-  values (v_code, btrim(p_name_en), btrim(p_name_es), now(), v_operator, btrim(p_reason))
-  on conflict (code) do update set
-    name_en = excluded.name_en, name_es = excluded.name_es,
-    changed_at = excluded.changed_at, changed_by = excluded.changed_by, change_reason = excluded.change_reason;
+  if v_before is null then
+    insert into private.territories (code, name_en, name_es, changed_at, changed_by, change_reason)
+    values (v_code, btrim(p_name_en), btrim(p_name_es), now(), v_operator, btrim(p_reason));
+  else
+    update private.territories t
+    set name_en = btrim(p_name_en), name_es = btrim(p_name_es),
+      changed_at = now(), changed_by = v_operator, change_reason = btrim(p_reason)
+    where t.code = v_code;
+  end if;
   delete from private.territory_countries c where c.territory_code = v_code;
   insert into private.territory_countries (territory_code, country_code)
   select distinct v_code, c from unnest(p_country_codes) c;
@@ -654,9 +671,25 @@ begin
   return v_code;
 end;
 $$;
-comment on function app.console_save_territory(text, text, text, text[], text[], text[], text) is 'An Administrator (territories.write) adds a territory, closed, or edits one: its names, countries, currencies and languages. Logged with the row as it was. Opening is a separate step (app.console_set_territory_offered).';
-revoke all on function app.console_save_territory(text, text, text, text[], text[], text[], text) from public, anon;
-grant execute on function app.console_save_territory(text, text, text, text[], text[], text[], text) to authenticated;
+comment on function app.console_save_territory(text, text, text, text[], text[], text[], text, boolean) is 'An Administrator (territories.write) adds a territory, closed (p_is_new true), or edits one (p_is_new false): its names, countries, currencies and languages, whose lists the save replaces. Adding an existing code is refused territory_code_taken and editing an unknown one territory_unknown, so a form that did not start from the territory cannot wipe its lists. Logged with the row as it was. Opening is a separate step (app.console_set_territory_offered).';
+revoke all on function app.console_save_territory(text, text, text, text[], text[], text[], text, boolean) from public, anon;
+grant execute on function app.console_save_territory(text, text, text, text[], text[], text[], text, boolean) to authenticated;
+
+create or replace function app.console_price_book_currencies()
+returns table (currency_code text)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.require_platform_operator('tenants.read');
+  return query select distinct lp.currency_code from private.plan_list_prices lp order by lp.currency_code;
+end;
+$$;
+comment on function app.console_price_book_currencies() is 'Every currency the price book has, for choosing a territory''s currencies: the same list app.console_save_territory checks, so a currency a territory gave up can still be chosen again (tenants.read).';
+revoke all on function app.console_price_book_currencies() from public, anon;
+grant execute on function app.console_price_book_currencies() to authenticated;
 
 create or replace function app.console_set_territory_offered(p_code text, p_offered boolean, p_reason text)
 returns text
@@ -688,7 +721,7 @@ begin
   return p_code;
 end;
 $$;
-comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Its prices, languages and signup follow within a minute, with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
+comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Signup follows at once, and prices and languages usually within a minute and at most about 11, as each server's read of the offering catches up (ADR 0160), with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
 revoke all on function app.console_set_territory_offered(text, boolean, text) from public, anon;
 grant execute on function app.console_set_territory_offered(text, boolean, text) to authenticated;
 
@@ -824,12 +857,14 @@ begin
   from app.organizations o
   where o.deleted_at is null
     and (exists (select 1 from app.subscriptions s where s.org_id = o.id and s.deleted_at is null)
-      or exists (select 1 from app.account_memberships m where m.org_id = o.id and m.deleted_at is null))
+      or exists (select 1 from app.account_memberships m
+        join app.account_membership_roles r on r.account_membership_id = m.id and r.deleted_at is null
+        where m.org_id = o.id and m.deleted_at is null and r.account_role = 'Account Owner'))
     and not exists (select 1 from app.sandbox_orgs sb where sb.org_id = o.id)
     and not private.country_offered(o.country_code)
   order by o.name;
 end;
 $$;
-comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none, with the contract of an exception when one let them in (tenants.read). A counterparty row nobody belongs to is not one of them. The list a person reviews; nothing acts on it.';
+comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none, with the contract of an exception when one let them in (tenants.read). A company account is one with an Account Owner: a customer's counterparty is not one of them, whether nobody belongs to it or only the Account Members its roster invitations added (private.ensure_accepted_membership). The list a person reviews; nothing acts on it.';
 revoke all on function app.console_orgs_outside_territories() from public, anon;
 grant execute on function app.console_orgs_outside_territories() to authenticated;

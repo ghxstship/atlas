@@ -9,4 +9,4 @@ export const currentOffering = createOfferingReader(() => {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     global: { fetch: offeringFetch },
   }) as unknown as OfferingClient;
-}, process.env.NODE_ENV === "production");
+}, process.env.NODE_ENV === "production" && process.env["E2E_OFFERING_FRESH"] !== "1");

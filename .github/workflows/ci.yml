@@ -217,6 +217,9 @@ jobs:
         if: matrix.app != 'docs'
         run: |
           PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+          # Journeys open a territory and need the change at once, so the server reads the offering every time.
+          export E2E_OFFERING_FRESH=1
+          echo "E2E_OFFERING_FRESH=1" >> "$GITHUB_ENV"
           (cd apps/${{ matrix.app }} && nohup pnpm exec next start --port "$PORT" > /tmp/app.log 2>&1 &)
           if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &); fi
           for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$PORT" && break; sleep 2; done

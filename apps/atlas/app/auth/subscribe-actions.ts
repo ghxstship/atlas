@@ -16,7 +16,13 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * profile, ratings and history carry over; the Owner accepts the signup documents as on create.
  */
 export interface SubscribeState {
-  readonly error?: "accept" | "country" | "refused" | "territory_not_offered" | "unexpected";
+  readonly error?:
+    | "accept"
+    | "country"
+    | "organization_country_recorded"
+    | "refused"
+    | "territory_not_offered"
+    | "unexpected";
   /** Values for the refusal's sentence. */
   readonly errorValues?: Readonly<Record<string, string>>;
   /** The country chosen, kept after a failed submit. */
@@ -53,6 +59,12 @@ export async function subscribeAccountAction(
         errorValues: await notOfferedValues(country),
         country,
       };
+    }
+    if (
+      subscribed.error.kind === "refusal" &&
+      subscribed.error.rule === "organization_country_recorded"
+    ) {
+      return { error: "organization_country_recorded", country };
     }
     return { error: subscribed.error.kind === "refusal" ? "refused" : "unexpected", country };
   }

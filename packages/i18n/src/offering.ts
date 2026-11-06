@@ -38,7 +38,11 @@ export const DEFAULT_OFFERING: Offering = offeringFrom([
   },
 ]);
 
-/** How long a shell keeps the offering, so an operator's change reaches every server within a minute. */
+/**
+ * How long a shell keeps the offering. A busy server shows an operator's change within about a minute; the database's
+ * signup gate is live, so only prices and languages can lag. The bound is this plus OFFERING_STALE_SECONDS, about 11
+ * minutes: the first request after a long quiet spell, or while reads fail, can still be answered from the last good read.
+ */
 export const OFFERING_CACHE_SECONDS = 60;
 
 /** How long a good read still answers while newer ones fail, before the launch state does. */
@@ -94,8 +98,8 @@ export async function readOffering(db: OfferingClient): Promise<Offering> {
  * A reader that keeps the offering for `ttlSeconds`. Once that passes, the last good read answers at once while one
  * request refreshes behind it, for up to `staleSeconds`, so no page waits on a refresh. With no good read to answer from,
  * callers share the one read under way and wait at most `timeoutMs`, then get the launch state. A failed read is not kept,
- * so the next request asks again. `ttlSeconds` of 0 reads every time, as development does, so a journey that opens a
- * territory sees it at once.
+ * so the next request asks again. `ttlSeconds` of 0 reads every time, as development does and as a production build
+ * under test does (E2E_OFFERING_FRESH=1), so a journey that opens a territory sees it at once.
  */
 export function createOfferingCache(
   read: () => Promise<Offering>,

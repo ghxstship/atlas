@@ -1,6 +1,7 @@
 import { can } from "@xos/data/console";
 import {
   listOrgsOutsideTerritories,
+  listPriceBookCurrencies,
   listTerritories,
   listTerritoryExceptions,
 } from "@xos/data/console-territories";
@@ -29,24 +30,30 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * Where XOS is offered (ADR 0160): the one place an operator opens or closes a territory, and records an exception for a
- * signed contract. Opening one changes prices, languages and signup within a minute, with no code change.
+ * signed contract. Opening one changes signup at once, and prices and languages usually within a minute and at most about
+ * 11, with no code change.
  */
-export default async function TerritoriesPage() {
+export default async function TerritoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>;
+}) {
   const ctx = await requirePermission("tenants.read");
   const { t, instant } = await getConsoleFormat();
   const locale = await getLocale();
-  const [territories, exceptions, outside] = await Promise.all([
+  const [{ edit }, territories, priceBook, exceptions, outside] = await Promise.all([
+    searchParams,
     listTerritories(ctx.db),
+    listPriceBookCurrencies(ctx.db),
     listTerritoryExceptions(ctx.db),
     listOrgsOutsideTerritories(ctx.db),
   ]);
   const write = can(ctx.operator, "territories.write");
   const name = (code: string) => countryName(code, locale);
   const countries = countryOptions(locale);
-  // Every price book currency sits on a territory; the database refuses any other.
-  const currencies = territories.ok
-    ? [...new Set(territories.data.flatMap((territory) => territory.currencies))]
-    : [];
+  const editing = territories.ok
+    ? (territories.data.find((territory) => territory.code === edit) ?? null)
+    : null;
   return (
     <>
       <PageHeader title={t("territories.title")} intro={t("territories.intro")} />
@@ -71,6 +78,15 @@ export default async function TerritoriesPage() {
                 <span key="name" className="flex flex-col gap-4">
                   <code className="font-mono">{territory.code}</code>
                   <span className="text-text-12 text-text-secondary">{territory.nameEn}</span>
+                  {write ? (
+                    <NextLink
+                      href={`/territories?edit=${territory.code}#territories-add` as Route}
+                      aria-label={t("territories.editTitle", { code: territory.code })}
+                      className="text-accent-text underline"
+                    >
+                      {t("territories.edit")}
+                    </NextLink>
+                  ) : null}
                 </span>,
                 territory.countries.join(", "),
                 territory.currencies.join(", ") || t("common.none"),
@@ -107,14 +123,39 @@ export default async function TerritoriesPage() {
         )}
       </Section>
       {write ? (
-        <Section id="territories-add" title={t("territories.add")}>
-          <Panel>
-            <TerritoryForm
-              countries={countries}
-              currencies={currencies.map((c) => ({ value: c, label: c }))}
-              locales={locales.map((l) => ({ value: l, label: l }))}
-            />
-          </Panel>
+        <Section
+          id="territories-add"
+          title={
+            editing ? t("territories.editTitle", { code: editing.code }) : t("territories.add")
+          }
+        >
+          {editing ? (
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("territories.editIntro")} {editing.offered ? t("territories.editOpen") : null}{" "}
+              <NextLink
+                href={"/territories#territories-add" as Route}
+                className="text-accent-text underline"
+              >
+                {t("territories.addInstead")}
+              </NextLink>
+            </p>
+          ) : null}
+          {territories.ok && priceBook.ok ? (
+            <Panel>
+              <TerritoryForm
+                key={editing?.code ?? "new"}
+                countries={countries}
+                currencies={[...new Set([...priceBook.data, ...(editing?.currencies ?? [])])].map(
+                  (c) => ({ value: c, label: c }),
+                )}
+                locales={locales.map((l) => ({ value: l, label: l }))}
+                territory={editing}
+                version={editing ? editing.changedAt : String(territories.data.length)}
+              />
+            </Panel>
+          ) : (
+            <Empty>{t("common.loadError")}</Empty>
+          )}
         </Section>
       ) : null}
       <Section id="territories-exceptions" title={t("territories.exceptions")}>

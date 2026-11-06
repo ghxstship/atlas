@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(83);
+select plan(98);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -71,8 +71,10 @@ select pg_temp.as_platform();
 select is((select country_code from app.organizations where slug = 'vogel-rigging'), 'US', 'a company account in the United States records the country stated');
 select is((select country_code from app.organizations where slug = 'vogel-silent'), null, 'one that states nothing records nothing');
 select pg_temp.as_user('liesel');
+select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct_silent'), 'DE')$$, 'XR001',
+  'territory_not_offered: XOS is not offered to organizations in this country.', 'a company account with no country on record cannot start Atlas from Germany');
 select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct'), 'DE')$$, 'XR001',
-  'territory_not_offered: XOS is not offered to organizations in this country.', 'but it cannot start Atlas from Germany');
+  'organization_country_recorded: This company''s country is on record. Ask support to change it.', 'and one with a country on record cannot state another');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.subscriptions s join app.organizations o on o.id = s.org_id where o.slug = 'vogel-rigging'), 0, 'and has no subscription after the refusal');
 select pg_temp.as_user('liesel');
@@ -143,7 +145,12 @@ select is((select country_code from app.organizations where slug = 'weber-audio'
 select pg_temp.as_user('tomas');
 select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct_de'))$$, 'XR001',
   'territory_not_offered: XOS is not offered to organizations in this country.', 'which cannot then start Atlas on the record of its country and a spent exception');
+select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct_de'), 'US')$$, 'XR001',
+  'organization_country_recorded: This company''s country is on record. Ask support to change it.', 'nor by stating the United States instead');
+select pg_temp.as_platform();
+select is((select country_code from app.organizations where slug = 'weber-audio'), 'DE', 'so its record stands');
 select pg_temp.as_op('olga');
+select is((select country_code from app.console_orgs_outside_territories() where slug = 'weber-audio'), 'DE', 'and it stays on the operators'' review list');
 select lives_ok($$select app.console_grant_territory_exception('tomas@example.de', 'DE', 'MSA-2026-016', current_date, 'Signed MSA for Atlas.')$$, 'a second contract, a second exception');
 select pg_temp.as_user('tomas');
 select ok(app.subscribe_external_account((select id from k where key = 'acct_de'), 'DE') is not null, 'and with it the company starts Atlas');
@@ -167,6 +174,10 @@ select pg_temp.as_platform();
 insert into app.organizations (name, slug) values ('Counterparty Only', 'counterparty-only');
 select pg_temp.as_op('olga');
 select ok(not exists (select 1 from app.console_orgs_outside_territories() where slug = 'counterparty-only'), 'nor is a counterparty row nobody belongs to');
+select pg_temp.as_platform();
+select private.ensure_accepted_membership((select id from app.organizations where slug = 'counterparty-only'), pg_temp.id('una'), 'Account Member', null);
+select pg_temp.as_op('olga');
+select ok(not exists (select 1 from app.console_orgs_outside_territories() where slug = 'counterparty-only'), 'nor one holding only an Account Member from a roster invitation, which nobody started');
 select throws_ok(format($$select app.console_revoke_territory_exception(%L, 'Too late.')$$,
   (select id from app.console_list_territory_exceptions() where owner_email = 'liesel@example.de')), 'XR001',
   'territory_exception_transition_not_allowed: Only an open exception can be withdrawn.', 'a used exception cannot be withdrawn');
@@ -196,12 +207,26 @@ select is(app.org_checkout_currency((select id from app.organizations where slug
 select pg_temp.as_user('alice');
 select lives_ok(format($$update app.partner_client_prices set currency_code = 'GBP' where client_org_id = %L$$, (select id from k where key = 'client')), 'and a partner can price in its currency');
 select pg_temp.as_op('olga');
-select throws_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['GB'], '{}', '{}', 'Adding.')$$, 'XR001',
+select throws_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['GB'], '{}', '{}', 'Adding.', true)$$, 'XR001',
   'territory_country_taken: A country belongs to one territory. Take it out of the other one first.', 'a country belongs to one territory');
-select throws_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['NZ'], array['NZD'], '{}', 'Adding.')$$, 'XR001',
+select throws_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['NZ'], array['NZD'], '{}', 'Adding.', true)$$, 'XR001',
   'territory_currency_unpriced: Choose currencies the price book has.', 'a currency needs a price book');
-select lives_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['NZ'], array['AUD'], '{}', 'Adding New Zealand.')$$, 'an Administrator adds a territory');
+select throws_ok($$select app.console_save_territory('EEA', 'Anything', 'Cualquiera', array['IS'], '{}', '{}', 'Adding by mistake.', true)$$, 'XR001',
+  'territory_code_taken: A territory already has that code. Edit it from the list.', 'adding cannot land on a territory that exists, so an empty form cannot wipe its lists');
+select is((select currency_codes from app.console_list_territories() where code = 'EEA'), array['EUR'], 'which keep their currency');
+select throws_ok($$select app.console_save_territory('ZZ', 'Nowhere', 'Ninguna', array['ZZ'], '{}', '{}', 'Editing.', false)$$, 'XR001',
+  'territory_unknown: Choose a territory from the list.', 'editing needs a territory that exists');
+select lives_ok($$select app.console_save_territory('NZ', 'New Zealand', 'Nueva Zelanda', array['NZ'], array['AUD'], '{}', 'Adding New Zealand.', true)$$, 'an Administrator adds a territory');
 select ok(not (select offered from app.console_list_territories() where code = 'NZ'), 'which starts closed');
+select lives_ok($$select app.console_save_territory('NZ', 'Aotearoa New Zealand', 'Nueva Zelanda', array['NZ'], array['AUD'], '{}', 'Fixing the name.', false)$$, 'and edits it');
+select is((select name_en from app.console_list_territories() where code = 'NZ'), 'Aotearoa New Zealand', 'its name changes');
+select is((select currency_codes from app.console_list_territories() where code = 'NZ'), array['AUD'], 'and it keeps the lists the edit named');
+select lives_ok($$select app.console_save_territory('NZ', 'Aotearoa New Zealand', 'Nueva Zelanda', array['NZ'], '{}', '{}', 'No currency of its own yet.', false)$$, 'an edit can take a currency off');
+select is((select currency_codes from app.console_list_territories() where code = 'NZ'), '{}'::text[], 'and does');
+select is((select array_agg(currency_code order by currency_code) from app.console_price_book_currencies()), array['AUD', 'CAD', 'EUR', 'GBP', 'USD'], 'and the price book still offers every currency to choose again');
+select pg_temp.as_user('una');
+select throws_ok($$select * from app.console_price_book_currencies()$$, '42501', null, 'someone who is not an operator cannot read that list');
+select pg_temp.as_op('olga');
 select lives_ok($$select app.console_set_territory_offered('GB', false, 'Representative contract ended.')$$, 'closing one');
 select pg_temp.as_op('olga');
 select is((select slug from app.console_orgs_outside_territories() where slug = 'thames-crew'), 'thames-crew', 'touches no organization, and lists it for review');

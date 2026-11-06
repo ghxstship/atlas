@@ -70,9 +70,18 @@ export async function listTerritories(db: XosClient): Promise<Result<Territory[]
   );
 }
 
+/** Every currency the price book has, for choosing a territory's currencies. */
+export async function listPriceBookCurrencies(db: XosClient): Promise<Result<string[]>> {
+  return rpc(db, "console_price_book_currencies", {}, (data) =>
+    arr(data).map((d) => str((d as Raw)["currency_code"])),
+  );
+}
+
+/** Adds a territory, or edits one: `isNew` says which, and the save replaces its three lists. */
 export async function saveTerritory(
   db: XosClient,
   input: {
+    readonly isNew: boolean;
     readonly code: string;
     readonly nameEn: string;
     readonly nameEs: string;
@@ -93,6 +102,7 @@ export async function saveTerritory(
       p_currency_codes: input.currencies,
       p_locale_codes: input.locales,
       p_reason: input.reason,
+      p_is_new: input.isNew,
     },
     str,
   );

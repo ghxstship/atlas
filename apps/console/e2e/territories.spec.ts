@@ -70,6 +70,84 @@ test("an Administrator opens a territory and records an exception, on the ledger
   await expect(row.getByText("Contract fell through.", { exact: false })).toBeVisible();
 });
 
+test("an edit starts from what the territory holds, and a currency it gives up can come back", async ({
+  page,
+}) => {
+  const id = uniqueId();
+  const email = await newOperator("Administrator", "Eda Territory");
+  await signInOperator(page, email, "/territories");
+  const held = async () =>
+    (
+      await sql<{ name_es: string; currencies: string; countries: string }>(
+        `select t.name_es,
+           coalesce((select string_agg(c.currency_code, ',') from private.territory_currencies c where c.territory_code = t.code), '') as currencies,
+           (select count(*)::text from private.territory_countries c where c.territory_code = t.code) as countries
+         from private.territories t where t.code = 'EEA'`,
+      )
+    )[0];
+  const before = await held();
+  expect(before?.currencies).toBe("EUR");
+  const form = page.getByTestId("territory-form");
+  const reason = form.getByLabel("Reason", { exact: true });
+  const save = form.getByRole("button", { name: "Save territory", exact: true });
+  try {
+    // Adding cannot land on a territory that exists, so an empty form cannot wipe its lists.
+    await form.getByLabel("Code", { exact: true }).fill("EEA");
+    await form.getByLabel("Name in English", { exact: true }).fill(`Anything ${id}`);
+    await form.getByLabel("Name in Spanish", { exact: true }).fill(`Cualquiera ${id}`);
+    await reason.fill("Adding by mistake.");
+    await save.click();
+    await expect(form.getByText("A territory already has that code", { exact: false })).toBeVisible();
+    await expect(form.getByLabel("Name in English", { exact: true })).toHaveValue(`Anything ${id}`);
+    expect(await held()).toEqual(before);
+
+    // Edit starts from what it holds: a change to its name leaves the lists alone.
+    const eea = page
+      .getByTestId("territories")
+      .getByRole("row")
+      .filter({ hasText: "the European Economic Area" });
+    await eea.getByRole("link", { name: "Edit EEA", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Edit EEA", exact: true })).toBeVisible();
+    await expect(form.getByLabel("Code", { exact: true })).toHaveValue("EEA");
+    await expect(form.getByLabel("Name in Spanish", { exact: true })).toHaveValue(
+      before?.name_es ?? "",
+    );
+    const removeEur = form.getByRole("button", { name: "Remove EUR", exact: true });
+    await expect(removeEur).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+    await form.getByLabel("Name in Spanish", { exact: true }).fill(`Espacio ${id}`);
+    await reason.fill(`Fixing the Spanish name, ${id}.`);
+    await save.click();
+    await expect(form.getByText("Territory saved.", { exact: true })).toBeVisible();
+    await expect.poll(held).toEqual({ ...before, name_es: `Espacio ${id}` });
+    await expect(form.getByLabel("Name in Spanish", { exact: true })).toHaveValue(`Espacio ${id}`);
+    await expect(reason).toHaveValue("");
+
+    // Taken off, the euro leaves the territory but not the picker, which reads the price book.
+    await removeEur.click();
+    await reason.fill(`No currency for now, ${id}.`);
+    await save.click();
+    await expect.poll(async () => (await held())?.currencies).toBe("");
+    await expect(removeEur).toHaveCount(0);
+    await expect(reason).toHaveValue("");
+    await form.getByLabel("Currencies", { exact: true }).click();
+    await page.getByRole("option", { name: "EUR", exact: true }).click();
+    await reason.fill(`The euro again, ${id}.`);
+    await save.click();
+    await expect.poll(async () => (await held())?.currencies).toBe("EUR");
+    await expect((await held())?.countries).toBe(before?.countries);
+  } finally {
+    await sql(
+      `update private.territories set name_es = $1, change_reason = 'Restored after a journey.' where code = 'EEA'`,
+      [before?.name_es ?? ""],
+    );
+    await sql(
+      `insert into private.territory_currencies (territory_code, currency_code, sort_order)
+       values ('EEA', 'EUR', 10) on conflict do nothing`,
+    );
+  }
+});
+
 test("Support reads the territories and changes nothing", async ({ page }) => {
   const email = await newOperator("Support", "Sam Territory");
   await signInOperator(page, email, "/territories");
@@ -79,4 +157,5 @@ test("Support reads the territories and changes nothing", async ({ page }) => {
   );
   await expect(page.getByTestId("territory-exception-form")).toHaveCount(0);
   await expect(page.getByTestId("territory-form")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Edit EEA", exact: true })).toHaveCount(0);
 });

@@ -48,7 +48,8 @@ export async function setTerritoryOfferedAction(
 export async function saveTerritoryAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext("territories.write");
   if (!ctx.ok) return failed(ctx.key);
-  const code = field(form, "code");
+  const editing = field(form, "editing");
+  const code = editing || field(form, "code");
   const nameEn = field(form, "nameEn");
   const nameEs = field(form, "nameEs");
   const reason = field(form, "reason");
@@ -56,6 +57,7 @@ export async function saveTerritoryAction(_: ActionState, form: FormData): Promi
     return failed("errors.invalid");
   }
   const result = await saveTerritory(ctx.db, {
+    isNew: editing === "",
     code,
     nameEn,
     nameEs,

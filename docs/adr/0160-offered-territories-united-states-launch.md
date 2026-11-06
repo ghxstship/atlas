@@ -26,7 +26,7 @@ Every shell reads `api_public.offered_territories` through `@xos/i18n/offering`,
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | Pricing copy   | Only open currencies are mentioned; "EU data residency" leaves the plan list                                                                                                                    | Billing and Plan, `planFeatureOffered`               |
 | Checkout       | Every session names its currency and turns adaptive pricing off, so Stripe never picks one from where the buyer seems to be. A closed territory's organization, under an exception, pays in USD | `app.org_checkout_currency`, `createCheckoutSession` |
-| Partner prices | A closed currency is not a price a partner can set, in the console or directly through the database. A price already in one keeps working until the partner moves it                            | `private.guard_partner_price_currency`               |
+| Partner prices | A closed currency is not a price a partner can set, in the console or directly through the database. A price already in one keeps working, and can change its amount, until the partner moves it                            | `private.guard_partner_price_currency`               |
 | Languages      | Only open languages are choices: the shell menus, the Language setting, the server actions. A saved choice of a closed language reads as no choice, in Atlas, Gateway, Console and Compass. Email and the API settings do not check: see Consequences | `selectableLocales`, `negotiateLocale`, `languageOf` |
 | Translation    | `translate` with no `--locale` skips a closed target, so no catalog is written or paid for. Naming the locale still works. Today every Beta catalog is empty. The file's `closed` flag only guards that spend: `private.territories` decides what is offered | `translation/config.json` `closed`                   |
 | Signup         | Asks the country, with no answer chosen; refuses a closed one in a plain sentence and creates nothing, in Atlas and for a Gateway company account                                               | `app.create_organization`, `app.create_external_account` |
@@ -61,7 +61,7 @@ An Administrator records an owner email, a country, the contract and its signing
 
 ### 6. Existing organizations are untouched
 
-An organization from before the question has no recorded country and keeps working. Closing a territory touches no organization. The console lists organizations using Atlas and Gateway company accounts outside the offered territories, or with no recorded country, for a person to review.
+An organization from before the question has no recorded country and keeps working. Closing a territory touches no organization. The console lists organizations using Atlas and Gateway company accounts outside the offered territories, or with no recorded country, for a person to review. A country on record is not rewritten when a company account starts Atlas: stating a different one is refused `organization_country_recorded`, so it stays on that list.
 
 ## Before opening a territory
 
@@ -81,7 +81,8 @@ Opening also means running `translate --locale <code>` if the language should re
 
 - Signup has one more question. Journeys that create an organization through the form choose a country in `e2e/support.ts`.
 - `selectableLocales`, `negotiateLocale` and `languageOf` default to the launch locales, so a caller that forgets the offering is closed, not open.
-- A production server shows an operator's change within a minute.
+- An operator's change reaches signup at once, since the database's gate is live. A busy production server shows it in prices and languages within about a minute. The bound is about 11 minutes: the first request after a long quiet spell, or while reads fail, can still be answered from the last good read.
+- CI's production builds set `E2E_OFFERING_FRESH=1`, so they read the offering on every request. That way the journeys that open a territory prove that a production build reads it, since a failed read looks the same as the launch state. Nothing sets it in production; if something did, the only effect would be one more read per request.
 - Self-declaration is a control, not proof: someone can state the wrong country. The Terms carry the matching statement.
 - Stripe Checkout keeps tax ID collection on, because a US company can give its EIN there. The Legal Entities setting still says "EIN, VAT or GST number", because a US customer can run a subsidiary abroad. Both are a choice, not an oversight; review them when a territory opens.
 - A saved choice of a closed language is ignored by the four shells, but email and the API settings still accept it. Today nothing shows, because Beta catalogs are empty. So translate a closed language only as part of opening its territory: with a catalog in place, a person who saved it would get that language in email first.

@@ -1,5 +1,6 @@
 import pg from "pg";
 import { expect, test } from "./engine-test";
+import { PARTNER_ORG, signInAs } from "./a36-support";
 import { createOrganization, expectAccessible, signUp, uniqueId } from "./support";
 
 function localDb(): pg.Client {
@@ -177,10 +178,85 @@ test("a crew member abroad, invited by a US organization, signs up and works wit
   await context.close();
 });
 
+test("a partner's price already in a closed currency can change its amount, then move to an open one", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const id = uniqueId();
+  const clientName = `Seine Client ${id}`;
+  const slug = `seine-client-${id}`;
+  await signInAs(page, "partner@example.com", PARTNER_ORG);
+  await page.goto(`/partner/${PARTNER_ORG}/client-orgs`);
+  await page.getByRole("button", { name: "Create a client org" }).first().click();
+  const create = page.getByRole("dialog", { name: "New client org" });
+  await create.getByLabel("Organization name").fill(clientName);
+  await expect(create.getByLabel("Web address")).toHaveValue(slug);
+  await create.getByLabel("Owner's email").fill(`seine-${id}@example.test`);
+  await create.getByLabel("Plan").selectOption("core");
+  await create.getByLabel("Client's country", { exact: true }).selectOption("US");
+  await create.getByRole("button", { name: "Create and invite the Owner" }).click();
+  await expect(create.getByLabel("Owner invitation link")).toHaveValue(/\/auth\/invite\//);
+  await create.getByRole("button", { name: "Done" }).click();
+
+  const drawer = page.getByRole("dialog", { name: clientName });
+  const openClient = async () => {
+    await page.reload();
+    await expect(async () => {
+      await page.getByRole("row").filter({ hasText: clientName }).dblclick();
+      await expect(drawer).toBeVisible({ timeout: 2_000 });
+    }).toPass();
+  };
+  await openClient();
+  await drawer.getByLabel("Monthly price").fill("179.00");
+  await drawer.getByRole("button", { name: "Save the price" }).click();
+  await expect(drawer.getByText("Price saved.")).toBeVisible();
+
+  // The price was set while the EEA was open, and the EEA has closed since.
+  const db = localDb();
+  await db.connect();
+  const price = async () =>
+    (
+      await db.query<{ monthly_minor: number; currency_code: string }>(
+        `select p.monthly_minor, p.currency_code from app.partner_client_prices p
+         join app.organizations o on o.id = p.client_org_id where o.slug = $1`,
+        [slug],
+      )
+    ).rows[0];
+  try {
+    await db.query("begin");
+    await db.query("update private.territories set offered = true where code = 'EEA'");
+    await db.query(
+      `update app.partner_client_prices set currency_code = 'EUR'
+       where client_org_id = (select id from app.organizations where slug = $1)`,
+      [slug],
+    );
+    await db.query("update private.territories set offered = false where code = 'EEA'");
+    await db.query("commit");
+
+    await openClient();
+    const currency = drawer.getByLabel("Currency", { exact: true });
+    await expect(currency).toHaveValue("EUR");
+    await drawer.getByLabel("Monthly price").fill("199.00");
+    await drawer.getByRole("button", { name: "Save the price" }).click();
+    await expect(drawer.getByText("Price saved.")).toBeVisible();
+    expect(await price()).toEqual({ monthly_minor: 19900, currency_code: "EUR" });
+
+    // Moved to an open currency, the closed one is no longer there to choose.
+    await currency.selectOption("USD");
+    await drawer.getByRole("button", { name: "Save the price" }).click();
+    await expect.poll(async () => (await price())?.currency_code).toBe("USD");
+    await openClient();
+    await expect(currency.locator("option")).toHaveText(["USD"]);
+  } finally {
+    await db.query("rollback").catch(() => undefined);
+    await db.end();
+  }
+});
+
 test.describe("opening a territory", () => {
   test.skip(
-    process.env["E2E_PRODUCTION_BUILD"] === "1",
-    "A production server keeps the offering for a minute; this journey needs the change at once.",
+    process.env["E2E_PRODUCTION_BUILD"] === "1" && process.env["E2E_OFFERING_FRESH"] !== "1",
+    "A production server keeps the offering unless E2E_OFFERING_FRESH=1, as CI sets; this needs the change at once.",
   );
 
   test("needs no code: once it is open, its country can start an organization", async ({

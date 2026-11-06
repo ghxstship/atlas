@@ -90,8 +90,8 @@ test("a Beta locale from the picker reads en-US where it has no translation, nev
   page,
 }) => {
   test.skip(
-    process.env["E2E_PRODUCTION_BUILD"] === "1",
-    "A production server keeps the offering for a minute; this journey needs the change at once.",
+    process.env["E2E_PRODUCTION_BUILD"] === "1" && process.env["E2E_OFFERING_FRESH"] !== "1",
+    "A production server keeps the offering unless E2E_OFFERING_FRESH=1, as CI sets; this needs the change at once.",
   );
   await signIn(page, "producer@example.com");
   // Closed by default, which e2e/legal-territory.spec.ts walks; opening their territories takes no code.
