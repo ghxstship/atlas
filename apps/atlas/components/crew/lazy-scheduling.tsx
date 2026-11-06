@@ -23,4 +23,3 @@ export const AvailabilityPollResults = dynamic(
 export const AvailabilityPollDialog = dynamic(() =>
   import("./availability-poll-dialog").then((m) => m.AvailabilityPollDialog),
 );
-

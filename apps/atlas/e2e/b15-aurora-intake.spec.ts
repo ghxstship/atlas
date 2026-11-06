@@ -160,7 +160,9 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
     panel.getByText("This fee is a total. Enter the rate per unit.").first(),
   ).toBeVisible();
   // Preselected on the one exact match of the act's name, and nothing else.
-  await expect(group.getByLabel("Party", { exact: true }).locator("option:checked")).toHaveText(act);
+  await expect(group.getByLabel("Party", { exact: true }).locator("option:checked")).toHaveText(
+    act,
+  );
   for (const other of await panel.getByTestId("contract-group").all()) {
     if (!(await other.textContent())?.includes(act)) {
       await other.getByRole("checkbox").first().uncheck();
