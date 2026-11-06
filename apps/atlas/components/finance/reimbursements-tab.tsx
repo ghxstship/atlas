@@ -16,9 +16,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
-import { RecordReimbursementForm } from "./forms-record-reimbursement-form";
-import { VoidReimbursementForm } from "./forms-void-reimbursement-form";
-import { FormSheet } from "./kit-form-sheet";
+import { FormSheet, RecordReimbursementForm, VoidReimbursementForm } from "./lazy";
 import { type Row } from "./kit.types";
 import { PaymentTabs, PaymentsNotice } from "./payments-tabs";
 

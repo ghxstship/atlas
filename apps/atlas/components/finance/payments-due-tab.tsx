@@ -17,8 +17,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { getOrgWeekStart } from "@/lib/shell/time-zone";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { SimpleTable } from "./figures";
-import { MarkPerDiemsPaidForm } from "./forms-mark-per-diems-paid-form";
-import { FormSheet } from "./kit-form-sheet";
+import { FormSheet, MarkPerDiemsPaidForm } from "./lazy";
 import { type Row } from "./kit.types";
 import { PaymentTabs, PaymentsNotice } from "./payments-tabs";
 

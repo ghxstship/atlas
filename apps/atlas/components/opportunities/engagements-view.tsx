@@ -43,7 +43,7 @@ import { AllInCost } from "@/components/finance/all-in-cost";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { DocumentActions } from "@/components/documents/document-actions";
-import { GenerateAgreements } from "@/components/opportunities/generate-agreements";
+import { GenerateAgreements } from "@/components/opportunities/generate-agreements-lazy";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
 import {
