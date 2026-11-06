@@ -28,7 +28,7 @@ Actual is approved and paid expenses plus approved crew hours. A shift names the
 
 ## Quotes
 
-**Quotes** builds a client quote from a budget. A Draft reads live prices, with cost and margin shown only to you under **Internal: never on the quote**. **Send quote** freezes the version and its content fingerprint. Enter an email to get a signing link and access code, shown once, or leave it blank and the client signs in Gateway's Documents tab. Sending a new version supersedes the last one. When the client signs, the quote is accepted and locked; record later changes as a change order. Atlas never holds funds, so a quote has no payment state.
+**Quotes** builds a client quote from a budget. A Draft reads live prices, with cost and margin shown only to you under **Internal: never on the quote**. Choose the client engagement on the Draft until a version has been sent; **Send quote** needs one. With a new version open, the page shows the Draft's lines and totals, since those are what you send next. **Send quote** freezes the version and its content fingerprint. Enter an email to get a signing link and access code, shown once, or leave it blank and the client signs in Gateway's Documents tab. Sending a new version supersedes the last one. When the client signs, the quote is accepted and locked; record later changes as a change order. Atlas never holds funds, so a quote has no payment state.
 
 ## Import lines
 

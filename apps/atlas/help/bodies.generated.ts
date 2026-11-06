@@ -453,7 +453,15 @@ export const HELP_BODIES: HelpBodies = {
             v: " builds a client quote from a budget. A Draft reads live prices, with cost and margin shown only to you under ",
           },
           { t: "strong", v: "Internal: never on the quote" },
-          { t: "text", v: ". " },
+          {
+            t: "text",
+            v: ". Choose the client engagement on the Draft until a version has been sent; ",
+          },
+          { t: "strong", v: "Send quote" },
+          {
+            t: "text",
+            v: " needs one. With a new version open, the page shows the Draft's lines and totals, since those are what you send next. ",
+          },
           { t: "strong", v: "Send quote" },
           {
             t: "text",
@@ -2884,7 +2892,15 @@ export const HELP_BODIES: HelpBodies = {
             v: " crea una cotización para el cliente a partir de un presupuesto. Un borrador usa los precios actuales, con costo y margen visibles solo para ti bajo ",
           },
           { t: "strong", v: "Interno: nunca aparece en la cotización" },
-          { t: "text", v: ". " },
+          {
+            t: "text",
+            v: ". Elige la contratación del cliente en el borrador hasta que se haya enviado una versión; ",
+          },
+          { t: "strong", v: "Enviar cotización" },
+          {
+            t: "text",
+            v: " la necesita. Con una versión nueva abierta, la página muestra las líneas y los totales del borrador, porque es lo que envías después. ",
+          },
           { t: "strong", v: "Enviar cotización" },
           {
             t: "text",
