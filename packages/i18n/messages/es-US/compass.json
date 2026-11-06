@@ -729,6 +729,77 @@
     "manageInAtlas": "Administrar en Atlas",
     "manageInGateway": "Administrar en Gateway"
   },
+  "legalGate": {
+    "age": {
+      "title": "Confirma tu edad",
+      "sentence": "Elige la opción que sea cierta para ti.",
+      "over": "Tengo 18 años o más",
+      "under": "Tengo menos de 18 años"
+    },
+    "under": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no puedes usar Compass con este inicio de sesión. Si continúas, lo cerramos.",
+      "keeps": "Guardamos un registro de que se rechazó a una persona menor de 18 años, sin nada que te identifique. Si una organización ya tiene registros sobre ti, como las horas que trabajaste, conserva lo que exige la ley y verá que tu cuenta se eliminó.",
+      "confirm": "Cerrar este inicio de sesión",
+      "back": "Volver"
+    },
+    "refused": {
+      "title": "Tu inicio de sesión está cerrado",
+      "sentence": "Ya no tienes una cuenta de XOS.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso."
+    },
+    "held": {
+      "title": "Todavía no pudimos cerrarlo",
+      "legalHold": "{org} conserva tus registros bajo una retención legal, así que tu cuenta no se puede eliminar ahora.",
+      "onShift": "Marcaste entrada en {org}, así que tu cuenta no se puede eliminar ahora.",
+      "soleOwner": "Eres el único propietario de {org}, así que tu cuenta no se puede eliminar ahora.",
+      "other": "Tu cuenta no se puede eliminar ahora.",
+      "next": "No puedes usar Compass con este inicio de sesión. Contáctanos y terminaremos de cerrarlo.",
+      "contact": "Contáctanos"
+    },
+    "documents": {
+      "title": "Revisa y acepta",
+      "lead": "Lee estos documentos antes de usar Compass. Cada uno se abre en tu navegador.",
+      "limits": "Limitan lo que te debemos si algo sale mal e indican dónde se resuelven las disputas. En un iPhone también se aplican los términos de Apple.",
+      "agree": "Leí estos documentos y los acepto",
+      "accept": "Aceptar y continuar",
+      "decline": "No acepto",
+      "later": "Ahora no",
+      "effective": "Entra en vigor el {date}"
+    },
+    "documentNames": {
+      "mobile-eula": "Contrato de licencia de usuario final de la app móvil",
+      "worker-terms": "Términos para trabajadores"
+    },
+    "declined": {
+      "title": "Compass necesita tu aceptación",
+      "sentence": "No puedes usar Compass sin aceptar estos documentos. Puedes revisarlos de nuevo o cerrar sesión.",
+      "back": "Revisar de nuevo"
+    },
+    "connection": {
+      "title": "Conéctate para continuar",
+      "sentence": "Antes de usar Compass, te pregunta tu edad y si aceptas sus términos, y guarda tus respuestas en nuestros servidores. Para eso necesita conexión. Conéctate y vuelve a intentarlo."
+    },
+    "online": "Este paso necesita conexión. Compass guarda tus respuestas en nuestros servidores para que valgan en todos tus dispositivos y se puedan mostrar más adelante.",
+    "needsConnection": "No pudimos registrar eso, así que nada cambió. Compass necesita conexión para este paso. Revisa tu conexión y vuelve a intentarlo.",
+    "upcoming": "{document} cambia el {date}. Revísalo y acéptalo.",
+    "review": "Revisar"
+  },
+  "aiDisclosure": {
+    "title": "¿Permitir las funciones de IA en Compass?",
+    "provider": "Las funciones de IA envían datos a un proveedor externo de IA. Hoy ese proveedor es Anthropic, que opera los modelos Claude para nosotros.",
+    "sent": "Lo que se le envía: las preguntas que le haces al asistente, junto con los SOP, las páginas del manual y los registros relacionados que ya puedes ver, y las fotos de recibos que tomas para un gasto cuando tu organización tiene activada la lectura de recibos.",
+    "notSent": "No se envían los registros médicos ni los campos restringidos, como tarifas de pago, datos bancarios e identificaciones oficiales. Sí se envía todo lo que se vea en una foto que tomes. El proveedor no entrena sus modelos con estos datos.",
+    "change": "Nada llega al proveedor hasta que lo permitas. Si no lo permites, las funciones de IA quedan desactivadas para ti en todo XOS y Compass funciona sin ellas. Puedes cambiarlo en Configuración.",
+    "notice": "Leer el Aviso de funciones de IA",
+    "allow": "Permitir",
+    "decline": "No permitir",
+    "failed": "No pudimos guardar tu elección, así que nada cambió y no se envió nada. Revisa tu conexión y vuelve a intentarlo.",
+    "declined": "Las funciones de IA están desactivadas, como elegiste. Para usarlas, permítelas abajo.",
+    "settingsTitle": "Funciones de IA",
+    "settingsLabel": "Usar funciones de IA",
+    "settingsHelp": "Envía tus preguntas y fotos de recibos a un proveedor externo de IA. Si lo desactivas, las funciones de IA quedan desactivadas para ti en todo XOS."
+  },
   "settings": {
     "title": "Ajustes",
     "theme": "Tema",

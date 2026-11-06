@@ -23,6 +23,7 @@ import {
 import { compassAuroraClient } from "../src/runtime/aurora";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
 import { pickReceiptPhoto, processReceipt, type ReceiptImage } from "../src/runtime/receipts";
+import { AiDisclosure } from "../src/screens/AiDisclosure";
 import { Gate, ProjectPicker, SyncBanner } from "../src/screens/common";
 import { ReceiptCamera } from "../src/screens/ReceiptCamera";
 import {
@@ -44,9 +45,10 @@ const EMPTY: ExpenseDraft = { budgetLineId: null, description: "", amount: "", i
 
 /** What Aurora's state says above the form; read shows the AI label instead. */
 const AURORA_COPY: Readonly<
-  Record<Exclude<AuroraState, "read">, { tone: "info" | "warning"; key: string }>
+  Record<Exclude<AuroraState, "read" | "ask">, { tone: "info" | "warning"; key: string }>
 > = {
   reading: { tone: "info", key: "compassExpenses.aurora.reading" },
+  declined: { tone: "info", key: "compassExpenses.aurora.declined" },
   off: { tone: "info", key: "compassExpenses.aurora.off" },
   "not-in-plan": { tone: "info", key: "compassExpenses.aurora.notInPlan" },
   limit: { tone: "warning", key: "compassExpenses.aurora.limit" },
@@ -108,7 +110,7 @@ function ReceiptForm({
 }): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { resolved, enqueue, network, config, client } = useCompass();
+  const { resolved, enqueue, network, config, client, aiChoice } = useCompass();
   const today = todayOn(timeZone);
   const [draft, setDraft] = useState<ExpenseDraft>({
     ...EMPTY,
@@ -127,7 +129,8 @@ function ReceiptForm({
   const otherCurrency =
     receiptCurrency && currency && receiptCurrency !== currency ? receiptCurrency : null;
 
-  // Aurora reads the receipt once, as soon as the photo is taken; the person can type while it reads.
+  // Aurora reads the receipt once, as soon as the photo is taken and only if the person allowed it; they can type while
+  // it reads.
   const reader = useMemo(
     () => compassAuroraClient(config.atlasUrl, client),
     [config.atlasUrl, client],
@@ -138,7 +141,7 @@ function ReceiptForm({
   linesRef.current = lines;
   useEffect(() => {
     let live = true;
-    void readReceipt(reader, photo, online)
+    void readReceipt(reader, photo, online, aiChoice)
       .then((reading) => {
         if (!live) return;
         setAurora(reading.state);
@@ -160,8 +163,9 @@ function ReceiptForm({
     return () => {
       live = false;
     };
-    // The photo is read once; a change of network while the form is open does not read it again.
-  }, [reader, photo]);
+    // The photo is read once; a change of network while the form is open does not read it again. Answering the AI
+    // disclosure on this screen does, since nothing was read before it.
+  }, [reader, photo, aiChoice]);
 
   const problems = draftProblems(draft, currency, today);
   const save = async () => {
@@ -223,6 +227,8 @@ function ReceiptForm({
             {t("compassExpenses.aurora.read")}
           </Text>
         </View>
+      ) : aurora === "ask" ? (
+        <AiDisclosure testID="expense-ai-disclosure" />
       ) : (
         <InlineAlert
           testID={`expense-aurora-${aurora}`}

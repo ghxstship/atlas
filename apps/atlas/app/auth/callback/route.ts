@@ -1,3 +1,4 @@
+import { minimumAgeOutdated } from "@xos/data/consent";
 import { joinBySsoSession } from "@xos/data/identity-providers";
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
@@ -56,5 +57,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     if (joined.ok && joined.data && next === "/") return goTo(`/${joined.data.slug}/home`);
   }
+  // Someone who confirmed the earlier age of 16 answers again at 18 (migration 6155).
+  if (await minimumAgeOutdated(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
   return goTo(next);
 }

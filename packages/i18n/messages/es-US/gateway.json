@@ -2294,7 +2294,9 @@
       "email": "Correo electrónico",
       "password": "Contraseña",
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "usePassword": "Usar contraseña",
@@ -2440,7 +2442,20 @@
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu inicio de sesión está cerrado. Guardamos un registro de que se rechazó a una persona menor de 18 años, sin nada que te identifique. Si una organización ya tiene registros sobre ti, conserva lo que exige la ley.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta todavía no se puede eliminar: lo impide una retención legal, un turno abierto o que seas el único propietario de una organización. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar"
     }
   },
   "work": {

@@ -950,7 +950,9 @@
       "orgName": "Organization name",
       "orgSlug": "Web address",
       "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
-      "age": "I am 16 or older."
+      "age": "I am 18 or older",
+      "ageUnder": "I am under 18",
+      "ageLegend": "Your age"
     },
     "or": "or",
     "signIn": {
@@ -1035,7 +1037,7 @@
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved by Atlas. Choose another.",
-      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
+      "age": "Choose the answer that is true for you."
     },
     "networkRestricted": {
       "title": "Your network is not allowed",
@@ -1047,6 +1049,19 @@
       "reasonHelp": "At least 20 characters.",
       "start": "Take emergency access",
       "back": "Choose another organization"
+    },
+    "ageRefused": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
+      "closed": "You told us you are under 18, so your sign-in is closed. We keep a record that someone under 18 was turned away, with nothing that identifies you. If an organization already has records about you, it keeps what the law requires.",
+      "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. Contact us and we will finish closing it.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
+      "contact": "Contact us"
+    },
+    "ageQuestion": {
+      "title": "Confirm your age",
+      "lead": "XOS asks everyone who has not answered yet.",
+      "submit": "Continue"
     }
   },
   "roles": {

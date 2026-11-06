@@ -4,7 +4,16 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
+import {
+  AGE_OLD_ENOUGH,
+  AGE_UNDER,
+  ageMetadata,
+  confirmMinimumAge,
+  minimumAgeConfirmed,
+  minimumAgeOutdated,
+  recordAgeRefusal,
+  refuseMinimumAge,
+} from "@xos/data/consent";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
@@ -74,7 +83,13 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
-  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
+  const target = holdsFactor ? secondFactorRedirect(next, "") : next;
+  // Someone who confirmed the earlier age of 16 answers again at 18 (migration 6155).
+  redirect(
+    ((await minimumAgeOutdated(db))
+      ? `/auth/age?next=${encodeURIComponent(target)}`
+      : target) as Route,
+  );
 }
 
 /** The terms box was ticked; account creation needs it (Section 14.4, finding A59-025). */
@@ -82,13 +97,42 @@ function acceptedTerms(form: FormData): boolean {
   return form.get("acceptTerms") === "yes";
 }
 
-/** The "16 or older" box was ticked; account creation needs it (Section 14.3, 14.9, A65-014). */
+/** The person answered 18 or older; account creation needs it (Section 14.3, 14.9, migration 6155). */
 function ageTicked(form: FormData): boolean {
-  return form.get("ageConfirmed") === "16";
+  return form.get("ageConfirmed") === AGE_OLD_ENOUGH;
+}
+
+/**
+ * An answer of under 18 on a sign-up form ends here: no account is created, nothing typed is kept and
+ * the refusal is counted with nothing that identifies the person. Answers only when it was not that.
+ */
+async function stopSignUpIfUnderAge(form: FormData): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  await recordAgeRefusal(await createServerSupabase(), "Gateway");
+  redirect("/auth/age-refused");
+}
+
+/**
+ * An answer of under 18 from someone already signed in, whose account a provider or an earlier rule
+ * made: the account closes (app.refuse_minimum_age) and the session goes with it.
+ */
+async function stopAccountIfUnderAge(form: FormData): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  const db = await createServerSupabase();
+  const refused = await refuseMinimumAge(db, "Gateway");
+  if (!refused.ok)
+    throw new Error(`The refusal was not recorded: ${JSON.stringify(refused.error)}`);
+  await db.auth.signOut({ scope: "local" });
+  redirect(
+    refused.data.outcome === "Account Held"
+      ? "/auth/age-refused?outcome=held"
+      : "/auth/age-refused?outcome=closed",
+  );
 }
 
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
   const signUp = form.get("intent") === "sign-up";
+  if (signUp) await stopSignUpIfUnderAge(form);
   const values = {
     email: text(form, "email"),
     ...(signUp
@@ -174,6 +218,7 @@ export async function reauthenticate(_: FormState, form: FormData): Promise<Form
 }
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
+  await stopSignUpIfUnderAge(form);
   const values = {
     fullName: text(form, "fullName"),
     email: text(form, "email"),
@@ -219,6 +264,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
  * finding A59-025). The account exists already, so the acceptance goes straight to the log.
  */
 export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<FormState> {
+  await stopAccountIfUnderAge(form);
   const next = safeNext(form.get("next"), HOME);
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
@@ -240,5 +286,21 @@ export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<F
     clientIp: clientIp(await headers()),
   });
   if (!recorded.ok) return { error: "unexpected", values: { acceptTerms: "yes" } };
+  redirect(next as Route);
+}
+
+/**
+ * The age question on its own, for someone who confirmed the earlier age of 16 (/auth/age). They answer
+ * once, and go on to where they were going.
+ */
+export async function answerAgeQuestion(_: FormState, form: FormData): Promise<FormState> {
+  await stopAccountIfUnderAge(form);
+  const next = safeNext(form.get("next"), HOME);
+  const db = await createServerSupabase();
+  const { data } = await db.auth.getUser();
+  if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  if (!ageTicked(form)) return { fieldErrors: { ageConfirmed: "age" } };
+  const confirmed = await confirmMinimumAge(db, "Gateway", clientIp(await headers()));
+  if (!confirmed.ok) return { error: "unexpected" };
   redirect(next as Route);
 }

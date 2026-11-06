@@ -304,9 +304,21 @@ export function applyProposal(
   };
 }
 
-/** Why Aurora is not reading this receipt, for the line above the form. */
+/**
+ * Why Aurora is not reading this receipt, for the line above the form. `ask` means the org has it on and the person has
+ * not yet chosen, so nothing has left the phone; `declined` means they said no.
+ */
 export type AuroraState =
-  "reading" | "read" | "off" | "not-in-plan" | "limit" | "offline" | "no-answer" | "failed";
+  | "reading"
+  | "read"
+  | "ask"
+  | "declined"
+  | "off"
+  | "not-in-plan"
+  | "limit"
+  | "offline"
+  | "no-answer"
+  | "failed";
 
 /** The calls reading a receipt needs from the Aurora client (@xos/ai/client), with the person's own token. */
 export type ReceiptReader = Pick<AuroraClient, "status" | "extract" | "suggestion">;
@@ -316,10 +328,13 @@ export interface ReceiptReading {
   readonly proposal: ReceiptProposal | null;
 }
 
-function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | "read"> {
+function refusalState(
+  problem: AuroraProblem,
+): Exclude<AuroraState, "reading" | "read" | "ask"> {
   // The phone was online but the API did not answer (a dropped connection, Atlas unreachable): say Aurora
   // could not read it rather than that the phone is offline.
   if (problem.status === 0) return "failed";
+  if (problem.rule === "ai_declined_by_person") return "declined";
   if (problem.rule === "aurora_feature_off") return "off";
   if (problem.rule === "aurora_not_in_plan") return "not-in-plan";
   if (problem.rule === "plan_limit_exceeded") return "limit";
@@ -330,16 +345,19 @@ function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | 
  * Reads a receipt with Aurora. The org's switch comes first: with document extraction off, not in the plan or the
  * allowance used, no photo leaves the phone. The server checks the same again (app.ai_begin_request) and the
  * screen says why when it refuses. Offline, nothing is tried: the person types the fields and the save queues.
+ * The person's own AI choice binds as well: without an Allowed the photo stays on the phone (ADR 0156).
  */
 export async function readReceipt(
   reader: ReceiptReader,
   jpegBase64: string,
   online: boolean,
+  aiChoice: AiChoiceState,
 ): Promise<ReceiptReading> {
   const none = (state: Exclude<AuroraState, "reading">): ReceiptReading => ({
     state,
     proposal: null,
   });
+  if (aiChoice === "Declined") return none("declined");
   if (!online) return none("offline");
   const status = await reader.status();
   if (!status.ok) return none(refusalState(status.problem));
@@ -347,6 +365,7 @@ export async function readReceipt(
   if (!status.data.enabled_features.includes("extraction")) return none("off");
   if (status.data.allowance !== null && status.data.used >= status.data.allowance)
     return none("limit");
+  if (aiChoice !== "Allowed") return none("ask");
   const result = await reader.extract(receiptExtractionRequest(jpegBase64));
   if (!result.ok) return none(refusalState(result.problem));
   if (result.data.outcome === "no_answer") return none("no-answer");

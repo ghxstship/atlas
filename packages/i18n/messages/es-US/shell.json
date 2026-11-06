@@ -950,7 +950,9 @@
       "orgName": "Nombre de la organización",
       "orgSlug": "Dirección web",
       "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "signIn": {
@@ -1035,7 +1037,7 @@
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Atlas reserva esa dirección web. Elige otra.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
     },
     "networkRestricted": {
       "title": "Su red no está permitida",
@@ -1047,6 +1049,19 @@
       "reasonHelp": "Al menos 20 caracteres.",
       "start": "Tomar acceso de emergencia",
       "back": "Elegir otra organización"
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu inicio de sesión está cerrado. Guardamos un registro de que se rechazó a una persona menor de 18 años, sin nada que te identifique. Si una organización ya tiene registros sobre ti, conserva lo que exige la ley.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta todavía no se puede eliminar: lo impide una retención legal, un turno abierto o que seas el único propietario de una organización. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar"
     }
   },
   "roles": {

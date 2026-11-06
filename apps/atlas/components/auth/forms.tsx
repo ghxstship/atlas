@@ -1,10 +1,12 @@
 "use client";
 
+import { AGE_OLD_ENOUGH, AGE_UNDER } from "@xos/data/consent";
 import { slugFromName } from "@xos/data/slug";
 import { useTranslations } from "next-intl";
 import { useActionState, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   acceptInvitation,
+  answerAgeQuestion,
   createOrganizationAction,
   signInWithEmail,
   signUpWithEmail,
@@ -38,30 +40,53 @@ function fieldError(t: Translate, state: FormState, field: string): string {
 const INITIAL: FormState = {};
 
 /**
- * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2). Every way of creating or first
- * using an account asks it; the action records it (migration 1381).
+ * The age question (Section 14.3, 14.9; Terms of Service 3.2): both answers with equal weight, and no rule stated until
+ * it is answered (ADR 0156). Every way of creating or first using an account asks it; the action records it
+ * (migrations 1381 and 6155), and an answer of under 18 ends there.
  */
 function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
   const t = useAuthCopy();
   const error = state.fieldErrors?.["ageConfirmed"];
+  const answer = state.values?.["ageConfirmed"];
+  const describedBy = error ? `${id}-error` : undefined;
   return (
-    <div className="flex flex-col gap-4">
-      <Checkbox
-        id={id}
-        name="ageConfirmed"
-        value="16"
-        required
-        defaultChecked={state.values?.["ageConfirmed"] === "16"}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        label={<span className="text-text-13">{t("fields.age")}</span>}
-      />
+    <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
+      <legend className="mb-8 text-text-13 font-medium">{t("fields.ageLegend")}</legend>
+      <label htmlFor={id} className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13">
+        <input
+          id={id}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_OLD_ENOUGH}
+          required
+          defaultChecked={answer === AGE_OLD_ENOUGH}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.age")}</span>
+      </label>
+      <label
+        htmlFor={`${id}-under`}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
+        <input
+          id={`${id}-under`}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_UNDER}
+          required
+          defaultChecked={answer === AGE_UNDER}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.ageUnder")}</span>
+      </label>
       {error ? (
         <p id={`${id}-error`} className="m-0 text-text-12 text-danger-text">
           {t("errors.age")}
         </p>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
 
@@ -234,7 +259,7 @@ export function OrganizationForm({
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
-  /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
+  /** The person has not confirmed they are 18 or older yet (a first Google sign-in). */
   askAge?: boolean;
 }) {
   const t = useAuthCopy();
@@ -311,6 +336,20 @@ export function OrganizationForm({
       ) : null}
       {askAge ? <AgeConfirmation id="org-age" state={state} /> : null}
       <Submit pending={pending}>{t("organization.submit")}</Submit>
+    </form>
+  );
+}
+
+/** The age question on its own, for someone who confirmed the earlier age of 16 (/auth/age). */
+export function AgeQuestionForm({ next }: { next: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);
+  return (
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <input type="hidden" name="next" value={next} />
+      <AgeConfirmation id="age-question" state={state} />
+      <Submit pending={pending}>{t("ageQuestion.submit")}</Submit>
     </form>
   );
 }

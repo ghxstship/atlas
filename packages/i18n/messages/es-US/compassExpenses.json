@@ -7,6 +7,7 @@
     "title": "Agregar un gasto"
   },
   "aurora": {
+    "declined": "Las funciones de IA están desactivadas, como elegiste. Ingresa los datos tú mismo. Puedes cambiarlo en Configuración.",
     "failed": "Aurora no pudo leer este recibo. Ingresa los datos tú mismo.",
     "fieldMissing": "No aparece en el recibo. Ingrésalo tú mismo.",
     "fieldRead": "Leído por Aurora, con {percent} % de certeza. Revísalo.",

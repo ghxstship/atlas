@@ -7,6 +7,7 @@
     "title": "Add an expense"
   },
   "aurora": {
+    "declined": "AI features are off, as you chose. Enter the details yourself. You can change this in Settings.",
     "failed": "Aurora could not read this receipt. Enter the details yourself.",
     "fieldMissing": "Not on the receipt. Enter it yourself.",
     "fieldRead": "Read by Aurora, {percent}% sure. Check it.",

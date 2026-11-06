@@ -17,6 +17,7 @@ import { useOfferActions } from "../src/runtime/offer-actions";
 import { SystemBanners } from "../src/runtime/systemBanners";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
+import { LegalGate } from "../src/screens/LegalGate";
 import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor";
 import { SignIn } from "../src/screens/SignIn";
 import {
@@ -48,10 +49,21 @@ function OfferActions(): null {
 }
 
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings, client, signOut, startupError, retryStartup } =
-    useCompass();
+  const {
+    phase,
+    retryIdentity,
+    settings,
+    client,
+    signOut,
+    startupError,
+    retryStartup,
+    upcomingLegal,
+  } = useCompass();
   const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
+  // A legal change still in its notice period: the person may review it now or hide the prompt until the next launch.
+  const [reviewingLegal, setReviewingLegal] = useState(false);
+  const [legalPromptHidden, setLegalPromptHidden] = useState(false);
   // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
   useEffect(() => {
     if (phase.kind !== "identity-failed") setDeleting(false);
@@ -98,6 +110,30 @@ function Gatekeeper(): ReactElement {
   if (phase.kind === "signed-out") return <SignIn />;
   if (phase.kind === "second-factor") return <SecondFactor factors={phase.factors} />;
   if (phase.kind === "factor-required") return <SecondFactorRequired />;
+  if (phase.kind === "legal-connection") {
+    return (
+      <Screen testID="legal-connection">
+        <ErrorState
+          title={t("compass.legalGate.connection.title")}
+          sentence={t("compass.legalGate.connection.sentence")}
+          actionLabel={t("compass.common.retry")}
+          onRetry={retryIdentity}
+        />
+        <Button
+          testID="legal-connection-sign-out"
+          variant="secondary"
+          icon="log-out"
+          block
+          label={t("compass.settings.signOut")}
+          onPress={() => void signOut()}
+        />
+      </Screen>
+    );
+  }
+  if (phase.kind === "legal-required") {
+    // Asked again after each answer; what the server still wants starts the steps afresh.
+    return <LegalGate key={JSON.stringify(phase.needs)} needs={phase.needs} />;
+  }
   if (phase.kind === "identity-failed") {
     // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
     if (deleting) return <DeleteAccount />;
@@ -134,13 +170,36 @@ function Gatekeeper(): ReactElement {
       </Screen>
     );
   }
+  if (reviewingLegal && upcomingLegal.length > 0) {
+    return (
+      <LegalGate
+        needs={{ age: false, documents: [], changes: upcomingLegal }}
+        onLater={() => setReviewingLegal(false)}
+      />
+    );
+  }
+  const legalChange = legalPromptHidden ? undefined : upcomingLegal[0];
   return (
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
       <OfferActions />
       <HelpScreenTracker />
-      <SystemBanners client={client} />
+      <SystemBanners
+        client={client}
+        {...(legalChange
+          ? {
+              legalNotice: {
+                message: t("compass.legalGate.upcoming", {
+                  document: t(`compass.legalGate.documentNames.${legalChange.documentSlug}`),
+                  date: legalChange.effectiveOn,
+                }),
+                onReview: () => setReviewingLegal(true),
+                onHide: () => setLegalPromptHidden(true),
+              },
+            }
+          : {})}
+      />
       <BiometricLock enabled={settings.biometric}>
         <NativeHeaderContext.Provider value={true}>
           <Stack
