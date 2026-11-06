@@ -35,6 +35,8 @@ export interface Shortage {
   readonly shiftId: string | null;
   /** Null for a shift row. */
   readonly poLineId: string | null;
+  /** The order a vendor row's line is on, which its link opens. */
+  readonly purchaseOrderId: string | null;
   readonly roleCode: string | null;
   readonly startsAt: string;
   readonly endsAt: string | null;
@@ -76,6 +78,7 @@ export async function listShortages(
       projectName: r.project_name,
       shiftId: r.shift_id ?? null,
       poLineId: r.po_line_id ?? null,
+      purchaseOrderId: r.purchase_order_id ?? null,
       roleCode: r.role_code ?? null,
       startsAt: r.starts_at,
       endsAt: r.ends_at ?? null,

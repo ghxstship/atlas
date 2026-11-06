@@ -201,6 +201,7 @@ declare
   v_reason text := left(coalesce(nullif(btrim(coalesce(p_reason, '')), ''), 'No reason given.'), 500);
   v_creator uuid;
   v_reopen boolean;
+  v_named boolean;
 begin
   select * into v_shift from app.shifts s where s.id = p_shift_id and s.deleted_at is null for update;
   if v_shift.id is null or p_coming is null
@@ -230,6 +231,8 @@ begin
   end if;
   -- The planner who created the shift hears of it, while they may still staff it and open it.
   v_creator := v_shift.created_by;
+  v_named := v_shift.roster_entry_id is null
+    or private.person_capability_reach(v_creator, v_shift.org_id, 'advancing.packet.read', false) is not null;
   if v_creator is not null and v_creator <> v_person
      and private.person_capability_reach(v_creator, v_shift.org_id, 'crew.shift.write', false) is not null
      and private.person_may_read_subject(v_creator, to_jsonb(v_shift)) then
@@ -238,9 +241,8 @@ begin
         'startsAt', to_char(v_shift.starts_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
         'endsAt', to_char(v_shift.ends_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
         -- A roster person's name is an advancing.packet.read fact (ADR 0148): without it the message names nobody.
-        'workerName', case when v_shift.roster_entry_id is null
-                             or private.person_capability_reach(v_creator, v_shift.org_id, 'advancing.packet.read', false) is not null
-                           then coalesce((select p.full_name from app.people p where p.id = v_person), '') else '' end,
+        'workerName', case when v_named then coalesce((select p.full_name from app.people p where p.id = v_person), '') else '' end,
+        'named', case when v_named then 'yes' else 'no' end,
         'reopened', case when v_reopen then 'yes' else 'no' end));
   end if;
   return v_ask.id;

@@ -219,7 +219,9 @@
       "accept": "Aceptar turno"
     },
     "positions": {
-      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación."
+      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
+      "records": "Registros de {position}",
+      "due": "Vence el {date}"
     },
     "timesheets": {
       "empty": "Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.",
@@ -406,7 +408,9 @@
         "allocationItem": "Elige para quién es y qué necesitas.",
         "allocationQuantity": "Escribe una cantidad mayor que cero.",
         "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
-        "rosterAssignee": "Elige a quién asignar al turno."
+        "rosterAssignee": "Elige a quién asignar al turno.",
+        "noShowReason": "Indica qué pasó, en hasta 500 caracteres.",
+        "stillComing": "Abre el turno desde tus notificaciones y vuelve a intentarlo."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -574,7 +578,11 @@
         "assigned": "Asignado.",
         "assignTitle": "Asigna a alguien de tu equipo",
         "person": "Persona",
-        "personHint": "Elige a alguien de tu equipo"
+        "personHint": "Elige a alguien de tu equipo",
+        "noShow": "Marcar ausencia",
+        "noShowDone": "Ausencia registrada.",
+        "noShowTitle": "Marcar a esta persona como ausente",
+        "noShowReason": "Qué pasó"
       }
     },
     "settlement": {
@@ -718,7 +726,8 @@
       "overlaps": "se superpone con otro turno",
       "trainingEmpty": "No tienes formación pendiente antes de tu primer turno.",
       "awaitingVerification": "Pendiente de verificación",
-      "acknowledge": "Lo he leído y lo confirmo"
+      "acknowledge": "Lo he leído y lo confirmo",
+      "noShowTag": "Ausencia"
     }
   },
   "enums": {
@@ -1370,7 +1379,12 @@
       "representationAction": "Aceptar",
       "interview": "Entrevista para {title}",
       "rate": "Califica tu trabajo con {org}",
-      "rateAction": "Calificar"
+      "rateAction": "Calificar",
+      "stillComing": "¿Sigues yendo a {title}?",
+      "stillComingYes": "Voy a ir",
+      "stillComingNo": "No puedo ir",
+      "stillComingReason": "Motivo (opcional)",
+      "stillComingDeclined": "Ya se le avisó a quien planifica."
     },
     "fyi": {
       "title": "Para tu información",
@@ -1387,7 +1401,8 @@
         "shiftChanged": "Turno modificado: {title}",
         "messageReceived": "Mensaje nuevo",
         "other": "{title}",
-        "untitled": "Novedad"
+        "untitled": "Novedad",
+        "shiftNoShow": "Marcado como ausente: {title}"
       }
     },
     "recommended": {
@@ -2057,7 +2072,8 @@
       "heading": {
         "approve": "¿Aprobar {title}?",
         "reject": "¿Rechazar {title}?",
-        "accept": "¿Aceptar {title}?"
+        "accept": "¿Aceptar {title}?",
+        "confirmComing": "¿Sigues yendo a {title}?"
       },
       "untitled": "este elemento",
       "org": "De {org}. No pasa nada hasta que confirmes.",
@@ -2065,7 +2081,8 @@
       "confirm": {
         "approve": "Aprobar",
         "reject": "Rechazar",
-        "accept": "Aceptar"
+        "accept": "Aceptar",
+        "confirmComing": "Confirma que vas"
       },
       "reason": "¿Por qué lo rechazas?",
       "done": {

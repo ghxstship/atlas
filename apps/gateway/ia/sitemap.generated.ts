@@ -183,6 +183,7 @@ export const sitemap: Sitemap = {
           "engagement.overview",
           "engagement.project-details",
           "engagement.training",
+          "engagement.positions",
           "engagement.shifts",
           "engagement.timesheets",
           "engagement.credentials",

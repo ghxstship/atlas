@@ -193,7 +193,11 @@
       "procurement": "Procurement",
       "assets": "Assets",
       "incidents": "Incidents",
-      "custom_object": "Custom object"
+      "custom_object": "Custom object",
+      "crew_hours": "Crew hours",
+      "crew_responses": "Crew responses",
+      "crew_removals": "Crew removals",
+      "crew_ratings": "Crew ratings"
     },
     "status": {
       "Queued": "Queued",
@@ -203,6 +207,19 @@
     },
     "visibility": "Visibility",
     "when": "Started",
-    "you": "You"
+    "you": "You",
+    "standard": {
+      "title": "Standard crew reports",
+      "help": "Ready-made reports over your crew's shifts, answers, removals and ratings. Open one to preview it, and save your own copy to change it.",
+      "open": "Open",
+      "openNamed": "Open {name}",
+      "names": {
+        "crew-utilization": "Crew utilization",
+        "crew-invitation-responses": "Invitation responses",
+        "crew-removals": "Crew removals",
+        "crew-ratings": "Crew ratings",
+        "crew-scheduled-vs-actual": "Scheduled against actual hours"
+      }
+    }
   }
 }

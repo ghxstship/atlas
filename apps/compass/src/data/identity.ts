@@ -83,6 +83,7 @@ export function scopeFor(
     rosterEntryIds: open.flatMap((e) =>
       e.via === "roster" && e.rosterEntryId ? [e.rosterEntryId] : [],
     ),
+    engagedOrgIds: [...new Set(open.map((e) => e.orgId))],
   };
 }
 

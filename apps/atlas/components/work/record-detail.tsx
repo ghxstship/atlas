@@ -54,6 +54,7 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+import { RecordPositionButton } from "./record-position-button";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -362,6 +363,9 @@ export async function RecordBody({
         people={meta.people}
         canEdit={detail.canWrite}
       />
+      {detail.canWrite && !record.deletedAt ? (
+        <RecordPositionButton org={org} recordId={record.id} projectId={record.projectId} />
+      ) : null}
       {record.deletedAt ? null : (
         <WatchButton org={org} recordId={record.id} watchId={detail.watchId} />
       )}

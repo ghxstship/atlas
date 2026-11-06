@@ -8,6 +8,8 @@ nodes:
     crew.schedule,
     crew.shifts,
     crew.swaps,
+    crew.shortages,
+    crew.positions,
     crew.time-entries,
     crew.timesheets,
     crew.rate-cards,
@@ -37,3 +39,23 @@ Las tarjetas de tarifas fijan el pago por rol y regla. Ejecute la exportación d
 ## Viáticos
 
 Agregue viáticos en Equipo > Viáticos después de elegir un proyecto: elija a un miembro o a una persona contratada en el proyecto, el primer y el último día, y el monto diario. Cada día se registra una vez por persona, y el personal externo recibe viáticos solo mientras su contratación está Activa o En cierre. Quitar un viático conserva su historial.
+
+## Faltantes
+
+Crew > Faltantes muestra lo que aún no está cubierto entre dos días, en todos los proyectos que puedes leer: turnos abiertos, plazas de agencia que nadie de la lista ocupa, ofertas sin responder, preguntas de ¿Sigues yendo? sin responder o rechazadas, ausencias sin reemplazo y líneas de mano de obra sin acuse en órdenes de compra aprobadas o enviadas. Las filas van por día, en la zona horaria de cada turno, y cada una abre su turno u orden. Un rango puede tener hasta 62 días.
+
+## Puestos
+
+Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura.
+
+## ¿Sigues yendo? y ausencias
+
+Activa Ajustes > Programación > Preguntar al equipo si sigue yendo, y a quien trabaja un turno aceptado se le pregunta una vez antes de que empiece. Responde por correo, notificación, Inicio de Gateway o el propio turno hasta que empiece. Si alguien no puede ir, el turno se reabre o vuelve a su agencia, salvo que lo desactives. Marca la ausencia en un turno ya empezado cuando la persona no llegó ni registró su entrada. Un registro de entrada posterior la retira.
+
+## Avisos de programación
+
+El descanso mínimo y las horas máximas por día y por semana en Ajustes > Programación son avisos de tu organización, visibles en el tablero de programación, el registro del turno y la aprobación de cambios y reclamos. Nunca rechazan una asignación ni son reglas de pago o de horas extra estatales. Los minutos de un turno cuentan el día en que empieza, y la etiqueta semanal se refiere a la semana que empieza en el inicio de semana de tu nómina, que puede diferir de la semana ISO que usan las horas del tablero.
+
+## Tipos de descanso
+
+Ajustes > Tiempo y asistencia define los descansos, cada uno pagado o sin pagar. Un descanso pagado es tiempo trabajado, así que sus minutos no se restan de las horas y aparecen como Descanso pagado junto a Descanso. Compass pregunta qué descanso cuando hay dos o más tipos. Una organización sin tipos funciona como antes.

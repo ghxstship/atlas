@@ -514,7 +514,18 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "ask_kind": "Pregunta",
+      "answer": "Respuesta",
+      "asked_at": "Preguntado",
+      "answered_at": "Respondido",
+      "recorded_at": "Registrado",
+      "filled_at": "Cubierto",
+      "paid": "Pagado",
+      "planned_minutes": "Minutos previstos",
+      "is_default": "Predeterminado",
+      "paid_break_minutes": "Descanso pagado (minutos)",
+      "reason": "Motivo"
     }
   }
 }

@@ -227,7 +227,7 @@
       "none": "No items yet.",
       "nodeLine": "{kind} scope node, code suffix {suffix}",
       "recordLine": "{kind} record · {phase} · {due}",
-      "phase": "phase {code}",
+      "phase": "Phase",
       "phaseNone": "no phase",
       "noPhase": "No phase",
       "noDue": "no due date",
@@ -257,7 +257,6 @@
         "Y": "Y: process",
         "Z": "Z: timeline"
       },
-      "phase": "Phase",
       "dueOffset": "Due, days after the start",
       "dueOffsetHelp": "Leave blank for no due date; use a negative number for before the start.",
       "remove": "Remove",
@@ -326,7 +325,11 @@
       "procurement": "Purchase orders",
       "assets": "Assets",
       "incidents": "Incidents",
-      "custom_object": "Custom objects"
+      "custom_object": "Custom objects",
+      "crew_hours": "Crew hours",
+      "crew_responses": "Crew responses",
+      "crew_removals": "Crew removals",
+      "crew_ratings": "Crew ratings"
     },
     "fields": {
       "records": {
@@ -374,6 +377,40 @@
       "custom_object": {
         "title": "Title",
         "created_at": "Created"
+      },
+      "crew_hours": {
+        "shift_id": "Shift",
+        "role_code": "Role",
+        "worker_kind": "Worker kind",
+        "worker_name": "Worker",
+        "starts_at": "Starts",
+        "scheduled_hours": "Scheduled hours",
+        "actual_hours": "Actual hours",
+        "variance_hours": "Variance hours",
+        "no_show": "No-show"
+      },
+      "crew_responses": {
+        "kind": "Kind",
+        "answer": "Answer",
+        "asked_at": "Asked",
+        "answered_at": "Answered",
+        "person_name": "Person",
+        "role_code": "Role"
+      },
+      "crew_removals": {
+        "removed_at": "Removed",
+        "from_state": "Left state",
+        "person_name": "Person",
+        "role_code": "Role",
+        "engagement_party": "Party",
+        "reason": "Reason",
+        "removed_by_name": "Removed by"
+      },
+      "crew_ratings": {
+        "party_name": "Party",
+        "role_type": "Role type",
+        "score": "Score",
+        "submitted_at": "Submitted"
       }
     },
     "fieldsTitle": "Columns",
@@ -461,7 +498,16 @@
     "savedTitle": "Reports you can open",
     "savedNone": "No saved reports yet. Save one above.",
     "sharedLabel": "Shared",
-    "privateLabel": "Private"
+    "privateLabel": "Private",
+    "standard": {
+      "crew-utilization": "Crew utilization",
+      "crew-invitation-responses": "Invitation responses",
+      "crew-removals": "Crew removals",
+      "crew-ratings": "Crew ratings",
+      "crew-scheduled-vs-actual": "Scheduled against actual hours"
+    },
+    "standardHelp": "A standard report. Nothing is kept until you save it as your own editable copy, and the preview shows only what you may read.",
+    "saveAsMine": "Save as my report"
   },
   "policies": {
     "title": "Approval policies",

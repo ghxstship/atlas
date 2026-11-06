@@ -219,7 +219,9 @@
       "accept": "Accept shift"
     },
     "positions": {
-      "empty": "No positions assigned yet. They follow once training is done."
+      "empty": "No positions assigned yet. They follow once training is done.",
+      "records": "Records of {position}",
+      "due": "Due {date}"
     },
     "timesheets": {
       "empty": "No timesheets yet. Your clocked shifts collect into timesheets here.",
@@ -406,7 +408,9 @@
         "allocationItem": "Choose who it is for and what you need.",
         "allocationQuantity": "Enter a quantity above zero.",
         "allocationWindow": "Give the need a start, a later end and a time zone.",
-        "rosterAssignee": "Choose who to place on the shift."
+        "rosterAssignee": "Choose who to place on the shift.",
+        "noShowReason": "Say what happened, in up to 500 characters.",
+        "stillComing": "Open the shift from your notifications and try again."
       },
       "advance": {
         "answer": "Your answer",
@@ -574,7 +578,11 @@
         "assigned": "Assigned.",
         "assignTitle": "Assign someone from your roster",
         "person": "Person",
-        "personHint": "Choose someone from your roster"
+        "personHint": "Choose someone from your roster",
+        "noShow": "Mark no-show",
+        "noShowDone": "No-show recorded.",
+        "noShowTitle": "Mark this person as a no-show",
+        "noShowReason": "What happened"
       }
     },
     "settlement": {
@@ -718,7 +726,8 @@
       "overlaps": "overlaps another shift",
       "trainingEmpty": "No training is due before your first shift.",
       "awaitingVerification": "Waiting for verification",
-      "acknowledge": "I have read and acknowledge this"
+      "acknowledge": "I have read and acknowledge this",
+      "noShowTag": "No-show"
     }
   },
   "enums": {
@@ -1370,7 +1379,12 @@
       "representationAction": "Accept",
       "interview": "Interview for {title}",
       "rate": "Rate your work with {org}",
-      "rateAction": "Rate"
+      "rateAction": "Rate",
+      "stillComing": "Still coming to {title}?",
+      "stillComingYes": "I'm coming",
+      "stillComingNo": "Can't make it",
+      "stillComingReason": "Reason (optional)",
+      "stillComingDeclined": "Your planner has been told."
     },
     "fyi": {
       "title": "For your information",
@@ -1387,7 +1401,8 @@
         "shiftChanged": "Shift changed: {title}",
         "messageReceived": "New message",
         "other": "{title}",
-        "untitled": "New update"
+        "untitled": "New update",
+        "shiftNoShow": "Marked as a no-show: {title}"
       }
     },
     "recommended": {
@@ -2057,7 +2072,8 @@
       "heading": {
         "approve": "Approve {title}?",
         "reject": "Reject {title}?",
-        "accept": "Accept {title}?"
+        "accept": "Accept {title}?",
+        "confirmComing": "Are you still coming to {title}?"
       },
       "untitled": "this item",
       "org": "From {org}. Nothing happens until you confirm.",
@@ -2065,7 +2081,8 @@
       "confirm": {
         "approve": "Approve",
         "reject": "Reject",
-        "accept": "Accept"
+        "accept": "Accept",
+        "confirmComing": "Confirm you're coming"
       },
       "reason": "Why are you rejecting it?",
       "done": {

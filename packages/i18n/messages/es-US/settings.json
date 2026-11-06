@@ -356,6 +356,34 @@
     "advancingAllowanceOverflow": {
       "label": "Solicitudes por encima de la asignación permitida",
       "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
+    },
+    "reconfirmShifts": {
+      "label": "Preguntar al equipo si sigue yendo",
+      "help": "Antes de que empiece un turno, pregunta una vez a quien lo trabaja si sigue yendo. Apagado hasta que lo actives."
+    },
+    "reconfirmLeadHours": {
+      "label": "Horas antes del turno para preguntar",
+      "help": "Con cuánta anticipación sale la pregunta, de 2 a 72 horas."
+    },
+    "reconfirmReopen": {
+      "label": "Reabrir el turno si alguien no puede ir",
+      "help": "Si está activo, el turno vuelve a los turnos abiertos o a la plaza de su agencia. Si no, la persona sigue en él y aparece en Crew, Faltantes."
+    },
+    "swapReasonRequired": {
+      "label": "Exigir un motivo para cambiar un turno",
+      "help": "El equipo indica por qué pide ceder un turno."
+    },
+    "minRestHours": {
+      "label": "Descanso mínimo entre turnos (horas)",
+      "help": "Un aviso de programación de la organización antes de asignar a alguien, nunca un rechazo, una regla de pago ni de horas extra estatales. 0 lo apaga."
+    },
+    "maxDailyHours": {
+      "label": "Máximo de horas programadas por día",
+      "help": "Un aviso de programación de la organización antes de asignar a alguien, nunca una regla de pago ni de horas extra estatales. Cuenta los minutos programados y es distinto del umbral de carga de trabajo. 0 lo apaga."
+    },
+    "maxWeeklyHours": {
+      "label": "Máximo de horas programadas por semana",
+      "help": "Un aviso de programación de la organización antes de asignar a alguien, nunca una regla de pago ni de horas extra estatales. La semana empieza en el inicio de semana de tu nómina. 0 lo apaga."
     }
   },
   "choices": {

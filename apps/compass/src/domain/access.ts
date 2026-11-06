@@ -74,6 +74,7 @@ export type Feature =
   | "scan.credential.badge"
   | "scan.lookup"
   | "crew.board"
+  | "crew.no_show"
   | "timesheets.approve"
   | "logistics.dock"
   | "logistics.yard"
@@ -124,6 +125,8 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, CapabilityCode | null>> = {
   "scan.credential.badge": null,
   "scan.lookup": "assets.asset.read",
   "crew.board": "crew.shift.read",
+  // Marking a late crew member a no-show (B9): app.mark_shift_no_show needs crew.shift.write.
+  "crew.no_show": "crew.shift.write",
   "timesheets.approve": "crew.timesheet.approve",
   "logistics.dock": "logistics.dock_slot.write",
   "logistics.yard": "logistics.yard.write",
@@ -161,6 +164,7 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   ],
   "scan.lookup": [],
   "crew.board": [],
+  "crew.no_show": [],
   "timesheets.approve": [],
   "logistics.dock": [],
   "logistics.yard": [],
@@ -173,6 +177,7 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
 const SUPERVISOR_ONLY = new Set<Feature>([
   "clock.team",
   "crew.board",
+  "crew.no_show",
   "timesheets.approve",
   "incidents.dispatch",
 ]);
@@ -185,6 +190,7 @@ const ROSTER_DENIED = new Set<Feature>([
   "clock",
   "shifts.swap",
   "crew.board",
+  "crew.no_show",
   "timesheets.approve",
   "expenses.submit",
 ]);

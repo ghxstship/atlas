@@ -796,6 +796,34 @@ nodes:
             label: nav.atlas.pages.crew.swaps
             route: "/{org}/crew/swaps"
             list: { views: [list, table, board], default: list }
+          # What is not covered yet, and the seats shifts and records are planned against (B9, ADR 0148). Own-reach Field
+          # users would get no rows and could act on nothing, so these two are hidden from them.
+          - id: crew.shortages
+            kind: page
+            label: nav.atlas.pages.crew.shortages
+            route: "/{org}/crew/shortages"
+            list: { views: [list, table], default: list }
+            visibility:
+              owner: full
+              admin: full
+              manager: full
+              member: read
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
+          - id: crew.positions
+            kind: page
+            label: nav.atlas.pages.crew.positions
+            route: "/{org}/crew/positions"
+            list: { views: [table, list], default: table }
+            visibility:
+              owner: full
+              admin: full
+              manager: full
+              member: read
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
           - id: crew.time-entries
             kind: page
             label: nav.atlas.pages.crew.timeEntries

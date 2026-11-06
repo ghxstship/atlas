@@ -60,7 +60,7 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
 | artist-representative, Advance scope | advance, crew, project-details, rider, set-times, hospitality, guest-list, credentials                                                     |
 | sponsor                              | overview, entitlements, asset-approvals, activation-schedule, advance, crew, proof-of-performance, invoices, documents, messages           |
 | roster-member (new)                  | overview, project-details, credentials, travel-and-lodging, per-diem, documents, messages                                                  |
-| roster-staff (new)                   | overview, project-details, training, shifts, timesheets, credentials, travel-and-lodging, per-diem, documents, messages                    |
+| roster-staff (new)                   | overview, project-details, training, positions, shifts, timesheets, credentials, travel-and-lodging, per-diem, documents, messages         |
 
 - Client is unchanged.
 - **The representative's Advance scope carries project-details as well.** The validator requires a delegating set to
@@ -69,6 +69,9 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
   principal (ADR 0101), so this grants nothing the roster rules do not already allow.
 - **roster-member** renders when a person reaches an engagement only through an Accepted roster entry (R8).
 - **roster-staff** renders for a person who reaches a Staff company engagement only through a roster entry (R12).
+- Amendment (B9, migration 2984, ADR 0148): roster-staff also carries positions, after training, because that tab is where
+  the holder of a project position reads its records. It stays apart from the party's own tabs: crew and invoices do not
+  appear in it.
 - Amendment (R12, migrations 2750 to 2756): agency staff work through roster entries, never through engagements of
   their own. An agency slot is a shift whose `engagement_id` is a Staff company engagement (counterparty set, no
   person); `app.assign_roster_shift` places an accepted, trained roster entry on it, after which the shift names

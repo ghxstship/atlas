@@ -64,11 +64,13 @@ describe("roster-staff tab set", () => {
     expect(onRoster({ roleType: "staff" })).toBe(false);
   });
 
-  it("shows training, shifts and timesheets, and never the party's tabs", () => {
+  it("shows training, positions, shifts and timesheets, and never the party's crew or invoices tabs", () => {
     const tabs = visibleEngagementTabs(sitemap, nav, "roster-staff", [], []);
     expect(tabs).toEqual([
       "engagement.overview",
       "engagement.training",
+      // B9 (ADR 0148, ADR 0100 amendment): where the holder of a project position reads its records.
+      "engagement.positions",
       "engagement.shifts",
       "engagement.timesheets",
       "engagement.credentials",
@@ -77,7 +79,6 @@ describe("roster-staff tab set", () => {
     ]);
     const managed = visibleEngagementTabs(sitemap, nav, "roster-staff", [], ["roster-manager"]);
     expect(managed).not.toContain("engagement.crew");
-    expect(managed).not.toContain("engagement.positions");
     expect(managed).not.toContain("engagement.invoices");
   });
 });

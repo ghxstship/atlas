@@ -52,6 +52,11 @@ export interface DownloadScope {
    * person who works an engagement only through a party's roster. Absent holds none.
    */
   readonly rosterEntryIds?: readonly string[];
+  /**
+   * External: the orgs of those open engagements, roster ones included, for an org's reference data an external worker
+   * reads (B9's break types). Never in orgIds, which stays the orgs a person is a member of. Absent holds none.
+   */
+  readonly engagedOrgIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -134,6 +139,16 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "requested_by_membership_id", key: "membershipIds", audiences: INTERNAL },
       { column: "proposed_membership_id", key: "membershipIds", audiences: INTERNAL },
       internalProject,
+    ],
+  },
+  // No-shows and break types (B9): REST only (ADR 0033 decision 51). The break types an external worker reads come
+  // through api_external.break_types, on the orgs of their open engagements.
+  { table: "shift_no_shows", anyOf: [{ ...internalProject, restOnly: true }] },
+  {
+    table: "break_types",
+    anyOf: [
+      { ...internalOrg, restOnly: true },
+      { column: "org_id", key: "engagedOrgIds", audiences: CREW_STAFF, restOnly: true },
     ],
   },
   { table: "time_entries", anyOf: [...ownOrEngaged, internalProject] },

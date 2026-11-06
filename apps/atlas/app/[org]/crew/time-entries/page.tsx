@@ -155,6 +155,11 @@ export default async function Page({
                 label: t("crew.entries.break"),
                 value: t("crew.entries.minutes", { count: e.breakMinutes }),
               },
+              // A paid break is worked time, kept apart and never subtracted (B9).
+              {
+                label: t("crew.entries.paidBreak"),
+                value: t("crew.entries.minutes", { count: e.paidBreakMinutes ?? 0 }),
+              },
               {
                 label: t("crew.fields.hours"),
                 value:
@@ -407,6 +412,7 @@ export default async function Page({
           { key: "in", label: t("crew.entries.clockIn") },
           { key: "out", label: t("crew.entries.clockOut") },
           { key: "break", label: t("crew.entries.break"), type: "number" },
+          { key: "paidBreak", label: t("crew.entries.paidBreak"), type: "number" },
           { key: "hours", label: t("crew.fields.hours"), type: "number" },
           { key: "state", label: t("crew.fields.state"), type: "state" },
         ]}
@@ -417,6 +423,7 @@ export default async function Page({
           in: at(e.clockIn, zoneOf(e.projectId)),
           out: e.clockOut ? at(e.clockOut, zoneOf(e.projectId)) : t("crew.time.clockedIn"),
           break: e.breakMinutes,
+          paidBreak: e.paidBreakMinutes ?? 0,
           hours: workedMinutes(e) === null ? null : hoursFromMinutes(workedMinutes(e) ?? 0),
           state: {
             state: stateIcon("entry", lifecycle(e)),

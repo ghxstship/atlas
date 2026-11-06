@@ -95,6 +95,8 @@ export function summarizeMutation(
         return shift("shiftAccept", m.base, ctx);
       case "app.claim_open_shift":
         return shift("shiftClaim", m.base, ctx);
+      case "app.mark_shift_no_show":
+        return { key: "noShow", values: {} };
       case "app.report_incident": {
         const title = text(a["p_title"]);
         const at = text(a["p_occurred_at"]);

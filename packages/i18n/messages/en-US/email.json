@@ -47,6 +47,18 @@
       "changed": {
         "subject": "Shift changed: {title}",
         "body": "Your shift {title} now starts {startsAt, date, full} at {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "Still coming? {title}",
+        "body": "You are scheduled for {title} starting {startsAt, date, full} at {startsAt, time, short}. Are you still coming?"
+      },
+      "reconfirm_declined": {
+        "subject": "Someone can't make {title}",
+        "body": "{named, select, yes {{workerName}} other {The person on this shift}} said they can't make {title} starting {startsAt, date, full} at {startsAt, time, short}. {reopened, select, yes {The shift is open again.} other {They stay on it until you change it.}}"
+      },
+      "no_show": {
+        "subject": "Marked as a no-show: {title}",
+        "body": "You were marked as a no-show for {title} starting {startsAt, date, full} at {startsAt, time, short}. Clocking in on the shift withdraws it; otherwise talk to your supervisor."
       }
     },
     "invoice": {
@@ -354,7 +366,8 @@
       "approve": "Approve",
       "reject": "Reject",
       "accept": "Accept",
-      "note": "Each button opens a page to confirm. It works once, for 7 days."
+      "note": "Each button opens a page to confirm. It works once, for 7 days.",
+      "confirmComing": "Confirm you're coming"
     }
   },
   "digest": {

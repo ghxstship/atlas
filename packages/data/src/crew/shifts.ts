@@ -230,6 +230,8 @@ export interface ShiftInput {
    */
   readonly engagementId?: string | null;
   readonly scopeNodeId?: string | null;
+  /** The project position it is held for (B9); the database keeps anyone else off it. */
+  readonly projectPositionId?: string | null;
 }
 
 /** Plans a Draft shift. The database refuses an end before the start and a zone that is not IANA. */
@@ -249,6 +251,7 @@ export async function createShift(
       membership_id: input.membershipId,
       ...(input.engagementId ? { engagement_id: input.engagementId } : {}),
       scope_node_id: input.scopeNodeId ?? null,
+      ...(input.projectPositionId ? { project_position_id: input.projectPositionId } : {}),
     })
     .select("id")
     .single();
@@ -259,7 +262,13 @@ export async function createShift(
 export type ShiftPatch = Partial<
   Pick<
     ShiftInput,
-    "roleCode" | "startsAt" | "endsAt" | "timeZone" | "membershipId" | "engagementId"
+    | "roleCode"
+    | "startsAt"
+    | "endsAt"
+    | "timeZone"
+    | "membershipId"
+    | "engagementId"
+    | "projectPositionId"
   >
 >;
 
@@ -271,6 +280,7 @@ export async function updateShift(
 ): Promise<Result<null>> {
   const update: Database["app"]["Tables"]["shifts"]["Update"] = {};
   if (patch.roleCode !== undefined) update.role_code = patch.roleCode;
+  if (patch.projectPositionId !== undefined) update.project_position_id = patch.projectPositionId;
   if (patch.startsAt !== undefined) update.starts_at = patch.startsAt;
   if (patch.endsAt !== undefined) update.ends_at = patch.endsAt;
   if (patch.timeZone !== undefined) update.time_zone = patch.timeZone;

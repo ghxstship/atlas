@@ -233,6 +233,27 @@ export interface PunchContext {
   readonly source: "Mobile" | "Kiosk";
   readonly kioskDeviceId?: string | null;
   readonly photoUri?: string | null;
+  /** The break type chosen for a Break Start (B9); without one the server takes the org's default, else none. */
+  readonly breakTypeId?: string | null;
+}
+
+/** A break type as Compass reads it (app.break_types, or api_external.break_types for an external worker). */
+export interface BreakTypeRow {
+  readonly id: string;
+  readonly name: string;
+  readonly paid?: boolean;
+  readonly is_default?: boolean;
+}
+
+/**
+ * What Break does (B9, ADR 0148): with two or more live types the person chooses in a sheet; with one, that one; with
+ * none, an untyped break, exactly as before any org had types.
+ */
+export function breakChoice(
+  types: readonly BreakTypeRow[],
+): { readonly ask: true } | { readonly ask: false; readonly typeId: string | null } {
+  if (types.length > 1) return { ask: true };
+  return { ask: false, typeId: types[0]?.id ?? null };
 }
 
 /**
@@ -260,6 +281,7 @@ export function buildPunch(
   const id = newId(nowMs);
   const status = evaluateGeofence(fix, geofences, nowMs);
   const geofenceId = status.kind === "inside" ? status.geofence.id : null;
+  const breakTypeId = kind === "Break Start" ? (ctx.breakTypeId ?? null) : null;
   const row: Punch & Record<string, unknown> = {
     id,
     punch_kind: kind,
@@ -269,6 +291,7 @@ export function buildPunch(
     membership_id: ctx.membershipId,
     engagement_id: ctx.engagementId,
     roster_entry_id: rosterEntryId,
+    break_type_id: breakTypeId,
     source: ctx.source,
     latitude: fix?.latitude ?? null,
     longitude: fix?.longitude ?? null,
@@ -297,6 +320,7 @@ export function buildPunch(
     p_photo_uri: ctx.photoUri ?? null,
     p_membership_id: ctx.membershipId,
     p_engagement_id: ctx.engagementId,
+    ...(breakTypeId === null ? {} : { p_break_type_id: breakTypeId }),
     monotonic_at: event.monotonicAt,
     boot_id: event.bootId,
   };

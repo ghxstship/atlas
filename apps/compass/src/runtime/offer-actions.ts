@@ -9,6 +9,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  buttonKey,
   CATEGORY_ACTIONS,
   doneMessageKey,
   needsUnlock,
@@ -25,12 +26,6 @@ import { useCompass } from "./CompassProvider";
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
-const BUTTON_KEYS: Readonly<Record<OfferAction, string>> = {
-  accept: "compass.offerActions.accept",
-  decline: "compass.offerActions.decline",
-  reply: "compass.offerActions.reply",
-};
-
 async function registerOfferCategories(t: Translate): Promise<void> {
   for (const [category, actions] of Object.entries(CATEGORY_ACTIONS) as [
     OfferCategory,
@@ -40,7 +35,7 @@ async function registerOfferCategories(t: Translate): Promise<void> {
       category,
       actions.map((action) => ({
         identifier: action,
-        buttonTitle: t(BUTTON_KEYS[action]),
+        buttonTitle: t(buttonKey(category, action)),
         ...(action === REPLY_ACTION
           ? {
               textInput: {

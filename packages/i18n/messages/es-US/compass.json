@@ -275,7 +275,8 @@
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
-      "expenseReceipt": "Gasto: {description}, {day}"
+      "expenseReceipt": "Gasto: {description}, {day}",
+      "noShow": "Marcar a un miembro del equipo como ausente"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
@@ -394,7 +395,11 @@
     },
     "shortcut": {
       "clockedIn": "Entrada registrada en {project}. Descanso y Salida están en su pantalla de bloqueo."
-    }
+    },
+    "breakTypeTitle": "¿Qué descanso?",
+    "breakTypeCancel": "Cancelar",
+    "breakTypePaid": "{name} (pagado)",
+    "breakTypeUnpaid": "{name} (sin pagar)"
   },
   "schedule": {
     "title": "Agenda",
@@ -667,7 +672,15 @@
     "boardEmpty": "Nadie ha marcado entrada en este proyecto todavía.",
     "late": "Tarde",
     "approvalsEmpty": "No hay hojas de horas por aprobar.",
-    "coverageEmpty": "Todos los turnos de hoy están cubiertos."
+    "coverageEmpty": "Todos los turnos de hoy están cubiertos.",
+    "noShow": {
+      "mark": "Marcar ausencia",
+      "title": "Marcar a {name} como ausente",
+      "cancel": "Cancelar",
+      "submit": "Marcar ausencia",
+      "reason": "Qué pasó",
+      "reasonHelp": "Lo leen la persona y quienes planifican los turnos. Espera en este dispositivo si no tienes conexión."
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -963,7 +976,11 @@
     "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
     "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
     "offerDeclined": "Oferta rechazada.",
-    "replied": "Respuesta enviada."
+    "replied": "Respuesta enviada.",
+    "coming": "Voy a ir",
+    "notComing": "No puedo ir",
+    "reconfirmComing": "Confirmado. Nos vemos allí.",
+    "reconfirmNotComing": "Ya se le avisó a quien planifica."
   },
   "help": {
     "title": "Ayuda",

@@ -193,7 +193,11 @@
       "procurement": "Compras",
       "assets": "Activos",
       "incidents": "Incidentes",
-      "custom_object": "Objeto personalizado"
+      "custom_object": "Objeto personalizado",
+      "crew_hours": "Horas del equipo",
+      "crew_responses": "Respuestas del equipo",
+      "crew_removals": "Retiros del equipo",
+      "crew_ratings": "Calificaciones del equipo"
     },
     "status": {
       "Queued": "En cola",
@@ -203,6 +207,19 @@
     },
     "visibility": "Visibilidad",
     "when": "Iniciado",
-    "you": "Usted"
+    "you": "Usted",
+    "standard": {
+      "title": "Informes estándar del equipo",
+      "help": "Informes listos sobre turnos, respuestas, retiros y calificaciones de tu equipo. Abre uno para verlo y guarda tu propia copia para cambiarlo.",
+      "open": "Abrir",
+      "openNamed": "Abrir {name}",
+      "names": {
+        "crew-utilization": "Uso del equipo",
+        "crew-invitation-responses": "Respuestas a invitaciones",
+        "crew-removals": "Retiros del equipo",
+        "crew-ratings": "Calificaciones del equipo",
+        "crew-scheduled-vs-actual": "Horas programadas frente a reales"
+      }
+    }
   }
 }

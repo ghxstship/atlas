@@ -117,7 +117,9 @@
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
         "timeOff": "Ausencias",
-        "perDiems": "Viáticos"
+        "perDiems": "Viáticos",
+        "shortages": "Faltantes",
+        "positions": "Puestos"
       },
       "finance": {
         "budgets": "Presupuestos",

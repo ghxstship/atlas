@@ -275,7 +275,8 @@
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
-      "expenseReceipt": "Expense: {description}, {day}"
+      "expenseReceipt": "Expense: {description}, {day}",
+      "noShow": "Mark a crew member as a no-show"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
@@ -394,7 +395,11 @@
     },
     "shortcut": {
       "clockedIn": "Clocked in at {project}. Break and Clock Out are on your lock screen."
-    }
+    },
+    "breakTypeTitle": "Which break?",
+    "breakTypeCancel": "Cancel",
+    "breakTypePaid": "{name} (paid)",
+    "breakTypeUnpaid": "{name} (unpaid)"
   },
   "schedule": {
     "title": "Schedule",
@@ -667,7 +672,15 @@
     "boardEmpty": "No one is clocked in on this project yet.",
     "late": "Late",
     "approvalsEmpty": "No timesheets waiting for approval.",
-    "coverageEmpty": "Every shift today is filled."
+    "coverageEmpty": "Every shift today is filled.",
+    "noShow": {
+      "mark": "Mark no-show",
+      "title": "Mark {name} as a no-show",
+      "cancel": "Cancel",
+      "submit": "Mark no-show",
+      "reason": "What happened",
+      "reasonHelp": "The worker and shift planners read this. It waits on this device if you are offline."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -963,7 +976,11 @@
     "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
     "offerAccepted": "Offer accepted. The organization sets up your engagement next.",
     "offerDeclined": "Offer declined.",
-    "replied": "Reply sent."
+    "replied": "Reply sent.",
+    "coming": "I'm coming",
+    "notComing": "Can't make it",
+    "reconfirmComing": "Confirmed. See you there.",
+    "reconfirmNotComing": "Your planner has been told."
   },
   "help": {
     "title": "Help",

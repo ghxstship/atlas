@@ -32,11 +32,13 @@ export interface TimeEntry {
   readonly clockIn: string;
   readonly clockOut: string | null;
   readonly breakMinutes: number;
+  /** Minutes of paid breaks (B9): worked time, kept apart and never subtracted. */
+  readonly paidBreakMinutes?: number;
   readonly source: TimeEntrySource;
   readonly createdAt: string;
 }
 
-const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!time_entries_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id`;
+const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, paid_break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!time_entries_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id`;
 
 interface EntryRow {
   id: string;
@@ -49,6 +51,7 @@ interface EntryRow {
   clock_in: string;
   clock_out: string | null;
   break_minutes: number;
+  paid_break_minutes?: number;
   source: TimeEntrySource;
   created_at: string;
   project: { project_key: string } | null;
@@ -67,6 +70,7 @@ function toEntry(row: EntryRow): TimeEntry {
     clockIn: row.clock_in,
     clockOut: row.clock_out,
     breakMinutes: row.break_minutes,
+    paidBreakMinutes: row.paid_break_minutes ?? 0,
     source: row.source,
     createdAt: row.created_at,
   };

@@ -23,6 +23,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "offer.sent": "fyi.kinds.offerSent",
   "shift.assigned": "fyi.kinds.shiftAssigned",
   "shift.changed": "fyi.kinds.shiftChanged",
+  // A no-show recorded for a shift the person works (B9, migration 2982).
+  "shift.no_show": "fyi.kinds.shiftNoShow",
   "message.received": "fyi.kinds.messageReceived",
 };
 

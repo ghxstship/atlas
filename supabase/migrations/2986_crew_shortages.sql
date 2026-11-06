@@ -50,6 +50,7 @@ returns table (
   kind text,
   shift_id uuid,
   po_line_id uuid,
+  purchase_order_id uuid,
   role_code text,
   starts_at timestamptz,
   ends_at timestamptz,
@@ -81,14 +82,14 @@ begin
       and (s.starts_at at time zone s.time_zone)::date between p_from and p_to
   )
   -- Open shifts, held for a position or not.
-  select s.project_id, s.project_name, 'open'::text, s.id, null::uuid, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
+  select s.project_id, s.project_name, 'open'::text, s.id, null::uuid, null::uuid, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     null::text, null::text, null::numeric,
     (select pos.title from app.project_positions pos where pos.id = s.project_position_id and pos.deleted_at is null), null::timestamptz
   from shifts s
   where s.membership_id is null and s.engagement_id is null and s.roster_entry_id is null and s.shift_state in ('Draft', 'Published')
   union all
   -- Agency slots nobody on the roster holds.
-  select s.project_id, s.project_name, 'agency_unfilled', s.id, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
+  select s.project_id, s.project_name, 'agency_unfilled', s.id, null, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     (select o.name from app.engagements e join app.counterparties c on c.id = e.counterparty_id
      join app.organizations o on o.id = c.organization_id where e.id = s.engagement_id),
     null, null,
@@ -97,7 +98,7 @@ begin
   where s.engagement_id is not null and private.is_agency_slot_engagement(s.engagement_id)
   union all
   -- Published to someone who has not answered.
-  select s.project_id, s.project_name, 'awaiting_answer', s.id, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
+  select s.project_id, s.project_name, 'awaiting_answer', s.id, null, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     null, (select p.full_name from app.people p where p.id = s.worker_person_id and private.may_read_worker_name(p.id, s.project_id)), null, null,
     (select r.asked_at from app.shift_responses r
      where r.shift_id = s.id and r.ask_kind = 'Offer' and r.answer = 'Waiting' and r.deleted_at is null)
@@ -107,7 +108,7 @@ begin
   -- "Still coming?" unanswered, or declined while the worker stayed on.
   select s.project_id, s.project_name,
     case when r.answer = 'Declined' then 'reconfirm_declined' else 'not_reconfirmed' end,
-    s.id, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
+    s.id, null, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     null, (select p.full_name from app.people p where p.id = s.worker_person_id and private.may_read_worker_name(p.id, s.project_id)), null,
     case when r.answer = 'Declined' then r.reason end, r.asked_at
   from shifts s
@@ -115,7 +116,7 @@ begin
     and r.person_id = s.worker_person_id and r.answer in ('Waiting', 'No Answer', 'Declined')
   union all
   -- No-shows nobody has replaced.
-  select s.project_id, s.project_name, 'no_show', s.id, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
+  select s.project_id, s.project_name, 'no_show', s.id, null, null, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     null, (select p.full_name from app.people p where p.id = s.worker_person_id and private.may_read_worker_name(p.id, s.project_id)), null, n.reason, null
   from shifts s
   join app.shift_no_shows n on n.shift_id = s.id and n.deleted_at is null
@@ -124,7 +125,7 @@ begin
       and private.shift_worker_person_id(x.membership_id, x.engagement_id, x.roster_entry_id) is not null)
   union all
   -- Vendor labor the vendor has not acknowledged, on projects on site in these dates.
-  select pr.id, pr.name, 'vendor_unconfirmed', null, l.id, null,
+  select pr.id, pr.name, 'vendor_unconfirmed', null, l.id, po.id, null,
     greatest(lower(w.site), p_from::timestamp at time zone pr.time_zone), upper(w.site), pr.time_zone,
     (select o.name from app.vendors v join app.counterparties c on c.id = v.counterparty_id
      join app.organizations o on o.id = c.organization_id where v.id = po.vendor_id),
@@ -140,7 +141,7 @@ begin
     -- A project with no Build, Strike or dates has an unbounded window, which overlaps everything and starts nowhere.
     and w.site is not null and not lower_inf(w.site)
     and w.site && tstzrange(p_from::timestamp at time zone pr.time_zone, (p_to + 1)::timestamp at time zone pr.time_zone, '[)')
-  order by 7 nulls last, 2, 3, 4;
+  order by 8 nulls last, 2, 3, 4;
 end;
 $$;
 

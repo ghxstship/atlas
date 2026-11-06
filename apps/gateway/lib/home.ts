@@ -19,6 +19,7 @@ import {
   type PendingInvitation,
   type UnconfirmedMembership,
 } from "@xos/data/roster";
+import type { StillComingItem } from "@xos/data/notification-actions";
 
 /**
  * Gateway Home (Section 4.5.8): the Up Next card for the person's next shift, set time, delivery
@@ -110,10 +111,12 @@ export type FeedItem =
   // R4: an invitation to an account or onto a roster, a membership to confirm, a roster entry to answer.
   | { readonly kind: "invitation"; readonly invitation: PendingInvitation }
   | { readonly kind: "membership"; readonly membership: UnconfirmedMembership }
-  | { readonly kind: "roster"; readonly entry: MyRosterEntry };
+  | { readonly kind: "roster"; readonly entry: MyRosterEntry }
+  // B9: "Still coming?" about a shift the person works.
+  | { readonly kind: "stillComing"; readonly ask: StillComingItem };
 
 /**
- * Things that need the person, most urgent first: invitations, memberships to confirm and roster
+ * Things that need the person, most urgent first: "Still coming?" asks (B9: the shift starts soon), invitations, memberships to confirm and roster
  * entries to answer (R4: nothing about the person flows until they do), documents to sign, offers to
  * answer, blocking onboarding, representations to accept, interviews ahead, then completed engagements
  * to rate.
@@ -127,12 +130,14 @@ export function needsYou(input: {
   readonly invitations?: readonly PendingInvitation[];
   readonly memberships?: readonly UnconfirmedMembership[];
   readonly rosterEntries?: readonly MyRosterEntry[];
+  readonly stillComing?: readonly StillComingItem[];
   readonly personId: string;
   readonly now: Date;
 }): FeedItem[] {
   const today = input.now.toISOString().slice(0, 10);
   const byId = new Map(input.engagements.map((e) => [e.id, e]));
   const items: FeedItem[] = [];
+  for (const ask of input.stillComing ?? []) items.push({ kind: "stillComing", ask });
   for (const invitation of input.invitations ?? []) items.push({ kind: "invitation", invitation });
   for (const membership of input.memberships ?? []) items.push({ kind: "membership", membership });
   for (const entry of pendingRosterAnswers(input.rosterEntries ?? []))

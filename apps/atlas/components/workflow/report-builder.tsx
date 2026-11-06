@@ -73,12 +73,15 @@ export function ReportBuilder({
   org,
   initial,
   editable,
+  standard = false,
   canExport,
   exponents,
 }: {
   org: string;
   initial: ReportDefinition | null;
   editable: boolean;
+  /** A standard report opened unsaved: saving makes the viewer's own copy (B9). */
+  standard?: boolean;
   canExport: boolean;
   exponents: Readonly<Record<string, number>>;
 }) {
@@ -415,7 +418,11 @@ export function ReportBuilder({
               loading={pending}
               disabled={draft.name.trim() === "" || draft.fields.length === 0}
             >
-              {draft.id ? t("builder.saveChanges") : t("builder.save")}
+              {draft.id
+                ? t("builder.saveChanges")
+                : standard
+                  ? t("builder.saveAsMine")
+                  : t("builder.save")}
             </Button>
           ) : null}
           {editable && draft.id ? (

@@ -651,6 +651,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "clock_in",
     "clock_out",
     "break_minutes",
+    "paid_break_minutes",
     "source",
     "needs_review",
   ]),

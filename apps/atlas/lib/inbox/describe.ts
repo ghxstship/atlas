@@ -31,6 +31,10 @@ export interface InboxDescription {
 const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
+  // "Still coming?" and no-shows (B9, 2981 and 2982); a decline may carry the worker's name.
+  "shift.reconfirm": ["startsAt"],
+  "shift.reconfirm_declined": ["startsAt", "workerName", "named", "reopened"],
+  "shift.no_show": ["startsAt"],
   "event.invited": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],

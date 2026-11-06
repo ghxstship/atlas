@@ -25,7 +25,7 @@ import { toneFor } from "@/lib/states";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
-import { AssignRosterShiftForm } from "./staffing-forms";
+import { AssignRosterShiftForm, MarkNoShowForm } from "./staffing-forms";
 
 /**
  * Crew and staff tabs (Section 4.4.4: shifts, timesheets, travel and lodging, credentials,
@@ -149,10 +149,22 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
   const lead = agencyLead(view);
   const assignable = lead ? await assignableStaff(view, shifts.data, t) : null;
   if (assignable && !assignable.ok) return <RegionError />;
+  // Records assigned to the positions the person holds, or to the positions of the roster they lead (B9).
+  const records = await readView(view.ctx.db, "position_records", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["position_title", "asc"],
+  });
+  if (!records.ok) return <RegionError />;
+  const now = Date.now();
+  // A project position names the group; otherwise the scope, as before (B9, ADR 0148).
   const groups = new Map<string, ShiftRow[]>();
   for (const s of shifts.data) {
-    const key = s.scope_node_name ?? s.job_title ?? "";
+    const key = s.position_title ?? s.scope_node_name ?? s.job_title ?? "";
     groups.set(key, [...(groups.get(key) ?? []), s]);
+  }
+  for (const r of records.data) {
+    const key = r.position_title ?? "";
+    if (!groups.has(key)) groups.set(key, []);
   }
   if (groups.size === 0) {
     return (
@@ -168,6 +180,26 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
     <div className="flex flex-col gap-16">
       {[...groups].map(([position, list]) => (
         <Section key={position} id={`position-${position}`} title={position}>
+          {records.data.some((r) => r.position_title === position) ? (
+            <RowList
+              label={t("gateway.engagement.positions.records", { position })}
+              items={records.data
+                .filter((r) => r.position_title === position)
+                .map((r) => ({
+                  id: `record-${r.id ?? ""}`,
+                  title: r.title ?? "",
+                  meta: [
+                    r.record_kind,
+                    r.due_at
+                      ? t("gateway.engagement.positions.due", {
+                          date: formatDate(locale, r.due_at),
+                        })
+                      : null,
+                  ],
+                  ...(r.record_state ? { tag: { label: r.record_state, tone: toneFor(r.record_state) } } : {}),
+                }))}
+            />
+          ) : null}
           <RowList
             label={position}
             items={list.map((s) => ({
@@ -182,21 +214,31 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                   : null,
                 lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
               ],
-              ...(s.shift_state
-                ? {
-                    tag: {
-                      label: t(enumLabelKey("shiftState", s.shift_state)),
-                      tone: toneFor(s.shift_state),
-                    },
-                  }
-                : {}),
+              ...(s.has_no_show
+                ? { tag: { label: t("gateway.engagement.staffing.noShowTag"), tone: "warning" as const } }
+                : s.shift_state
+                  ? {
+                      tag: {
+                        label: t(enumLabelKey("shiftState", s.shift_state)),
+                        tone: toneFor(s.shift_state),
+                      },
+                    }
+                  : {}),
               // The agency places someone on an open slot, or takes them off one (R12).
               ...(lead && s.id && s.shift_state !== "Canceled"
                 ? s.is_agency_slot && assignable?.ok
                   ? {
                       detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
                     }
-                  : s.roster_entry_id
+                  : s.roster_entry_id &&
+                      !s.has_no_show &&
+                      s.starts_at &&
+                      new Date(s.starts_at).getTime() <= now
+                    ? {
+                        // Started, and nobody marked: the agency's lead says they did not arrive (B9).
+                        detail: <MarkNoShowForm shiftId={s.id} noShowId={crypto.randomUUID()} />,
+                      }
+                    : s.roster_entry_id && !s.has_no_show
                     ? {
                         action: (
                           <ActionButton

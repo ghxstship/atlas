@@ -514,7 +514,18 @@
       "reserved_quantity": "Held",
       "issued_quantity": "Issued",
       "returned_quantity": "Returned",
-      "decline_reason": "Decline reason"
+      "decline_reason": "Decline reason",
+      "ask_kind": "Ask",
+      "answer": "Answer",
+      "asked_at": "Asked",
+      "answered_at": "Answered",
+      "recorded_at": "Recorded",
+      "filled_at": "Filled",
+      "paid": "Paid",
+      "planned_minutes": "Planned minutes",
+      "is_default": "Default",
+      "paid_break_minutes": "Paid break (minutes)",
+      "reason": "Reason"
     }
   }
 }
