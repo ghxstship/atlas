@@ -85,7 +85,7 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
   }));
 
   const recordHref = (b: ReimbursementBalance) =>
-    withQuery(page, { record: b.payeePersonId, currency: b.currency, peek: null });
+    withQuery(page, { record: b.payeePersonId, currency: b.currency, peek: null, notice: null });
   const canRecordFor = (b: ReimbursementBalance) =>
     canRecord && b.owedCount > 0 && b.payeePersonId !== me;
 
@@ -176,7 +176,7 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
                     ) : (
                       <ButtonLink
                         key="v"
-                        href={withQuery(page, { voidReimbursement: r.id })}
+                        href={withQuery(page, { voidReimbursement: r.id, notice: null })}
                         variant="ghost"
                         size="sm"
                       >

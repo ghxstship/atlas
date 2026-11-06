@@ -58,8 +58,18 @@ export function ExpenseForm({
       .join("|");
     if (key === checked.current) return;
     checked.current = key;
-    if (!data.get("budgetLineId") || !data.get("amount") || !data.get("incurredOn")) return;
-    startCheck(async () => setLookAlikes(await findExpenseLookAlikesAction(data)));
+    if (!data.get("budgetLineId") || !data.get("amount") || !data.get("incurredOn")) {
+      setLookAlikes(0);
+      return;
+    }
+    // A warning only: a check that fails reads as none, and must not take the form and what was typed with it.
+    startCheck(async () => {
+      try {
+        setLookAlikes(await findExpenseLookAlikesAction(data));
+      } catch {
+        setLookAlikes(0);
+      }
+    });
   };
   return (
     <form

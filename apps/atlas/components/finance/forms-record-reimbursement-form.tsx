@@ -5,7 +5,7 @@ import { useFormatter } from "next-intl";
 import { useActionState, useState } from "react";
 import { recordReimbursementAction } from "@/app/[org]/finance/payables-actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import { useAfterRecord } from "./forms-after-record";
+import { ReturnTo } from "./forms-return-to";
 import { INITIAL, Submit } from "./forms.shared";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
@@ -41,12 +41,6 @@ export function RecordReimbursementForm({
   const t = useFinanceT();
   const format = useFormatter();
   const [state, action, pending] = useActionState(recordReimbursementAction, INITIAL);
-  useAfterRecord(state, {
-    record: null,
-    currency: null,
-    peek: null,
-    notice: "reimbursementRecorded",
-  });
   const [picked, setPicked] = useState<string[]>(
     owed.filter((o) => !o.pending).map((o) => o.value),
   );
@@ -61,6 +55,9 @@ export function RecordReimbursementForm({
     >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="payeePersonId" value={payeePersonId} />
+      <ReturnTo
+        changes={{ record: null, currency: null, peek: null, notice: "reimbursementRecorded" }}
+      />
       {picked.map((id) => (
         <input key={id} type="hidden" name="expenseIds" value={id} />
       ))}

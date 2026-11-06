@@ -208,6 +208,7 @@
       "direction": "Elija por pagar o por cobrar.",
       "endBeforeStart": "La fecha final debe ser igual o posterior a la inicial.",
       "engagementId": "Elija una contratación.",
+      "expenseIds": "Elija al menos un gasto.",
       "eventScope": "Un centro de costo de Evento necesita el alcance del evento al que pertenece.",
       "file": "Elija un archivo para subir.",
       "fileSize": "Los archivos pueden pesar hasta 50 MB.",
@@ -219,6 +220,7 @@
       "name": "Ingrese un nombre.",
       "number": "Los números de factura tienen hasta 100 caracteres.",
       "oneSide": "Cada línea lleva un débito o un crédito, no ambos ni ninguno.",
+      "perDiemIds": "Elija al menos un viático.",
       "periodId": "Elija el período contable.",
       "projectId": "Elija un proyecto.",
       "quantity": "Ingrese una cantidad de cero o más.",
@@ -962,6 +964,7 @@
     "noCurrency": "Sin moneda",
     "unpricedTotal": "Sin precio ({count} sin precio)",
     "noFee": "Aún no se factura ni se liquida el pago; este total no lo incluye.",
+    "partyNoFee": "{party} (aún sin pago)",
     "partly": "Una factura cuenta solo por la parte que supera las liquidaciones del acto en esa moneda, así un pago liquidado no se cuenta dos veces.",
     "fields": {
       "party": "Acto",

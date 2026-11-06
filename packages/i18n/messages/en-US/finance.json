@@ -208,6 +208,7 @@
       "direction": "Choose payable or receivable.",
       "endBeforeStart": "The end date must be on or after the start date.",
       "engagementId": "Choose an engagement.",
+      "expenseIds": "Choose at least one expense.",
       "eventScope": "An Event cost center needs the event scope it belongs to.",
       "file": "Choose a file to upload.",
       "fileSize": "Files can be up to 50 MB.",
@@ -219,6 +220,7 @@
       "name": "Enter a name.",
       "number": "Invoice numbers are up to 100 characters.",
       "oneSide": "Each line takes either a debit or a credit, not both and not neither.",
+      "perDiemIds": "Choose at least one per diem.",
       "periodId": "Choose the accounting period.",
       "projectId": "Choose a project.",
       "quantity": "Enter a quantity of zero or more.",
@@ -962,6 +964,7 @@
     "noCurrency": "No currency",
     "unpricedTotal": "Unpriced ({count} without a price)",
     "noFee": "No fee billed or settled yet; this total leaves it out.",
+    "partyNoFee": "{party} (no fee yet)",
     "partly": "A bill counts only the part above the act's settlements in that currency, so a settled fee is not counted twice.",
     "fields": {
       "party": "Act",

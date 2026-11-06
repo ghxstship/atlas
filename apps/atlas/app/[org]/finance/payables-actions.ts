@@ -4,9 +4,11 @@ import type { DataError, Result } from "@xos/data";
 import { recordPerDiemPayments } from "@xos/data/crew";
 import * as finance from "@xos/data/finance";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import type { Route } from "next";
+import { notFound, redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 import { exponentOf, getExponents } from "@/lib/finance/money";
+import { returnHref } from "@/lib/finance/return-to";
 import { observability } from "@/lib/observability";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import type { ActionError, ActionState } from "./actions";
@@ -33,10 +35,22 @@ async function contextFor(form: FormData): Promise<OrgContext> {
   return ctx;
 }
 
-function finish(ctx: OrgContext, result: Result<unknown>, extra: ActionState = {}): ActionState {
+/**
+ * Ends a recording. A refusal comes back to the form, which keeps what was typed. Success redirects to the page the form
+ * named (forms-return-to): the row that was recorded leaves the list, often taking the sheet with it, so the sheet's flags
+ * must clear and the page-level notice must arrive with the refresh, not from code inside the sheet.
+ */
+function finish(
+  ctx: OrgContext,
+  form: FormData,
+  result: Result<unknown>,
+  set?: Readonly<Record<string, string>>,
+): ActionState {
   if (!result.ok) return { error: toActionError(result.error), at: Date.now() };
   revalidatePath(`/${ctx.org.slug}`, "layout");
-  return { ok: true, at: Date.now(), ...extra };
+  const to = returnHref(form.get("returnTo"), ctx.org.slug, set);
+  if (to) redirect(to as Route, RedirectType.replace);
+  return { ok: true, at: Date.now() };
 }
 
 function inputError(field: string, key = field): ActionState {
@@ -70,6 +84,7 @@ export async function recordReimbursementAction(
   if (!ref.success) return inputError("reference");
   return finish(
     ctx,
+    form,
     await finance.recordExpenseReimbursement(ctx.viewer.db, {
       payeePersonId: payee.data,
       expenseIds: expenses.data,
@@ -90,6 +105,7 @@ export async function voidReimbursementAction(
   if (!reason.success) return inputError("reason");
   return finish(
     ctx,
+    form,
     await finance.voidExpenseReimbursement(ctx.viewer.db, { id: id.data, reason: reason.data }),
   );
 }
@@ -107,6 +123,7 @@ export async function recordPerDiemPaymentsAction(
   if (!ref.success) return inputError("reference");
   return finish(
     ctx,
+    form,
     await recordPerDiemPayments(ctx.viewer.db, {
       perDiemIds: perDiems.data,
       paidOn: paidOn.data,
@@ -145,6 +162,7 @@ export async function saveExpenseCreditAction(
     if (!id.success) return { error: { kind: "not-found" }, at: Date.now() };
     return finish(
       ctx,
+      form,
       await finance.updateExpenseCredit(ctx.viewer.db, id.data, {
         amountMinor: amount,
         incurredOn: incurredOn.data,
@@ -158,7 +176,7 @@ export async function saveExpenseCreditAction(
     incurredOn: incurredOn.data,
     description: description.data,
   });
-  return finish(ctx, result, result.ok ? { id: result.data.id } : {});
+  return finish(ctx, form, result, result.ok ? { peek: result.data.id } : undefined);
 }
 
 /**

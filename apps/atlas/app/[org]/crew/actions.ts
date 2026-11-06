@@ -962,7 +962,6 @@ export async function addPerDiemsAction(_: State, form: FormData): Promise<State
   return done(ctx.org.slug, result, t);
 }
 
-/** Removes one per diem (a soft delete under the per diem write policy). */
 export async function clearPerDiemPaymentAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const id = uuid.safeParse(form.get("id"));
@@ -972,6 +971,7 @@ export async function clearPerDiemPaymentAction(_: State, form: FormData): Promi
   return done(ctx.org.slug, await clearPerDiemPayment(db, { id: id.data, reason: why.data }), t);
 }
 
+/** Removes one per diem (a soft delete under the per diem write policy). */
 export async function removePerDiemAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const id = uuid.safeParse(form.get("id"));

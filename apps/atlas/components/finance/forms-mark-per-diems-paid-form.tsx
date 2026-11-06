@@ -4,7 +4,7 @@ import { Input, MultiSelect } from "@xos/ui";
 import { useActionState, useState } from "react";
 import { recordPerDiemPaymentsAction } from "@/app/[org]/finance/payables-actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import { useAfterRecord } from "./forms-after-record";
+import { ReturnTo } from "./forms-return-to";
 import { INITIAL, Submit } from "./forms.shared";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
@@ -23,7 +23,6 @@ export function MarkPerDiemsPaidForm({
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(recordPerDiemPaymentsAction, INITIAL);
-  useAfterRecord(state, { payPerDiems: null, peek: null, notice: "perDiemsPaid" });
   const [picked, setPicked] = useState<string[]>(perDiems.map((p) => p.value));
   return (
     <form
@@ -33,6 +32,7 @@ export function MarkPerDiemsPaidForm({
       noValidate
     >
       <input type="hidden" name="org" value={org} />
+      <ReturnTo changes={{ payPerDiems: null, peek: null, notice: "perDiemsPaid" }} />
       {picked.map((id) => (
         <input key={id} type="hidden" name="perDiemIds" value={id} />
       ))}

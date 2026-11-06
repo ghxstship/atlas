@@ -7,7 +7,7 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL, Submit } from "./forms.shared";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
-import { useAfterRecord } from "./forms-after-record";
+import { ReturnTo } from "./forms-return-to";
 import { useFinanceT } from "./kit-use-finance-t";
 
 /**
@@ -34,10 +34,6 @@ export function ExpenseCreditForm({
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(saveExpenseCreditAction, INITIAL);
-  useAfterRecord(
-    state,
-    creditId ? { edit: null } : { recordCredit: null, ...(state.id ? { peek: state.id } : {}) },
-  );
   return (
     <form
       action={action}
@@ -46,6 +42,7 @@ export function ExpenseCreditForm({
       noValidate
     >
       <input type="hidden" name="org" value={org} />
+      <ReturnTo changes={creditId ? { edit: null } : { recordCredit: null }} />
       <input type="hidden" name="originalId" value={originalId} />
       <input type="hidden" name="currency" value={currency} />
       {creditId ? <input type="hidden" name="id" value={creditId} /> : null}

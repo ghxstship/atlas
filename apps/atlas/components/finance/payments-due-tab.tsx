@@ -160,7 +160,11 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
         return canRecord && d.payeePersonId !== me
           ? {
               label: t("finance.due.markPaid.title"),
-              href: withQuery(page, { payPerDiems: d.payeePersonId ?? d.sourceId, peek: null }),
+              href: withQuery(page, {
+                payPerDiems: d.payeePersonId ?? d.sourceId,
+                peek: null,
+                notice: null,
+              }),
             }
           : {
               label: t("finance.due.open.perDiem"),

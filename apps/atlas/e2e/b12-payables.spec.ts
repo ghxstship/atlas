@@ -10,7 +10,7 @@ import { expectAccessible, uniqueId } from "./support";
  *      shows as a page-level notice that survives the refresh; voiding returns it to Owed;
  *   b  the Due tab lists what is owed, and none of the tabs adds a primary action or a control that says it pays;
  *   c  an approved charge takes a credit, shown negative with Credited and Net on the charge;
- *   d  a viewer sees the refusal panel;
+ *   d  a viewer does not reach the tabs;
  *   e  the pages pass axe.
  */
 
@@ -96,8 +96,11 @@ test("a reimbursement is recorded, says so, and can be voided", async ({ browser
     await sheet.getByRole("button", { name: "Record reimbursement", exact: true }).click();
     await expect(owner).toHaveURL(/notice=reimbursementRecorded/, { timeout: 5_000 });
   }).toPass();
+  // The only owed charge was recorded, so its sheet left with the refresh: the notice and the cleared flags came with it.
   const recorded = owner.getByText("Reimbursement recorded.");
   await expect(recorded).toBeVisible();
+  await expect(owner).not.toHaveURL(/[?&](record|currency)=/);
+  await expect(sheet).toBeHidden();
   await owner.reload();
   await expect(recorded).toBeVisible();
   await expect(owner.getByText(`ACH-${id}`)).toBeVisible();
@@ -110,6 +113,7 @@ test("a reimbursement is recorded, says so, and can be voided", async ({ browser
     await expect(owner).toHaveURL(/notice=reimbursementVoided/, { timeout: 5_000 });
   }).toPass();
   await expect(owner.getByText("Reimbursement voided.")).toBeVisible();
+  await expect(owner).not.toHaveURL(/voidReimbursement=/);
   await owner.goto(expenses(`peek=${expenseId}`));
   await expect(owner.getByText("Owed", { exact: true }).first()).toBeVisible();
 });
@@ -166,15 +170,13 @@ test("an approved charge takes a credit, shown negative, netted on the charge", 
   await expectAccessible(owner);
 });
 
-test("a viewer without the capabilities is refused", async ({ page }) => {
+// The Commercial group is hidden from a Viewer, so the route itself answers 404 (ADR 0017 item 3). Every system role that
+// sees it holds the capabilities, so the refusal panel is for custom roles: apps/atlas/test/payables-refusal.test.ts.
+test("a viewer does not reach the payables tabs", async ({ page }) => {
   await signIn(page, "viewer@example.com");
-  for (const tab of ["due", "reimbursements"]) {
+  for (const tab of ["due", "reimbursements", "act-costs"]) {
     const response = await page.goto(payments(`tab=${tab}`));
-    await settle(page);
-    // A role the module hides from gets a 404 (ADR 0017 item 3); any other reader gets the refusal panel.
-    if (response?.status() !== 404) {
-      await expect(page.getByText(/finance\.payment\.read/)).toBeVisible();
-    }
+    expect(response?.status()).toBe(404);
     await expect(page.getByRole("grid")).toHaveCount(0);
   }
 });
