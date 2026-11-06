@@ -68,7 +68,7 @@ begin
   perform private.sync_legal_queue_feeds();
 
   for v_row in
-    select i.id, i.reference, i.matter, r.customer_clock, r.alert_leads, c.clock, c.clock_at
+    select i.id, i.reference, r.matter, r.customer_clock, r.alert_leads, c.clock, c.clock_at
     from app.legal_queue_items i
     join private.legal_queue_rules r on r.code = i.rule_code
     cross join lateral (values

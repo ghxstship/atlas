@@ -374,6 +374,9 @@ arrays:
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.legal_queue_rules.alert_leads
+    kind: reviewed
+    note: How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6165).
   - column: private.live_view_fields.source_columns
     kind: reviewed
     note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).

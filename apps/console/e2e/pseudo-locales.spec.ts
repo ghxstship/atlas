@@ -83,14 +83,17 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
   );
   const listing = await reportedListing();
   const email = await newOperator("Administrator", "Ada Administrator");
-  const [legalItem] = await sql<{ id: string; reference: string }>(
-    `select i.id, i.reference from app.legal_queue_items i
-      where i.id = private.open_legal_queue_item('security_report', 'Open redirect report', now())`,
+  const [legalItem] = await sql<{ id: string }>(
+    `select private.open_legal_queue_item('security_report', 'Open redirect report', now()) as id`,
+  );
+  const [legalReference] = await sql<{ reference: string }>(
+    `select reference from app.legal_queue_items where id = $1`,
+    [legalItem?.id],
   );
   const data = withText(await databaseText(DATABASE_URL), [
     listing.title,
     email,
-    legalItem?.reference ?? "",
+    legalReference?.reference ?? "",
   ]);
 
   problems.push(...(await check(page, base, "/auth/sign-in", data)));

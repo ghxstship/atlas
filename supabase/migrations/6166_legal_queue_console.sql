@@ -29,10 +29,10 @@ as $$
   -- counter-notice still open counts as an answer, so nobody passes the threshold while one waits.
   select n.subject_person_id, n.received_at
   from app.legal_queue_items n
-  where n.matter = 'DMCA Notice' and n.item_state = 'Completed' and n.subject_person_id is not null
+  where n.rule_code = 'dmca_notice' and n.item_state = 'Completed' and n.subject_person_id is not null
     and not exists (
       select 1 from app.legal_queue_items c
-      where c.related_item_id = n.id and c.matter = 'DMCA Counter-Notice'
+      where c.related_item_id = n.id and c.rule_code = 'dmca_counter_notice'
         and (c.closed_at is null or (c.item_state = 'Completed' and not c.court_action_filed)));
 $$;
 comment on function private.legal_counted_dmca_notices() is 'The DMCA notices the repeat infringer rule counts: valid and uncontested, by the person they name (Copyright and DMCA Policy Section 5).';
@@ -114,7 +114,7 @@ security definer
 set search_path = ''
 as $$
   select jsonb_build_object(
-    'id', p_item.id, 'reference', p_item.reference, 'matter', p_item.matter, 'rule_code', p_item.rule_code,
+    'id', p_item.id, 'reference', p_item.reference, 'matter', r.matter, 'rule_code', p_item.rule_code,
     'basis', r.basis, 'customer_clock', r.customer_clock, 'state', p_item.item_state,
     -- A fed report or appeal shows its listing's title, read live, so nothing of the tenant's is kept in the item.
     'title', coalesce(case p_item.source_table
@@ -176,6 +176,7 @@ begin
       'overdue_without_alert', (
         select count(*) from app.legal_queue_items i join private.legal_queue_rules r on r.code = i.rule_code
         where i.closed_at is null and not r.customer_clock and private.legal_queue_next_clock(i) < v_now - interval '2 hours'
+          and i.created_at < v_now - interval '2 hours'
           and not exists (select 1 from app.legal_queue_events e where e.legal_queue_item_id = i.id
                             and e.event_kind = 'Alert Sent' and e.created_at > v_now - interval '26 hours')),
       'webhook_configured', exists (select 1 from vault.decrypted_secrets s where s.name = 'xos_alert_webhook_url')),
@@ -186,7 +187,7 @@ begin
     'government_requests', coalesce((
       select jsonb_agg(jsonb_build_object('year', y.year, 'received', y.received) order by y.year desc)
       from (select extract(year from i.received_at at time zone private.legal_clock_time_zone())::integer as year, count(*) as received
-            from app.legal_queue_items i where i.matter = 'Government Data Request' group by 1) y), '[]'::jsonb),
+            from app.legal_queue_items i where i.rule_code = 'government_request' group by 1) y), '[]'::jsonb),
     'contacts', coalesce((
       select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.contact_name, 'email', c.email) order by c.added_at)
       from private.legal_alert_contacts c where c.removed_at is null), '[]'::jsonb),
@@ -302,7 +303,7 @@ begin
   end if;
   if v_rule.matter = 'DMCA Counter-Notice' then
     select i.id into v_related from app.legal_queue_items i
-    where i.reference = upper(btrim(p_related_reference)) and i.matter = 'DMCA Notice';
+    where i.reference = upper(btrim(p_related_reference)) and i.rule_code = 'dmca_notice';
     if v_related is null then
       perform private.refuse('legal_queue_related', 'Name the reference of the DMCA notice this answers.');
     end if;
@@ -426,7 +427,7 @@ begin
   if v_item.item_state <> p_expected then
     perform private.refuse('legal_queue_item_state_conflict', format('The item is not %s any more.', p_expected));
   end if;
-  if coalesce(p_court_action_filed, false) and not (v_item.matter = 'DMCA Counter-Notice' and p_next = 'Completed') then
+  if coalesce(p_court_action_filed, false) and not (v_item.rule_code = 'dmca_counter_notice' and p_next = 'Completed') then
     perform private.refuse('legal_queue_court_action', 'A court action applies only when completing a DMCA counter-notice.');
   end if;
   -- 17 U.S.C. 512(g)(2)(C): material is restored no sooner than the rule allows, unless a court action keeps it down.
@@ -447,9 +448,9 @@ begin
   returning id into v_id;
   perform private.log_operator_action('legal_queue.moved', null, 'app.legal_queue_items', v_item.id, p_reason,
     jsonb_build_object('from', p_expected, 'to', p_next));
-  if v_closing and v_item.matter = 'DMCA Notice' then
+  if v_closing and v_item.rule_code = 'dmca_notice' then
     perform private.queue_repeat_infringer_review(v_item.subject_person_id, v_operator);
-  elsif v_closing and v_item.matter = 'DMCA Counter-Notice' then
+  elsif v_closing and v_item.rule_code = 'dmca_counter_notice' then
     perform private.queue_repeat_infringer_review(
       (select n.subject_person_id from app.legal_queue_items n where n.id = v_item.related_item_id), v_operator);
   end if;

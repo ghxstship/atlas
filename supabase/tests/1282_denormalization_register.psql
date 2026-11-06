@@ -67,6 +67,7 @@ insert into register_arrays values
   ('app.work_detail_events.changed_columns', 'reviewed'),
   ('app.work_detail_events.fact_kinds', 'reviewed'),
   ('app.work_detail_shares.categories', 'reviewed'),
+  ('private.legal_queue_rules.alert_leads', 'reviewed'),
   ('private.live_view_fields.source_columns', 'reviewed'),
   ('private.realtime_channel_policies.roles', 'reviewed');
 create temporary table register_restated (column_name text not null, parent_column text not null, kind text not null, primary key (column_name, parent_column));

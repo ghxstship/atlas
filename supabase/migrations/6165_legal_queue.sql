@@ -230,7 +230,6 @@ create table app.legal_queue_items (
   id uuid primary key default private.uuid_v7(),
   reference text not null,
   rule_code text not null references private.legal_queue_rules (code),
-  matter app.legal_queue_matter not null,
   title text not null,
   details text,
   requester_contact text,
@@ -269,7 +268,7 @@ create index legal_queue_items_open_idx on app.legal_queue_items (due_at) where 
 create index legal_queue_items_closed_idx on app.legal_queue_items (closed_at) where closed_at is not null;
 create index legal_queue_items_rule_idx on app.legal_queue_items (rule_code);
 create index legal_queue_items_tenant_org_idx on app.legal_queue_items (tenant_org_id);
-create index legal_queue_items_subject_idx on app.legal_queue_items (subject_person_id, matter);
+create index legal_queue_items_subject_idx on app.legal_queue_items (subject_person_id, rule_code);
 create index legal_queue_items_related_idx on app.legal_queue_items (related_item_id);
 create index legal_queue_items_created_by_idx on app.legal_queue_items (created_by);
 
@@ -277,7 +276,6 @@ call private.describe('app.legal_queue_items', 'One piece of legal or security w
   'id', 'Item id, UUID v7.',
   'reference', 'What alerts and notes call the item, for example LQ-2026-00001. Carries no personal data.',
   'rule_code', 'Clock rule (private.legal_queue_rules).',
-  'matter', 'What the item is about, from its rule.',
   'title', 'A short description. For a fed item the kind of request, or Marketplace listing: the console reads the listing''s own title from its source, so deleting the org leaves no tenant data here.',
   'details', 'What the matter asks, with no more personal data than the work needs.',
   'requester_contact', 'Who to answer, for an item added by hand. Fed items never hold one.',
@@ -477,13 +475,13 @@ begin
   if v_rule.code is null then
     perform private.refuse('legal_queue_rule', 'Choose what this item is.');
   end if;
-  insert into app.legal_queue_items (reference, rule_code, matter, title, details, requester_contact, tenant_org_id,
+  insert into app.legal_queue_items (reference, rule_code, title, details, requester_contact, tenant_org_id,
     subject_person_id, related_item_id, source_table, source_id, received_at, first_response_due_at, earliest_action_at,
     due_at, created_by)
   values (
     format('LQ-%s-%s', extract(year from p_received_at at time zone private.legal_clock_time_zone())::integer,
       lpad(nextval('private.legal_queue_reference_seq')::text, 5, '0')),
-    v_rule.code, v_rule.matter, left(btrim(p_title), 200), nullif(btrim(p_details), ''), nullif(btrim(p_requester_contact), ''),
+    v_rule.code, left(btrim(p_title), 200), nullif(btrim(p_details), ''), nullif(btrim(p_requester_contact), ''),
     p_org_id, p_subject_person_id, p_related_item_id, p_source_table, p_source_id, p_received_at,
     case when v_rule.first_amount is not null then private.legal_clock_end(p_received_at, v_rule.first_amount, v_rule.first_unit) end,
     case when v_rule.earliest_amount is not null then private.legal_clock_end(p_received_at, v_rule.earliest_amount, v_rule.earliest_unit) end,
