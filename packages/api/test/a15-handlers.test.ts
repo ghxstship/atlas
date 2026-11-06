@@ -1204,6 +1204,40 @@ describe("invoices and payments", () => {
     });
   });
 
+  it("keeps a quote's lines and cost on its sent version while a Draft waits beside it (B13)", async () => {
+    const { db, http } = world();
+    const status = db.tables["quote_statuses"]?.[0] as Row;
+    status["has_draft"] = true;
+    db.tables["quote_versions"]?.push(
+      tenantRow(id(4803), ORG, {
+        quote_id: QUOTE,
+        version_number: 2,
+        quote_version_state: "Draft",
+        valid_until: "2027-02-01",
+        terms: null,
+        budget_version_id: null,
+        content_sha256: null,
+        sent_at: null,
+        accepted_at: null,
+        accepted_name: null,
+      }),
+    );
+    const one = (await expectContract(
+      await success(http.get(`/quotes/${QUOTE}`)),
+      "quotes.get",
+    )) as Row;
+    expect(one).toMatchObject({
+      current_version_id: QUOTE_VERSION,
+      client_total_minor: 25000,
+      margin_minor: 5000,
+      cost_total_minor: 20000,
+      has_draft: true,
+    });
+    const lines = one["lines"] as Row[];
+    expect(lines.map((l) => l["amount_minor"])).toEqual([25000]);
+    expect(one["versions"] as Row[]).toHaveLength(2);
+  });
+
   it("lists the 1099-NEC payees of a tax year without full TINs (A38-006)", async () => {
     const { db, http } = world();
     const sent = await success(http.get("/form-1099-nec/rows?year=2025"));

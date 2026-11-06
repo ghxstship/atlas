@@ -344,8 +344,9 @@ export const handlers = defineHandlers("Finance", {
   ...handlersFor("Finance", quotes),
   "quotes.get": async ({ params }, context) => {
     const head = await quotes.read(context, params.id);
-    // Versions and lines come with one quote; lists leave them null.
-    const detail = unwrap(await getQuote(context.db, params.id));
+    // Versions and lines come with one quote; lists leave them null. The lines and cost stay on the
+    // version head names, so they agree with its client total and margin while a Draft waits beside it.
+    const detail = unwrap(await getQuote(context.db, params.id, { follow: "current" }));
     return ok({
       ...head,
       cost_total_minor: detail.costTotalMinor,

@@ -182,8 +182,16 @@ export async function countProjectQuotes(
   return ok(count ?? 0);
 }
 
-/** A quote with its versions and the client lines of its current version. */
-export async function getQuote(db: XosClient, quoteId: string): Promise<Result<QuoteDetail>> {
+/**
+ * A quote with its versions and the client lines of one of them. By default that is the Draft when one
+ * exists, so a sender reads the prices Send will freeze. follow "current" stays on the version
+ * app.quote_statuses names, for a reader that shows the lines beside that version's id and totals.
+ */
+export async function getQuote(
+  db: XosClient,
+  quoteId: string,
+  options: { readonly follow?: "draft" | "current" } = {},
+): Promise<Result<QuoteDetail>> {
   const [status, quote, versions] = await Promise.all([
     rows(db.from("quote_statuses").select(STATUS_COLUMNS).eq("quote_id", quoteId), toStatus),
     rows(db.from("quotes").select("title").eq("id", quoteId), (r) => str(r["title"])),
@@ -204,9 +212,9 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
   if (!versions.ok) return versions;
   const head = status.data[0];
   if (!head) return fail({ kind: "not-found" });
-  // app.quote_statuses names the latest sent version for the list. A peek follows a Draft when there
-  // is one, so the sender reads the prices Send will freeze.
-  const draft = versions.data.find((v) => v.state === "Draft");
+  // app.quote_statuses names the latest sent version, so a Draft beside it needs its own totals.
+  const draft =
+    options.follow === "current" ? undefined : versions.data.find((v) => v.state === "Draft");
   const shown = draft ?? versions.data.find((v) => v.id === head.currentVersionId);
   const lines = shown?.budgetVersionId
     ? await capturedLines(db, shown.budgetVersionId)
@@ -387,14 +395,13 @@ export async function updateQuote(
  */
 export async function quoteLinkWindow(
   db: XosClient,
-  where: { readonly versionId: string } | { readonly documentId: string },
+  where: { readonly documentId: string },
 ): Promise<Result<{ validUntil: string; timeZone: string }>> {
-  const versions = db.from("quote_versions").select("valid_until, quote_id");
-  const { data: version, error } = await (
-    "versionId" in where
-      ? versions.eq("id", where.versionId)
-      : versions.eq("engagement_document_id", where.documentId)
-  ).maybeSingle();
+  const { data: version, error } = await db
+    .from("quote_versions")
+    .select("valid_until, quote_id")
+    .eq("engagement_document_id", where.documentId)
+    .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!version) return fail({ kind: "not-found" });
   const { data: status, error: statusError } = await db

@@ -305,6 +305,41 @@ describe("getQuote", () => {
     expect(calls.map((c) => c.target)).not.toContain("from:budget_version_lines");
   });
 
+  it("stays on the current version beside a Draft when asked to, reading nothing live", async () => {
+    const { db, calls } = fakeClient({
+      "from:quote_statuses": [okResponse([status])],
+      "from:quotes": [okResponse([{ title: "Retitled" }])],
+      "from:quote_versions": [
+        okResponse([version("v2", 2, "Draft", null), version("v1", 1, "Sent", "capture-1")]),
+      ],
+      "from:budget_version_lines": [
+        okResponse([
+          {
+            id: "c1",
+            line_number: 1,
+            description: "Deck",
+            quantity: 2,
+            unit_basis: "day",
+            unit_price_minor: 2000,
+            client_unit_price_minor: 2500,
+          },
+        ]),
+      ],
+    });
+    const result = await getQuote(db, "q1", { follow: "current" });
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(result.data.shownVersionId).toBe("v1");
+    expect(result.data.lines[0]?.clientAmountMinor).toBe(5000);
+    expect(result.data.clientTotalMinor).toBe(5000);
+    expect(result.data.marginMinor).toBe(1000);
+    expect(result.data.costTotalMinor).toBe(4000);
+    expect(result.data.versions.map((v) => v.id)).toEqual(["v2", "v1"]);
+    const read = calls.map((c) => c.target);
+    expect(read).not.toContain("from:budget_lines");
+    expect(read).not.toContain("from:budget_line_prices");
+    expect(read).not.toContain("from:budget_price_totals");
+  });
+
   it("shows a sent version's frozen capture when there is no Draft", async () => {
     const { db } = fakeClient({
       "from:quote_statuses": [okResponse([{ ...status, has_draft: false }])],
