@@ -22,7 +22,9 @@ import {
   decideSwap,
   decideTimeOff,
   decideTimesheet,
+  markNoShow,
   producePayrollExport,
+  respondReconfirmation,
   submitTimesheet,
   transitionPayrollRun,
   transitionShift,
@@ -175,6 +177,36 @@ export const crewA50Handlers: Readonly<Record<string, ErasedHandler>> = {
     });
   },
 
+  // A no-show is an outcome record and an answer a fact, so both answer the shift as it stands (B9).
+  "shifts.markNoShow": async (request, context) => {
+    const id = String(request.params["id"]);
+    const input = body(request);
+    await shifts.read(context, id, ["id"]);
+    unwrap(
+      await markNoShow(context.db, {
+        id: String(input["no_show_id"]),
+        shiftId: id,
+        reason: String(input["reason"]),
+        openReplacement: input["open_replacement"] === true,
+      }),
+    );
+    return ok(await shifts.read(context, id));
+  },
+  "shifts.reconfirm": async (request, context) => {
+    const id = String(request.params["id"]);
+    const input = body(request);
+    await shifts.read(context, id, ["id"]);
+    unwrap(
+      await respondReconfirmation(
+        context.db,
+        id,
+        input["coming"] === true,
+        typeof input["reason"] === "string" ? input["reason"] : null,
+      ),
+    );
+    return ok(await shifts.read(context, id));
+  },
+
   // Swaps: the person on the shift asks; the party and project come from the shift ------------------
   ...shiftSwaps.handlers,
   "shiftSwaps.create": async (request, context) => {
@@ -195,6 +227,7 @@ export const crewA50Handlers: Readonly<Record<string, ErasedHandler>> = {
           shift_id: shift["id"],
           requested_by_membership_id: shift["membership_id"],
           proposed_membership_id: input["proposed_membership_id"],
+          reason: typeof input["reason"] === "string" ? input["reason"] : null,
         })
         .select("id")
         .single(),

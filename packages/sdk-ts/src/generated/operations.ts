@@ -331,6 +331,8 @@ export type OperationId =
   | "shifts.bulkPreview"
   | "shifts.bulkUpdate"
   | "shifts.fieldHistory"
+  | "shifts.markNoShow"
+  | "shifts.reconfirm"
   | "shiftSwaps.list"
   | "shiftSwaps.create"
   | "shiftSwaps.get"
@@ -9159,6 +9161,52 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Crew",
     summary: "Field history of a shift",
+    capability: "crew.shift.read",
+    scopes: ["crew"],
+  },
+  "shifts.markNoShow": {
+    id: "shifts.markNoShow",
+    resource: "shifts",
+    verb: "markNoShow",
+    method: "POST",
+    path: "/shifts/{id}/no-show",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "ShiftNoShowRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "Shift",
+    item: null,
+    tag: "Crew",
+    summary: "Mark a no-show",
+    capability: "crew.shift.write",
+    scopes: ["crew"],
+  },
+  "shifts.reconfirm": {
+    id: "shifts.reconfirm",
+    resource: "shifts",
+    verb: "reconfirm",
+    method: "POST",
+    path: "/shifts/{id}/reconfirm",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "ShiftReconfirmRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "Shift",
+    item: null,
+    tag: "Crew",
+    summary: "Answer Still coming?",
     capability: "crew.shift.read",
     scopes: ["crew"],
   },
@@ -41306,6 +41354,8 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "shifts.bulkPreview",
       "shifts.bulkUpdate",
       "shifts.fieldHistory",
+      "shifts.markNoShow",
+      "shifts.reconfirm",
     ],
   },
   {

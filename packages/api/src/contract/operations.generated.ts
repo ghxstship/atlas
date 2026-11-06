@@ -8201,7 +8201,9 @@ export interface Components {
     time_zone: string;
     scheduled_break_minutes?: number | null;
   };
+  ShiftNoShowRequest: { no_show_id: string; reason: string; open_replacement?: boolean };
   ShiftPage: { data: Array<Components["Shift"]>; next_cursor: string | null };
+  ShiftReconfirmRequest: { coming: boolean; reason?: string };
   ShiftSwap: {
     id: string;
     org_id: string;
@@ -8214,8 +8216,9 @@ export interface Components {
     project_id: string;
     requested_by_membership_id: string;
     proposed_membership_id: string;
+    reason: string | null;
   };
-  ShiftSwapCreate: { shift_id: string; proposed_membership_id: string };
+  ShiftSwapCreate: { shift_id: string; proposed_membership_id: string; reason?: string | null };
   ShiftSwapPage: { data: Array<Components["ShiftSwap"]>; next_cursor: string | null };
   ShiftTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ShiftUpdate: {
@@ -13604,6 +13607,24 @@ export interface Operations {
     query: { limit?: number };
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
+  };
+  "shifts.markNoShow": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/{id}/no-show";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ShiftNoShowRequest"];
+    responses: { 200: Components["Shift"] };
+  };
+  "shifts.reconfirm": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/{id}/reconfirm";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ShiftReconfirmRequest"];
+    responses: { 200: Components["Shift"] };
   };
   "shiftSwaps.list": {
     module: "Crew";
@@ -28539,6 +28560,8 @@ export interface ModuleOperations {
     | "shifts.bulkPreview"
     | "shifts.bulkUpdate"
     | "shifts.fieldHistory"
+    | "shifts.markNoShow"
+    | "shifts.reconfirm"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"

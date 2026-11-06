@@ -309,6 +309,8 @@ __all__ = [
     "ShiftBulkRow",
     "ShiftBulkValues",
     "ShiftBulkEditRequest",
+    "ShiftNoShowRequest",
+    "ShiftReconfirmRequest",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -6473,6 +6475,32 @@ class ShiftBulkEditRequest(_ShiftBulkEditRequestRequired, total=False):
     reason: str
 
 
+class _ShiftNoShowRequestRequired(TypedDict):
+    #: Identifier of the no-show, chosen by the client so a retry is recognized.
+    no_show_id: str
+    #: What the supervisor saw.
+    reason: str
+
+
+class ShiftNoShowRequest(_ShiftNoShowRequestRequired, total=False):
+    """A no-show of a shift's worker."""
+
+    #: Open a replacement shift for the rest of this one.
+    open_replacement: bool
+
+
+class _ShiftReconfirmRequestRequired(TypedDict):
+    #: True when the person is still coming.
+    coming: bool
+
+
+class ShiftReconfirmRequest(_ShiftReconfirmRequestRequired, total=False):
+    """An answer to Still coming?."""
+
+    #: Why the person cannot come.
+    reason: str
+
+
 class ShiftSwapPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -6507,15 +6535,22 @@ class ShiftSwap(TypedDict):
     requested_by_membership_id: str
     #: Identifier of the membership of the person who would take the shift.
     proposed_membership_id: str
+    #: Why the person asks to swap.
+    reason: Optional[str]
 
 
-class ShiftSwapCreate(TypedDict):
-    """Fields accepted when creating a ShiftSwap."""
-
+class _ShiftSwapCreateRequired(TypedDict):
     #: Identifier of the shift.
     shift_id: str
     #: Identifier of the membership of the person who would take the shift.
     proposed_membership_id: str
+
+
+class ShiftSwapCreate(_ShiftSwapCreateRequired, total=False):
+    """Fields accepted when creating a ShiftSwap."""
+
+    #: Why the person asks to swap.
+    reason: Optional[str]
 
 
 class TimeEntryPage(TypedDict):

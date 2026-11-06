@@ -901,6 +901,8 @@ import type {
   ShiftBulkEditResult,
   ShiftClaimResult,
   ShiftCreate,
+  ShiftNoShowRequest,
+  ShiftReconfirmRequest,
   ShiftSwap,
   ShiftSwapCreate,
   ShiftTransitionRequest,
@@ -8479,6 +8481,46 @@ export class ShiftsResource extends $Resource {
     return this.client.request<FieldHistoryEventPage>(
       $OPERATIONS["shifts.fieldHistory"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Mark a no-show
+   *
+   * Records that the worker of a started shift did not arrive (app.mark_shift_no_show): crew.shift.write on the project, or the agency's lead for its roster staff; never the worker. A no-show is an outcome record, so the shift's state does not change, and its worker, times and state other than a cancel are frozen while it stands. Idempotent on `no_show_id`, which the client chooses: the same id for the same shift returns the same no-show, also after it was withdrawn, and for another shift is refused (422, no_show_id_conflict). `open_replacement` opens a Published replacement of the same role from now to the shift's end. A shift not started (shift_no_show_state), a worker who clocked in (shift_no_show_clocked_in), a missing reason (shift_no_show_reason) and a replacement with under 15 minutes left (shift_no_show_too_late) are refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/{id}/no-show` (operation `shifts.markNoShow`).
+   * Requires the capability `crew.shift.write`.
+   */
+  markNoShow(
+    id: string,
+    body: ShiftNoShowRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Shift>> {
+    return this.client.request<Shift>(
+      $OPERATIONS["shifts.markNoShow"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Answer Still coming?
+   *
+   * The person asked whether they are still coming to a shift answers (app.respond_shift_reconfirmation): `coming` true confirms; false declines, and under scheduling.reconfirm_reopen, on by default, the shift reopens to claiming or returns to its agency's slot. Only the person asked, who still works the shift, answers (403). A second answer, or any answer once the shift has started, is refused (422, shift_reconfirm_answered). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/{id}/reconfirm` (operation `shifts.reconfirm`).
+   * Requires the capability `crew.shift.read`.
+   */
+  reconfirm(
+    id: string,
+    body: ShiftReconfirmRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Shift>> {
+    return this.client.request<Shift>(
+      $OPERATIONS["shifts.reconfirm"],
+      { path: { id }, body },
       options,
     );
   }
@@ -33092,7 +33134,7 @@ export class NotificationsResource extends $Resource {
   /**
    * Act on a notification
    *
-   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), answer Still coming? about a shift (shift.reconfirm), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /notifications/{id}/act` (operation `notifications.act`).
    * Requires the capability `inbox.notifications.write`.

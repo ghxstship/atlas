@@ -13099,6 +13099,50 @@
         "required": ["rows"],
         "description": "A bulk change of shifts."
       },
+      "ShiftNoShowRequest": {
+        "type": "object",
+        "properties": {
+          "no_show_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the no-show, chosen by the client so a retry is recognized.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the supervisor saw.",
+            "example": "Did not arrive by call time."
+          },
+          "open_replacement": {
+            "type": "boolean",
+            "description": "Open a replacement shift for the rest of this one.",
+            "example": false
+          }
+        },
+        "required": ["no_show_id", "reason"],
+        "description": "A no-show of a shift's worker."
+      },
+      "ShiftReconfirmRequest": {
+        "type": "object",
+        "properties": {
+          "coming": {
+            "type": "boolean",
+            "description": "True when the person is still coming.",
+            "example": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the person cannot come.",
+            "example": "Family matter."
+          }
+        },
+        "required": ["coming"],
+        "description": "An answer to Still coming?."
+      },
       "ShiftSwapPage": {
         "type": "object",
         "properties": {
@@ -13184,6 +13228,13 @@
             "format": "uuid",
             "description": "Identifier of the membership of the person who would take the shift.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the person asks to swap.",
+            "example": "Exam that morning."
           }
         },
         "required": [
@@ -13197,7 +13248,8 @@
           "swap_state",
           "project_id",
           "requested_by_membership_id",
-          "proposed_membership_id"
+          "proposed_membership_id",
+          "reason"
         ],
         "description": "A swap request. A crew member cannot approve their own swap."
       },
@@ -13215,6 +13267,13 @@
             "format": "uuid",
             "description": "Identifier of the membership of the person who would take the shift.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the person asks to swap.",
+            "example": "Exam that morning."
           }
         },
         "required": ["shift_id", "proposed_membership_id"],
@@ -86520,6 +86579,164 @@
         }
       }
     },
+    "/shifts/{id}/no-show": {
+      "post": {
+        "operationId": "shifts.markNoShow",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "mark_shift_no_show",
+        "summary": "Mark a no-show",
+        "description": "Records that the worker of a started shift did not arrive (app.mark_shift_no_show): crew.shift.write on the project, or the agency's lead for its roster staff; never the worker. A no-show is an outcome record, so the shift's state does not change, and its worker, times and state other than a cancel are frozen while it stands. Idempotent on `no_show_id`, which the client chooses: the same id for the same shift returns the same no-show, also after it was withdrawn, and for another shift is refused (422, no_show_id_conflict). `open_replacement` opens a Published replacement of the same role from now to the shift's end. A shift not started (shift_no_show_state), a worker who clocked in (shift_no_show_clocked_in), a missing reason (shift_no_show_reason) and a replacement with under 15 minutes left (shift_no_show_too_late) are refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the shift.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the shift.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "no_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "reason": "Did not arrive by call time.",
+                "open_replacement": false
+              },
+              "schema": { "$ref": "#/components/schemas/ShiftNoShowRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "role_code": "5000.50.01",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "shift_state": "Draft",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
+                },
+                "schema": { "$ref": "#/components/schemas/Shift" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/{id}/reconfirm": {
+      "post": {
+        "operationId": "shifts.reconfirm",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "respond_shift_reconfirmation",
+        "summary": "Answer Still coming?",
+        "description": "The person asked whether they are still coming to a shift answers (app.respond_shift_reconfirmation): `coming` true confirms; false declines, and under scheduling.reconfirm_reopen, on by default, the shift reopens to claiming or returns to its agency's slot. Only the person asked, who still works the shift, answers (403). A second answer, or any answer once the shift has started, is refused (422, shift_reconfirm_answered). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the shift.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the shift.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "coming": true, "reason": "Family matter." },
+              "schema": { "$ref": "#/components/schemas/ShiftReconfirmRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "role_code": "5000.50.01",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "shift_state": "Draft",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
+                },
+                "schema": { "$ref": "#/components/schemas/Shift" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/shift-swaps": {
       "get": {
         "operationId": "shiftSwaps.list",
@@ -86560,7 +86777,8 @@
                       "swap_state": "Proposed",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "Exam that morning."
                     }
                   ],
                   "next_cursor": null
@@ -86589,7 +86807,8 @@
             "application/json": {
               "example": {
                 "shift_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "reason": "Exam that morning."
               },
               "schema": { "$ref": "#/components/schemas/ShiftSwapCreate" }
             }
@@ -86617,7 +86836,8 @@
                   "swap_state": "Proposed",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Exam that morning."
                 },
                 "schema": { "$ref": "#/components/schemas/ShiftSwap" }
               }
@@ -86677,7 +86897,8 @@
                   "swap_state": "Proposed",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Exam that morning."
                 },
                 "schema": { "$ref": "#/components/schemas/ShiftSwap" }
               }
@@ -86736,7 +86957,8 @@
                   "swap_state": "Proposed",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Exam that morning."
                 },
                 "schema": { "$ref": "#/components/schemas/ShiftSwap" }
               }
@@ -86797,7 +87019,8 @@
                   "swap_state": "Proposed",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Exam that morning."
                 },
                 "schema": { "$ref": "#/components/schemas/ShiftSwap" }
               }
@@ -86858,7 +87081,8 @@
                   "swap_state": "Proposed",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "proposed_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Exam that morning."
                 },
                 "schema": { "$ref": "#/components/schemas/ShiftSwap" }
               }
@@ -141560,7 +141784,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["inbox"] }],
         "x-xos-rpc": "act_on_notification",
         "summary": "Act on a notification",
-        "description": "Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), answer Still coming? about a shift (shift.reconfirm), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {

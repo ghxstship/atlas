@@ -145,7 +145,7 @@ export const a36Actions: Readonly<Record<string, readonly ActionSpec[]>> = {
     itemAction("act", {
       summary: "Act on a notification",
       description:
-        "Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation.",
+        "Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), answer Still coming? about a shift (shift.reconfirm), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation.",
       body: z
         .object({
           action: z

@@ -9637,6 +9637,41 @@ export interface ShiftBulkEditRequest {
 }
 
 /**
+ * A no-show of a shift's worker.
+ */
+export interface ShiftNoShowRequest {
+  /**
+   * Identifier of the no-show, chosen by the client so a retry is recognized.
+   * Format: `uuid`.
+   */
+  readonly no_show_id: string;
+  /**
+   * What the supervisor saw.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+  /**
+   * Open a replacement shift for the rest of this one.
+   */
+  readonly open_replacement?: boolean;
+}
+
+/**
+ * An answer to Still coming?.
+ */
+export interface ShiftReconfirmRequest {
+  /**
+   * True when the person is still coming.
+   */
+  readonly coming: boolean;
+  /**
+   * Why the person cannot come.
+   * Length: 1 to 20000.
+   */
+  readonly reason?: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ShiftSwapPage {
@@ -9708,6 +9743,11 @@ export interface ShiftSwap {
    * Format: `uuid`.
    */
   readonly proposed_membership_id: string;
+  /**
+   * Why the person asks to swap.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string | null;
 }
 
 /**
@@ -9724,6 +9764,11 @@ export interface ShiftSwapCreate {
    * Format: `uuid`.
    */
   readonly proposed_membership_id: string;
+  /**
+   * Why the person asks to swap.
+   * Length: 1 to 20000.
+   */
+  readonly reason?: string | null;
 }
 
 /**
