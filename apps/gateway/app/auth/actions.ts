@@ -84,8 +84,13 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
   if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
-  // Likewise anyone who has not answered at 18: an earlier 16, or a provider's account (ADR 0156).
-  redirect(((await owesAgeAnswer(db)) ? `/auth/age?next=${encodeURIComponent(next)}` : next) as Route);
+  // Likewise anyone who has not answered at 18: an earlier 16, or a provider's account (ADR 0156). The terms page asks itself.
+  const asksItself = next.split("?")[0] === "/auth/terms";
+  redirect(
+    (!asksItself && (await owesAgeAnswer(db))
+      ? `/auth/age?next=${encodeURIComponent(next)}`
+      : next) as Route,
+  );
 }
 
 /** The terms box was ticked; account creation needs it (Section 14.4, finding A59-025). */

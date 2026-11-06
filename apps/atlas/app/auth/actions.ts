@@ -139,8 +139,15 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
   if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
-  // Likewise anyone who has not answered at 18: an earlier 16, a provider's account or one made by an org (ADR 0156).
-  redirect(((await owesAgeAnswer(db)) ? `/auth/age?next=${encodeURIComponent(next)}` : next) as Route);
+  // Likewise anyone who has not answered at 18: an earlier 16, a provider's account or one made by an org (ADR 0156). The
+  // pages that create or join an org ask themselves.
+  const path = next.split("?")[0] ?? "";
+  const asksItself = path === "/auth/organization" || path.startsWith("/auth/invite/");
+  redirect(
+    (!asksItself && (await owesAgeAnswer(db))
+      ? `/auth/age?next=${encodeURIComponent(next)}`
+      : next) as Route,
+  );
 }
 
 /**
