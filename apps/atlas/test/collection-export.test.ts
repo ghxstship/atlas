@@ -123,6 +123,21 @@ describe("export sources (Section 4.6.4)", () => {
     }
   });
 
+  it("exports the muster list with the names on screen, by the page's project and zone", () => {
+    const muster = exportSourceFor(
+      "site_ops/muster",
+      new URLSearchParams("project=01920000-0000-7000-8000-000000000201&zone=z"),
+    );
+    expect(muster?.relation).toBe("app.muster_list");
+    expect(muster?.columns).toEqual(
+      expect.arrayContaining(["full_name", "guest_name", "zone_name", "party_name", "entered_at"]),
+    );
+    expect(muster?.filters).toMatchObject({
+      project: { column: "project_id", resolve: "project" },
+      zone: { column: "zone_id" },
+    });
+  });
+
   it("exports the masked rate of a rate card, which classifies Restricted in the database", () => {
     const rates = exportSourceFor("crew/rate_cards", new URLSearchParams());
     expect(rates?.relation).toBe("app.rate_card_lines_masked");

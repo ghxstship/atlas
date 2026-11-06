@@ -1,7 +1,6 @@
 import type { XosClient } from "./client.ts";
 import type { Database } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,

@@ -183,7 +183,8 @@ select throws_ok(format($$select app.issue_allocation(%L, %L, '[{"valid_from": "
     pg_temp.id('ev2'), pg_temp.id('badge')), 'XR001',
   'allocation_issue_exceeds: This allocation is for 1; the issue goes beyond it.', 'never more than the quantity');
 select throws_ok(format($$select app.issue_allocation(%L, %L, '[{}]')$$, pg_temp.id('ev2'), pg_temp.id('badge')), 'XR001',
-  'credential_duplicate: This person already holds a live credential of this category for an overlapping window. Revoke the earlier credential first, or change the window.',
+  format('credential_duplicate: This person already holds live credential %s of this category for an overlapping window. Revoke it first, or change the window.',
+    (select c.credential_number from app.credentials c where c.allocation_id = pg_temp.id('badge') limit 1)),
   'and a second badge for the same window is a duplicate');
 select is(pg_temp.notified('kai', 'allocation.issued', pg_temp.id('badge')), 1, 'allocation.issued reaches Kai');
 
