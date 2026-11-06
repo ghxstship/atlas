@@ -183,10 +183,11 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await description(other).dblclick();
     await other.keyboard.press("ControlOrMeta+a");
     await other.keyboard.type("Delay towers, two sets");
-    await other.keyboard.press("Enter");
-    await expect(grid(other)).toContainText("Delay towers, two sets");
     // The grid shows the edit before the save lands; the conflict needs the save committed first.
-    await settle(other);
+    const committed = other.waitForResponse((r) => r.request().method() === "POST");
+    await other.keyboard.press("Enter");
+    await committed;
+    await expect(grid(other)).toContainText("Delay towers, two sets");
 
     // The open draft is kept while the other value arrives; saving it finds the newer version.
     await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
@@ -221,6 +222,7 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
 
     const other = await asPerson(browser, "owner@example.com");
     await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
+    await settle(other);
     await edit(other, /Delay towers, two sets/, "Delay towers, three sets");
 
     // A new line reloads the grid, which now holds the other person's version of the edited line.
@@ -251,19 +253,25 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await other.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}`);
 
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
-    const edit = async (p: Page, to: string) => {
+    const type = async (p: Page, to: string) => {
       await grid(p)
         .getByRole("gridcell", { name: /Delay towers/ })
         .dblclick();
       await p.keyboard.press("ControlOrMeta+a");
       await p.keyboard.type(to);
-      await p.keyboard.press("Enter");
     };
-    await edit(other, "Delay towers, two sets");
-    await expect(grid(other)).toContainText("Delay towers, two sets");
     await settle(other);
+    // The grid is live (P4): an idle grid takes the other person's value as it lands, so the producer opens the
+    // cell and types before the owner's save.
+    await type(page, "Delay towers, one set");
+    await type(other, "Delay towers, two sets");
+    const committed = other.waitForResponse((r) => r.request().method() === "POST");
+    await other.keyboard.press("Enter");
+    await committed;
+    await expect(grid(other)).toContainText("Delay towers, two sets");
 
-    await edit(page, "Delay towers, one set");
+    await expect(grid(page).getByRole("textbox")).toHaveValue("Delay towers, one set");
+    await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
     await dialog.getByRole("button", { name: "Keep mine" }).click();
     await expect(dialog).toBeHidden();

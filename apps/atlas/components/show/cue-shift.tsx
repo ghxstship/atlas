@@ -130,7 +130,7 @@ export function CueShift({
       <h3 id={`cue-shift-${runId}`} className="m-0 text-label-13 font-semibold">
         {t("cueShift.title")}
       </h3>
-      <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
+      <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
         <legend className="sr-only">{t("cueShift.pick")}</legend>
         <Checkbox
           label={t("cueShift.all", { count: open.length })}

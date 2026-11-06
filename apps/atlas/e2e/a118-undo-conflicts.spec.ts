@@ -87,7 +87,8 @@ test("a removed checklist item comes back with Cmd or Ctrl+Z, tick and all", asy
   await checklist.getByLabel("New item").fill(label);
   await checklist.getByRole("button", { name: "Add", exact: true }).click();
   await expect(checklist.getByRole("checkbox", { name: label })).toBeVisible();
-  await checklist.getByRole("checkbox", { name: label }).check();
+  // The tick shows once the save answers, so a click rather than check(), which reads the state at once.
+  await checklist.getByRole("checkbox", { name: label }).click();
   await expect(checklist.getByText("1 of 1 done")).toBeVisible();
 
   await checklist.getByRole("button", { name: `Remove ${label}` }).click();

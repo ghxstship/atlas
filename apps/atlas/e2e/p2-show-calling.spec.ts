@@ -126,7 +126,8 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   const failing = page.getByRole("form", { name: "Edit cue Headliner On" });
   const video = failing.getByLabel("Video call");
   await video.evaluate((el) => el.removeAttribute("maxlength"));
-  const tooLong = "Roll the walk-on reel. ".repeat(90).slice(0, 2001);
+  // No space at the end: the action trims a call before it measures it.
+  const tooLong = "Roll".repeat(501).slice(0, 2001);
   await video.fill(tooLong);
   await failing.getByRole("button", { name: "Save" }).click();
   await expect(failing.getByRole("alert")).toContainText(

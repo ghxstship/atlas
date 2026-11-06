@@ -336,7 +336,11 @@ export function RecordCollection({
         onAction={() => (canCreate ? go({ create: "1" }) : router.push(`/${org}/my-work` as Route))}
       />
     );
-  } else if (records.length === 0) {
+  } else if (
+    records.length === 0 &&
+    !(view === "timeline" && canReschedule && backlog.length > 0)
+  ) {
+    // Schedule pages load dated records only: with none dated, the Unscheduled list still has them to place (P8).
     body = (
       <EmptyState
         icon="SearchX"

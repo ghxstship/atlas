@@ -119,9 +119,9 @@ test("state change: a record moved on the board settles in its new column within
   await settle(page);
   const board = page.getByRole("region", { name: "Records by state" });
   const columns = await board
-    .locator("section[aria-label]:has(> header h3)")
+    .locator("section[aria-label]:has(> header h2)")
     .evaluateAll((sections) => sections.map((s) => s.getAttribute("aria-label") ?? ""));
-  const card = board.locator("article[data-item]", { hasText: title });
+  const card = board.locator("[data-item]", { hasText: title });
   const from = await card.locator("xpath=ancestor::section[1]").getAttribute("aria-label");
   const to = columns[columns.indexOf(from ?? "") + 1] ?? "";
   expect(to, `a column after ${from}`).not.toBe("");
@@ -131,12 +131,12 @@ test("state change: a record moved on the board settles in its new column within
   await page.keyboard.press("Space");
   await page.keyboard.press("ArrowRight");
   // The card is carried into the next column and keeps the focus there, still held.
-  const carried = board.locator(`section[aria-label="${to}"] article[data-item]`, {
+  const carried = board.locator(`section[aria-label="${to}"] [data-item]`, {
     hasText: title,
   });
   await expect(carried).toBeFocused();
   await expectAcknowledged(page, "Board state change", () => page.keyboard.press("Space"), {
-    selector: `section[aria-label="${to}"] article[data-item]:not([aria-pressed])`,
+    selector: `section[aria-label="${to}"] [data-item]:not([aria-pressed])`,
     text: title,
   });
   // The move is the record's state change: a fresh read of the board has it in the new column.
@@ -146,7 +146,7 @@ test("state change: a record moved on the board settles in its new column within
     page
       .getByRole("region", { name: "Records by state" })
       .locator(`section[aria-label="${to}"]`)
-      .locator("article[data-item]", { hasText: title }),
+      .locator("[data-item]", { hasText: title }),
   ).toBeVisible();
 });
 
