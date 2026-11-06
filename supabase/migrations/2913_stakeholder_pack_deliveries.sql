@@ -439,6 +439,10 @@ declare
   v_pack record;
   v_count integer := 0;
 begin
+  -- An emailed link stays 30 days past its pack's expiry, so an old email's unsubscribe still works until then.
+  delete from private.stakeholder_pack_links l
+  using app.stakeholder_pack_recipients r, app.stakeholder_packs p
+  where l.recipient_id = r.id and p.id = r.stakeholder_pack_id and p.expires_at < now() - interval '30 days';
   for v_pack in
     select p.id from app.stakeholder_packs p
     where p.deleted_at is null and least(coalesce(p.revoked_at, p.expires_at), p.expires_at) < now() - interval '1 year'
@@ -468,7 +472,7 @@ begin
 end;
 $$;
 
-comment on function private.retire_ended_stakeholder_packs(integer) is 'Daily job: one year after a stakeholder pack ended (revoked or expired, whichever came first), soft-deletes it with its items, recipients, schedule and deliveries and deletes its emailed links, device grants and download tickets, so the tables'' one-year retention then purges them (ADR 0141). A non-user''s name and email leave two years after the pack ended. Returns the packs retired.';
+comment on function private.retire_ended_stakeholder_packs(integer) is 'Daily job: deletes emailed links 30 days past their pack''s expiry, and one year after a stakeholder pack ended (revoked or expired, whichever came first), soft-deletes it with its items, recipients, schedule and deliveries and deletes its emailed links, device grants and download tickets, so the tables'' one-year retention then purges them (ADR 0141). A non-user''s name and email leave two years after the pack ended. Returns the packs retired.';
 revoke all on function private.retire_ended_stakeholder_packs(integer) from public, anon, authenticated;
 
 select cron.schedule('xos_retire_ended_stakeholder_packs', '57 4 * * *', 'select private.retire_ended_stakeholder_packs()');

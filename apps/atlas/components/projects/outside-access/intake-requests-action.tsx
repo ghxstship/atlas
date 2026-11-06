@@ -1,19 +1,37 @@
 "use client";
 
 import { Button } from "@xos/ui";
+import type { Route } from "next";
+import NextLink from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
-import type { ProjectKeyRef } from "@/lib/outside-access/actions";
+import type { ProjectKeyRef, Revealed } from "@/lib/outside-access/actions";
+import { RevealPanel } from "./reveal-panel";
 
 /** The panel and its reads load on the first click (ADR 0027); the board is shared, so nothing eager goes with it. */
 const panel = onDemand(() => import("./intake-requests-dialog"));
+const newLink = onDemand(() => import("./intake-link-dialog"));
 
-/** Intake requests on the project's Engagements tab (B2, ADR 0141): a static, secondary control. */
-export function IntakeRequestsAction({ refs }: { refs: ProjectKeyRef }) {
+/**
+ * Intake requests and New intake link on the project's Engagements tab (B2, ADR 0141): static, secondary controls, with
+ * the way to Outside access beside them. A new link's code stays in this control's state until dismissed.
+ */
+export function IntakeRequestsAction({
+  refs,
+  canCreate,
+}: {
+  refs: ProjectKeyRef;
+  canCreate: boolean;
+}) {
   const t = useTranslations("projects.outsideAccess.requests");
-  const [open, setOpen] = useState(false);
-  const dialog = useOnDemand(panel, open);
+  const access = useTranslations("projects.outsideAccess");
+  const router = useRouter();
+  const [open, setOpen] = useState<"requests" | "link" | null>(null);
+  const [revealed, setRevealed] = useState<Revealed | null>(null);
+  const requests = useOnDemand(panel, open === "requests");
+  const link = useOnDemand(newLink, open === "link");
   return (
     <>
       <Button
@@ -22,11 +40,42 @@ export function IntakeRequestsAction({ refs }: { refs: ProjectKeyRef }) {
         variant="secondary"
         onMouseEnter={() => void panel.load()}
         onFocus={() => void panel.load()}
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen("requests")}
       >
         {t("action")}
       </Button>
-      {open && dialog ? <dialog.IntakeRequestsDialog refs={refs} onClose={() => setOpen(false)} /> : null}
+      {canCreate ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onMouseEnter={() => void newLink.load()}
+          onFocus={() => void newLink.load()}
+          onClick={() => setOpen("link")}
+        >
+          {access("newIntake")}
+        </Button>
+      ) : null}
+      <NextLink
+        className="text-label-13 text-accent-text underline"
+        href={`/${refs.org}/p/${refs.projectKey}/settings#outside-access` as Route}
+      >
+        {access("title")}
+      </NextLink>
+      {revealed ? <RevealPanel revealed={revealed} onDismiss={() => setRevealed(null)} /> : null}
+      {open === "requests" && requests ? (
+        <requests.IntakeRequestsDialog refs={refs} onClose={() => setOpen(null)} />
+      ) : null}
+      {open === "link" && link ? (
+        <link.IntakeLinkDialog
+          refs={refs}
+          onReveal={setRevealed}
+          onClose={() => {
+            setOpen(null);
+            router.refresh();
+          }}
+        />
+      ) : null}
     </>
   );
 }

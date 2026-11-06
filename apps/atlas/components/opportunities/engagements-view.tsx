@@ -109,7 +109,14 @@ export async function EngagementsView({
         <PageHeader
           title={t("engagements.title")}
           count={rows.length}
-          actions={intake ? <IntakeRequestsAction refs={intake} /> : undefined}
+          actions={
+            intake ? (
+              <IntakeRequestsAction
+                refs={intake}
+                canCreate={ctx.capabilities.has("opportunities.engagement.write")}
+              />
+            ) : undefined
+          }
           views={
             <ViewSwitch
               label={t("views.label")}
