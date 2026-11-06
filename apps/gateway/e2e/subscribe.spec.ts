@@ -51,7 +51,7 @@ test("journey 60: a vendor company starts Atlas with its own record, history int
   await offer.getByRole("checkbox").check();
   await offer.getByRole("button", { name: `Use ${company.name} in Atlas` }).click();
   await expect(
-    offer.getByText("XOS is not offered to organizations in Germany", { exact: false }),
+    offer.getByText("XOS is not offered in your company's country (Germany)", { exact: false }),
   ).toBeVisible();
   await country.selectOption("US");
   await offer.getByRole("checkbox").check();

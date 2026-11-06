@@ -44,7 +44,7 @@ test("an organization outside an offered territory is not created, and the page 
   await country.selectOption("DE");
   await page.getByRole("button", { name: "Create organization", exact: true }).click();
   await expect(
-    page.getByText("XOS is not offered to organizations in Germany", { exact: false }),
+    page.getByText("XOS is not offered in your organization's country (Germany)", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText("open your invitation", { exact: false })).toBeVisible();
   await expect(page).toHaveURL(/\/auth\/organization/);
@@ -199,7 +199,7 @@ test.describe("opening a territory", () => {
     try {
       await fill(`thames-${id}`, "GB");
       await expect(
-        page.getByText("XOS is not offered to organizations in the United Kingdom", {
+        page.getByText("XOS is not offered in your organization's country (United Kingdom)", {
           exact: false,
         }),
       ).toBeVisible();

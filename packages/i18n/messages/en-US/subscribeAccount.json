@@ -7,7 +7,7 @@
   "countryError": "Choose the country where this company is established.",
   "acceptError": "Accept the terms to start Atlas with this company.",
   "refused": "This company already uses Atlas. Open it from the organization switcher.",
-  "territory_not_offered": "XOS is not offered to organizations in {country}, so this company did not start Atlas. XOS is offered to organizations in {territories}. Your company account in Gateway keeps working. If your company has a signed contract with GHXSTSHIP, ask your contact there to set it up.",
+  "territory_not_offered": "XOS is not offered in your company's country ({country}), so this company did not start Atlas. XOS is offered to organizations in {territories}. Your company account in Gateway keeps working. If your company has a signed contract with GHXSTSHIP, ask your contact there to set it up.",
   "unexpected": "We could not start Atlas for this company. Try again in a moment.",
   "or": "Or create a new organization"
 }

@@ -1035,7 +1035,7 @@
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Atlas.",
       "orgName": "Escribe el nombre de tu organización.",
       "orgCountry": "Elige el país donde está establecida tu organización.",
-      "territory_not_offered": "XOS no se ofrece a organizaciones en {country}, así que no creamos esta organización. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas crear una: abre tu invitación, que funciona dondequiera que estés. Si tu organización tiene un contrato firmado con GHXSTSHIP, pide a tu contacto allí que la configure.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu organización ({country}), así que no creamos esta organización. XOS se ofrece a organizaciones en {territories}. Si una organización te invitó a trabajar con ella, no necesitas crear una: abre tu invitación, que funciona dondequiera que estés. Si tu organización tiene un contrato firmado con GHXSTSHIP, pide a tu contacto allí que la configure.",
       "orgSlug": "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
