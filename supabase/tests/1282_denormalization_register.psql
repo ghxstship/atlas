@@ -147,6 +147,9 @@ insert into register_restated values
   ('app.credentials.project_id', 'app.advance_allocations.project_id', 'registered'),
   ('app.credentials.project_id', 'app.credential_categories.project_id', 'registered'),
   ('app.credentials.project_id', 'app.engagements.project_id', 'registered'),
+  ('app.crew_access_links.engagement_id', 'app.engagement_roster_entries.engagement_id', 'own'),
+  ('app.crew_access_links.project_id', 'app.engagements.project_id', 'own'),
+  ('app.crew_registrations.person_id', 'app.profile_shares.person_id', 'own'),
   ('app.cues.project_id', 'app.run_of_show.project_id', 'registered'),
   ('app.custom_field_values.custom_field_definition_id', 'app.custom_field_choices.custom_field_definition_id', 'own'),
   ('app.custom_object_values.custom_object_field_id', 'app.custom_object_field_choices.custom_object_field_id', 'own'),
@@ -393,6 +396,7 @@ create temporary table register_stored (column_name text not null, kind text not
 insert into register_stored values
   ('app.addon_purchases.amount_total_minor', 'input'),
   ('app.beos.guest_count', 'input'),
+  ('app.crew_access_links.open_count', 'fact'),
   ('app.export_jobs.row_count', 'fact'),
   ('app.form_submissions.max_score', 'registered'),
   ('app.form_submissions.score', 'registered'),

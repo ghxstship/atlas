@@ -1,4 +1,4 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
 import {
   derivedRow,
   external,

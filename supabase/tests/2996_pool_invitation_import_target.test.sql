@@ -96,6 +96,9 @@ select app.commit_import_write(pg_temp.id('r_a'), pg_temp.id('batch'), pg_temp.i
 select app.commit_import_write(pg_temp.id('r_claim'), pg_temp.id('batch'), pg_temp.id('inv_claim'), 'Created');
 select app.finish_import_batch(pg_temp.id('batch'));
 update app.import_batches set committed_at = now() - interval '1 hour' where id = pg_temp.id('batch');
+alter table app.talent_pool_invitations disable trigger t90_stamp_audit_columns;
+update app.talent_pool_invitations set updated_at = now() - interval '2 hours' where id in (pg_temp.id('inv_a'), pg_temp.id('inv_claim'));
+alter table app.talent_pool_invitations enable trigger t90_stamp_audit_columns;
 select is((select count(*) from app.people), (select people from counts), 'committing creates no people');
 select is((select count(*) from app.person_profiles), (select profiles from counts), 'and no profiles');
 select pg_temp.as_user('ned');

@@ -129,7 +129,7 @@ select pg_temp.as_user('carol');
 select is((select r ->> 'outcome' from jsonb_array_elements(app.decide_crew_registrations(array[pg_temp.id('reg_sam')], false, 'Not this season.')) r), 'applied', 'a decline');
 select pg_temp.as_platform();
 select throws_ok(format($$select private.transition_lifecycle('crew_registration', 'app.crew_registrations', 'registration_state', 'app.crew_registration_state_transitions', 'crew_registration_id', '%s', 'Declined', 'Approved', 'Not a move.')$$, pg_temp.id('reg_sam')),
-  'XR001', 'crew_registration_transition_not_allowed: Transition from Declined to Approved is not allowed.', 'Declined never moves to Approved');
+  'XR001', 'crew_registration_transition_not_allowed: A crew registration cannot move from Declined to Approved.', 'Declined never moves to Approved');
 
 -- Withdrawing --------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('sam');

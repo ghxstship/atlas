@@ -25,3 +25,7 @@ Los acuerdos que firmaste desde un enlace sin iniciar sesión, con cuándo y qui
 Los formularios fiscales que enviaste, que abren [Documentos fiscales](help:money-tax-documents).
 
 Muestra los documentos como tabla o lista. Los documentos por firmar también aparecen en Inicio, en Te necesita.
+
+## Leer y firmar un acuerdo
+
+Algunos acuerdos se redactan para ti a partir del texto de la organización. Ábrelo en la pestaña Documentos de la contratación, lee el texto completo y escribe tu nombre completo para firmar. Tu nombre firma exactamente ese texto, y el documento registra su huella. Si no estás de acuerdo, elige Rechazar y di por qué. Luego la organización refrenda, y el PDF queda disponible para que lo descargues.

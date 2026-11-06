@@ -1,4 +1,4 @@
-import type { Database, Json, XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -251,7 +251,7 @@ export async function decideRegistrations(
     ...(input.reason ? { p_reason: input.reason } : {}),
   });
   if (error) return fail(toDataError(error));
-  return ok((data as Json as unknown as DecisionResult[]) ?? []);
+  return ok((data as unknown as DecisionResult[]) ?? []);
 }
 
 export async function inviteToRegistration(

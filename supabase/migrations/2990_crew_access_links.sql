@@ -169,7 +169,9 @@ as $$
 $$;
 
 comment on function private.crew_access_worker_live(uuid, uuid, uuid, uuid, uuid) is 'True while a link''s worker still works for the org on the link''s project, mirroring the signed-in reach without a session: the project and org are live, and the worker is a live membership, an engagement on the project that is Active or Closing with a person, or a live roster entry Accepted by both sides on such an engagement, of a person who has not deleted their account.';
-revoke all on function private.crew_access_worker_live(uuid, uuid, uuid, uuid, uuid) from public, anon, authenticated;
+-- app.crew_access_link_list calls it, and a view's functions are checked against the caller.
+revoke all on function private.crew_access_worker_live(uuid, uuid, uuid, uuid, uuid) from public, anon;
+grant execute on function private.crew_access_worker_live(uuid, uuid, uuid, uuid, uuid) to authenticated, service_role;
 
 create or replace function private.crew_access_worker_shifts(p_link app.crew_access_links)
 returns setof app.shifts
@@ -336,9 +338,24 @@ create trigger t60_revoke_crew_access_links after update of deleted_at on app.pe
 
 -- Atlas reads --------------------------------------------------------------------------------------------------------------
 
+-- A definer helper, because a view's functions are checked against the caller and the shift worker resolver stays closed.
+create or replace function private.crew_access_person_name(p_membership_id uuid, p_engagement_id uuid, p_roster_entry_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select pe.full_name from app.people pe where pe.id = private.shift_worker_person_id(p_membership_id, p_engagement_id, p_roster_entry_id);
+$$;
+
+comment on function private.crew_access_person_name(uuid, uuid, uuid) is 'The name of a crew access link''s worker, for app.crew_access_link_list, whose row filter is crew.shift.write on the project. NULL once the person deleted their account.';
+revoke all on function private.crew_access_person_name(uuid, uuid, uuid) from public, anon;
+grant execute on function private.crew_access_person_name(uuid, uuid, uuid) to authenticated, service_role;
+
 create view app.crew_access_link_list as
 select l.id, l.org_id, l.project_id, p.name as project_name, l.membership_id, l.engagement_id, l.roster_entry_id,
-  (select pe.full_name from app.people pe where pe.id = private.shift_worker_person_id(l.membership_id, l.engagement_id, l.roster_entry_id)) as person_name,
+  private.crew_access_person_name(l.membership_id, l.engagement_id, l.roster_entry_id) as person_name,
   l.expires_at, l.failed_attempts, l.last_opened_at, l.open_count, l.revoked_at,
   case when l.revoked_at is not null then 'Revoked'
        when l.failed_attempts >= 5 then 'Locked'
@@ -558,9 +575,9 @@ begin
   select * into v_shift from app.shifts s where s.id = p_shift_id and s.deleted_at is null for update;
   -- The worker match of app.accept_shift and app.accept_engaged_shift: the shift names the link's one worker column.
   if v_shift.id is null or v_shift.project_id <> v_link.project_id
-     or not ((v_link.membership_id is not null and v_shift.membership_id = v_link.membership_id)
-             or (v_link.engagement_id is not null and v_shift.engagement_id = v_link.engagement_id)
-             or (v_link.roster_entry_id is not null and v_shift.roster_entry_id = v_link.roster_entry_id)) then
+     or not ((v_link.membership_id is not null and v_shift.membership_id is not distinct from v_link.membership_id)
+             or (v_link.engagement_id is not null and v_shift.engagement_id is not distinct from v_link.engagement_id)
+             or (v_link.roster_entry_id is not null and v_shift.roster_entry_id is not distinct from v_link.roster_entry_id)) then
     return query select 'REFUSE'::text, 'crew_access_shift_not_yours'::text, null::app.shift_state;
     return;
   end if;

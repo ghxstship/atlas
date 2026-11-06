@@ -44,6 +44,7 @@ grant execute on function pg_temp.bv(text) to public;
 
 select pg_temp.new_user('liam', 'liam@freelance.test', 'Liam Porter');
 select pg_temp.new_user('rae', 'rae@freelance.test', 'Rae Sandoval');
+select pg_temp.new_user('ned', 'ned@freelance.test', 'Ned Vargas');
 
 -- Requirements first, so the new engagements get their items.
 select pg_temp.as_user('alice');
@@ -67,6 +68,7 @@ select pg_temp.engage('eng_rae', 'rae');
 select pg_temp.engage('eng_quinn', 'quinn');
 
 select pg_temp.engage('eng_carol', 'carol');
+select pg_temp.engage('eng_ned', 'ned');
 
 with t as (insert into app.engagement_document_templates (org_id, name, document_kind, title_template, body_template)
   values (pg_temp.id('org_a'), 'Crew Agreement', 'Agreement', 'Agreement for {{party.name}}', 'You earn {{engagement.rate}}.') returning id) insert into world select 'tmpl_rate', id from t;
@@ -104,8 +106,8 @@ with t as (insert into app.engagement_document_templates (org_id, name, document
 insert into b values ('finished', app.create_engagement_document_batch(pg_temp.id('prj_b'), pg_temp.id('tmpl_b'), jsonb_build_array(pg_temp.entry('eng_ivy_b'))));
 select is(pg_temp.code(pg_temp.bv('finished'), 'eng_ivy_b'), 'document_batch_person', 'a finished engagement is refused');
 
--- Rates need payroll: a coordinator holds engagement write on the project but not payroll.
-select pg_temp.as_user('dave');
+-- Rates need payroll: a Manager holds engagement write but not payroll.
+select pg_temp.as_user('carol');
 insert into b values ('restricted', app.create_engagement_document_batch(pg_temp.id('prj_a'), pg_temp.id('tmpl_rate'), jsonb_build_array(pg_temp.entry('eng_rae', 'T', 'B'))));
 select is(pg_temp.code(pg_temp.bv('restricted'), 'eng_rae'), 'document_merge_rate_restricted', 'a rate template is refused without org-wide payroll');
 
@@ -128,8 +130,8 @@ select is(app.send_engagement_document_batch(pg_temp.id('batch')), 1, 'sending a
 -- Other signing paths are refused --------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('rae');
 select is(pg_temp.refusal(format($$select app.sign_engagement_document('%s')$$, pg_temp.id('doc_rae'))), 'document_text_sign_with_hash', 'app.sign_engagement_document refuses a text document');
-select throws_like(format($$select app.bulk_update_my_engagement_documents(jsonb_build_array(jsonb_build_object('id', '%s', 'set', jsonb_build_object('engagement_document_state', 'Signed'))), false, 'x')$$, pg_temp.id('doc_rae')),
-  '%document_text_sign_with_hash%', 'Gateway bulk signing refuses it');
+select is(app.bulk_update_my_engagement_documents(jsonb_build_array(jsonb_build_object('id', pg_temp.id('doc_rae'), 'set', jsonb_build_object('engagement_document_state', 'Signed')))) -> 'refused' -> 0 ->> 'rule',
+  'document_text_sign_with_hash', 'Gateway bulk signing reports it');
 select pg_temp.as_user('alice');
 select is(pg_temp.refusal(format($$select * from app.issue_engagement_document_token('%s', 'rae@freelance.test')$$, pg_temp.id('doc_rae'))), 'document_text_sign_with_hash', 'a signing link for a text document is refused when issued');
 -- A token issued before the document had a text still cannot sign.
@@ -168,7 +170,7 @@ select app.decline_engagement_document(pg_temp.id('doc_rae'), 'The dates do not 
 select pg_temp.as_platform();
 select is((select engagement_document_state::text from app.engagement_documents where id = pg_temp.id('doc_rae')), 'Canceled', 'declining moves Sent to Canceled');
 select is((select t.reason from app.engagement_document_state_transitions t where t.engagement_document_id = pg_temp.id('doc_rae') and t.to_state = 'Canceled'), 'Declined by the party: The dates do not work.', 'with the reason in the ledger');
-select is((select count(*)::int from app.domain_events e where e.event_type = 'engagement_document.declined' and e.payload ? 'reason'), 0, 'and not in the event');
+select is((select count(*)::int from app.domain_events e where e.event_type = 'engagement_document.declined' and e.data ? 'reason'), 0, 'and not in the event');
 
 -- Countersigning ---------------------------------------------------------------------------------------------------------------------------------
 select is((select count(*)::int from app.onboarding_verifications v join app.onboarding_items i on i.id = v.onboarding_item_id where i.engagement_id = pg_temp.id('eng_liam')), 0, 'no verification before the countersignature');
@@ -186,15 +188,15 @@ select is((select count(*)::int from app.onboarding_verifications v join app.onb
 
 -- The engaged person with engagement write cannot countersign their own Automatic item.
 select pg_temp.as_user('alice');
-insert into b values ('self', app.create_engagement_document_batch(pg_temp.id('prj_a'), pg_temp.id('tmpl_plain'), jsonb_build_array(pg_temp.entry('eng_carol'), pg_temp.entry('eng_quinn')), pg_temp.id('req_auto')));
+insert into b values ('self', app.create_engagement_document_batch(pg_temp.id('prj_a'), pg_temp.id('tmpl_plain'), jsonb_build_array(pg_temp.entry('eng_carol'), pg_temp.entry('eng_ned')), pg_temp.id('req_auto')));
 insert into world select 'batch_self', (pg_temp.bv('self') ->> 'batch_id')::uuid;
 insert into world select 'doc_carol', pg_temp.doc(pg_temp.bv('self'), 'eng_carol');
-insert into world select 'doc_quinn', pg_temp.doc(pg_temp.bv('self'), 'eng_quinn');
+insert into world select 'doc_ned', pg_temp.doc(pg_temp.bv('self'), 'eng_ned');
 select app.send_engagement_document_batch(pg_temp.id('batch_self'));
 select pg_temp.as_user('carol');
 select app.sign_engagement_document_text(pg_temp.id('doc_carol'), 'Carol Nguyen', encode(extensions.digest('You work the show.', 'sha256'), 'hex'));
-select pg_temp.as_user('quinn');
-select app.sign_engagement_document_text(pg_temp.id('doc_quinn'), 'Quinn Ashby', encode(extensions.digest('You work the show.', 'sha256'), 'hex'));
+select pg_temp.as_user('ned');
+select app.sign_engagement_document_text(pg_temp.id('doc_ned'), 'Ned Vargas', encode(extensions.digest('You work the show.', 'sha256'), 'hex'));
 select pg_temp.as_user('carol');
 select is(app.countersign_engagement_document_batch(pg_temp.id('batch_self')),
   jsonb_build_object('executed', 1, 'refused', jsonb_build_array(jsonb_build_object('id', pg_temp.id('doc_carol'), 'code', 'sod_onboarding_self_verify'))),

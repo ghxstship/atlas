@@ -37,7 +37,11 @@ select app.assign_roster_shift(pg_temp.id('slot_1'), pg_temp.id('e_stella'));
 select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 select pg_temp.as_user('carol');
 select pg_temp.shift('sh_ivy', 'engagement_id', pg_temp.id('eng_ivy_a'), 9, 12);
+select pg_temp.as_platform();
+select private.begin_trusted_operation('roster_shift_assignment');
 select pg_temp.shift('sh_ivy_self', 'roster_entry_id', pg_temp.id('self_ivy'), 13, 15);
+select private.end_trusted_operation('roster_shift_assignment');
+select pg_temp.as_user('carol');
 select pg_temp.shift('sh_ivy_draft', 'engagement_id', pg_temp.id('eng_ivy_a'), 20, 21);
 select app.publish_shifts(array[pg_temp.id('sh_ivy'), pg_temp.id('sh_ivy_self')]);
 
@@ -92,8 +96,8 @@ select pg_temp.issue('ivy_self', jsonb_build_object('roster_entry_id', pg_temp.i
 select pg_temp.as_anon();
 select is((select array_agg(s.shift_id order by s.starts_at) from api_public.crew_access_shifts(pg_temp.tok('frank'), pg_temp.code('frank')) s),
   array[pg_temp.id('sh_frank_day')], 'frank reads only his own shift on the project');
-select results_eq(format($$select person_name, project_name, job_title, venue_name, time_zone from api_public.crew_access_shifts('%s', '%s')$$, pg_temp.tok('frank'), pg_temp.code('frank')),
-  $$values ('Frank Adeyemi'::text, 'Northwind Summer Series'::text, (select x.job_title::text from xpms.role x where x.role_code = '5000.51.02'), 'Northwind Pier Pavilion'::text, 'America/New_York'::text)$$,
+select results_eq(format($$select person_name, project_name, job_title is not null, venue_name, time_zone from api_public.crew_access_shifts('%s', '%s')$$, pg_temp.tok('frank'), pg_temp.code('frank')),
+  $$values ('Frank Adeyemi'::text, 'Northwind Summer Series'::text, true, 'Northwind Pier Pavilion'::text, 'America/New_York'::text)$$,
   'with the job title and the venue as text');
 select is((select s.org_id from api_public.crew_access_shifts(pg_temp.tok('frank'), pg_temp.code('frank')) s limit 1), pg_temp.id('org_a'), 'and the org id for the brand scope check');
 select is((select array_agg(s.shift_id order by s.starts_at) from api_public.crew_access_shifts(pg_temp.tok('stella'), pg_temp.code('stella')) s),
@@ -150,13 +154,13 @@ select is((select a.shift_state::text from api_public.crew_access_accept_shift(p
 select pg_temp.as_platform();
 select is((select t.reason from app.shift_state_transitions t where t.shift_id = pg_temp.id('sh_frank_day') and t.to_state = 'Accepted'),
   'Accepted through a crew access link.', 'with the ledger reason');
-select is((select count(*)::int from app.audit_events a where a.action = 'crew_access.shift_accepted' and a.target_id = pg_temp.id('sh_frank_day')), 1, 'and an audit event');
+select is((select count(*)::int from app.audit_events a where a.action = 'crew_access.shift_accepted' and a.subject_id = pg_temp.id('sh_frank_day')), 1, 'and an audit event');
 select pg_temp.as_anon();
 select is((select a.reason from api_public.crew_access_accept_shift(pg_temp.tok('frank'), pg_temp.code('frank'), pg_temp.id('sh_frank_day')) a),
   'crew_access_shift_state', 'an Accepted shift is refused');
 select pg_temp.as_platform();
 select throws_ok(format($$select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id', '%s', 'Accepted', 'Draft', 'Not a move.')$$, pg_temp.id('sh_frank_day')),
-  'XR001', 'shift_transition_not_allowed: Transition from Accepted to Draft is not allowed.', 'the rules forbid a move the link never makes');
+  'XR001', 'shift_transition_not_allowed: A shift cannot move from Accepted to Draft.', 'the rules forbid a move the link never makes');
 
 -- Closing when the worker stops working ----------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');

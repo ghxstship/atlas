@@ -15,6 +15,7 @@ nodes:
     crew.payroll-exports,
     crew.time-off,
     crew.per-diems,
+    crew.access-links,
     project.crew,
   ]
 order: 51
@@ -37,3 +38,11 @@ Rate cards set pay by role and rule. Run the payroll export for a pay period, po
 ## Per diems
 
 Add per diems in Crew > Per Diems once a project is chosen: pick a member or a person engaged on the project, the first and last day, and the daily amount. Each day is recorded once per person, and external crew receive per diems only while their engagement is Active or Closing. Removing a per diem keeps its history.
+
+## Crew access links
+
+Some crew never open the app. A crew access link shows one worker their own shifts on one project in Gateway, without signing in, and lets them accept their own Published shift. Open Crew access links, choose Issue links, pick the project and the people, and choose how long the links last, 1 hour to 30 days.
+
+Each person gets a link and a 6-digit code, shown once. Copy them or print a card now, because they are not shown again. A printed card carries the code only when you tick the box; leave it off to send the code another way, so a lost card opens nothing.
+
+A link closes when the person stops working on the project, when they delete their account, or when you revoke it. Five wrong codes lock it, and issuing again replaces it. A link shows no rate, no note and nobody else's shift, and nobody can punch or decline through one. A person has to have accepted something once, such as a membership, an engagement or a roster place, to be on a shift at all.

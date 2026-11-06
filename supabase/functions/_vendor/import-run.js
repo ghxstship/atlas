@@ -188,6 +188,14 @@ var FIELD_SYNONYMS = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
+  email: ["mail", "emailaddress", "correo", "correoelectronico"],
+  pool_name: ["pool", "crewlist", "list", "grupo", "lista"],
+  invitee_name: ["name", "fullname", "freelancer", "person", "nombre", "nombrecompleto"],
+  work_phone: ["phone", "mobile", "cell", "telephone", "workphone", "telefono", "celular", "movil"],
+  role: ["jobtitle", "position", "title", "puesto", "rol", "cargo"],
+  rate: ["dayrate", "hourlyrate", "standingrate", "pay", "tarifa", "tarifadiaria", "pago"],
+  rate_currency: ["currency", "currencycode", "moneda"],
+  rate_type: ["basis", "ratebasis", "paybasis", "tipodetarifa"],
 };
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
 function similarField(header, fields) {
@@ -327,6 +335,145 @@ function proposeTarget(sheet, targets, playbookSheets, playbookColumns) {
     targetCode: best?.code ?? null,
     fromPlaybook: false,
   };
+}
+var SEPARATORS = {
+  "comma-dot": {
+    group: ",",
+    decimal: ".",
+  },
+  "dot-comma": {
+    group: ".",
+    decimal: ",",
+  },
+  "space-comma": {
+    group: " ",
+    decimal: ",",
+  },
+  "apostrophe-dot": {
+    group: "'",
+    decimal: ".",
+  },
+};
+var SYMBOLS = {
+  US$: ["USD"],
+  MX$: ["MXN"],
+  CA$: ["CAD"],
+  A$: ["AUD"],
+  "€": ["EUR"],
+  "£": ["GBP"],
+  $: ["USD", "MXN", "CAD", "AUD"],
+  "¥": ["JPY", "CNY"],
+};
+var SUFFIXES = [
+  [/(?:\/\s*(?:hr|hrs|hour|hora)|\bper\s+hour|\bpor\s+hora)\s*$/i, "Hourly"],
+  [/(?:\/\s*(?:day|d[ií]a)|\bper\s+day|\bpor\s+d[ií]a)\s*$/i, "Day"],
+  [/\b(?:flat|fijo)\s*$/i, "Flat"],
+];
+var MAX_MINOR = 0xe8d4a51000;
+/**
+ * Reads a rate cell in the import's number format: an amount with an optional currency (an ISO code or one of $, US$,
+ * MX$, CA$, A$, €, £, ¥, before or after it) and an optional rate type suffix in English or Spanish. A bare $ or ¥ is
+ * the org's base currency when that currency uses the symbol, else the rate says rate_currency_required. Without a
+ * currency in the cell, `columnCurrency` then `baseCurrency` answer. Fraction digits never exceed the currency's
+ * exponent, a negative amount is refused, and the amount stays at or under 10^12 minor units.
+ */
+function parseRate(input, numberFormat, exponentOf, baseCurrency, columnCurrency = null) {
+  let text = input
+    .replace(/[\u00a0\u202f]/g, " ")
+    .replace(/\u2019/g, "'")
+    .trim();
+  let basis = null;
+  for (const [pattern, value] of SUFFIXES)
+    if (pattern.test(text)) {
+      basis = value;
+      text = text.replace(pattern, "").trim();
+      break;
+    }
+  let currency = null;
+  const code = /(?:^|\s)([A-Za-z]{3})$|^([A-Za-z]{3})(?:\s|(?=[\d-]))/.exec(text);
+  if (code) {
+    currency = (code[1] ?? code[2] ?? "").toUpperCase();
+    text = text.replace(code[0], " ").trim();
+  } else
+    for (const symbol of ["US$", "MX$", "CA$", "A$", "€", "£", "$", "¥"])
+      if (text.startsWith(symbol) || text.endsWith(symbol)) {
+        const known = SYMBOLS[symbol] ?? [];
+        text = (
+          text.startsWith(symbol) ? text.slice(symbol.length) : text.slice(0, -symbol.length)
+        ).trim();
+        if (known.length === 1) currency = known[0] ?? null;
+        else if (baseCurrency && known.includes(baseCurrency)) currency = baseCurrency;
+        else
+          return {
+            ok: false,
+            issue: "rate_currency_required",
+          };
+        break;
+      }
+  currency ??= columnCurrency?.trim().toUpperCase() || baseCurrency;
+  if (!currency)
+    return {
+      ok: false,
+      issue: "rate_currency_required",
+    };
+  const exponent = exponentOf(currency);
+  if (exponent === null || exponent === void 0)
+    return {
+      ok: false,
+      issue: "invalid_rate",
+    };
+  const { group, decimal } = SEPARATORS[numberFormat];
+  if (text.startsWith("-") || text === "")
+    return {
+      ok: false,
+      issue: "invalid_rate",
+    };
+  const shape = new RegExp(
+    `^(\\d{1,3}(?:${group === "." ? "\\." : group}\\d{3})+|\\d+)(?:${decimal === "." ? "\\." : decimal}(\\d+))?$`,
+  ).exec(text);
+  if (!shape)
+    return {
+      ok: false,
+      issue: "invalid_rate",
+    };
+  const whole = (shape[1] ?? "").split(group).join("");
+  const fraction = shape[2] ?? "";
+  if (fraction.length > exponent)
+    return {
+      ok: false,
+      issue: "invalid_rate",
+    };
+  const minor = Number(whole) * 10 ** exponent + Number(fraction.padEnd(exponent, "0") || "0");
+  if (!Number.isSafeInteger(minor) || minor > MAX_MINOR)
+    return {
+      ok: false,
+      issue: "invalid_rate",
+    };
+  return {
+    ok: true,
+    minor,
+    currency,
+    basis,
+  };
+}
+var RATE_TYPE_WORDS = {
+  hourly: "Hourly",
+  hour: "Hourly",
+  hr: "Hourly",
+  hora: "Hourly",
+  "por hora": "Hourly",
+  day: "Day",
+  daily: "Day",
+  dia: "Day",
+  día: "Day",
+  "por dia": "Day",
+  "por día": "Day",
+  flat: "Flat",
+  fijo: "Flat",
+};
+/** The rate type a rate_type cell names, in English or Spanish, or null. */
+function rateTypeOf(cell) {
+  return RATE_TYPE_WORDS[cell.trim().toLowerCase()] ?? null;
 }
 //#endregion
 //#region ../data/src/import-sheets.ts
@@ -495,6 +642,9 @@ async function readGoogleSheet(fetchImpl, token, link) {
  * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
  * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
  * the uploader's mapping preview.
+ * Pool invitations (B10, 2996) invite an address into a Talent pool and never write a person or a profile: the strong key
+ * is the email inside the row's pool, a pending match is updated with no new email, an expired match is reissued, and a
+ * decided Merged review skips the row. The phone library loads only when a phone column is mapped.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
@@ -565,6 +715,7 @@ var UnreadableUploadError = class extends Error {
 };
 var INTEGER = /^-?\d+$/;
 var CURRENCY = /^[A-Z]{3}$/;
+var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isTimeZone(zone) {
   try {
@@ -716,6 +867,61 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "pool_invitations": {
+      const pools = destination.pools;
+      const email = text("email").trim().toLowerCase();
+      if (email) {
+        if (EMAIL.test(email) && email.length <= 320) values["email"] = email;
+        else
+          issues.push({
+            columnIndex: columnOf("email"),
+            issue: "invalid_email",
+          });
+      }
+      const poolName = text("pool_name").trim();
+      if (poolName) {
+        const pool = await lookups.talentPoolIdByName(orgId, poolName);
+        if (pool) values["talent_pool_id"] = pool;
+        else
+          issues.push({
+            columnIndex: columnOf("pool_name"),
+            issue: "unknown_pool",
+          });
+      } else if (pools?.talentPoolId) values["talent_pool_id"] = pools.talentPoolId;
+      else
+        issues.push({
+          columnIndex: columnOf("pool_name"),
+          issue: "pool_required",
+        });
+      const name = text("invitee_name").trim();
+      if (name.length > 200)
+        issues.push({
+          columnIndex: columnOf("invitee_name"),
+          issue: "too_long",
+        });
+      else if (name) values["invitee_name"] = name;
+      const note = text("note").trim();
+      if (note.length > 1e3)
+        issues.push({
+          columnIndex: columnOf("note"),
+          issue: "too_long",
+        });
+      else if (note) values["note"] = note;
+      const phone = text("work_phone").trim();
+      if (phone) {
+        const { regionFromLocale, toE164 } = await import("./chunks/i18n-formats-phone.js");
+        const e164 = toE164(phone, pools?.language ? regionFromLocale(pools.language) : null);
+        if (e164) values["work_phone"] = e164;
+        else
+          issues.push({
+            columnIndex: columnOf("work_phone"),
+            issue: "invalid_phone",
+          });
+      }
+      await set("role", (v) => lookups.roleCode(v), "unknown_role", "role_code");
+      checkPoolRate(raw, columnOf, pools, values, issues);
+      break;
+    }
     default:
       issues.push({
         columnIndex: 0,
@@ -731,8 +937,15 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
   const matchName =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries"
-      ? text(targetCode === "guest_list_entries" ? "guest_name" : "name").trim()
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations"
+      ? text(
+          targetCode === "guest_list_entries"
+            ? "guest_name"
+            : targetCode === "pool_invitations"
+              ? "invitee_name"
+              : "name",
+        ).trim()
       : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -748,8 +961,66 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         : null,
   };
 }
-/** Targets whose imports name a running order or a project (P3). */
-var DESTINATION_TARGETS = /* @__PURE__ */ new Set(["cues", "guest_list_entries"]);
+/** A row's standing rate from the rate, rate_currency and rate_type cells, through the import's number format. */
+function checkPoolRate(raw, columnOf, pools, values, issues) {
+  const rate = raw["rate"]?.value.trim() ?? "";
+  if (!rate) return;
+  const column = columnOf("rate");
+  if (!pools?.canWriteRates) {
+    issues.push({
+      columnIndex: column,
+      issue: "rate_not_permitted",
+    });
+    return;
+  }
+  const parsed = parseRate(
+    rate,
+    pools.numberFormat,
+    (code) => pools.exponents.get(code),
+    pools.baseCurrency,
+    raw["rate_currency"]?.value ?? null,
+  );
+  if (!parsed.ok) {
+    issues.push({
+      columnIndex: column,
+      issue: parsed.issue,
+    });
+    return;
+  }
+  const cell = raw["rate_type"]?.value.trim() ?? "";
+  const named = cell ? rateTypeOf(cell) : null;
+  if (cell && named === null) {
+    issues.push({
+      columnIndex: columnOf("rate_type"),
+      issue: "rate_type_required",
+    });
+    return;
+  }
+  if (parsed.basis && named && parsed.basis !== named) {
+    issues.push({
+      columnIndex: column,
+      issue: "rate_type_conflict",
+    });
+    return;
+  }
+  const basis = parsed.basis ?? named;
+  if (basis === null) {
+    issues.push({
+      columnIndex: column,
+      issue: "rate_type_required",
+    });
+    return;
+  }
+  values["rate_minor"] = parsed.minor;
+  values["currency_code"] = parsed.currency;
+  values["rate_type"] = basis;
+}
+/** Targets matched through app.import_strong_key_match, by the keys of their checked values (P3, B10). */
+var DESTINATION_TARGETS = /* @__PURE__ */ new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+]);
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
  * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
@@ -781,6 +1052,16 @@ function destinationStrongKeys(targetCode, values) {
           scope_node_id: show,
         };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null
+      ? {}
+      : {
+          email,
+          talent_pool_id: pool,
+        };
+  }
   return null;
 }
 /** The column whose cell a duplicate-in-file issue points at. */
@@ -788,10 +1069,11 @@ var DUPLICATE_COLUMN_FIELD = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
 };
 /**
  * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
- * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
+ * position, or its label and time without one; a guest's name and show; a pool invitation's email and pool. Run over the whole sheet, in validation and
  * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
  */
 function markInFileDuplicates(targetCode, columns, checked) {
@@ -829,6 +1111,8 @@ async function destinationOf(store, job) {
   }
   if (job.targetCode === "guest_list_entries" && job.projectId)
     return { project: { id: job.projectId } };
+  if (job.targetCode === "pool_invitations")
+    return { pools: await store.lookups.poolInvitationContext(job) };
   return {};
 }
 /** Every data row of a sheet checked against the target, with repeats within the file marked. */
@@ -1077,7 +1361,15 @@ async function commit(store, batchId, options) {
       continue;
     }
     try {
+      if (job.targetCode === "pool_invitations" && valid.mergeInto) {
+        await store.skipRow(valid.id, "Already invited or in a pool: merged in review.");
+        continue;
+      }
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        await updatePoolInvitation(store, batchId, valid.id, target, checked.values);
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target)))
@@ -1103,12 +1395,49 @@ async function commit(store, batchId, options) {
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1e3));
+      if (error.message.startsWith("pool_invitation_declined"))
+        await store.skipRow(valid.id, error.message.slice(0, 1e3));
+      else await store.refuseRow(valid.id, error.message.slice(0, 1e3));
     }
   }
   await store.finishBatch(batchId);
   return notifyFinished(store, job, batchId, options);
 }
+/**
+ * A pool invitation row that matched a pending invitation: its fields are updated with no new email, and an expired one
+ * is reissued, which queues the email. The rate is set only when the invitation has none: the update's before image is
+ * readable by every pool writer, so a rate that is already there never reaches it, and the row result says so.
+ */
+async function updatePoolInvitation(store, batchId, rowId, target, values) {
+  const existing = await store.lookups.poolInvitation(target);
+  if (existing === null) throw new ImportWriteError("The invitation to update no longer exists.");
+  const {
+    rate_minor: rate,
+    rate_type: basis,
+    currency_code: currency,
+    ...rest
+  } = updateChanges("pool_invitations", values);
+  const changes = { ...rest };
+  const keptRate = existing.hasRate && rate !== void 0;
+  if (!existing.hasRate && rate !== void 0) {
+    changes["rate_minor"] = rate;
+    changes["rate_type"] = basis;
+    changes["currency_code"] = currency;
+  }
+  if (new Date(existing.expiresAt).getTime() <= Date.now())
+    changes["expires_at"] = new Date(Date.now() + POOL_INVITATION_DAYS * 864e5).toISOString();
+  const before = await store.lookups.update("pool_invitations", target, changes);
+  await store.commitWrite({
+    rowId,
+    batchId,
+    targetId: target,
+    action: "Updated",
+    before,
+  });
+  if (keptRate) await store.noteRow(rowId, "pool_rate_kept");
+}
+/** How long a reissued pool invitation stays open: the default of app.invite_to_talent_pool. */
+var POOL_INVITATION_DAYS = 30;
 /**
  * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
  * a guest keeps its project, name and show, so a merge never moves a guest to another night.
@@ -1119,6 +1448,7 @@ function updateChanges(targetCode, values) {
       counterparties: ["name"],
       cues: ["run_of_show_id", "project_id", "position"],
       guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+      pool_invitations: ["talent_pool_id", "email", "invited_by"],
     }[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
 }
@@ -1144,6 +1474,13 @@ async function createValues(store, job, values) {
       project_id: job.projectId,
       entry_state: "Requested",
     };
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return {
+      ...values,
+      invited_by: job.createdBy,
+    };
+  }
   return values;
 }
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -1201,6 +1538,7 @@ var TABLES = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
 };
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
 var nameKey = (v) => v.trim().toLowerCase();
@@ -1455,6 +1793,72 @@ function supabaseImportStore(client) {
           ] === "string"
         );
       },
+      async talentPoolIdByName(orgId, name) {
+        const { data, error } = await app
+          .from("talent_pools")
+          .select("id, name")
+          .eq("org_id", orgId)
+          .eq("pool_kind", "Talent")
+          .is("deleted_at", null);
+        if (error) throw new Error(`talent_pools: ${error.message}`);
+        return onlyMatch(data ?? [], name, "name");
+      },
+      async roleCode(codeOrTitle) {
+        const wanted = codeOrTitle.trim();
+        const byCode = await one(
+          canon.from("role").select("role_code").eq("role_code", wanted).limit(1),
+          "role",
+        );
+        if (byCode) return text(byCode, "role_code");
+        const { data, error } = await canon
+          .from("role")
+          .select("role_code, job_title")
+          .ilike("job_title", wanted.replace(/[%_\\]/g, "\\$&"));
+        if (error) throw new Error(`role: ${error.message}`);
+        const rows = data ?? [];
+        return rows.length === 1 ? text(rows[0], "role_code") : null;
+      },
+      async poolInvitationContext(job) {
+        const [can, defaults, currencies] = await Promise.all([
+          call("import_job_can_write_rates", { p_import_job_id: job.id }),
+          call("import_job_org_defaults", { p_import_job_id: job.id }),
+          app.from("currencies").select("currency_code, minor_unit_exponent"),
+        ]);
+        if (currencies.error) throw new Error(`currencies: ${currencies.error.message}`);
+        const org = (defaults ?? [])[0];
+        return {
+          talentPoolId: job.talentPoolId ?? null,
+          numberFormat: job.numberFormat ?? "comma-dot",
+          canWriteRates: can === true,
+          language: typeof org?.["language"] === "string" ? org["language"] : null,
+          baseCurrency: typeof org?.["base_currency"] === "string" ? org["base_currency"] : null,
+          exponents: new Map(
+            (currencies.data ?? []).map((c) => [
+              text(c, "currency_code").trim(),
+              Number(c["minor_unit_exponent"]),
+            ]),
+          ),
+        };
+      },
+      async poolInvitation(id) {
+        const row = await one(
+          app
+            .from("talent_pool_invitations")
+            .select("expires_at, rate_minor")
+            .eq("id", id)
+            .is("claimed_at", null)
+            .is("declined_at", null)
+            .is("revoked_at", null)
+            .is("deleted_at", null),
+          "talent_pool_invitations",
+        );
+        return row
+          ? {
+              expiresAt: text(row, "expires_at"),
+              hasRate: row["rate_minor"] !== null,
+            }
+          : null;
+      },
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1500,7 +1904,7 @@ function supabaseImportStore(client) {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1521,6 +1925,9 @@ function supabaseImportStore(client) {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: optional("number_format") ?? "comma-dot",
+            createdBy: optional("created_by"),
           }
         : null;
     },
@@ -1807,6 +2214,24 @@ function supabaseImportStore(client) {
             reason,
           })
           .eq("id", rowId),
+        "import_row_results",
+      );
+    },
+    async skipRow(rowId, reason) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({
+            row_state: "Skipped",
+            reason,
+          })
+          .eq("id", rowId),
+        "import_row_results",
+      );
+    },
+    async noteRow(rowId, reason) {
+      await exec(
+        app.from("import_row_results").update({ reason }).eq("id", rowId),
         "import_row_results",
       );
     },

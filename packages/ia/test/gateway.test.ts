@@ -205,6 +205,8 @@ describe("gateway sitemap", () => {
       "/c/{companyHandle}",
       "/advance/{token}",
       "/sign/{token}",
+      "/shifts/{token}",
+      "/join/{orgSlug}/{pageSlug}",
     ]) {
       expect(routes, route).toContain(route);
     }

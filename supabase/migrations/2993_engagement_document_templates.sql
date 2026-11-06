@@ -47,13 +47,16 @@ create or replace function private.engagement_document_uses_rate(p_body text)
 returns boolean
 language sql
 immutable
+security definer
 set search_path = ''
 as $$
   select 'engagement.rate' = any(private.template_merge_fields(p_body));
 $$;
 
 comment on function private.engagement_document_uses_rate(text) is 'True when a template''s body uses the Restricted engagement.rate field. Read from the text, never stored. A title never uses it (document_template_rate_title).';
-revoke all on function private.engagement_document_uses_rate(text) from public, anon, authenticated;
+-- app.engagement_document_text_list calls it, and a view's functions are checked against the caller.
+revoke all on function private.engagement_document_uses_rate(text) from public, anon;
+grant execute on function private.engagement_document_uses_rate(text) to authenticated, service_role;
 
 create table app.engagement_document_templates (
   id uuid primary key default private.uuid_v7(),

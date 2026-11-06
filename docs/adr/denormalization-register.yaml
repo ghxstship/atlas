@@ -651,6 +651,18 @@ restated:
     parent: app.engagements.project_id
     kind: registered
     note: Copied from the category (derived entry); the optional engagement is the holder's.
+  - column: app.crew_access_links.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: own
+    note: The worker of the link when an engagement is the worker, as on app.shifts; a link names one worker column, never a copy of an entry's engagement (migration 2990, B10).
+  - column: app.crew_access_links.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The project the link shows, chosen when it is issued; a membership has no project and a worker's engagement must be on it (migration 2990, B10).
+  - column: app.crew_registrations.person_id
+    parent: app.profile_shares.person_id
+    kind: own
+    note: The registrant; a share is optional and app.submit_crew_registration refuses another person's (migration 2992, B10).
   - column: app.cues.project_id
     parent: app.run_of_show.project_id
     kind: registered
@@ -1656,6 +1668,9 @@ stored:
   - column: app.beos.guest_count
     kind: input
     note: Guests the client guarantees.
+  - column: app.crew_access_links.open_count
+    kind: fact
+    note: How many times the worker opened the link; opens leave no other record (migration 2990, B10).
   - column: app.export_jobs.row_count
     kind: fact
     note: Rows a run exported; not derivable later (A22 review).

@@ -35,6 +35,7 @@ var documents_default$1 = {
     "agreement-certificate": "Signature certificate",
     "deletion-certificate": "Deletion certificate",
     "radio-handout": "Radio hand-out",
+    "engagement-document": "Generated agreement",
   },
   facts: {
     recordKey: "Record key",
@@ -519,6 +520,31 @@ var documents_default$1 = {
       Withdrawn: "Withdrawn",
     },
   },
+  engagementDocument: {
+    title: "Generated agreement",
+    signature: "Signature",
+    kind: "Document type",
+    signedName: "Name as signed",
+    signedAt: "Signed",
+    hash: "SHA-256 of the signed text",
+    statement:
+      "The signer typed their name to sign the exact text below. XOS stored the SHA-256 hash of that text at signing; any change to the text changes the hash.",
+    text: "Agreement text",
+    kinds: {
+      Agreement: "Agreement",
+      StatementofWork: "Statement of work",
+      NonDisclosureAgreement: "Non-disclosure agreement",
+    },
+    states: {
+      Proposed: "Proposed",
+      Sent: "Sent",
+      Signed: "Signed",
+      Executed: "Executed",
+      Expired: "Expired",
+      Superseded: "Superseded",
+      Canceled: "Canceled",
+    },
+  },
 };
 var documents_default = {
   actions: {
@@ -540,6 +566,7 @@ var documents_default = {
     "agreement-certificate": "Certificado de firma",
     "deletion-certificate": "Certificado de eliminación",
     "radio-handout": "Hoja de radios",
+    "engagement-document": "Acuerdo generado",
   },
   facts: {
     recordKey: "Clave del registro",
@@ -1025,6 +1052,31 @@ var documents_default = {
       Revoked: "Revocada",
       Declined: "Rechazada",
       Withdrawn: "Retirada",
+    },
+  },
+  engagementDocument: {
+    title: "Acuerdo generado",
+    signature: "Firma",
+    kind: "Tipo de documento",
+    signedName: "Nombre firmado",
+    signedAt: "Firmado",
+    hash: "SHA-256 del texto firmado",
+    statement:
+      "La persona firmante escribió su nombre para firmar el texto exacto de abajo. XOS guardó el hash SHA-256 de ese texto al firmar; cualquier cambio en el texto cambia el hash.",
+    text: "Texto del acuerdo",
+    kinds: {
+      Agreement: "Acuerdo",
+      StatementofWork: "Declaración de trabajo",
+      NonDisclosureAgreement: "Acuerdo de confidencialidad",
+    },
+    states: {
+      Proposed: "Propuesto",
+      Sent: "Enviado",
+      Signed: "Firmado",
+      Executed: "Ejecutado",
+      Expired: "Vencido",
+      Superseded: "Reemplazado",
+      Canceled: "Cancelado",
     },
   },
 };

@@ -494,14 +494,19 @@ var templates = {
               inviterName: p.inviterName,
               accountName: p.accountName,
             })
-          : ctx.t("party_invitation.rosterSubject", {
-              inviterName: p.inviterName,
-              partyName: p.partyName,
-              projectName: p.projectName,
-            });
+          : p.kind === "pool"
+            ? ctx.t("party_invitation.poolSubject", {
+                inviterName: p.inviterName,
+                orgName: p.orgName ?? "",
+              })
+            : ctx.t("party_invitation.rosterSubject", {
+                inviterName: p.inviterName,
+                partyName: p.partyName,
+                projectName: p.projectName,
+              });
       return {
         subject,
-        element: /* @__PURE__ */ jsx(Layout, {
+        element: /* @__PURE__ */ jsxs(Layout, {
           locale: ctx.locale,
           t: ctx.t,
           sender: ctx.sender,
@@ -512,9 +517,19 @@ var templates = {
             label: ctx.t("party_invitation.action"),
             url: p.signInUrl,
           },
-          children: /* @__PURE__ */ jsx(Paragraph, {
-            children: ctx.t("party_invitation.how", { expiresAt: p.expiresAt }),
-          }),
+          children: [
+            p.kind === "pool" && p.jobTitle
+              ? /* @__PURE__ */ jsx(Paragraph, {
+                  children: ctx.t("party_invitation.poolRole", { jobTitle: p.jobTitle }),
+                })
+              : null,
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t(
+                p.kind === "pool" ? "party_invitation.poolHow" : "party_invitation.how",
+                { expiresAt: p.expiresAt },
+              ),
+            }),
+          ],
         }),
       };
     },

@@ -177,6 +177,8 @@ describe("atlas sitemap", () => {
       "/{org}/r/{recordKey}",
       "/{org}/views/{viewId}",
       "/{org}/settings/members",
+      "/{org}/crew/access-links",
+      "/{org}/opportunities/registration-pages",
       "/{org}/me/profile",
       "/advance/{token}",
       "/sign/{token}",

@@ -89,6 +89,17 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     nextCuePosition: async () =>
       Math.max(1, ...writes.map((w) => (typeof w["position"] === "number" ? w["position"] : 0))) +
       1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
     cueCalled: async (id) => called.has(id),
     async create(_o, target, values) {
       writes.push({ op: "create", target, ...values });
@@ -556,6 +567,8 @@ function memoryStore(
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) Object.assign(r, { state: "Refused", reason });

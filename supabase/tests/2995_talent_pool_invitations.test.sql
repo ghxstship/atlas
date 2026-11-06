@@ -157,8 +157,9 @@ select is(pg_temp.refusal(format($$select app.invite_to_talent_pool('%s', 'cappe
 -- Party orgs ------------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
 select ok(pg_temp.id('org_a') in (select private.party_org_ids(pg_temp.id('rae'))), 'a claimed invitation gives the party org');
-insert into app.pool_members (talent_pool_id, person_id, standing) values (pg_temp.id('pool'), pg_temp.id('fiona'), 'Approved');
-select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('fiona'))), 'an internally added member gains neither the org');
+select pg_temp.new_user('zed', 'zed@freelance.test', 'Zed Ortega');
+insert into app.pool_members (talent_pool_id, person_id, standing) values (pg_temp.id('pool'), pg_temp.id('zed'), 'Approved');
+select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('zed'))), 'an internally added member gains neither the org');
 select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('quinn'))), 'nor a Do Not Engage person');
 select pg_temp.as_user('alice');
 with g as (insert into app.registration_pages (org_id, slug, title, talent_pool_id) values (pg_temp.id('org_a'), 'p', 'P', pg_temp.id('pool')) returning id) insert into world select 'page', id from g;

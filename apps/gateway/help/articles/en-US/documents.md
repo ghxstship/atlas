@@ -25,3 +25,7 @@ Agreements you signed from a link without signing in, with when and by whom they
 The tax forms you submitted, which open [Tax documents](help:money-tax-documents).
 
 Show documents as a table or a list. Documents to sign also appear on Home under Needs you.
+
+## Reading and signing an agreement
+
+Some agreements are written for you from the organization's own wording. Open it on the engagement's Documents tab, read the full text and type your full name to sign. Your name signs exactly that text, and the document records its fingerprint. If you do not agree, choose Decline and say why. The organization then countersigns, and the PDF is yours to download.

@@ -67,6 +67,7 @@ call private.install_policies('app.registration_pages',
   $$org_id in (select private.orgs_with_capability('opportunities.application.read'))$$,
   $$org_id in (select private.orgs_with_capability('opportunities.pool.write'))$$);
 
+call private.install_default_retention('app.registration_page_state_transitions');
 call private.install_default_retention('app.registration_pages');
 call private.install_audit_trail('app.registration_pages');
 
@@ -274,7 +275,7 @@ begin
 end;
 $$;
 
-comment on function api_public.registration_page(text, text) is 'A crew registration page for anyone (B10): the org id (for Gateway's brand scope, never rendered), the org name, title, intro, minimum age and questions of an Open page, one row per question (one row with no question when it has none). Never the pool. A Draft, Closed or missing page, a page whose pool was deleted or whose org is read-only, and a signed-in caller the org flagged Do Not Engage, get one row with refusal REFUSE and reason registration_page_closed.';
+comment on function api_public.registration_page(text, text) is 'A crew registration page for anyone (B10): the org id (for the Gateway brand scope, never rendered), the org name, title, intro, minimum age and questions of an Open page, one row per question (one row with no question when it has none). Never the pool. A Draft, Closed or missing page, a page whose pool was deleted or whose org is read-only, and a signed-in caller the org flagged Do Not Engage, get one row with refusal REFUSE and reason registration_page_closed.';
 
 -- Privileges and Trash ---------------------------------------------------------------------------------------------------
 

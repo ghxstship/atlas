@@ -151,7 +151,7 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xcrw|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   {

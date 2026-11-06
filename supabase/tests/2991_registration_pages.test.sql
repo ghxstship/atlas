@@ -74,7 +74,7 @@ select is(pg_temp.refusal(format($$insert into app.registration_page_questions (
 select is(pg_temp.refusal(format($$select app.apply_registration_question_template('%s', '%s')$$, pg_temp.id('page'), pg_temp.id('tmpl'))),
   'registration_page_not_draft', 'and a template');
 select throws_ok(format($$select app.transition_registration_page('%s', 'Open', 'Draft')$$, pg_temp.id('page')),
-  'XR001', 'registration_page_transition_not_allowed: Transition from Open to Draft is not allowed.', 'a page never goes back to Draft');
+  'XR001', 'registration_page_transition_not_allowed: A registration page cannot move from Open to Draft.', 'a page never goes back to Draft');
 
 -- The public read when Open --------------------------------------------------------------------------------------------------------
 select pg_temp.as_anon();

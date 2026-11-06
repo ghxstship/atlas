@@ -31,8 +31,10 @@ select is(pg_temp.refusal(format($$insert into app.engagement_document_templates
   'document_template_rate_title', 'a title never uses the rate');
 with t as (insert into app.engagement_document_templates (org_id, name, document_kind, title_template, body_template)
   values (pg_temp.id('org_a'), 'Crew Agreement', 'Agreement', 'Agreement for {{party.name}}', 'You earn {{ engagement.rate }} on {{project.name}}.') returning id) insert into world select 'tmpl', id from t;
+select pg_temp.as_platform();
 select ok(private.engagement_document_uses_rate('{{ engagement.rate }}'), 'a body with the rate field uses the rate, spaces and all');
 select ok(not private.engagement_document_uses_rate('{{project.name}}'), 'a body without it does not');
+select pg_temp.as_user('carol');
 select throws_ok(format($$insert into app.engagement_document_templates (org_id, name, document_kind, title_template, body_template) values ('%s', 'crew agreement', 'Agreement', 'Title', 'Body')$$, pg_temp.id('org_a')),
   '23505', null, 'a name is unique per org, ignoring case');
 

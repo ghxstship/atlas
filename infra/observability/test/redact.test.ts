@@ -76,11 +76,12 @@ describe("redactString", () => {
   // A69-008: request logs keep the path, and bearer links carry their token in it.
   it("replaces the tokens of bearer links, in paths too", () => {
     const hex = "a".repeat(64);
-    for (const prefix of ["xadv", "xagr", "xcal", "xdoc", "xinv", "xlnk", "xos_scim"]) {
+    for (const prefix of ["xadv", "xagr", "xcal", "xcrw", "xdoc", "xinv", "xlnk", "xos_scim"]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
     }
     expect(redactUrl(`/advance/xadv_${hex}?code=1`)).toBe("/advance/[token]");
     expect(redactUrl(`/sign/xdoc_${hex}`)).toBe("/sign/[token]");
+    expect(redactUrl(`/shifts/xcrw_${hex}`)).toBe("/shifts/[token]");
     expect(redactUrl(`/auth/invite/xinv_${hex}`)).toBe("/auth/invite/[token]");
     expect(redactString("xadv_short")).toBe("xadv_short");
   });

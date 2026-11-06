@@ -6,6 +6,7 @@
   },
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.3",
-    "exceljs": "npm:exceljs@4.4.0"
+    "exceljs": "npm:exceljs@4.4.0",
+    "libphonenumber-js": "npm:libphonenumber-js@1.13.14"
   }
 }

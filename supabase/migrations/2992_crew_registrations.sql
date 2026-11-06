@@ -74,6 +74,7 @@ call private.install_policies('app.crew_registrations',
   $$org_id in (select private.orgs_with_capability('opportunities.application.read'))$$);
 revoke insert, update on app.crew_registrations from authenticated;
 
+call private.install_default_retention('app.crew_registration_state_transitions');
 call private.install_default_retention('app.crew_registrations');
 call private.install_audit_trail('app.crew_registrations');
 
