@@ -100,6 +100,7 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   // A library segment with two cues, inserted after the cue.
   await page.goto(`/${slug}/show/segments?create=1`);
   const create = page.getByRole("dialog", { name: "New segment" });
+  await expectDialogWithinLoad(create);
   await create.getByLabel("Segment name").fill("Awards Block");
   await create.getByLabel("Color").selectOption({ label: "Yellow" });
   await create.getByRole("button", { name: "Save segment" }).click();
