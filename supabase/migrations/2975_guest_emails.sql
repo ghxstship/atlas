@@ -335,7 +335,7 @@ begin
   end loop;
 end;
 $$;
-comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending and are returned with the row's unsubscribe token (the same on every claim, private.guest_email_unsubscribe_token) with what the email and, for a Pass, the guest-pass document need (the pass type, table, show and its day, the project key and time zone, and when the guest was approved).';
+comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending and are returned with the row''s unsubscribe token (the same on every claim, private.guest_email_unsubscribe_token) with what the email and, for a Pass, the guest-pass document need (the pass type, table, show and its day, the project key and time zone, and when the guest was approved).';
 revoke all on function app.claim_guest_emails(integer) from public, anon, authenticated;
 grant execute on function app.claim_guest_emails(integer) to service_role;
 

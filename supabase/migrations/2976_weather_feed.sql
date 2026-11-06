@@ -8,14 +8,18 @@
 --   * Wind and Heat observations become app.weather_readings with source NWS and feed the same thresholds as manual
 --     readings. The threshold and alert logic of app.record_weather_reading (0806) moves into
 --     private.apply_weather_level, which both call. A station may be miles from the venue, so an NWS reading never
---     lowers or clears an alert a Manual reading raised; it may only raise it. Manual readings behave exactly as in
---     0806. Lightning stays manual.
+--     lowers or clears an alert a Manual reading raised, and lowers an alert it raised itself only down to the level of
+--     the hazard's latest Manual reading against the current thresholds. Manual readings behave exactly as in 0806, and
+--     one below every threshold removes that floor. Lightning stays manual.
 --   * Wind and Heat observations older than 2 hours are not recorded, so an outage never raises a late alert.
 --   * Official alerts become app.weather_warnings, ended when the NWS cancels them or drops them from the active list.
 --     A CAP Update or Cancel has a new id and references the alerts it replaces: an alert whose references include a
---     warning recorded for the project ends that warning and tells nobody, since its people were told already. Only
---     a new Actual alert of severity Extreme or Severe with no recorded reference tells the project's alert-role people
---     and dispatchers, once (weather.warning).
+--     warning recorded for the project ends that warning and tells nobody, since its people were told already. A new
+--     Actual alert of severity Extreme or Severe with no recorded reference tells the project's alert-role people and
+--     dispatchers, once (weather.warning). So does an Actual Update of that severity when no warning it references was
+--     Extreme or Severe, because a Moderate warning told nobody and its escalation must not stay silent. A Cancel never
+--     tells anyone. The worker's URL, station and check time are its own: a person's write refuses
+--     weather_feed_worker_fields.
 --   * A payload with a malformed time or number refuses weather_feed_payload, never a raw 22007.
 --   * app.weather_forecast_periods is a provider cache of the next 48 hours, replaced on each fetch with a hard delete:
 --     no audit trail and never in Trash.
@@ -102,6 +106,28 @@ comment on function private.guard_weather_feed() is 'Weather feeds: turned on on
 revoke all on function private.guard_weather_feed() from public, anon, authenticated;
 create trigger t42_guard_weather_feed before insert or update of deleted_at on app.weather_feeds
   for each row execute function private.guard_weather_feed();
+
+create function private.guard_weather_feed_worker_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is not null
+     and (case when tg_op = 'INSERT' then num_nonnulls(new.nws_station_id, new.nws_forecast_hourly_url, new.points_checked_at) > 0
+          else new.nws_station_id is distinct from old.nws_station_id
+            or new.nws_forecast_hourly_url is distinct from old.nws_forecast_hourly_url
+            or new.points_checked_at is distinct from old.points_checked_at end) then
+    perform private.refuse('weather_feed_worker_fields', 'The feed''s station, forecast URL and check time are set by the feed itself.');
+  end if;
+  return new;
+end;
+$$;
+comment on function private.guard_weather_feed_worker_fields() is 'Weather feeds: the station, forecast URL and check time are provider facts the worker caches, and a wrong station feeds wrong readings into alerts, so a signed-in person never writes them (weather_feed_worker_fields). A feed is turned on and off through deleted_at.';
+revoke all on function private.guard_weather_feed_worker_fields() from public, anon, authenticated;
+create trigger t41_guard_weather_feed_worker_fields before insert or update of nws_station_id, nws_forecast_hourly_url, points_checked_at on app.weather_feeds
+  for each row execute function private.guard_weather_feed_worker_fields();
 
 create table private.weather_feed_runs (
   id uuid primary key default private.uuid_v7(),
@@ -288,6 +314,7 @@ declare
   v_level app.weather_alert_level;
   v_active app.weather_alerts;
   v_active_source app.weather_reading_source;
+  v_floor app.weather_alert_level;
   v_alert uuid;
   v_person uuid;
 begin
@@ -295,6 +322,20 @@ begin
   where t.project_id = p_project_id and t.hazard = p_hazard and t.deleted_at is null
     and ((t.comparison = 'At or Above' and p_value >= t.threshold_value) or (t.comparison = 'At or Below' and p_value <= t.threshold_value))
   order by t.alert_level desc limit 1;
+  -- A station may be miles from the venue: an NWS reading lowers or clears only down to what the hazard's latest Manual
+  -- reading meets against the current thresholds. A Manual reading below every threshold leaves no floor.
+  if p_source = 'NWS' then
+    select t.alert_level into v_floor
+    from (select r.reading_value from app.weather_readings r
+          where r.project_id = p_project_id and r.hazard = p_hazard and r.source = 'Manual'
+          order by r.observed_at desc, r.id desc limit 1) m
+    join app.weather_thresholds t on t.project_id = p_project_id and t.hazard = p_hazard and t.deleted_at is null
+      and ((t.comparison = 'At or Above' and m.reading_value >= t.threshold_value) or (t.comparison = 'At or Below' and m.reading_value <= t.threshold_value))
+    order by t.alert_level desc limit 1;
+    if v_floor is not null and (v_level is null or v_level < v_floor) then
+      v_level := v_floor;
+    end if;
+  end if;
   select * into v_active from app.weather_alerts a where a.project_id = p_project_id and a.hazard = p_hazard and a.cleared_at is null;
   if v_level is not distinct from v_active.alert_level then
     return;
@@ -330,7 +371,7 @@ begin
   end if;
 end;
 $$;
-comment on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) is 'A new weather reading against the project''s thresholds (the logic of 0806 app.record_weather_reading): the highest Monitor, Restrict or Evacuate level it meets raises an alert to the canon roles named for that level and the project''s dispatchers (weather.alert); a reading below every level clears the hazard''s alert. An NWS reading never lowers or clears an alert a Manual reading raised; it may only raise it.';
+comment on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) is 'A new weather reading against the project''s thresholds (the logic of 0806 app.record_weather_reading): the highest Monitor, Restrict or Evacuate level it meets raises an alert to the canon roles named for that level and the project''s dispatchers (weather.alert); a reading below every level clears the hazard''s alert. An NWS reading never lowers or clears an alert a Manual reading raised, and lowers or clears one it raised itself only down to the level of the hazard''s latest Manual reading against the current thresholds; a Manual reading below every threshold removes that floor.';
 revoke all on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) from public, anon, authenticated;
 
 create or replace function app.record_weather_reading(p_project_id uuid, p_hazard app.weather_hazard, p_value numeric, p_observed_at timestamptz default null)
@@ -359,7 +400,7 @@ comment on function app.record_weather_reading(uuid, app.weather_hazard, numeric
 revoke all on function app.record_weather_reading(uuid, app.weather_hazard, numeric, timestamptz) from public, anon;
 grant execute on function app.record_weather_reading(uuid, app.weather_hazard, numeric, timestamptz) to authenticated, service_role;
 
--- The worker (service role) ---
+-- The worker (service role) ----------------------------------------------------------------------------------------------
 
 -- A time or number of the payload, or weather_feed_payload when the worker sent one Postgres cannot read.
 create function private.weather_feed_time(p_value text)
@@ -392,7 +433,7 @@ exception when data_exception then
 end;
 $$;
 comment on function private.weather_feed_number(text) is 'A number of a weather feed payload, NULL for NULL; a malformed one refuses weather_feed_payload instead of a raw 22P02.';
-revoke all on function private.weather_feed_number(text) from public, anon, authenticated;----------------------------------------------------------------------------------------------------
+revoke all on function private.weather_feed_number(text) from public, anon, authenticated;
 
 create function app.record_weather_feed_failure(p_feed_id uuid, p_error text)
 returns void
@@ -474,6 +515,7 @@ declare
   v_warning app.weather_warnings;
   v_new boolean;
   v_replaces boolean;
+  v_escalates boolean;
   v_person uuid;
   v_ids text[] := '{}';
   v_notified integer := 0;
@@ -546,12 +588,17 @@ begin
         select 1 from app.weather_warnings w
         where w.project_id = v_feed.project_id and w.id <> v_warning.id
           and w.provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references')));
+      -- A Moderate warning told nobody, so an Update that takes it to Severe or Extreme is the first anyone hears of it.
+      v_escalates := v_replaces and v_alert ->> 'message_type' = 'Update' and not exists (
+        select 1 from app.weather_warnings w
+        where w.project_id = v_feed.project_id and w.id <> v_warning.id and w.severity in ('Extreme', 'Severe')
+          and w.provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references')));
       if v_replaces then
         update app.weather_warnings set ended_at = now()
         where project_id = v_feed.project_id and ended_at is null and id <> v_warning.id
           and provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references'));
       end if;
-      if v_new and not v_replaces and coalesce(v_alert ->> 'status', 'Actual') = 'Actual'
+      if v_new and (not v_replaces or v_escalates) and coalesce(v_alert ->> 'status', 'Actual') = 'Actual'
          and coalesce(v_alert ->> 'message_type', 'Alert') <> 'Cancel' and v_warning.severity in ('Extreme', 'Severe') then
         for v_person in
           select distinct ra.person_id from app.role_assignments ra
@@ -595,7 +642,7 @@ begin
   return jsonb_build_object('readings', v_readings, 'warnings', cardinality(v_ids), 'notified', v_notified, 'forecast_periods', v_forecast);
 end;
 $$;
-comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200, at most 2 hours old and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the active alerts upserted by the provider''s id, a Cancel, an Update that references them or their absence from the active list ending them, and a new Actual Extreme or Severe alert that replaces no recorded warning telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. A malformed time or number refuses weather_feed_payload. Returns counts.';
+comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200, at most 2 hours old and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the active alerts upserted by the provider''s id, a Cancel, an Update that references them or their absence from the active list ending them, and a new Actual Extreme or Severe alert that replaces no recorded warning, or an Actual Update of that severity none of whose referenced warnings was Extreme or Severe, telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. A malformed time or number refuses weather_feed_payload. Returns counts.';
 revoke all on function app.record_weather_feed(uuid, jsonb) from public, anon, authenticated;
 grant execute on function app.record_weather_feed(uuid, jsonb) to service_role;
 

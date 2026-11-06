@@ -28,8 +28,16 @@ select throws_ok($$insert into app.guest_list_entries (project_id, guest_name, p
   'XR001', null, 'a category of another project is not a pass type');
 select throws_ok($$insert into app.guest_list_entries (project_id, guest_name, host_person_id) values ((select id from world where key = 'prj_a'), 'Lee Park', (select id from world where key = 'quinn'))$$,
   'XR001', 'guest_host_not_on_project: A host is a member of the organization or engaged on this project.', 'a host engaged only by another org is refused');
-select throws_ok($$insert into app.guest_list_entries (project_id, guest_name, guest_email) values ((select id from world where key = 'prj_a'), 'Lee Park', 'Lee@Example.test')$$,
-  '23514', null, 'the stored email is lowercase');
+select throws_ok($$insert into app.guest_list_entries (project_id, guest_name, guest_email) values ((select id from world where key = 'prj_a'), 'Lee Park', 'not an address')$$,
+  'XR001', 'guest_email_format: Enter one email address for the guest, or leave it empty.', 'a direct insert with a malformed address is a refusal, not a raw 23514');
+with x as (insert into app.guest_list_entries (project_id, guest_name, guest_email) values (pg_temp.id('prj_a'), 'Lee Park', '  Lee@Example.TEST ') returning id) insert into world select 'g_norm', id from x;
+select is((select guest_email from app.guest_list_entries where id = pg_temp.id('g_norm')), 'lee@example.test', 'every path stores the address trimmed and lowercased');
+select lives_ok($$update app.guest_list_entries set guest_email = 'LEE2@EXAMPLE.TEST' where id = (select id from world where key = 'g_norm')$$, 'an update does too');
+select is((select guest_email from app.guest_list_entries where id = pg_temp.id('g_norm')), 'lee2@example.test', 'to the same form');
+select throws_ok($$update app.guest_list_entries set guest_email = 'two@example.test, three@example.test' where id = (select id from world where key = 'g_norm')$$,
+  'XR001', 'guest_email_format: Enter one email address for the guest, or leave it empty.', 'and a bad update is refused');
+select lives_ok($$update app.guest_list_entries set guest_email = '   ' where id = (select id from world where key = 'g_norm')$$, 'an empty address clears it');
+select is((select guest_email from app.guest_list_entries where id = pg_temp.id('g_norm')), null, 'to NULL');
 with x as (insert into app.guest_list_entries (project_id, guest_name, plus_ones, pass_category_id, table_label, host_person_id, guest_email)
   values (pg_temp.id('prj_a'), 'Sasha Bell', 2, pg_temp.id('cat_vip'), 'Table 4', pg_temp.id('dave'), 'sasha@example.test') returning id)
   insert into world select 'g_req', id from x;
@@ -100,10 +108,8 @@ select is((select row(guest_name, pass_category_code, pass_category_name, table_
            from app.door_guest_list(pg_temp.id('prj_a'), (select lower(pass_code) from app.guest_list_entries where id = pg_temp.id('g_req')))),
   '("Sasha Bell",VIP,"VIP Guest","Table 4",t)', 'a search by the exact pass code finds the guest with the pass type, table and host');
 select is((select count(*)::int from app.door_guest_list(pg_temp.id('prj_a'), 'GP-ZZZZZZZZZZ')), 0, 'an unknown code finds nobody');
-select pg_temp.as_platform();
 select is((select host_name from app.door_guest_list(pg_temp.id('prj_a'), (select pass_code from app.guest_list_entries where id = pg_temp.id('g_req')))),
-  (select full_name from app.people where id = pg_temp.id('dave')), 'the door list names the host, since door staff may not read people');
-select pg_temp.as_user('frank');
+  'Dave Lindqvist', 'the door list names the host, since door staff may not read people');
 
 -- Check-in and the host -------------------------------------------------------------------------------------------------------------
 select app.check_in_guest(pg_temp.id('g_req'), 1::smallint, 'North Gate');

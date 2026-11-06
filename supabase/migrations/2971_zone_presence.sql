@@ -21,14 +21,75 @@
 --     check-ins (credentials.scan.write).
 --
 -- Every view carries the readable columns an export needs (zone code and name, the person's name, the credential
--- number, the category code and the party), as plain joins: collection exports read the columns of one view (2030).
--- A name the reader may not read through row level security (0204) is NULL there; the page fills it from
--- app.person_names.
+-- number, the category code and the party): collection exports read the columns of one view (2030), and an evacuation
+-- export with blank names is not acceptable. app.people hides engaged externals (1275), app.organizations a counterparty
+-- (0205) and app.engagements a reader without opportunities.engagement.read (0700), so names come from
+-- private.presence_person_name and private.presence_party_name, which answer a reader holding credentials.scan_log.read,
+-- crew.time_entry.read or advancing.packet.read on the project and give anyone else NULL. private.presence_clock_person
+-- gives the person of a time entry the reader already reads, for a reader who may not read memberships or engagements.
+-- All three take values and the views scan none of those tables, as ADR 0016 rule 14 asks: a view's policies must not
+-- re-read a table it scans.
 --
 -- A reader who cannot read a person's newer scan elsewhere may see that person in their last readable zone. The muster
 -- list errs toward listing someone. The 24-hour windows keep every read on the newest partitions of access_scans
 -- (1511) and time_entries (2231). Each view takes back the backup login's default SELECT (1650), and the columns that
 -- show a classified column under another name are registered in private.view_column_sources (2030).
+
+-- Names and people for the views -----------------------------------------------------------------------------------------
+
+create function private.presence_person_name(p_project_id uuid, p_person_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when private.can_on_project(p_project_id, 'credentials.scan_log.read')
+                or private.can_on_project(p_project_id, 'crew.time_entry.read')
+                or private.can_on_project(p_project_id, 'advancing.packet.read')
+    then (select p.full_name from app.people p where p.id = p_person_id and p.deleted_at is null) end;
+$$;
+comment on function private.presence_person_name(uuid, uuid) is 'The name of a person the presence views list, for a reader holding credentials.scan_log.read, crew.time_entry.read or advancing.packet.read on the project; NULL for anyone else. app.people hides engaged externals, and a muster list needs their names. Takes values, so the views scan no people table (ADR 0016 rule 14).';
+revoke all on function private.presence_person_name(uuid, uuid) from public, anon;
+grant execute on function private.presence_person_name(uuid, uuid) to authenticated, service_role;
+
+create function private.presence_party_name(p_project_id uuid, p_engagement_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when private.can_on_project(p_project_id, 'credentials.scan_log.read')
+                or private.can_on_project(p_project_id, 'crew.time_entry.read')
+                or private.can_on_project(p_project_id, 'advancing.packet.read')
+    then (select coalesce(o.name, pe.full_name)
+          from app.engagements e
+          left join app.counterparties c on c.id = e.counterparty_id
+          left join app.organizations o on o.id = c.organization_id
+          left join app.people pe on pe.id = e.person_id and pe.deleted_at is null
+          where e.id = p_engagement_id and e.project_id = p_project_id) end;
+$$;
+comment on function private.presence_party_name(uuid, uuid) is 'The party of an engagement of the project, the counterparty organization''s name else the engaged person''s, for a reader holding credentials.scan_log.read, crew.time_entry.read or advancing.packet.read on the project; NULL for anyone else. A counterparty is never the owning org, so app.organizations hides it, and these readers may not read engagements. Takes values, so the views scan none of those tables (ADR 0016 rule 14).';
+revoke all on function private.presence_party_name(uuid, uuid) from public, anon;
+grant execute on function private.presence_party_name(uuid, uuid) to authenticated, service_role;
+
+create function private.presence_clock_person(p_membership_id uuid, p_engagement_id uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(
+    (select m.person_id from app.memberships m where m.id = p_membership_id),
+    (select e.person_id from app.engagements e where e.id = p_engagement_id));
+$$;
+comment on function private.presence_clock_person(uuid, uuid) is 'The person of a time entry, from its membership or engagement. A reader with crew.time_entry.read through a project grant may not read either table, and the muster list must not drop that person. It has no capability gate: it returns an id, not a name, the row has already passed time_entries RLS, private is not an exposed API schema, and private.weather_hold_recipients reads it through app.zone_presence as the definer and must stay complete. Takes values (ADR 0016 rule 14).';
+revoke all on function private.presence_clock_person(uuid, uuid) from public, anon;
+grant execute on function private.presence_clock_person(uuid, uuid) to authenticated, service_role;
+
+-- The views ------------------------------------------------------------------------------------------------------------
 
 create view app.zone_presence with (security_invoker = on) as
 with latest_scan as (
@@ -40,7 +101,8 @@ with latest_scan as (
   join app.credentials cr on cr.id = s.credential_id
   join app.credential_categories cc on cc.id = cr.credential_category_id
   left join app.zones z on z.id = s.zone_id
-  where s.created_at >= now() - interval '24 hours' and s.result = 'Granted' and cc.category_kind <> 'Parking'
+  where s.created_at >= now() - interval '24 hours' and coalesce(s.device_scanned_at, s.scanned_at) >= now() - interval '24 hours'
+    and s.result = 'Granted' and cc.category_kind <> 'Parking'
   order by s.org_id, cr.holder_person_id, coalesce(s.device_scanned_at, s.scanned_at) desc, s.created_at desc, s.id desc
 ),
 scan_presence as (
@@ -51,18 +113,16 @@ scan_presence as (
 ),
 -- 1632's on-site rule (open entry, clocked in within 24 hours, a geofence-verified In punch), plus the punch's zone.
 clock_presence as (
-  select distinct on (te.org_id, coalesce(m.person_id, e.person_id))
-    te.org_id, te.project_id, z.venue_id, g.zone_id, coalesce(m.person_id, e.person_id) as person_id,
+  select distinct on (te.org_id, private.presence_clock_person(te.membership_id, te.engagement_id))
+    te.org_id, te.project_id, z.venue_id, g.zone_id, private.presence_clock_person(te.membership_id, te.engagement_id) as person_id,
     te.engagement_id, cp.effective_at as entered_at
   from app.time_entries te
   join app.clock_punches cp on cp.time_entry_id = te.id and cp.punch_kind = 'In' and cp.geofence_verified
     and cp.deleted_at is null
   join app.geofences g on g.id = cp.geofence_id and g.zone_id is not null and g.deleted_at is null
   join app.zones z on z.id = g.zone_id
-  left join app.memberships m on m.id = te.membership_id
-  left join app.engagements e on e.id = te.engagement_id
   where te.clock_out is null and te.deleted_at is null and te.clock_in >= now() - interval '24 hours'
-  order by te.org_id, coalesce(m.person_id, e.person_id), te.clock_in desc, cp.effective_at desc
+  order by te.org_id, private.presence_clock_person(te.membership_id, te.engagement_id), te.clock_in desc, cp.effective_at desc
 ),
 presence as (
   select sp.org_id, sp.project_id, sp.venue_id, sp.zone_id, sp.person_id, sp.credential_id, sp.credential_number,
@@ -72,20 +132,18 @@ presence as (
   select cp.org_id, cp.project_id, cp.venue_id, cp.zone_id, cp.person_id, null::uuid, null::text, null::uuid, null::text,
     cp.engagement_id, cp.entered_at, 'Clock In'::text
   from clock_presence cp
+  -- A clock-in counts unless the person's latest scan at that venue is In, or is an Out later than the punch: a person
+  -- who clocked in and then scanned Out has left, and a clock-in after the Out means they came back.
   where cp.person_id is not null
-    and not exists (select 1 from scan_presence sp where sp.org_id = cp.org_id and sp.person_id = cp.person_id
-                    and sp.venue_id is not distinct from cp.venue_id)
+    and not exists (select 1 from latest_scan l where l.org_id = cp.org_id and l.person_id = cp.person_id
+                    and l.venue_id is not distinct from cp.venue_id and (l.direction = 'In' or l.entered_at > cp.entered_at))
 )
 select p.org_id, p.project_id, p.venue_id, p.zone_id, z.code as zone_code, z.name as zone_name, p.person_id,
-  pe.full_name, p.credential_id, p.credential_number, p.credential_category_id, p.category_code, p.engagement_id,
-  coalesce(a.name, ep.full_name) as party_name, p.entered_at, p.source
+  private.presence_person_name(p.project_id, p.person_id) as full_name, p.credential_id, p.credential_number,
+  p.credential_category_id, p.category_code, p.engagement_id,
+  private.presence_party_name(p.project_id, p.engagement_id) as party_name, p.entered_at, p.source
 from presence p
-left join app.zones z on z.id = p.zone_id
-left join app.people pe on pe.id = p.person_id
-left join app.engagements e on e.id = p.engagement_id
-left join app.counterparties c on c.id = e.counterparty_id
-left join app.organizations a on a.id = c.organization_id
-left join app.people ep on ep.id = e.person_id;
+left join app.zones z on z.id = p.zone_id;
 
 call private.describe('app.zone_presence', 'Who is in which zone now (Section 4.2 Credentials, 4.9; ADR 0147 decision 3): one row per person, from their latest Granted gate scan within 24 hours across the org''s credentials (an Out scan places them nowhere; Parking categories are left out), or, by the on-site rule of app.workforce_directory (1632), from an open time entry clocked in within 24 hours whose geofence-verified In punch names a geofence with a zone, unless a scan places them at the same venue. Runs as the reader, so scans need credentials.scan_log.read and clock-ins crew.time_entry.read; a person whose newer scan elsewhere the reader cannot read shows in their last readable zone.', array[
   'org_id', 'Org.',
@@ -95,7 +153,7 @@ call private.describe('app.zone_presence', 'Who is in which zone now (Section 4.
   'zone_code', 'Code of the zone.',
   'zone_name', 'Name of the zone.',
   'person_id', 'Person present.',
-  'full_name', 'Person''s name, when the reader may read it.',
+  'full_name', 'Person''s name, for a reader holding credentials.scan_log.read, crew.time_entry.read or advancing.packet.read.',
   'credential_id', 'Credential of the scan that placed them; NULL for a clock-in.',
   'credential_number', 'Number of that credential; NULL for a clock-in.',
   'credential_category_id', 'Category of that credential; NULL for a clock-in.',
@@ -141,27 +199,22 @@ select p.org_id, p.project_id, p.venue_id, p.zone_id, p.zone_code, p.zone_name, 
   p.category_code, p.engagement_id, p.party_name, p.entered_at, p.source, null::text as door
 from app.zone_presence p
 union all
-select g.org_id, g.project_id, pr.venue_id, null::uuid, null::text, null::text, null::uuid, null::text, g.guest_name,
+select g.org_id, g.project_id, null::uuid, null::uuid, null::text, null::text, null::uuid, null::text, g.guest_name,
   c.plus_ones_admitted, null::uuid, null::text, null::uuid, null::text, g.engagement_id,
-  coalesce(a.name, ep.full_name), g.checked_in_at, 'Guest Check In'::text, c.door
+  private.presence_party_name(g.project_id, g.engagement_id), g.checked_in_at, 'Guest Check In'::text, c.door
 from app.guest_list_entries g
-join app.projects pr on pr.id = g.project_id
 left join app.guest_check_ins c on c.guest_list_entry_id = g.id and c.deleted_at is null
-left join app.engagements e on e.id = g.engagement_id
-left join app.counterparties cp on cp.id = e.counterparty_id
-left join app.organizations a on a.id = cp.organization_id
-left join app.people ep on ep.id = e.person_id
 where g.entry_state = 'Checked In' and g.checked_in_at >= now() - interval '24 hours' and g.deleted_at is null;
 
 call private.describe('app.muster_list', 'The muster list (Section 4.9, gap G-149): everyone app.zone_presence places in a zone now, plus the guests checked in within the last 24 hours, at a door or in bulk (2151), with their door and plus-ones when a door check-in recorded them. A guest has no exit, so a guest row says only that they came in. Runs as the reader: guest rows need advancing.packet.read on the project, and their door and plus-ones credentials.scan.write.', array[
   'org_id', 'Org.',
   'project_id', 'Project.',
-  'venue_id', 'Venue of the zone, or of the project for a guest.',
+  'venue_id', 'Venue of the zone; NULL for a guest.',
   'zone_id', 'Zone; NULL for a guest.',
   'zone_code', 'Code of the zone; NULL for a guest.',
   'zone_name', 'Name of the zone; NULL for a guest.',
   'person_id', 'Person present; NULL for a guest.',
-  'full_name', 'Person''s name, when the reader may read it; NULL for a guest.',
+  'full_name', 'Person''s name, for a reader holding credentials.scan_log.read, crew.time_entry.read or advancing.packet.read; NULL for a guest.',
   'guest_name', 'Guest''s name; NULL for a person.',
   'plus_ones', 'Plus-ones admitted with the guest at the door.',
   'credential_id', 'Credential of the scan that placed the person.',
@@ -196,6 +249,8 @@ insert into private.view_column_sources (view_name, column_name, source_table, s
   ('app.muster_list', 'entered_at', 'app.access_scans', 'scanned_at'),
   ('app.muster_list', 'entered_at', 'app.clock_punches', 'effective_at'),
   ('app.muster_list', 'entered_at', 'app.guest_list_entries', 'checked_in_at'),
+  ('app.zone_presence', 'full_name', 'app.people', 'full_name'),
+  ('app.muster_list', 'full_name', 'app.people', 'full_name'),
   ('app.zone_presence', 'party_name', 'app.organizations', 'name'),
   ('app.zone_presence', 'party_name', 'app.people', 'full_name'),
   ('app.zone_counts_live', 'party_name', 'app.organizations', 'name'),

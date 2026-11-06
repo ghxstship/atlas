@@ -3,12 +3,15 @@
 -- ignored; a geofenced clock-in places a person unless a scan places them at the same venue; counts split by category
 -- and engagement sum to the zone total; guests checked in at a door or in bulk join the muster list; the readable
 -- columns an export needs are there; row level security decides what each reader sees, and a non-member reads every
--- column without a crash (ADR 0016 rule 14); the backup login reads none of the views; the read stays on recent
--- partitions.
+-- column without a crash (ADR 0016 rule 14); an engaged external's name and every party's name reach a scan reader who
+-- may read neither people nor engagements, and nobody else; a time-entry reader who may read neither memberships nor
+-- engagements still sees a clock-in; the views scan none of those tables; a clock-in after an Out places the person and
+-- one before it does not; a device time past 24 hours places nobody; the backup login reads none of the views; the read
+-- stays on recent partitions.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir 0300_domain_world.psql
+\ir 0700_engagement_world.psql
 
 select no_plan();
 
@@ -30,6 +33,14 @@ with x as (insert into app.credentials (credential_category_id, holder_person_id
 with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_park'), pg_temp.id('dave')) returning id) insert into world select 'cred_park', id from x;
 with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('gina')) returning id) insert into world select 'cred_gina', id from x;
 with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat_a2'), pg_temp.id('mia')) returning id) insert into world select 'cred_a2', id from x;
+with x as (insert into app.credentials (credential_category_id, holder_person_id, engagement_id) values (pg_temp.id('cat'), pg_temp.id('ivy'), pg_temp.id('eng_ivy_a')) returning id) insert into world select 'cred_ivy', id from x;
+with x as (insert into app.credentials (credential_category_id, holder_person_id, engagement_id) values (pg_temp.id('cat'), pg_temp.id('sam'), pg_temp.id('eng_vendor_a')) returning id) insert into world select 'cred_sam', id from x;
+with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('paul')) returning id) insert into world select 'cred_paul', id from x;
+with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('cora')) returning id) insert into world select 'cred_cora', id from x;
+select pg_temp.as_user('alice');
+with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('carol')) returning id) insert into world select 'cred_carol', id from x;
+select pg_temp.as_user('carol');
+with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('alice')) returning id) insert into world select 'cred_alice', id from x;
 
 -- Scans (one transaction, so each carries its device time to order them) ---------------------------------------------------
 select pg_temp.as_user('carol');
@@ -41,6 +52,15 @@ select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_bob'), null, null,
 select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_park'), null, null, now() - interval '15 minutes', 'Granted');
 insert into world select 'old_scan', id from app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_gina'));
 select app.record_scan(pg_temp.id('zone_b'), pg_temp.id('cred_a2'), null, null, now() - interval '3 minutes', 'Granted');
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_ivy'), null, null, now() - interval '4 minutes', 'Granted');
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_sam'), null, null, now() - interval '4 minutes', 'Granted');
+-- paul's scan uploads now with a device time 30 hours ago: it reached the server inside 24 hours but happened outside them.
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_paul'), null, null, now() - interval '30 hours', 'Granted');
+-- carol clocks in, comes in by scan and leaves by scan; alice leaves by scan and then clocks in again.
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_carol'), null, null, now() - interval '90 minutes', 'Granted');
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_carol'), null, null, now() - interval '30 minutes', 'Granted', 'Out');
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_alice'), null, null, now() - interval '90 minutes', 'Granted');
+select app.record_scan(pg_temp.id('zone_a'), pg_temp.id('cred_alice'), null, null, now() - interval '30 minutes', 'Granted', 'Out');
 
 -- gina's scan is older than 24 hours, and an old month's partition holds a row
 select pg_temp.as_platform();
@@ -60,13 +80,19 @@ with x as (insert into app.geofences (id, org_id, venue_id, zone_id, name, bound
   returning id) insert into world select 'geofence', id from x;
 insert into app.time_entries (id, org_id, project_id, membership_id, clock_in, created_at)
 values ('01920000-0000-7000-8000-00000000c971', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), now() - interval '2 hours', now()),
-       ('01920000-0000-7000-8000-00000000c972', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), now() - interval '2 hours', now());
+       ('01920000-0000-7000-8000-00000000c972', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), now() - interval '2 hours', now()),
+       ('01920000-0000-7000-8000-00000000c973', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('carol@org_a'), now() - interval '2 hours', now()),
+       ('01920000-0000-7000-8000-00000000c974', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('alice@org_a'), now() - interval '10 minutes', now());
 insert into app.clock_punches (id, org_id, project_id, membership_id, time_entry_id, time_entry_created_at, punch_kind, device_time,
   effective_at, geofence_id, geofence_verified, source)
 values (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '01920000-0000-7000-8000-00000000c971', now(),
         'In', now() - interval '2 hours', now() - interval '2 hours', pg_temp.id('geofence'), true, 'Mobile'),
        (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '01920000-0000-7000-8000-00000000c972', now(),
-        'In', now() - interval '2 hours', now() - interval '2 hours', pg_temp.id('geofence'), true, 'Mobile');
+        'In', now() - interval '2 hours', now() - interval '2 hours', pg_temp.id('geofence'), true, 'Mobile'),
+       (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('carol@org_a'), '01920000-0000-7000-8000-00000000c973', now(),
+        'In', now() - interval '2 hours', now() - interval '2 hours', pg_temp.id('geofence'), true, 'Mobile'),
+       (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('alice@org_a'), '01920000-0000-7000-8000-00000000c974', now(),
+        'In', now() - interval '10 minutes', now() - interval '10 minutes', pg_temp.id('geofence'), true, 'Mobile');
 set local session_replication_role = origin;
 
 -- Guests: one checked in at a door ---------------------------------------------------------------------------------------
@@ -88,6 +114,12 @@ select is((select array_agg(zone_id) from app.zone_presence where person_id = pg
 select is((select source from app.zone_presence where person_id = pg_temp.id('frank')), 'Scan', 'frank is present by scan');
 select is((select count(*)::int from app.zone_presence where person_id = pg_temp.id('erin')), 0, 'an Out scan ends presence');
 select is((select count(*)::int from app.zone_presence where person_id = pg_temp.id('gina')), 0, 'a scan older than 24 hours is ignored');
+select is((select count(*)::int from app.zone_presence where person_id = pg_temp.id('paul')), 0,
+  'a scan uploaded now with a device time 30 hours ago places nobody');
+select is((select count(*)::int from app.zone_presence where person_id = pg_temp.id('carol')), 0,
+  'someone who clocked in and then scanned Out is in no zone');
+select is((select source from app.zone_presence where person_id = pg_temp.id('alice')), 'Clock In',
+  'a clock-in after the Out means they came back');
 select is((select count(*)::int from app.zone_presence where person_id = pg_temp.id('dave') and source = 'Scan'), 0, 'a Parking pass places nobody');
 select is((select row(zone_id = pg_temp.id('zone_a'), source)::text from app.zone_presence where person_id = pg_temp.id('dave')), '(t,"Clock In")',
   'a geofence-verified clock-in places dave in the geofence''s zone');
@@ -105,6 +137,8 @@ select is((select row(zone_code, credential_number is null, category_code is nul
 select is((select sum(inside)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_a')),
   (select count(*)::int from app.zone_presence where zone_id = pg_temp.id('zone_a') and source = 'Scan'), 'zone A''s rows sum to its scan presence');
 select is((select sum(inside)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_b')), 2, 'zone B counts frank and the gala crew member');
+select is((select row(zone_id, category_code)::text from app.zone_counts_live where engagement_id = pg_temp.id('eng_ivy_a')),
+  row(pg_temp.id('zone_a'), 'CREW')::text, 'a count splits by engagement');
 select is((select string_agg(distinct zone_code || ':' || category_code, ',') from app.zone_counts_live where zone_id = pg_temp.id('zone_b')),
   'STG:CREW,STG:GALA', 'and names the zone and the categories it counts');
 select is((select count(*)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_b')), 2, 'split by category and project');
@@ -117,6 +151,49 @@ select is((select row(guest_name, plus_ones, door, source, entered_at = (select 
   '("Rory Vale",,,"Guest Check In",t)', 'a guest checked in in bulk joins it too, at the check-in time, with no door');
 select is((select count(*)::int from app.muster_list where person_id is not null),
   (select count(*)::int from app.zone_presence), 'every present person is on the muster list');
+
+-- Names: a scan reader may read neither people nor engagements (seed role field) ---------------------------------------------
+select pg_temp.as_user('frank');
+select is((select row(full_name, party_name)::text from app.zone_presence where person_id = pg_temp.id('ivy')),
+  '("Ivy Marchetti","Ivy Marchetti")', 'an engaged external and an individual party are named for a Field scan reader');
+select is((select row(full_name, party_name)::text from app.muster_list where person_id = pg_temp.id('ivy')),
+  '("Ivy Marchetti","Ivy Marchetti")', 'on the muster list too');
+select is((select row(full_name, party_name)::text from app.zone_presence where person_id = pg_temp.id('sam')),
+  '("Sam Kowalski","Bayside Audio")', 'and an account party, a counterparty organization the reader cannot read');
+select is((select party_name from app.muster_list where person_id = pg_temp.id('sam')), 'Bayside Audio', 'on the muster list too');
+select is((select party_name from app.zone_counts_live where engagement_id = pg_temp.id('eng_vendor_a')), 'Bayside Audio', 'and on the counts');
+select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$, 'a Field reader selects every column without a crash');
+select is((select count(*)::int from app.people where id = pg_temp.id('ivy')), 0, 'though app.people still hides her');
+-- Callers have no usage on the private schema, and a view reaches the helpers without it, as these views do.
+select pg_temp.as_platform();
+create temporary view presence_answers with (security_invoker = on) as
+  select private.presence_person_name(pg_temp.id('prj_a'), pg_temp.id('ivy')) as person,
+    private.presence_party_name(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) as party,
+    private.presence_party_name(pg_temp.id('prj_a'), pg_temp.id('eng_ivy_b')) as other_project;
+grant select on presence_answers to public;
+select pg_temp.as_user('xavier');
+select is((select person from presence_answers), null, 'a reader holding none of the three capabilities on the project gets no name');
+select is((select party from presence_answers), null, 'nor a party');
+select pg_temp.as_user('frank');
+select is((select person from presence_answers), 'Ivy Marchetti', 'a reader holding one gets the name');
+select is((select party from presence_answers), 'Bayside Audio', 'and the party');
+select is((select other_project from presence_answers), null, 'an engagement of another project answers nothing');
+
+-- A clock-in reached by a project grant, for a reader of neither memberships nor engagements ------------------------------------
+select pg_temp.as_platform();
+insert into private.project_role_capabilities (project_role, capability_code) values ('Field', 'crew.time_entry.read');
+select pg_temp.as_user('frank');
+select is((select count(*)::int from app.memberships where id = pg_temp.id('dave@org_a')), 0, 'frank cannot read dave''s membership');
+select is((select row(source, full_name is not null)::text from app.zone_presence where person_id = pg_temp.id('dave')), '("Clock In",t)',
+  'but a crew.time_entry.read reader sees dave''s clock-in, named');
+select pg_temp.as_platform();
+delete from private.project_role_capabilities where project_role = 'Field' and capability_code = 'crew.time_entry.read';
+
+-- The views scan none of the tables whose policies would re-read them (ADR 0016 rule 14) ------------------------------------------
+select ok(pg_catalog.pg_get_viewdef('app.zone_presence'::regclass, true) !~ '\m(people|memberships|engagements|counterparties|organizations|projects)\M',
+  'app.zone_presence has no join to people, memberships, engagements, counterparties, organizations or projects');
+select ok(pg_catalog.pg_get_viewdef('app.muster_list'::regclass, true) !~ '\m(people|memberships|engagements|counterparties|organizations|projects)\M',
+  'nor has app.muster_list');
 
 -- Row level security ---------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
@@ -136,6 +213,12 @@ select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.muster_list), 0, 'another org sees nothing');
 select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$,
   'and reads every column of the three views without a crash');
+select pg_temp.as_user('victor');
+select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$,
+  'as does the owner of a party account');
+select pg_temp.as_user('ivy');
+select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$,
+  'and an engaged person');
 select pg_temp.as_user('nina');
 select lives_ok($$select count(*) from (select * from app.muster_list union all select * from app.muster_list) x$$,
   'as does a person with no org');

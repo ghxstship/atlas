@@ -96,6 +96,29 @@ select lives_ok($$select app.give_weather_all_clear((select id from world where 
   'given again now, it closes the hold');
 select lives_ok($$select app.call_weather_hold((select id from world where key = 'prj_a'), 'Second hold')$$, 'a new hold may be called after the all-clear');
 
+-- Someone only clocked in: erin dispatches here (seed role collaborator) without crew.time_entry.read, and must still reach them.
+select pg_temp.as_platform();
+with x as (insert into app.geofences (id, org_id, venue_id, zone_id, name, boundary)
+  values (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('venue_a'), pg_temp.id('zone'), 'Front lawn',
+          'SRID=4326;POLYGON((-80.2 25.8,-80.19 25.8,-80.19 25.81,-80.2 25.81,-80.2 25.8))'::extensions.geography)
+  returning id) insert into world select 'geofence', id from x;
+set local session_replication_role = replica;
+insert into app.time_entries (id, org_id, project_id, membership_id, clock_in, created_at)
+values ('01920000-0000-7000-8000-00000000c975', pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('mia@org_a'), now() - interval '1 hour', now());
+insert into app.clock_punches (id, org_id, project_id, membership_id, time_entry_id, time_entry_created_at, punch_kind, device_time,
+  effective_at, geofence_id, geofence_verified, source)
+values (gen_random_uuid(), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('mia@org_a'), '01920000-0000-7000-8000-00000000c975', now(),
+        'In', now() - interval '1 hour', now() - interval '1 hour', pg_temp.id('geofence'), true, 'Mobile');
+set local session_replication_role = origin;
+select pg_temp.as_user('carol');
+select lives_ok($$select app.give_weather_all_clear((select h.id from app.weather_holds h where h.message = 'Second hold'), 'All clear.')$$, 'the second hold closes');
+select pg_temp.as_user('erin');
+insert into world values ('hold_erin', app.call_weather_hold(pg_temp.id('prj_a'), 'Third hold'));
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications n where n.kind = 'weather.hold' and n.subject_id = pg_temp.id('hold_erin')
+           and n.recipient_person_id = pg_temp.id('mia')), 1, 'a hold reaches someone only clocked in, whatever the dispatcher may read');
+select pg_temp.as_user('erin');
+
 -- Reads and writes ---------------------------------------------------------------------------------------------------------------------
 select throws_ok($$update app.weather_holds set message = 'Edited' where id = (select id from world where key = 'hold')$$, '42501', null, 'holds are written only by the RPCs');
 select pg_temp.as_user('xavier');

@@ -112,13 +112,51 @@ select throws_ok($$insert into app.credentials (credential_category_id, holder_p
   'XR001', null, 'an expired certification blocks again');
 select pg_temp.as_user('paul');
 select throws_ok($$update app.certification_holders set expires_on = null where person_id = (select id from world where key = 'paul')$$,
-  'XR001', 'certification_holder_verifier_only: The holder changes only their consent; a verifier corrects the dates or restores the record.',
+  'XR001', 'certification_holder_verifier_only: The holder changes only their consent; a verifier corrects the dates, removes or restores the record.',
   'the holder cannot clear the expiry of their own certification to meet the requirement');
+select throws_ok($$update app.certification_holders set issued_on = issued_on - 1 where person_id = (select id from world where key = 'paul')$$,
+  'XR001', 'certification_holder_verifier_only: The holder changes only their consent; a verifier corrects the dates, removes or restores the record.',
+  'nor change when it was issued');
+select throws_ok($$update app.certification_holders set deleted_at = now() where person_id = (select id from world where key = 'paul')$$,
+  'XR001', 'certification_holder_verifier_only: The holder changes only their consent; a verifier corrects the dates, removes or restores the record.',
+  'nor remove it');
 select lives_ok($$update app.certification_holders set public_verification_consented = true where person_id = (select id from world where key = 'paul')$$,
   'the holder still changes their consent');
 select pg_temp.as_user('carol');
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_ind'), (select id from world where key = 'paul'))$$,
   'XR001', null, 'so the expired certification still blocks');
+select lives_ok($$update app.certification_holders set expires_on = current_date + 1 where person_id = (select id from world where key = 'paul')$$,
+  'a verifier still corrects the dates');
+select lives_ok($$update app.certification_holders set expires_on = current_date - 1 where person_id = (select id from world where key = 'paul')$$,
+  'in either direction');
+
+-- The project's date decides a certification's expiry -----------------------------------------------------------------------------
+-- A zone whose date differs from UTC's right now, whatever the hour: UTC-12 before noon's reach, UTC+14 from 10:00 UTC on.
+select pg_temp.as_platform();
+set local session_replication_role = replica;
+update app.projects set time_zone = case when extract(hour from now() at time zone 'UTC') < 10 then 'Etc/GMT+12' else 'Pacific/Kiritimati' end
+where id = (select c.project_id from app.credential_categories c where c.id = pg_temp.id('cat_ind'));
+set local session_replication_role = origin;
+create function pg_temp.project_today() returns date language sql stable as $$
+  select (now() at time zone p.time_zone)::date from app.credential_categories c join app.projects p on p.id = c.project_id where c.id = pg_temp.id('cat_ind')
+$$;
+select isnt(pg_temp.project_today(), (now() at time zone 'UTC')::date, 'the fixture''s project date is not the UTC date');
+select pg_temp.as_user('carol');
+insert into app.certification_holders (certification_id, person_id, issued_on, expires_on) values
+  (pg_temp.id('cert'), pg_temp.id('xavier'), pg_temp.project_today() - 30, pg_temp.project_today()),
+  (pg_temp.id('cert'), pg_temp.id('cora'), pg_temp.project_today() - 30, pg_temp.project_today() - 1);
+select pg_temp.as_platform();
+select is((select is_met from private.credential_requirements_state(pg_temp.id('cat_ind'), pg_temp.id('xavier'), null)), true,
+  'a certification expiring today on the project''s calendar still counts');
+select is((select expires_at from private.credential_requirements_state(pg_temp.id('cat_ind'), pg_temp.id('xavier'), null)),
+  (select (pg_temp.project_today() + 1)::timestamp at time zone p.time_zone from app.credential_categories c join app.projects p on p.id = c.project_id where c.id = pg_temp.id('cat_ind')),
+  'and stops at the project''s midnight');
+select is((select is_met from private.credential_requirements_state(pg_temp.id('cat_ind'), pg_temp.id('cora'), null)), false,
+  'one that expired yesterday on the project''s calendar does not');
+set local session_replication_role = replica;
+update app.projects set time_zone = 'America/New_York' where id = (select c.project_id from app.credential_categories c where c.id = pg_temp.id('cat_ind'));
+set local session_replication_role = origin;
+
 select pg_temp.as_user('xavier');
 select throws_ok($$insert into app.credential_category_requirements (credential_category_id, certification_id)
   values ((select id from world where key = 'cat_ind'), (select id from world where key = 'cert'))$$,
@@ -140,12 +178,11 @@ select is((app.issue_allocation('01920000-0000-7000-8972-000000000002', pg_temp.
 
 -- The helpers are internal ------------------------------------------------------------------------------------------------------
 -- Callers reach the requirements through app.credential_issue_check and app.credential_review (2973), which check the
--- project first; neither helper is granted to them. The check runs as the platform role, since naming a private function
+-- project first; the helper is not granted to them. The check runs as the platform role, since naming a private function
 -- needs usage on the schema, which callers lack.
 select pg_temp.as_platform();
-select ok(not has_function_privilege('authenticated', 'private.credential_requirements_missing(uuid, uuid, timestamptz)', 'execute')
-  and not has_function_privilege('authenticated', 'private.credential_requirements_state(uuid, uuid, timestamptz)', 'execute'),
-  'the requirement helpers are not granted to callers');
+select ok(not has_function_privilege('authenticated', 'private.credential_requirements_state(uuid, uuid, timestamptz)', 'execute'),
+  'the requirement helper is not granted to callers');
 select pg_temp.as_user('carol');
 select is((select missing_requirements from app.credential_review(array[pg_temp.id('old_badge')])), 1,
   'the review counts what the holder of an older badge does not meet');

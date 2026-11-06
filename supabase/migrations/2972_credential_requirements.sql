@@ -8,17 +8,16 @@
 --     holder in the course's org, current or ended, whose own expires_at has not passed: the completion's expiry
 --     governs, not the membership. Only org members train (0804). Only a Published course can be required
 --     (credential_requirement_course_state): a Draft cannot be taken yet and a Retired one no longer.
---   * A certification requirement is met by a live app.certification_holders row of the holder that has not expired.
+--   * A certification requirement is met by a live app.certification_holders row of the holder with no expiry, or one on
+--     or after the current date in the time zone of the category's project.
 --     A verifier records it (0352, invariant 21), so anyone, member or not, meets it; that is how a pass desk records
 --     an in-person induction. Because the row now opens a gate, private.guard_certification_holder (0352, its only
 --     definition) also stops the holder changing anything but their consent: 0352's update policy lets the holder
 --     update their own row for that consent, and without this they could clear an expiry or restore a removed record.
 --   * private.credential_requirements_state answers, for a category, a holder and the badge's end, each requirement
 --     with is_met and, for a met one that expires before the badge ends, when it expires. The guard calls it directly.
---     private.credential_requirements_missing is the same answer checked against the caller's
---     credentials.credential.read on the category's project; both are internal, and callers reach them through
---     app.credential_issue_check and app.credential_review (2973), which check the project first (ADR 0016 rule 14:
---     they take values, never a credential id).
+--     It is internal: callers reach it through app.credential_issue_check and app.credential_review (2973), which check
+--     the project first (ADR 0016 rule 14: it takes values, never a credential id).
 --   * app.credential_issue_check lists what the issue form shows before Issue; 2973 adds the accreditation checks.
 
 create table app.credential_category_requirements (
@@ -109,14 +108,14 @@ begin
   end if;
   if auth.uid() is not null and v_me = old.person_id
      and (new.certification_id <> old.certification_id or new.issued_on <> old.issued_on
-          or new.expires_on is distinct from old.expires_on or (old.deleted_at is not null and new.deleted_at is null)) then
+          or new.expires_on is distinct from old.expires_on or new.deleted_at is distinct from old.deleted_at) then
     perform private.refuse('certification_holder_verifier_only',
-      'The holder changes only their consent; a verifier corrects the dates or restores the record.');
+      'The holder changes only their consent; a verifier corrects the dates, removes or restores the record.');
   end if;
   return new;
 end;
 $$;
-comment on function private.guard_certification_holder() is 'Certification holders: recorded by someone other than the holder (invariant 21), with a database-issued code; only the holder changes consent to public verification, and the holder changes nothing else but removing their own record (B8: a certification can be required before a badge, 2972), so a holder cannot clear an expiry, change the dates or restore a removed record.';
+comment on function private.guard_certification_holder() is 'Certification holders: recorded by someone other than the holder (invariant 21), with a database-issued code; only the holder changes consent to public verification, and the holder changes nothing else (B8: a certification can be required before a badge, 2972), so a holder cannot clear an expiry, change the dates, or remove or restore the record.';
 revoke all on function private.guard_certification_holder() from public, anon, authenticated;
 
 -- Which requirements a holder meets ----------------------------------------------------------------------------------------
@@ -135,7 +134,13 @@ stable
 security definer
 set search_path = ''
 as $$
-  with req as (
+  with project as (
+    select p.time_zone
+    from app.credential_categories c
+    join app.projects p on p.id = c.project_id
+    where c.id = p_category_id
+  ),
+  req as (
     select r.id, r.training_course_id, r.certification_id,
       coalesce(tc.title, ce.name) as title,
       case
@@ -148,10 +153,10 @@ as $$
             and (t.expires_at is null or t.expires_at > now()))
         else (
           select case when bool_or(h.expires_on is null) then 'infinity'::timestamptz
-                      else (max(h.expires_on) + 1)::timestamp at time zone 'UTC' end
+                      else (max(h.expires_on) + 1)::timestamp at time zone (select pz.time_zone from project pz) end
           from app.certification_holders h
           where h.certification_id = r.certification_id and h.person_id = p_person_id and h.deleted_at is null
-            and (h.expires_on is null or h.expires_on >= current_date))
+            and (h.expires_on is null or h.expires_on >= (now() at time zone (select pz.time_zone from project pz))::date))
       end as good_until
     from app.credential_category_requirements r
     left join app.training_courses tc on tc.id = r.training_course_id
@@ -164,33 +169,8 @@ as $$
   from req
   order by req.title, req.id;
 $$;
-comment on function private.credential_requirements_state(uuid, uuid, timestamptz) is 'Each live requirement of a credential category for a holder: is_met when a passed completion of the course through a membership of the holder in the course''s org (current or ended), whose own expires_at has not passed, or a live, unexpired certification of the holder, exists now; expires_at when a met requirement stops being met before p_valid_to (the badge''s end; NULL for an open-ended badge). Internal: the issue guard and the checks call it.';
+comment on function private.credential_requirements_state(uuid, uuid, timestamptz) is 'Each live requirement of a credential category for a holder: is_met when a passed completion of the course through a membership of the holder in the course''s org (current or ended), whose own expires_at has not passed, or a live certification of the holder, unexpired on the current date in the project''s time zone, exists now; expires_at when a met requirement stops being met before p_valid_to (the badge''s end; NULL for an open-ended badge). Internal: the issue guard and the checks call it.';
 revoke all on function private.credential_requirements_state(uuid, uuid, timestamptz) from public, anon, authenticated;
-
-create function private.credential_requirements_missing(p_category_id uuid, p_person_id uuid, p_valid_to timestamptz)
-returns table (
-  requirement_id uuid,
-  training_course_id uuid,
-  certification_id uuid,
-  title text,
-  is_met boolean,
-  expires_at timestamptz
-)
-language plpgsql
-stable
-security definer
-set search_path = ''
-as $$
-begin
-  if not private.can_on_project((select c.project_id from app.credential_categories c where c.id = p_category_id),
-                                'credentials.credential.read') then
-    return;
-  end if;
-  return query select * from private.credential_requirements_state(p_category_id, p_person_id, p_valid_to);
-end;
-$$;
-comment on function private.credential_requirements_missing(uuid, uuid, timestamptz) is 'private.credential_requirements_state for a caller with credentials.credential.read on the category''s project; nothing for anyone else, so it is no oracle. Takes values, never a credential id (ADR 0016 rule 14). Internal: callers reach the requirements through app.credential_issue_check and app.credential_review (2973), which run as their owner.';
-revoke all on function private.credential_requirements_missing(uuid, uuid, timestamptz) from public, anon, authenticated;
 
 -- The guard -------------------------------------------------------------------------------------------------------------------
 

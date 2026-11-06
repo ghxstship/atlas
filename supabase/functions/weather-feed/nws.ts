@@ -3,7 +3,8 @@
 //
 // For each due feed (app.due_weather_feeds, migration 2976): the points endpoint gives the hourly forecast URL and the
 // list of observation stations, cached for 30 days; the nearest station's latest observation gives Wind (the gust, or
-// the sustained speed without one) in mph and Heat (the heat index) in °F, converted from the unit the NWS names; the
+// the sustained speed without one) in mph and Heat (the heat index, or the temperature when the NWS gives none, as it
+// does in cooler weather, so a raised Heat alert can still lower) in °F, converted from the unit the NWS names; the
 // active alerts for the point; and the hourly forecast at most once an hour. Only the venue's coordinates, rounded to
 // 4 decimals by the database, leave XOS. The NWS asks every client for a User-Agent naming a contact; without
 // XOS_WEATHER_USER_AGENT nothing is fetched and every due feed records why.
@@ -11,7 +12,7 @@
 export const NWS_BASE = "https://api.weather.gov";
 const POINTS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const FORECAST_TTL_MS = 60 * 60 * 1000;
-const OBSERVATION_MAX_AGE_MS = 90 * 60 * 1000;
+const OBSERVATION_MAX_AGE_MS = 2 * 60 * 60 * 1000;
 export const MISSING_USER_AGENT = "XOS_WEATHER_USER_AGENT is not set";
 
 /** A feed the database says is due now. */
@@ -100,7 +101,7 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-/** The observation's Wind and Heat, or null when it is older than 90 minutes or has no time. */
+/** The observation's Wind and Heat, or null when it is older than 2 hours (the database's rule too) or has no time. */
 export function readObservation(
   body: unknown,
   now: Date,
@@ -112,7 +113,9 @@ export function readObservation(
   if (!Number.isFinite(at) || now.getTime() - at > OBSERVATION_MAX_AGE_MS) return null;
   const gust = toMph(p["windGust"] as QuantitativeValue);
   const wind = gust ?? toMph(p["windSpeed"] as QuantitativeValue);
-  const heat = toFahrenheit(p["heatIndex"] as QuantitativeValue);
+  const heat =
+    toFahrenheit(p["heatIndex"] as QuantitativeValue) ??
+    toFahrenheit(p["temperature"] as QuantitativeValue);
   return { observed_at: new Date(at).toISOString(), wind_mph: wind, heat_f: heat };
 }
 

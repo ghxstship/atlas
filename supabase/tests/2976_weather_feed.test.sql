@@ -44,6 +44,7 @@ select pg_temp.as_user('carol');
 insert into app.weather_thresholds (org_id, project_id, hazard, alert_level, threshold_value, unit, comparison, source_note) values
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Wind', 'Monitor', 20, 'mph', 'At or Above', 'Emergency plan 4.2'),
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Wind', 'Restrict', 30, 'mph', 'At or Above', 'Emergency plan 4.2'),
+  (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Wind', 'Evacuate', 40, 'mph', 'At or Above', 'Emergency plan 4.2'),
   (pg_temp.id('org_a'), pg_temp.id('prj_a'), 'Heat', 'Monitor', 95, 'F', 'At or Above', 'Emergency plan 4.4');
 -- frank (Field) is not a dispatcher (1110), so he hears only what his role is named for.
 insert into app.role_assignments (project_id, role_code, person_id) values (pg_temp.id('prj_a'), (select role_code from xpms.dim_role order by role_code limit 1), pg_temp.id('frank'));
@@ -119,6 +120,30 @@ select is((select ended_at is not null from app.weather_warnings where provider_
 select is((select ended_at is null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.g'), true, 'and is itself active');
 select is(pg_temp.notified('frank', 'weather.warning'), 2, 'but tells nobody again: they heard of the warning it replaces');
 
+-- An Update that escalates a warning nobody heard of tells them, once --------------------------------------------------------------------
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.m', 'event', 'Flood Watch', 'severity', 'Moderate', 'status', 'Actual', 'message_type', 'Alert'))));
+select is(pg_temp.notified('frank', 'weather.warning'), 2, 'a Moderate warning tells nobody');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.n', 'event', 'Flash Flood Warning', 'severity', 'Severe', 'status', 'Actual',
+    'message_type', 'Update', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.m')))));
+select is(pg_temp.notified('frank', 'weather.warning'), 3, 'an Actual Update taking it to Severe tells the alert-role people');
+select is((select ended_at is not null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.m'), true, 'and ends the Moderate warning');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.n', 'event', 'Flash Flood Warning', 'severity', 'Severe', 'status', 'Actual',
+    'message_type', 'Update', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.m')))));
+select is(pg_temp.notified('frank', 'weather.warning'), 3, 'seen again, it tells nobody');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.o', 'event', 'Flash Flood Warning', 'severity', 'Extreme', 'status', 'Actual',
+    'message_type', 'Update', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.n')),
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.p', 'event', 'Flood Watch', 'severity', 'Moderate', 'status', 'Actual', 'message_type', 'Alert'))));
+select is(pg_temp.notified('frank', 'weather.warning'), 3, 'an Update of a Severe warning stays silent');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.q', 'event', 'Flood Warning', 'severity', 'Severe', 'status', 'Actual',
+    'message_type', 'Cancel', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.p')))));
+select is(pg_temp.notified('frank', 'weather.warning'), 3, 'and a Cancel never tells anyone');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', '[]'::jsonb));
+
 -- An NWS reading never lowers a Manual alert ----------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
 select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 21);
@@ -132,8 +157,45 @@ select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observati
 select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Restrict',
   'but a stronger NWS reading raises it');
 select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now(), 'wind_mph', 5)));
+select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Monitor',
+  'and an alert the NWS raised, the NWS lowers only down to the level of the latest manual reading');
+select pg_temp.as_user('frank');
+select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 2);
+select pg_temp.as_platform();
 select is((select count(*)::int from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 0,
-  'and an alert the NWS raised, the NWS may clear');
+  'a manual reading below every threshold clears the alert as in 0806');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now() + interval '1 minute', 'wind_mph', 31)));
+select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Restrict',
+  'an NWS reading raises an alert again');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now() + interval '2 minutes', 'wind_mph', 5)));
+select is((select count(*)::int from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 0,
+  'and with no manual floor left, the NWS clears the alert it raised');
+
+-- A Manual floor under an alert the NWS raised (Manual Restrict, then NWS Evacuate, then a low NWS reading) --------------------------
+select pg_temp.as_user('frank');
+select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 31);
+select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Restrict',
+  'a manual reading raises Restrict');
+select pg_temp.as_platform();
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now() + interval '3 minutes', 'wind_mph', 45)));
+select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Evacuate',
+  'the NWS raises it to Evacuate');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now() + interval '4 minutes', 'wind_mph', 3)));
+select is((select alert_level::text from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 'Restrict',
+  'a low NWS reading lowers it only to what the manual reading meets');
+select pg_temp.as_user('frank');
+select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 2);
+select pg_temp.as_platform();
+
+-- The worker's fields are the worker's -------------------------------------------------------------------------------------------------
+select pg_temp.as_user('alice');
+select throws_ok($$update app.weather_feeds set nws_station_id = 'KXXX' where id = (select id from world where key = 'feed')$$,
+  'XR001', 'weather_feed_worker_fields: The feed''s station, forecast URL and check time are set by the feed itself.', 'a person cannot point a feed at another station');
+select throws_ok($$update app.weather_feeds set nws_forecast_hourly_url = 'https://api.weather.gov/x' where id = (select id from world where key = 'feed')$$,
+  'XR001', null, 'nor another forecast URL');
+select throws_ok($$update app.weather_feeds set points_checked_at = now() + interval '1 day' where id = (select id from world where key = 'feed')$$,
+  'XR001', null, 'nor the check time');
+select pg_temp.as_platform();
 
 -- Failures and status ------------------------------------------------------------------------------------------------------------------
 update private.weather_feed_runs set ran_at = ran_at - interval '1 minute' where weather_feed_id = pg_temp.id('feed');

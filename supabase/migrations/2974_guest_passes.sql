@@ -43,17 +43,18 @@ comment on column app.guest_list_entries.pass_category_id is 'Pass type: an Acce
 comment on column app.guest_list_entries.table_label is 'Table or seat, 1 to 60 characters. Set by the production.';
 comment on column app.guest_list_entries.host_person_id is 'Project person hosting the guest: a current member of the org or the person on a live engagement of the project. Told when the guest arrives.';
 comment on column app.guest_list_entries.guest_email is 'Lowercased email address the guest''s pass and messages go to. Confidential.';
-comment on column app.guest_list_entries.pass_code is 'Pass code GP- and 10 random base32 characters, unique in the org, stamped by the database when the guest is approved; the pass prints it as XOSGP1:<code>.';
+comment on column app.guest_list_entries.pass_code is 'Pass code GP- and 10 random base32 characters, unique in the org, stamped by the database when the guest is approved; the pass prints it as XOSGP1:<code>. Confidential: the door accepts it as an exact match.';
 
 insert into private.column_classifications (table_name, column_name, classification, read_capability) values
-  ('app.guest_list_entries', 'guest_email', 'Confidential', null);
+  ('app.guest_list_entries', 'guest_email', 'Confidential', null),
+  ('app.guest_list_entries', 'pass_code', 'Confidential', null);
 
 create trigger t39_guest_list_pass_project before insert or update of pass_category_id, project_id on app.guest_list_entries
   for each row execute function private.assert_same_project('app.credential_categories', 'pass_category_id');
 
 -- Helpers -----------------------------------------------------------------------------------------------------------------
 
-create function private.is_project_person(p_project_id uuid, p_person_id uuid)
+create function private.guest_host_on_project(p_project_id uuid, p_person_id uuid)
 returns boolean
 language sql
 stable
@@ -70,8 +71,8 @@ as $$
       where e.project_id = p_project_id and e.person_id = p_person_id and e.deleted_at is null
         and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing'));
 $$;
-comment on function private.is_project_person(uuid, uuid) is 'True when the person is one app.project_people lists for the project (2600): a current member of its org, or the person on a live engagement of it.';
-revoke all on function private.is_project_person(uuid, uuid) from public, anon, authenticated;
+comment on function private.guest_host_on_project(uuid, uuid) is 'True when the person is one app.project_people lists for the project (2600): a current member of its org, or the person on a live engagement of it.';
+revoke all on function private.guest_host_on_project(uuid, uuid) from public, anon, authenticated;
 
 create function private.new_guest_pass_code(p_org_id uuid)
 returns text
@@ -137,13 +138,18 @@ declare
   v_person uuid := private.current_person_id();
   v_trusted boolean := private.in_trusted_operation('request_engaged_guest');
 begin
+  -- Every path stores the same form of the address, and a bad one is a refusal, never the table check's raw 23514.
+  new.guest_email := private.normalize_guest_email(new.guest_email);
+  if not private.guest_email_valid(new.guest_email) then
+    perform private.refuse('guest_email_format', 'Enter one email address for the guest, or leave it empty.');
+  end if;
   if new.pass_category_id is not null and (tg_op = 'INSERT' or new.pass_category_id is distinct from old.pass_category_id)
      and coalesce((select c.category_kind::text from app.credential_categories c
                    where c.id = new.pass_category_id and c.deleted_at is null), '') <> 'Access' then
     perform private.refuse('guest_pass_category', 'A pass type is an Access credential category of this project.');
   end if;
   if new.host_person_id is not null and (tg_op = 'INSERT' or new.host_person_id is distinct from old.host_person_id)
-     and not private.is_project_person(new.project_id, new.host_person_id) then
+     and not private.guest_host_on_project(new.project_id, new.host_person_id) then
     perform private.refuse('guest_host_not_on_project', 'A host is a member of the organization or engaged on this project.');
   end if;
 
@@ -217,7 +223,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_guest_list_entry() is 'Guest list state machine: Requested to Approved or Declined (review authority, never the requester: for an imported guest, neither the person who created the import nor the one who committed it), Approved to Checked In; the database stamps who and when, and the pass code on approval (B8); a decided entry keeps its guest. The pass type is an Access category of the project (guest_pass_category) and the host a project person (guest_host_not_on_project); a party never sets them or the table (guest_entry_production_fields); they and the email are fixed once the guest is checked in (guest_entry_checked_in).';
+comment on function private.guard_guest_list_entry() is 'Guest list state machine: Requested to Approved or Declined (review authority, never the requester: for an imported guest, neither the person who created the import nor the one who committed it), Approved to Checked In; the database stamps who and when, and the pass code on approval (B8); a decided entry keeps its guest. The pass type is an Access category of the project (guest_pass_category) and the host a project person (guest_host_not_on_project); a party never sets them or the table (guest_entry_production_fields); the email is normalized on every path and a bad one refuses guest_email_format; they and the email are fixed once the guest is checked in (guest_entry_checked_in).';
 revoke all on function private.guard_guest_list_entry() from public, anon, authenticated;
 
 -- A party's request (from R9 2715) ---------------------------------------------------------------------------------------

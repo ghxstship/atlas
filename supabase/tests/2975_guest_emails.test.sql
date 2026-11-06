@@ -145,7 +145,7 @@ select pg_temp.as_platform();
 select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'sasha@example.test'
              and reason = 'Unsubscribe' and category_code is null and lifted_at is null), 1, 'the address is suppressed once for every category');
 select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_b') and address = 'sasha@example.test'), 0, 'for that org only');
-select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'rowan@example.test'), 0,
+select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'rowan@example.test' and category_code is null), 0,
   'the forged token suppressed nothing');
 select is((select count(*)::int from private.rate_limit_events where bucket like 'guest_email%'), 0, 'and no failure is counted');
 select ok((select count(*) = 2 from private.trash_excluded_tables where table_name in ('guest_email_sends', 'guest_emails')),

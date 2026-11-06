@@ -88,7 +88,7 @@ describe("units", () => {
     expect(forecastWind("calm")).toBeNull();
   });
 
-  it("reads the gust, else the sustained wind, and skips an observation older than 90 minutes", () => {
+  it("reads the gust, else the sustained wind, and skips an observation older than 2 hours", () => {
     expect(readObservation(fixture("observation"), NOW)).toEqual({
       observed_at: "2027-06-02T18:53:00.000Z",
       wind_mph: 33.6,
@@ -99,7 +99,28 @@ describe("units", () => {
       wind_mph: 11.2,
       heat_f: null,
     });
-    expect(readObservation(fixture("observation"), new Date("2027-06-02T20:30:00Z"))).toBeNull();
+    expect(readObservation(fixture("observation"), new Date("2027-06-02T20:30:00Z"))).not.toBeNull();
+    expect(readObservation(fixture("observation"), new Date("2027-06-02T20:54:00Z"))).toBeNull();
+  });
+
+  it("uses the temperature as Heat when the NWS gives no heat index, so a raised alert can lower", () => {
+    expect(readObservation(fixture("observation-cool"), NOW)).toEqual({
+      observed_at: "2027-06-02T18:53:00.000Z",
+      wind_mph: 7.8,
+      heat_f: 64.4,
+    });
+  });
+
+  it("passes on an Update's references, which decide whether it tells anyone", () => {
+    expect(readAlerts(fixture("alerts-escalation"))).toMatchObject([
+      {
+        id: "urn:oid:2.49.0.1.840.0.2002",
+        severity: "Severe",
+        status: "Actual",
+        message_type: "Update",
+        references: ["urn:oid:2.49.0.1.840.0.2001"],
+      },
+    ]);
   });
 
   it("reads alerts with their Cancel references, and the hourly forecast in °F and mph", () => {
