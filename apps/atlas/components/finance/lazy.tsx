@@ -10,6 +10,15 @@ import dynamic from "next/dynamic";
  * default state is imported directly, so the route budget counts it.
  */
 export const BudgetEditor = dynamic(() => import("./budget-editor").then((m) => m.BudgetEditor));
+export const BudgetVersionsDrawer = dynamic(() =>
+  import("./budget-versions-drawer").then((m) => m.BudgetVersionsDrawer),
+);
+export const LineTransactionsDrawer = dynamic(() =>
+  import("./line-transactions-drawer").then((m) => m.LineTransactionsDrawer),
+);
+export const QuoteLinesDialog = dynamic(() =>
+  import("./quote-lines-dialog").then((m) => m.QuoteLinesDialog),
+);
 export const BudgetForm = dynamic(() => import("./forms-budget-form").then((m) => m.BudgetForm));
 export const CollectionTable = dynamic(() =>
   import("./kit-collection-table").then((m) => m.CollectionTable),

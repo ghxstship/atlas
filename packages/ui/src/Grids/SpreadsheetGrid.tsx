@@ -343,6 +343,9 @@ export function SpreadsheetGrid({
                           }}
                           className="w-full border-0 bg-transparent outline-none text-inherit text-text-13 tabular-nums"
                         />
+                      ) : (row[c.key] === null || row[c.key] === undefined || row[c.key] === "") &&
+                        c.blankHint?.(row) ? (
+                        <span className="text-text-tertiary">{c.blankHint(row)}</span>
                       ) : (
                         show(c, row)
                       )}

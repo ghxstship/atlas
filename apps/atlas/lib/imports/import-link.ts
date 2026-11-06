@@ -2,10 +2,11 @@ import { isNodeVisible, type NavContext } from "@xos/ia";
 import type { Route } from "next";
 import { sitemap } from "@/lib/shell/sitemap";
 
-/** Where an Import cues or Import guests link sends its rows: a running order, or a project's guest list. */
+/** Where an Import cues, Import guests or Import lines link sends its rows: a running order, a project's guest list or a budget. */
 export type ImportDestination =
   | { readonly target: "cues"; readonly runOfShowId: string }
-  | { readonly target: "guest_list_entries"; readonly projectId: string };
+  | { readonly target: "guest_list_entries"; readonly projectId: string }
+  | { readonly target: "budget_lines"; readonly budgetId: string };
 
 /**
  * The import wizard's URL with the target and destination chosen, or null when the link is hidden. It shows only
@@ -23,6 +24,8 @@ export function importLinkHref(
   const query =
     destination.target === "cues"
       ? `target=cues&runOfShow=${encodeURIComponent(destination.runOfShowId)}`
-      : `target=guest_list_entries&project=${encodeURIComponent(destination.projectId)}`;
+      : destination.target === "budget_lines"
+        ? `target=budget_lines&budget=${encodeURIComponent(destination.budgetId)}`
+        : `target=guest_list_entries&project=${encodeURIComponent(destination.projectId)}`;
   return `/${org}/import?${query}` as Route;
 }

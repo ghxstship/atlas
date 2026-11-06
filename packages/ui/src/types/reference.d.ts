@@ -633,6 +633,8 @@ export interface GridColumn {
   currency?: string;
   width?: number;
   derive?: (row: Record<string, string | number | null>) => string | number | null | undefined;
+  /** Shown in secondary text in a blank cell, for a value the cell falls back to. */
+  blankHint?: (row: Record<string, string | number | null>) => string | null;
 }
 export interface SpreadsheetGridProps {
   label: string;
