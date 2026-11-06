@@ -458,10 +458,10 @@ describe("Crew: shifts and swaps", () => {
       (await http.post(`/shifts/${MISSING}/no-show`, { no_show_id: NO_SHOW, reason: "x" })).status,
     ).toBe(404);
 
-    await expectContract(
-      await success(http.post(`/shifts/${SHIFT}/reconfirm`, { coming: false, reason: "Sick." })),
-      "shifts.reconfirm",
+    const answered = await success(
+      http.post(`/shifts/${SHIFT}/reconfirm`, { coming: false, reason: "Sick." }),
     );
+    await expectContract(answered, "shifts.reconfirm");
     expect(db.calls.find((c) => c.name === "respond_shift_reconfirmation")?.args).toEqual({
       p_shift_id: SHIFT,
       p_coming: false,
