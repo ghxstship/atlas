@@ -492,7 +492,6 @@ insert into register_tenant_exceptions values
   ('app.capability_modules', 'platform'),
   ('app.deletion_certificates', 'platform'),
   ('app.feedback_submissions', 'person-owned'),
-  ('app.legal_queue_events', 'platform'),
   ('app.legal_queue_items', 'platform'),
   ('app.organizations', 'identity'),
   ('app.people', 'identity'),

@@ -198,7 +198,7 @@ set search_path = ''
 as $$
   select jsonb_build_object(
     'sweep_ok', coalesce(h.last_sweep_at > now() - interval '2 hours', false),
-    'feeds_ok', coalesce(h.feeds_ok_at > now() - interval '2 hours', false),
+    'feeds_ok', coalesce(not h.feeds_failing and h.feeds_checked_at > now() - interval '2 hours', false),
     'email_ok', not exists (
       select 1 from private.platform_emails e
       where e.template in ('legal_clock_alert', 'moderation_notice')

@@ -42,9 +42,7 @@ async function addItem(
   const form = page.getByTestId("legal-queue-add");
   await form.getByLabel("What is it", { exact: true }).selectOption({ label: input.rule });
   await form.getByLabel("Short description", { exact: true }).fill(input.title);
-  await form
-    .getByLabel("When it arrived", { exact: true })
-    .fill(localValue(input.receivedMs));
+  await form.getByLabel("When it arrived", { exact: true }).fill(localValue(input.receivedMs));
   if (input.contact) await form.getByLabel("Who to answer", { exact: true }).fill(input.contact);
   await form.getByRole("button", { name: "Add to the queue" }).click();
   await expect(form.getByText("Added to the queue.")).toBeVisible();
@@ -197,13 +195,20 @@ test("a Support operator reads that queue actions happened, and nothing about th
     .getByLabel("What is it", { exact: true })
     .selectOption({ label: "Government data request" });
   await form.getByLabel("Short description", { exact: true }).fill(title);
-  await form.getByLabel("When it arrived", { exact: true }).fill(localValue(Date.now() - 3_600_000));
+  await form
+    .getByLabel("When it arrived", { exact: true })
+    .fill(localValue(Date.now() - 3_600_000));
   await form
     .getByLabel("Date the document sets", { exact: true })
     .fill(localValue(Date.now() + 7 * 86_400_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
   await expect(form.getByText("Added to the queue.")).toBeVisible();
-  await page.getByTestId("legal-queue").getByRole("row").filter({ hasText: title }).getByRole("link").click();
+  await page
+    .getByTestId("legal-queue")
+    .getByRole("row")
+    .filter({ hasText: title })
+    .getByRole("link")
+    .click();
   const move = page.getByTestId("legal-move");
   await move.getByLabel("New state", { exact: true }).selectOption("Completed");
   await move.getByLabel("What happened", { exact: true }).fill(reason);
@@ -237,7 +242,12 @@ test("an appeal that arrives by email gets a computed clock, and closes only wit
     [title],
   );
   expect(item?.thirty).toBe(true);
-  await page.getByTestId("legal-queue").getByRole("row").filter({ hasText: title }).getByRole("link").click();
+  await page
+    .getByTestId("legal-queue")
+    .getByRole("row")
+    .filter({ hasText: title })
+    .getByRole("link")
+    .click();
 
   const move = page.getByTestId("legal-move");
   await move.getByLabel("New state", { exact: true }).selectOption("Completed");
@@ -290,7 +300,9 @@ test("the backup contact and outside reviewer forms work, and an outside reviewe
   await appoint.getByLabel("Email", { exact: true }).fill("noor@adeyemi.test");
   await appoint.getByLabel("Why", { exact: true }).fill("Independent appeals.");
   await appoint.getByRole("button", { name: "Appoint" }).click();
-  await expect(page.getByTestId("outside-reviewer")).toContainText("Noor Adeyemi of Adeyemi Review");
+  await expect(page.getByTestId("outside-reviewer")).toContainText(
+    "Noor Adeyemi of Adeyemi Review",
+  );
 
   await page.goto(`/moderation/${listing.id}`);
   const decide = page.getByTestId("decide-listing");
@@ -307,13 +319,21 @@ test("the backup contact and outside reviewer forms work, and an outside reviewe
     `select id from app.moderation_actions where opportunity_id = $1 order by decided_at desc limit 1`,
     [listing.id],
   );
-  await sql(`select app.file_moderation_appeal($1, 'The fee is a statutory card check.')`, [decision?.id], DEMO.owner);
+  await sql(
+    `select app.file_moderation_appeal($1, 'The fee is a statutory card check.')`,
+    [decision?.id],
+    DEMO.owner,
+  );
 
   await page.reload();
   await expect(page.getByText("This appeal goes to Noor Adeyemi", { exact: false })).toBeVisible();
   const form = page.getByTestId("decide-appeal");
-  await form.getByLabel("Reasons sent to the appellant", { exact: true }).fill("The fee breaks the rule.");
-  await form.getByLabel("What you looked at again", { exact: true }).fill("Noor read the file and wrote the decision.");
+  await form
+    .getByLabel("Reasons sent to the appellant", { exact: true })
+    .fill("The fee breaks the rule.");
+  await form
+    .getByLabel("What you looked at again", { exact: true })
+    .fill("Noor read the file and wrote the decision.");
   await form.getByRole("button", { name: "Record Noor Adeyemi's decision" }).click();
   await expect(page.getByText("Noor Adeyemi, the outside reviewer, re-reviewed it.")).toBeVisible();
 

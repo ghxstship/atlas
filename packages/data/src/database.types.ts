@@ -30157,55 +30157,6 @@ export type Database = {
           },
         ];
       };
-      legal_queue_events: {
-        Row: {
-          actor_person_id: string | null;
-          created_at: string;
-          event_kind: Database["app"]["Enums"]["legal_queue_event_kind"];
-          from_state: Database["app"]["Enums"]["legal_queue_state"] | null;
-          id: string;
-          legal_queue_item_id: string;
-          note: string | null;
-          to_state: Database["app"]["Enums"]["legal_queue_state"] | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          actor_person_id?: string | null;
-          created_at?: string;
-          event_kind: Database["app"]["Enums"]["legal_queue_event_kind"];
-          from_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
-          id?: string;
-          legal_queue_item_id: string;
-          note?: string | null;
-          to_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
-        };
-        Update: {
-          actor_person_id?: string | null;
-          created_at?: string;
-          event_kind?: Database["app"]["Enums"]["legal_queue_event_kind"];
-          from_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
-          id?: string;
-          legal_queue_item_id?: string;
-          note?: string | null;
-          to_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "legal_queue_events_actor_person_id_fkey";
-            columns: ["actor_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "legal_queue_events_legal_queue_item_id_fkey";
-            columns: ["legal_queue_item_id"];
-            isOneToOne: false;
-            referencedRelation: "legal_queue_items";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       legal_queue_items: {
         Row: {
           closed_at: string | null;
@@ -30221,6 +30172,8 @@ export type Database = {
           first_response_due_at: string | null;
           id: string;
           item_state: Database["app"]["Enums"]["legal_queue_state"];
+          outside_reviewer_id: string | null;
+          re_review_same_person: boolean | null;
           received_at: string;
           reference: string;
           related_item_id: string | null;
@@ -30248,6 +30201,8 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          outside_reviewer_id?: string | null;
+          re_review_same_person?: boolean | null;
           received_at: string;
           reference: string;
           related_item_id?: string | null;
@@ -30274,6 +30229,8 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          outside_reviewer_id?: string | null;
+          re_review_same_person?: boolean | null;
           received_at?: string;
           reference?: string;
           related_item_id?: string | null;
@@ -72047,8 +72004,8 @@ export type Database = {
       console_add_legal_queue_item: {
         Args: {
           p_details?: string;
-          p_due_at?: string;
-          p_received_at: string;
+          p_due_local?: string;
+          p_received_local: string;
           p_related_reference?: string;
           p_requester_contact?: string;
           p_rule_code: string;
@@ -72283,7 +72240,11 @@ export type Database = {
           p_expected: Database["app"]["Enums"]["legal_queue_state"];
           p_item_id: string;
           p_next: Database["app"]["Enums"]["legal_queue_state"];
+          p_outside_reviewer_decided?: boolean;
+          p_re_review_notes?: string;
           p_reason: string;
+          p_same_person?: boolean;
+          p_told_how?: string;
         };
         Returns: string;
       };
@@ -77045,7 +77006,7 @@ export type Database = {
       journal_state: "Proposed" | "Posted" | "Canceled";
       language_proficiency: "Basic" | "Conversational" | "Fluent" | "Native";
       legal_queue_basis: "Statute" | "Published Promise" | "Internal Target" | "Customer Clock";
-      legal_queue_clock_unit: "Hours" | "Days" | "Business Days";
+      legal_queue_clock_unit: "Hours" | "Days" | "Business Days" | "Months Or 30 Days";
       legal_queue_event_kind:
         | "Received"
         | "First Response"
@@ -77053,7 +77014,9 @@ export type Database = {
         | "State Changed"
         | "Extended"
         | "Source Changed"
-        | "Alert Sent";
+        | "Alert Sent"
+        | "Re-Review"
+        | "Person Told";
       legal_queue_matter:
         | "Data Subject Request"
         | "Privacy Complaint"
@@ -77066,7 +77029,9 @@ export type Database = {
         | "Personal Data Breach"
         | "Accessibility Complaint"
         | "Government Data Request"
-        | "Other Promise";
+        | "Other Promise"
+        | "Undelivered Notice"
+        | "Queue Failure";
       legal_queue_state:
         "Received" | "In Progress" | "Waiting" | "Completed" | "Refused" | "Withdrawn";
       listing_report_reason:
@@ -83763,7 +83728,7 @@ export const Constants = {
       journal_state: ["Proposed", "Posted", "Canceled"],
       language_proficiency: ["Basic", "Conversational", "Fluent", "Native"],
       legal_queue_basis: ["Statute", "Published Promise", "Internal Target", "Customer Clock"],
-      legal_queue_clock_unit: ["Hours", "Days", "Business Days"],
+      legal_queue_clock_unit: ["Hours", "Days", "Business Days", "Months Or 30 Days"],
       legal_queue_event_kind: [
         "Received",
         "First Response",
@@ -83772,6 +83737,8 @@ export const Constants = {
         "Extended",
         "Source Changed",
         "Alert Sent",
+        "Re-Review",
+        "Person Told",
       ],
       legal_queue_matter: [
         "Data Subject Request",
@@ -83786,6 +83753,8 @@ export const Constants = {
         "Accessibility Complaint",
         "Government Data Request",
         "Other Promise",
+        "Undelivered Notice",
+        "Queue Failure",
       ],
       legal_queue_state: [
         "Received",

@@ -134,6 +134,7 @@ select pg_temp.as_platform();
 select is(api_public.legal_queue_heartbeat() ->> 'email_ok', 'false', 'a failed email also fails the outside heartbeat for two days');
 
 -- A member the queue reaches --------------------------------------------------------------------------------------------------
+select pg_temp.as_op('olga');
 select lives_ok(format($$insert into world select 'removal', app.console_decide_listing(%L, 'Removed', 'Terms Violation', 'Acceptable Use Policy 3.2',
   'Asks for a fee.', 'We removed it. You may appeal within six months.')$$, pg_temp.id('opp_b')), 'a removal');
 select pg_temp.as_user('carol');
@@ -213,8 +214,7 @@ select pg_temp.as_platform();
 insert into app.notification_preferences (membership_id, category_code, channel, enabled)
 select m.id, 'account', c.channel::app.notification_channel, false
 from app.memberships m cross join (values ('In App'), ('Email'), ('SMS'), ('Push')) as c (channel)
-where m.person_id = pg_temp.id('carol') and m.org_id = pg_temp.id('org_a')
-on conflict (membership_id, category_code, channel) do update set enabled = false;
+where m.person_id = pg_temp.id('carol') and m.org_id = pg_temp.id('org_a');
 select pg_temp.as_op('olga');
 select lives_ok(format($$select app.console_decide_appeal(%L, 'Upheld', 'It stands.', 'Read it again.')$$, pg_temp.id('appeal_silent')), 'decided, after they turned every channel of the category off');
 select pg_temp.as_platform();
@@ -237,8 +237,9 @@ select pg_temp.as_platform();
 select is((select told_by from private.moderation_appeal_reviews where moderation_appeal_id = pg_temp.id('appeal_gone')), null, 'the record says no channel could reach them');
 select private.sync_legal_queue_feeds();
 select is((select rule_code from app.legal_queue_items where source_table = 'private.moderation_appeal_reviews' and source_id = pg_temp.id('appeal_gone')), 'undelivered_notice', 'and that opens an item too');
+insert into world select 'gone_item', id from app.legal_queue_items where source_id = pg_temp.id('appeal_gone');
 select pg_temp.as_op('olga');
-select lives_ok(format($$select app.console_transition_legal_queue_item((select id from app.legal_queue_items where source_id = %L), 'Received', 'Completed', 'Reached them by the phone number on their report.')$$, pg_temp.id('appeal_gone')), 'an operator tells them another way');
+select lives_ok(format($$select app.console_transition_legal_queue_item(%L, 'Received', 'Completed', 'Reached them by the phone number on their report.')$$, pg_temp.id('gone_item')), 'an operator tells them another way');
 select pg_temp.as_platform();
 select ok((select told_by = 'Operator' and told_at is not null from private.moderation_appeal_reviews where moderation_appeal_id = pg_temp.id('appeal_gone')), 'and the appeal''s record now says they were told');
 

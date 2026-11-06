@@ -204,7 +204,10 @@ describe("runChecks", () => {
 
   it.each([
     [{ sweep_ok: true, feeds_ok: false, email_ok: true, recipient_ok: true }, "feed_failing"],
-    [{ sweep_ok: true, feeds_ok: true, email_ok: false, recipient_ok: true }, "alert_email_stuck_or_failed"],
+    [
+      { sweep_ok: true, feeds_ok: true, email_ok: false, recipient_ok: true },
+      "alert_email_stuck_or_failed",
+    ],
     [{ sweep_ok: true, feeds_ok: true, email_ok: true, recipient_ok: false }, "no_alert_recipient"],
   ])("says which part of the legal queue's machinery stopped: %j", async (beat, detail) => {
     const routes = healthyRoutes();

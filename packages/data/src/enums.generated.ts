@@ -576,7 +576,7 @@ export const legalQueueBasis = [
   "Customer Clock",
 ] as const;
 /** app.legal_queue_clock_unit */
-export const legalQueueClockUnit = ["Hours", "Days", "Business Days"] as const;
+export const legalQueueClockUnit = ["Hours", "Days", "Business Days", "Months Or 30 Days"] as const;
 /** app.legal_queue_event_kind */
 export const legalQueueEventKind = [
   "Received",
@@ -586,6 +586,8 @@ export const legalQueueEventKind = [
   "Extended",
   "Source Changed",
   "Alert Sent",
+  "Re-Review",
+  "Person Told",
 ] as const;
 /** app.legal_queue_matter */
 export const legalQueueMatter = [
@@ -601,6 +603,8 @@ export const legalQueueMatter = [
   "Accessibility Complaint",
   "Government Data Request",
   "Other Promise",
+  "Undelivered Notice",
+  "Queue Failure",
 ] as const;
 /** app.legal_queue_state */
 export const legalQueueState = [

@@ -395,7 +395,8 @@ create table private.legal_queue_events (
   alert_clock_at timestamptz,
   alert_overdue boolean,
   actor_person_id uuid references app.people (id),
-  created_at timestamptz not null default now(),
+  -- The clock's time, not the transaction's, so entries written together keep their order in the log.
+  created_at timestamptz not null default clock_timestamp(),
   constraint legal_queue_events_note_length check (note is null or char_length(note) <= 4000),
   constraint legal_queue_events_alert check ((alert_clock is null) = (alert_clock_at is null) and (alert_clock is null) = (alert_overdue is null)),
   constraint legal_queue_events_alert_clock check (alert_clock in ('First Response', 'Due'))
@@ -569,7 +570,7 @@ create table private.legal_queue_health (
   id boolean primary key default true,
   last_sweep_at timestamptz,
   feeds_checked_at timestamptz,
-  feeds_ok_at timestamptz,
+  feeds_failing boolean not null default false,
   alert_path_failed_at timestamptz,
   constraint legal_queue_health_one check (id)
 );
@@ -577,7 +578,7 @@ comment on table private.legal_queue_health is 'One row: when the queue''s own m
 comment on column private.legal_queue_health.id is 'Always true, so there is one row.';
 comment on column private.legal_queue_health.last_sweep_at is 'When the hourly sweep last finished.';
 comment on column private.legal_queue_health.feeds_checked_at is 'When the feeds last ran.';
-comment on column private.legal_queue_health.feeds_ok_at is 'When every feed last ran without an error.';
+comment on column private.legal_queue_health.feeds_failing is 'Whether a feed failed the last time they ran.';
 comment on column private.legal_queue_health.alert_path_failed_at is 'When an alert path last failed inside the sweep (the email outbox or the on-call post).';
 alter table private.legal_queue_health enable row level security;
 revoke all on private.legal_queue_health from public, anon, authenticated;
@@ -745,7 +746,7 @@ begin
       end loop;
     exception when others then
       -- This feed's work rolls back and the rest go on. Its failure becomes an item, so it reaches the owner by the same
-      -- alert paths, and the outside heartbeat sees feeds_ok_at go stale even if opening that item fails too.
+      -- alert paths, and the outside heartbeat sees feeds_failing even if opening that item fails too.
       v_all_ok := false;
       begin
         if not exists (select 1 from app.legal_queue_items i
@@ -759,7 +760,7 @@ begin
     end;
   end loop;
   update private.legal_queue_health
-  set feeds_checked_at = now(), feeds_ok_at = case when v_all_ok then now() else feeds_ok_at end;
+  set feeds_checked_at = now(), feeds_failing = not v_all_ok;
   return v_new;
 end;
 $$;

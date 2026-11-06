@@ -505,15 +505,15 @@ Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167).
 
 **1. Route the mailboxes.** Each public mailbox must reach a person who checks it daily, and each message that starts a clock goes into the queue the day it arrives, with the time it arrived. The clock starts then, not when it is entered.
 
-| Mailbox                        | Add to the queue as                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Mailbox                        | Add to the queue as                                                                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
 | `privacy@ghxstship.tech`       | Data subject request, from Brazil, appeal of a refused request, deletion by email, privacy complaint, Customer's request for help |
-| `copyright@ghxstship.tech`     | DMCA notice, DMCA counter-notice                                                                             |
-| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material, appeal of a restriction                           |
-| `security@ghxstship.tech`      | Security report, personal data breach                                                                        |
-| `accessibility@ghxstship.tech` | Accessibility report, accessibility review request                                                           |
-| `legal@ghxstship.tech`         | Government data request, return of omitted data, another written promise                                     |
-| `support@ghxstship.tech`       | Accessibility reports and manual cancel and refund promises, when they arrive there                          |
+| `copyright@ghxstship.tech`     | DMCA notice, DMCA counter-notice                                                                                                  |
+| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material, appeal of a restriction                                                |
+| `security@ghxstship.tech`      | Security report, personal data breach                                                                                             |
+| `accessibility@ghxstship.tech` | Accessibility report, accessibility review request                                                                                |
+| `legal@ghxstship.tech`         | Government data request, return of omitted data, another written promise                                                          |
+| `support@ghxstship.tech`       | Accessibility reports and manual cancel and refund promises, when they arrive there                                               |
 
 Give each mailbox an auto-reply saying it was received and when to expect an answer, using only the numbers the published documents state.
 

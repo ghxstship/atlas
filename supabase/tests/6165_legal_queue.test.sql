@@ -280,7 +280,9 @@ select is((select item_state::text from pg_temp.item('fed_report')), 'Completed'
 select pg_temp.as_op('olga');
 select lives_ok($$insert into world select 'hand_appeal', app.console_add_legal_queue_item('abuse_appeal', 'Account suspension appeal', pg_temp.ny(now()), 'Says the suspension was a mistake.', 'appellant@example.test')$$,
   'an appeal of an account suspension, which has no listing, is added by hand');
+select pg_temp.as_platform();
 select is((select due_at from pg_temp.item('hand_appeal')), private.legal_clock_end((select received_at from pg_temp.item('hand_appeal')), 30, 'Days'), 'and its rule computes the clock');
+select pg_temp.as_op('olga');
 select is((app.console_legal_queue_item(pg_temp.id('hand_appeal')) ->> 're_review_required')::boolean, true, 'the console knows closing it needs a re-review');
 select lives_ok(format($$select app.console_transition_legal_queue_item(%L, 'Received', 'In Progress', 'Reading the file.')$$, pg_temp.id('hand_appeal')),
   'working on it needs no re-review yet');
@@ -346,7 +348,7 @@ select ok((select details ~ 'reported_at' from app.legal_queue_items where rule_
 select is(private.sync_legal_queue_feeds() >= 0, true, 'and running again');
 select is((select count(*)::int from app.legal_queue_items where rule_code = 'queue_feed_failure' and title = 'listing_reports' and closed_at is null), 1, 'keeps one open');
 delete from private.platform_emails where template = 'legal_clock_alert';
-select ok(private.sweep_legal_queue(now() + interval '3 days') >= 1, 'the sweep still raises alerts');
+select ok(private.sweep_legal_queue(now() + interval '30 days') >= 1, 'the sweep still raises alerts');
 select ok((select bool_or(args -> 'items' @> jsonb_build_array(jsonb_build_object('reference', (select reference from pg_temp.item('hand_for_failure'))))) from private.platform_emails where template = 'legal_clock_alert'),
   'on the hand-entered item as well');
 select ok((select bool_or(args -> 'items' @> '[{"matter": "Queue Failure"}]'::jsonb) from private.platform_emails where template = 'legal_clock_alert'), 'and the failure itself reaches the owner');
@@ -401,6 +403,7 @@ select lives_ok($$select app.console_add_legal_alert_contact('Backup Person', 'B
 select throws_ok($$select app.console_add_legal_alert_contact('Again', 'backup@example.test')$$, 'XR001', null, 'once');
 select pg_temp.as_platform();
 select vault.create_secret('https://hooks.example.test/oncall', 'xos_alert_webhook_url');
+select pg_temp.as_op('olga');
 select lives_ok($$insert into world select 'gone_contact', app.console_add_legal_alert_contact('Former Backup', 'former@example.test')$$, 'a second contact');
 select lives_ok(format($$select app.console_remove_legal_alert_contact(%L)$$, pg_temp.id('gone_contact')), 'who is removed');
 select throws_ok(format($$select app.console_remove_legal_alert_contact(%L)$$, pg_temp.id('gone_contact')), 'XR001',
