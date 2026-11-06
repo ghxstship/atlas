@@ -1,5 +1,7 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
+import type { Database } from "@xos/data/database.types";
 import {
   addAvailabilityBlock,
   APP_ENUMS,
@@ -253,8 +255,8 @@ export async function answerAvailabilityPollAction(
 ): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const pollId = z.uuid().safeParse(text(form, "pollId"));
-  const kind = z.enum(["Available", "Tentative", "Unavailable"]);
-  const answers: { day: string; kind: "Available" | "Tentative" | "Unavailable" }[] = [];
+  const kind = z.enum(Constants.app.Enums.availability_kind);
+  const answers: { day: string; kind: Database["app"]["Enums"]["availability_kind"] }[] = [];
   for (const [name, value] of form.entries()) {
     const day = /^day:(\d{4}-\d{2}-\d{2})$/.exec(name)?.[1];
     if (!day || typeof value !== "string" || value === "") continue;

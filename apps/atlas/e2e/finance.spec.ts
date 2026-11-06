@@ -252,7 +252,9 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
 
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
     const edit = async (p: Page, to: string) => {
-      await grid(p).getByRole("gridcell", { name: /Delay towers/ }).dblclick();
+      await grid(p)
+        .getByRole("gridcell", { name: /Delay towers/ })
+        .dblclick();
       await p.keyboard.press("ControlOrMeta+a");
       await p.keyboard.type(to);
       await p.keyboard.press("Enter");

@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import type { AvailabilityAnswer, AvailabilityRequest } from "@xos/data/crew";
 import { Button, Card, InlineAlert, Select } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
@@ -9,7 +10,7 @@ import { answerAvailabilityPollAction } from "@/app/[org]/crew/scheduling-action
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-const KINDS: readonly AvailabilityAnswer[] = ["Available", "Tentative", "Unavailable"];
+const KINDS: readonly AvailabilityAnswer[] = enums.availabilityKind;
 
 /**
  * The Requests card of Me, Work details (P8): each open availability poll addressed to the member,

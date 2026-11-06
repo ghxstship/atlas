@@ -18,7 +18,6 @@ import {
   trashShiftTemplate,
   type AvailabilityKind,
   type PollAnswerResult,
-  type ShiftCandidate,
 } from "@xos/data/crew";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
@@ -334,7 +333,7 @@ export async function answerAvailabilityPollAction(
     .object({
       pollId: uuid,
       answers: z
-        .array(z.object({ day: isoDate, kind: z.enum(["Available", "Tentative", "Unavailable"]) }))
+        .array(z.object({ day: isoDate, kind: z.enum(Constants.app.Enums.availability_kind) }))
         .min(1)
         .max(31),
     })

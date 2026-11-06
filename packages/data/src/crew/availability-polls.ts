@@ -1,3 +1,5 @@
+import * as enums from "../enums.generated.ts";
+import type { Database } from "../database.types.ts";
 import type { XosClient } from "../client.ts";
 import type { Json } from "../database.types.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
@@ -11,12 +13,8 @@ import { fail, ok, toDataError, type Result } from "../result.ts";
  * results, a recipient reads the polls addressed to them and their own recipient row.
  */
 
-export type AvailabilityAnswer = "Available" | "Tentative" | "Unavailable";
-export const AVAILABILITY_ANSWERS: readonly AvailabilityAnswer[] = [
-  "Available",
-  "Tentative",
-  "Unavailable",
-];
+export type AvailabilityAnswer = Database["app"]["Enums"]["availability_kind"];
+export const AVAILABILITY_ANSWERS: readonly AvailabilityAnswer[] = enums.availabilityKind;
 
 /** How a recipient stands on a day of a poll: their answer, or Unstated. */
 export type PollAvailability = AvailabilityAnswer | "Unstated";

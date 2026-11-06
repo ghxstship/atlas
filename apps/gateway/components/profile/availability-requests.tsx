@@ -1,3 +1,4 @@
+import { Constants } from "@xos/data/database.types";
 import { myAvailabilityRequests } from "@xos/data/crew/availability-polls";
 import type { XosClient } from "@xos/data";
 import { SimpleForm } from "@/components/forms/simple-form";
@@ -7,7 +8,7 @@ import { answerAvailabilityPollAction } from "@/lib/actions/profile";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { Translate } from "@/lib/shell/translate";
 
-const KINDS = ["Available", "Tentative", "Unavailable"] as const;
+const KINDS = Constants.app.Enums.availability_kind;
 
 /**
  * Availability requests (P8, ADR 0063): the open availability polls orgs sent the person, each a
