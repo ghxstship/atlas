@@ -65,6 +65,16 @@ select is(private.send_rfq_supplier_notices(now() + interval '1500 hours'), 0, '
 select pg_temp.as_user('alice');
 select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_limit', 'Organization', null, 3);
 
+-- A shorter interval comes sooner.
+select pg_temp.rfq('r_soon', array['ven_v']);
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_interval_hours', 'Organization', null, 12);
+select pg_temp.as_platform();
+select private.send_rfq_supplier_notices(now() + interval '13 hours');
+select is(pg_temp.notices('r_soon'), 1, 'the interval setting decides when the first reminder goes');
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_interval_hours', 'Organization', null, 48);
+
 select pg_temp.rfq('r_resp', array['ven_v']);
 select pg_temp.as_user('carol');
 select app.record_rfq_response(pg_temp.id('r_resp'), pg_temp.id('ven_v'), null, 'USD', '[{"description":"Cable","quantity":20,"unit_price_minor":100}]');

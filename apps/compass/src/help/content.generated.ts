@@ -934,6 +934,58 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "logistics-gate",
+        title: "Gate",
+        summary:
+          "Find a delivery booking at the gate and move it through arrival, release and check-in.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Pick a gate" },
+                {
+                  t: "text",
+                  v: " to see today's delivery windows, in the project's time zone, with how many vehicles are booked.",
+                },
+              ],
+              [
+                { t: "strong", v: "Find a booking" },
+                {
+                  t: "text",
+                  v: " by its reference code or plate. The search runs on this phone, so it works with no signal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Arrived" },
+                {
+                  t: "text",
+                  v: ": the vehicle is at the gate. Enter the plate when the booking has none.",
+                },
+              ],
+              [
+                { t: "strong", v: "Release" },
+                { t: "text", v: " lets a waiting vehicle into the site, and " },
+                { t: "strong", v: "Check In" },
+                { t: "text", v: " records it at the dock." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Every change works offline and sends once when you reconnect. Choose a project first.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "logistics",
         title: "Logistics",
         summary: "Dock slots, the gate queue, the yard log and fulfillments for the project.",
@@ -4097,6 +4149,58 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Olvidar este quiosco" },
               { t: "text", v: " y escribe la nueva clave del dispositivo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "logistics-gate",
+        title: "Puerta",
+        summary:
+          "Busca una reserva de entrega en la puerta y llévala por la llegada, la liberación y el registro.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Elige una puerta" },
+                {
+                  t: "text",
+                  v: " para ver las franjas de entrega de hoy, en la zona horaria del proyecto, con cuántos vehículos hay reservados.",
+                },
+              ],
+              [
+                { t: "strong", v: "Busca una reserva" },
+                {
+                  t: "text",
+                  v: " por su código de referencia o su placa. La búsqueda se hace en este teléfono, así que funciona sin señal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Llegó" },
+                {
+                  t: "text",
+                  v: ": el vehículo está en la puerta. Escribe la placa si la reserva no la tiene.",
+                },
+              ],
+              [
+                { t: "strong", v: "Liberar" },
+                { t: "text", v: " deja entrar a un vehículo en espera, y " },
+                { t: "strong", v: "Registrar" },
+                { t: "text", v: " lo anota en el muelle." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cada cambio funciona sin conexión y se envía una vez cuando vuelves a conectarte. Primero elige un proyecto.",
+              },
             ],
           },
         ],

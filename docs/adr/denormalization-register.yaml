@@ -426,6 +426,10 @@ restated:
     parent: app.approval_policies.document_type
     kind: fact
     note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.approval_rules.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The project the rule gates; a Pass rule's category filter must be of the same project (`private.guard_approval_rule`, 2860).
   - column: app.asset_custody.asset_unit_id
     parent: app.asset_reservations.asset_unit_id
     kind: own
@@ -434,10 +438,6 @@ restated:
     parent: app.asset_reservations.project_id
     kind: own
     note: Project the asset is out for, set by the scan from the custodian engagement; a hold's project is its allocation's (migration 2692).
-  - column: app.approval_rules.project_id
-    parent: app.credential_categories.project_id
-    kind: own
-    note: The project the rule gates; a Pass rule's category filter must be of the same project (`private.guard_approval_rule`, 2860).
   - column: app.asset_custody.project_id
     parent: app.engagements.project_id
     kind: own
