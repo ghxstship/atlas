@@ -31,6 +31,7 @@ import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
 import { toneFor } from "@/lib/states";
 import {
   InvoiceForm,
@@ -152,14 +153,19 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                   id: d.id,
                   title: t("gateway.home.needsYou.sign", { title: d.title }),
                   meta: [t(enumLabelKey("engagementDocumentKind", d.kind))],
-                  action: (
-                    <ActionButton
-                      action={signDocumentAction.bind(null, d.id)}
-                      label={t("gateway.common.sign")}
-                      variant="secondary"
-                      done={t("gateway.common.signed")}
-                    />
-                  ),
+                  // A quote is signed from the Documents tab, after its total and consent are shown.
+                  ...(signsInOneClick(d)
+                    ? {
+                        action: (
+                          <ActionButton
+                            action={signDocumentAction.bind(null, d.id)}
+                            label={t("gateway.common.sign")}
+                            variant="secondary"
+                            done={t("gateway.common.signed")}
+                          />
+                        ),
+                      }
+                    : { href: tabHref(engagementKey, "engagement.documents") }),
                 })),
                 ...(open.length > 0
                   ? [
@@ -331,7 +337,7 @@ export async function DocumentsTab({
                 />
               ),
             }
-          : d.state === "Sent"
+          : signsInOneClick(d)
             ? {
                 action: (
                   <ActionButton

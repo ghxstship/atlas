@@ -44,6 +44,13 @@ beforeEach(() => {
 });
 
 describe("POST /sign/{token}/quote", () => {
+  it("keeps the signing token out of the PDF's record link", async () => {
+    await POST(post({ accessCode: "123456" }, { "sec-fetch-site": "same-origin" }), context);
+    const { recordUrl } = state.generate.mock.calls[0]?.[0] as { recordUrl: () => string };
+    expect(recordUrl()).toBe("https://gateway.example.test/documents");
+    expect(recordUrl()).not.toContain(TOKEN);
+  });
+
   it("streams the PDF from what the token reader returned", async () => {
     const response = await POST(
       post({ accessCode: "123456" }, { "sec-fetch-site": "same-origin" }),

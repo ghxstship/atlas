@@ -155,6 +155,19 @@ select throws_ok(format($$update app.shifts set budget_line_id = null where id =
   'shift_budget_line_posted: Approved time on this shift is already on the budget, so moving it needs finance.budget.write.',
   'a crew planner cannot move posted time');
 
+-- Deleting a shift moves its posted time to Hours not on a budget line (ADR 0152), and restoring it brings the time back.
+select pg_temp.as_user('carol');
+update app.shifts set deleted_at = now() where id = pg_temp.id('sh1');
+select pg_temp.as_platform();
+select ok(exists (select 1 from private.labor_postings_standing where shift_id = pg_temp.id('sh1'))
+          and not exists (select 1 from private.labor_postings_standing where shift_id = pg_temp.id('sh1') and budget_line_id is not null),
+  'a deleted shift''s posted time stands on no budget line');
+select pg_temp.as_user('carol');
+update app.shifts set deleted_at = null where id = pg_temp.id('sh1');
+select pg_temp.as_platform();
+select ok(exists (select 1 from private.labor_postings_standing where shift_id = pg_temp.id('sh1') and budget_line_id = pg_temp.id('labor')),
+  'a restored shift brings it back to the line');
+
 -- No rate never blocks an approval -----------------------------------------------------------------------------------------
 select pg_temp.as_platform();
 insert into app.time_entries (project_id, membership_id, clock_in, clock_out)
@@ -225,6 +238,22 @@ select is((select labor_other_currency_count from app.budget_line_labor_totals w
   'a rate in another currency is counted');
 select is((select labor_actual_minor::bigint from app.budget_line_labor_totals where budget_line_id = pg_temp.id('labor2')), 0::bigint,
   'and not summed');
+
+-- A roster self entry has no counterparty, so it is not an agency (C15).
+select pg_temp.as_platform();
+insert into world select 'self_ivy', r.id from app.engagement_roster_entries r
+  where r.engagement_id = pg_temp.id('eng_ivy_a') and r.is_self and r.deleted_at is null;
+insert into app.time_entries (project_id, roster_entry_id, clock_in, clock_out)
+values (pg_temp.id('prj_a'), pg_temp.id('self_ivy'), '2027-07-27 12:00+00', '2027-07-27 14:00+00');
+with x as (insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
+  values (pg_temp.id('prj_a'), pg_temp.id('self_ivy'), '2027-07-25', '2027-07-31') returning id) insert into world select 'ts_self', id from x;
+select pg_temp.as_user('ivy');
+select app.submit_timesheet(pg_temp.id('ts_self'));
+select pg_temp.as_user('alice');
+select app.decide_timesheet(pg_temp.id('ts_self'), 'Approved', 'Checked.');
+select pg_temp.as_platform();
+select is((select team_kind::text || '/' || coalesce(team_counterparty_id::text, 'none') from private.labor_postings_standing where timesheet_id = pg_temp.id('ts_self') limit 1),
+  'Engaged/none', 'a roster self entry of an engagement with no counterparty posts as Engaged');
 
 -- Agency staff ------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

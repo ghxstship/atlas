@@ -91,6 +91,33 @@ describe("SpreadsheetGrid", () => {
     expect(within(grid).queryByText("LRC-009")).toBeNull();
   });
 
+  it("leaves rows a column's totalIncludes refuses out of its total, even a blank one", () => {
+    const columns: GridColumn[] = [
+      { key: "id", label: "Line", type: "code" },
+      {
+        key: "amount",
+        label: "Amount",
+        type: "money",
+        total: true,
+        totalIncludes: (r) => r["off"] !== 1,
+      },
+    ];
+    render(
+      <SpreadsheetGrid
+        label="Lines"
+        columns={columns}
+        rows={[
+          { id: "a", amount: 100, off: 0 },
+          { id: "b", amount: 900, off: 1 },
+          { id: "c", amount: null, off: 1 },
+        ]}
+      />,
+    );
+    const footer = within(screen.getByRole("grid")).getAllByRole("row").at(-1) as HTMLElement;
+    expect(footer.textContent).toContain("100");
+    expect(footer.textContent).not.toContain("1,000");
+  });
+
   describe("with rowKey", () => {
     const lineColumns: GridColumn[] = [
       { key: "id", label: "Line", type: "code" },

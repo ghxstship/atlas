@@ -614,7 +614,7 @@ export async function LaborReport({ page }: { page: FinancePage }) {
     projectId: page.project?.id ?? null,
   });
   if (!result.ok) return failure(page, node, t);
-  const { projects, payrollRuns, postedByTeam, offBudget } = result.data;
+  const { projects, payrollRuns, postedByTeam, offBudget, offBudgetMore } = result.data;
   const org = page.ctx.org.slug;
   const projectKey = (id: string) => projects.find((p) => p.project.id === id)?.project.key ?? "";
   const teamLabel = (r: (typeof postedByTeam)[number]) =>
@@ -781,6 +781,11 @@ export async function LaborReport({ page }: { page: FinancePage }) {
               ),
             ])}
           />
+          {offBudgetMore ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("reports.labor.offBudgetMore", { count: offBudget.length })}
+            </p>
+          ) : null}
         </Section>
       ) : null}
     </ReportFrame>

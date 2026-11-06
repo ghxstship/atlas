@@ -95,6 +95,10 @@ export const KNOWN_REFUSALS = [
   "roster_entry_not_working",
   "roster_training_not_due",
   "sod_roster_training",
+  // B13: a client signs a quote from Gateway's Documents tab (migration 3024).
+  "quote_expired",
+  "quote_not_sent",
+  "quote_client_engagement",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",

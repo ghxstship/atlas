@@ -744,6 +744,8 @@ export interface PayrollRunRow {
   readonly lineCount: number;
 }
 
+const OFF_BUDGET_LIMIT = 200;
+
 /** Approved crew time per team (app.labor_posting_team_totals): own team, each agency, engaged individuals. */
 export interface LaborTeamRow {
   readonly projectId: string;
@@ -772,6 +774,8 @@ export interface LaborReport {
   readonly payrollRuns: readonly PayrollRunRow[];
   /** Readable with crew.timesheet.read; empty otherwise. */
   readonly postedByTeam: readonly LaborTeamRow[];
+  /** True when more time on no budget line exists than offBudget lists. */
+  readonly offBudgetMore: boolean;
   readonly offBudget: readonly LaborOffBudgetRow[];
 }
 
@@ -813,7 +817,7 @@ export async function laborReport(
             .in("project_id", ids)
             .is("budget_line_id", null)
             .order("work_date", { ascending: false })
-            .limit(200),
+            .limit(OFF_BUDGET_LIMIT + 1),
         ),
   ]);
   if (!facts.ok) return facts;
@@ -870,7 +874,8 @@ export async function laborReport(
       amountMinor: numOrNull(r["amount_minor"]),
       isMasked: r["is_masked"] === true,
     })),
-    offBudget: offBudget.data.map((r): LaborOffBudgetRow => ({
+    offBudgetMore: offBudget.data.length > OFF_BUDGET_LIMIT,
+    offBudget: offBudget.data.slice(0, OFF_BUDGET_LIMIT).map((r): LaborOffBudgetRow => ({
       postingId: str(r["posting_id"]),
       projectId: str(r["project_id"]),
       shiftId: strOrNull(r["shift_id"]),

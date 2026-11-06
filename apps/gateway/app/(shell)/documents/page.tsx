@@ -16,6 +16,7 @@ import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/compo
 import { EmptyStateLink, InlineAlert } from "@/components/ui";
 import { signDocumentAction } from "@/lib/actions/engagement";
 import { inBrandScope } from "@/lib/brand/brand";
+import { signsInOneClick } from "@/lib/documents/links";
 import { formatDate } from "@/lib/format";
 import { idsTopic, personTopic, topics } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
@@ -114,7 +115,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
             id: d.id,
             label: d.title,
             // A quote is signed on its own, from its engagement's Documents tab.
-            eligible: d.state === "Sent" && d.kind !== "Quote",
+            eligible: signsInOneClick(d),
             href: e ? `/work/engagements/${e.key}/documents` : "/documents",
             title: d.title,
             kind: t(enumLabelKey("engagementDocumentKind", d.kind)),
@@ -143,7 +144,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
               tone: toneFor(d.state),
             },
             ...(e ? { href: `/work/engagements/${e.key}/documents` } : {}),
-            ...(d.state === "Sent" && d.kind !== "Quote"
+            ...(signsInOneClick(d)
               ? {
                   action: (
                     <ActionButton

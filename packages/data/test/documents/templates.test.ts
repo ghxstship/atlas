@@ -16,7 +16,9 @@ import {
   type TemplateRegistry,
   type TemplateVersion,
 } from "../../src/documents/templates.ts";
-import { BRAND, FIXTURES, NOW } from "./fixtures.ts";
+import { renderDocumentPdf } from "../../src/documents/render.ts";
+import { ACCEPTED_QUOTES, BRAND, FIXTURES, NOW } from "./fixtures.ts";
+import { pdfText } from "./pdf-text.ts";
 
 const messages = (locale: string): unknown =>
   JSON.parse(
@@ -384,10 +386,44 @@ describe("the client quote (B13)", () => {
     expect(text(signed, "es-US")).toContain("Con sesión iniciada en Gateway");
   });
 
-  it("carries no cost, markup, margin or URID", () => {
-    const shown = text(quoteOf({})).toLowerCase();
-    for (const word of ["cost", "markup", "margin", "urid", "5000."]) {
-      expect(shown).not.toContain(word);
-    }
-  });
+  const INTERNAL = ["cost", "markup", "margin", "urid", "5000."];
+
+  it.each([
+    ["Sent", FIXTURES.quote],
+    ["accepted by link", ACCEPTED_QUOTES["quote-accepted-link"]],
+    ["accepted signed in", ACCEPTED_QUOTES["quote-accepted-signed-in"]],
+  ])(
+    "prints no cost, markup, margin or URID on a %s quote, read from the PDF itself",
+    async (_name, data) => {
+      const model = buildDocumentModel("quote", data, {
+        locale: "en-US",
+        messages: EN,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      });
+      const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+      // The reader is reading: the client content is there, so an absence below means something.
+      expect(extracted).toContain("Main stage production");
+      expect(extracted).toContain("Scope line 80");
+      expect(extracted).toContain("Prices exclude tax");
+      expect(extracted).toContain("a".repeat(16));
+      const lower = extracted.toLowerCase();
+      for (const word of INTERNAL) expect(lower).not.toContain(word);
+    },
+    60_000,
+  );
+
+  it("prints the Signature block in the PDF once accepted", async () => {
+    const model = buildDocumentModel("quote", ACCEPTED_QUOTES["quote-accepted-link"], {
+      locale: "en-US",
+      messages: EN,
+      brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+      recordUrl: "https://example.test/q",
+      now: NOW,
+    });
+    const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+    expect(extracted).toContain("Cleo Marsh");
+    expect(extracted).toContain("cleo@coral-group.test");
+  }, 60_000);
 });

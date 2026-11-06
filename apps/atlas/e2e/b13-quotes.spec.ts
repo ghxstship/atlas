@@ -94,7 +94,8 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     await expect(link).toBeVisible();
     const url = (await link.textContent()) as string;
     const code = (await page.getByTestId("quote-link-code").textContent()) as string;
-    await page.waitForTimeout(1500);
+    // Sending does not refresh the page while the dialog is open, so the link stays through a settle.
+    await settle(page);
     await expect(link).toBeVisible();
     await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("button", { name: "Send quote", exact: true })).toHaveCount(0);
@@ -115,11 +116,10 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     );
     expect(signed.error).toBeNull();
 
-    // The list updates without a reload, and the quote is locked.
-    await page.goto(`/${DEMO_ORG}/finance/quotes?peek=${quoteId}&full=1`);
+    // The page is still open and was not reloaded: LiveList brings the acceptance (S11.7-10).
     await expect(
       page.getByText("This quote was accepted, so it can't change.", { exact: false }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Cleo Typed", { exact: true })).toBeVisible();
     await expect(
       page.getByText(`Signing link with access code, sent to client-${id}@example.test`, {

@@ -5,6 +5,7 @@ import { isLocale } from "@xos/i18n";
 import { loadMessages } from "@xos/i18n/load";
 import { PARAM_TYPES } from "@xos/ia";
 import { getLocale } from "next-intl/server";
+import { TOKEN_DOCUMENT_RECORD_PATH } from "@/lib/documents/links";
 import { env } from "@/lib/env";
 import { observability } from "@/lib/observability";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -38,7 +39,7 @@ export async function POST(
     locale,
     messages: (await loadMessages(locale)).documents,
     paper,
-    recordUrl: () => new URL(`/sign/${token}`, env().GATEWAY_SITE_URL).toString(),
+    recordUrl: () => new URL(TOKEN_DOCUMENT_RECORD_PATH, env().GATEWAY_SITE_URL).toString(),
   });
   if (!result.ok) {
     observability.logger.error("quote document generation failed", { error: result.error });

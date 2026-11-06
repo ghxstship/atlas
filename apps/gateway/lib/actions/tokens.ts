@@ -102,6 +102,13 @@ export async function openQuoteAction(input: {
     : { ok: true, data: result.data };
 }
 
+const QUOTE_SIGN_REFUSALS: readonly string[] = [
+  "quote_expired",
+  "quote_not_sent",
+  "quote_client_engagement",
+];
+const isQuoteSignRefusal = (rule: string) => QUOTE_SIGN_REFUSALS.includes(rule);
+
 export async function signDocumentTokenAction(input: {
   token: string;
   accessCode: string;
@@ -112,8 +119,10 @@ export async function signDocumentTokenAction(input: {
     .safeParse(input);
   if (!parsed.success) return { ok: false, refusal: "document_signer_name" };
   const result = await signTokenDocument(await createServerSupabase(), parsed.data);
-  // Inside token_sign_document a quote's refusals raise rather than return (3024); they read as the others do.
-  if (!result.ok && result.error.kind === "refusal") {
+  // Inside token_sign_document a quote's refusals raise rather than return (3024); they read as the others
+  // do. Any other raised rule, such as a lifecycle conflict from two signers at once, has its copy under
+  // the outcomes and goes through outcomeFor.
+  if (!result.ok && result.error.kind === "refusal" && isQuoteSignRefusal(result.error.rule)) {
     return { ok: false, refusal: result.error.rule };
   }
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };

@@ -91,7 +91,10 @@
       "roster_shift_not_assigned": "No one from your roster holds this shift.",
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
-      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it."
+      "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+      "quote_not_sent": "This quote version is no longer waiting for a signature.",
+      "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted."
     }
   },
   "common": {

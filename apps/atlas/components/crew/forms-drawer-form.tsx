@@ -4,7 +4,7 @@ import { Button, Drawer, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL } from "./forms.shared";
 import { type Action, type FieldSpec } from "./forms.types";
@@ -18,7 +18,15 @@ function useCloseHref(keys: readonly string[]) {
   return (s ? `${pathname}?${s}` : pathname) as Route;
 }
 
-function Field({ spec, error }: { spec: FieldSpec; error?: string }) {
+function Field({
+  spec,
+  error,
+  dependentOptions,
+}: {
+  spec: FieldSpec;
+  error?: string;
+  dependentOptions?: ReadonlyArray<{ value: string; label: string }>;
+}) {
   const id = `crew-field-${spec.name}`;
   switch (spec.kind) {
     case "hidden":
@@ -30,7 +38,7 @@ function Field({ spec, error }: { spec: FieldSpec; error?: string }) {
           name={spec.name}
           label={spec.label}
           value={spec.value ?? ""}
-          options={[...spec.options]}
+          options={[...spec.options, ...(dependentOptions ?? [])]}
           {...(spec.help ? { help: spec.help } : {})}
           {...(error ? { error } : {})}
         />
@@ -86,6 +94,13 @@ export function DrawerForm(props: {
   const router = useRouter();
   const close = useCloseHref(props.openKeys ?? ["create", "edit"]);
   const [state, action, pending] = useActionState(props.action, INITIAL);
+  // Only the selects another field depends on are followed; every other field stays uncontrolled.
+  const [chosen, setChosen] = useState<Readonly<Record<string, string>>>({});
+  const followed = new Set(
+    props.fields.flatMap((f) => (f.kind === "select" && f.dependsOn ? [f.dependsOn.field] : [])),
+  );
+  const valueOf = (name: string) =>
+    chosen[name] ?? props.fields.find((f) => f.name === name)?.value ?? "";
   useEffect(() => {
     if (state.ok) {
       router.push((state.redirect as Route | undefined) ?? close);
@@ -101,6 +116,10 @@ export function DrawerForm(props: {
       <form
         action={action}
         onSubmit={keepInputOnSubmit(action)}
+        onChange={(e) => {
+          const { name, value } = e.target as HTMLSelectElement;
+          if (followed.has(name)) setChosen((before) => ({ ...before, [name]: value }));
+        }}
         className="flex flex-col gap-16"
         noValidate
       >
@@ -109,13 +128,17 @@ export function DrawerForm(props: {
             {state.error}
           </InlineAlert>
         ) : null}
-        {props.fields.map((f) => (
-          <Field
-            key={f.name}
-            spec={f}
-            {...(state.fieldErrors?.[f.name] ? { error: state.fieldErrors[f.name] } : {})}
-          />
-        ))}
+        {props.fields.map((f) => {
+          const on = f.kind === "select" ? f.dependsOn : undefined;
+          return (
+            <Field
+              key={on ? `${f.name}:${valueOf(on.field)}` : f.name}
+              spec={f}
+              {...(on ? { dependentOptions: on.optionsBy[valueOf(on.field)] ?? [] } : {})}
+              {...(state.fieldErrors?.[f.name] ? { error: state.fieldErrors[f.name] } : {})}
+            />
+          );
+        })}
         <div className="flex gap-8">
           <Button type="submit" variant="primary" loading={pending}>
             {props.submitLabel}

@@ -127,7 +127,8 @@
       "OwnTeam": "Own team",
       "Agency": "Agency",
       "Engaged": "Engaged individuals"
-    }
+    },
+    "offBudgetMore": "Showing the latest {count} postings; more exist."
   },
   "po": {
     "caption": "Open commitment by purchase order",

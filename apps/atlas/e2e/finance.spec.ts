@@ -190,6 +190,44 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await dialog.getByRole("button", { name: "Take theirs" }).click();
     await expect(grid(page)).toContainText("Delay towers, two sets");
   });
+
+  test("a client price saved by someone else opens the conflict dialog and names the field", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    await signIn(page, "producer@example.com");
+    const budget = await newBudget(page, `Journey 33 client ${id}`);
+    await addLine(page, "Delay towers", "1500.00");
+
+    const path = `/${ORG}/finance/budgets?project=${PROJECT}&budget=${budget}&columns=client`;
+    await page.goto(path);
+    const other = await asPerson(browser, "owner@example.com");
+    await other.goto(path);
+    await settle(page);
+    await settle(other);
+
+    const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
+    // Client unit price is the sixth data column, after Description, URID, Type, Quantity and Unit price.
+    const clientPrice = (p: Page) =>
+      grid(p).getByRole("row", { name: /Delay towers/ }).getByRole("gridcell").nth(6);
+    await clientPrice(page).dblclick();
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.type("1800");
+
+    await clientPrice(other).dblclick();
+    await other.keyboard.press("ControlOrMeta+a");
+    await other.keyboard.type("2100");
+    await other.keyboard.press("Enter");
+    await settle(other);
+
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "This line changed while you edited it" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("rowheader", { name: "Client unit price" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Take theirs" }).click();
+    await expect(grid(page)).toContainText("$2,100.00");
+  });
 });
 
 /** Opens a transition from the record's transition bar and confirms it with its default reason. */

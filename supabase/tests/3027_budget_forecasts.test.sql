@@ -148,6 +148,17 @@ select is((select bool_and(is_withheld and efc_minor is null) from app.budget_li
 select pg_temp.reader('all_three', array['finance.budget.read', 'procurement.po.read', 'finance.expense.read', 'finance.change_order.read']);
 select is((select bool_and(not is_withheld) from app.budget_line_forecasts where budget_id = pg_temp.id('bud')), true, 'with all three the figures show');
 
+-- A budget with no lines: nothing is unknown, and a reader missing a capability is still withheld.
+select pg_temp.as_user('carol');
+with x as (insert into app.budgets (project_id, name, currency_code) values (pg_temp.id('prj_a'), 'Empty forecast', 'USD') returning id)
+  insert into world select 'bud_empty', id from x;
+select pg_temp.as_user('erin');
+select results_eq(format($$select current_budget_minor, efc_minor, variance_at_completion_minor, is_withheld from app.budget_forecast_totals where budget_id = '%s'$$, pg_temp.id('bud_empty')),
+  $$values (0::bigint, 0::bigint, 0::bigint, false)$$, 'a budget with no lines has known zero totals');
+select pg_temp.reader('no_po_empty', array['finance.budget.read', 'finance.expense.read', 'finance.change_order.read']);
+select results_eq(format($$select efc_minor, is_withheld from app.budget_forecast_totals where budget_id = '%s'$$, pg_temp.id('bud_empty')),
+  $$values (null::bigint, true)$$, 'and is withheld from a reader without procurement.po.read');
+
 select pg_temp.as_platform();
 select ok(not exists (select 1 from pg_roles where rolname = 'xos_backup') or not has_table_privilege('xos_backup', 'app.budget_line_forecasts', 'select'),
   'the backup login has no SELECT on forecasts');

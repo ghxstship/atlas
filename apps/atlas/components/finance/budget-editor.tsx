@@ -34,6 +34,7 @@ import dynamic from "next/dynamic";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   addBudgetLinesAction,
@@ -49,10 +50,12 @@ import {
   catchUpLine,
   lineSaveOutcome,
   LineSaves,
+  lineConflictFields,
   linesAfterSave,
   mergeLines,
   savedVersion,
   typedLine,
+  type LineConflictField,
 } from "@/lib/finance/live-lines";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { parsePastedLines } from "@/lib/finance/paste";
@@ -793,46 +796,61 @@ function ConflictDialog({
   onTakeTheirs: () => void;
 }) {
   const t = useFinanceT();
+  const locale = useLocale();
   const money = (minor: number | null) =>
     minor === null
       ? t("common.unpriced")
-      : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
+      : new Intl.NumberFormat(locale, { style: "currency", currency }).format(
           minor / 10 ** exponent,
         );
-  const percent = (bp: number | null) => (bp === null ? t("common.none") : `${bp / 100}%`);
-  const fields: { label: string; mine: string; theirs: string }[] = [
-    {
+  const percent = (bp: number | null) =>
+    bp === null
+      ? t("common.none")
+      : new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 2 }).format(
+          bp / 10000,
+        );
+  const quantity = new Intl.NumberFormat(locale);
+  const onQuoteLabel = (excluded: boolean) => (excluded ? t("common.no") : t("common.yes"));
+  const { mine, theirs } = conflict;
+  const row: Record<LineConflictField, { label: string; mine: string; theirs: string }> = {
+    description: {
       label: t("budgets.columns.description"),
-      mine: conflict.mine.description,
-      theirs: conflict.theirs.description,
+      mine: mine.description,
+      theirs: theirs.description,
     },
-    { label: t("budgets.columns.urid"), mine: conflict.mine.urid, theirs: conflict.theirs.urid },
-    {
+    urid: { label: t("budgets.columns.urid"), mine: mine.urid, theirs: theirs.urid },
+    quantity: {
       label: t("budgets.columns.quantity"),
-      mine: String(conflict.mine.quantity),
-      theirs: String(conflict.theirs.quantity),
+      mine: quantity.format(mine.quantity),
+      theirs: quantity.format(theirs.quantity),
     },
-    {
+    unitPrice: {
       label: t("budgets.columns.unitPrice"),
-      mine: money(conflict.mine.unitPriceMinor),
-      theirs: money(conflict.theirs.unitPriceMinor),
+      mine: money(mine.unitPriceMinor),
+      theirs: money(theirs.unitPriceMinor),
     },
-    {
+    markup: {
       label: t("budgets.columns.markup"),
-      mine: percent(conflict.mine.markupBp ?? null),
-      theirs: percent(conflict.theirs.markupBp),
+      mine: percent(mine.markupBp ?? null),
+      theirs: percent(theirs.markupBp),
     },
-    {
+    clientPrice: {
       label: t("budgets.columns.clientUnitPrice"),
-      mine: money(conflict.mine.clientUnitPriceMinor ?? null),
-      theirs: money(conflict.theirs.clientUnitPriceMinor),
+      mine: money(mine.clientUnitPriceMinor ?? null),
+      theirs: money(theirs.clientUnitPriceMinor),
     },
-    {
+    onQuote: {
+      label: t("budgets.columns.onQuote"),
+      mine: onQuoteLabel(mine.excludedFromQuote ?? false),
+      theirs: onQuoteLabel(theirs.excludedFromQuote),
+    },
+    etc: {
       label: t("budgets.columns.etc"),
-      mine: money(conflict.mine.etcMinor ?? null),
-      theirs: money(conflict.theirs.etcMinor),
+      mine: money(mine.etcMinor ?? null),
+      theirs: money(theirs.etcMinor),
     },
-  ].filter((f) => f.mine !== f.theirs);
+  };
+  const fields = lineConflictFields(mine, theirs).map((field) => row[field]);
   return (
     <Dialog
       open

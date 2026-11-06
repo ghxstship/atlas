@@ -30,3 +30,20 @@ export function gatewayRecordPath(
 ): string {
   return engagementKey ? tabHref(engagementKey, TAB[kind]) : "/work";
 }
+
+/**
+ * Whether a document can be signed with one click on a list. A Quote never can: it is a commercial
+ * commitment, signed only after its total, valid-until date and consent sentence are shown (S14.5-01).
+ */
+export function signsInOneClick(document: {
+  readonly kind: string;
+  readonly state: string;
+}): boolean {
+  return document.state === "Sent" && document.kind !== "Quote";
+}
+
+/**
+ * Where a PDF from a signing link points: Gateway's Documents page, never the link. A link's token is
+ * one of its two secrets, and the PDF is meant to be forwarded.
+ */
+export const TOKEN_DOCUMENT_RECORD_PATH = "/documents";

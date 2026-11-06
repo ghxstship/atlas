@@ -6,7 +6,7 @@ import { advanceSectionOpen } from "@xos/data/gateway-public";
 import { Button, InlineAlert, Input, Textarea, buttonClass } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { enumLabelKey } from "@/lib/enum-key";
 import {
@@ -351,13 +351,19 @@ function QuoteSummary({
   code: string;
 }) {
   const t = useCopy();
+  const format = useFormatter();
   const money = (minor: number | null) =>
     minor === null
       ? t("sign.quote.unpriced")
-      : new Intl.NumberFormat(undefined, {
+      : format.number(minor / 10 ** currencyDigits(quote.currency_code), {
           style: "currency",
           currency: quote.currency_code,
-        }).format(minor / 10 ** currencyDigits(quote.currency_code));
+        });
+  // A calendar date, so it never shifts a day across zones.
+  const validUntil = format.dateTime(new Date(`${quote.valid_until.slice(0, 10)}T00:00:00Z`), {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  });
   return (
     <section aria-label={t("sign.quote.lines")} className="flex flex-col gap-12">
       <div className="overflow-x-auto">
@@ -399,7 +405,7 @@ function QuoteSummary({
           </tfoot>
         </table>
       </div>
-      <p className="m-0 text-text-13">{t("sign.quote.validUntil", { date: quote.valid_until })}</p>
+      <p className="m-0 text-text-13">{t("sign.quote.validUntil", { date: validUntil })}</p>
       {quote.terms ? <p className="m-0 text-text-13 whitespace-pre-wrap">{quote.terms}</p> : null}
       <p className="m-0 text-text-12 text-text-secondary">{t("sign.quote.tax")}</p>
       {quote.content_sha256 ? (

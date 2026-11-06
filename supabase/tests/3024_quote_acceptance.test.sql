@@ -205,5 +205,17 @@ select throws_ok(format($$select private.transition_lifecycle('engagement_docume
   'a deleted engagement refuses acceptance');
 update app.engagements set deleted_at = null where id = pg_temp.id('eng_client');
 
+-- A caller chooses a signed-in signature's reason, so words alone cannot pass for a link and silence the sender.
+select pg_temp.as_user('carol');
+insert into world select 'q6', app.create_quote(pg_temp.id('bud'), 'Sixth stage', pg_temp.id('eng_client'));
+insert into world select 'doc6', s.engagement_document_id
+  from app.send_quote_version((select id from app.quote_versions where quote_id = pg_temp.id('q6')), 'Sent.') s;
+select pg_temp.as_user('cleo');
+select lives_ok(format($$select app.sign_engagement_document('%s', 'Signed through a signing link.')$$, pg_temp.id('doc6')),
+  'a signed-in signer words the reason like a link');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications n where n.kind = 'quote.accepted' and n.recipient_person_id = pg_temp.id('carol')
+           and n.subject_id = (select id from app.quote_versions where quote_id = pg_temp.id('q6'))), 1, 'and the sender is still told');
+
 select * from finish();
 rollback;

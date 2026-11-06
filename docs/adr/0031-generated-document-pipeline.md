@@ -92,7 +92,9 @@ Before this ADR, only report runs rendered PDFs, untagged, with pdfkit 0.20.2 (A
   prints "Draft: not sent" in its facts and has no fingerprint (ADR 0152).
 - **Sources.** Atlas reads as the viewer with `finance.budget.read`: a Draft reads live prices, Sent and later the frozen
   capture. Gateway reads `api_external.quote_versions` and `quote_version_lines`. A signing link's Download PDF is built
-  only from what `api_public.token_quote` returned, after it re-resolves the link and code, posted in the form body.
+  only from what `api_public.token_quote` returned, after it re-resolves the link and code, posted in the form body. Its
+  printed record link and QR code open Gateway's Documents page, never the link: the token is one of the link's two secrets
+  and the PDF is meant to be forwarded.
 - **Brand.** Externals and anon cannot read `app.org_brands`, so a quote's readers build the brand from fields the view and
   the token reader carry: legal entity, accent and logo path. The org-brand bucket is public, so anon can fetch the logo.
 - **Delivery.** Atlas's quote peek and Gateway's engagement Documents tab. The QR code opens the quote or that tab.

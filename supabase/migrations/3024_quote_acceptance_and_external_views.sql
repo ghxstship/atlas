@@ -74,8 +74,12 @@ begin
   perform private.end_trusted_operation('quote_acceptance');
 
   -- A link records its signer's typed name right after this, and the sender is told then (private.quote_signer_name).
-  -- 0769 words the reason of a link signature with this fixed ending; a pgTAP test pins it.
-  if new.reason not like '%through a signing link.' then
+  -- 0769 words the reason of a link signature with this fixed ending; a pgTAP test pins it. app.sign_engagement_document
+  -- takes its reason from the caller, so the ending alone is not trusted: a link still has to be open for it to be one.
+  if new.reason not like '%through a signing link.'
+     or not exists (select 1 from app.engagement_document_tokens t
+                    where t.engagement_document_id = new.engagement_document_id and t.used_at is null
+                      and t.revoked_at is null and t.deleted_at is null and t.expires_at > now()) then
     perform private.notify(v_version.org_id, v_version.sent_by, 'quote.accepted', 'quote_versions', v_version.id, v_project,
       jsonb_build_object('quoteKey', private.quote_key(v_version.quote_id), 'version', v_version.version_number,
         'actorName', coalesce(v_name, private.quote_party_name(v_engagement_id, v_project))));
@@ -83,7 +87,7 @@ begin
   return null;
 end;
 $$;
-comment on function private.accept_quote_on_signature() is 'After a Quote engagement document is signed (Sent to Signed, by link or signed in): moves its Sent quote version to Accepted with accepted_at, the session person as accepted_by and their name, deletes a live Draft of the quote, moves the document Signed to Executed (no countersignature), and tells the version''s sender (quote.accepted) unless the signature came through a link (its reason ends in 0769''s fixed wording, "through a signing link."), whose signer is named, and the sender told, by private.quote_signer_name. Refuses quote_expired after valid until on the project''s calendar, quote_not_sent when the version left Sent, and quote_client_engagement when the engagement was deleted, canceled or completed.';
+comment on function private.accept_quote_on_signature() is 'After a Quote engagement document is signed (Sent to Signed, by link or signed in): moves its Sent quote version to Accepted with accepted_at, the session person as accepted_by and their name, deletes a live Draft of the quote, moves the document Signed to Executed (no countersignature), and tells the version''s sender (quote.accepted) unless the signature came through a link (its reason ends in 0769''s fixed wording, "through a signing link.", and a link is open), whose signer is named, and the sender told, by private.quote_signer_name. Refuses quote_expired after valid until on the project''s calendar, quote_not_sent when the version left Sent, and quote_client_engagement when the engagement was deleted, canceled or completed.';
 revoke all on function private.accept_quote_on_signature() from public, anon, authenticated;
 create trigger t60_accept_quote_on_signature after insert on app.engagement_document_state_transitions
   for each row when (new.to_state = 'Signed')

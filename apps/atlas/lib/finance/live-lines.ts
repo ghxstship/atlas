@@ -165,3 +165,28 @@ export class LineSaves {
     return true;
   }
 }
+
+export type LineConflictField =
+  | "description"
+  | "urid"
+  | "quantity"
+  | "unitPrice"
+  | "markup"
+  | "clientPrice"
+  | "onQuote"
+  | "etc";
+
+/** What differs between a stale save and the line that beat it, for the conflict dialog (journey 33). */
+export function lineConflictFields(mine: BudgetLineInput, theirs: BudgetLine): LineConflictField[] {
+  const differing: readonly [LineConflictField, boolean][] = [
+    ["description", mine.description !== theirs.description],
+    ["urid", mine.urid !== theirs.urid],
+    ["quantity", mine.quantity !== theirs.quantity],
+    ["unitPrice", mine.unitPriceMinor !== theirs.unitPriceMinor],
+    ["markup", (mine.markupBp ?? null) !== theirs.markupBp],
+    ["clientPrice", (mine.clientUnitPriceMinor ?? null) !== theirs.clientUnitPriceMinor],
+    ["onQuote", (mine.excludedFromQuote ?? false) !== theirs.excludedFromQuote],
+    ["etc", (mine.etcMinor ?? null) !== theirs.etcMinor],
+  ];
+  return differing.flatMap(([field, differs]) => (differs ? [field] : []));
+}

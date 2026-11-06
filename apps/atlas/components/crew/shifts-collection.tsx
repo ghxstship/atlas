@@ -141,8 +141,11 @@ export async function ShiftsCollection(props: {
     }),
     canWrite ? listShiftTemplates(db, crew.orgId) : null,
     canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
-    // The shift form's and bulk bar's Budget line options: server-rendered, so no client code loads for them.
-    canWrite ? listLaborBudgetLines(db, projectFilter?.id ?? null) : null,
+    // Budget line options load with the shift form, or for the bulk bar of one project's shifts: a line
+    // belongs to one project, so an org-wide list never offers them and the key page reads nothing here.
+    canWrite && (search["create"] === "1" || search["edit"] || projectFilter)
+      ? listLaborBudgetLines(db, projectFilter?.id ?? null)
+      : null,
   ]);
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
   if (planning && !planning.ok) {
@@ -592,11 +595,27 @@ export async function ShiftsCollection(props: {
         label: t("crew.fields.budgetLine"),
         help: t("crew.shifts.budgetLineHelp"),
         value: s?.budgetLineId ?? "",
+        // A new shift's project is still a choice, so its lines follow that select and the field resets
+        // with it. Once the project is fixed the lines are plain options.
+        ...(!s && !crew.project
+          ? {
+              dependsOn: {
+                field: "projectId",
+                optionsBy: Object.fromEntries(
+                  projects.map((p) => [
+                    p.id,
+                    laborLines
+                      .filter((l) => l.projectId === p.id)
+                      .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                  ]),
+                ),
+              },
+            }
+          : {}),
         options: [
           { value: "", label: t("crew.shifts.noBudgetLine") },
-          // A shift's project is fixed once it exists; a new shift's choice is checked by the database.
           ...laborLines
-            .filter((l) => !s || l.projectId === s.projectId)
+            .filter((l) => l.projectId === (s?.projectId ?? crew.project?.id))
             .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
           // The line it holds always shows, so a save never clears it.
           ...(s?.budgetLineId && !laborLines.some((l) => l.id === s.budgetLineId)
@@ -944,14 +963,18 @@ export async function ShiftsCollection(props: {
                       })),
                     ],
                   },
-                  {
-                    key: "budget_line_id",
-                    label: t("crew.fields.budgetLine"),
-                    options: [
-                      { value: null, label: t("crew.shifts.noBudgetLine") },
-                      ...laborLines.map((l) => ({ value: l.id, label: laborLineLabel(l) })),
-                    ],
-                  },
+                  ...(projectFilter
+                    ? [
+                        {
+                          key: "budget_line_id",
+                          label: t("crew.fields.budgetLine"),
+                          options: [
+                            { value: null, label: t("crew.shifts.noBudgetLine") },
+                            ...laborLines.map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                          ],
+                        },
+                      ]
+                    : []),
                 ],
               }
             : null

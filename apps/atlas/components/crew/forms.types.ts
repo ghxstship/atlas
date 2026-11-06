@@ -33,6 +33,16 @@ export type FieldSpec =
       readonly value?: string;
       readonly options: ReadonlyArray<{ value: string; label: string }>;
       readonly help?: string;
+      /**
+       * Options that follow another select of the form, after `options`. The field resets when that
+       * select changes, so its value never comes from another choice.
+       */
+      readonly dependsOn?: {
+        readonly field: string;
+        readonly optionsBy: Readonly<
+          Record<string, ReadonlyArray<{ value: string; label: string }>>
+        >;
+      };
     }
   | { readonly kind: "hidden"; readonly name: string; readonly value: string };
 

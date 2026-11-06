@@ -334,6 +334,30 @@ describe("engagement documents, onboarding and pools", () => {
     await expectContract(await success(moved), "engagementDocuments.transition");
   });
 
+  it("leaves Quote documents out of the frozen resource: they read through /quotes", async () => {
+    const { db, http } = world();
+    const quote = id(7905);
+    db.tables["engagement_documents"]?.push({
+      ...seed("EngagementDocument", quote, { engagement_document_state: "Sent" }),
+      // Not in the frozen enum, which is why the resource never answers with this row.
+      document_kind: "Quote",
+    });
+    const listed = (await expectContract(
+      await success(await http.get("/engagement-documents")),
+      "engagementDocuments.list",
+    )) as { data: Row[] };
+    const ids = listed.data.map((d) => d["id"]);
+    expect(ids).toContain(id(7005));
+    expect(ids).not.toContain(quote);
+    expect((await http.get(`/engagement-documents/${quote}`)).status).toBe(404);
+    const moved = await http.post(`/engagement-documents/${quote}/transitions`, {
+      expected_state: "Sent",
+      to_state: "Canceled",
+    });
+    expect(moved.status).toBe(404);
+    expect(db.calls.map((c) => c.name)).not.toContain("transition_engagement_document");
+  });
+
   it("serves onboarding requirements and verifications", async () => {
     const { http } = world();
     const listed = await http.get("/onboarding-requirements");

@@ -541,6 +541,27 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
 };
 
 /**
+ * A quote accepted through a signing link and one accepted signed in to Gateway: only an Accepted quote
+ * prints the Signature block (S14.5-01), so veraPDF checks it in both wordings.
+ */
+const acceptedQuote = (
+  acceptedEmail: string | null,
+): DocumentDataMap["quote"] => ({
+  ...FIXTURES.quote,
+  quote: {
+    ...FIXTURES.quote.quote,
+    state: "Accepted",
+    acceptedAt: "2026-11-03T15:00:00Z",
+    acceptedName: "Cleo Marsh Ångström",
+    acceptedEmail,
+  },
+});
+export const ACCEPTED_QUOTES = {
+  "quote-accepted-link": acceptedQuote("cleo@coral-group.test"),
+  "quote-accepted-signed-in": acceptedQuote(null),
+} as const;
+
+/**
  * The deletion certificate of an org (A79, Section 14.7), with a long name and characters outside the font's
  * Latin subset, so veraPDF checks the fallback and wrapping on it too.
  */

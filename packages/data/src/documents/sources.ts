@@ -299,9 +299,10 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
       quote: {
         key: detail.data.status.key,
         versionNumber: shown.versionNumber,
-        title: shown.sentTitle ?? detail.data.status.title,
+        // A Draft beside a sent version prints the quote's own title and the budget's currency.
+        title: shown.sentTitle ?? detail.data.draftTitle,
         clientName: shown.sentClientName ?? detail.data.status.clientName,
-        currency: detail.data.status.currency,
+        currency: shown.state === "Draft" ? detail.data.currency : detail.data.status.currency,
         validUntil: shown.validUntil,
         terms: shown.terms,
         state: shown.state,

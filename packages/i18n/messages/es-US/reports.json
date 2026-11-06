@@ -127,7 +127,8 @@
       "OwnTeam": "Equipo propio",
       "Agency": "Agencia",
       "Engaged": "Personas contratadas"
-    }
+    },
+    "offBudgetMore": "Se muestran los últimos {count} registros; hay más."
   },
   "po": {
     "caption": "Compromiso pendiente por orden de compra",
