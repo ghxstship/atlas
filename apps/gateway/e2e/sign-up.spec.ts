@@ -124,10 +124,64 @@ test("an answer of under 18 makes no account and keeps nothing typed", async ({ 
   );
   expect(none?.n).toBe("0");
   const [refusal] = await sql<{ outcome: string; surface: string }>(
-    `select outcome, surface from private.age_refusals order by refused_at desc limit 1`,
+    `select outcome, surface from private.age_refusals
+      where surface = 'Gateway' and outcome = 'No Account' limit 1`,
     [],
   );
   expect(refusal).toEqual({ outcome: "No Account", surface: "Gateway" });
+});
+
+test("an account with no answer is asked before any page, and one answer never closes it", async ({
+  page,
+}) => {
+  const email = `noanswer-${uniqueId()}@example.com`;
+  await page.goto("/auth/sign-up");
+  await page.locator("#signup-name").fill("Nia Noanswer");
+  await page.locator("#signup-email").fill(email);
+  await page.locator("#signup-terms").check();
+  await page.locator("#signup-age").check();
+  await page.getByRole("button", { name: "Use a password" }).click();
+  await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL((url) => url.pathname === "/home");
+  // The account as a provider, or a rule from before there was a question, leaves it: no answer at all.
+  const [person] = await sql<{ person: string; user_id: string }>(
+    `select p.id as person, u.id as user_id from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+    [email],
+  );
+  await sql(`delete from private.age_confirmations where person_id = $1`, [person?.person]);
+
+  await page.goto("/home");
+  await page.waitForURL((url) => url.pathname === "/auth/age");
+  await page.locator("#age-question-under").check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("under") === "1");
+  await expect(page.getByRole("heading", { name: "Confirm your answer" })).toBeVisible();
+  await expectAccessible(page);
+  const [kept] = await sql<{ n: string }>(
+    `select count(*)::text as n from auth.users where email = $1`,
+    [email],
+  );
+  expect(kept?.n).toBe("1");
+
+  // Going back is how an adult who chose wrongly recovers.
+  await page.getByRole("link", { name: "Go back", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age" && !url.searchParams.has("under"));
+  await page.locator("#age-question-under").check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("under") === "1");
+  await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
+  await page.waitForURL((url) => url.pathname === "/auth/age-refused");
+  await expect(page.getByText(/XOS keeps only a monthly count/)).toBeVisible();
+  await expectAccessible(page);
+
+  const [left] = await sql<{ users: string; people: string; acceptances: string }>(
+    `select (select count(*) from auth.users where id = $1)::text as users,
+            (select count(*) from app.people where id = $2)::text as people,
+            (select count(*) from app.legal_acceptances where user_id = $1)::text as acceptances`,
+    [person?.user_id, person?.person],
+  );
+  expect(left).toEqual({ users: "0", people: "0", acceptances: "0" });
 });
 
 test("someone who confirmed the earlier age of 16 answers again at sign-in", async ({ page }) => {
