@@ -130,7 +130,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // B11 (3009): the two RFQ notice kinds in both locales took it to 157.3 KB on 2026-11-06, with the same 2 KB of headroom.
   "sms-webhook": 160,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // B11 (3009): the two RFQ notice kinds in the shared copy took it to 119.4 KB on 2026-11-06, with 2 KB of headroom.
+  "subprocessor-notices": 122,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,
