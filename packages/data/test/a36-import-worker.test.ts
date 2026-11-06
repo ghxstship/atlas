@@ -71,6 +71,11 @@ function lookups(writes: Row[]): TargetLookups {
     destinationKeyMatch: async () => null,
     nextCuePosition: async () => 1,
     cueCalled: async () => false,
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
   };
 }
 

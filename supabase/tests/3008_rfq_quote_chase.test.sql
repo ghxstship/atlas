@@ -26,6 +26,13 @@ begin
   perform pg_temp.as_platform();
   return v_id;
 end $$;
+create function pg_temp.setting(p_key text, p_integer bigint, p_boolean boolean default null) returns void language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  delete from app.setting_values where setting_key = p_key and org_id = pg_temp.id('org_a');
+  insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_integer, value_boolean)
+  values (pg_temp.id('org_a'), p_key, 'Organization', pg_temp.id('org_a'), p_integer, p_boolean);
+end $$;
 create function pg_temp.notices(p_rfq text, p_kind text default null) returns integer language sql security definer as $$
   select count(*)::integer from app.rfq_supplier_notices n where n.rfq_id = pg_temp.id(p_rfq) and (p_kind is null or n.notice_kind::text = p_kind)
 $$;
@@ -49,31 +56,26 @@ select is(private.send_rfq_supplier_notices(now() + interval '60 hours'), 0, 'no
 
 -- 2. Off, responses, state, past due ----------------------------------------------------------------------------------------------------------
 select pg_temp.rfq('r_off', array['ven_v']);
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_enabled', 'Organization', null, false);
+select pg_temp.setting('procurement.quote_chase_enabled', null, false);
 select pg_temp.as_platform();
 select is(private.send_rfq_supplier_notices(now() + interval '200 hours'), 0, 'disabled sends nothing');
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_enabled', 'Organization', null, true);
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_limit', 'Organization', null, 2);
+select pg_temp.setting('procurement.quote_chase_enabled', null, true);
+select pg_temp.setting('procurement.quote_chase_limit', 2);
 select pg_temp.as_platform();
 select ok(private.send_rfq_supplier_notices(now() + interval '500 hours') > 0, 'on again, they go');
 select is(pg_temp.notices('r_off'), 1, 'one each');
 select ok(private.send_rfq_supplier_notices(now() + interval '1000 hours') > 0, 'the second reminder goes');
 select is(pg_temp.notices('r_off'), 2, 'up to the limit of 2');
 select is(private.send_rfq_supplier_notices(now() + interval '1500 hours'), 0, 'and stops at it');
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_limit', 'Organization', null, 3);
+select pg_temp.setting('procurement.quote_chase_limit', 3);
 
 -- A shorter interval comes sooner.
 select pg_temp.rfq('r_soon', array['ven_v']);
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_interval_hours', 'Organization', null, 12);
+select pg_temp.setting('procurement.quote_chase_interval_hours', 12);
 select pg_temp.as_platform();
 select private.send_rfq_supplier_notices(now() + interval '13 hours');
 select is(pg_temp.notices('r_soon'), 1, 'the interval setting decides when the first reminder goes');
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'procurement.quote_chase_interval_hours', 'Organization', null, 48);
+select pg_temp.setting('procurement.quote_chase_interval_hours', 48);
 
 select pg_temp.rfq('r_resp', array['ven_v']);
 select pg_temp.as_user('carol');
