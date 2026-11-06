@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(24);
+select plan(26);
 
 create function pg_temp.uploads(p_who text) returns integer
 language plpgsql as $$
@@ -141,10 +141,12 @@ select pg_temp.as_platform();
 update app.onboarding_items set submitted_at = now() + interval '1 second' where id = pg_temp.id('item_v');
 select pg_temp.as_user('carol');
 select is((select u.review_passed from app.vendor_certificate_uploads(pg_temp.id('org_a')) u), false, 'a new upload after it waits for review again');
+insert into app.onboarding_verifications (onboarding_item_id, outcome, note) values (pg_temp.id('item_v'), 'Failed', 'Not a certificate.');
 select pg_temp.as_platform();
-insert into app.onboarding_verifications (onboarding_item_id, outcome, note, verified_at) values (pg_temp.id('item_v'), 'Failed', 'Not a certificate.', now() + interval '2 seconds');
+-- Back to the upload this review is of: inside one transaction every timestamp is the same instant.
+update app.onboarding_items set submitted_at = now() where id = pg_temp.id('item_v');
 select is(pg_temp.uploads('carol'), 0, 'a failed review takes it off the list');
-update app.onboarding_items set submitted_at = now() + interval '3 seconds' where id = pg_temp.id('item_v');
+update app.onboarding_items set submitted_at = now() + interval '1 second' where id = pg_temp.id('item_v');
 select is(pg_temp.uploads('carol'), 1, 'and a new upload brings it back');
 
 -- Bounded ----------------------------------------------------------------------------------------------------------------

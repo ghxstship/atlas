@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(66);
+select plan(67);
 
 create function pg_temp.notes(p_person text, p_kind text, p_alert uuid) returns integer
 language sql as $$
@@ -167,6 +167,8 @@ end $$;
 create function pg_temp.told(p_key text) returns integer
 language sql as $$ select a.told from a where a.key = p_key $$;
 
+-- Frank turned everything off above; from here he has it all on again.
+select pg_temp.safety_channels('frank', true, true, true);
 select pg_temp.drill('base');
 select pg_temp.safety_channels('erin', false, false, true);
 select pg_temp.drill('no_device');
@@ -247,7 +249,7 @@ select pg_temp.as_user('alice');
 update app.crisis_alerts set ended_at = now() where id = (select id from a where key = 'short');
 select pg_temp.as_platform();
 select ok(private.send_waiting_crisis_alerts() >= 0, 'the worker runs');
-select is((select count(*)::integer from app.notifications n where n.subject_id = (select id from a where key = 'short')), 0, 'an alert ended before anyone''s turn tells nobody of it');
+select is((select count(*)::integer from app.notifications n where n.subject_id = (select id from a where key = 'short') and n.kind = 'crisis_alert.issued'), 0, 'an alert ended before anyone''s turn tells nobody of it');
 select is((select c.people_waiting from app.crisis_alerts c where c.id = (select id from a where key = 'short')), 0, 'and nobody waits for it');
 
 -- One person's failure costs nobody else the alert ---------------------------------------------------------------------------
