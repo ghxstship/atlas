@@ -129,7 +129,7 @@ test.describe("18 or older", () => {
 });
 
 test.describe("18 or older, for an account with no answer", () => {
-  test("is asked before any page, and one answer never closes the account", async ({ browser }) => {
+  test("one answer never closes the account: it says what closing means and asks", async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const id = uniqueId();
@@ -148,11 +148,11 @@ test.describe("18 or older, for an account with no answer", () => {
     );
     await localSql(`delete from private.age_confirmations where person_id = $1`, [person?.person]);
 
+    // With no org, the entry route goes on to creating one, and that form asks too.
     await page.goto("/");
-    await page.waitForURL((url) => url.pathname === "/auth/age");
-    await expectAccessible(page);
-    await page.locator("#age-question-under").check();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL("**/auth/organization");
+    await page.locator("#org-age-under").check();
+    await page.getByRole("button", { name: "Create organization" }).click();
     await page.waitForURL((url) => url.searchParams.get("under") === "1");
     await expect(page.getByRole("heading", { name: "Confirm your answer" })).toBeVisible();
     await expectAccessible(page);
@@ -181,7 +181,7 @@ test.describe("18 or older, for an account with no answer", () => {
     await context.close();
   });
 
-  test("answering 18 or older carries on where they were going", async ({ browser }) => {
+  test("is asked before any page, and answering 18 or older carries on", async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const id = uniqueId();
