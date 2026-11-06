@@ -71059,6 +71059,8 @@ export type Database = {
           p_org_slug: string;
           p_page_slug: string;
           p_profile_share_id?: string;
+          p_share_sections?: Database["app"]["Enums"]["profile_section"][];
+          p_work_phone?: string;
         };
         Returns: string;
       };
