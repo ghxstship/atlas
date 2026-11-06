@@ -95,8 +95,9 @@ select app.unlink_need_request(pg_temp.id('kids'));
 select throws_like(format($$select app.consolidate_allocations(array[%L, %L]::uuid[])$$, pg_temp.id('pool'), pg_temp.id('kids')), 'need_request_overlap:%', 'a selection of a pool and its child refuses need_request_overlap');
 
 -- 6. Zero sums ----------------------------------------------------------------------------------------------------------------------------
+insert into world select 'zero', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_truss', 1);
 select pg_temp.as_platform();
-insert into world select 'zero', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_truss', 0);
+update app.advance_allocations set quantity = 0 where id = pg_temp.id('zero');
 select pg_temp.as_user('carol');
 select throws_like(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('zero')), 'need_request_quantity:%', 'a selection summing to 0 refuses need_request_quantity, not a check violation');
 

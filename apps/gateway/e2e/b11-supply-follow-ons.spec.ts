@@ -1,5 +1,5 @@
 import { expect as baseExpect, test } from "./engine-test";
-import { demoVendorId, PEOPLE, suffix, vendorEngagement } from "./role-fixtures";
+import { demoVendorId, PEOPLE, PROJECT, suffix, vendorEngagement } from "./role-fixtures";
 import { signIn, sql } from "./support";
 
 /**
@@ -12,8 +12,6 @@ import { signIn, sql } from "./support";
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
 const expect = baseExpect.configure({ timeout: 20_000 });
-
-const PROJECT = "01920000-0000-7000-8000-000000001001";
 
 test("a vendor books a delivery and keeps its reference code on the row", async ({ page }) => {
   const engagement = await vendorEngagement();

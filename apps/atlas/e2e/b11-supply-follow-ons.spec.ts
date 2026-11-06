@@ -14,7 +14,7 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
 const expect = baseExpect.configure({ timeout: 30_000 });
 
-const PROJECT_KEY = "NWL";
+const PROJECT_KEY = "NWS";
 
 async function open(page: Page, path: string) {
   await page.goto(path);
