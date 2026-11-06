@@ -47,7 +47,8 @@
         "riders": "Riders",
         "reconciliation": "Reconciliation",
         "crew": "Crew Roster",
-        "allocations": "Allocations"
+        "allocations": "Allocations",
+        "progress": "Progress"
       },
       "places": {
         "venues": "Venues",

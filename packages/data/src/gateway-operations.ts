@@ -471,3 +471,61 @@ export async function claimTokenSubmissions(
   const row = data[0];
   return ok({ advance: row?.claimed_advance ?? 0, documents: row?.claimed_documents ?? 0 });
 }
+
+// Advance tracks (R11, migration 6223) ----------------------------------------------------------
+
+/** One of the caller's recipients' tracks, as Gateway reads it: no reviewer names (Section 8.7). */
+export interface ExternalTrackProgress {
+  readonly recipientId: string;
+  readonly packetId: string;
+  readonly track: string;
+  readonly sectionsTotal: number;
+  readonly sectionsDone: number;
+  /** Not Started, In Progress, Ready for Sign-off, Signed Off or Reopened. */
+  readonly state: string;
+  readonly signedOffAt: string | null;
+}
+
+/** The tracks of the caller's recipients on the given packets (api_external.advance_track_progress). */
+export async function listMyTrackProgress(
+  db: XosClient,
+  packetIds: readonly string[],
+): Promise<Result<ExternalTrackProgress[]>> {
+  if (packetIds.length === 0) return ok([]);
+  const { data, error } = await external(db)
+    .from("advance_track_progress")
+    .select(
+      "advance_recipient_id, advance_packet_id, track, sections_total, sections_done, track_state, signed_off_at",
+    )
+    .in("advance_packet_id", [...packetIds]);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      recipientId: String(r.advance_recipient_id),
+      packetId: String(r.advance_packet_id),
+      track: r.track ?? "General",
+      sectionsTotal: r.sections_total ?? 0,
+      sectionsDone: r.sections_done ?? 0,
+      state: r.track_state ?? "Not Started",
+      signedOffAt: r.signed_off_at,
+    })),
+  );
+}
+
+/** The track of each of the caller's sections (api_external.advance_sections.track, 6223). */
+export async function listSectionTracks(
+  db: XosClient,
+  sectionIds: readonly string[],
+): Promise<Result<Map<string, string>>> {
+  const tracks = new Map<string, string>();
+  if (sectionIds.length === 0) return ok(tracks);
+  const { data, error } = await external(db)
+    .from("advance_sections")
+    .select("id, track")
+    .in("id", [...sectionIds]);
+  if (error) return fail(toDataError(error));
+  for (const r of data ?? []) {
+    if (r.id) tracks.set(r.id, r.track ?? "General");
+  }
+  return ok(tracks);
+}

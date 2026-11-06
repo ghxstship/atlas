@@ -62,8 +62,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
-    // availability.requested (6123).
-    expect(registry.kinds).toHaveLength(74);
+    // availability.requested (6123), and R11's seven advancing reminders and notices (6221, 6222).
+    expect(registry.kinds).toHaveLength(81);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

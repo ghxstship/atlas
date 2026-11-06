@@ -27,6 +27,13 @@ const KINDS: Readonly<Record<string, string>> = {
   "credential_photo.requested": "updates.kinds.badgePhotoRequested",
   // P8 (6123): an org asks for the person's availability; it links to /profile#availability-requests.
   "availability.requested": "updates.kinds.availabilityRequested",
+  // Advancing notices (R11, migrations 6221 and 6222).
+  "advance_packet.reminder": "fyi.kinds.advanceReminder",
+  "advance_submission.returned": "fyi.kinds.advanceReturned",
+  "submittal.returned": "fyi.kinds.submittalReturned",
+  "roster_entry.removed": "fyi.kinds.rosterRemoved",
+  "roster_entry.facts_requested": "fyi.kinds.rosterFactsRequested",
+  "credential.revoked": "fyi.kinds.credentialRevoked",
 };
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin, with an optional section. */
@@ -66,6 +73,8 @@ export async function ForYourInformation({
       kind: n.args["kind"] ?? "other",
       actorName: n.args["actorName"] ?? "",
       projectName: n.args["projectName"] ?? "",
+      partyName: n.args["partyName"] ?? "",
+      reminder: n.args["reminder"] ?? "other",
     };
     const text = key
       ? t(`gateway.home.${key}`, values)

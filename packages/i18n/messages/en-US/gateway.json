@@ -376,7 +376,20 @@
       "rosterLink": "Open the Crew tab",
       "noGuestList": "Guest lists are not part of a contractor's or sponsor's advance.",
       "guestsUsed": "{n} places on the guest list, plus-ones included.",
-      "guestsCap": "{n} of {cap} places used, plus-ones included."
+      "guestsCap": "{n} of {cap} places used, plus-ones included.",
+      "tracks": {
+        "label": "{track} track",
+        "states": {
+          "notStarted": "Not started",
+          "inProgress": "In progress",
+          "readyForSignOff": "Ready for sign-off",
+          "signedOff": "Signed off",
+          "reopened": "Reopened"
+        },
+        "signedOffOn": "Signed off {date}",
+        "progress": "{done} of {total} sections done",
+        "summary": "Tracks"
+      }
     },
     "compliance": {
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
@@ -1297,6 +1310,15 @@
       "orgSupplied": "Supplied by the organization",
       "sponsorSupplied": "Supplied by you"
     },
+    "advanceTrack": {
+      "finance": "Finance",
+      "technical": "Technical",
+      "hospitality": "Hospitality",
+      "catering": "Catering",
+      "travel": "Travel",
+      "logistics": "Logistics",
+      "general": "General"
+    },
     "vehicleType": {
       "sedan": "Sedan",
       "suv": "SUV",
@@ -1630,6 +1652,12 @@
         "shiftAssigned": "New shift: {title}",
         "shiftChanged": "Shift changed: {title}",
         "messageReceived": "New message",
+        "advanceReminder": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
+        "advanceReturned": "Your answer to {title} was returned",
+        "submittalReturned": "Submittal returned: {title}",
+        "rosterRemoved": "You were taken off the {partyName} crew for {projectName}",
+        "rosterFactsRequested": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
+        "credentialRevoked": "Your {title} credential for {projectName} was revoked",
         "other": "{title}",
         "untitled": "New update"
       }
@@ -2394,7 +2422,8 @@
       "heading": {
         "approve": "Approve {title}?",
         "reject": "Reject {title}?",
-        "accept": "Accept {title}?"
+        "accept": "Accept {title}?",
+        "rosterAccept": "Accept your place on this crew?"
       },
       "untitled": "this item",
       "org": "From {org}. Nothing happens until you confirm.",

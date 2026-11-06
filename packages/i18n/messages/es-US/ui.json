@@ -595,7 +595,12 @@
     }
   },
   "heatmap": {
-    "cell": "{row}, {column}: {value}"
+    "cell": "{row}, {column}: {value}",
+    "stateCell": "{row}, {col}: {state}",
+    "detail": "{row}, {col}: {state}. {detail}",
+    "none": "{row}, {col}: no se pide",
+    "select": "Seleccionar {row}",
+    "legend": "Qué significa cada estado"
   },
   "recordStates": {
     "proposed": "Propuesto",

@@ -3,6 +3,7 @@
 import * as enums from "@xos/data/enums";
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
+import type { Database } from "@xos/data/database.types";
 import { emitWorkflow } from "@xos/data/workflow-signal";
 import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
@@ -59,6 +60,40 @@ const SectionChoicesEditor = dynamic(() =>
 );
 
 const SECTION_KINDS = enums.advanceSectionKind;
+
+/**
+ * The tracks a section can be grouped under, with the catalog segment of each (R11). Keyed by the generated enum, so a
+ * track a migration adds fails the typecheck here; @xos/data/advancing stays out of this client module.
+ */
+const TRACK_NAMES: Readonly<Record<Database["app"]["Enums"]["advance_track"], string>> = {
+  Finance: "finance",
+  Technical: "technical",
+  Hospitality: "hospitality",
+  Catering: "catering",
+  Travel: "travel",
+  Logistics: "logistics",
+  General: "general",
+};
+
+/** The track a section is on, as a Select; it stays editable after the packet is sent (R11). */
+function TrackSelect({ id, defaultValue }: { id: string; defaultValue: string }) {
+  const t = useCopy("advancing.tracks");
+  const [track, setTrack] = useState(defaultValue);
+  return (
+    <Select
+      id={id}
+      name="track"
+      label={t("label")}
+      help={t("help")}
+      value={track}
+      options={Object.entries(TRACK_NAMES).map(([value, name]) => ({
+        value,
+        label: t(`names.${name}`),
+      }))}
+      onChange={(e) => setTrack(e.target.value)}
+    />
+  );
+}
 
 /** The catalog segment of a section or window kind: Item Request is itemRequest. */
 function kindKey(value: string): string {
@@ -467,6 +502,8 @@ export interface SectionItem {
   readonly prompt: string | null;
   /** R9: the kind and its configuration; Text when left out. */
   readonly kind?: string;
+  /** R11: the track the section is grouped under; General when left out. */
+  readonly track?: string;
   readonly windowKind?: string | null;
   readonly maxLines?: number | null;
   readonly perPerson?: boolean;
@@ -500,6 +537,18 @@ function SectionKindSummary({ section }: { section: SectionItem }) {
         {t(`kinds.${kindKey(kind)}`)}
       </span>
       {parts.join(" · ")}
+    </span>
+  );
+}
+
+/** The track a section is on, as a tag beside its kind (R11). */
+function SectionTrackTag({ track }: { track: string }) {
+  const t = useCopy("advancing.tracks");
+  return (
+    <span className="flex flex-wrap items-center gap-4 text-text-12 text-text-secondary">
+      <span className="rounded-control border border-border-subtle px-8 py-2 text-label-12">
+        {t(`names.${kindKey(track)}`)}
+      </span>
     </span>
   );
 }
@@ -544,6 +593,7 @@ function SectionEdit({
         label={t("prompt")}
         defaultValue={section.prompt ?? ""}
       />
+      <TrackSelect id={`${id}-track`} defaultValue={section.track ?? "General"} />
       <div className="flex gap-8">
         <Button type="submit" size="sm" variant="primary" loading={pending}>
           {common("save")}
@@ -606,6 +656,7 @@ export function SectionList({
                       <span className="text-text-13 text-text-secondary">{s.prompt}</span>
                     ) : null}
                     <SectionKindSummary section={s} />
+                    <SectionTrackTag track={s.track ?? "General"} />
                     {s.kind === "Item Request" || s.kind === "Credential Request" ? (
                       <SectionChoicesEditor
                         org={org}
@@ -747,6 +798,7 @@ function AddSectionForm({
         options={SECTION_KINDS.map((k) => ({ value: k, label: t(`kind.kinds.${kindKey(k)}`) }))}
         onChange={(e) => setKind(e.target.value)}
       />
+      <TrackSelect id={`${id}-track`} defaultValue="General" />
       {kind !== "Text" ? (
         <SectionKindFields
           kind={kind}

@@ -189,6 +189,48 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     quantity: "2",
     cause: "engagement_ended",
   },
+  // R11 advancing reminders and notices (6221, 6222), as their emitters store them.
+  "advance_packet.reminder": {
+    title: "Production advance",
+    reminder: "overdue",
+    due: "set",
+    dueAt: "2027-03-01T17:00:00Z",
+    outstanding: "2",
+    orgName: "Northwind Live",
+    projectName: "Northwind Summer Series",
+  },
+  "advance_submission.returned": {
+    title: "Power requirements",
+    packetTitle: "Production advance",
+    reason: "Add the amperage per circuit.",
+  },
+  "submittal.returned": {
+    title: "Rigging plot",
+    reason: "Show the load per point.",
+    projectName: "Northwind Summer Series",
+  },
+  "roster_entry.removed": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  "roster_entry.facts_requested": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    kind: "uniform",
+    missing: "uniform",
+  },
+  "roster_entry.share_revoked": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    projectKey: "NWS",
+  },
+  "credential.revoked": { title: "All Access", projectName: "Northwind Summer Series" },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   // P8 (6123): the poll's project and days.
@@ -447,6 +489,22 @@ describe("Inbox item copy", () => {
     expect(committed.detail).toBe(
       "Crew import terminó: 12 filas escritas, 1 rechazada y 0 omitidas.",
     );
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: { projectKey: "NWS" },
+      }),
+    ).toBe("/demo/p/NWS/advancing?section=crew&peek=x1");
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: {},
+      }),
+    ).toBeNull();
     expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
       "/demo/import",
     );

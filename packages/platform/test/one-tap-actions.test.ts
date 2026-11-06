@@ -202,6 +202,8 @@ describe("push categories of offers and messages", () => {
     expect(pushCategoryFor("shift.assigned", { shiftState: "Accepted" })).toBeNull();
     expect(pushCategoryFor("shift.assigned", {})).toBeNull();
     expect(pushCategoryFor("offer.sent", {})).toBe(ENGAGEMENT_OFFER_CATEGORY);
+    // R11: a roster invitation is accepted or declined from the push, as an offer is.
+    expect(pushCategoryFor("roster_entry.invited", {})).toBe(ENGAGEMENT_OFFER_CATEGORY);
     expect(pushCategoryFor("message.received", {})).toBe(MESSAGE_REPLY_CATEGORY);
     expect(pushCategoryFor("approval.requested", {})).toBe("approval_request");
     expect(pushCategoryFor("comment.created", {})).toBeNull();

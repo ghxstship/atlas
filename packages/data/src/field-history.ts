@@ -12,13 +12,15 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * The tables whose rows have a field history: private.field_history_subjects (migrations 1452,
- * 2100, 5241 and 5950). Asking for any other table is refused, so pages render the history only for these.
+ * 2100, 5241, 5950 and R11's 6220). Asking for any other table is refused, so pages render the history only for these.
  */
 export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.accommodation_assignments",
   "app.accommodation_blocks",
   "app.accounting_periods",
   "app.advance_packets",
+  "app.advance_recipients",
+  "app.advance_sections",
   "app.advance_submissions",
   "app.agreements",
   "app.applications",

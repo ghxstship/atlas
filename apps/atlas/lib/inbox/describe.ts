@@ -65,6 +65,14 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content.removed": ["subject", "ruleReference", "statement"],
   // P8 (6123): the project and the days an availability poll asks about.
   "availability.requested": ["projectName", "dayCount", "firstDay", "lastDay"],
+  // Advancing reminders and notices (R11, 6221 and 6222).
+  "advance_packet.reminder": ["reminder", "due", "outstanding", "orgName", "projectName"],
+  "advance_submission.returned": ["packetTitle"],
+  "submittal.returned": ["projectName"],
+  "roster_entry.removed": ["partyName", "projectName"],
+  "roster_entry.facts_requested": ["kind", "partyName", "projectName"],
+  "roster_entry.share_revoked": ["personName", "partyName", "projectName"],
+  "credential.revoked": ["projectName"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -134,6 +142,13 @@ export function inboxTarget(
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
       : `/${org}/import`;
   }
+  // A revoked share (R11, 6222) opens the person on the project's crew roster.
+  if (item.kind === "roster_entry.share_revoked") {
+    const key = item.args?.["projectKey"];
+    return key && item.subjectId
+      ? `/${org}/p/${encodeURIComponent(key)}/advancing?section=crew&peek=${encodeURIComponent(item.subjectId)}`
+      : null;
+  }
   const row = item.subjectTable ? ROW_TARGETS[item.subjectTable] : undefined;
   if (row) {
     return item.subjectId
@@ -180,6 +195,10 @@ function values(
   const waitingSince = date(a["waitingSince"]);
   if (waitingSince) out["waitingSince"] = waitingSince;
   else if (item.kind === "approval.reminder") return null;
+  // An advance reminder's due date (R11) is an instant too; without one the copy reads its other branch.
+  const dueAt = date(a["dueAt"]);
+  if (dueAt) out["dueAt"] = dueAt;
+  else delete out["dueAt"];
   for (const key of [
     "days",
     "count",
@@ -191,6 +210,7 @@ function values(
     "freeRoomNights",
     "passengerCount",
     "dayCount",
+    "outstanding",
   ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }

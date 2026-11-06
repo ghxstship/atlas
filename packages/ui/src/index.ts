@@ -307,6 +307,7 @@ export {
   RunOfShowLive,
   CoordinateMatrix,
   AccessGridMatrix,
+  StatusHeatmap,
   resolveStep,
   type GateReadinessPanelProps,
   type ProvenanceBadgeProps,
@@ -318,6 +319,11 @@ export {
   type RunOfShowLiveProps,
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
+  type StatusHeatmapProps,
+  type StatusHeatmapRow,
+  type StatusHeatmapCol,
+  type StatusHeatmapCell,
+  type StatusHeatmapLegendItem,
 } from "./XOS/XOS.tsx";
 export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 

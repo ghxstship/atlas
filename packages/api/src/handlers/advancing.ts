@@ -18,6 +18,7 @@ import {
 import { badRequest } from "../problem.ts";
 import { requirePerson } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { advanceTrackHandlers } from "./parts/advance-tracks.ts";
 import { allocationHandlers } from "./parts/allocations.ts";
 import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
@@ -55,6 +56,8 @@ export const handlers = defineHandlers("Advancing", {
   ...rosterEntryHandlers,
   // Advance allocations (R7): see ./parts/allocations.ts.
   ...allocationHandlers,
+  // Advance tracks and their sign-off (R11): see ./parts/advance-tracks.ts.
+  ...advanceTrackHandlers,
 
   "advancePackets.send": async ({ params }, context) => {
     await packets.read(context, params.id, ["id"]);

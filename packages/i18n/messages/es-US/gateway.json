@@ -376,7 +376,20 @@
       "rosterLink": "Abrir la pestaña Personal",
       "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
       "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
-      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos."
+      "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos.",
+      "tracks": {
+        "label": "Área {track}",
+        "states": {
+          "notStarted": "Sin empezar",
+          "inProgress": "En curso",
+          "readyForSignOff": "Listo para aprobar",
+          "signedOff": "Aprobado",
+          "reopened": "Reabierto"
+        },
+        "signedOffOn": "Aprobado el {date}",
+        "progress": "{done} de {total} secciones listas",
+        "summary": "Áreas"
+      }
     },
     "compliance": {
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
@@ -1297,6 +1310,15 @@
       "orgSupplied": "Enviado por la organización",
       "sponsorSupplied": "Enviado por ti"
     },
+    "advanceTrack": {
+      "finance": "Finanzas",
+      "technical": "Técnica",
+      "hospitality": "Hospitalidad",
+      "catering": "Catering",
+      "travel": "Viajes",
+      "logistics": "Logística",
+      "general": "General"
+    },
     "vehicleType": {
       "sedan": "Sedán",
       "suv": "SUV",
@@ -1630,6 +1652,12 @@
         "shiftAssigned": "Nuevo turno: {title}",
         "shiftChanged": "Turno modificado: {title}",
         "messageReceived": "Mensaje nuevo",
+        "advanceReminder": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "advanceReturned": "Se devolvió tu respuesta a {title}",
+        "submittalReturned": "Entregable devuelto: {title}",
+        "rosterRemoved": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "rosterFactsRequested": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
         "untitled": "Novedad"
       }
@@ -2394,7 +2422,8 @@
       "heading": {
         "approve": "¿Aprobar {title}?",
         "reject": "¿Rechazar {title}?",
-        "accept": "¿Aceptar {title}?"
+        "accept": "¿Aceptar {title}?",
+        "rosterAccept": "¿Aceptas tu lugar en este equipo?"
       },
       "untitled": "este elemento",
       "org": "De {org}. No pasa nada hasta que confirmes.",
