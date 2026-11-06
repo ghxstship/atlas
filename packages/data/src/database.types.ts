@@ -52300,6 +52300,7 @@ export type Database = {
           basis: Database["app"]["Enums"]["sensitive_consent_basis"];
           captured_ip: unknown;
           category: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at: string;
           given_at: string;
           given_by: string;
           guest_list_entry_id: string | null;
@@ -52310,6 +52311,7 @@ export type Database = {
           org_id: string | null;
           person_id: string | null;
           surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at: string;
           withdrawn_at: string | null;
           withdrawn_by: string | null;
         };
@@ -52320,6 +52322,7 @@ export type Database = {
           basis: Database["app"]["Enums"]["sensitive_consent_basis"];
           captured_ip?: unknown;
           category: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at?: string;
           given_at?: string;
           given_by: string;
           guest_list_entry_id?: string | null;
@@ -52330,6 +52333,7 @@ export type Database = {
           org_id?: string | null;
           person_id?: string | null;
           surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at?: string;
           withdrawn_at?: string | null;
           withdrawn_by?: string | null;
         };
@@ -52339,6 +52343,7 @@ export type Database = {
           basis?: Database["app"]["Enums"]["sensitive_consent_basis"];
           captured_ip?: unknown;
           category?: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at?: string;
           given_at?: string;
           given_by?: string;
           guest_list_entry_id?: string | null;
@@ -52349,6 +52354,7 @@ export type Database = {
           org_id?: string | null;
           person_id?: string | null;
           surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at?: string;
           withdrawn_at?: string | null;
           withdrawn_by?: string | null;
         };
@@ -71714,6 +71720,7 @@ export type Database = {
       call_cue: { Args: { p_cue_id: string }; Returns: string };
       can_add_per_diems: { Args: { p_project_id: string }; Returns: boolean };
       can_export_org: { Args: { p_org_id: string }; Returns: boolean };
+      can_read_guest_care_needs: { Args: { p_project_id: string }; Returns: boolean };
       cancel_approval: {
         Args: { p_approval_instance_id: string; p_reason: string };
         Returns: string;
@@ -75490,6 +75497,7 @@ export type Database = {
         }[];
       };
       rooming_list: { Args: { p_project_id: string }; Returns: Json[] };
+      roster_meal_consent_stands: { Args: { p_roster_entry_id: string }; Returns: boolean };
       roster_project_fact_status: {
         Args: { p_engagement_id: string };
         Returns: {
