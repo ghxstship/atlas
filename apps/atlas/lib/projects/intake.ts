@@ -9,7 +9,6 @@ import {
   PROJECT_COPY_PARTS,
   type CopySourceProject,
   type ProjectCopyItem,
-  type ProjectCopyPart,
 } from "@xos/data/project-copy";
 import { listCustomFieldDefinitions } from "@xos/data/custom-fields";
 import { listTemplates } from "@xos/data/workflow";
