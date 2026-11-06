@@ -6,7 +6,7 @@ import { expectAccessible, reloadSettled, signIn, sql } from "./support";
  * Ratings of a person stay with the org that gave them (RRR-248, ADR 0158). A freelancer the demo org rated reads the rating
  * on their own profile. Nobody else does until they opt in, and then only a signed-in person who decides no hiring anywhere:
  * an Account Owner, who may place people on shifts, still sees nothing. Withdrawing takes effect on the next read. The rating
- * stays shown after the person disputes it, so a dispute hides nothing.
+ * stays shown after the person disputes it, so a dispute hides nothing, and an upheld dispute's decision outlives the rating.
  */
 test("a rated person opts in, withdraws at once and disputes a rating", async ({
   page,
@@ -112,11 +112,32 @@ test("a rated person opts in, withdraws at once and disputes a rating", async ({
   await expect(mine.getByText(comment)).toBeVisible();
   await expect(mine.getByRole("form", { name: "Dispute this rating" })).toHaveCount(0);
 
-  const [row] = await sql<{ dispute_state: string; details: string }>(
-    `select dispute_state, details from app.rating_disputes where disputant_person_id = $1`,
+  const [row] = await sql<{ id: string; dispute_state: string; dispute_details: string }>(
+    `select id, dispute_state, dispute_details from app.rating_disputes where disputant_person_id = $1`,
     [person],
   );
-  expect(row).toEqual({ dispute_state: "Open", details: `I was on time ${tag}.` });
+  expect(row?.dispute_state).toBe("Open");
+  expect(row?.dispute_details).toBe(`I was on time ${tag}.`);
+
+  // Upheld, the rating is gone from every read, and the person still sees what became of their dispute. The operator's own
+  // journey is in the console suite; this one writes the same decision straight to the database.
+  const reasons = `The call sheet shows you were on time ${tag}.`;
+  await sql(
+    `select private.transition_lifecycle('rating_dispute', 'app.rating_disputes', 'dispute_state',
+       'app.rating_dispute_state_transitions', 'rating_dispute_id', $1::uuid, 'Open', 'Upheld', 'Journey fixture.')`,
+    [row?.id],
+  );
+  await sql(
+    `update app.rating_disputes set decision_ground = 'False Statement', decision_statement = $1, decided_by = $2,
+       decided_at = now() where id = $3`,
+    [reasons, PEOPLE.owner, row?.id],
+  );
+  await reloadSettled(page);
+  await expect(page.getByText(comment)).toHaveCount(0);
+  const removed = page.getByRole("listitem").filter({ hasText: "was removed after your dispute" });
+  await expect(removed.getByText("Your dispute: Upheld.", { exact: false })).toBeVisible();
+  await expect(removed.getByText(`Decision: ${reasons}`, { exact: true })).toBeVisible();
+  await expect(removed.getByRole("form", { name: "Dispute this rating" })).toHaveCount(0);
 
   await peer.close();
   await hirer.close();
