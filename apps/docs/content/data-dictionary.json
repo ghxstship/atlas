@@ -16421,14 +16421,14 @@
           "type": "bigint"
         },
         {
-          "comment": "True when any line's forecast is withheld from the reader.",
+          "comment": "True when the reader cannot read the project's purchase orders, expenses or change orders: every forecast figure is then NULL, even with no lines.",
           "name": "is_withheld",
           "nullable": true,
           "references": null,
           "type": "boolean"
         }
       ],
-      "comment": "Forecast totals of a live budget (G-205): NULL-aware sums of app.budget_line_forecasts, plus the approved change order lines that name no budget line, counted as both current budget and ETC so the total EFC reconciles with app.budget_revised_totals (0480). Withheld when any line is.",
+      "comment": "Forecast totals of a live budget (G-205): NULL-aware sums of app.budget_line_forecasts, plus the approved change order lines that name no budget line, counted as both current budget and ETC so the total EFC reconciles with app.budget_revised_totals (0480). Withheld when the reader cannot read the project's purchase orders, expenses or change orders.",
       "kind": "view",
       "name": "budget_forecast_totals",
       "partitioned": false,

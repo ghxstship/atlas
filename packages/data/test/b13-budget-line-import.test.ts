@@ -3,6 +3,7 @@ import {
   markInFileDuplicates,
   runImportJobs,
   validateRow,
+  writeWorkbook,
   type ImportDestination,
   type ImportJobKind,
   type ImportStore,
@@ -145,7 +146,10 @@ describe("validateRow budget_lines", () => {
 });
 
 /** A budget line import through validate and commit, over memory. Line 2 exists, with a declared tag. */
-function memoryImport(csv: string, headers: readonly (keyof typeof HEADER_FIELD)[]) {
+function memoryImport(
+  upload: string | Uint8Array,
+  headers: readonly (keyof typeof HEADER_FIELD)[],
+) {
   const writes: Record<string, unknown>[] = [];
   const queue: { kind: ImportJobKind; jobId: string; subjectId: string }[] = [
     { kind: "import.validate", jobId: "q1", subjectId: "j1" },
@@ -155,9 +159,9 @@ function memoryImport(csv: string, headers: readonly (keyof typeof HEADER_FIELD)
     id: "j1",
     orgId: "o1",
     targetCode: "budget_lines",
-    source: "CSV",
-    path: "p/u.csv",
-    filename: "lines.csv",
+    source: typeof upload === "string" ? "CSV" : "XLSX",
+    path: typeof upload === "string" ? "p/u.csv" : "p/u.xlsx",
+    filename: typeof upload === "string" ? "lines.csv" : "lines.xlsx",
     status: "Mapped",
     profileId: null,
     sheetName: null,
@@ -191,7 +195,7 @@ function memoryImport(csv: string, headers: readonly (keyof typeof HEADER_FIELD)
     job: async () => ({ ...job }),
     batchJob: async () => "j1",
     scanStatus: async () => "Clean",
-    download: async () => new TextEncoder().encode(csv),
+    download: async () => (typeof upload === "string" ? new TextEncoder().encode(upload) : upload),
     targetFields: async () => FIELDS,
     profileMapping: async () => new Map(),
     setStatus: async (_id: string, status: string) => {
@@ -242,6 +246,40 @@ const HEADER_FIELD = {
 } as const;
 
 describe("committing budget lines", () => {
+  it("reads an .xlsx the same way as a .csv", async () => {
+    const run = memoryImport(
+      await writeWorkbook({
+        title: "Lines",
+        sheets: [
+          {
+            name: "Lines",
+            rows: [
+              ["number", "description", "urid", "quantity", "price"],
+              ["2", "New words", "5000.04.02", "4", "1250.50"],
+              ["", "Added", "5000.04.02", "", ""],
+            ],
+          },
+        ],
+      }),
+      ["number", "description", "urid", "quantity", "price"],
+    );
+    await run.validateAndCommit();
+    expect(run.writes).toEqual([
+      expect.objectContaining({
+        op: "update",
+        id: "line2",
+        quantity: 4,
+        unit_price_minor: 125050,
+      }),
+      expect.objectContaining({
+        op: "create",
+        description: "Added",
+        quantity: 1,
+        unit_price_minor: null,
+      }),
+    ]);
+  }, 30_000);
+
   it("updates a numbered line with only the cells the sheet supplied", async () => {
     const run = memoryImport("number,description,urid\n2,New words,5000.04.02\n", [
       "number",
