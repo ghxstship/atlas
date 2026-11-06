@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(26);
+select plan(35);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -121,6 +121,33 @@ select is(pg_temp.sources('paul'), null, 'a partner org reaching the project see
 select ok(not has_table_privilege('anon', 'app.project_outside_access', 'select'), 'anon cannot select the view');
 select ok(not has_table_privilege('xos_backup', 'app.project_outside_access', 'select'), 'the backup login cannot select the view');
 select ok(not has_table_privilege('xos_backup', 'app.stakeholder_pack_recipient_activity', 'select'), 'nor the pack activity view');
+
+-- Words a source does not have are the screen's, in the reader's language ------------------------------------------------
+select is((pg_temp.row_of('Display link', pg_temp.k('display'))).label, null, 'a live link with no note answers no label');
+select is((pg_temp.row_of('Roster invitation', pg_temp.k('roster'))).label, null, 'nor does a roster invitation');
+
+-- A row says whether its source's RPC would accept the reader ---------------------------------------------------------------
+create function pg_temp.manage(p_user text, p_source text, p_id uuid) returns boolean
+language plpgsql as $$
+declare v boolean;
+begin
+  perform pg_temp.as_user(p_user);
+  select a.viewer_can_manage into v from app.project_outside_access a where a.project_id = pg_temp.id('prj_a') and a.source = p_source and a.source_id = p_id;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+select pg_temp.as_user('alice');
+insert into k select 'file2', s.share_link_id, s.token from app.create_share_link(pg_temp.k('att'), now() + interval '30 days') s;
+select pg_temp.as_platform();
+select is(pg_temp.manage('carol', 'File link', pg_temp.k('file')), true, 'the person who made a file link may revoke it');
+select is(pg_temp.manage('alice', 'File link', pg_temp.k('file2')), true, 'as may a holder of data.export.confidential');
+select is(pg_temp.manage('carol', 'File link', pg_temp.k('file2')), false, 'a settings holder without it may not, though they read the row');
+select pg_temp.as_user('carol');
+select throws_ok(format('select app.revoke_share_link(%L)', pg_temp.k('file2')), '42501', null, 'and the RPC agrees');
+select pg_temp.as_platform();
+select is(pg_temp.manage('carol', 'Intake link', pg_temp.k('intake')), true, 'a holder of the engagement write may manage an intake link');
+select is(pg_temp.manage('alice', 'Engagement', pg_temp.id('eng_ivy_a')), false, 'an engagement is managed on the engagement');
+select is(pg_temp.manage('alice', 'Roster invitation', pg_temp.k('roster')), false, 'as is a roster invitation');
 
 -- Revoking from a source shows at once ----------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

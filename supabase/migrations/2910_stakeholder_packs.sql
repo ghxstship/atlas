@@ -406,6 +406,41 @@ $$;
 comment on function private.pack_file_version(uuid) is 'The version of a file a stakeholder pack serves: its highest version that is not deleted, when that version scanned clean; otherwise null, so a newer Pending or Infected version makes the item unavailable.';
 revoke all on function private.pack_file_version(uuid) from public, anon, authenticated;
 
+create or replace function private.pack_file_project_id(p_attachment_id uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (private.subject_row(a.subject_table, a.subject_id) ->> 'project_id')::uuid
+  from app.attachments a
+  where a.id = p_attachment_id and private.is_member(a.org_id) and (private.pack_file_version(a.id)).id is not null;
+$$;
+
+comment on function private.pack_file_project_id(uuid) is 'Project of a file a stakeholder pack could serve: the project of the attachment''s subject, for a member of its org, when its current version scanned clean; otherwise null. Read by the view app.stakeholder_pack_file_choices on attachments the caller''s row level security already returns.';
+revoke all on function private.pack_file_project_id(uuid) from public, anon;
+grant execute on function private.pack_file_project_id(uuid) to authenticated, service_role;
+
+-- The editor's list of files. A security invoker view, so the attachment's own read policy decides which files are
+-- offered, on the project itself or on any of its records. The guard below checks the file again when it is added. The
+-- project is looked up per row, so the data function always filters by org and project.
+create view app.stakeholder_pack_file_choices with (security_invoker = true) as
+select private.pack_file_project_id(a.id) as project_id, a.org_id, a.id as attachment_id, a.title
+from app.attachments a
+where a.deleted_at is null and a.classification in ('Public', 'Internal')
+  and private.pack_file_project_id(a.id) is not null;
+
+call private.describe('app.stakeholder_pack_file_choices', 'Files a stakeholder pack can offer (ADR 0141): Public or Internal, clean in their current version, on a project or one of its records, and readable by the caller under row level security.', array[
+  'project_id', 'Project of the file''s subject.',
+  'org_id', 'Org holding the file.',
+  'attachment_id', 'The file.',
+  'title', 'The file''s display name.'
+]);
+revoke all on app.stakeholder_pack_file_choices from public, anon;
+grant select on app.stakeholder_pack_file_choices to authenticated, service_role;
+revoke select on app.stakeholder_pack_file_choices from xos_backup;
+
 -- An item is inserted by the caller under row level security, so for a file the attachment's read policy decides
 -- whether the caller may see it (private.can_read_attachment runs as the caller there, as for 1380's share links).
 -- This guard runs as its definer and checks what the policy cannot: the pack, the read-only org, the 30-item limit;

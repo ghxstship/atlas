@@ -79,6 +79,23 @@ $$;
 comment on function private.stakeholder_pack_grant(text[], uuid) is 'Hash of the first of up to 8 device grants (newest first, as the grant cookie keeps them) that belongs to the recipient and has not expired; null when none does.';
 revoke all on function private.stakeholder_pack_grant(text[], uuid) from public, anon, authenticated;
 
+-- Which of the grants a device presented no longer open anything, so its cookie can drop them. They are the caller's own.
+create or replace function private.dead_stakeholder_pack_grants(p_grants text[])
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(x.value), '[]'::jsonb)
+  from unnest((coalesce(p_grants, '{}'::text[]))[1:8]) as x (value)
+  where not exists (select 1 from private.stakeholder_pack_grants g
+    where g.grant_hash = private.share_token_hash(x.value) and g.expires_at > now());
+$$;
+
+comment on function private.dead_stakeholder_pack_grants(text[]) is 'Those of up to 8 grants a device presented that no longer open a pack: swapped, deleted or expired. Echoes only what the caller sent, so its grant cookie can drop them rather than let them push out a live one.';
+revoke all on function private.dead_stakeholder_pack_grants(text[]) from public, anon, authenticated;
+
 -- Why a link no longer opens the pack, or null. A superseded link answers pack_link_invalid without counting a failure.
 create or replace function private.stakeholder_pack_state_reason(
   p_link private.stakeholder_pack_links,
@@ -298,18 +315,22 @@ begin
       perform private.note_pack_link_failure(v_subjects.o_hop, v_subjects.o_subject);
       return private.live_link_refusal(case when v_recipient.failed_attempts + 1 >= 5 then 'pack_locked' else 'pack_access_code' end);
     end if;
-  else
-    -- A grant the device earned on an earlier email opens this one; it is swapped for a fresh grant.
-    delete from private.stakeholder_pack_grants g where g.grant_hash = v_old_grant;
   end if;
+
+  -- A grant the device earned on an earlier email opens this one; it is swapped for a fresh grant. A correct code replaces
+  -- this recipient's grants the device presented in the same way.
+  delete from private.stakeholder_pack_grants g
+  where g.recipient_id = v_recipient.id
+    and g.grant_hash in (select private.share_token_hash(x.value) from unnest((coalesce(p_grants, '{}'::text[]))[1:8]) as x (value));
 
   select * into v_issued from private.issue_stakeholder_pack_grant(v_pack.org_id, v_recipient.id, v_link.expires_at, v_pack.expires_at);
   perform private.log_stakeholder_pack_event(v_pack.id, v_recipient.id, 'Opened');
-  return jsonb_build_object('status', 'ok', 'grant', v_issued.o_grant, 'grant_expires_at', v_issued.o_expires_at);
+  return jsonb_build_object('status', 'ok', 'grant', v_issued.o_grant, 'grant_expires_at', v_issued.o_expires_at,
+    'dead_grants', private.dead_stakeholder_pack_grants(p_grants));
 end;
 $$;
 
-comment on function api_public.open_stakeholder_pack(text, text, text, text[]) is 'Opens a stakeholder pack from an emailed link without an account (ADR 0141; Section 7.5 invariant 8). Refuses a read-only (GET) call first; then, unless a valid device grant of the same recipient comes with it, the address failure limits (20 per relayed address p_client_address in 10 minutes, 2000 per reaching address in 15; pack_link_rate_limited); then locks the link and the recipient and checks them: unknown (pack_link_invalid, counted), pack_revoked, pack_recipient_revoked, superseded (pack_link_invalid, not counted), pack_link_expired, locked after 5 wrong codes (pack_locked), pack_access_code_required, or a wrong code (pack_access_code, counted). A correct code, or with no code one of up to 8 grants in p_grants that is the recipient''s, earns a fresh device grant valid until the earliest of 7 days, the link''s expiry and the pack''s (the old grant is deleted), and logs Opened. Answers JSON: status refused with the reason, or status ok with the grant and its expiry.';
+comment on function api_public.open_stakeholder_pack(text, text, text, text[]) is 'Opens a stakeholder pack from an emailed link without an account (ADR 0141; Section 7.5 invariant 8). Refuses a read-only (GET) call first; then, unless a valid device grant of the same recipient comes with it, the address failure limits (20 per relayed address p_client_address in 10 minutes, 2000 per reaching address in 15; pack_link_rate_limited); then locks the link and the recipient and checks them: unknown (pack_link_invalid, counted), pack_revoked, pack_recipient_revoked, superseded (pack_link_invalid, not counted), pack_link_expired, locked after 5 wrong codes (pack_locked), pack_access_code_required, or a wrong code (pack_access_code, counted). A correct code, or with no code one of up to 8 grants in p_grants that is the recipient''s, earns a fresh device grant valid until the earliest of 7 days, the link''s expiry and the pack''s (the recipient''s grants the device presented are deleted), and logs Opened. Answers JSON: status refused with the reason, or status ok with the grant, its expiry and dead_grants, those the device presented that no longer open anything.';
 revoke all on function api_public.open_stakeholder_pack(text, text, text, text[]) from public;
 grant execute on function api_public.open_stakeholder_pack(text, text, text, text[]) to anon, authenticated, service_role;
 

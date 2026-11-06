@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(36);
+select plan(41);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -169,6 +169,44 @@ select pg_temp.as_platform();
 select is((select count(*)::int from private.trash_excluded_tables
   where table_name in ('stakeholder_packs', 'stakeholder_pack_items', 'stakeholder_pack_recipients', 'stakeholder_pack_events')), 4,
   'packs, items, recipients and events stay out of Trash (ADR 0110)');
+
+-- The editor's list of files ---------------------------------------------------------------------------------------------
+select pg_temp.as_user('dave');
+with x as (insert into app.advance_packets (project_id, title) values (pg_temp.id('prj_a'), 'Vendor Advance') returning id)
+  insert into k select 'packet', id, null from x;
+select pg_temp.as_platform();
+create function pg_temp.record_file(p_user text, p_name text) returns void
+language plpgsql as $$
+declare
+  v_version uuid;
+  v_object text;
+begin
+  perform pg_temp.as_user(p_user);
+  select u.attachment_version_id, u.object_name into v_version, v_object
+  from app.begin_attachment_upload('app.advance_packets', pg_temp.k('packet'), p_name, 'application/pdf', 1200) u;
+  insert into storage.objects (bucket_id, name, metadata) values ('attachments', v_object, '{"size": 1200}');
+  perform app.complete_attachment_upload(v_version, repeat('ab', 32));
+  perform pg_temp.as_platform();
+  perform app.record_attachment_scan(v_version, true);
+  insert into k select p_name, v.attachment_id, v_object from app.attachment_versions v where v.id = v_version;
+end $$;
+select pg_temp.record_file('carol', 'packet-plan.pdf');
+create function pg_temp.offered(p_user text, p_project uuid) returns uuid[]
+language plpgsql as $$
+declare v uuid[];
+begin
+  perform pg_temp.as_user(p_user);
+  select coalesce(array_agg(c.attachment_id), '{}') into v from app.stakeholder_pack_file_choices c where c.project_id = p_project;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+select ok(pg_temp.k('site-map.pdf') = any (pg_temp.offered('carol', pg_temp.id('prj_a'))), 'the editor offers a file of the project');
+select ok(pg_temp.k('packet-plan.pdf') = any (pg_temp.offered('carol', pg_temp.id('prj_a'))), 'and a file on one of its records');
+select ok(not (pg_temp.k('gala.pdf') = any (pg_temp.offered('carol', pg_temp.id('prj_a')))), 'but not a file of another project');
+select pg_temp.as_platform();
+update app.attachments set classification = 'Confidential' where id = pg_temp.k('packet-plan.pdf');
+select ok(not (pg_temp.k('packet-plan.pdf') = any (pg_temp.offered('carol', pg_temp.id('prj_a')))), 'nor a Confidential one');
+select is(pg_temp.offered('xavier', pg_temp.id('prj_a')), '{}'::uuid[], 'and nothing to someone of another org');
 
 select * from finish();
 rollback;

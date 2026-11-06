@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(51);
+select plan(54);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -73,6 +73,7 @@ begin
   if v ->> 'status' = 'ok' then
     perform pg_temp.put(p_key, null, v ->> 'grant');
     perform pg_temp.put(p_key || ':expires', null, v ->> 'grant_expires_at');
+    perform pg_temp.put(p_key || ':dead', null, (v -> 'dead_grants')::text);
     return 'ok';
   end if;
   return v ->> 'reason';
@@ -203,10 +204,15 @@ select is(pg_temp.v('sign3')::jsonb ->> 'reason', 'pack_item_not_acknowledgeable
 
 -- Next week's link opens with the grant; a superseded link is not a guess ----------------------------------------------
 select pg_temp.mint('t2', 'r1');
-select is(pg_temp.open('g2', pg_temp.v('t2'), null, array['xpkg_' || repeat('f', 64), pg_temp.v('g1')]), 'ok',
+select pg_temp.put('stale', null, 'xpkg_' || repeat('f', 64));
+select pg_temp.put('old_g1', null, pg_temp.v('g1'));
+select is(pg_temp.open('g2', pg_temp.v('t2'), null, array[pg_temp.v('stale'), pg_temp.v('g1')]), 'ok',
   'a new delivery link for the same recipient opens with the device''s grant and no code');
 select is((select count(*)::int from private.stakeholder_pack_grants where grant_hash = extensions.digest(pg_temp.v('g1'), 'sha256')), 0,
   'and the old grant is swapped for the fresh one');
+select is((pg_temp.v('g2:dead'))::jsonb, jsonb_build_array(pg_temp.v('stale'), pg_temp.v('old_g1')),
+  'the answer names the grants the device presented that no longer open anything, so its cookie drops them');
+select ok(not (pg_temp.v('g2:dead')::jsonb ? pg_temp.v('g2')), 'and never the fresh one');
 select pg_temp.as_platform();
 select app.mint_stakeholder_pack_link(pg_temp.k('t2'));
 select pg_temp.put('f1', null, pg_temp.failures()::text);
@@ -284,6 +290,16 @@ select pg_temp.as_user('carol');
 select app.revoke_stakeholder_pack_recipient(pg_temp.k('r1'));
 select pg_temp.as_platform();
 select is(pg_temp.pack(pg_temp.v('t4'), pg_temp.v('g4')) ->> 'reason', 'pack_recipient_revoked', 'a revoked recipient reads nothing more');
+
+-- A correct code replaces the recipient's grant the device presented, rather than leaving it live beside the new one.
+select pg_temp.as_user('carol');
+insert into k select 'rc', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('pack'), 'Code Case', 'code-case@client.test') r;
+select pg_temp.as_platform();
+select pg_temp.mint('tc', 'rc');
+select pg_temp.open('gc1', pg_temp.v('tc'), pg_temp.v('rc'), null, '198.51.100.99') is not null;
+select pg_temp.open('gc2', pg_temp.v('tc'), pg_temp.v('rc'), array[pg_temp.v('gc1')], '198.51.100.99') is not null;
+select is((select count(*)::int from private.stakeholder_pack_grants where recipient_id = pg_temp.k('rc')), 1,
+  'a correct code with the device''s grant leaves one live grant');
 
 select * from finish();
 rollback;

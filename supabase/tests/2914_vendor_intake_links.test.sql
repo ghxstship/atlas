@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(26);
+select plan(27);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -156,8 +156,9 @@ select ok(exists (select 1 from app.file_access_log l where l.action = 'Share Li
   'and logs Share Link Opened with no person');
 select pg_temp.as_anon();
 select is((select array_agg(x order by x) from jsonb_object_keys(pg_temp.v('read')::jsonb) x),
-  array['agreement', 'collect_invoice', 'collect_payout', 'collect_tax_form', 'end_date', 'full', 'instructions', 'meta', 'role_title', 'role_type', 'start_date', 'status', 'title'],
+  array['agreement', 'collect_invoice', 'collect_payout', 'collect_tax_form', 'currency_code', 'end_date', 'full', 'instructions', 'meta', 'role_title', 'role_type', 'start_date', 'status', 'title'],
   'the read answers its exact key set, never the org''s id');
+select is(pg_temp.v('read')::jsonb ->> 'currency_code', 'USD', 'a first invoice starts from the org''s base currency');
 create function pg_temp.read_only_read() returns text
 language plpgsql as $$
 begin

@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(34);
+select plan(37);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -158,6 +158,21 @@ select ok((select (m.email ? 'time_zone') from app.mint_stakeholder_pack_link(pg
 select app.finish_stakeholder_pack_delivery(pg_temp.latest('p3'), false, null, 'Provider down', true);
 select is((select delivery_status from app.stakeholder_pack_deliveries where id = pg_temp.latest('p3')), 'Queued', 'a failed attempt that will retry stays Queued');
 select is((select count(*)::int from private.stakeholder_pack_links l where l.recipient_id = pg_temp.k('p3') and l.revoked_at is null), 0, 'and leaves no working link');
+
+-- A slot follows its zone across a daylight-saving change ---------------------------------------------------------------------
+-- 9:00 in New York is 13:00 UTC before the November 2027 change and 14:00 UTC after it; March 2027 is the reverse.
+select is(private.next_schedule_run('Daily', 9::smallint, null, null, 'America/New_York', timestamptz '2027-11-06 13:30+00'),
+  timestamptz '2027-11-07 14:00+00', 'a daily slot keeps its local hour when the clocks go back');
+select is(private.next_schedule_run('Daily', 9::smallint, null, null, 'America/New_York', timestamptz '2027-03-13 14:30+00'),
+  timestamptz '2027-03-14 13:00+00', 'and when they go forward');
+select pg_temp.as_user('carol');
+insert into k values ('zoned', app.create_stakeholder_pack(pg_temp.id('prj_a'), 'Zoned pack', now() + interval '30 days'), null);
+select app.set_stakeholder_pack_schedule(pg_temp.k('zoned'), 'Daily', 9::smallint, null, null, 'America/New_York');
+select pg_temp.as_platform();
+update app.stakeholder_pack_schedules set next_run_at = now() - interval '1 minute' where stakeholder_pack_id = pg_temp.k('zoned');
+select app.queue_due_pack_schedules();
+select is((select extract(hour from next_run_at at time zone 'America/New_York')::int from app.stakeholder_pack_schedules where stakeholder_pack_id = pg_temp.k('zoned')),
+  9, 'the scheduler moves a schedule to its next slot in the schedule''s own zone');
 
 -- Retiring what a pack held ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

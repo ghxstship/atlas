@@ -9441,6 +9441,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "attachment_versions_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_file_choices";
+            referencedColumns: ["attachment_id"];
+          },
+          {
             foreignKeyName: "attachment_versions_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
@@ -26301,6 +26308,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "attachments";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_file_links_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_file_choices";
+            referencedColumns: ["attachment_id"];
           },
           {
             foreignKeyName: "integration_file_links_created_by_fkey";
@@ -49973,6 +49987,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "share_links_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_file_choices";
+            referencedColumns: ["attachment_id"];
+          },
+          {
             foreignKeyName: "share_links_attachment_version_id_fkey";
             columns: ["attachment_version_id"];
             isOneToOne: false;
@@ -52695,6 +52716,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "attachments";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_file_choices";
+            referencedColumns: ["attachment_id"];
           },
           {
             foreignKeyName: "stakeholder_pack_items_created_by_fkey";
@@ -65146,6 +65174,7 @@ export type Database = {
           source: string | null;
           source_id: string | null;
           token_hint: string | null;
+          viewer_can_manage: boolean | null;
         };
         ComputedFields: never;
         Relationships: [];
@@ -66019,6 +66048,36 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_pack_file_choices: {
+        Row: {
+          attachment_id: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          attachment_id?: string | null;
+          org_id?: string | null;
+          project_id?: never;
+          title?: string | null;
+        };
+        Update: {
+          attachment_id?: string | null;
+          org_id?: string | null;
+          project_id?: never;
+          title?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "attachments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
