@@ -20963,8 +20963,6 @@ class DeliveryWindowCreate(TypedDict):
 class DeliveryWindowUpdate(TypedDict, total=False):
     """Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged."""
 
-    #: Identifier of the project.
-    project_id: str
     #: Identifier of the gate: a live zone of the org.
     zone_id: str
     #: When the window opens.
@@ -22327,8 +22325,6 @@ class ProcurementNeed(TypedDict):
 class _ProcurementNeedCreateRequired(TypedDict):
     #: Identifier of the project buying.
     project_id: str
-    #: Number from the project's display key sequence, issued on insert.
-    need_number: int
     #: What is needed.
     description: str
     #: How much the event will get.
@@ -22355,10 +22351,6 @@ class ProcurementNeedCreate(_ProcurementNeedCreateRequired, total=False):
 class ProcurementNeedUpdate(TypedDict, total=False):
     """Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged."""
 
-    #: Identifier of the project buying.
-    project_id: str
-    #: Number from the project's display key sequence, issued on insert.
-    need_number: int
     #: What is needed.
     description: str
     #: How much the event will get.
@@ -22477,8 +22469,6 @@ class RfqLine(TypedDict):
 class _RfqLineCreateRequired(TypedDict):
     #: Identifier of the RFQ the line belongs to.
     rfq_id: str
-    #: Order of the line within the RFQ, assigned on create.
-    line_number: int
     #: What is asked for.
     description: str
     #: Quantity asked for.
@@ -22505,10 +22495,6 @@ class RfqLineCreate(_RfqLineCreateRequired, total=False):
 class RfqLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a RfqLine. Omitted fields are unchanged."""
 
-    #: Identifier of the RFQ the line belongs to.
-    rfq_id: str
-    #: Order of the line within the RFQ, assigned on create.
-    line_number: int
     #: What is asked for.
     description: str
     #: Catalog element asked for.

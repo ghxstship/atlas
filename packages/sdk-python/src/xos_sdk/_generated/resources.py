@@ -33614,7 +33614,7 @@ class ProcurementNeedsResource(Resource):
     ) -> Page[ProcurementNeed]:
         """List procurement need rows
 
-        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. The default order is `need_number` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /procurement-needs`` (operation ``procurementNeeds.list``).
         Requires the capability ``procurement.po.read``.
@@ -33632,7 +33632,7 @@ class ProcurementNeedsResource(Resource):
     ) -> Iterator[ProcurementNeed]:
         """List procurement need rows
 
-        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.
+        What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. The default order is `need_number` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -33780,7 +33780,7 @@ class RfqLinesResource(Resource):
     ) -> Page[RfqLine]:
         """List rfq line rows
 
-        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /rfq-lines`` (operation ``rfqLines.list``).
         Requires the capability ``procurement.rfq.read``.
@@ -33798,7 +33798,7 @@ class RfqLinesResource(Resource):
     ) -> Iterator[RfqLine]:
         """List rfq line rows
 
-        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.
+        What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
