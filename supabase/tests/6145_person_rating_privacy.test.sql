@@ -8,8 +8,13 @@
 --     read the score. The rating_dispute lifecycle refuses a second decision.
 --   * The opt-in and the dispute route belong to the person's own session: an API key, an app or a connector records nothing,
 --     and a scoped session never reads a shared rating. A company's own bid on Contractor work is a company's rating.
---   * Gates: every view reading app.ratings applies the rule, every function that reads it is classified, and every
---     capability in the groups that hire is classified, so a later package cannot undo this unnoticed.
+--   * People who manage a crew roster count as staffing: a live Advancing Lead, an artist's representative and the artist
+--     themselves read no shared rating, and neither does a holder of any hiring capability, by grant or record grant.
+--   * An org's soft delete of an engagement hides nothing: the person reads, answers and disputes, a shared list keeps it,
+--     and a party can still rate the org.
+--   * Gates: every view reading app.ratings applies the rule, every function that reads it is classified, every capability
+--     in every group is classified, and so is each account role, duty and way into a roster, so a later package cannot undo
+--     this unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -261,6 +266,137 @@ update app.user_capability_grants set deleted_at = now() where id = pg_temp.id('
 select pg_temp.as_user('nia');
 select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'and ending it opens it again');
 
+-- Every capability on the list closes it, by a grant at any scope and by a record grant on anything.
+create function pg_temp.reads_with_grant(p_code text) returns int
+language plpgsql as $$
+declare
+  v_id uuid;
+  v_count int;
+begin
+  perform pg_temp.as_platform();
+  insert into app.user_capability_grants (membership_id, capability_code, reason)
+  select m.id, p_code, 'Covers the desk.' from app.memberships m where m.person_id = pg_temp.id('nia') returning id into v_id;
+  perform pg_temp.as_user('nia');
+  select count(*)::int into v_count from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'));
+  perform pg_temp.as_platform();
+  update app.user_capability_grants set deleted_at = now() where id = v_id;
+  return v_count;
+end $$;
+create function pg_temp.reads_with_record_grant(p_code text) returns int
+language plpgsql as $$
+declare
+  v_id uuid;
+  v_count int;
+begin
+  perform pg_temp.as_platform();
+  insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
+  values ('workspace', pg_temp.id('ws_a'), p_code, pg_temp.id('nia'), now() + interval '1 day', 'Covers the desk.') returning id into v_id;
+  perform pg_temp.as_user('nia');
+  select count(*)::int into v_count from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'));
+  perform pg_temp.as_platform();
+  update app.record_grants set deleted_at = now() where id = v_id;
+  return v_count;
+end $$;
+select pg_temp.as_platform();
+select is_empty($$select c from unnest(private.hiring_capability_codes()) c where pg_temp.reads_with_grant(c) <> 0$$,
+  'a grant of any capability on the list closes the profile, the three roster and membership ones included');
+select is(pg_temp.reads_with_record_grant('advancing.submission.review'), 0, 'and so does a record grant of one, on a target that is not a project');
+select is(pg_temp.reads_with_grant('crew.shift.read'), 2, 'while one that decides nothing leaves it open');
+select pg_temp.as_user('nia');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'and nia is back where she started');
+
+-- The people who manage a roster on the external side.
+select pg_temp.as_user('sam');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'an account member with no duty reads them');
+select pg_temp.as_user('alice');
+with e as (
+  insert into app.engagements (project_id, counterparty_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-06-01')
+  returning id)
+insert into world select 'eng_v_live', id from e;
+select pg_temp.as_user('victor');
+select app.assign_engagement_member(pg_temp.id('eng_v_live'),
+  (select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam')), 'Advancing Lead');
+select pg_temp.as_user('sam');
+select ok(private.can_manage_roster(pg_temp.id('eng_v_live')), 'an Advancing Lead manages that engagement''s roster');
+select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
+  'so reads no shared rating, with no other access');
+select pg_temp.as_user('victor');
+select app.assign_engagement_member(pg_temp.id('eng_v_live'),
+  (select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_v') and m.person_id = pg_temp.id('sam')), 'Member');
+select pg_temp.as_user('sam');
+select ok(not private.can_manage_roster(pg_temp.id('eng_v_live')), 'a Member duty manages nothing');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'so it leaves the profile open');
+
+select pg_temp.as_platform();
+select pg_temp.new_user('rory', 'rory@lumen-artists.test', 'Rory Blake');
+select pg_temp.new_user('ava', 'ava@performer.test', 'Ava Lindqvist');
+select pg_temp.as_user('rita');
+select app.add_account_member(pg_temp.id('acct_t'), pg_temp.id('rory'), 'Account Member');
+select pg_temp.as_user('rory');
+select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_t') and m.person_id = pg_temp.id('rory')));
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'a member of an agency who represents no one reads them');
+select pg_temp.as_user('rita');
+insert into world values ('rep_ava', app.propose_representation(pg_temp.id('acct_t'), pg_temp.id('ava'), pg_temp.id('rory'), (current_date + 365), array['Offers']::app.representation_scope[]));
+select pg_temp.as_user('rory');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'a representation the artist has not accepted opens nothing and closes nothing');
+select pg_temp.as_user('ava');
+select app.accept_representation(pg_temp.id('rep_ava'));
+select pg_temp.as_user('rory');
+select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
+  'an artist''s representative with the Offers scope reads no shared rating');
+select pg_temp.as_user('rita');
+select app.revoke_representation(pg_temp.id('rep_ava'));
+insert into world values ('rep_ava2', app.propose_representation(pg_temp.id('acct_t'), pg_temp.id('ava'), pg_temp.id('rory'), (current_date + 365), array['Advance']::app.representation_scope[]));
+select pg_temp.as_user('ava');
+select app.accept_representation(pg_temp.id('rep_ava2'));
+select pg_temp.as_user('rory');
+select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
+  'nor does one with the Advance scope, who manages the roster');
+select pg_temp.as_user('rita');
+select app.revoke_representation(pg_temp.id('rep_ava2'));
+select pg_temp.as_user('rory');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'and revoking it opens it again');
+
+select pg_temp.as_user('art');
+select ok(private.can_manage_roster(pg_temp.id('eng_art_a')), 'an artist manages their own roster');
+select is_empty($$select 1 from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))$$,
+  'so reads no shared rating');
+select pg_temp.as_user('quinn');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'while a freelancer with no roster to manage does');
+
+-- An org's soft delete of the engagement hides nothing from the rated person -----------------------------------------------
+select pg_temp.as_user('alice');
+update app.engagements set deleted_at = now() where id = pg_temp.id('eng_ivy_a');
+select pg_temp.as_platform();
+select ok((select deleted_at is not null from app.engagements where id = pg_temp.id('eng_ivy_a')), 'a member with engagement write can soft-delete a completed engagement');
+select pg_temp.as_user('ivy');
+select is((select count(*)::int from api_external.ratings where id = pg_temp.id('rate_ivy_a') and is_of_individual), 1, 'the person still reads the rating, disputable, through the view');
+select is((select count(*)::int from app.ratings where id = pg_temp.id('rate_ivy_a')), 1, 'and the table');
+select is((select count(*)::int from app.ratings where id = pg_temp.id('party_ivy_a')), 1, 'and their own rating of the org');
+select lives_ok($$insert into app.rating_replies (rating_id, body) values ((select id from world where key = 'rate_ivy_a'), 'I was there at 07:00.')$$, 'and still answers it');
+select pg_temp.as_user('nia');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy'))), 2, 'the rating stays on the shared list');
+select is((select count(*)::int from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy')) where score = 2), 1, 'low score and all');
+select is((select reply from api_public.person_profile_shared_ratings((select txt from k where key = 'ivy')) where score = 2), 'I was there at 07:00.', 'with the person''s answer');
+select pg_temp.as_user('carol');
+select is((select count(*)::int from app.ratings where id = pg_temp.id('rate_ivy_a')), 1, 'the org reads what it gave, as before');
+select pg_temp.as_user('xavier');
+select is((select count(*)::int from app.ratings where id = pg_temp.id('rate_ivy_a')), 0, 'and it opens nothing to another org');
+select is((select count(*)::int from api_external.ratings where id = pg_temp.id('rate_ivy_a')), 0, 'through the view either');
+
+-- Nor can an org stop a party rating it by deleting the engagement.
+select pg_temp.move_engagement('eng_quinn_b', 'Onboarding', 'Active');
+select pg_temp.move_engagement('eng_quinn_b', 'Active', 'Closing');
+select pg_temp.move_engagement('eng_quinn_b', 'Closing', 'Complete');
+select pg_temp.as_user('xavier');
+update app.engagements set deleted_at = now() where id = pg_temp.id('eng_quinn_b');
+select pg_temp.as_user('quinn');
+select lives_ok($$insert into app.ratings (engagement_id, rater_side, score) values ((select id from world where key = 'eng_quinn_b'), 'Party', 1)$$,
+  'a party still rates the org after it soft-deleted the engagement');
+select pg_temp.as_platform();
+update app.engagements set deleted_at = null where id = pg_temp.id('eng_quinn_b');
+
 -- Only the person's own session chooses.
 select pg_temp.as_app('ivy');
 select throws_ok($$select app.set_rating_sharing(false)$$, '42501', null, 'an app cannot withdraw for the person');
@@ -291,9 +427,13 @@ select pg_temp.as_user('ivy');
 select throws_ok($$select app.file_rating_dispute((select id from world where key = 'party_ivy_a'), 'False Statement', 'Mine.')$$,
   '42501', null, 'a party''s own rating of an org is not theirs to dispute');
 insert into world select 'dispute_a', app.file_rating_dispute(pg_temp.id('rate_ivy_a'), 'False Statement', 'I was on time on both days.');
+select ok(pg_temp.id('dispute_a') is not null, 'the dispute route stays open though the org soft-deleted the engagement');
 select throws_ok($$select app.file_rating_dispute((select id from world where key = 'rate_ivy_a'), 'Other', 'Again.')$$,
   'XR001', null, 'one dispute per rating');
 select is((select count(*)::int from api_external.ratings where id = pg_temp.id('rate_ivy_a')), 1, 'filing a dispute does not hide the rating');
+select pg_temp.as_platform();
+update app.engagements set deleted_at = null where id = pg_temp.id('eng_ivy_a');
+select pg_temp.as_user('ivy');
 
 select pg_temp.as_app('carol');
 select throws_ok($$select app.respond_to_rating_dispute((select id from world where key = 'dispute_a'), 'From a connector.')$$,
@@ -420,22 +560,54 @@ select is_empty($$
       'app.file_rating_dispute', 'app.rating_dispute_subjects', 'app.respond_to_rating_dispute', 'private.guard_rating_reply',
       'private.org_rating_ids', 'private.readable_rating_ids', 'private.release_ratings')
 $$, 'every function that reads app.ratings has been classified');
--- Every capability in the groups that hire is on the list or, here, off it for a stated reason: these read, or run time and
--- pay, or give the org's own rating, and decide nothing about who is hired, booked or put on a shift.
+-- Every capability in every group is on the list or, here, off it for a stated reason. These groups run the show, the books or
+-- the person's own settings and decide nothing about who is hired, booked or put on a shift or roster.
 select is_empty($$
   select c.code from app.capabilities c
-  where split_part(c.code, '.', 1) in ('opportunities', 'people', 'crew')
-    and c.code <> all (private.hiring_capability_codes())
+  where c.code <> all (private.hiring_capability_codes())
+    and split_part(c.code, '.', 1) not in (
+      'activity', 'assets', 'audit', 'canon', 'credentials', 'data', 'finance', 'home', 'hospitality', 'inbox', 'knowledge', 'logistics', 'me', 'my_work', 'places', 'reports', 'safety', 'schedule', 'show')
+    -- In the groups that do hire, these read, run time and pay, give the org's own rating or configure things.
     and c.code not in (
-      'opportunities.posting.read', 'opportunities.engagement.read', 'opportunities.rating.write', 'opportunities.marketplace.manage',
-      'people.directory.read', 'people.profile.read', 'people.profile.write', 'people.agreement.write', 'people.requisition.read',
-      'people.certification.read', 'people.certification.write', 'people.certification.verify',
-      'crew.schedule.read', 'crew.shift.read', 'crew.swap.request', 'crew.time_entry.read', 'crew.time_entry.write',
-      'crew.timesheet.read', 'crew.timesheet.submit', 'crew.timesheet.approve', 'crew.time_off.request', 'crew.time_off.approve',
-      'crew.rate_card.read', 'crew.rate_card.write', 'crew.pay_period.manage', 'crew.payroll.export')
-$$, 'every capability in the groups that hire is classified');
+      'advancing.packet.read', 'advancing.packet.send', 'advancing.packet.write', 'advancing.reconciliation.write',
+      'advancing.rider.write', 'crew.pay_period.manage', 'crew.payroll.export', 'crew.rate_card.read',
+      'crew.rate_card.write', 'crew.schedule.read', 'crew.shift.read', 'crew.swap.request', 'crew.time_entry.read',
+      'crew.time_entry.write', 'crew.time_off.approve', 'crew.time_off.request', 'crew.timesheet.approve',
+      'crew.timesheet.read', 'crew.timesheet.submit', 'opportunities.engagement.read',
+      'opportunities.marketplace.manage', 'opportunities.posting.read', 'opportunities.rating.write',
+      'org.access_reviews.manage', 'org.ai.write', 'org.api_keys.manage', 'org.approval_policies.write',
+      'org.automations.write', 'org.billing.manage', 'org.billing.read', 'org.break_glass.use',
+      'org.communication.write', 'org.custom_fields.write', 'org.custom_objects.write', 'org.departments.write',
+      'org.general.write', 'org.help.write', 'org.integrations.manage', 'org.legal.accept', 'org.legal.read',
+      'org.legal_entities.write', 'org.localization.write', 'org.locations.write', 'org.members.read',
+      'org.modules.write', 'org.notifications.write', 'org.numbering.write', 'org.organization.archive',
+      'org.organization.delete', 'org.ownership.transfer', 'org.partner.manage', 'org.payroll.write',
+      'org.profile.write', 'org.scheduling.write', 'org.security.write', 'org.separation_of_duties.write',
+      'org.settings.read', 'org.spend_authority.write', 'org.support_session.grant', 'org.teams.manage',
+      'org.templates.write', 'org.time_attendance.write', 'org.usage.read', 'org.view_as_role.use', 'org.views.write',
+      'org.webhooks.manage', 'org.white_label.write', 'org.workspaces.manage', 'people.agreement.write',
+      'people.certification.read', 'people.certification.verify', 'people.certification.write',
+      'people.directory.read', 'people.profile.read', 'people.profile.write', 'people.requisition.read',
+      'procurement.catalog.read', 'procurement.catalog.write', 'procurement.invoice_match.write',
+      'procurement.po.read', 'procurement.po.send', 'procurement.receipt.write', 'procurement.rfq.read',
+      'procurement.rfq.write', 'projects.gate.evidence.write', 'projects.gate.read', 'projects.gate.transition',
+      'projects.project.archive', 'projects.project.create', 'projects.project.export', 'projects.project.read',
+      'projects.project.write', 'projects.scope.write', 'projects.settings.write', 'projects.template.write',
+      'vendors.bank_details.write', 'vendors.class.write', 'vendors.coi.write', 'vendors.entitlement.write',
+      'vendors.scorecard.write', 'vendors.vendor.read', 'work.punch_list.write', 'work.record.export',
+      'work.record.read', 'work.record.write', 'work.recurring.write', 'work.work_order.read', 'work.work_order.write')
+$$, 'every capability in every group is classified');
 select is_empty($$select c from unnest(private.hiring_capability_codes()) c where c not in (select code from app.capabilities)$$,
   'every hiring capability exists');
+-- The external side: every way into a roster, and each account role and duty, is classified. A new one fails here until it is
+-- read against private.viewer_decides_hiring.
+select is((select count(*)::int from pg_proc p, regexp_matches(p.prosrc, '''roster''', 'g')
+           where p.oid = 'private.engagement_party_areas(uuid, uuid, uuid, app.external_role_type)'::regprocedure), 4,
+  'private.engagement_party_areas opens a roster the four ways the hiring gate counts: the artist or solo person, an account owner or admin, an Advancing Lead, an Advance representative');
+select is(enum_range(null::app.account_role)::text[], array['Account Owner', 'Account Admin', 'Account Finance', 'Account Member'],
+  'every account role is classified: owners and admins count as staffing, finance and members do not');
+select is(enum_range(null::app.account_engagement_duty)::text[], array['Advancing Lead', 'Member'],
+  'every account duty is classified: an Advancing Lead counts as staffing, a Member does not');
 
 -- Account deletion knows about the opt-in, and a deleted account withdraws it ---------------------------------------------
 select ok('app.rating_sharing_consents' = any (private.account_deletion_tables()), 'a legal hold naming the opt-in record blocks the deletion that writes to it');

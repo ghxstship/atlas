@@ -68,12 +68,6 @@ function blockDays(
   return days;
 }
 
-/**
- * Profile (Section 4.5.8 avatar menu; Section 11.12 Reputation): the person's own profile with a
- * strength meter naming the next improvement, certifications with verified badges, availability,
- * ratings with public replies, representation and the profile shares they gave. Acting for a
- * company, it shows the company and its team instead.
- */
 /** A dispute's standing under a rating, or the way to file one. */
 function RatingDisputeStanding({
   t,
@@ -107,6 +101,12 @@ function RatingDisputeStanding({
   );
 }
 
+/**
+ * Profile (Section 4.5.8 avatar menu; Section 11.12 Reputation): the person's own profile with a
+ * strength meter naming the next improvement, certifications with verified badges, availability,
+ * ratings and the person's replies, representation and the profile shares they gave. Acting for a
+ * company, it shows the company and its team instead.
+ */
 export default async function ProfilePage() {
   const ctx = await requireNode("profile");
   const [t, locale] = await Promise.all([getTranslate(), getLocale()]);

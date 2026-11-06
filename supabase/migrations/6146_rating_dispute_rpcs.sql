@@ -168,7 +168,7 @@ as $$
     and (d.disputant_person_id = private.current_person_id() or d.rating_id in (select private.org_rating_ids()));
 $$;
 
-comment on function app.rating_dispute_subjects() is 'What each dispute the signed-in person reads is about, under the same rule as app.rating_disputes: the org that gave the rating, the person it is about, the project and the date, so the org knows what it is answering. An upheld dispute keeps those and drops the score and comment, which stay out of every read (ADR 0158).';
+comment on function app.rating_dispute_subjects() is 'What each dispute the signed-in person reads is about, under the same rule as app.rating_disputes: the org that gave the rating, the person it is about, the project and the date, so the org knows what it is answering. An upheld dispute keeps those and drops the score and comment, which stay out of every product read (ADR 0158).';
 revoke all on function app.rating_dispute_subjects() from public, anon;
 grant execute on function app.rating_dispute_subjects() to authenticated, service_role;
 
@@ -307,6 +307,6 @@ begin
 end;
 $$;
 
-comment on function app.console_decide_rating_dispute(uuid, app.rating_dispute_state, app.rating_dispute_ground, text) is 'An operator (moderation.decide), never the disputant nor a member of the rating org (sod_rating_dispute_decide), decides a rating dispute with a statement of reasons (ADR 0158). Upheld removes the rating from every read and needs a named ground; the score is never read. The person and the org are told, naming the platform, not the operator.';
+comment on function app.console_decide_rating_dispute(uuid, app.rating_dispute_state, app.rating_dispute_ground, text) is 'An operator (moderation.decide), never the disputant nor a member of the rating org (sod_rating_dispute_decide), decides a rating dispute with a statement of reasons (ADR 0158). Upheld removes the rating from every product read and needs a named ground; the score is never read. The person and the org are told, naming the platform, not the operator.';
 revoke all on function app.console_decide_rating_dispute(uuid, app.rating_dispute_state, app.rating_dispute_ground, text) from public, anon;
 grant execute on function app.console_decide_rating_dispute(uuid, app.rating_dispute_state, app.rating_dispute_ground, text) to authenticated;

@@ -128,7 +128,6 @@ export interface PublicPersonProfileFull {
   readonly organizations: readonly { handle: string; name: string }[];
 }
 
-/** A person's profile as the viewer may see it, with every section; null when hidden or unknown. */
 /** One rating on a person's profile, shown because that person chose to (ADR 0158). */
 export interface SharedRating {
   readonly rating_id: string;
@@ -142,7 +141,7 @@ export interface SharedRating {
 
 /**
  * Organizations' ratings of one person while that person's opt-in stands: all of them or none, in date order. Empty when
- * the person has not opted in, for anyone signed out, and for anyone who decides hiring in any org (ADR 0158). Hiring,
+ * the person has not opted in, for anyone signed out, and for anyone with hiring, booking or staffing access (ADR 0158). Hiring,
  * application, search and crew screens never call this.
  */
 export async function listSharedRatings(
@@ -152,6 +151,7 @@ export async function listSharedRatings(
   return rows<SharedRating>(db, "person_profile_shared_ratings", { p_handle: handle });
 }
 
+/** A person's profile as the viewer may see it, with every section; null when hidden or unknown. */
 export async function getPublicPersonProfile(
   db: XosClient,
   handle: string,

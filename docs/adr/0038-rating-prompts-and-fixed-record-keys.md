@@ -4,7 +4,7 @@
 - Date: 2026-10-20
 - Decider: Owner (Julian Clarkson); built and recorded by A76 (RRR-121)
 - Amends: the A65-001 deferrals of `gateway.ratings_enabled` and `numbering.record_key_format`
-- Amended by: ADR 0158, on who may read a rating of a person. Everything here about prompts and hiding stands.
+- Amended by: ADR 0158, on who may read a rating of a person and on the grounds for moderation, which add a wrong person and a false statement. Everything here about prompts and hiding stands.
 
 ## Context
 
@@ -22,7 +22,7 @@ A65-001 found registered settings that nothing applied. A76 wired them, but defe
   - With prompts on (the default), the Ratings page lists the completed engagements waiting for the org's rating, and each such engagement shows Rate the party as its next step.
   - With prompts off, those two prompts go. Members can still rate from the engagement.
 - Turning prompts off never hides or removes a rating, and never changes what a rated party or a marketplace viewer sees (ADR 0158 sets who may read a rating of a person, whatever the setting). No view, policy or function in the database reads the setting.
-- Moderation follows policy only: abuse and personal data. It applies whatever the score, and never to remove an honest low rating.
+- Moderation follows policy only: abuse and personal data, and since ADR 0158 a wrong person or a false statement. It applies whatever the score, and never to remove an honest low rating.
 - Counsel confirms this reading of 16 CFR Part 465 before launch. That confirmation belongs here and in the release checklist, not in the product.
 
 Where it lives:

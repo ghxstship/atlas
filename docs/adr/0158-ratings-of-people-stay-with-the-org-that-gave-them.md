@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-06
 - Decider: Owner (Julian Clarkson), who directed that each open legal decision take the most future-proof, legally defensible option. The analysis below was prepared by AI. No attorney has reviewed it.
-- Amends: ADR 0038 where it describes what a marketplace viewer sees, and Section 4.4.3 where it treats an org's rating of a person as public
+- Amends: ADR 0038 where it describes what a marketplace viewer sees and where it lists the moderation grounds, and Section 4.4.3 where it treats an org's rating of a person as public
 - Tracks: RRR-248
 
 ## Context
@@ -39,7 +39,8 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 
 The question was whether a hiring, recruitment, crew assignment or eligibility surface may show a person's cross-org rating with their opt-in. We cannot show such a use would not bear on eligibility, so it does not show. The database enforces this in addition to the screens simply not reading it:
 
-- `private.viewer_decides_hiring()` is true for anyone who holds a capability that decides who is hired, booked, selected, approved as a supplier or put on a shift (`private.hiring_capability_codes()`), at any reach or scope, in any org or on any project, and for anyone who runs an external account, since an agency may place its people on shifts. Such a viewer gets nothing, even from the opted-in person's own profile page.
+- `private.viewer_decides_hiring()` is true for anyone who holds a capability that decides who is hired, booked, selected, approved as a supplier, put on a shift or roster, or let into the org or a project, or that gives out such access (`private.hiring_capability_codes()`), at any reach or scope, in any org or on any project, by role, grant, delegation or record grant. Such a viewer gets nothing, even from the opted-in person's own profile page.
+- On the external side it is true for the people who manage a crew roster or book for someone else, none of whom hold a capability: anyone who runs an external account, a live Advancing Lead on an engagement, an artist's representative in any scope, and anyone engaged as an Artist, who manages their own roster. The last three count whatever state the engagement is in, so someone between jobs stays out: that fails closed, and it only costs them reading a peer's list. A Member duty, Account Finance and a freelancer with no roster to manage do not count.
 - A session scoped to an API key or an app reaches less than the person holds, so it cannot show they decide no hiring. It counts as deciding and reads nothing.
 - No application, pipeline, shortlist, pool, roster, shift, availability ranking, marketplace search or recommendation reads ratings of people. Marketplace discovery and its `recommendation_score` read no ratings. The unused `averageScore` helper in `packages/data` is gone.
 - Who can read a shared rating: someone signed in, in their own session, to whom the profile is visible, who holds no hiring, booking or staffing access in XOS. XOS only knows what it grants: someone who hires outside XOS, with a free account, could read it. The notice says so, and the person chooses knowing that.
@@ -48,10 +49,11 @@ The question was whether a hiring, recruitment, crew assignment or eligibility s
 
 - The rated person reads every released rating of them, with which org gave it, on Gateway's profile page.
 - `app.file_rating_dispute` is the route: one dispute per rating, once released, by the rated individual only. The org that gave the rating may answer once (`app.respond_to_rating_dispute`). A platform operator with `moderation.decide` decides with a statement of reasons in the console (`/rating-disputes`); the person and the org are told, naming the platform and not the operator. The `rating_dispute` lifecycle is Open to Upheld or Not Upheld.
-- Upheld takes the rating out of every read. The rating row is not edited and stays as evidence. `app.rating_dispute_subjects` still tells both sides which rating it was (the org, the person, the project and the date), without the score or comment, so the org can answer knowing what it is answering and the person keeps the decision on Gateway.
+- Upheld takes the rating out of every product read: Gateway, Atlas, the API, a shared list and the org's own view. It stays as evidence in three places, none of which crosses to another org: the rating row is not edited, the insert stays in the rating org's audit ledger for holders of `audit.log.read` (the score and comment are not Restricted columns), and the console keeps showing the comment to the operators who hold `moderation.decide`. `app.rating_dispute_subjects` still tells both sides which rating it was (the org, the person, the project and the date), without the score or comment, so the org can answer knowing what it is answering and the person keeps the decision on Gateway.
 - Separation of duties: the rated person never answers for the org (`sod_rating_dispute_answer`), and an operator who belongs to the rating org never decides (`sod_rating_dispute_decide`). No screen or notice outside the console names the deciding operator, and the dispute's ledger hides who acted. The rating org's audit ledger still records the acting person id, as it does for every operator change to a tenant row (A90).
 - An operator may uphold only for a named ground: the wrong person, a false statement, abusive content or personal data. The person may file with Other, but a dispute is not upheld on it. The queue and the detail never show the score.
 - Filing does not hide the rating. A shared rating shows a Disputed tag while the dispute is open.
+- An org's soft delete of the engagement hides nothing. The rated person keeps reading, answering and disputing the rating, it stays on a shared list, and the party can still rate the org, because `private.my_rated_engagement_ids`, `private.my_party_engagement_ids` and the shared path do not look at the engagement's `deleted_at`. The rule stays on the rating's own terms: only an operator's decision removes one.
 
 ## Why this is not review suppression (16 CFR Part 465)
 
@@ -61,7 +63,7 @@ The FTC rule (16 CFR 465.7) reaches a business that controls a review website an
 
 - **The rule is content-neutral.** It looks at who is asking and which engagement the rating came from. No path reads the score or the comment. A five-star rating of a person and a one-star rating of a person are restricted in exactly the same way, and so are a person's and a company's whatever they say. pgTAP proves a low score reads for the same people as a high one.
 - **Nothing is represented as complete that is not.** There is no public list of a person's ratings that omits the negative ones. A shared list is every released rating, except one an operator removed on a named ground; it says exactly that, and the person cannot pick.
-- **Nobody can suppress a negative rating.** The org cannot, the rated person cannot pick (all or none), and filing a dispute hides nothing. Removal follows an operator's decision on grounds the rule itself recognizes, applied whatever the score, and the operator does not see the score.
+- **Nobody can suppress a negative rating.** The org cannot, not even by soft-deleting the engagement it hangs from, the rated person cannot pick (all or none), and filing a dispute hides nothing. Removal follows an operator's decision on grounds the rule itself recognizes, applied whatever the score, and the operator does not see the score.
 - **Company ratings keep their reach,** so a negative rating of a company still reads for everyone it did before.
 
 Whether Part 465 applies to ratings between organizations and workers at all is unclear (FTC guidance does not address B2B). This ADR treats the rule as the standard anyway.
@@ -81,7 +83,7 @@ Whether Part 465 applies to ratings between organizations and workers at all is 
 ## Consequences
 
 - `rated_person_id` stays on the view, additively, and `rater_organization_name` joins it; the rows changed, not the shape. On a company's rating, `rated_person_id` now reads only for the named contact and the org.
-- A new capability that decides hiring must join `private.hiring_capability_codes()`. pgTAP suite 6145 fails when the opportunities, people or crew group gains a capability that is neither on that list nor named as not deciding hiring. A capability in another group still rests on code review.
+- A new capability that decides hiring must join `private.hiring_capability_codes()`. pgTAP suite 6145 fails when any capability, in any group, is neither on that list, nor named as not deciding hiring, nor in a group named as not deciding it. It also fails when `private.engagement_party_areas` gains a way into a roster, or the account roles or duties change, until the change is read against `private.viewer_decides_hiring()`.
 - pgTAP suite 6145 also fails when an owner-rights view reads `app.ratings` without `private.internal_rating_engagement_ids()` and `private.removed_rating_ids()`, or a new function reads `app.ratings` without being classified, so a later package cannot undo this unnoticed.
 - `app.crew_ratings` (B9, on `orch-train-10` as migration 6517) is such a view, and that gate will fail when it merges. The merge must add a follow-up migration above its block, named `<next>_crew_ratings_person_rule.sql`, that recreates the view with `g.id not in (select private.removed_rating_ids())` and `g.engagement_id in (select private.internal_rating_engagement_ids())` in place of `private.internal_engagement_ids('opportunities.engagement.read')`. Migration 6525 on that branch also redefines `private.account_deletion_tables()` without `app.rating_sharing_consents`; the same follow-up restores it.
 - A one-person vendor engaged through an account is still a company here. If a marker for a sole proprietor is added later, those ratings should follow Section 1.

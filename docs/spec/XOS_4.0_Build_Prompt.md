@@ -2972,7 +2972,7 @@ Each journey is covered by an automated end-to-end test.
 46. Client: a signed proposal invites the client into Gateway; the client approves a change order, sees the shared run of show, and never sees internal notes, margins or other parties' rates.
 47. Sponsor: a sponsorship package is accepted, assets are approved in Gateway, entitlement fulfillment is captured with photos in Compass, and the proof-of-performance report satisfies gate 8.
 48. A person who is an internal member of one org and a crew member for another switches between Atlas, Gateway and Compass with one sign-in, and each surface shows only its own context.
-49. Ratings: both sides rate; neither sees the other's rating until both submit or 14 days pass; the rated party replies publicly.
+49. Ratings: both sides rate; neither sees the other's rating until both submit or 14 days pass; the rated party replies.
 50. A token advance form is completed without an account, then claimed into a new Gateway account, and the submission appears under that account.
 51. A Finance Lead signs in for the first time and sees Commercial expanded and other groups collapsed; an Admin turns off the Hospitality module and it disappears from navigation, search and the command menu.
 52. A crew member clocks in from the Live Activity, takes a break and clocks out without opening Compass.

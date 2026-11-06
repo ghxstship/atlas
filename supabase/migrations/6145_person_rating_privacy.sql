@@ -14,10 +14,13 @@
 --   * app.rating_sharing_consents records a person's own opt-in, off by default, withdrawn at any time, all ratings
 --     or none, and only from the person's own session, never an app's or a connector's. It opens one path,
 --     api_public.person_profile_shared_ratings: one person at a time, in date order, never an average, and never to someone
---     with hiring, booking or staffing access in XOS, nor to an app's session, whose reach cannot show that.
+--     with hiring, booking or staffing access in XOS, inside an org or on an external account, nor to an app's session, whose
+--     reach cannot show that.
 --   * app.rating_disputes holds the rated person's dispute of a rating, which a platform operator decides on grounds
---     that ignore the score (6146 holds its RPCs). An upheld dispute takes the rating out of every read while the row
---     itself stays unedited as evidence.
+--     that ignore the score (6146 holds its RPCs). An upheld dispute takes the rating out of every product read while the row
+--     itself stays unedited as evidence, as do its insert in the org's audit ledger and what the console's operator reads.
+--   * An org's soft delete of an engagement changes nothing about its ratings: the rated side keeps reading, answering and
+--     disputing, and the rating stays on a shared list, so no one removes a rating by deleting what it hangs from.
 -- The rule looks only at who is asking and which engagement the rating came from, never at the score or the comment.
 -- Ratings stay always on and an org's prompt setting still hides nothing (ADR 0038).
 
@@ -107,7 +110,7 @@ as $$
   select d.rating_id from app.rating_disputes d where d.dispute_state = 'Upheld' and d.deleted_at is null;
 $$;
 
-comment on function private.removed_rating_ids() is 'Ratings removed because a dispute was upheld. The rating row stays unedited as evidence; every read leaves it out.';
+comment on function private.removed_rating_ids() is 'Ratings removed because a dispute was upheld. Every product read leaves them out. The rating row stays unedited as evidence, its insert stays in the org''s audit ledger, and the console still shows an operator its comment.';
 revoke all on function private.removed_rating_ids() from public, anon;
 grant execute on function private.removed_rating_ids() to authenticated, service_role;
 
@@ -147,13 +150,12 @@ set search_path = ''
 as $$
   select e.id from app.engagements e
   left join app.counterparties c on c.id = e.counterparty_id
-  where e.deleted_at is null
-    and (e.person_id = private.current_person_id()
-      or (not private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id, e.application_id)
-        and c.organization_id in (select private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]))));
+  where e.person_id = private.current_person_id()
+    or (not private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id, e.application_id)
+      and c.organization_id in (select private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[])));
 $$;
 
-comment on function private.my_rated_engagement_ids() is 'Engagements whose rating by the org is about the signed-in person or their company: the engaged person, and for a company an Account Owner or Admin of the engaged account. An account that supplied an individual does not read that person''s ratings (ADR 0158).';
+comment on function private.my_rated_engagement_ids() is 'Engagements whose rating by the org is about the signed-in person or their company: the engaged person, and for a company an Account Owner or Admin of the engaged account. An account that supplied an individual does not read that person''s ratings. The engagement''s soft delete does not count: a rating concerns the rated side for as long as it exists, so an org cannot hide one by deleting the engagement (ADR 0158).';
 revoke all on function private.my_rated_engagement_ids() from public, anon;
 grant execute on function private.my_rated_engagement_ids() to authenticated, service_role;
 
@@ -183,6 +185,25 @@ call private.install_policies('app.ratings',
       or (rater_side = 'Party' and engagement_id in (select private.internal_engagement_ids('opportunities.engagement.read'))
         and private.rating_released(engagement_id)))$$);
 
+-- Redefined from 0740: the party keeps its engagements for rating purposes after an org's soft delete, as the comment there
+-- already said ('for as long as they exist'), so an org cannot stop a party rating it by deleting the engagement.
+create or replace function private.my_party_engagement_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select e.id from app.engagements e
+  left join app.counterparties c on c.id = e.counterparty_id
+  where e.person_id = private.current_person_id()
+    or c.organization_id in (select private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]));
+$$;
+
+comment on function private.my_party_engagement_ids() is 'Engagements the signed-in person answers for as the party, whatever their state and even after the org soft-deleted them: as the engaged person or as an Account Owner or Admin of the engaged account. Ratings concern the party for as long as they exist.';
+revoke all on function private.my_party_engagement_ids() from public, anon;
+grant execute on function private.my_party_engagement_ids() to authenticated, service_role;
+
 -- Redefined from 0740: the same rule for the replies, which follow their rating.
 create or replace function private.readable_rating_ids()
 returns setof uuid
@@ -203,6 +224,8 @@ as $$
 $$;
 
 comment on function private.readable_rating_ids() is 'Released ratings the signed-in person reads directly: an org''s rating of the party as the org or the rated side, and a party''s rating of the org as the org or the party (ADR 0158).';
+revoke all on function private.readable_rating_ids() from public, anon;
+grant execute on function private.readable_rating_ids() to authenticated, service_role;
 
 -- Redefined from 0740: the rated person answers their own rating; the account that supplied them does not.
 create or replace function private.guard_rating_reply()
@@ -239,6 +262,7 @@ end;
 $$;
 
 comment on function private.guard_rating_reply() is 'Replies: only by the rated side (the rated person or company to the org''s rating, the org to the party''s), only once the rating is released, and never edited.';
+revoke all on function private.guard_rating_reply() from public, anon, authenticated;
 
 -- The Gateway projection ---------------------------------------------------------------------------------------------
 
@@ -404,10 +428,13 @@ as $$
     'opportunities.onboarding.write', 'opportunities.engagement.write', 'opportunities.pool.write',
     'people.requisition.write', 'people.requisition.approve', 'people.offer.write', 'people.offer.approve',
     'people.role.write', 'crew.shift.write', 'crew.swap.approve', 'projects.members.manage',
-    'procurement.bid.award', 'vendors.prequalification.approve']::text[];
+    'advancing.submission.review', 'org.members.invite', 'org.members.manage', 'org.roles.manage',
+    'org.access_grants.manage', 'org.gateway.write',
+    'procurement.rfq.issue', 'procurement.bid.read', 'procurement.bid.unseal', 'procurement.bid.award', 'procurement.po.write',
+    'finance.po.approve', 'vendors.vendor.write', 'vendors.prequalification.approve', 'work.work_order.award']::text[];
 $$;
 
-comment on function private.hiring_capability_codes() is 'The capabilities that decide who is hired, booked, selected, approved as a supplier or put on a shift. A holder of any, at any reach, in any org or on any project, never reads another org''s rating of a person (ADR 0158). pgTAP suite 6145 fails when the opportunities, people or crew group gains a capability this list has not classified.';
+comment on function private.hiring_capability_codes() is 'The capabilities that decide who is hired, booked, selected, approved as a supplier, put on a shift or roster, or let into the org or a project, and those that give out such access. A holder of any, at any reach, in any org or on any project, never reads another org''s rating of a person (ADR 0158). pgTAP suite 6145 fails when any capability in any group has not been classified.';
 revoke all on function private.hiring_capability_codes() from public, anon, authenticated;
 
 create or replace function private.viewer_decides_hiring()
@@ -427,11 +454,26 @@ as $$
         or exists (select 1 from app.user_capability_grants g
                    where g.capability_code = c.code and g.deleted_at is null
                      and g.valid_from <= now() and (g.valid_to is null or g.valid_to > now())
-                     and g.membership_id in (select private.my_membership_ids())))
-    or exists (select 1 from private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]));
+                     and g.membership_id in (select private.my_membership_ids()))
+        or exists (select 1 from app.record_grants rg
+                   where rg.capability_code = c.code and rg.deleted_at is null
+                     and rg.valid_from <= now() and rg.valid_to > now()
+                     and (rg.grantee_person_id = private.current_person_id()
+                       or rg.grantee_org_id in (select private.my_org_ids()))))
+    or exists (select 1 from private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]))
+    or exists (select 1 from app.account_engagement_assignments a
+               join app.account_memberships m on m.id = a.account_membership_id
+               where a.duty = 'Advancing Lead' and a.deleted_at is null
+                 and m.person_id = private.current_person_id() and m.deleted_at is null
+                 and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now()))
+    or exists (select 1 from app.representations r
+               where r.representative_person_id = private.current_person_id() and r.deleted_at is null
+                 and r.accepted_at is not null and r.revoked_at is null and r.expires_on >= current_date)
+    or exists (select 1 from app.engagements e
+               where e.person_id = private.current_person_id() and e.role_type = 'Artist' and e.deleted_at is null);
 $$;
 
-comment on function private.viewer_decides_hiring() is 'True when the signed-in person holds a capability that decides who is hired, booked or staffed, at any reach or scope, in any org or project, or runs an external account, which may place its people on shifts. A session scoped to an API key or an app reaches less than the person holds, so it cannot show the person decides no hiring, and it counts as deciding. Such a viewer never reads a shared rating (ADR 0158).';
+comment on function private.viewer_decides_hiring() is 'True when the signed-in person has hiring, booking or staffing access: a capability that decides it, at any reach or scope, in any org or project, by role, grant, delegation or record grant; running an external account; a live Advancing Lead duty on an engagement; a live representation of an artist, in any scope; or an engagement as an Artist, whose roster that person manages. Each of the last three counts whatever state the engagement is in, so it fails closed. A session scoped to an API key or an app reaches less than the person holds, so it cannot show the person decides no hiring, and it counts as deciding. Such a viewer never reads a shared rating (ADR 0158).';
 revoke all on function private.viewer_decides_hiring() from public, anon, authenticated;
 
 -- The one path an opt-in opens ---------------------------------------------------------------------------------------
@@ -454,7 +496,7 @@ as $$
   select r.id, r.score, r.comment, r.submitted_at, rr.body, rr.created_at,
     exists (select 1 from app.rating_disputes d where d.rating_id = r.id and d.dispute_state = 'Open' and d.deleted_at is null)
   from private.person_profile_by_handle(p_handle) p
-  join app.engagements e on e.person_id = p.person_id and e.deleted_at is null
+  join app.engagements e on e.person_id = p.person_id
     and private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id, e.application_id)
   join app.ratings r on r.engagement_id = e.id and r.rater_side = 'Organization' and r.deleted_at is null
   left join app.rating_replies rr on rr.rating_id = r.id and rr.deleted_at is null
@@ -469,7 +511,7 @@ as $$
   order by r.submitted_at desc;
 $$;
 
-comment on function api_public.person_profile_shared_ratings(text) is 'Organizations'' ratings of one person, for their profile page, while that person''s opt-in stands (ADR 0158): every released rating or none, in date order, with no average and no rater named. Nothing for anyone signed out, for anyone with hiring, booking or staffing access in XOS, for an API key''s or app''s session, or when the profile is hidden from the viewer. The owner reads their own through api_external.ratings.';
+comment on function api_public.person_profile_shared_ratings(text) is 'Organizations'' ratings of one person, for their profile page, while that person''s opt-in stands (ADR 0158): every released rating or none, in date order, with no average and no rater named, including a rating on an engagement the org soft-deleted. Nothing for anyone signed out, for anyone with hiring, booking or staffing access in XOS, for an API key''s or app''s session, or when the profile is hidden from the viewer. The owner reads their own through api_external.ratings.';
 revoke all on function api_public.person_profile_shared_ratings(text) from public, anon;
 grant execute on function api_public.person_profile_shared_ratings(text) to authenticated, service_role;
 
