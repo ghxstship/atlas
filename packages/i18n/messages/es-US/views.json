@@ -660,7 +660,10 @@
       "drawing_page": "Página del PDF",
       "image_height_px": "Alto de la imagen (px)",
       "image_width_px": "Ancho de la imagen (px)",
-      "calibration_by": "Punto de escala B, y"
+      "calibration_by": "Punto de escala B, y",
+      "standby_at": "En espera desde",
+      "start_tbc": "Hora por confirmar",
+      "curfew_at": "Hora límite"
     }
   },
   "liveLink": {
