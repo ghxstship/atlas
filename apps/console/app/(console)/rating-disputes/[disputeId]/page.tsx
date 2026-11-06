@@ -24,7 +24,10 @@ export default async function RatingDisputePage({
   const { disputeId } = await params;
   if (!z.uuid().safeParse(disputeId).success) notFound();
   const ctx = await requirePermission("moderation.decide");
-  const [detail, f] = await Promise.all([getRatingDisputeDetail(ctx.db, disputeId), getConsoleFormat()]);
+  const [detail, f] = await Promise.all([
+    getRatingDisputeDetail(ctx.db, disputeId),
+    getConsoleFormat(),
+  ]);
   if (!detail.ok) {
     if (detail.error.kind === "not-found") notFound();
     throw new Error(`Cannot read the rating dispute: ${detail.error.kind}`);

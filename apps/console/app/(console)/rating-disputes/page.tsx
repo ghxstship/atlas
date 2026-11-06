@@ -15,9 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Rating disputes (ADR 0156): people disputing a rating an org gave them, oldest open first, or the decided ones. The score
  * is not on this page or the next: what a rating scored cannot decide its dispute.
  */
-export default async function RatingDisputesPage({
-  searchParams,
-}: PageProps<"/rating-disputes">) {
+export default async function RatingDisputesPage({ searchParams }: PageProps<"/rating-disputes">) {
   const ctx = await requirePermission("moderation.decide");
   const decided = (await searchParams)["view"] === "decided";
   const { t, label, instant } = await getConsoleFormat();
