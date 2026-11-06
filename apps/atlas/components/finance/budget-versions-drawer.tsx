@@ -1,5 +1,6 @@
 "use client";
 
+import { useFormatter } from "next-intl";
 import type { BudgetVersion } from "@xos/data/budget-versions";
 import { Button, Drawer, Input, ToastRegion, UndoToast } from "@xos/ui";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ export function BudgetVersionsDrawer({
   onClose: () => void;
 }) {
   const t = useFinanceT();
+  const format = useFormatter();
   const go = useQueryNav();
   const router = useRouter();
   const [versions, setVersions] = useState<readonly BudgetVersion[] | null>(null);
@@ -104,7 +106,10 @@ export function BudgetVersionsDrawer({
                     {t(`budgets.versions.purposes.${v.purpose}`)}
                     {v.createdByName ? ` · ${v.createdByName}` : ""}
                     {" · "}
-                    {new Date(v.createdAt).toLocaleString()}
+                    {format.dateTime(new Date(v.createdAt), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </span>
                 </span>
                 <span className="flex gap-8">
