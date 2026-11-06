@@ -1,7 +1,8 @@
 import { toDisplayKey } from "@xos/data/gateway-keys";
 import { expect as baseExpect, test } from "./engine-test";
 import { asPerson, newSignIn, PEOPLE, PROJECT, suffix } from "./role-fixtures";
-import { DEMO, signIn, sql } from "./support";
+import { DEMO, expectAccessible, signIn, sql } from "./support";
+import { cognitiveLoadProblems } from "./a11y/checks";
 
 /**
  * B14 (RRR-238; G-252, ADR 0153 D4): a vendor's Account Owner reuses the roster of a past event. The company is engaged
@@ -59,15 +60,22 @@ test("roster reuse: preview, then add last event's invitation as a draft", async
   try {
     await asPerson(owner, `select app.invite_to_roster($1, $2)`, [past, invitee]);
     await signIn(page, ownerEmail, "/home");
-    await page.context().addCookies([{ name: "xos-acting", value: accountId, url: page.url() }]);
+    await page
+      .context()
+      .addCookies([{ name: "xos-acting", value: accountId, url: new URL(page.url()).origin }]);
     await page.goto(`/work/engagements/${toDisplayKey("engagement", current)}/crew`);
     const panel = page.locator("section", {
       has: page.getByRole("heading", { name: "Reuse a roster from a past event" }),
     });
     await expect(panel).toBeVisible();
-    await panel.getByRole("button", { name: "Preview" }).click();
-    await expect(panel.getByText("1 address invited again")).toBeVisible();
+    // The panel renders on arrival, so its first click works; a retry covers a click before hydration.
+    await expect(async () => {
+      await panel.getByRole("button", { name: "Preview" }).click();
+      await expect(panel.getByText("1 address invited again")).toBeVisible({ timeout: 5_000 });
+    }).toPass();
     await expect(panel.getByText(invitee)).toBeVisible();
+    expect(await cognitiveLoadProblems(page)).toEqual([]);
+    await expectAccessible(page);
     expect(await count(INVITES, [current, invitee])).toBe(0);
     await panel.getByRole("button", { name: "Add to roster" }).click();
     await expect(

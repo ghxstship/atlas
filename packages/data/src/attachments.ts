@@ -1,6 +1,8 @@
 import type { Database, XosClient } from "./client.ts";
 import type { Subject } from "./comments.ts";
+import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { enumValues } from "./setup.ts";
 import { untyped } from "./untyped.ts";
 
 /**
@@ -251,7 +253,11 @@ export async function removeAttachment(
 
 // File version reviews (B14, G-268, migration 3035) ----------------------------------------------------
 
-export type FileReviewDecision = "Approved" | "Changes Requested";
+export type FileReviewDecision = Database["app"]["Enums"]["file_review_decision"];
+export const FILE_REVIEW_DECISIONS = enumValues<FileReviewDecision>({
+  Approved: true,
+  "Changes Requested": true,
+});
 
 export interface VersionReview {
   readonly id: string;
@@ -274,30 +280,31 @@ export async function listVersionReviews(
   if (versionIds.length === 0) return ok([]);
   const { data, error } = await untyped(db)
     .from("attachment_version_reviews")
-    .select(
-      "id, attachment_version_id, decision, note, created_by, created_at, reviewer:people!attachment_version_reviews_created_by_fkey(full_name)",
-    )
+    .select("id, attachment_version_id, decision, note, created_by, created_at")
     .in("attachment_version_id", [...versionIds])
     .order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
+  const rows = data as unknown as {
+    id: string;
+    attachment_version_id: string;
+    decision: FileReviewDecision;
+    note: string | null;
+    created_by: string | null;
+    created_at: string;
+  }[];
+  // Through app.person_names, so an engaged external who holds the capability is still named.
+  const names = await personNames(
+    db,
+    rows.map((r) => r.created_by),
+  );
   return ok(
-    (
-      data as unknown as {
-        id: string;
-        attachment_version_id: string;
-        decision: FileReviewDecision;
-        note: string | null;
-        created_by: string | null;
-        created_at: string;
-        reviewer: { full_name: string | null } | null;
-      }[]
-    ).map((r) => ({
+    rows.map((r) => ({
       id: r.id,
       attachmentVersionId: r.attachment_version_id,
       decision: r.decision,
       note: r.note,
       reviewerId: r.created_by,
-      reviewerName: r.reviewer?.full_name ?? null,
+      reviewerName: r.created_by ? (names.get(r.created_by) ?? null) : null,
       reviewedAt: r.created_at,
     })),
   );

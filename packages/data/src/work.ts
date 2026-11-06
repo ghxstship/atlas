@@ -1,6 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
-import { fillPersonNames } from "./person-names.ts";
+import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { enumValues } from "./setup.ts";
 import { untyped } from "./untyped.ts";
 
 /**
@@ -1477,7 +1478,8 @@ export async function listCurrencyOptions(
 
 // Reviews (B14, G-268, migration 3034) -----------------------------------------------------------------
 
-export type ReviewDecision = "Approved" | "Rejected";
+export type ReviewDecision = Database["app"]["Enums"]["approval_decision"];
+export const REVIEW_DECISIONS = enumValues<ReviewDecision>({ Approved: true, Rejected: true });
 
 export interface RecordReview {
   /** The Approval record that asks for the review. */
@@ -1495,18 +1497,20 @@ export interface RecordReview {
 }
 
 /**
- * Reviews of a record, latest first: each Approval record whose approval names it (app.record_approval), with its
- * reviewer (the Approval record's owner), requester and decision. The latest live one that is not Canceled decides
- * whether a flagged record may be Complete.
+ * Reviews of a record, latest first: each Approval record in the record's own project whose approval names it
+ * (app.record_approval), with its reviewer (the Approval record's owner), requester and decision. The latest live one
+ * that is not Canceled decides whether a flagged record may be Complete; the gate ignores an Approval record in another
+ * project, so this list does too. Names come through app.person_names, which also knows engaged externals.
  */
 export async function listRecordReviews(
   db: XosClient,
   recordId: string,
+  projectId: string,
 ): Promise<Result<RecordReview[]>> {
   const { data, error } = await untyped(db)
     .from("record_approval")
     .select(
-      "record_id, requester_person_id, decision, decided_at, requester:people!record_approval_requester_person_id_fkey(full_name), approver:people!record_approval_approver_person_id_fkey(full_name), approval:records!record_approval_record_kind_fkey!inner(record_number, record_state, owner_party_id, created_at, deleted_at, project:projects!records_project_id_fkey(project_key), owner:people!records_owner_party_id_fkey(full_name))",
+      "record_id, requester_person_id, approver_person_id, decision, decided_at, approval:records!record_approval_record_kind_fkey!inner(project_id, record_number, record_state, owner_party_id, created_at, deleted_at, project:projects!records_project_id_fkey(project_key))",
     )
     .eq("subject_record_id", recordId)
     .is("approval.deleted_at", null);
@@ -1514,21 +1518,26 @@ export async function listRecordReviews(
   type Row = {
     record_id: string;
     requester_person_id: string;
+    approver_person_id: string | null;
     decision: ReviewDecision | null;
     decided_at: string | null;
-    requester: { full_name: string | null } | null;
-    approver: { full_name: string | null } | null;
     approval: {
+      project_id: string;
       record_number: number;
       record_state: string;
       owner_party_id: string | null;
       created_at: string;
       project: { project_key: string } | null;
-      owner: { full_name: string | null } | null;
     };
   };
+  const rows = (data as unknown as Row[]).filter((r) => r.approval.project_id === projectId);
+  const names = await personNames(
+    db,
+    rows.flatMap((r) => [r.requester_person_id, r.approver_person_id, r.approval.owner_party_id]),
+  );
+  const nameOf = (id: string | null) => (id ? (names.get(id) ?? null) : null);
   return ok(
-    (data as unknown as Row[])
+    rows
       .map((r) => ({
         approvalRecordId: r.record_id,
         approvalKey: formatRecordKey(
@@ -1537,15 +1546,36 @@ export async function listRecordReviews(
         ),
         approvalState: r.approval.record_state,
         reviewerId: r.approval.owner_party_id,
-        reviewerName: r.approval.owner?.full_name ?? null,
+        reviewerName: nameOf(r.approval.owner_party_id),
         requesterId: r.requester_person_id,
-        requesterName: r.requester?.full_name ?? null,
+        requesterName: nameOf(r.requester_person_id),
         decision: r.decision,
-        approverName: r.approver?.full_name ?? null,
+        approverName: nameOf(r.approver_person_id),
         decidedAt: r.decided_at,
         requestedAt: r.approval.created_at,
       }))
       .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
+  );
+}
+
+/**
+ * Who may be asked to review a record (app.eligible_record_reviewers): the people who could decide it, leaving out the
+ * caller and the record's owner. Needs work.record.write; names come through app.person_names.
+ */
+export async function listEligibleReviewers(
+  db: XosClient,
+  recordId: string,
+): Promise<Result<{ readonly personId: string; readonly name: string | null }[]>> {
+  const { data, error } = await untyped(db).rpc("eligible_record_reviewers", {
+    p_record_id: recordId,
+  });
+  if (error) return fail(toDataError(error));
+  const ids = (data ?? []) as string[];
+  const names = await personNames(db, ids);
+  return ok(
+    ids
+      .map((personId) => ({ personId, name: names.get(personId) ?? null }))
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "")),
   );
 }
 

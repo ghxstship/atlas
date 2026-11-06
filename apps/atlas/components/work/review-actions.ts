@@ -1,7 +1,16 @@
 "use server";
 
-import { reviewAttachmentVersion, type FileReviewDecision } from "@xos/data/attachments";
-import { decideRecordReview, requestRecordReview, type ReviewDecision } from "@xos/data/work";
+import {
+  FILE_REVIEW_DECISIONS,
+  reviewAttachmentVersion,
+  type FileReviewDecision,
+} from "@xos/data/attachments";
+import {
+  decideRecordReview,
+  REVIEW_DECISIONS,
+  requestRecordReview,
+  type ReviewDecision,
+} from "@xos/data/work";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -49,7 +58,7 @@ export async function decideReviewAction(
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
-    .object({ approvalRecordId: z.uuid(), decision: z.enum(["Approved", "Rejected"]), note })
+    .object({ approvalRecordId: z.uuid(), decision: z.enum(REVIEW_DECISIONS), note })
     .safeParse(input);
   if (!parsed.success) return invalid();
   const result = await decideRecordReview(ctx.viewer.db, parsed.data);
@@ -68,7 +77,7 @@ export async function reviewFileVersionAction(
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
-    .object({ versionId: z.uuid(), decision: z.enum(["Approved", "Changes Requested"]), note })
+    .object({ versionId: z.uuid(), decision: z.enum(FILE_REVIEW_DECISIONS), note })
     .safeParse(input);
   if (!parsed.success) return invalid();
   const result = await reviewAttachmentVersion(ctx.viewer.db, parsed.data);

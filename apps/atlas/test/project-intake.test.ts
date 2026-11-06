@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { intakeSteps, stepOfField } from "../components/projects/intake-steps";
-import { narrowForm } from "../components/custom-fields/custom-field-inputs";
+import {
+  bumpRefusalField,
+  intakeSteps,
+  stepOfField,
+  submitIntake,
+} from "../components/projects/intake-steps";
+import {
+  fieldPages,
+  narrowForm,
+  requiredFirst,
+} from "../components/custom-fields/custom-field-inputs";
 import type { CustomFieldForm } from "../lib/custom-fields/types";
 
 /**
@@ -10,11 +19,12 @@ import type { CustomFieldForm } from "../lib/custom-fields/types";
  */
 
 describe("intake steps", () => {
-  it("runs Start, Scale and audience, Basics, Details, Copy and Review for a typed copy", () => {
+  it("runs Start, Scale and audience, Basics, days, Details, Copy and Review for a typed copy", () => {
     expect(intakeSteps({ hasType: true, startFrom: "project" })).toEqual([
       "start",
       "bands",
       "basics",
+      "days",
       "details",
       "copy",
       "review",
@@ -25,6 +35,7 @@ describe("intake steps", () => {
     expect(intakeSteps({ hasType: false, startFrom: "template" })).toEqual([
       "start",
       "basics",
+      "days",
       "details",
       "review",
     ]);
@@ -32,6 +43,7 @@ describe("intake steps", () => {
       "start",
       "bands",
       "basics",
+      "days",
       "details",
       "review",
     ]);
@@ -39,10 +51,72 @@ describe("intake steps", () => {
 
   it("opens the step that holds a refused field", () => {
     expect(stepOfField("key")).toBe("basics");
-    expect(stepOfField("loadInTo")).toBe("basics");
+    for (const name of ["loadInFrom", "loadInTo", "loadOutFrom", "loadOutTo"]) {
+      expect(stepOfField(name)).toBe("days");
+    }
     expect(stepOfField("cf.capacity")).toBe("details");
     expect(stepOfField("copyParts")).toBe("copy");
     expect(stepOfField("templateId")).toBe("start");
+  });
+});
+
+describe("a refused save", () => {
+  const event = () => {
+    let prevented = false;
+    return {
+      preventDefault: () => {
+        prevented = true;
+      },
+      prevented: () => prevented,
+    };
+  };
+
+  it("moves on before the last step and goes through keepInputOnSubmit on it", () => {
+    const moved: string[] = [];
+    const early = event();
+    submitIntake(early, {
+      last: false,
+      forward: () => moved.push("forward"),
+      keep: () => moved.push("keep"),
+    });
+    expect(early.prevented()).toBe(true);
+    expect(moved).toEqual(["forward"]);
+    const final = event();
+    submitIntake(final, {
+      last: true,
+      forward: () => moved.push("forward"),
+      keep: () => moved.push("keep"),
+    });
+    expect(moved).toEqual(["forward", "keep"]);
+  });
+
+  const dates = { loadInFrom: null, loadInTo: null, loadOutFrom: null, loadOutTo: null };
+
+  it("names the dates a bump refusal from the database is about", () => {
+    expect(bumpRefusalField("project_bump_in_after_show", dates)).toBe("loadInTo");
+    expect(bumpRefusalField("project_bump_out_before_show", dates)).toBe("loadOutTo");
+    expect(
+      bumpRefusalField("project_bump_window_bounds", { ...dates, loadInFrom: "2027-06-01" }),
+    ).toBe("loadInTo");
+    expect(
+      bumpRefusalField("project_bump_window_bounds", { ...dates, loadOutTo: "2027-06-01" }),
+    ).toBe("loadOutTo");
+    expect(
+      bumpRefusalField("project_bump_window_length", {
+        ...dates,
+        loadInFrom: "2027-01-01",
+        loadInTo: "2027-03-15",
+      }),
+    ).toBe("loadInTo");
+    expect(
+      bumpRefusalField("project_bump_window_length", {
+        loadInFrom: "2027-01-01",
+        loadInTo: "2027-01-02",
+        loadOutFrom: "2027-04-01",
+        loadOutTo: "2027-08-01",
+      }),
+    ).toBe("loadOutTo");
+    expect(bumpRefusalField("project_key_taken", dates)).toBeNull();
   });
 });
 
@@ -82,5 +156,31 @@ describe("the Details step's fields", () => {
 
   it("shows every field without a set", () => {
     expect(narrowForm(form, null, new Set()).fields).toHaveLength(3);
+  });
+
+  it("puts required fields first, each group in the type's order", () => {
+    const fields = [field("a", false), field("b", true), field("c", false), field("d", true)];
+    expect(requiredFirst(fields, ["d", "c", "b", "a"]).map((f) => f.key)).toEqual([
+      "d",
+      "b",
+      "c",
+      "a",
+    ]);
+    expect(requiredFirst(fields, []).map((f) => f.key)).toEqual(["b", "d", "a", "c"]);
+  });
+
+  it("pages nine fields into seven and two", () => {
+    const nine = Array.from({ length: 9 }, (_, i) => field(`f${String(i)}`, false));
+    expect(fieldPages(nine, 7).map((p) => p.length)).toEqual([7, 2]);
+    expect(fieldPages([], 7)).toEqual([]);
+  });
+
+  it("counts a Money field's amount and currency as two visible controls", () => {
+    const money = { ...field("fee", false), dataType: "Money" } as (typeof form.fields)[number];
+    const six = Array.from({ length: 6 }, (_, i) => field(`f${String(i)}`, false));
+    expect(fieldPages([...six, money], 7).map((p) => p.map((f) => f.key))).toEqual([
+      six.map((f) => f.key),
+      ["fee"],
+    ]);
   });
 });

@@ -443,6 +443,7 @@
       "start": "Start",
       "bands": "Scale and audience",
       "basics": "Basics",
+      "days": "Load-in and load-out",
       "details": "Details",
       "copy": "Copy",
       "review": "Review"
@@ -510,13 +511,17 @@
       "field": "Detail",
       "copy": "What is copied"
     },
+    "detailsContinued": "Details, continued",
+    "startFromOther": "Start from a template or a past project",
+    "withoutDates": "Leave out the template's dates",
     "stepNumber": "{n}. {step}"
   },
   "eventTypes": {
     "field": "Event type",
     "archivedName": "{name} (archived)",
-    "allTypes": "All event types",
-    "groupBy": "Group by event type",
+    "settingsTitle": "Event type",
+    "settingsLead": "What kind of event this is, which sets the details and documents it needs.",
+    "saveSettings": "Save event type",
     "title": "Event types",
     "lead": "The kinds of event you produce. Each picks the template a new project starts from by scale and audience, and the details and documents a project of the type needs by a gate.",
     "loadFailed": "This list could not be loaded. Reload the page to try again.",
@@ -565,8 +570,7 @@
     "descriptionHelp": "Shown on the event type's card at New project.",
     "guidance": "Intake guidance",
     "guidanceHelp": "What to have ready, shown beside the type's details at intake.",
-    "gateOption": "Gate {gate}, {phase}",
-    "groupHeading": "{name} ({count})"
+    "gateOption": "Gate {gate}, {phase}"
   },
   "documentTypes": {
     "title": "Document types",

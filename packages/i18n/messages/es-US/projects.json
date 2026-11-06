@@ -443,6 +443,7 @@
       "start": "Inicio",
       "bands": "Escala y público",
       "basics": "Datos básicos",
+      "days": "Montaje y desmontaje",
       "details": "Detalles",
       "copy": "Copia",
       "review": "Revisión"
@@ -510,13 +511,17 @@
       "field": "Detalle",
       "copy": "Lo que se copia"
     },
+    "detailsContinued": "Detalles, continuación",
+    "startFromOther": "Empezar desde una plantilla o un proyecto anterior",
+    "withoutDates": "Omitir las fechas de la plantilla",
     "stepNumber": "{n}. {step}"
   },
   "eventTypes": {
     "field": "Tipo de evento",
     "archivedName": "{name} (archivado)",
-    "allTypes": "Todos los tipos de evento",
-    "groupBy": "Agrupar por tipo de evento",
+    "settingsTitle": "Tipo de evento",
+    "settingsLead": "Qué clase de evento es, lo que define los detalles y documentos que necesita.",
+    "saveSettings": "Guardar tipo de evento",
     "title": "Tipos de evento",
     "lead": "Los tipos de evento que produces. Cada uno elige la plantilla con la que empieza un proyecto nuevo según la escala y el público, y los detalles y documentos que un proyecto del tipo necesita para cada compuerta.",
     "loadFailed": "No se pudo cargar esta lista. Vuelve a cargar la página para intentarlo de nuevo.",
@@ -565,8 +570,7 @@
     "descriptionHelp": "Se muestra en la tarjeta del tipo de evento en Nuevo proyecto.",
     "guidance": "Indicaciones al crear el proyecto",
     "guidanceHelp": "Lo que hay que tener listo, junto a los detalles del tipo al crear el proyecto.",
-    "gateOption": "Compuerta {gate}, {phase}",
-    "groupHeading": "{name} ({count})"
+    "gateOption": "Compuerta {gate}, {phase}"
   },
   "documentTypes": {
     "title": "Tipos de documento",

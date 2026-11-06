@@ -1,24 +1,41 @@
+import type { Database } from "./database.types.ts";
+
 /**
- * Event bands and setup completeness (B14, migrations 3030 to 3032), without the generated database types, so the
- * browser components that show them (the intake wizard, the Gates tab, the Setup card) carry only these few lines.
- * The literals match app.event_scale, app.event_audience and app.document_requirement; test/b14 checks them against
- * the generated Constants.
+ * Event bands and setup completeness (B14, migrations 3030 to 3032), without the generated Constants, so the browser
+ * components that show them (the intake wizard, the Gates tab, the Setup card) carry only these few lines. The types
+ * are the database's; each list is written once as the keys of an object the type holds exhaustive, and test/b14 checks
+ * it against the generated Constants, order included.
  */
 
-/** Scale bands in order: Intimate up to 500 people, then 2,500, 10,000, 50,000 and over (each includes its top). */
-export const EVENT_SCALES = ["Intimate", "Small", "Medium", "Large", "Major"] as const;
-/** Audience bands in order. */
-export const EVENT_AUDIENCES = [
-  "Public Ticketed",
-  "Public Free",
-  "Invite Only",
-  "Trade",
-  "Internal",
-] as const;
+export type EventScale = Database["app"]["Enums"]["event_scale"];
+export type EventAudience = Database["app"]["Enums"]["event_audience"];
+export type DocumentRequirement = Database["app"]["Enums"]["document_requirement"];
 
-export type EventScale = (typeof EVENT_SCALES)[number];
-export type EventAudience = (typeof EVENT_AUDIENCES)[number];
-export type DocumentRequirement = "Required" | "Recommended";
+/** One enum's values in display order, as z.enum takes them. A value the database adds fails to compile at the call. */
+export function enumValues<T extends string>(values: Record<T, true>): readonly [T, ...T[]] {
+  return Object.keys(values) as [T, ...T[]];
+}
+
+/** Scale bands in order: Intimate up to 500 people, then 2,500, 10,000, 50,000 and over (each includes its top). */
+export const EVENT_SCALES = enumValues<EventScale>({
+  Intimate: true,
+  Small: true,
+  Medium: true,
+  Large: true,
+  Major: true,
+});
+/** Audience bands in order. */
+export const EVENT_AUDIENCES = enumValues<EventAudience>({
+  "Public Ticketed": true,
+  "Public Free": true,
+  "Invite Only": true,
+  Trade: true,
+  Internal: true,
+});
+export const DOCUMENT_REQUIREMENTS = enumValues<DocumentRequirement>({
+  Required: true,
+  Recommended: true,
+});
 
 export interface SetupItem {
   readonly kind: "Document" | "Field";

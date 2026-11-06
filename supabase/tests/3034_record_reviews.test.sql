@@ -12,7 +12,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(45);
+select plan(63);
 
 create function pg_temp.new_record(p_key text, p_title text, p_review boolean default true) returns uuid
 language plpgsql as $$
@@ -221,6 +221,82 @@ select throws_ok(format('select app.request_record_review(%L)', pg_temp.id('t2')
 select throws_ok(format('select app.request_record_review(%L)', pg_temp.id('ap3')),
   'XR001', 'record_review_kind: An approval is decided, not reviewed.', 'an Approval record is not reviewed');
 
+-- An Approval record that asks for a review is completed by its decision, never by hand.
+select pg_temp.as_user('erin');
+select throws_ok(format($$select app.transition_record(%L, 'Active', 'Complete', 'Done.')$$, pg_temp.id('ap3')),
+  'XR001', 'record_review_undecided: Decide the review before completing it.', 'an undecided review is not completed by hand');
+select pg_temp.as_user('carol');
+
+-- A subject in another project. dave writes prj_a only, and carol writes both.
+with x as (insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis)
+  values (pg_temp.id('prj_a2'), 'Task', 'Execute', 'Winter gala secret seating', 'Y', 'Declared') returning id)
+  insert into world select 'foreign', id from x;
+select app.transition_record(pg_temp.id('foreign'), 'Proposed', 'Ready', 'Ready.');
+select app.transition_record(pg_temp.id('foreign'), 'Ready', 'Active', 'Started.');
+select pg_temp.as_user('dave');
+with r as (insert into app.records (project_id, record_kind, title, xyz, xyz_basis, owner_party_id)
+  values (pg_temp.id('prj_a'), 'Approval', 'Review of another project', 'Y', 'Declared', pg_temp.id('erin'))
+  returning id) insert into world select 'ap_foreign', id from r;
+insert into app.record_approval (record_id, subject_record_id, requester_person_id)
+  values (pg_temp.id('ap_foreign'), pg_temp.id('foreign'), pg_temp.id('dave'));
+select app.transition_record(pg_temp.id('ap_foreign'), 'Proposed', 'Ready', 'Ready.');
+select app.transition_record(pg_temp.id('ap_foreign'), 'Ready', 'Active', 'Started.');
+select pg_temp.as_platform();
+select private.notify(pg_temp.id('org_a'), pg_temp.id('erin'), 'approval.requested', 'app.records', pg_temp.id('ap_foreign'),
+  pg_temp.id('prj_a'), jsonb_build_object('title', 'x', 'recordKey', 'x', 'actorName', 'x'));
+insert into world select 'n_foreign', n.id from app.notifications n
+  where n.subject_id = pg_temp.id('ap_foreign') and n.kind = 'approval.requested';
+select pg_temp.as_user('erin');
+select throws_ok(format($$select app.decide_record_review(%L, 'Rejected', 'Change the seating.')$$, pg_temp.id('ap_foreign')),
+  '42501', 'work.record.write is required on the project', 'a review of a record in another project is not decided');
+select throws_ok(format($$select app.act_on_notification(%L, 'approve')$$, pg_temp.id('n_foreign')),
+  '42501', 'work.record.write is required on the project', 'nor from Inbox');
+select pg_temp.as_platform();
+select is((select record_state from app.records where id = pg_temp.id('foreign')), 'Active', 'the foreign record has not moved');
+select is((select count(*)::integer from app.notifications where subject_id = pg_temp.id('ap_foreign') and kind = 'approval.decided'), 0,
+  'and its title was sent to nobody');
+select pg_temp.as_user('carol');
+select lives_ok(format($$insert into world select 'ap_b', app.request_record_review(%L, %L, 'Seating done.')$$, pg_temp.id('foreign'), pg_temp.id('bob')),
+  'another project''s undecided Approval does not hold a review open');
+
+-- Who may be asked follows who may decide.
+select pg_temp.as_platform();
+insert into app.roles (org_id, code, name, band) values (pg_temp.id('org_a'), 'record_writer', 'Record Writer', 5);
+insert into app.role_capabilities (role_id, capability_code, reach)
+  select r.id, 'work.record.write', 'organization' from app.roles r where r.code = 'record_writer';
+delete from app.membership_roles where membership_id = pg_temp.id('gina@org_a');
+insert into app.membership_roles (membership_id, role_id)
+  select pg_temp.id('gina@org_a'), r.id from app.roles r where r.code = 'record_writer';
+select pg_temp.as_user('carol');
+select pg_temp.new_record('t8', 'Walk the egress routes');
+select pg_temp.start('t8');
+select throws_ok(format('select app.request_record_review(%L, %L)', pg_temp.id('t8'), pg_temp.id('gina')),
+  'XR001', 'approval_not_eligible: Only a person who may write the project''s records decides its approvals.',
+  'organization reach alone, on a project the person is not on, without projects.members.manage, is refused');
+select pg_temp.as_user('gina');
+select throws_ok(format('select app.eligible_record_reviewers(%L)', pg_temp.id('t8')),
+  '42501', 'work.record.write is required on the project', 'nor may that person list reviewers');
+select pg_temp.as_user('alice');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason)
+  values (pg_temp.id('mia@org_a'), 'work.record.write', 'project', pg_temp.id('prj_a'), 'Covering the egress walk.');
+select pg_temp.as_user('carol');
+select ok((select pg_temp.id('mia') in (select app.eligible_record_reviewers(pg_temp.id('t8')))), 'a project-grant holder is offered');
+select ok((select pg_temp.id('erin') in (select app.eligible_record_reviewers(pg_temp.id('t8')))), 'and so is a project member who writes records');
+select ok((select pg_temp.id('gina') not in (select app.eligible_record_reviewers(pg_temp.id('t8')))), 'the org-reach non-member is not');
+select ok((select pg_temp.id('carol') not in (select app.eligible_record_reviewers(pg_temp.id('t8')))), 'nor is the caller');
+select lives_ok(format($$update app.records set owner_party_id = %L where id = %L$$, pg_temp.id('dave'), pg_temp.id('t8')), 'dave owns it');
+select ok((select pg_temp.id('dave') not in (select app.eligible_record_reviewers(pg_temp.id('t8')))), 'nor is the owner');
+select lives_ok(format($$insert into world select 'ap8', app.request_record_review(%L, %L, 'Walked.')$$, pg_temp.id('t8'), pg_temp.id('mia')),
+  'a project-grant holder is accepted at request');
+select pg_temp.as_user('mia');
+select lives_ok(format($$select app.decide_record_review(%L, 'Approved')$$, pg_temp.id('ap8')), 'and is able to decide');
+
+-- An Approval record never carries the flag.
+select pg_temp.as_user('carol');
+select throws_ok(format('update app.records set requires_review = true where id = %L', pg_temp.id('ap8')),
+  '23514', null, 'an Approval record cannot require review');
+select lives_ok(format('update app.records set title = title where id = %L', pg_temp.id('ap8')), 'the constraint leaves it otherwise alone');
+
 -- The flag.
 select pg_temp.new_record('t3', 'Order the gaffer tape', false);
 select pg_temp.as_user('dave');
@@ -240,6 +316,9 @@ with x as (insert into app.template_versions (template_id, default_time_zone) va
   insert into world select 'tv', id from x;
 select throws_ok(format($$insert into app.template_items (template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, requires_review)
   values (%L, 'Scope Node', 1, 'Main Stage', 'Show', 'E02', true)$$, pg_temp.id('tv')), '23514', null, 'a Scope Node item never requires review');
+select throws_ok(format($$insert into app.template_items (template_version_id, item_kind, sort_order, name, record_kind, xyz, requires_review)
+  values (%L, 'Record', 1, 'Approve the plan', 'Approval', 'Y', true)$$, pg_temp.id('tv')), '23514', null,
+  'a Template Record item of kind Approval never requires review');
 insert into app.template_items (template_version_id, item_kind, sort_order, name, record_kind, xyz, requires_review)
   values (pg_temp.id('tv'), 'Record', 1, 'Sign off the rigging plan', 'Task', 'Y', true);
 select app.publish_template_version(pg_temp.id('tv'));

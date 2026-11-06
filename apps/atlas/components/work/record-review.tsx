@@ -11,8 +11,9 @@ import { decideReviewAction, requestReviewAction } from "./review-actions";
  * A record's review (B14, G-268; ADR 0153 D5): the Requires review switch, the latest review with its state and
  * decision, Ask for review with a reviewer and a note while the record is Active, and Approve or Request changes for
  * the named reviewer and any other eligible approver who is not the requester. A review always names its reviewer,
- * never the asker or the record's owner (sod_record_review_owner), so the picker leaves both out. Loaded on demand through
- * components/lazy-ui/record-review.tsx, never with the record collection. The database decides every rule.
+ * never the asker or the record's owner (sod_record_review_owner), and only someone who could decide it, so the picker
+ * offers app.eligible_record_reviewers. The record page imports it directly: it renders on arrival, and a control loaded
+ * on demand there would lose its first clicks. The database decides every rule.
  */
 export function RecordReview({
   org,
@@ -20,7 +21,7 @@ export function RecordReview({
   state,
   requiresReview,
   reviews,
-  people,
+  reviewers,
   me,
   ownerId,
   canWrite,
@@ -32,7 +33,8 @@ export function RecordReview({
   requiresReview: boolean;
   /** Latest first. */
   reviews: readonly Review[];
-  people: readonly { readonly personId: string; readonly name: string | null }[];
+  /** Who may be asked (app.eligible_record_reviewers); empty unless the record is Active and the viewer can write. */
+  reviewers: readonly { readonly personId: string; readonly name: string | null }[];
   me: string | null;
   /** The record's owner, who never reviews it. */
   ownerId: string | null;
@@ -48,7 +50,6 @@ export function RecordReview({
   const [note, setNote] = useState("");
   const [answer, setAnswer] = useState("");
   const latest = reviews.find((r) => r.approvalState !== "Canceled") ?? null;
-  const reviewers = people.filter((p) => p.personId !== me && p.personId !== ownerId);
   const open = latest !== null && latest.decision === null;
   // The database refuses the asker (sod_approval_requester) and the record's owner (sod_record_review_owner), so
   // neither is offered a decision.

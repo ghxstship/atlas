@@ -1,21 +1,23 @@
 import { listMembers } from "@xos/data";
-import { listAttachments, listVersionReviews } from "@xos/data/attachments";
-import { FileReviewControls } from "@/components/lazy-ui/file-review";
+import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
+import type { ReactNode } from "react";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabClient } from "./collab-client";
 import { ErrorPanel } from "./kit";
 
-/** Loads the comments and attachments of one A16 row and renders their panels. */
+/** Loads the comments and attachments of one A16 row and renders their panels; `children` follow them. */
 export async function CollabPanels({
   ctx,
   table,
   id,
+  children,
 }: {
   ctx: OrgContext;
   table: string;
   id: string;
+  children?: ReactNode;
 }) {
   const db = ctx.viewer.db;
   const subject = { table, id };
@@ -49,14 +51,6 @@ export async function CollabPanels({
     mine: a.createdBy === me,
     classification: a.classification,
   }));
-  // B14 (3035): a submittal's files are reviewed version by version, by someone other than the uploader.
-  const reviewable = table === "app.submittals" && attachments.data.length > 0;
-  const reviews = reviewable
-    ? await listVersionReviews(
-        db,
-        attachments.data.flatMap((a) => a.versions.map((v) => v.id)),
-      )
-    : null;
   return (
     <>
       <CollabClient
@@ -66,15 +60,7 @@ export async function CollabPanels({
         comments={comments}
         attachments={files}
       />
-      {reviewable ? (
-        <FileReviewControls
-          org={ctx.org.slug}
-          attachments={attachments.data}
-          reviews={reviews?.ok ? reviews.data : []}
-          me={me}
-          canReview={ctx.capabilities.has("procurement.po.write")}
-        />
-      ) : null}
+      {children}
     </>
   );
 }

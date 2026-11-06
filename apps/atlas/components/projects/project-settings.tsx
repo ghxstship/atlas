@@ -11,6 +11,7 @@ import {
   archiveProjectAction,
   endMemberAction,
   updateProjectAction,
+  updateProjectEventTypeAction,
 } from "@/lib/projects/actions";
 import { enumKey, stateIcon } from "@/lib/projects/format";
 import { ActionError, echoed, useClosingAction } from "./action-error";
@@ -147,43 +148,6 @@ export function ProjectSettings({
               description: project.description,
             }}
           />
-          {eventTypes.length > 0 || typed ? (
-            <div className="flex flex-wrap gap-12">
-              <Select
-                id="settings-event-type"
-                name="eventTypeId"
-                label={t("eventTypes.field")}
-                value={echoed(state, "eventTypeId", project.eventTypeId ?? "")}
-                options={[{ value: "", label: t("intake.noEventType") }, ...eventTypes]}
-                disabled={!canType}
-              />
-              <Select
-                id="settings-event-scale"
-                name="eventScale"
-                label={t("intake.scale")}
-                value={echoed(state, "eventScale", project.eventScale ?? "")}
-                options={[
-                  { value: "", label: t("intake.anyScale") },
-                  ...EVENT_SCALES.map((v) => ({ value: v, label: t(`intake.scales.${v}`) })),
-                ]}
-                disabled={!canType}
-              />
-              <Select
-                id="settings-event-audience"
-                name="eventAudience"
-                label={t("intake.audience")}
-                value={echoed(state, "eventAudience", project.eventAudience ?? "")}
-                options={[
-                  { value: "", label: t("intake.anyAudience") },
-                  ...EVENT_AUDIENCES.map((v) => ({
-                    value: v,
-                    label: t(`intake.audiences.${v.replaceAll(" ", "") as "PublicTicketed"}`),
-                  })),
-                ]}
-                disabled={!canType}
-              />
-            </div>
-          ) : null}
           {editable ? (
             <div className="flex items-center gap-12">
               <Button type="submit" variant="primary" loading={pending}>
@@ -198,6 +162,10 @@ export function ProjectSettings({
           ) : null}
         </form>
       </Section>
+
+      {eventTypes.length > 0 || typed ? (
+        <EventTypeSection {...base} project={project} eventTypes={eventTypes} canType={canType} />
+      ) : null}
 
       <CustomFieldsSection table="app.projects" id={project.id} />
 
@@ -320,6 +288,86 @@ export function ProjectSettings({
         </Section>
       ) : null}
     </div>
+  );
+}
+
+/** The project's event type and bands (B14, 3030), saved apart from General so that form stays at seven fields. */
+function EventTypeSection({
+  org,
+  projectKey,
+  project,
+  eventTypes,
+  canType,
+}: Base & {
+  project: ProjectSummary;
+  eventTypes: readonly { readonly value: string; readonly label: string }[];
+  canType: boolean;
+}) {
+  const t = useTranslations("projects");
+  const [state, action, pending] = useActionState(updateProjectEventTypeAction, {});
+  return (
+    <Section
+      id="settings-event-type"
+      title={t("eventTypes.settingsTitle")}
+      lead={t("eventTypes.settingsLead")}
+    >
+      <form
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
+        <Hidden org={org} projectKey={projectKey} />
+        <ActionError state={state} />
+        <div className="flex flex-wrap gap-12">
+          <Select
+            id="settings-event-type-id"
+            name="eventTypeId"
+            label={t("eventTypes.field")}
+            value={echoed(state, "eventTypeId", project.eventTypeId ?? "")}
+            options={[{ value: "", label: t("intake.noEventType") }, ...eventTypes]}
+            disabled={!canType}
+          />
+          <Select
+            id="settings-event-scale"
+            name="eventScale"
+            label={t("intake.scale")}
+            value={echoed(state, "eventScale", project.eventScale ?? "")}
+            options={[
+              { value: "", label: t("intake.anyScale") },
+              ...EVENT_SCALES.map((v) => ({ value: v, label: t(`intake.scales.${v}`) })),
+            ]}
+            disabled={!canType}
+          />
+          <Select
+            id="settings-event-audience"
+            name="eventAudience"
+            label={t("intake.audience")}
+            value={echoed(state, "eventAudience", project.eventAudience ?? "")}
+            options={[
+              { value: "", label: t("intake.anyAudience") },
+              ...EVENT_AUDIENCES.map((v) => ({
+                value: v,
+                label: t(`intake.audiences.${v.replaceAll(" ", "") as "PublicTicketed"}`),
+              })),
+            ]}
+            disabled={!canType}
+          />
+        </div>
+        {canType ? (
+          <div className="flex items-center gap-12">
+            <Button type="submit" variant="secondary" loading={pending}>
+              {t("eventTypes.saveSettings")}
+            </Button>
+            {state.ok ? (
+              <p role="status" className="m-0 text-text-13 text-success-text">
+                {t("settings.saved")}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </form>
+    </Section>
   );
 }
 

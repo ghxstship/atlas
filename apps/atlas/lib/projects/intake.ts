@@ -11,6 +11,7 @@ import {
   type ProjectCopyItem,
   type ProjectCopyPart,
 } from "@xos/data/project-copy";
+import { listCustomFieldDefinitions } from "@xos/data/custom-fields";
 import { listTemplates } from "@xos/data/workflow";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -36,19 +37,27 @@ export interface IntakeOptions {
   readonly eventTypes: readonly EventType[];
   readonly templates: readonly IntakeTemplate[];
   readonly pastProjects: readonly CopySourceProject[];
+  /** The org has project custom fields, which take their own Details step. */
+  readonly hasProjectFields: boolean;
 }
 
-const EMPTY: IntakeOptions = { eventTypes: [], templates: [], pastProjects: [] };
+const EMPTY: IntakeOptions = {
+  eventTypes: [],
+  templates: [],
+  pastProjects: [],
+  hasProjectFields: false,
+};
 
 /** The org's live event types, templates and past projects for the wizard; empty lists on any read failure. */
 export async function loadIntakeOptionsAction(org: string): Promise<IntakeOptions> {
   const ctx = await getOrgContext(org);
   if (!ctx) return EMPTY;
   const db = ctx.viewer.db;
-  const [types, templates, projects] = await Promise.all([
+  const [types, templates, projects, fields] = await Promise.all([
     listEventTypes(db, ctx.org.id),
     listTemplates(db, ctx.org.id),
     listCopySourceProjects(db, ctx.org.id),
+    listCustomFieldDefinitions(db, ctx.org.id, "app.projects"),
   ]);
   return {
     eventTypes: types.ok ? types.data : [],
@@ -60,6 +69,7 @@ export async function loadIntakeOptionsAction(org: string): Promise<IntakeOption
         }))
       : [],
     pastProjects: projects.ok ? projects.data : [],
+    hasProjectFields: fields.ok && fields.data.length > 0,
   };
 }
 
@@ -79,7 +89,7 @@ function copyError(error: DataError): CopyPreviewState {
 
 const request = z.object({
   sourceProjectId: z.uuid(),
-  parts: z.array(z.enum(PROJECT_COPY_PARTS as [ProjectCopyPart, ...ProjectCopyPart[]])).min(1),
+  parts: z.array(z.enum(PROJECT_COPY_PARTS)).min(1),
   offsetDays: z.number().int().min(-3660).max(3660).nullable(),
 });
 

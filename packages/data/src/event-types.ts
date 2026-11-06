@@ -1,5 +1,12 @@
 import type { XosClient } from "./client.ts";
-import type { DocumentRequirement, EventAudience, EventScale } from "./setup.ts";
+import type { Database } from "./database.types.ts";
+import {
+  EVENT_AUDIENCES,
+  EVENT_SCALES,
+  type DocumentRequirement,
+  type EventAudience,
+  type EventScale,
+} from "./setup.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -94,14 +101,6 @@ const TYPE_COLUMNS =
   "fields:event_type_fields(id, custom_field_definition_id, required_for_type, required_by_gate, sort_order, deleted_at, definition:custom_field_definitions(field_key, label, deleted_at)), " +
   "requirements:event_type_document_requirements(id, document_type_id, requirement, required_by_gate, sort_order, deleted_at, document_type:document_types(name, deleted_at))";
 
-const SCALE_ORDER: readonly EventScale[] = ["Intimate", "Small", "Medium", "Large", "Major"];
-const AUDIENCE_ORDER: readonly EventAudience[] = [
-  "Public Ticketed",
-  "Public Free",
-  "Invite Only",
-  "Trade",
-  "Internal",
-];
 const bandIndex = <T>(order: readonly T[], value: T | null) =>
   value === null ? order.length : order.indexOf(value);
 
@@ -124,8 +123,8 @@ function toEventType(r: TypeRow): EventType {
       }))
       .sort(
         (a, b) =>
-          bandIndex(SCALE_ORDER, a.scale) - bandIndex(SCALE_ORDER, b.scale) ||
-          bandIndex(AUDIENCE_ORDER, a.audience) - bandIndex(AUDIENCE_ORDER, b.audience),
+          bandIndex(EVENT_SCALES, a.scale) - bandIndex(EVENT_SCALES, b.scale) ||
+          bandIndex(EVENT_AUDIENCES, a.audience) - bandIndex(EVENT_AUDIENCES, b.audience),
       ),
     fields: r.fields
       .filter((f) => f.deleted_at === null && f.definition?.deleted_at === null)
@@ -424,8 +423,7 @@ export function resolveTemplate(
 }
 
 export type IntakeTemplateChoice = "type" | "template" | "none";
-export type ProjectCopyPart =
-  "Plan" | "Pass Categories" | "Hotel Blocks" | "Budgets" | "Advance Forms";
+export type ProjectCopyPart = Database["app"]["Enums"]["project_copy_part"];
 
 export interface IntakeInput {
   readonly orgId: string;

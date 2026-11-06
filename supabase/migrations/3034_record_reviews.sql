@@ -24,6 +24,11 @@
 --     t41_record_approval_fixed keeps an approval's record, subject and decision time from changing, so a decided
 --     review cannot be re-pointed at another record or re-dated past a reopen (approval_subject_immutable,
 --     approval_decided).
+--   * The decision is about a record in the review's own project: app.decide_record_review refuses a subject in another
+--     project (42501), an undecided Approval record in another project does not hold a review open, and an Approval
+--     record that asks for a review is not completed undecided (record_review_undecided).
+--   * private.can_decide_record_review follows private.project_ids_with for a named person, and
+--     app.eligible_record_reviewers lists who may be asked.
 --   * app.act_on_notification is restated from A127's 2200, the latest definition, so Approve and Reject on an
 --     approval.requested about app.records decide the review from Inbox and from Compass's push actions; Reject needs a
 --     comment. private.notification_link_actions (2200) is not restated, so email one-tap links are not offered for
@@ -42,6 +47,10 @@ comment on column app.records.requires_review is 'True when the record reaches C
 
 alter table app.template_items add column requires_review boolean not null default false;
 alter table app.template_items add constraint template_items_review_records check (item_kind = 'Record' or not requires_review);
+-- An Approval record is decided, not reviewed: with the flag, t47 would block app.decide_record_review's own move to
+-- Complete.
+alter table app.records add constraint records_review_not_approval check (record_kind <> 'Approval' or not requires_review);
+alter table app.template_items add constraint template_items_review_not_approval check (record_kind <> 'Approval' or not requires_review);
 comment on column app.template_items.requires_review is 'For a Record item: the records it creates require an approved review before they are Complete (G-268). Always false on a Scope Node item.';
 
 -- Templates carry the flag -------------------------------------------------------------------------------------------------
@@ -201,6 +210,9 @@ grant execute on function app.create_template_from_project(uuid, text, text, boo
 
 -- Who may decide a review -----------------------------------------------------------------------------------------------------
 
+-- private.project_ids_with (2662, its latest definition) for a named person, because a review is only asked of someone
+-- app.decide_record_review would accept. Its share branch is left out: a reviewer is a member of the project's org.
+
 create or replace function private.can_decide_record_review(p_person_id uuid, p_project_id uuid)
 returns boolean
 language sql
@@ -208,21 +220,82 @@ stable
 security definer
 set search_path = ''
 as $$
-  select p_person_id is not null and exists (
-    select 1 from app.projects p
-    where p.id = p_project_id
-      and exists (select 1 from app.memberships m
-                  where m.org_id = p.org_id and m.person_id = p_person_id and m.deleted_at is null
-                    and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now()))
-      and (private.person_capability_reach(p_person_id, p.org_id, 'work.record.write', true) = 'organization'
-           or (private.person_capability_reach(p_person_id, p.org_id, 'work.record.write', true) = 'assigned'
-               and exists (select 1 from app.project_members pm
-                           join app.memberships m on m.id = pm.membership_id and m.person_id = p_person_id and m.deleted_at is null
-                           where pm.project_id = p.id and pm.deleted_at is null))));
+  with membership as (
+    select m.id, p.id as project_id, p.org_id,
+      private.person_capability_reach(p_person_id, p.org_id, 'work.record.write', true) as reach
+    from app.projects p
+    join app.memberships m on m.org_id = p.org_id and m.person_id = p_person_id and m.deleted_at is null
+      and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
+    where p.id = p_project_id and p.deleted_at is null
+  ), member as (
+    select exists (
+      select 1 from app.project_members pm join membership m on m.id = pm.membership_id
+      where pm.project_id = m.project_id and pm.deleted_at is null
+        and pm.valid_from <= now() and (pm.valid_to is null or pm.valid_to > now())) as on_project
+  )
+  select exists (
+    select 1 from membership m cross join member
+    where (m.reach = 'organization'
+           and (member.on_project
+                or private.person_capability_reach(p_person_id, m.org_id, 'projects.members.manage', true) = 'organization'))
+       or (m.reach = 'assigned' and member.on_project)
+       or exists (
+         select 1 from app.user_capability_grants g
+         where g.scope_kind = 'project' and g.scope_id = m.project_id and g.capability_code = 'work.record.write'
+           and g.membership_id = m.id and g.deleted_at is null
+           and g.valid_from <= now() and (g.valid_to is null or g.valid_to > now()))
+       or exists (
+         select 1 from app.record_grants rg
+         where rg.target_kind = 'project' and rg.target_id = m.project_id and rg.capability_code = 'work.record.write'
+           and rg.deleted_at is null and rg.valid_from <= now() and rg.valid_to > now()
+           and (rg.grantee_person_id = p_person_id or rg.grantee_org_id in (select private.person_org_ids(p_person_id))))
+       or exists (
+         select 1 from app.project_members pm
+         join app.project_member_roles pmr on pmr.project_member_id = pm.id and pmr.deleted_at is null
+         join private.project_role_capabilities prc on prc.project_role = pmr.project_role
+         where pm.project_id = m.project_id and pm.membership_id = m.id and prc.capability_code = 'work.record.write'
+           and pm.deleted_at is null and pm.valid_from <= now() and (pm.valid_to is null or pm.valid_to > now()))
+       or exists (
+         select 1 from app.role_assignments ra
+         join private.workforce_role_capabilities w on w.role_code = ra.role_code and w.capability_code = 'work.record.write'
+         where ra.project_id = m.project_id and ra.person_id = p_person_id and ra.org_id = m.org_id
+           and ra.assignment_state = 'Active' and ra.deleted_at is null
+           and (ra.starts_on is null or ra.starts_on <= current_date)
+           and (ra.ends_on is null or ra.ends_on >= current_date))
+  );
 $$;
 
-comment on function private.can_decide_record_review(uuid, uuid) is 'True when the person is a live member of the project''s org who reaches work.record.write on the project, at organization reach or at assigned reach as a project member, and so can decide an Approval record there (guard_record_approval, invariant 18). A review is never requested of anyone else (approval_not_eligible).';
+comment on function private.can_decide_record_review(uuid, uuid) is 'True when the person is a live member of the project''s org and private.project_ids_with would give them work.record.write on the project, and so can decide an Approval record there (guard_record_approval, invariant 18): organization reach as a project member or with projects.members.manage at organization reach, assigned reach as a project member, a grant scoped to the project, a project role or an Active workforce role that adds it. A review is never requested of anyone else (approval_not_eligible).';
 revoke all on function private.can_decide_record_review(uuid, uuid) from public, anon, authenticated;
+
+create or replace function app.eligible_record_reviewers(p_record_id uuid)
+returns setof uuid
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := private.require_person();
+  v_record app.records;
+begin
+  select * into v_record from app.records r where r.id = p_record_id and r.deleted_at is null;
+  if v_record.id is null or not private.can_on_project(v_record.project_id, 'work.record.write') then
+    raise exception using errcode = '42501', message = 'work.record.write is required on the project';
+  end if;
+  return query
+    select distinct m.person_id from app.memberships m
+    where m.org_id = v_record.org_id and m.deleted_at is null
+      and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
+      and m.person_id <> v_me
+      and m.person_id is distinct from v_record.owner_party_id
+      and private.can_decide_record_review(m.person_id, v_record.project_id);
+end;
+$$;
+
+comment on function app.eligible_record_reviewers(uuid) is 'The people who may be asked to review a record (G-268, ADR 0153 D5): live members of its org for whom private.can_decide_record_review is true, leaving out the caller and the record''s owner. Needs work.record.write on the record''s project (42501). Returns person ids; names come through app.person_names.';
+revoke all on function app.eligible_record_reviewers(uuid) from public, anon;
+grant execute on function app.eligible_record_reviewers(uuid) to authenticated, service_role;
 
 -- Requesting a review --------------------------------------------------------------------------------------------------------
 
@@ -259,7 +332,8 @@ begin
   end if;
   if exists (
       select 1 from app.record_approval a join app.records r on r.id = a.record_id
-      where a.subject_record_id = v_record.id and a.decision is null and r.deleted_at is null and r.record_state <> 'Canceled') then
+      where a.subject_record_id = v_record.id and a.decision is null and r.project_id = v_record.project_id
+        and r.deleted_at is null and r.record_state <> 'Canceled') then
     perform private.refuse('record_review_open', 'A review of this record is still open; wait for its decision.');
   end if;
   -- A review always has someone to decide it and to tell.
@@ -337,6 +411,11 @@ begin
     perform private.refuse('record_review_note_required', 'Keep the note to 1,000 characters.');
   end if;
   select * into v_subject from app.records r where r.id = v_link.subject_record_id for update;
+  -- This runs as a definer, and the capability above is on the Approval record's project: a subject in another project
+  -- is neither moved nor named.
+  if v_subject.project_id is distinct from v_approval.project_id then
+    raise exception using errcode = '42501', message = 'work.record.write is required on the project';
+  end if;
   if v_me = v_subject.owner_party_id then
     perform private.refuse('sod_record_review_owner', 'The owner of a record cannot review it.');
   end if;
@@ -360,7 +439,7 @@ begin
 end;
 $$;
 
-comment on function app.decide_record_review(uuid, app.approval_decision, text) is 'Decides a review an app.request_record_review Approval record asks for (G-268, ADR 0153 D5): records the decision on record_approval, where private.guard_record_approval stamps the session person as approver and refuses the requester (sod_approval_requester) and anyone who cannot write the project''s records (approval_not_eligible), so any eligible approver other than the requester and the record''s owner (sod_record_review_owner) decides; moves the Approval record Active to Complete; on Rejected, which needs a note (record_review_note_required), moves the record back In Review to Active with the note when it is still In Review, and otherwise leaves its state alone; archives the open approval.requested for the Approval record; and sends the requester approval.decided. Needs work.record.write on the project (42501). Returns the Approval record id.';
+comment on function app.decide_record_review(uuid, app.approval_decision, text) is 'Decides a review an app.request_record_review Approval record asks for (G-268, ADR 0153 D5): records the decision on record_approval, where private.guard_record_approval stamps the session person as approver and refuses the requester (sod_approval_requester) and anyone who cannot write the project''s records (approval_not_eligible), so any eligible approver other than the requester and the record''s owner (sod_record_review_owner) decides; moves the Approval record Active to Complete; on Rejected, which needs a note (record_review_note_required), moves the record back In Review to Active with the note when it is still In Review, and otherwise leaves its state alone; archives the open approval.requested for the Approval record; and sends the requester approval.decided. Needs work.record.write on the project, and a subject in the same project (42501). Returns the Approval record id.';
 revoke all on function app.decide_record_review(uuid, app.approval_decision, text) from public, anon;
 grant execute on function app.decide_record_review(uuid, app.approval_decision, text) to authenticated, service_role;
 
@@ -381,6 +460,13 @@ begin
   if old.requires_review and not new.requires_review and auth.uid() is not null
      and not private.can_on_project(new.project_id, 'projects.settings.write') then
     perform private.refuse('record_review_flag_locked', 'Only someone who may change the project''s settings turns off Requires review.');
+  end if;
+  -- An Approval record that asks for a review is completed by its decision. Completed undecided, the reviewed record
+  -- would be stuck: pending at the gate, open at request, and undecidable.
+  if new.record_kind = 'Approval' and new.record_state = 'Complete' and old.record_state <> 'Complete'
+     and exists (select 1 from app.record_approval a
+                 where a.record_id = new.id and a.subject_record_id is not null and a.decision is null) then
+    perform private.refuse('record_review_undecided', 'Decide the review before completing it.');
   end if;
   if new.record_state = 'Complete' and old.record_state <> 'Complete' and new.requires_review then
     -- The latest live, not Canceled Approval record about the record, in its own project.
@@ -413,7 +499,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_record_review() is 'The review done-gate (G-268, ADR 0153 D5): a record with requires_review moves to Complete only when the latest live, not Canceled Approval record about it in its own project is decided Approved (record_review_required with none, record_review_pending while undecided, record_review_changes_requested after Rejected), on every path that changes the state. An Approved review counts only when its approver is neither the record''s owner nor the person completing it and it was decided after the record last entered Active; otherwise record_review_required. Turning requires_review off needs projects.settings.write on the project (record_review_flag_locked); turning it on needs only the record''s write policy.';
+comment on function private.guard_record_review() is 'The review done-gate (G-268, ADR 0153 D5): a record with requires_review moves to Complete only when the latest live, not Canceled Approval record about it in its own project is decided Approved (record_review_required with none, record_review_pending while undecided, record_review_changes_requested after Rejected), on every path that changes the state. An Approved review counts only when its approver is neither the record''s owner nor the person completing it and it was decided after the record last entered Active; otherwise record_review_required. Turning requires_review off needs projects.settings.write on the project (record_review_flag_locked); turning it on needs only the record''s write policy. An Approval record about a record is not completed while undecided (record_review_undecided).';
 revoke all on function private.guard_record_review() from public, anon, authenticated;
 
 create trigger t47_record_review_gate before update of record_state, requires_review on app.records

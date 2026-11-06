@@ -683,6 +683,7 @@
       "record_review_changes_requested": "Quien revisó pidió cambios; pide otra revisión.",
       "record_review_flag_locked": "Solo quien puede cambiar la configuración del proyecto desactiva Requiere revisión.",
       "record_review_kind": "Una aprobación se decide, no se revisa.",
+      "record_review_undecided": "Decida la revisión antes de completarla.",
       "record_review_state": "Empieza el trabajo antes de pedir una revisión.",
       "record_review_open": "Una revisión de este registro sigue abierta; espera su decisión.",
       "record_review_note_required": "Di qué cambiar cuando pidas cambios.",

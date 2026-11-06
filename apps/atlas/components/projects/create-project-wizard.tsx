@@ -3,7 +3,7 @@
 import { resolveTemplate, type EventType } from "@xos/data/event-types";
 import { offsetBetween, summarizeProjectCopy, PROJECT_COPY_PARTS } from "@xos/data/project-copy";
 import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
-import { Button, Checkbox, Input, MoreFields, Radio, Select, Skeleton, Tag } from "@xos/ui";
+import { Button, Checkbox, Input, Radio, Select, Skeleton, Tag } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { ActionState } from "@/lib/projects/actions";
@@ -13,21 +13,33 @@ import {
   type CopyPreviewState,
   type IntakeOptions,
 } from "@/lib/projects/intake";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { CustomFieldInputs, type CustomFieldInputsHandle } from "@/components/custom-fields/inputs";
 import { ActionError, fieldError } from "./action-error";
 import { CopyPreviewList } from "./copy-preview-list";
 import { ProjectFields, type ProjectFormOptions } from "./project-fields";
-import { intakeSteps, stepOfField, type IntakeStep, type StartFrom } from "./intake-steps";
+import {
+  intakeSteps,
+  stepOfField,
+  submitIntake,
+  type IntakeStep,
+  type StartFrom,
+} from "./intake-steps";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
+/** The Details step shows at most this many custom fields a page (gate 27); the rest continue on the next page. */
+const DETAILS_PAGE_SIZE = 7;
+
 /**
  * New project as a staged intake (B14, G-250; ADR 0153): Start (an event type, or none, and what to start from), Scale
- * and audience, Basics, Details (the type's field set), Copy (from a past project) and Review, all in one form so the
- * last step posts every answer to app.create_project_from_intake in one transaction. An org without event types sees
- * today's single screen, with Start from beside it. Loaded with the New project drawer, never with /projects; the
- * options load when it first opens. A step indicator marks the current step (aria-current="step"), focus moves to each
- * step's heading and a polite live region names the step; Next checks the step's fields first.
+ * and audience, Basics, Load-in and load-out, Details (the type's field set, paged), Copy (from a past project) and
+ * Review, all in one form so the last step posts every answer to app.create_project_from_intake in one transaction. An
+ * org with no event types and no project custom fields sees today's single screen, with a button to start from a
+ * template or a past project. Loaded with the New project drawer, never with /projects; the options load when it first
+ * opens. A step indicator marks the current step (aria-current="step"), focus moves to each step's heading and a polite
+ * live region names the step; Next checks the step's fields first. A refused save keeps every answer and returns to the
+ * step that holds the field.
  */
 export function CreateProjectWizard({
   org,
@@ -52,6 +64,7 @@ export function CreateProjectWizard({
   const [audience, setAudience] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("");
   const [index, setIndex] = useState(0);
+  const [detailsPage, setDetailsPage] = useState(0);
   const [announce, setAnnounce] = useState("");
   const [copyPreview, setCopyPreview] = useState<CopyPreviewState | null>(null);
   const form = useRef<HTMLFormElement>(null);
@@ -63,7 +76,9 @@ export function CreateProjectWizard({
     let live = true;
     loadIntakeOptionsAction(org).then(
       (loaded) => live && setIntake(loaded),
-      () => live && setIntake({ eventTypes: [], templates: [], pastProjects: [] }),
+      () =>
+        live &&
+        setIntake({ eventTypes: [], templates: [], pastProjects: [], hasProjectFields: false }),
     );
     return () => {
       live = false;
@@ -71,7 +86,8 @@ export function CreateProjectWizard({
   }, [org]);
 
   const type: EventType | null = intake?.eventTypes.find((e) => e.id === typeId) ?? null;
-  const staged = (intake?.eventTypes.length ?? 0) > 0 || startFrom !== "blank";
+  const hasTypes = (intake?.eventTypes.length ?? 0) > 0;
+  const staged = hasTypes || Boolean(intake?.hasProjectFields) || startFrom !== "blank";
   const steps = intakeSteps({ hasType: type !== null, startFrom });
   const step: IntakeStep = steps[Math.min(index, steps.length - 1)] ?? "start";
 
@@ -80,22 +96,57 @@ export function CreateProjectWizard({
     const names = Object.keys(state.fieldErrors ?? {});
     if (names.length === 0) return;
     const at = steps.indexOf(stepOfField(names[0] ?? ""));
-    if (at >= 0) setIndex(at);
+    if (at >= 0) {
+      moved.current = true;
+      setIndex(at);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new action state moves the wizard
   }, [state]);
 
   useEffect(() => {
     if (!staged) return;
     setAnnounce(
-      t("intake.stepOf", { n: index + 1, total: steps.length, step: t(`intake.steps.${step}`) }),
+      t("intake.stepOf", {
+        n: index + 1,
+        total: steps.length,
+        step:
+          step === "details" && detailsPage > 0
+            ? t("intake.detailsContinued")
+            : t(`intake.steps.${step}`),
+      }),
     );
     if (moved.current) heading.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- announce on a step change only
-  }, [index, staged]);
+  }, [index, staged, detailsPage]);
 
   const go = (next: number) => {
     moved.current = true;
     setIndex(Math.max(0, Math.min(next, steps.length - 1)));
+  };
+
+  const forward = () => {
+    if (!stepValid()) return;
+    // The Details step's continuation pages come before the step after it.
+    if (step === "details" && detailsPage < (details.current?.pageCount() ?? 1) - 1) {
+      moved.current = true;
+      setDetailsPage(detailsPage + 1);
+      return;
+    }
+    go(index + 1);
+  };
+
+  const back = () => {
+    if (step === "details" && detailsPage > 0) {
+      moved.current = true;
+      setDetailsPage(detailsPage - 1);
+      return;
+    }
+    if (index === 0) {
+      moved.current = true;
+      setStartFrom("blank");
+      return;
+    }
+    go(index - 1);
   };
 
   /** The current step's own fields are valid; the first invalid one says why and takes focus. */
@@ -105,13 +156,19 @@ export function CreateProjectWizard({
     for (const el of box.querySelectorAll<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >("input, select, textarea")) {
+      // The Details step's own check names the problem and moves to its page.
+      if (step === "details" && el.closest("[hidden]")) continue;
       if (!el.checkValidity()) {
         el.reportValidity();
         el.focus();
         return false;
       }
     }
-    if (step === "details" && details.current && !details.current.check()) return false;
+    if (step === "details" && details.current && !details.current.check()) {
+      // A problem on another page moves there; check() has already sent the focus to the field.
+      setDetailsPage(details.current.problemPage() ?? detailsPage);
+      return false;
+    }
     return true;
   };
 
@@ -173,6 +230,10 @@ export function CreateProjectWizard({
     />
   );
 
+  // A template brings its own dates; the checkbox is offered only when one will apply.
+  const templateMayApply =
+    startFrom === "template" || (startFrom === "type" && (type?.templates.length ?? 0) > 0);
+
   const templatePicker =
     startFrom === "template" ? (
       <Select
@@ -205,7 +266,9 @@ export function CreateProjectWizard({
           tabIndex={-1}
           className="m-0 text-text-15 font-semibold"
         >
-          {t(`intake.steps.${key}`)}
+          {key === "details" && detailsPage > 0
+            ? t("intake.detailsContinued")
+            : t(`intake.steps.${key}`)}
         </h3>
       ) : null}
       {body}
@@ -213,11 +276,7 @@ export function CreateProjectWizard({
   );
 
   const loadDays = (
-    <MoreFields
-      open={Boolean(
-        fieldError(t as never, state, "loadInTo") || fieldError(t as never, state, "loadOutTo"),
-      )}
-    >
+    <>
       <p className="m-0 text-text-12 text-text-secondary">{t("intake.bumpHelp")}</p>
       <div className="flex flex-wrap gap-12">
         <Input
@@ -253,15 +312,26 @@ export function CreateProjectWizard({
           error={fieldError(t as never, state, "loadOutTo")}
         />
       </div>
-    </MoreFields>
+    </>
   );
 
   const body = !staged ? (
-    // An org without event types: today's single screen, with Start from to reach a template or a past project.
+    // An org with no event types and no project fields: today's single screen, and a way to the staged steps.
     <>
-      {startFromField}
+      <div>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            moved.current = true;
+            setStartFrom("template");
+            setIndex(0);
+          }}
+        >
+          {t("intake.startFromOther")}
+        </Button>
+      </div>
       <ProjectFields idPrefix="create" options={options} state={state} />
-      <CustomFieldInputs table="app.projects" />
     </>
   ) : (
     <>
@@ -282,26 +352,32 @@ export function CreateProjectWizard({
       {section(
         "start",
         <>
-          <Radio
-            name="eventTypeChoice"
-            label={t("intake.eventType")}
-            value={typeId}
-            options={[
-              ...intake.eventTypes.map((e) => ({
-                value: e.id,
-                label: e.name,
-                ...(e.description ? { help: e.description } : {}),
-              })),
-              { value: "", label: t("intake.noEventType"), help: t("intake.noEventTypeHelp") },
-            ]}
-            onChange={(e) => {
-              setTypeId(e.target.value);
-              setStartFrom(e.target.value ? "type" : "blank");
-              setIndex(0);
-            }}
-          />
+          {hasTypes ? (
+            <Radio
+              name="eventTypeChoice"
+              label={t("intake.eventType")}
+              value={typeId}
+              options={[
+                ...intake.eventTypes.map((e) => ({
+                  value: e.id,
+                  label: e.name,
+                  ...(e.description ? { help: e.description } : {}),
+                })),
+                { value: "", label: t("intake.noEventType"), help: t("intake.noEventTypeHelp") },
+              ]}
+              onChange={(e) => {
+                setTypeId(e.target.value);
+                setStartFrom(e.target.value ? "type" : "blank");
+                setDetailsPage(0);
+                setIndex(0);
+              }}
+            />
+          ) : null}
           {startFromField}
           {templatePicker}
+          {templateMayApply ? (
+            <Checkbox name="withoutDates" value="true" label={t("intake.withoutDates")} />
+          ) : null}
         </>,
       )}
       {type
@@ -333,13 +409,8 @@ export function CreateProjectWizard({
             </>,
           )
         : null}
-      {section(
-        "basics",
-        <>
-          <ProjectFields idPrefix="create" options={options} state={state} />
-          {loadDays}
-        </>,
-      )}
+      {section("basics", <ProjectFields idPrefix="create" options={options} state={state} />)}
+      {section("days", loadDays)}
       {section(
         "details",
         <>
@@ -349,6 +420,8 @@ export function CreateProjectWizard({
           <CustomFieldInputs
             ref={details}
             table="app.projects"
+            page={detailsPage}
+            pageSize={DETAILS_PAGE_SIZE}
             {...(type
               ? {
                   fieldKeys: type.fields.map((f) => f.fieldKey ?? "").filter(Boolean),
@@ -394,13 +467,7 @@ export function CreateProjectWizard({
       action={action}
       className="flex flex-col gap-12"
       noValidate
-      onSubmit={(e) => {
-        // Enter in a field moves to the next step until the last one, which creates the project.
-        if (!last) {
-          e.preventDefault();
-          if (stepValid()) go(index + 1);
-        }
-      }}
+      onSubmit={(e) => submitIntake(e, { last, forward, keep: keepInputOnSubmit(action) })}
     >
       <input type="hidden" name="org" value={org} />
       {hidden("eventTypeId", type ? type.id : "")}
@@ -421,8 +488,8 @@ export function CreateProjectWizard({
         <Button type="button" variant="ghost" onClick={onCancel}>
           {t("create.cancel")}
         </Button>
-        {staged && index > 0 ? (
-          <Button type="button" variant="secondary" onClick={() => go(index - 1)}>
+        {staged && (index > 0 || (!hasTypes && !intake.hasProjectFields)) ? (
+          <Button type="button" variant="secondary" onClick={back}>
             {t("intake.back")}
           </Button>
         ) : null}
@@ -431,7 +498,7 @@ export function CreateProjectWizard({
             {t("create.submit")}
           </Button>
         ) : (
-          <Button type="button" variant="primary" onClick={() => stepValid() && go(index + 1)}>
+          <Button type="button" variant="primary" onClick={forward}>
             {t("intake.next")}
           </Button>
         )}

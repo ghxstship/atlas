@@ -95,6 +95,7 @@ const EXPLAINED = new Set([
   "record_review_changes_requested",
   "record_review_flag_locked",
   "record_review_kind",
+  "record_review_undecided",
   "record_review_state",
   "record_review_open",
   "record_review_note_required",

@@ -29,6 +29,8 @@ import { getProjectContextFor, type ProjectContext } from "./context";
 import { getOrgContext } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { createProjectFromIntake, getEventType, type ProjectCopyPart } from "@xos/data/event-types";
+import { PROJECT_COPY_PARTS } from "@xos/data/project-copy";
+import { bumpRefusalField } from "@/components/projects/intake-steps";
 import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
 import { withEcho } from "./echo";
 
@@ -232,8 +234,6 @@ async function createProjectActionImpl(_: ActionState, form: FormData): Promise<
 
 // B14 (3038): the staged intake ------------------------------------------------------------------------
 
-const COPY_PARTS = ["Plan", "Pass Categories", "Hotel Blocks", "Budgets", "Advance Forms"] as const;
-
 const intakeFields = z
   .object({
     eventTypeId: optional.pipe(z.uuid().nullable()),
@@ -247,7 +247,7 @@ const intakeFields = z
     loadOutFrom: optionalDate,
     loadOutTo: optionalDate,
     copyFromProjectId: optional.pipe(z.uuid().nullable()),
-    copyParts: z.array(z.enum(COPY_PARTS)),
+    copyParts: z.array(z.enum(PROJECT_COPY_PARTS)),
     copyOffsetDays: optional.pipe(
       z
         .string()
@@ -348,7 +348,13 @@ async function createProjectFromIntakeActionImpl(
     copyParts: intake.data.copyParts as ProjectCopyPart[],
     copyOffsetDays: intake.data.copyOffsetDays,
   });
-  if (!result.ok) return errorState(result.error);
+  if (!result.ok) {
+    // A bump-window refusal opens the step that holds the dates, whichever side of the action knew them.
+    const name =
+      result.error.kind === "refusal" ? bumpRefusalField(result.error.rule, intake.data) : null;
+    const refused = errorState(result.error);
+    return name ? { ...refused, fieldErrors: { [name]: refused.error ?? "invalid" } } : refused;
+  }
   await custom.save(result.data.id);
   revalidatePath(`/${ctx.org.slug}`, "layout");
   redirect(`/${ctx.org.slug}/p/${parsed.data.key}/overview`);
@@ -358,41 +364,36 @@ async function updateProjectActionImpl(_: ActionState, form: FormData): Promise<
   const ctx = await projectFor(form);
   const parsed = parseProject(form);
   if (!parsed.success) return fieldErrors(parsed.error.issues);
-  // B14 (3030): Settings carries the event type and bands; changing them needs projects.settings.write
-  // (project_event_type_locked).
-  const typed = form.has("eventTypeId")
-    ? intakeFields.safeParse({
-        eventTypeId: field(form, "eventTypeId"),
-        eventScale: field(form, "eventScale"),
-        eventAudience: field(form, "eventAudience"),
-        templateChoice: "none",
-        templateId: "",
-        withoutDates: false,
-        loadInFrom: "",
-        loadInTo: "",
-        loadOutFrom: "",
-        loadOutTo: "",
-        copyFromProjectId: "",
-        copyParts: [],
-        copyOffsetDays: "",
-      })
-    : null;
-  if (typed && !typed.success) return { fieldErrors: { eventTypeId: "invalid" } };
-  const result = await updateProject(ctx.org.viewer.db, ctx.project.id, {
-    ...parsed.data,
-    ...(typed?.success
-      ? {
-          eventTypeId: typed.data.eventTypeId,
-          eventScale: typed.data.eventScale,
-          eventAudience: typed.data.eventAudience,
-        }
-      : {}),
-  });
+  const result = await updateProject(ctx.org.viewer.db, ctx.project.id, parsed.data);
   if (!result.ok) return errorState(result.error);
   refresh(ctx);
   if (parsed.data.key !== ctx.project.key) {
     redirect(`/${ctx.org.org.slug}/p/${parsed.data.key}/settings`);
   }
+  return { ok: true };
+}
+
+const eventTypeFields = z.object({
+  eventTypeId: optional.pipe(z.uuid().nullable()),
+  eventScale: optional.pipe(z.enum(EVENT_SCALES).nullable()),
+  eventAudience: optional.pipe(z.enum(EVENT_AUDIENCES).nullable()),
+});
+
+/** B14 (3030): a project's event type and bands; changing them needs projects.settings.write (project_event_type_locked). */
+async function updateProjectEventTypeActionImpl(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await projectFor(form);
+  const parsed = eventTypeFields.safeParse({
+    eventTypeId: field(form, "eventTypeId"),
+    eventScale: field(form, "eventScale"),
+    eventAudience: field(form, "eventAudience"),
+  });
+  if (!parsed.success) return { fieldErrors: { eventTypeId: "invalid" } };
+  const result = await updateProject(ctx.org.viewer.db, ctx.project.id, parsed.data);
+  if (!result.ok) return errorState(result.error);
+  refresh(ctx);
   return { ok: true };
 }
 
@@ -634,6 +635,13 @@ export async function updateProjectAction(
   form: FormData,
 ): Promise<ActionState> {
   return withEcho(form, await updateProjectActionImpl(state, form));
+}
+
+export async function updateProjectEventTypeAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await updateProjectEventTypeActionImpl(state, form));
 }
 
 export async function archiveProjectAction(

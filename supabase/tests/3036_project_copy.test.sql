@@ -12,7 +12,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(36);
+select plan(40);
 
 create temporary table pv (part app.project_copy_part, item_kind text, source_id uuid, label text, outcome text, skip_reason text,
   new_on date, new_at timestamptz);
@@ -230,6 +230,37 @@ select is((select new_at from pv where source_id = pg_temp.id('t1')), '2027-04-0
 select is((select count(*)::integer from app.projects), (select n from before_projects), 'and no project is left behind');
 select throws_ok(format($$select * from app.copy_project_setup(%L, null, '{Plan}', true, 28)$$, pg_temp.id('prj_a')),
   '22023', null, 'a commit needs a target');
+
+-- Across zones a record in the source project's zone keeps its wall clock in the target's; its own other zone stays.
+select pg_temp.as_user('carol');
+with x as (insert into app.projects (org_id, project_key, name, time_zone, starts_on, ends_on)
+  values (pg_temp.id('org_a'), 'NWC', 'Northwind Chicago', 'America/Chicago', '2027-07-01', '2027-07-02') returning id)
+  insert into world select 'prj_chi', id from x;
+with x as (insert into app.projects (org_id, project_key, name, time_zone, starts_on, ends_on)
+  values (pg_temp.id('org_a'), 'NWD', 'Northwind Denver', 'America/Denver', '2027-07-08', '2027-07-09') returning id)
+  insert into world select 'prj_den', id from x;
+with x as (insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis, starts_at, time_zone)
+  values (pg_temp.id('prj_chi'), 'Task', 'Execute', 'Doors open', 'Y', 'Declared', '2027-07-01 23:00+00', 'America/Chicago') returning id)
+  insert into world select 'z1', id from x;
+with x as (insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis, starts_at, time_zone)
+  values (pg_temp.id('prj_chi'), 'Task', 'Execute', 'Call the London office', 'Y', 'Declared', '2027-07-01 09:00+00', 'Europe/London') returning id)
+  insert into world select 'z2', id from x;
+select app.copy_project_setup(pg_temp.id('prj_chi'), pg_temp.id('prj_den'), '{Plan}', true);
+select is((select row(starts_at, time_zone)::text from app.records where project_id = pg_temp.id('prj_den') and title = 'Doors open'),
+  row('2027-07-09 00:00+00'::timestamptz, 'America/Denver')::text,
+  '18:00 Chicago copied to Denver is 18:00 Denver, in Denver''s zone');
+select is((select row(starts_at, time_zone)::text from app.records where project_id = pg_temp.id('prj_den') and title = 'Call the London office'),
+  row('2027-07-08 09:00+00'::timestamptz, 'Europe/London')::text,
+  'a record with its own third zone keeps it');
+insert into app.project_days (project_id, day_on, day_type, time_zone) values
+  (pg_temp.id('prj_chi'), '2027-06-29', 'Load In', 'America/Chicago'),
+  (pg_temp.id('prj_chi'), '2027-06-30', 'Load In', 'Europe/London');
+select app.copy_project_setup(pg_temp.id('prj_chi'), pg_temp.id('prj_den'), '{Plan}', true);
+select is((select time_zone from app.project_days where project_id = pg_temp.id('prj_den') and day_on = '2027-07-06'), 'America/Denver',
+  'a project day in the source''s zone lands in the target''s');
+select is((select time_zone from app.project_days where project_id = pg_temp.id('prj_den') and day_on = '2027-07-07'), 'Europe/London',
+  'a project day with its own other zone keeps it');
+select pg_temp.as_platform();
 
 -- More than 2000 items.
 insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis)

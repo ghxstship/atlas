@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect as baseExpect, settle, test } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
+import { expectCalmScreen } from "./b14-support";
 import { createProject, createTask, newOwnerOrg } from "./b4-support";
 import { DEMO_ORG, reloadUntil, signInAs } from "./a36-support";
 
@@ -27,7 +28,7 @@ function reviewPanel(page: Page): Locator {
 async function move(page: Page, next: string, reason: string): Promise<Locator> {
   await page.getByRole("button", { name: next, exact: true }).click();
   const sheet = page.getByRole("dialog", { name: new RegExp(`to ${next}$`) });
-  await sheet.getByLabel("Reason").fill(reason);
+  await sheet.getByLabel("Reason", { exact: true }).fill(reason);
   await sheet.getByRole("button", { name: "Move record" }).click();
   return sheet;
 }
@@ -35,7 +36,13 @@ async function move(page: Page, next: string, reason: string): Promise<Locator> 
 async function askForReview(review: Locator, note: string): Promise<void> {
   await review.getByLabel("Reviewer").selectOption({ label: "Demo Admin" });
   await review.getByLabel("Note for the reviewer").fill(note);
-  await review.getByRole("button", { name: "Ask for review" }).click();
+  // The panel renders on arrival, so its first click works; a retry covers a click before hydration.
+  await expect(async () => {
+    await review.getByRole("button", { name: "Ask for review" }).click();
+    await expect(review.getByText("Review open", { exact: true }).first()).toBeVisible({
+      timeout: 5_000,
+    });
+  }).toPass();
   // The first tag is the latest review's; the history, when there is one, repeats it.
   await expect(review.getByText("Review open", { exact: true }).first()).toBeVisible();
 }
@@ -83,11 +90,11 @@ test("a reviewer asks for changes from Inbox, then approves, and the owner compl
   await owner.goto(`/${DEMO_ORG}/work/all-records?create=1`);
   const create = owner.getByRole("dialog", { name: "New record" });
   await expect(create).toBeVisible();
-  await create.getByLabel("Kind").selectOption("Task");
+  await create.getByLabel("Kind", { exact: true }).selectOption("Task");
   await create.getByLabel("Subtype").selectOption("Execute");
-  await create.getByLabel("Title").fill(title);
+  await create.getByLabel("Title", { exact: true }).fill(title);
   await create.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
-  await create.getByLabel("Due").fill("2027-05-01T18:00");
+  await create.getByLabel("Due", { exact: true }).fill("2027-05-01T18:00");
   await create.getByRole("button", { name: "Create record" }).click();
   await owner.waitForURL(/peek=/);
   const key = new URL(owner.url()).searchParams.get("peek") ?? "";
@@ -115,7 +122,7 @@ test("a reviewer asks for changes from Inbox, then approves, and the owner compl
   await reloadUntil(admin, item);
   await item.getByRole("button", { name: "Reject", exact: true }).click();
   const reject = admin.getByRole("dialog", { name: "Reject with a reason" });
-  await reject.getByLabel("Reason").fill("Re-aim spot two at the lectern.");
+  await reject.getByLabel("Reason", { exact: true }).fill("Re-aim spot two at the lectern.");
   await reject.getByRole("button", { name: "Reject", exact: true }).click();
   await expect(reject).toBeHidden();
 
@@ -131,6 +138,7 @@ test("a reviewer asks for changes from Inbox, then approves, and the owner compl
   const decide = reviewPanel(admin);
   await expect(decide.getByRole("button", { name: "Request changes" })).toBeVisible();
   await expectAccessible(admin);
+  await expectCalmScreen(admin);
   await decide.getByRole("button", { name: "Approve", exact: true }).click();
   await expect(decide.getByText("Approved", { exact: true }).first()).toBeVisible();
   await expect(decide.getByText("Decided by Demo Admin")).toBeVisible();

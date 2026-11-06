@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { latestReview, reviewAttachmentVersion, type VersionReview } from "../src/attachments.ts";
+import {
+  latestReview,
+  listVersionReviews,
+  reviewAttachmentVersion,
+  type VersionReview,
+} from "../src/attachments.ts";
 import {
   createProjectFromIntake,
   listEventTypes,
@@ -18,7 +23,12 @@ import { getSiteWindows, summarizeSetup, unmetForGate, type SetupItem } from "..
 import { parseTstzRange, rangeOrNull } from "../src/ranges.ts";
 import { listSubmittalFiles } from "../src/gateway-operations.ts";
 import { copyRosterFromEngagement } from "../src/roster.ts";
-import { currentReview, type RecordReview } from "../src/work.ts";
+import {
+  currentReview,
+  listEligibleReviewers,
+  listRecordReviews,
+  type RecordReview,
+} from "../src/work.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 import { moduleClient, stepsOf } from "./module-client.ts";
 
@@ -452,6 +462,86 @@ describe("reviews", () => {
     expect(latestReview(reviews, "v2")).toBeNull();
   });
 
+  it("lists only reviews in the record's own project, with names from app.person_names", async () => {
+    const row = (id: string, projectId: string, at: string) => ({
+      record_id: id,
+      requester_person_id: "requester",
+      approver_person_id: id === "own" ? "approver" : null,
+      decision: id === "own" ? "Approved" : null,
+      decided_at: id === "own" ? at : null,
+      approval: {
+        project_id: projectId,
+        record_number: 7,
+        record_state: "Complete",
+        owner_party_id: "reviewer",
+        created_at: at,
+        project: { project_key: "NWL" },
+      },
+    });
+    const { db, calls } = fakeClient({
+      "from:record_approval": [
+        okResponse([
+          row("foreign", "project-b", "2027-01-02"),
+          row("own", "project-a", "2027-01-01"),
+        ]),
+      ],
+      "rpc:person_names": [
+        okResponse([
+          { person_id: "requester", full_name: "Rae Requester" },
+          { person_id: "approver", full_name: "Abe Engaged" },
+          { person_id: "reviewer", full_name: "Rio Reviewer" },
+        ]),
+      ],
+    });
+    const reviews = await listRecordReviews(db, "subject", "project-a");
+    expect(reviews.ok && reviews.data.map((r) => r.approvalRecordId)).toEqual(["own"]);
+    expect(reviews.ok && reviews.data[0]).toMatchObject({
+      requesterName: "Rae Requester",
+      approverName: "Abe Engaged",
+      reviewerName: "Rio Reviewer",
+    });
+    // The list embeds no people, which hide engaged externals.
+    expect(JSON.stringify(calls[0]?.steps)).not.toContain("people!");
+  });
+
+  it("names a file's reviewer through app.person_names, for an engaged external too", async () => {
+    const { db, calls } = fakeClient({
+      "from:attachment_version_reviews": [
+        okResponse([
+          {
+            id: "r1",
+            attachment_version_id: "v1",
+            decision: "Approved",
+            note: null,
+            created_by: "external",
+            created_at: "2027-01-01",
+          },
+        ]),
+      ],
+      "rpc:person_names": [okResponse([{ person_id: "external", full_name: "Ena External" }])],
+    });
+    const reviews = await listVersionReviews(db, ["v1"]);
+    expect(reviews.ok && reviews.data[0]?.reviewerName).toBe("Ena External");
+    expect(JSON.stringify(calls[0]?.steps)).not.toContain("people!");
+  });
+
+  it("lists who may be asked, named, from app.eligible_record_reviewers", async () => {
+    const { db } = fakeClient({
+      "rpc:eligible_record_reviewers": [okResponse(["b", "a"])],
+      "rpc:person_names": [
+        okResponse([
+          { person_id: "a", full_name: "Ana" },
+          { person_id: "b", full_name: "Bo" },
+        ]),
+      ],
+    });
+    const people = await listEligibleReviewers(db, "record");
+    expect(people.ok && people.data).toEqual([
+      { personId: "a", name: "Ana" },
+      { personId: "b", name: "Bo" },
+    ]);
+  });
+
   it("sends a blank note as none and returns the uploader refusal typed", async () => {
     const { db, calls } = fakeClient({
       "rpc:review_attachment_version": [
@@ -526,9 +616,16 @@ describe("the vendor's submittal files", () => {
 describe("band literals", () => {
   it("match the generated enums", async () => {
     const { Constants } = await import("../src/database.types.ts");
-    const { EVENT_AUDIENCES, EVENT_SCALES } = await import("../src/setup.ts");
+    const { DOCUMENT_REQUIREMENTS, EVENT_AUDIENCES, EVENT_SCALES } =
+      await import("../src/setup.ts");
+    const { PROJECT_COPY_PARTS } = await import("../src/project-copy.ts");
+    const { FILE_REVIEW_DECISIONS } = await import("../src/attachments.ts");
+    const { REVIEW_DECISIONS } = await import("../src/work.ts");
     expect([...EVENT_SCALES]).toEqual([...Constants.app.Enums.event_scale]);
     expect([...EVENT_AUDIENCES]).toEqual([...Constants.app.Enums.event_audience]);
-    expect(["Required", "Recommended"]).toEqual([...Constants.app.Enums.document_requirement]);
+    expect([...DOCUMENT_REQUIREMENTS]).toEqual([...Constants.app.Enums.document_requirement]);
+    expect([...PROJECT_COPY_PARTS]).toEqual([...Constants.app.Enums.project_copy_part]);
+    expect([...FILE_REVIEW_DECISIONS]).toEqual([...Constants.app.Enums.file_review_decision]);
+    expect([...REVIEW_DECISIONS]).toEqual([...Constants.app.Enums.approval_decision]);
   });
 });

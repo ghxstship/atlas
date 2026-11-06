@@ -15,6 +15,7 @@ import {
   listRecurrences,
   listReplans,
   listScopeNodeRefs,
+  listEligibleReviewers,
   listRecordReviews,
   listStateHistory,
   nextStates,
@@ -64,8 +65,8 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
-import { RecordReview } from "@/components/lazy-ui/record-review";
-import { FileReviewControls } from "@/components/lazy-ui/file-review";
+import { RecordReview } from "./record-review";
+import { FileReviewControls } from "@/components/files/file-review";
 import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
 
 // Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
@@ -117,6 +118,8 @@ export interface RecordDetail {
   readonly scheduleView: ScheduleView;
   /** B14 (3034): the record's reviews, latest first, and whether the viewer may turn Requires review off. */
   readonly reviews: readonly Review[];
+  /** Who may be asked for a review: filled only for a writer on an Active record (app.eligible_record_reviewers). */
+  readonly reviewers: readonly { readonly personId: string; readonly name: string | null }[];
   readonly canClearReviewFlag: boolean;
   /** B14 (3035): reviews of the versions of the record's files, newest first. */
   readonly fileReviews: readonly VersionReview[];
@@ -180,9 +183,16 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     rememberView(ctx, "records", record.id),
   ]);
   const versionIds = conversation.attachments.flatMap((a) => a.versions.map((v) => v.id));
-  const [reviews, fileReviews] = await Promise.all([
-    record.kind === "Approval" ? Promise.resolve(null) : listRecordReviews(db, record.id),
+  const canWrite = caps.has("work.record.write") && !record.deletedAt;
+  const [reviews, fileReviews, reviewers] = await Promise.all([
+    record.kind === "Approval"
+      ? Promise.resolve(null)
+      : listRecordReviews(db, record.id, record.projectId),
     versionIds.length > 0 ? listVersionReviews(db, versionIds) : Promise.resolve(null),
+    // Only someone who may ask, about a record that can be asked about, needs the list (42501 otherwise).
+    canWrite && record.state === "Active" && record.kind !== "Approval"
+      ? listEligibleReviewers(db, record.id)
+      : Promise.resolve(null),
   ]);
   return {
     record,
@@ -205,12 +215,13 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     actual: must(actual, "actuals"),
     punch: must(punch, "punch item"),
     conversation,
-    canWrite: caps.has("work.record.write") && !record.deletedAt,
+    canWrite,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
     anchorPinned: pinned.ok ? pinned.data : false,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
     reviews: reviews?.ok ? reviews.data : [],
+    reviewers: reviewers?.ok ? reviewers.data : [],
     canClearReviewFlag: caps.has("projects.settings.write"),
     fileReviews: fileReviews?.ok ? fileReviews.data : [],
   };
@@ -397,7 +408,7 @@ export async function RecordBody({
           state={record.state}
           requiresReview={record.requiresReview ?? false}
           reviews={detail.reviews}
-          people={meta.people}
+          reviewers={detail.reviewers}
           me={me}
           ownerId={record.ownerId}
           canWrite={detail.canWrite}

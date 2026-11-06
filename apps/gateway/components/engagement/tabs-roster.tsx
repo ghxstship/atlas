@@ -32,15 +32,13 @@ import {
 import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 import { chipState } from "@/lib/roster-facts-steps";
 import { CrewAllocations, EntryItems } from "./crew-allocations";
+import { RosterCopyPanel } from "./roster-copy";
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 
 // Withdrawing someone is final (their invitation, share and consent end with it), so it is confirmed in a
 // dialog whose code loads on demand.
-/** Reuse a roster from a past event (B14) loads only for a roster manager who has a past roster to reuse. */
-const RosterCopyPanel = dynamic(() => import("./roster-copy").then((m) => m.RosterCopyPanel));
-
 const ConfirmButton = dynamic(() =>
   import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
 );

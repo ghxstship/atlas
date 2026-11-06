@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import type { ProjectCopyPart } from "./event-types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { enumValues } from "./setup.ts";
 import { untyped } from "./untyped.ts";
 
 export type { ProjectCopyPart } from "./event-types.ts";
@@ -13,13 +14,13 @@ export type { ProjectCopyPart } from "./event-types.ts";
  * copied. The roster is the party's own and is reused in Gateway (roster.ts).
  */
 
-export const PROJECT_COPY_PARTS: readonly ProjectCopyPart[] = [
-  "Plan",
-  "Pass Categories",
-  "Hotel Blocks",
-  "Budgets",
-  "Advance Forms",
-];
+export const PROJECT_COPY_PARTS = enumValues<ProjectCopyPart>({
+  Plan: true,
+  "Pass Categories": true,
+  "Hotel Blocks": true,
+  Budgets: true,
+  "Advance Forms": true,
+});
 
 /** Why an item stays out of a copy, or what was left out of a copied one (event_cost_center_cleared). */
 export type ProjectCopySkipReason =

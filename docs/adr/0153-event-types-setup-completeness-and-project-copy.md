@@ -92,8 +92,15 @@ record's project, and it was decided after the record last entered Active. So an
 a borrowed requester does not complete its approver's own work, and a reopened record, or one whose later Rejected
 review was deleted, needs a new review. The gate reads an approval's subject and decision time, which 0311's write
 policy would let any project editor update, so a new trigger keeps both fixed (`approval_subject_immutable`,
-`approval_decided`): a decided review is never moved onto another record or re-dated past a reopen. Asking for changes needs a note and moves the record back to
-Active only while it is still In Review; an approval leaves it In Review for the owner to complete. Requests and
+`approval_decided`): a decided review is never moved onto another record or re-dated past a reopen.
+The review's subject is in its own project: `app.decide_record_review` refuses another project's record (42501), so a
+writer in one project cannot move a record in another or read its title back from approval.decided, and an undecided
+Approval record in another project does not hold a review open (`record_review_open`). A review is only asked of someone
+who can decide it: `private.can_decide_record_review` follows `private.project_ids_with` for a named person, and
+`app.eligible_record_reviewers` gives the picker that list. An Approval record cannot carry the flag
+(`records_review_not_approval`, `template_items_review_not_approval`), because the gate would then block its own
+decision, and it cannot be completed undecided (`record_review_undecided`), which would leave the reviewed record stuck.
+Asking for changes needs a note and moves the record back to Active only while it is still In Review; an approval leaves it In Review for the owner to complete. Requests and
 decisions reuse approval.requested and approval.decided about the review's Approval record, with the reviewed record's
 title and key; Inbox and Compass's push actions decide them through `app.act_on_notification`, restated from A127's
 2200 so its accept, decline and reply actions stay. Email one-tap links are not offered for record reviews
@@ -125,3 +132,38 @@ target, checked before anything is written.
   columns. The webhook payload of project.updated gains the type and bands, additively.
 - Every new soft-deletable table has a retention policy; event types and document types come back from Trash, and the
   configuration children and append-only facts are listed in `private.trash_excluded_tables` with their reasons.
+- The staged intake pages the Details step at seven visible controls and gives load-in and load-out their own step,
+  rather than folding them in More fields, which remounts its children and folds nothing out of the count. ProjectFields'
+  own More fields (jurisdiction, currency, tier, region) is inherited and stays. The single screen stays for an org with
+  no event types and no project custom fields.
+- A record or day in the source project's zone lands in the target's on copy, so 18:00 stays 18:00; one with its own
+  other zone keeps it.
+
+### Merge hazards for the orchestrator
+
+These are numbers on batch-c and train 8 as of 2026-11-06; nothing here acts on them.
+
+- B14 sorts after R9's set (R4, R5, R6, R7a), P8, B4 and A127, wherever they land. B4 is on neither batch-c nor train 8.
+- `app.act_on_notification`: the latest is `5861_approval_links_signed_out.sql` (it restates 5200, and adds
+  subject_approvals, approval.reminder and `private.is_subject_step_approver`), and R11's 2744 adds roster_entry.invited
+  accept and decline. 3034 restates it from 2200 (5200), so at renumbering it must be their union plus the app.records
+  branch, or it silently removes them. R11's 2744 is on neither batch-c nor train 8: whichever of B14 and R11 lands
+  second restates the union. `private.notification_link_actions` (5861) stays unrestated by B14.
+- `app.apply_template` and `app.create_template_from_project`: P8's 2851 is 6121 on train 8. `private.project_site_window`:
+  2683 is 4683. `private.emit_project_update` (0401), `app.pass_gate` (0301) and `app.transition_submittal` (0492) have
+  not moved. 5940 redefines `app.person_names` with the same signature.
+- The notification seed pointer is 6059 on batch-c and 6129 on train 8: regenerate with `generate:notifications`.
+- `create-project.tsx`: batch-c split out `create-project-fields.tsx`, and train 7 moved the dialog behind a static button
+  whose first click loads it. The wizard lands behind that button and replaces DrawerFields behind it;
+  `project-fields.tsx` still exists on batch-c.
+- 5180 adds `archived_at` to app.records and app.documents. At renumbering, 3036's Plan loops and size count must leave
+  out archived records, and `private.project_setup_item_met` and the view's `documents_count` must leave out archived
+  documents, or an archived Site Plan passes a gate.
+- 5945 adds `accommodation_blocks.budget_line_id`. The copy leaves it NULL, because a source budget line must not cross
+  projects.
+- 4731 changes `issue_roster_invitation` to a 4-argument form with a default, so 3037's 3-argument call still binds.
+- The value lists of `setup.ts`, `project-copy.ts`, `attachments.ts` and `work.ts` move to `@xos/data/enums` on the train.
+- The train takes the larger edge ceiling on batch-c: notification-dispatch 222 against the branch's 196, org-lifecycle
+  262 against 228, sms-webhook 179 against 157, subprocessor-notices 136 against 120.
+- No name collision: `app.event_types`, `document_types`, `event_type_templates`, `project_copies`,
+  `attachment_version_reviews`, `project_setup_progress` and `project_site_windows` do not exist on batch-c.

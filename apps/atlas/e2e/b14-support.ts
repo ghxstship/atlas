@@ -1,4 +1,5 @@
 import { expect, settle, type Page } from "./engine-test";
+import { cognitiveLoadProblems } from "./a11y/checks";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /** Shared steps of the B14 journeys (RRR-238): a new owner, event types, document types and gates on the local stack. */
@@ -20,9 +21,9 @@ export async function addProjectField(
 ): Promise<void> {
   await page.goto(`/${slug}/settings/custom-fields`);
   const form = page.getByRole("form", { name: "Add a field" });
-  await form.getByLabel("Records").selectOption({ label: "Projects" });
-  await form.getByLabel("Label").fill(label);
-  await form.getByLabel("Type").selectOption({ label: type });
+  await form.getByLabel("Records", { exact: true }).selectOption({ label: "Projects" });
+  await form.getByLabel("Label", { exact: true }).fill(label);
+  await form.getByLabel("Type", { exact: true }).selectOption({ label: type });
   await form.getByRole("button", { name: "Add field" }).click();
   await expect(page.getByRole("listitem").filter({ hasText: label }).first()).toBeVisible();
 }
@@ -31,8 +32,8 @@ export async function addProjectField(
 export async function addEventType(page: Page, slug: string, name: string): Promise<void> {
   await page.goto(`/${slug}/settings/templates`);
   const form = page.getByRole("form", { name: "Add an event type" });
-  await form.getByLabel("Name").fill(name);
-  await form.getByLabel("Description").fill("Outdoor multi-stage weekends.");
+  await form.getByLabel("Name", { exact: true }).fill(name);
+  await form.getByLabel("Description", { exact: true }).fill("Outdoor multi-stage weekends.");
   await form
     .getByLabel("Intake guidance")
     .fill("Have the site plan and the licensed capacity ready.");
@@ -43,7 +44,7 @@ export async function addEventType(page: Page, slug: string, name: string): Prom
 export async function addDocumentType(page: Page, slug: string, name: string): Promise<void> {
   await page.goto(`/${slug}/settings/templates`);
   const form = page.getByRole("form", { name: "Add a document type" });
-  await form.getByLabel("Name").fill(name);
+  await form.getByLabel("Name", { exact: true }).fill(name);
   await form.getByRole("button", { name: "Add document type" }).click();
   await expect(page.getByRole("list", { name: "Document types" }).getByText(name)).toBeVisible();
 }
@@ -88,4 +89,9 @@ export async function clearGate(page: Page, gate: number): Promise<void> {
     await dialog.getByRole("button", { name: "Attest" }).click();
     await expect(dialog).toBeHidden();
   }
+}
+
+/** The screen's gate 27 problems, none expected: at most one primary action and seven visible fields. */
+export async function expectCalmScreen(page: Page): Promise<void> {
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
 }

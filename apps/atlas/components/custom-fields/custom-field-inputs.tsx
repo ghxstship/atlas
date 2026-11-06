@@ -4,6 +4,7 @@ import { checkCustomFieldInputs } from "@xos/data/custom-fields";
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { loadCustomFieldFormAction } from "@/lib/custom-fields/actions";
 import type {
+  CustomField,
   CustomFieldForm,
   CustomFieldInput,
   CustomFieldProblem,
@@ -26,6 +27,10 @@ export interface CustomFieldInputsHandle {
   check(): boolean;
   /** The inputs by field key; none until the fields have loaded, so the action still holds required ones. */
   inputs(): Inputs;
+  /** With `pageSize`, how many pages the fields take; 1 otherwise and until they load. */
+  pageCount(): number;
+  /** With `pageSize`, the page of the first field the last `check()` found a problem with; null when none. */
+  problemPage(): number | null;
 }
 
 /**
@@ -41,6 +46,8 @@ export function CustomFieldInputs({
   idPrefix,
   fieldKeys,
   requiredKeys,
+  page = 0,
+  pageSize,
   ref,
 }: {
   table: CustomFieldTable;
@@ -53,6 +60,10 @@ export function CustomFieldInputs({
   fieldKeys?: readonly string[];
   /** Fields this form requires beyond their own required flag, marked and checked as required. */
   requiredKeys?: readonly string[];
+  /** Which page shows, with `pageSize`. The others stay mounted and hidden, so their named inputs still post. */
+  page?: number;
+  /** At most this many visible controls on a page, required fields first (gate 27). All on one page when absent. */
+  pageSize?: number;
   ref?: Ref<CustomFieldInputsHandle>;
 }) {
   const org = useOrgSlug();
@@ -62,10 +73,16 @@ export function CustomFieldInputs({
   const [problems, setProblems] = useState<Readonly<Record<string, CustomFieldProblem>>>({});
   // The submit check runs from a DOM listener and a parent's ref, between renders, so it reads these refs,
   // which change together with the state above, never a stale render's values.
-  const current = useRef<{ loading: boolean; form: CustomFieldForm | null; inputs: Inputs }>({
+  const current = useRef<{
+    loading: boolean;
+    form: CustomFieldForm | null;
+    inputs: Inputs;
+    problem: string | null;
+  }>({
     loading: true,
     form: null,
     inputs: {},
+    problem: null,
   });
   const prefix = idPrefix ?? table.replace(/^app\./, "");
 
@@ -82,20 +99,27 @@ export function CustomFieldInputs({
     );
     setProblems(result.problems);
     const first = loaded.fields.find((f) => result.problems[f.key]);
+    current.current = { ...current.current, problem: first?.key ?? null };
     // After the render that draws the problem, so the field exists when it takes focus.
     if (first) setTimeout(() => document.getElementById(`${prefix}-cf-${first.key}`)?.focus(), 0);
     return first === undefined;
   }, [prefix]);
 
   const shownKeys = fieldKeys?.join("\u0000");
+  const paged = pageSize !== undefined;
   const requiredKeyList = requiredKeys?.join("\u0000");
   useEffect(() => {
     let live = true;
     const shown = shownKeys === undefined ? null : new Set(shownKeys.split("\u0000"));
     const required = new Set(requiredKeyList ? requiredKeyList.split("\u0000") : []);
+    const shownOrder = shownKeys === undefined ? [] : shownKeys.split("\u0000");
     const settle = (full: CustomFieldForm | null) => {
       if (!live) return;
-      const loaded = full ? narrowForm(full, shown, required) : null;
+      const narrowed = full ? narrowForm(full, shown, required) : null;
+      const loaded =
+        narrowed && paged
+          ? { ...narrowed, fields: requiredFirst(narrowed.fields, shownOrder) }
+          : narrowed;
       current.current = { ...current.current, loading: false, form: loaded };
       setForm(loaded);
     };
@@ -106,7 +130,7 @@ export function CustomFieldInputs({
     return () => {
       live = false;
     };
-  }, [org, table, shownKeys, requiredKeyList]);
+  }, [org, table, shownKeys, requiredKeyList, paged]);
 
   useImperativeHandle(
     ref,
@@ -116,8 +140,21 @@ export function CustomFieldInputs({
         const { form: loaded, inputs: typed } = current.current;
         return loaded ? effectiveInputs(loaded, typed) : {};
       },
+      pageCount: () => {
+        const { form: loaded } = current.current;
+        return loaded && pageSize ? Math.max(1, fieldPages(loaded.fields, pageSize).length) : 1;
+      },
+      problemPage: () => {
+        const { form: loaded, problem } = current.current;
+        if (!loaded || !problem) return null;
+        if (!pageSize) return 0;
+        const at = fieldPages(loaded.fields, pageSize).findIndex((p) =>
+          p.some((f) => f.key === problem),
+        );
+        return at < 0 ? null : at;
+      },
     }),
-    [check],
+    [check, pageSize],
   );
 
   // The form's own submit is stopped while a field has a problem, before React's action sees it.
@@ -151,18 +188,28 @@ export function CustomFieldInputs({
     );
   };
 
+  const controls = (fields: CustomFieldForm["fields"]) =>
+    form ? (
+      <CustomFieldControls
+        form={{ ...form, fields }}
+        inputs={inputs}
+        problems={problems}
+        onInput={onInput}
+        idPrefix={prefix}
+        named
+      />
+    ) : null;
   return (
     <div ref={box} className="contents">
-      {form && form.fields.length > 0 ? (
-        <CustomFieldControls
-          form={form}
-          inputs={inputs}
-          problems={problems}
-          onInput={onInput}
-          idPrefix={prefix}
-          named
-        />
-      ) : null}
+      {form && form.fields.length > 0
+        ? pageSize
+          ? fieldPages(form.fields, pageSize).map((fields, at) => (
+              <div key={at} hidden={at !== page} className="flex flex-col gap-12">
+                {controls(fields)}
+              </div>
+            ))
+          : controls(form.fields)
+        : null}
     </div>
   );
 }
@@ -179,4 +226,45 @@ export function narrowForm(
       .filter((f) => shown === null || shown.has(f.key) || f.required || required.has(f.key))
       .map((f) => (required.has(f.key) && !f.required ? { ...f, required: true } : f)),
   };
+}
+
+/**
+ * Required fields first, each group in the given order (an event type's own sort order); fields it does not list keep
+ * their form order after those.
+ */
+export function requiredFirst(
+  fields: CustomFieldForm["fields"],
+  order: readonly string[],
+): CustomFieldForm["fields"] {
+  const rank = (key: string) => {
+    const at = order.indexOf(key);
+    return at < 0 ? order.length : at;
+  };
+  return [...fields].sort(
+    (a, b) => Number(b.required) - Number(a.required) || rank(a.key) - rank(b.key),
+  );
+}
+
+/**
+ * Splits fields into pages of at most `size` visible controls (gate 27 counts controls, and a Money field shows an
+ * amount and a currency), in order.
+ */
+export function fieldPages(
+  fields: CustomFieldForm["fields"],
+  size: number,
+): CustomFieldForm["fields"][] {
+  const pages: CustomField[][] = [];
+  let used = 0;
+  for (const field of fields) {
+    const weight = field.dataType === "Money" ? 2 : 1;
+    const last = pages[pages.length - 1];
+    if (!last || used + weight > size) {
+      pages.push([field]);
+      used = weight;
+    } else {
+      last.push(field);
+      used += weight;
+    }
+  }
+  return pages;
 }

@@ -683,6 +683,7 @@
       "record_review_changes_requested": "The reviewer asked for changes; ask for another review.",
       "record_review_flag_locked": "Only someone who may change the project's settings turns off Requires review.",
       "record_review_kind": "An approval is decided, not reviewed.",
+      "record_review_undecided": "Decide the review before completing it.",
       "record_review_state": "Start the work before asking for a review.",
       "record_review_open": "A review of this record is still open; wait for its decision.",
       "record_review_note_required": "Say what to change when you ask for changes.",

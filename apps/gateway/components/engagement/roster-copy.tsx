@@ -109,7 +109,7 @@ export function RosterCopyPanel({
           <div>
             <Button
               type="button"
-              variant="primary"
+              variant="secondary"
               loading={pending}
               disabled={groups.empty}
               onClick={() => run(true)}

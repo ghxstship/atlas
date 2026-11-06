@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import type { Json } from "./database.types.ts";
+import type { Database, Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -66,7 +66,7 @@ export interface SubmittalFileVersion {
   readonly uploadedAt: string | null;
   /** The newest Clean version of the file, the one the org reviews now. */
   readonly isCurrent: boolean;
-  readonly reviewDecision: "Approved" | "Changes Requested" | null;
+  readonly reviewDecision: Database["app"]["Enums"]["file_review_decision"] | null;
   /** What the org asked to change, or its comment on approval; written for the vendor. */
   readonly reviewComment: string | null;
   readonly reviewedAt: string | null;

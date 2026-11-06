@@ -13,8 +13,9 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
  * File review on a submittal or a record (B14, G-268; ADR 0153 D6): each file's versions, newest first, each with its
  * decision as a text tag; Approve and Request changes (with a note) on the current version, the newest Clean one; and
  * every version's review history. Reviews are append-only and a new version starts unreviewed. The uploader of a
- * version never reviews it (sod_file_review_uploader); the database decides. Loaded on demand through
- * components/lazy-ui/file-review.tsx, from collection-kit CollabPanels (submittals) and the record page (records).
+ * version never reviews it (sod_file_review_uploader); the database decides. The submittal panel and the record page
+ * import it directly, because it renders on arrival. Both buttons are secondary: a subject with two files would show two
+ * primaries otherwise.
  */
 export function FileReviewControls({
   org,
@@ -151,7 +152,7 @@ function ReviewForm({ org, versionId, mine }: { org: string; versionId: string; 
         <Button
           type="button"
           size="sm"
-          variant="primary"
+          variant="secondary"
           loading={pending}
           onClick={() => decide("Approved")}
         >
