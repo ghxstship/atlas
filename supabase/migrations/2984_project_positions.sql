@@ -13,7 +13,8 @@
 --     (R12's per-shift placement in Gateway); a member position's shifts are open or the holder's. This covers
 --     direct writes by shift writers and app.save_roster_shift (2755, which runs as the caller). Open shifts held for a
 --     position are not open to claims (private.assert_claimable), to the open-shift read policy, to shifts_open_idx or
---     to the drag board (app.assign_open_shift, app.assign_open_shift_to_roster).
+--     to the drag board (app.assign_open_shift, app.assign_open_shift_to_roster). A swap is refused when it is asked
+--     for (private.guard_shift_swap, from 2982), since applying it could only be refused later.
 --   * app.record_position_assignments: records assigned to a position. For a member holder each resolves to an
 --     app.record_assignments row (resolved_assignment_id, set only when the fill inserted it); for a roster holder
 --     the record stays on the position (records assign only to memberships, 0310), and the holder and their agency's
@@ -174,6 +175,39 @@ revoke all on function private.guard_shift_position() from public, anon, authent
 
 create trigger t37_guard_shift_position before insert or update of project_position_id, project_id, membership_id, engagement_id, roster_entry_id on app.shifts
   for each row execute function private.guard_shift_position();
+
+-- A swap would change who works a held shift, which t37 refuses when it is applied: say so when it is asked for. From 2982.
+create or replace function private.guard_shift_swap()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if (select s.membership_id from app.shifts s where s.id = new.shift_id) is distinct from new.requested_by_membership_id then
+      perform private.refuse('swap_not_on_shift', 'Only the person on a shift asks to swap it.');
+    end if;
+    if not coalesce(private.project_setting_boolean((select s.project_id from app.shifts s where s.id = new.shift_id), 'scheduling.allow_swaps'), true) then
+      perform private.refuse('swap_not_allowed', 'This project does not allow shift swaps.');
+    end if;
+    if (select s.project_position_id from app.shifts s where s.id = new.shift_id) is not null then
+      perform private.refuse('shift_held_for_position', 'This shift is held for a position. Fill the position, or take the shift off it first.');
+    end if;
+    if nullif(btrim(coalesce(new.reason, '')), '') is null
+       and coalesce(private.project_setting_boolean((select s.project_id from app.shifts s where s.id = new.shift_id), 'scheduling.swap_reason_required'), false) then
+      perform private.refuse('swap_reason_required', 'Say why you are asking to swap this shift.');
+    end if;
+  elsif new.shift_id <> old.shift_id or new.requested_by_membership_id <> old.requested_by_membership_id
+        or new.proposed_membership_id <> old.proposed_membership_id or new.reason is distinct from old.reason then
+    perform private.refuse('swap_immutable', 'A swap keeps its shift, people and reason; cancel it and ask again.');
+  end if;
+  return new;
+end;
+$$;
+
+comment on function private.guard_shift_swap() is 'Shift swaps are asked for by the person on the shift, only while the project allows swaps (scheduling.allow_swaps, 1322), never on a shift held for a position (shift_held_for_position, B9), with a reason while scheduling.swap_reason_required is on (B9), and never change parties or reason.';
+revoke all on function private.guard_shift_swap() from public, anon, authenticated;
 
 -- Open shifts held for a position are not open (latest: 2750) -----------------------------------------------------------------------
 
@@ -523,15 +557,18 @@ declare
   v_warnings jsonb;
 begin
   select * into v_position from app.project_positions p where p.id = p_position_id and p.deleted_at is null for update;
-  if v_position.id is null then
-    raise exception using errcode = '42501', message = 'position not found';
+  -- The caller first: nobody learns from a refusal that a position exists unless they may fill it.
+  if v_position.id is null
+     or not (private.can_on_project(v_position.project_id, 'crew.shift.write')
+             or (v_position.engagement_id is not null and private.can_place_roster_staff(v_position.engagement_id))) then
+    raise exception using errcode = '42501', message = 'crew.shift.write on the project, or the agency''s lead for an agency position, fills it';
   end if;
   if num_nonnulls(p_membership_id, p_roster_entry_id) <> 1 then
     perform private.refuse('position_holder_one', 'Fill a position with one member or one person of an agency''s roster.');
   end if;
   if p_membership_id is not null then
     if not private.can_on_project(v_position.project_id, 'crew.shift.write') then
-      raise exception using errcode = '42501', message = 'crew.shift.write is required on the project to fill a position';
+      raise exception using errcode = '42501', message = 'crew.shift.write is required on the project to fill a position with a member';
     end if;
     if v_position.engagement_id is not null then
       perform private.refuse('position_holder_kind', 'An agency position is filled from its agency''s roster.');
@@ -547,9 +584,6 @@ begin
     select * into v_entry from app.engagement_roster_entries r where r.id = p_roster_entry_id and r.deleted_at is null;
     if v_position.engagement_id is null or v_entry.id is null or v_entry.engagement_id <> v_position.engagement_id then
       perform private.refuse('position_holder_kind', 'An agency position is held by a person of its own agency''s roster.');
-    end if;
-    if not (private.can_on_project(v_position.project_id, 'crew.shift.write') or private.can_place_roster_staff(v_position.engagement_id)) then
-      raise exception using errcode = '42501', message = 'the agency''s lead or crew.shift.write on the project fills an agency position';
     end if;
     if v_entry.entry_state <> 'Accepted' or v_entry.person_response <> 'Accepted' then
       perform private.refuse('roster_entry_not_accepted', 'Fill the position once the production accepted the roster entry and the person accepted it too.');

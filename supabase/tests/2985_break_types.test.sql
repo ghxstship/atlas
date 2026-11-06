@@ -69,6 +69,28 @@ select ok(exists (select 1 from pg_constraint where conname = 'clock_punches_bre
 select is((select (extract(epoch from (clock_out - clock_in)) / 60)::integer - break_minutes from app.time_entries where shift_id = pg_temp.id('sh_b')),
   30, 'worked minutes are 45 less the 15 unpaid, the paid 15 included');
 
+-- Payroll pays a paid break as worked time ----------------------------------------------------------------------------------------------
+-- Two 8-hour days in a pinned week: a 15-minute paid break costs nothing, a 15-minute unpaid break costs 0.25 hours.
+select pg_temp.as_user('bob');
+insert into app.pay_rates (membership_id, role_code, rate_minor, currency_code, effective_from)
+values (pg_temp.id('frank@org_a'), '0000.50.01', 3200, 'USD', '2027-01-01');
+insert into app.earning_codes (org_id, code, name) values (pg_temp.id('org_a'), 'REG', 'Regular');
+select pg_temp.as_platform();
+insert into app.time_entries (project_id, membership_id, clock_in, clock_out, paid_break_minutes, break_minutes) values
+  (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), timestamptz '2027-06-14 08:00 America/New_York', timestamptz '2027-06-14 16:00 America/New_York', 15, 0),
+  (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), timestamptz '2027-06-15 08:00 America/New_York', timestamptz '2027-06-15 16:00 America/New_York', 0, 15);
+select pg_temp.as_user('frank');
+with x as (insert into app.timesheets (project_id, membership_id, period_start, period_end)
+  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-06-13', '2027-06-19') returning id) insert into world select 'ts', id from x;
+select app.submit_timesheet(pg_temp.id('ts'));
+select pg_temp.as_user('carol');
+select app.decide_timesheet(pg_temp.id('ts'), 'Approved', 'Matches the call sheet.');
+with x as (insert into app.pay_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-06-13', '2027-06-26') returning id) insert into world select 'pp', id from x;
+with x as (insert into app.payroll_runs (pay_period_id, currency_code) values (pg_temp.id('pp'), 'USD') returning id) insert into world select 'run', id from x;
+select is(app.calculate_payroll_run(pg_temp.id('run')), 1, 'one regular line');
+select is((select l.hours from app.payroll_lines l where l.payroll_run_id = pg_temp.id('run') and l.deleted_at is null), 15.75::numeric,
+  'the paid quarter hour is paid as worked time: 8 hours and 7.75 hours');
+
 -- The default ---------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
 select throws_ok(format($$select app.set_default_break_type(%L)$$, pg_temp.id('bt_rest')), '42501', null, 'a member does not choose the default');

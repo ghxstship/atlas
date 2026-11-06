@@ -835,7 +835,8 @@
     "heldShifts": {
       "title": "Reservados para un puesto ({count})",
       "help": "Nadie entra en estos turnos hasta cubrir el puesto, y siguen contando como sin cubrir.",
-      "fill": "Cubrir {position} para {shift}"
+      "fill": "Cubrir {position} para {shift}",
+      "placeHolder": "Asignar al titular de {position} a {shift}"
     }
   },
   "perDiems": {
@@ -973,6 +974,7 @@
     "holderStaff": "Persona de la lista",
     "unfilled": "Puesto sin cubrir",
     "unfilledTitle": "Puesto sin cubrir: {title}",
+    "openOnTitle": "Turno abierto en {title}",
     "filled": "Cubierto",
     "shifts": "Turnos reservados",
     "records": "Registros",

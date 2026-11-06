@@ -12,7 +12,8 @@ import {
 /**
  * B9 crew coverage (ADR 0148, S4.5.5-01, S11.11-01): an owner adds a position on Crew > Positions and plans an open shift
  * held for it, which the drag board lists apart and Crew > Shortages names as an unfilled position. Filling the position
- * gives the shift to the owner, with the outcome as a notice on the page, and the shift leaves Shortages. Scheduling limits
+ * gives the shift to the owner, with the outcome as a notice on the page, and the shift leaves Shortages. A row in a later
+ * week opens that week's shift with a working Edit drawer. Scheduling limits
  * then warn on the board: Assign asks "Assign anyway", from the keyboard, and never refuses. The five standard crew reports
  * open unsaved in the builder. Each run signs up a new owner in a new org, so runs never collide.
  */
@@ -102,6 +103,21 @@ test("B9: a position holds a shift until it is filled, shortages name it, and wa
 
   await page.goto(`/${slug}/crew/shortages?from=${day}&to=${addDays(day, 3)}`);
   await expect(page.getByText("Unfilled position: Stage Manager")).toBeHidden();
+
+  // A row in a later week opens on that week, and Edit, how a planner puts someone on an open shift, opens its drawer.
+  const nextWeek = addDays(day, 8);
+  await page.goto(`/${slug}/crew/schedule?create=1&week=${nextWeek}`);
+  const later = page.getByRole("dialog", { name: "New shift" });
+  await later.getByLabel(/^Starts/).fill(`${nextWeek}T08:00`);
+  await later.getByLabel(/^Ends/).fill(`${nextWeek}T16:00`);
+  await later.getByRole("button", { name: "New shift" }).click();
+  await expect(later).toBeHidden();
+  await page.goto(`/${slug}/crew/shortages`);
+  await page.getByRole("link", { name: /Open shift/ }).click();
+  await expect(page).toHaveURL(new RegExp(`week=${nextWeek}`));
+  await page.getByRole("link", { name: "Edit", exact: true }).click();
+  const edit = page.getByRole("dialog", { name: "Edit shift" });
+  await expect(edit.getByLabel(/^Starts/)).toHaveValue(`${nextWeek}T08:00`);
 
   // A warned person is asked about, from the keyboard, and then assigned.
   await page.goto(`/${slug}/settings/scheduling`);

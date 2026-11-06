@@ -108,6 +108,13 @@ select throws_ok(format($$select app.fill_position(%L, p_roster_entry_id => %L)$
 select pg_temp.as_user('mia');
 select throws_ok(format($$select app.fill_position(%L, %L)$$, pg_temp.id('pos_sm'), pg_temp.id('mia@org_a')), '42501', null,
   'without crew.shift.write nobody fills a member position');
+select pg_temp.as_user('xavier');
+select throws_ok(format($$select app.fill_position(%L)$$, pg_temp.id('pos_sm')), '42501',
+  'crew.shift.write on the project, or the agency''s lead for an agency position, fills it',
+  'a stranger gets the same answer for a real position');
+select throws_ok(format($$select app.fill_position(%L)$$, gen_random_uuid()), '42501',
+  'crew.shift.write on the project, or the agency''s lead for an agency position, fills it',
+  'as for an id that does not exist, so a uuid is no existence oracle');
 select pg_temp.as_user('carol');
 select is(app.fill_position(pg_temp.id('pos_sm'), pg_temp.id('frank@org_a')) - 'position_id',
   '{"shifts_filled": 2, "shifts_skipped": [], "policy_warnings": [], "records_resolved": 1}'::jsonb,
@@ -127,6 +134,11 @@ select isnt((select filled_at from app.project_positions where id = pg_temp.id('
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.fill_position(%L, %L)$$, pg_temp.id('pos_sm'), pg_temp.id('mia@org_a')), 'XR001',
   'position_filled: Someone holds this position. Vacate it first.', 'a held position is refilled only after vacating');
+select pg_temp.as_user('frank');
+select throws_ok(format($$insert into app.shift_swaps (shift_id, requested_by_membership_id, proposed_membership_id) values (%L, %L, %L)$$,
+  pg_temp.id('s1'), pg_temp.id('frank@org_a'), pg_temp.id('dave@org_a')), 'XR001',
+  'shift_held_for_position: This shift is held for a position. Fill the position, or take the shift off it first.',
+  'the holder of a held shift is told when asking to swap it, not when the swap is applied');
 
 -- Filling reports the org's warnings and never refuses for them
 select pg_temp.as_user('alice');

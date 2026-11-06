@@ -177,7 +177,9 @@ export async function ShiftsCollection(props: {
     s.member
       ? (s.member.name ?? t("crew.common.unnamed"))
       : s.positionTitle
-        ? t("crew.positions.unfilledTitle", { title: s.positionTitle })
+        ? s.positionFilled
+          ? t("crew.positions.openOnTitle", { title: s.positionTitle })
+          : t("crew.positions.unfilledTitle", { title: s.positionTitle })
         : s.agencySlot
           ? s.agencySlot.accountName
             ? t("crew.agency.slotLabel", { account: s.agencySlot.accountName })
@@ -214,11 +216,14 @@ export async function ShiftsCollection(props: {
 
   // Peek and full record page.
   let peek = null;
+  // The opened shift can be outside the listed week: its Edit, swap and no-show drawers still open from this row.
+  let peeked: Shift | null = null;
   const peekId = search["peek"];
   if (peekId) {
     const detail = await getShift(db, peekId);
     if (detail.ok) {
       const s = detail.data;
+      peeked = s;
       const mine = s.member !== null && s.member.membershipId === crew.membershipId;
       const entries = await listTimeEntries(db, { orgId: crew.orgId, shiftId: s.id });
       const myOpen = entries.ok
@@ -373,6 +378,7 @@ export async function ShiftsCollection(props: {
           ) : null}
           {mine &&
           swapsAllowed &&
+          !s.projectPositionId &&
           (s.state === "Published" || s.state === "Accepted") &&
           crew.can("crew.swap.request") ? (
             <ButtonLink href={withParams(base, search, { swap: s.id })} size="sm">
@@ -609,7 +615,10 @@ export async function ShiftsCollection(props: {
 
   // Create, edit and swap drawers.
   const members = canWrite || search["swap"] ? await getMembers(crew.ctx) : [];
-  const editing = search["edit"] ? (shifts.find((s) => s.id === search["edit"]) ?? null) : null;
+  const opened = peeked;
+  const shiftOf = (id: string | undefined): Shift | null =>
+    id ? (shifts.find((s) => s.id === id) ?? (opened?.id === id ? opened : null)) : null;
+  const editing = shiftOf(search["edit"]);
   const defaultProject = projectFilter ?? projects[0] ?? null;
   // Agencies and their roster staff load only while the editor is open (R12), for the project it plans on.
   const editorOpen = canWrite && (search["create"] === "1" || editing !== null);
@@ -762,7 +771,7 @@ export async function ShiftsCollection(props: {
       },
     ];
   };
-  const swapShift = search["swap"] ? (shifts.find((s) => s.id === search["swap"]) ?? null) : null;
+  const swapShift = shiftOf(search["swap"]);
   // scheduling.swap_reason_required (B9): the form says so before the database refuses.
   const swapSettings = swapShift
     ? await resolveSettings(db, { orgId: crew.orgId, projectId: swapShift.projectId })
@@ -770,9 +779,7 @@ export async function ShiftsCollection(props: {
   const swapReasonRequired =
     swapSettings?.ok === true &&
     swapSettings.data.get("scheduling.swap_reason_required")?.value === true;
-  const noShowShift = search["noshow"]
-    ? (shifts.find((s) => s.id === search["noshow"]) ?? null)
-    : null;
+  const noShowShift = shiftOf(search["noshow"]);
   // Shift templates the org keeps (Settings, Scheduling), for "Plan from template" (A132).
   const templateList = templates?.ok ? templates.data : [];
   const drawer =
@@ -1069,7 +1076,11 @@ export async function ShiftsCollection(props: {
             heldShifts={held.map((s) => ({
               ...boardShift(s),
               positionTitle: s.positionTitle ?? "",
-              href: `/${crew.slug}/crew/positions?peek=${s.projectPositionId}`,
+              // Someone holds the position, so the way forward is this shift's Edit, not the position.
+              filled: s.positionFilled === true,
+              href: s.positionFilled
+                ? withParams(base, search, { edit: s.id })
+                : `/${crew.slug}/crew/positions?peek=${s.projectPositionId}`,
             }))}
           />
         ) : (

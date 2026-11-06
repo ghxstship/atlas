@@ -182,13 +182,13 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
     const held = await updateShift(db, saved.data.id, { projectPositionId: position });
     return positionState(done(ctx.org.slug, held, t), t, held);
   }
-  // An agency position's shift with nobody named is that agency's slot; t37 decides everything else.
-  const slot =
-    worker.kind === "open" && position !== null ? await agencyOfPosition(db, position) : null;
+  // A shift planned on a position with nobody named is its holder's, or its agency's slot; t37 decides everything else.
+  const onSeat =
+    worker.kind === "open" && position !== null ? await seatOfPosition(db, position) : null;
   const created = await createShift(db, {
     ...shift,
-    membershipId: worker.kind === "member" ? worker.membershipId : null,
-    engagementId: worker.kind === "agency" ? worker.engagementId : slot,
+    membershipId: worker.kind === "member" ? worker.membershipId : (onSeat?.membership_id ?? null),
+    engagementId: worker.kind === "agency" ? worker.engagementId : (onSeat?.engagement_id ?? null),
     projectPositionId: position,
   });
   return positionState(done(ctx.org.slug, created, t), t, created);
@@ -216,14 +216,14 @@ async function positionMisfit(
   return rule ? { ok: false, error: { kind: "refusal", rule, message: rule } } : null;
 }
 
-/** The agency's engagement of a position, for a shift planned on it with nobody named. */
-async function agencyOfPosition(db: XosClient, positionId: string): Promise<string | null> {
+/** A position's agency and member holder, for a shift planned on it with nobody named. */
+async function seatOfPosition(db: XosClient, positionId: string) {
   const { data } = await db
     .from("project_positions")
-    .select("engagement_id")
+    .select("engagement_id, membership_id")
     .eq("id", positionId)
     .maybeSingle();
-  return data?.engagement_id ?? null;
+  return data;
 }
 
 export async function updateShiftAction(_: State, form: FormData): Promise<State> {
@@ -278,13 +278,15 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
     const onto = await updateShift(db, id.data, onPosition);
     return positionState(done(ctx.org.slug, onto, t), t, onto);
   }
-  const slot =
-    worker.kind === "open" && position !== null ? await agencyOfPosition(db, position) : null;
+  const onSeat =
+    worker.kind === "open" && position !== null ? await seatOfPosition(db, position) : null;
+  // The holder goes on only when the shift moves onto the position: after a holder declined, nobody is put back unasked.
+  const holder = positionMoved ? (onSeat?.membership_id ?? null) : null;
   const saved = await updateShift(db, id.data, {
     ...times_,
     ...onPosition,
-    membershipId: worker.kind === "member" ? worker.membershipId : null,
-    engagementId: worker.kind === "agency" ? worker.engagementId : slot,
+    membershipId: worker.kind === "member" ? worker.membershipId : holder,
+    engagementId: worker.kind === "agency" ? worker.engagementId : (onSeat?.engagement_id ?? null),
   });
   return positionState(done(ctx.org.slug, saved, t), t, saved);
 }

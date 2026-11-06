@@ -142,5 +142,17 @@ select throws_ok(format($$select * from app.crew_shortages(%L, current_date, cur
   'crew_shortages_range: Pick a range of 1 to 62 days.', 'a range over 62 days is refused');
 select lives_ok(format($$select * from app.crew_shortages(%L, current_date, current_date + 61)$$, pg_temp.id('org_a')), '62 days is fine');
 
+-- Someone holds the position, so an open shift on it is not waiting on a fill: it reads as open, with no position named.
+select pg_temp.as_user('carol');
+with x as (insert into app.project_positions (project_id, title) values (pg_temp.id('prj_a'), 'Harbor Chief') returning id)
+insert into world select 'pos_held', id from x;
+select app.fill_position(pg_temp.id('pos_held'), pg_temp.id('dave@org_a'));
+with x as (insert into app.shifts (project_id, role_code, starts_at, ends_at, time_zone, project_position_id)
+  values (pg_temp.id('prj_a'), '0000.50.01', now() + interval '6 days', now() + interval '6 days 8 hours', 'America/New_York', pg_temp.id('pos_held'))
+  returning id) insert into world select 'open_held', id from x;
+select results_eq(format($$select kind, detail from app.crew_shortages(%L, current_date, current_date + 14) where shift_id = %L$$,
+    pg_temp.id('org_a'), pg_temp.id('open_held')),
+  $$values ('open'::text, null::text)$$, 'an open shift on a filled position names no position');
+
 select * from finish();
 rollback;

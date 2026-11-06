@@ -209,65 +209,69 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                 }))}
             />
           ) : null}
-          <RowList
-            label={position}
-            items={list.map((s) => ({
-              id: s.id ?? "",
-              title: s.starts_at
-                ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
-                : position,
-              meta: [
-                s.project_name,
-                s.ends_at
-                  ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
-                  : null,
-                lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
-              ],
-              ...(s.has_no_show
-                ? {
-                    tag: {
-                      label: t("gateway.engagement.staffing.noShowTag"),
-                      tone: "warning" as const,
-                    },
-                  }
-                : s.shift_state
+          {list.length > 0 ? (
+            <RowList
+              label={position}
+              items={list.map((s) => ({
+                id: s.id ?? "",
+                title: s.starts_at
+                  ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
+                  : position,
+                meta: [
+                  s.project_name,
+                  s.ends_at
+                    ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
+                    : null,
+                  lead ? (s.holder_name ?? t("gateway.engagement.staffing.openSlot")) : null,
+                ],
+                ...(s.has_no_show
                   ? {
                       tag: {
-                        label: t(enumLabelKey("shiftState", s.shift_state)),
-                        tone: toneFor(s.shift_state),
+                        label: t("gateway.engagement.staffing.noShowTag"),
+                        tone: "warning" as const,
                       },
                     }
-                  : {}),
-              // The agency places someone on an open slot, or takes them off one (R12).
-              ...(lead && s.id && s.shift_state !== "Canceled"
-                ? s.is_agency_slot && assignable?.ok
-                  ? {
-                      detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
-                    }
-                  : s.roster_entry_id && !s.has_no_show
+                  : s.shift_state
                     ? {
-                        // Running, and nobody marked: the agency's lead says they did not arrive (B9).
-                        ...(s.starts_at &&
-                        hasPassed(s.starts_at) &&
-                        !(s.ends_at && hasPassed(s.ends_at))
-                          ? { detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} /> }
-                          : {}),
-                        action: (
-                          <ActionButton
-                            action={unassignRosterShiftAction.bind(
-                              null,
-                              s.id,
-                              t("gateway.engagement.staffing.unassignReason"),
-                            )}
-                            label={t("gateway.engagement.staffing.unassign")}
-                            variant="secondary"
-                          />
+                        tag: {
+                          label: t(enumLabelKey("shiftState", s.shift_state)),
+                          tone: toneFor(s.shift_state),
+                        },
+                      }
+                    : {}),
+                // The agency places someone on an open slot, or takes them off one (R12).
+                ...(lead && s.id && s.shift_state !== "Canceled"
+                  ? s.is_agency_slot && assignable?.ok
+                    ? {
+                        detail: (
+                          <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />
                         ),
                       }
-                    : {}
-                : {}),
-            }))}
-          />
+                    : s.roster_entry_id && !s.has_no_show
+                      ? {
+                          // Running, and nobody marked: the agency's lead says they did not arrive (B9).
+                          ...(s.starts_at &&
+                          hasPassed(s.starts_at) &&
+                          !(s.ends_at && hasPassed(s.ends_at))
+                            ? { detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} /> }
+                            : {}),
+                          action: (
+                            <ActionButton
+                              action={unassignRosterShiftAction.bind(
+                                null,
+                                s.id,
+                                t("gateway.engagement.staffing.unassignReason"),
+                              )}
+                              label={t("gateway.engagement.staffing.unassign")}
+                              variant="secondary"
+                            />
+                          ),
+                        }
+                      : {}
+                  : {}),
+              }))}
+            />
+          ) : null}
         </Section>
       ))}
     </div>

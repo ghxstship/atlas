@@ -27,10 +27,14 @@ export interface ClaimedShift extends BoardShift {
   readonly href: string;
 }
 
-/** A shift held for an unfilled project position (B9): nobody goes on it until the position is filled. */
+/**
+ * A shift held for a project position (B9): nobody but its holder goes on it. Unfilled, it links to the position;
+ * `filled` means a holder exists and was not put on this shift, so it links to the shift.
+ */
 export interface HeldShift extends BoardShift {
   readonly href: string;
   readonly positionTitle: string;
+  readonly filled?: boolean;
 }
 
 /**
@@ -432,7 +436,12 @@ export function SchedulingBoard(props: {
                   href={s.href as Route}
                   className="flex flex-col items-start gap-2 rounded-control border border-border-subtle px-8 py-6 text-text-13 hover:bg-bg-hover"
                 >
-                  <span>{t("heldShifts.fill", { position: s.positionTitle, shift: s.label })}</span>
+                  <span>
+                    {t(s.filled ? "heldShifts.placeHolder" : "heldShifts.fill", {
+                      position: s.positionTitle,
+                      shift: s.label,
+                    })}
+                  </span>
                   <span className="text-text-12 text-text-secondary">{s.projectKey}</span>
                 </Link>
               </li>

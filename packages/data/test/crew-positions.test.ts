@@ -4,6 +4,7 @@ import {
   fillPosition,
   listBreakTypes,
   listPositions,
+  listShifts,
   retirePosition,
   saveBreakType,
   savePosition,
@@ -19,6 +20,34 @@ const argsOf = (call: { steps: [string, unknown[]][] } | undefined) =>
   call?.steps.find((step) => step[0] === "args")?.[1][0];
 
 describe("positions", () => {
+  it("says whether a shift's position has a holder", async () => {
+    const row = {
+      id: "s1",
+      project_id: "p1",
+      membership_id: null,
+      engagement_id: null,
+      roster_entry_id: null,
+      role_code: null,
+      starts_at: "2027-06-14T12:00:00Z",
+      ends_at: "2027-06-14T20:00:00Z",
+      time_zone: "America/New_York",
+      shift_state: "Draft",
+      project_position_id: "pos1",
+    };
+    const seat = { title: "Stage Manager", roster_entry_id: null };
+    const { db } = fakeClient({
+      "from:shifts": [
+        okResponse([
+          { ...row, position: { ...seat, membership_id: null } },
+          { ...row, id: "s2", position: { ...seat, membership_id: "m1" } },
+          { ...row, id: "s3", project_position_id: null, position: null },
+        ]),
+      ],
+    });
+    const result = await listShifts(db, { orgId: "o1" });
+    expect(result.ok && result.data.map((s) => s.positionFilled)).toEqual([false, true, false]);
+  });
+
   it("lists positions with holders, agencies and counts", async () => {
     const { db } = fakeClient({
       "from:project_positions": [

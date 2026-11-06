@@ -32,12 +32,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  // A table row opens its source: the shift, or the order a vendor line is on.
-  const opened = /^(shift|po):([0-9a-f-]{36})/.exec(search["peek"] ?? "");
+  // A table row opens its source: the shift, on the week it falls in, or the order a vendor line is on.
+  const opened = /^(shift|po):([0-9a-f-]{36})(?::(\d{4}-\d{2}-\d{2}))?/.exec(search["peek"] ?? "");
   if (opened) {
     redirect(
       opened[1] === "shift"
-        ? (`/${crew.slug}/crew/shifts?peek=${opened[2]}` as Route)
+        ? (`/${crew.slug}/crew/shifts?week=${opened[3] ?? ""}&peek=${opened[2]}` as Route)
         : (`/${crew.slug}/procurement/purchase-orders?peek=${opened[2]}` as Route),
     );
   }
@@ -58,9 +58,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const counts = shortageCounts(all);
   const rows = kindFilter ? all.filter((r) => r.kind === kindFilter) : all;
 
+  // The shift list's week runs on the org's calendar, so the day is the org's, not the row's own zone.
   const hrefOf = (r: Shortage): string =>
     r.shiftId
-      ? `/${crew.slug}/crew/shifts?peek=${r.shiftId}`
+      ? `/${crew.slug}/crew/shifts?week=${dayIn(r.startsAt, zone)}&peek=${r.shiftId}`
       : `/${crew.slug}/procurement/purchase-orders?peek=${r.purchaseOrderId ?? ""}`;
   const roleName = (code: string | null) => (code === null ? "" : (roles.get(code)?.title ?? code));
   const title = (r: Shortage): string => {
@@ -145,7 +146,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         rows={rows.map((r) => ({
           // Unique per row, since a shift can be short in two ways; the part before ":" names the source to open.
           id: r.shiftId
-            ? `shift:${r.shiftId}:${r.kind}`
+            ? `shift:${r.shiftId}:${dayIn(r.startsAt, zone)}:${r.kind}`
             : `po:${r.purchaseOrderId ?? ""}:${r.poLineId ?? ""}`,
           day: dayLabel(dayIn(r.startsAt, r.timeZone)),
           project: r.projectName,

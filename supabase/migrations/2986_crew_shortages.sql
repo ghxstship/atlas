@@ -84,7 +84,8 @@ begin
   -- Open shifts, held for a position or not.
   select s.project_id, s.project_name, 'open'::text, s.id, null::uuid, null::uuid, s.role_code::text, s.starts_at, s.ends_at, s.time_zone,
     null::text, null::text, null::numeric,
-    (select pos.title from app.project_positions pos where pos.id = s.project_position_id and pos.deleted_at is null), null::timestamptz
+    (select pos.title from app.project_positions pos where pos.id = s.project_position_id and pos.deleted_at is null
+       and pos.membership_id is null and pos.roster_entry_id is null), null::timestamptz
   from shifts s
   where s.membership_id is null and s.engagement_id is null and s.roster_entry_id is null and s.shift_state in ('Draft', 'Published')
   union all
@@ -93,7 +94,8 @@ begin
     (select o.name from app.engagements e join app.counterparties c on c.id = e.counterparty_id
      join app.organizations o on o.id = c.organization_id where e.id = s.engagement_id),
     null, null,
-    (select pos.title from app.project_positions pos where pos.id = s.project_position_id and pos.deleted_at is null), null
+    (select pos.title from app.project_positions pos where pos.id = s.project_position_id and pos.deleted_at is null
+       and pos.membership_id is null and pos.roster_entry_id is null), null
   from shifts s
   where s.engagement_id is not null and private.is_agency_slot_engagement(s.engagement_id)
   union all
@@ -145,6 +147,6 @@ begin
 end;
 $$;
 
-comment on function app.crew_shortages(uuid, date, date) is 'What is not covered yet in an org between two days (B9, ADR 0148; at most 62 days, crew_shortages_range), for Crew > Shortages: open shifts (detail names a position they are held for), unfilled agency slots, shifts published to someone who has not answered (asked_at from the Waiting Offer), unanswered or declined "Still coming?" asks of the current worker, no-shows without a replacement someone holds, all on projects where the caller reads shifts, and unacknowledged labor lines of Approved or Sent purchase orders on projects on site in those days where they read purchase orders. A worker''s name appears only under private.may_read_worker_name. Computed at read time; ordered by start, then project.';
+comment on function app.crew_shortages(uuid, date, date) is 'What is not covered yet in an org between two days (B9, ADR 0148; at most 62 days, crew_shortages_range), for Crew > Shortages: open shifts (detail names an unfilled position they are held for), unfilled agency slots, shifts published to someone who has not answered (asked_at from the Waiting Offer), unanswered or declined "Still coming?" asks of the current worker, no-shows without a replacement someone holds, all on projects where the caller reads shifts, and unacknowledged labor lines of Approved or Sent purchase orders on projects on site in those days where they read purchase orders. A worker''s name appears only under private.may_read_worker_name. Computed at read time; ordered by start, then project.';
 revoke all on function app.crew_shortages(uuid, date, date) from public, anon;
 grant execute on function app.crew_shortages(uuid, date, date) to authenticated, service_role;

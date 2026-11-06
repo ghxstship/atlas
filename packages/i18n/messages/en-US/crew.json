@@ -835,7 +835,8 @@
     "heldShifts": {
       "title": "Held for a position ({count})",
       "help": "Nobody goes on these shifts until the position is filled, and they still count as unfilled.",
-      "fill": "Fill {position} for {shift}"
+      "fill": "Fill {position} for {shift}",
+      "placeHolder": "Put the holder of {position} on {shift}"
     }
   },
   "perDiems": {
@@ -973,6 +974,7 @@
     "holderStaff": "Person on the roster",
     "unfilled": "Unfilled position",
     "unfilledTitle": "Unfilled position: {title}",
+    "openOnTitle": "Open shift on {title}",
     "filled": "Filled",
     "shifts": "Shifts held",
     "records": "Records",

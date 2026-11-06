@@ -45,6 +45,8 @@ export interface Shift {
   readonly projectPositionId?: string | null;
   /** That position's title, when the caller reads it. */
   readonly positionTitle?: string | null;
+  /** Whether someone holds that position, so a shift still open on it is not waiting on a fill. */
+  readonly positionFilled?: boolean;
   readonly createdAt: string;
 }
 
@@ -68,7 +70,7 @@ export interface ShiftFilter {
   readonly limit?: number;
 }
 
-const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id, project_position_id, position:project_positions!shifts_project_position_id_fkey(title)`;
+const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id, project_position_id, position:project_positions!shifts_project_position_id_fkey(title, membership_id, roster_entry_id)`;
 
 interface ShiftRow {
   id: string;
@@ -92,7 +94,7 @@ interface ShiftRow {
   engagement: EngagementRow | null;
   roster_entry_id?: string | null;
   project_position_id?: string | null;
-  position?: { title: string } | null;
+  position?: { title: string; membership_id: string | null; roster_entry_id: string | null } | null;
 }
 
 function toShift(row: ShiftRow): Shift {
@@ -120,6 +122,7 @@ function toShift(row: ShiftRow): Shift {
     scopeNodeId: row.scope_node_id,
     projectPositionId: row.project_position_id ?? null,
     positionTitle: row.position?.title ?? null,
+    positionFilled: Boolean(row.position?.membership_id ?? row.position?.roster_entry_id),
     createdAt: row.created_at,
   };
 }
