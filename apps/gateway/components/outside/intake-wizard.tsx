@@ -5,6 +5,7 @@ import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
+import { TaxAddressForm, type TaxAddressCopy } from "@/components/forms/tax-address-form";
 import {
   intakeCreateAccountAction,
   intakeOnFileAction,
@@ -64,10 +65,12 @@ export function IntakeWizard({
   token,
   link,
   accounts,
+  addressCopy,
 }: {
   token: string;
   link: PublicIntake;
   accounts: readonly { readonly id: string; readonly name: string }[];
+  addressCopy: TaxAddressCopy;
 }) {
   const t = useTranslations(COPY) as unknown as Translate;
   const steps = useMemo(() => intakeSteps(link), [link]);
@@ -218,6 +221,19 @@ export function IntakeWizard({
             <p className="m-0 text-text-13">
               {t("taxOnFile", { kind: tax.kind, last4: tax.last4 })}
             </p>
+            {tax.kind === "W-9" ? (
+              <TaxAddressForm
+                taxFormId={tax.id}
+                copy={addressCopy}
+                initial={{
+                  legalName: null,
+                  streetAddress: null,
+                  locality: null,
+                  regionCode: null,
+                  postalCode: null,
+                }}
+              />
+            ) : null}
             <div className="flex flex-wrap gap-8">
               <Button type="button" variant="ghost" onClick={back}>
                 {t("back")}

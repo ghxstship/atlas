@@ -167,6 +167,24 @@ export default async function VendorIntakePage({
           <IntakeWizard
             token={token}
             link={link}
+            addressCopy={{
+              title: t("payouts.w9.formTitle"),
+              legalName: t("payouts.w9.legalName"),
+              legalNameHelp: t("payouts.w9.legalNameHelp"),
+              street: t("payouts.w9.street"),
+              locality: t("payouts.w9.locality"),
+              region: t("payouts.w9.region"),
+              postal: t("payouts.w9.postal"),
+              submit: t("payouts.w9.submit"),
+              done: t("payouts.w9.done"),
+              errors: {
+                legalName: t("payouts.w9.errors.legalName"),
+                streetAddress: t("payouts.w9.errors.streetAddress"),
+                locality: t("payouts.w9.errors.locality"),
+                regionCode: t("payouts.w9.errors.regionCode"),
+                postalCode: t("payouts.w9.errors.postalCode"),
+              },
+            }}
             accounts={ctx.accounts
               .filter((a) => a.roles.includes("Account Owner") || a.roles.includes("Account Admin"))
               .map((a) => ({ id: a.id, name: a.name }))}
