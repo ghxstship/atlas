@@ -158,7 +158,7 @@ describe("pausing", () => {
 describe("resuming", () => {
   it("refuses a started pause on a plan that is ending, since a new period would charge", async () => {
     const s = stripe({ ...monthly, cancel_at_period_end: true });
-    const error = await resumeSubscription(s.client, store().store, {
+    const error = await resumeSubscription(s.client, store({ started: true }).store, {
       orgId: "org-1",
       livemode: false,
     }).catch((e: unknown) => e);

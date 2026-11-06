@@ -281,8 +281,9 @@ export async function findPortalConfiguration(
     active: true,
     limit: 100,
   });
-  return configurations.data.find((c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEYS[term])
-    ?.id;
+  return configurations.data.find(
+    (c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEYS[term],
+  )?.id;
 }
 
 /**

@@ -98,7 +98,10 @@ function fakeStripe(
             options.portalConfigured === false
               ? []
               : [
-                  { id: "bpc_monthly", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly } },
+                  {
+                    id: "bpc_monthly",
+                    metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly },
+                  },
                   { id: "bpc_annual", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
                 ],
         }),
@@ -460,6 +463,7 @@ describe("openBillingPortal", () => {
         orgId: "org-1",
         livemode: false,
         returnUrl: "https://atlas.test/b",
+        term: "Monthly",
       }),
     ).rejects.toThrow("billing_no_customer");
     expect(stripe.calls).toEqual([]);

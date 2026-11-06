@@ -2135,13 +2135,17 @@ async function expireCheckoutSession(stripe, sessionId) {
  * retry must reach Stripe again.
  */
 /**
- * What the worker allows Stripe, so a Stripe that hangs cannot use up the Edge Function's wall clock before certificates and
- * domains have run. A failed call is not retried inside the run: it stays queued, and the next try has its own key.
+ * What the worker allows Stripe, so a hang cannot use up the Edge Function's wall clock before certificates and domains
+ * run. A failed call stays queued, and the next run's try has its own key.
  */
 var STRIPE_WORKER_LIMITS = {
   timeoutMs: 8e3,
   maxNetworkRetries: 0,
 };
+/** Stripe's terminal statuses, as reconciliation reads them: neither can charge again, and Stripe refuses their cancel. */
+function stripeStatusEnded(status) {
+  return status === "canceled" || status === "incomplete_expired";
+}
 /** The idempotency key of one try at one cancel. */
 function stripeCancelIdempotencyKey(job) {
   return `xos-stripe-cancel:${job.cancellationId}:${String(job.attempt)}`;
@@ -2182,10 +2186,11 @@ async function sendStripeCancel(stripe, job) {
       };
     if (errorField(error, "type") === "StripeInvalidRequestError")
       try {
-        if ((await stripe.subscriptions.retrieve(job.stripeSubscriptionId)).status === "canceled")
+        const current = await stripe.subscriptions.retrieve(job.stripeSubscriptionId);
+        if (stripeStatusEnded(current.status))
           return {
             accepted: true,
-            stripeStatus: "canceled",
+            stripeStatus: current.status,
           };
       } catch (again) {
         if (errorField(again, "code") === "resource_missing")
@@ -2202,14 +2207,13 @@ async function sendStripeCancel(stripe, job) {
 }
 /**
  * One run of the worker:
- *   1. open alerts go to the platform owner, before Stripe is called: an alert the last run or the database raised goes out
- *      whatever Stripe does next, and a delay cannot clear itself unseen
- *   2. cancels due (none without a Stripe key: they stay queued, and the database's watch raises the alert), one claim at a
- *      time until the time budget is spent, so what this run cannot reach stays due and unclaimed for the next
- *   3. Checkout sessions still open on an org that is ending are expired, so nobody can pay for a plan on it. One paid
- *      in that moment syncs through the webhook, whose reconciliation queues its cancel.
- *   4. alerts again, for what this run raised. An alert that cannot be sent stays unsent, the run counts it, and the next
- *      run tries again; the caller logs it so Sentry and the logs see it whatever the mail does.
+ *   1. open alerts go to the platform owner before Stripe is called, so a delay cannot clear itself unseen
+ *   2. cancels due (none without a Stripe key: the database's watch raises that alert), one claim at a time until the
+ *      budget is spent, so what this run cannot reach stays due and unclaimed
+ *   3. Checkout sessions still open on an org that is ending are expired. One paid in that moment syncs through the
+ *      webhook, whose reconciliation queues its cancel.
+ *   4. alerts again, for what this run raised. One that cannot be sent stays unsent and the run counts it; the caller
+ *      logs it so Sentry sees it whatever the mail does.
  */
 async function runStripeCancellations(input) {
   const { stripe, store } = input;

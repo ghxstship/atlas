@@ -14,12 +14,12 @@ import type { StripeClient, StripeClientLimits } from "./env.ts";
  */
 
 /**
- * What the worker allows Stripe, so a Stripe that hangs cannot use up the Edge Function's wall clock before certificates and
- * domains have run. A failed call is not retried inside the run: it stays queued, and the next try has its own key.
+ * What the worker allows Stripe, so a hang cannot use up the Edge Function's wall clock before certificates and domains
+ * run. A failed call stays queued, and the next run's try has its own key.
  */
 export const STRIPE_WORKER_LIMITS: StripeClientLimits = { timeoutMs: 8_000, maxNetworkRetries: 0 };
 
-/** How long one run of the worker spends on Stripe before leaving the rest for the next run, 5 minutes later. */
+/** How long one run spends on Stripe before leaving the rest for the next, 5 minutes later. */
 export const STRIPE_WORKER_BUDGET_MS = 45_000;
 
 /** How a cancel stops the subscription, matching app.stripe_cancel_mode. */
@@ -39,10 +39,7 @@ export type StripeCancelOutcome =
   | { readonly accepted: true; readonly stripeStatus: string }
   | { readonly accepted: false; readonly error: string };
 
-/**
- * Stripe's two terminal statuses, as app.reconcile_stripe_subscription reads them: a subscription in either can never charge
- * again, and Stripe refuses a cancel of it.
- */
+/** Stripe's terminal statuses, as reconciliation reads them: neither can charge again, and Stripe refuses their cancel. */
 export function stripeStatusEnded(status: string): boolean {
   return status === "canceled" || status === "incomplete_expired";
 }
@@ -90,7 +87,8 @@ export async function sendStripeCancel(
     if (errorField(error, "type") === "StripeInvalidRequestError") {
       try {
         const current = await stripe.subscriptions.retrieve(job.stripeSubscriptionId);
-        if (stripeStatusEnded(current.status)) return { accepted: true, stripeStatus: current.status };
+        if (stripeStatusEnded(current.status))
+          return { accepted: true, stripeStatus: current.status };
       } catch (again) {
         if (errorField(again, "code") === "resource_missing") {
           return { accepted: true, stripeStatus: "missing" };
@@ -145,14 +143,13 @@ export interface StripeCancellationRun {
 
 /**
  * One run of the worker:
- *   1. open alerts go to the platform owner, before Stripe is called: an alert the last run or the database raised goes out
- *      whatever Stripe does next, and a delay cannot clear itself unseen
- *   2. cancels due (none without a Stripe key: they stay queued, and the database's watch raises the alert), one claim at a
- *      time until the time budget is spent, so what this run cannot reach stays due and unclaimed for the next
- *   3. Checkout sessions still open on an org that is ending are expired, so nobody can pay for a plan on it. One paid
- *      in that moment syncs through the webhook, whose reconciliation queues its cancel.
- *   4. alerts again, for what this run raised. An alert that cannot be sent stays unsent, the run counts it, and the next
- *      run tries again; the caller logs it so Sentry and the logs see it whatever the mail does.
+ *   1. open alerts go to the platform owner before Stripe is called, so a delay cannot clear itself unseen
+ *   2. cancels due (none without a Stripe key: the database's watch raises that alert), one claim at a time until the
+ *      budget is spent, so what this run cannot reach stays due and unclaimed
+ *   3. Checkout sessions still open on an org that is ending are expired. One paid in that moment syncs through the
+ *      webhook, whose reconciliation queues its cancel.
+ *   4. alerts again, for what this run raised. One that cannot be sent stays unsent and the run counts it; the caller
+ *      logs it so Sentry sees it whatever the mail does.
  */
 export async function runStripeCancellations(input: {
   readonly stripe: StripeClient | null;

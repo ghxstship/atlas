@@ -242,7 +242,10 @@ export function stripeCatalog(registry: PlanRegistry): StripeCatalog {
           ],
     ),
   });
-  const portals = [portalFor("XOS monthly plans", "Monthly"), portalFor("XOS annual plans", "Annual")];
+  const portals = [
+    portalFor("XOS monthly plans", "Monthly"),
+    portalFor("XOS annual plans", "Annual"),
+  ];
   return { products, prices, coupons, promotionCodes, portals };
 }
 
@@ -573,7 +576,8 @@ export async function syncStripeCatalog(
   for (const spec of catalog.portals) {
     const features = portalFeatures(spec, priceIds);
     const portalKey = spec.metadata["xos_portal"] ?? "";
-    const portal = existingPortals.data.find((c) => c.metadata?.["xos_portal"] === portalKey) ?? null;
+    const portal =
+      existingPortals.data.find((c) => c.metadata?.["xos_portal"] === portalKey) ?? null;
     if (portal === null) {
       if (!dryRun) {
         await client.billingPortal.configurations.create({
@@ -587,7 +591,10 @@ export async function syncStripeCatalog(
         key: portalKey,
         action: dryRun ? "would create" : "created",
       });
-    } else if (portal.name === spec.name && portalShape(portal.features) === portalShape(features)) {
+    } else if (
+      portal.name === spec.name &&
+      portalShape(portal.features) === portalShape(features)
+    ) {
       items.push({ kind: "portal_configuration", key: portalKey, action: "unchanged" });
     } else {
       if (!dryRun) {
