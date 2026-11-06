@@ -61,7 +61,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // project facts and names lock kinds (4655, 4656), R6a's account.work_details_moved (4664), R7's four
     // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
-    // (6051, 6052), and B5's accommodation_block.release_due and transfer.assigned (5947).
+    // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and the five renewal and Stripe
+    // cancel notices of ADR 0161 (6140, 6141).
     expect(registry.kinds).toHaveLength(78);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
@@ -101,10 +102,10 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
     ]);
-    // Billing notices wait until morning, although the account category is urgent; the pause notices too (B16).
+    // Billing notices wait until morning, although the account category is urgent; the pause notices (B16), renewal and cancel notices (ADR 0161) too.
     expect(
       registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
-    ).toEqual([null, null, null, null, null, null]);
+    ).toEqual(Array.from({ length: 11 }, () => null));
     // B16 (ADR 0155 D2): a connected app's proposal reaches the Inbox and a push, never email.
     expect(notificationKind("agent.change_proposed")?.channels).toEqual(["In App", "Push"]);
     // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.
