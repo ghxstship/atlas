@@ -10,7 +10,8 @@ import { capabilitySet, must, nodeViews, param, type SearchParams } from "@/comp
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
-import { SegmentCollection, SegmentPeek } from "./segment-library";
+import { SegmentCollection } from "./segment-library";
+import { SegmentPeek } from "./segment-peek-lazy";
 
 const UUID = /^[0-9a-f-]{36}$/;
 

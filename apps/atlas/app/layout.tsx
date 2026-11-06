@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <XOSProvider
             locale={formatting}
             preferences={preferences}
-            {...(overrides ? { messages: overrides } : {})}
+            messages={overrides}
           >
             {bannerOff ? null : <CookieBanner />}
             {children}
