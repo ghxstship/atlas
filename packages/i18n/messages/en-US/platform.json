@@ -35,6 +35,8 @@
     "brand_contrast": "This accent fails WCAG 2.2 AA contrast in at least one theme. Choose a darker or lighter accent.",
     "slug_taken": "That web address is already in use. Choose another.",
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
+    "territory_not_offered": "XOS is not offered to organizations in that country, so this client org was not created.",
+    "organization_country_invalid": "Choose the country the client is established in.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
     "plan_limit_read_only": "This is read-only because the organization is over its plan's limits. The banner at the top of the page says which limit and how to lift it.",
@@ -191,7 +193,9 @@
         "slugHelp": "Lowercase letters, digits and hyphens. The client's Atlas address.",
         "owner": "Owner's email",
         "ownerHelp": "This person receives the Owner invitation.",
-        "plan": "Plan"
+        "plan": "Plan",
+        "country": "Client's country",
+        "countryChoose": "Choose a country"
       },
       "inviteReady": "The client org is ready. Send its Owner this invitation link.",
       "inviteLink": "Owner invitation link",

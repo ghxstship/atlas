@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { SignUpForm } from "@/components/auth/forms";
 import { ProviderButtons } from "@/components/auth/providers";
 import { safeNext } from "@/lib/auth/redirect";
+import { offeredTerritoriesPhrase } from "@/lib/auth/territory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("shell.auth.signUp");
@@ -18,9 +19,13 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
   const next = safeNext((await searchParams)["next"], "/auth/organization");
   const t = await getTranslations("shell.auth");
   const signInHref = `/auth/sign-in?next=${encodeURIComponent(next)}`;
+  const territories = await offeredTerritoriesPhrase();
   return (
     <div className="flex flex-col gap-16">
       <h1 className="text-heading-20 font-semibold">{t("signUp.title")}</h1>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("organization.availability", { territories })}
+      </p>
       <ProviderButtons next={next} />
       <SignUpForm next={next} />
       <p className="text-text-13 text-text-secondary">

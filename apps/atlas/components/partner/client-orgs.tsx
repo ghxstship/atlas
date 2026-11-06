@@ -42,18 +42,23 @@ export interface ClientDetail {
 }
 
 const PLAN_CODES = ["access", "core", "pro", "team", "enterprise"] as const;
-const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"] as const;
 
 export function ClientOrgsView({
   org,
   rows,
   creating,
   detail,
+  currencies,
+  countries,
 }: {
   org: string;
   rows: readonly ClientRow[];
   creating: boolean;
   detail: ClientDetail | null;
+  /** The currencies offered now, for a client's price (ADR 0156). */
+  currencies: readonly string[];
+  /** Every country by name, for where a new client is established. */
+  countries: readonly { value: string; label: string }[];
 }) {
   const t = usePlatformT();
   const router = useRouter();
@@ -94,14 +99,27 @@ export function ClientOrgsView({
           onRowActivate={(row) => go(`?client=${String(row["id"])}`)}
         />
       )}
-      {creating ? <CreateClientDrawer org={org} onClose={() => go("")} /> : null}
-      {detail ? <ClientDrawer org={org} detail={detail} onClose={() => go("")} /> : null}
+      {creating ? (
+        <CreateClientDrawer org={org} countries={countries} onClose={() => go("")} />
+      ) : null}
+      {detail ? (
+        <ClientDrawer org={org} detail={detail} currencies={currencies} onClose={() => go("")} />
+      ) : null}
     </div>
   );
 }
 
-function CreateClientDrawer({ org, onClose }: { org: string; onClose: () => void }) {
+function CreateClientDrawer({
+  org,
+  countries,
+  onClose,
+}: {
+  org: string;
+  countries: readonly { value: string; label: string }[];
+  onClose: () => void;
+}) {
   const t = usePlatformT();
+  const [country, setCountry] = useState("");
   const [slug, setSlug] = useState("");
   const [touched, setTouched] = useState(false);
   const [plan, setPlan] = useState<string>("core");
@@ -135,7 +153,7 @@ function CreateClientDrawer({ org, onClose }: { org: string; onClose: () => void
       ) : (
         <ActionForm
           action={createClientOrgAction}
-          hidden={{ org, slug, plan }}
+          hidden={{ org, slug, plan, country }}
           label={t("partner.clients.createTitle")}
           submitLabel={t("partner.clients.createSubmit")}
           onDone={(state: PlatformActionState) => setInvite(state.value ?? null)}
@@ -179,6 +197,12 @@ function CreateClientDrawer({ org, onClose }: { org: string; onClose: () => void
             options={PLAN_CODES.map((p) => ({ value: p, label: t(`partner.plans.${p}`) }))}
             onChange={(e) => setPlan(e.target.value)}
           />
+          <Select
+            label={t("partner.clients.fields.country")}
+            placeholder={t("partner.clients.fields.countryChoose")}
+            options={countries}
+            onChange={(e) => setCountry(e.target.value)}
+          />
         </ActionForm>
       )}
     </Drawer>
@@ -188,10 +212,12 @@ function CreateClientDrawer({ org, onClose }: { org: string; onClose: () => void
 function ClientDrawer({
   org,
   detail,
+  currencies,
   onClose,
 }: {
   org: string;
   detail: ClientDetail;
+  currencies: readonly string[];
   onClose: () => void;
 }) {
   const t = usePlatformT();
@@ -310,7 +336,10 @@ function ClientDrawer({
           <Select
             label={t("partner.clients.priceCurrency")}
             value={currency}
-            options={CURRENCIES.map((c) => ({ value: c, label: c }))}
+            options={[...new Set([...currencies, detail.priceCurrency])].map((c) => ({
+              value: c,
+              label: c,
+            }))}
             onChange={(e) => setCurrency(e.target.value)}
           />
         </ActionForm>

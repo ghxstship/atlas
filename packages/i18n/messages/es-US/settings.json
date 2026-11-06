@@ -210,7 +210,7 @@
     },
     "language": {
       "label": "Idioma",
-      "help": "El idioma de menús, correos y documentos. Los idiomas en beta son traducciones automáticas; lo que aún no está traducido se muestra en inglés."
+      "help": "El idioma de menús, correos y documentos. Lo que aún no está traducido se muestra en inglés."
     },
     "timeZone": {
       "label": "Zona horaria",

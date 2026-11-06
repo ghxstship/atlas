@@ -590,6 +590,26 @@ describe("seats and add-ons (ADR 0035)", () => {
     expect(() => extraSeatLookupKeyFor(registry, "access", "Monthly")).toThrow(/free/);
   });
 
+  it("names the currency and turns adaptive pricing off, so Stripe never picks one from where the buyer seems to be (ADR 0156)", async () => {
+    const plan = lookupKeyFor(registry, "pro", "Monthly");
+    const { client, calls } = fakeStripe({ [plan]: "price_pro" });
+    const request = {
+      orgId: "org-1",
+      planCode: "pro",
+      interval: "Monthly" as const,
+      successUrl: "https://a.test/ok",
+      cancelUrl: "https://a.test/no",
+    };
+    await createCheckoutSession(client, registry, request);
+    expect(calls.at(-1)?.params).toMatchObject({
+      currency: "usd",
+      adaptive_pricing: { enabled: false },
+    });
+    // An open territory's organization pays in the currency the database names.
+    await createCheckoutSession(client, registry, { ...request, currency: "GBP" });
+    expect(calls.at(-1)?.params).toMatchObject({ currency: "gbp" });
+  });
+
   it("buys extra seats at checkout as the quantity of the plan's seat price, and accepts promotion codes", async () => {
     const plan = lookupKeyFor(registry, "pro", "Monthly");
     const seat = extraSeatLookupKeyFor(registry, "pro", "Monthly");

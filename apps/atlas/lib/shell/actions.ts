@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { isLocale } from "@xos/i18n/locales";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
+import { currentOffering } from "@/lib/offering";
 import { preferenceOptions } from "@/lib/privacy/consent";
 import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { setPersonalSetting } from "@xos/data/settings";
@@ -34,10 +35,11 @@ async function rememberPersonally(key: string, value: string): Promise<void> {
 }
 
 export async function setLocale(locale: string): Promise<void> {
-  const allowed = selectableLocales(process.env.NODE_ENV === "production") as string[];
+  const { locales } = await currentOffering();
+  const allowed = selectableLocales(process.env.NODE_ENV === "production", locales) as string[];
   const chosen = z.enum(allowed as [string, ...string[]]).parse(locale);
   await setPreference(LOCALE_COOKIE, chosen);
-  // Launch and Beta locales (ADR 0053) are saved for the other shells; a pseudo-locale stays on this device.
+  // Offered locales (ADR 0053, ADR 0156) are saved for the other shells; a pseudo-locale stays on this device.
   if (isLocale(chosen)) await rememberPersonally("locale.language", chosen);
 }
 
@@ -52,7 +54,11 @@ export async function setTheme(theme: string): Promise<void> {
  * as the shell's own pickers do. A theme of System keeps the device's current one.
  */
 export async function applyDevicePreference(key: string, value: string): Promise<void> {
-  const locales = selectableLocales(process.env.NODE_ENV === "production") as string[];
+  const offering = await currentOffering();
+  const locales = selectableLocales(
+    process.env.NODE_ENV === "production",
+    offering.locales,
+  ) as string[];
   const device = devicePreference(key, value, THEMES, locales);
   if (device)
     await setPreference(device.cookie === "theme" ? THEME_COOKIE : LOCALE_COOKIE, device.value);

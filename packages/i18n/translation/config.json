@@ -1,13 +1,13 @@
 {
-  "$comment": "Machine translation with Google Cloud Translation (ADR 0037). To add a locale, add one entry to targets and a matching column to glossary.csv, then run `pnpm --filter @xos/i18n translate --locale <code>`. Beta locales (Section 15, ADR 0053) are partial: their catalogs may lack keys or namespaces until the owner's first run, and every missing key reads en-US. The canon surface is partial in every locale for the same reason. Paths are relative to the repository root.",
+  "$comment": "Machine translation with Google Cloud Translation (ADR 0037). To add a locale, add one entry to targets and a matching column to glossary.csv, then run `pnpm --filter @xos/i18n translate --locale <code>`. Beta locales (Section 15, ADR 0053) are partial: their catalogs may lack keys or namespaces until the owner's first run, and every missing key reads en-US. The canon surface is partial in every locale for the same reason. A target with closed: true belongs to a territory XOS is not offered in (ADR 0156): a run with no --locale leaves it alone, so the pipeline spends nothing on it and writes no catalog for it. Naming it with --locale still translates it, for the day its territory opens. Paths are relative to the repository root.",
   "source": { "locale": "en-US", "google": "en" },
   "targets": [
     { "locale": "es-US", "google": "es-US" },
-    { "locale": "fr-FR", "google": "fr", "partial": true, "surfaces": ["catalogs", "canon"] },
-    { "locale": "de-DE", "google": "de", "partial": true, "surfaces": ["catalogs", "canon"] },
-    { "locale": "it-IT", "google": "it", "partial": true, "surfaces": ["catalogs", "canon"] },
-    { "locale": "pt-BR", "google": "pt", "partial": true, "surfaces": ["catalogs", "canon"] },
-    { "locale": "ja-JP", "google": "ja", "partial": true, "surfaces": ["catalogs", "canon"] }
+    { "locale": "fr-FR", "google": "fr", "partial": true, "closed": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "de-DE", "google": "de", "partial": true, "closed": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "it-IT", "google": "it", "partial": true, "closed": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "pt-BR", "google": "pt", "partial": true, "closed": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "ja-JP", "google": "ja", "partial": true, "closed": true, "surfaces": ["catalogs", "canon"] }
   ],
   "google": {
     "location": "us-central1",

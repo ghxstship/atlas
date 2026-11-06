@@ -10,7 +10,7 @@ import {
   signUpWithEmail,
   type FormState,
 } from "@/app/auth/actions";
-import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
@@ -23,10 +23,14 @@ function useAuthCopy(): Translate {
 }
 
 /** The message for a form state error key: refusals from invites, everything else from errors. */
-export function errorMessage(t: Translate, key: string): string {
+export function errorMessage(
+  t: Translate,
+  key: string,
+  values?: Readonly<Record<string, string>>,
+): string {
   return key.startsWith("invite.")
     ? t(`invite.refused.${key.slice("invite.".length)}`)
-    : t(`errors.${key}`);
+    : t(`errors.${key}`, values ? { ...values } : undefined);
 }
 
 /** The field's error message, or an empty string (no error shown). */
@@ -230,10 +234,13 @@ export function SignUpForm({ next }: { next: string }) {
 export function OrganizationForm({
   terms,
   dpa,
+  countries,
   askAge = false,
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
+  /** Every country by name, in the reader's language (ADR 0156). */
+  countries: readonly { value: string; label: string }[];
   /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
   askAge?: boolean;
 }) {
@@ -251,7 +258,9 @@ export function OrganizationForm({
       className="flex flex-col gap-12"
       noValidate
     >
-      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      {state.error ? (
+        <InlineAlert tone="danger">{errorMessage(t, state.error, state.errorValues)}</InlineAlert>
+      ) : null}
       <Input
         width="100%"
         id="org-name"
@@ -278,6 +287,17 @@ export function OrganizationForm({
           setSlug(e.target.value.toLowerCase());
         }}
         error={fieldError(t, state, "orgSlug")}
+      />
+      <Select
+        id="org-country"
+        name="orgCountry"
+        label={t("fields.orgCountry")}
+        placeholder={t("fields.orgCountryChoose")}
+        options={countries}
+        {...(state.values?.["orgCountry"] ? { value: state.values["orgCountry"] } : {})}
+        {...(fieldError(t, state, "orgCountry")
+          ? { error: fieldError(t, state, "orgCountry") }
+          : {})}
       />
       <Checkbox
         id="org-accept"

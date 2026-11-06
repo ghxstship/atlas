@@ -53,6 +53,8 @@ export interface CheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  readonly currency?: string;
   /**
    * End of the org's running XOS trial (app.subscriptions.trial_ends_at, Section 14.7). Checkout then
    * collects the card now and Stripe charges it only when the trial would have ended; the webhook moves the
@@ -121,6 +123,10 @@ function opened(session: {
  * session and subscription metadata, which is how the webhook ties the subscription back to the org.
  * Promotion codes are accepted, so the founding-customer code applies at checkout (ADR 0035). Stripe
  * Tax computes tax and collects VAT and GST ids (Section 16). A quoted plan (Enterprise) refuses.
+ *
+ * The session names its currency and turns adaptive pricing off. The prices carry a currency option for every price book
+ * currency, and left to itself Stripe shows one from where the buyer seems to be, which would offer a closed territory's
+ * prices to anyone browsing from it (ADR 0156).
  */
 export async function createCheckoutSession(
   stripe: StripeClient,
@@ -144,6 +150,8 @@ export async function createCheckoutSession(
   }
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
+    currency: (request.currency ?? "USD").toLowerCase(),
+    adaptive_pricing: { enabled: false },
     line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },
@@ -171,6 +179,8 @@ export interface AddonCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  readonly currency?: string;
 }
 
 /**
@@ -198,6 +208,8 @@ export async function createAddonCheckoutSession(
   };
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    currency: (request.currency ?? "USD").toLowerCase(),
+    adaptive_pricing: { enabled: false },
     line_items: [{ price, quantity }],
     client_reference_id: request.orgId,
     metadata,

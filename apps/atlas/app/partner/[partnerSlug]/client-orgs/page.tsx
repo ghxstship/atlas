@@ -13,6 +13,8 @@ import {
 } from "@/components/partner/client-orgs";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PartnerFrame } from "@/components/partner/partner-frame";
+import { signupCountryOptions } from "@/lib/auth/territory";
+import { currentOffering } from "@/lib/offering";
 import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
@@ -28,9 +30,11 @@ export default async function Page({
   const ctx = await requireNode("partner-console.client-orgs", await params);
   const query = await searchParams;
   const { t, money, dateTime } = await getFormatters(ctx);
-  const [clients, prices] = await Promise.all([
+  const [clients, prices, offering, countries] = await Promise.all([
     listClientOrgs(ctx.viewer.db, ctx.org.id),
     listClientPrices(ctx.viewer.db, ctx.org.id),
+    currentOffering(),
+    signupCountryOptions(),
   ]);
   if (!clients.ok || !prices.ok) {
     return (
@@ -88,6 +92,8 @@ export default async function Page({
     <PartnerFrame ctx={ctx} node="partner-console.client-orgs">
       <ClientOrgsView
         org={ctx.org.slug}
+        currencies={offering.currencies}
+        countries={countries}
         rows={rows}
         creating={query["create"] === "1"}
         detail={detail}

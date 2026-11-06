@@ -33,6 +33,7 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RowList, TabEmpty } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
+import { currentOffering } from "@/lib/offering";
 import { InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
@@ -107,8 +108,12 @@ function Header({ t, node, children }: { t: Translate; node: string; children?: 
 async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
   const defs = personalSettings(node);
   if (defs.length === 0) return null;
-  const resolved = await resolveSettings(ctx.db, { orgId: NO_ORG });
+  const [resolved, offering] = await Promise.all([
+    resolveSettings(ctx.db, { orgId: NO_ORG }),
+    currentOffering(),
+  ]);
   if (!resolved.ok) return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
+  const offeredLocales: readonly string[] = offering.locales;
   const zones = ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")];
   return (
     <ul
@@ -144,7 +149,11 @@ async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
               setHere={source === "Personal"}
               options={
                 def.type === "choice"
-                  ? def.choices.map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
+                  ? // The registry keeps every language; only those of open territories are choices (ADR 0156).
+                    (def.key === "locale.language"
+                      ? def.choices.filter((c) => offeredLocales.includes(c))
+                      : def.choices
+                    ).map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }))
                   : def.input === "time_zone"
                     ? zones.map((z) => ({ value: z, label: z.replaceAll("_", " ") }))
                     : []

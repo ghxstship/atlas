@@ -2,7 +2,6 @@ import {
   defaultLocale,
   isLocale,
   launchLocales,
-  locales,
   type LaunchLocale,
   type Locale,
 } from "@xos/i18n/locales";
@@ -17,7 +16,8 @@ import { isPseudoLocale, type PseudoLocale } from "./pseudo";
  *
  * Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP; Section 15, ADR 0053) are chosen, never guessed:
  * the cookie and a saved locale.language accept them, but the browser's languages match launch
- * locales only, because a Beta catalog may still read mostly en-US.
+ * locales only, because a Beta catalog may still read mostly en-US. A Beta locale counts only while a territory that
+ * holds it is open (`offered`, ADR 0156): a saved choice of a closed one reads as no choice. The default is closed.
  */
 
 export const LOCALE_COOKIE = "xos-locale";
@@ -55,9 +55,10 @@ function matchRange(range: string): LaunchLocale | undefined {
 export function cookieLocale(
   cookie: string | undefined,
   production: boolean,
+  offered: readonly Locale[] = launchLocales,
 ): GatewayLocale | null {
   if (!cookie) return null;
-  if (isLocale(cookie)) return cookie;
+  if (isLocale(cookie) && offered.includes(cookie)) return cookie;
   return !production && isPseudoLocale(cookie) ? cookie : null;
 }
 
@@ -67,10 +68,13 @@ export function negotiateLocale(input: {
   readonly production: boolean;
   /** The person's own locale.language from their personal settings, when they saved one. */
   readonly own?: string | null | undefined;
+  /** The locales offered now (@xos/i18n/offering); launch locales only when not given. */
+  readonly offered?: readonly Locale[] | undefined;
 }): GatewayLocale {
-  const chosen = cookieLocale(input.cookie, input.production);
+  const offered = input.offered ?? launchLocales;
+  const chosen = cookieLocale(input.cookie, input.production, offered);
   if (chosen) return chosen;
-  if (input.own && isLocale(input.own)) return input.own;
+  if (input.own && isLocale(input.own) && offered.includes(input.own)) return input.own;
   for (const range of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchRange(range);
     if (match) return match;
@@ -79,12 +83,14 @@ export function negotiateLocale(input: {
 }
 
 /**
- * Locales the language picker offers: the launch ones, the Beta ones (the picker marks them with
- * `isBetaLocale` from @xos/i18n/locales),
- * plus the pseudo-locales in development.
+ * Locales the language picker offers: the launch ones, the Beta ones of open territories (the picker marks them with
+ * `isBetaLocale` from @xos/i18n/locales), plus the pseudo-locales in development.
  */
-export function selectableLocales(production: boolean): GatewayLocale[] {
-  return production ? [...locales] : [...locales, "en-XA", "ar-XB"];
+export function selectableLocales(
+  production: boolean,
+  offered: readonly Locale[] = launchLocales,
+): GatewayLocale[] {
+  return production ? [...offered] : [...offered, "en-XA", "ar-XB"];
 }
 
 /** Writing direction of a locale (ar-XB is the right-to-left pseudo-locale). */

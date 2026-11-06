@@ -210,7 +210,7 @@
     },
     "language": {
       "label": "Language",
-      "help": "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English."
+      "help": "The language of menus, emails and documents. Anything not translated yet shows in English."
     },
     "timeZone": {
       "label": "Time zone",

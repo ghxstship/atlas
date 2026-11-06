@@ -2,7 +2,6 @@ import {
   defaultLocale,
   isLocale,
   launchLocales,
-  locales,
   type LaunchLocale,
   type Locale,
 } from "@xos/i18n/locales";
@@ -18,7 +17,8 @@ import { isPseudoLocale, type PseudoLocale } from "./pseudo";
  *
  * Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP; Section 15, ADR 0053) are chosen, never guessed:
  * the cookie and a chosen locale.language accept them, but the browser's languages match launch
- * locales only, because a Beta catalog may still read mostly en-US.
+ * locales only, because a Beta catalog may still read mostly en-US. A Beta locale counts only while a territory that
+ * holds it is open (`offered`, ADR 0156): a saved choice of a closed one reads as no choice. The default is closed.
  */
 
 export const LOCALE_COOKIE = "xos-locale";
@@ -61,8 +61,14 @@ export interface LanguageSetting {
 }
 
 /** The shipped locale an org locks everyone to, or null when the org leaves the language to each person. */
-export function lockedLocale(setting: LanguageSetting | null | undefined): Locale | null {
-  return setting?.locked && typeof setting.value === "string" && isLocale(setting.value)
+export function lockedLocale(
+  setting: LanguageSetting | null | undefined,
+  offered: readonly Locale[] = launchLocales,
+): Locale | null {
+  return setting?.locked &&
+    typeof setting.value === "string" &&
+    isLocale(setting.value) &&
+    offered.includes(setting.value)
     ? setting.value
     : null;
 }
@@ -72,17 +78,20 @@ export function negotiateLocale(input: {
   readonly acceptLanguage?: string | null | undefined;
   readonly production: boolean;
   readonly setting?: LanguageSetting | null | undefined;
+  /** The locales offered now (@xos/i18n/offering); launch locales only when not given. */
+  readonly offered?: readonly Locale[] | undefined;
 }): AtlasLocale {
-  const locked = lockedLocale(input.setting);
+  const offered = input.offered ?? launchLocales;
+  const locked = lockedLocale(input.setting, offered);
   if (locked) return locked;
   const chosen = input.cookie;
   if (chosen) {
-    if (isLocale(chosen)) return chosen;
+    if (isLocale(chosen) && offered.includes(chosen)) return chosen;
     if (!input.production && isPseudoLocale(chosen)) return chosen;
   }
   const setting = input.setting;
   if (setting && setting.source !== "Default" && typeof setting.value === "string") {
-    if (isLocale(setting.value)) return setting.value;
+    if (isLocale(setting.value) && offered.includes(setting.value)) return setting.value;
   }
   for (const range of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchRange(range);
@@ -92,12 +101,14 @@ export function negotiateLocale(input: {
 }
 
 /**
- * Locales the language picker offers: the launch ones, the Beta ones (the picker marks them with
- * `isBetaLocale` from @xos/i18n/locales),
- * plus the pseudo-locales in development.
+ * Locales the language picker offers: the launch ones, the Beta ones of open territories (the picker marks them with
+ * `isBetaLocale` from @xos/i18n/locales), plus the pseudo-locales in development.
  */
-export function selectableLocales(production: boolean): AtlasLocale[] {
-  return production ? [...locales] : [...locales, "en-XA", "ar-XB"];
+export function selectableLocales(
+  production: boolean,
+  offered: readonly Locale[] = launchLocales,
+): AtlasLocale[] {
+  return production ? [...offered] : [...offered, "en-XA", "ar-XB"];
 }
 
 /** Writing direction of a locale (ar-XB is the right-to-left pseudo-locale). */

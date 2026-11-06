@@ -110,6 +110,16 @@ export function settingOf(def: SettingDefinition, row: Row | undefined): Persona
   };
 }
 
+/** The setting as this phone offers it: the registry keeps every language, and only offered ones are choices (ADR 0156). */
+export function withOfferedChoices(
+  def: SettingDefinition,
+  offered: readonly string[],
+): SettingDefinition {
+  return def.type === "choice" && def.key === "locale.language"
+    ? { ...def, choices: def.choices.filter((c) => offered.includes(c)) }
+    : def;
+}
+
 /** How a setting is edited on a phone. */
 export type Control = "switch" | "segments" | "choices" | "zone" | "date" | "multiline" | "text";
 

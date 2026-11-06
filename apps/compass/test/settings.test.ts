@@ -80,8 +80,23 @@ describe("resolved settings", () => {
     expect(language("es-US", "Personal")).toBe("es-US");
     // The platform default is nobody's choice: the device's language stands.
     expect(language("en-US", "Default")).toBeNull();
-    // A Beta locale (ADR 0053) someone chose applies; a language XOS does not ship never does.
-    expect(language("fr-FR", "Personal")).toBe("fr-FR");
+    // A Beta locale (ADR 0053) someone chose applies only while its territory is open (ADR 0156), which languageOf is
+    // told; a language XOS does not ship never does.
+    expect(language("fr-FR", "Personal")).toBeNull();
+    expect(
+      languageOf(
+        compassValuesFromRows([
+          {
+            setting_key: "locale.language",
+            value_text: "fr-FR",
+            value_boolean: null,
+            value_integer: null,
+            source: "Personal",
+          },
+        ]),
+        ["en-US", "fr-FR"],
+      ),
+    ).toBe("fr-FR");
     expect(language("nl-NL", "Personal")).toBeNull();
     expect(
       compassValuesFromRows([

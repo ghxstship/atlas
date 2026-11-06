@@ -313,6 +313,25 @@ describe("Beta targets (ADR 0053)", () => {
     expect(messages.some((m) => m.startsWith("app.save:"))).toBe(false);
   });
 
+  it("leaves a closed territory's locale alone unless it is named (ADR 0156)", async () => {
+    const repo = betaRepo();
+    const config = JSON.parse(repo.read("packages/i18n/translation/config.json")) as object;
+    repo.write("packages/i18n/translation/config.json", {
+      ...config,
+      targets: [
+        { locale: "es-US", google: "es-US" },
+        { locale: "fr-FR", google: "fr", partial: true, closed: true, surfaces: ["catalogs"] },
+      ],
+    });
+    const transport = new FakeTransport((html) => html);
+    const everyTarget = await translate(repo.context(transport));
+    expect(everyTarget.map((r) => r.locale)).toEqual(["es-US"]);
+    expect(existsSync(join(repo.root, "msgs/fr-FR/app.json"))).toBe(false);
+    const named = await translate(repo.context(transport), ["fr-FR"]);
+    expect(named.map((r) => r.locale)).toEqual(["fr-FR"]);
+    expect(existsSync(join(repo.root, "msgs/fr-FR/app.json"))).toBe(true);
+  });
+
   it("translates a Beta locale on its own surfaces only and fills its catalog in source order", async () => {
     const repo = betaRepo();
     const transport = new FakeTransport((html, batch) =>

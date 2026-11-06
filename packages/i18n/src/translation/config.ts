@@ -39,6 +39,11 @@ export interface SurfaceConfig {
    * a missing unit is counted, not an error, in every target locale.
    */
   readonly partial?: boolean;
+  /**
+   * The locale belongs to a territory XOS is not offered in (ADR 0156). A run with no locales named skips it, so no
+   * catalog is written for it; naming it translates it, for the day its territory opens.
+   */
+  readonly closed?: boolean;
 }
 
 export interface PipelineConfig {

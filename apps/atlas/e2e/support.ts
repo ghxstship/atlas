@@ -90,6 +90,9 @@ export async function createOrganization(page: Page, input: { name: string; slug
   await expectAccessible(page);
   await page.getByLabel("Organization name").fill(input.name);
   await page.getByLabel("Web address").fill(input.slug);
+  await page
+    .getByLabel("Country where your organization is established", { exact: true })
+    .selectOption("US");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await page.waitForURL(`**/${input.slug}/home`);

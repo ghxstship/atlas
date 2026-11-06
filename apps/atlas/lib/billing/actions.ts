@@ -28,6 +28,7 @@ import { contextFor } from "@/lib/platform/action-context";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { observability } from "@/lib/observability";
+import { orgCheckoutCurrency } from "@xos/data/billing";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -74,6 +75,7 @@ export async function startCheckoutAction(
   if (!billingConfigured(billing)) return refused("billing_not_open");
   try {
     const stripe = await createStripeClient(billing);
+    const currency = await orgCheckoutCurrency(ctx.viewer.db, ctx.org.id);
     const session = await startPlanCheckout(
       stripe,
       PLAN_REGISTRY,
@@ -83,6 +85,7 @@ export async function startCheckoutAction(
         planCode: parsed.data.plan,
         interval: parsed.data.interval,
         livemode: billingLivemode(billing),
+        currency,
         ...(ctx.viewer.email === null ? {} : { customerEmail: ctx.viewer.email }),
         successUrl: billingPage(ctx.org.slug, "done"),
         cancelUrl: billingPage(ctx.org.slug, "canceled"),

@@ -91,6 +91,8 @@ export interface PlanCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  readonly currency?: string;
   /** The current time, for tests. */
   readonly now?: Date;
 }
@@ -129,6 +131,7 @@ export async function startPlanCheckout(
     ...(account.trialEndsAt === null ? {} : { trialEnd: account.trialEndsAt }),
     successUrl: request.successUrl,
     cancelUrl: request.cancelUrl,
+    ...(request.currency === undefined ? {} : { currency: request.currency }),
     ...(request.now === undefined ? {} : { now: request.now }),
   });
   const closed = await store.record({

@@ -351,7 +351,7 @@ function allJobs(units: readonly UnitRecord[], t: Tools): Job[] {
   });
 }
 
-/** Fills missing targets and re-translates stale ones in every target locale (or the given ones). */
+/** Fills missing targets and re-translates stale ones in every target locale that is not closed (or the given ones). */
 export async function translate(
   ctx: Context,
   locales?: readonly string[],
@@ -360,7 +360,7 @@ export async function translate(
   const results: TranslateResult[] = [];
   const targets = locales
     ? locales.map((l) => targetFor(ctx.setup.config, l))
-    : ctx.setup.config.targets;
+    : ctx.setup.config.targets.filter((t) => t.closed !== true);
   for (const target of targets) {
     const memory = loadMemory(ctx.setup.root, ctx.setup.config, target.locale);
     const units = readAll(ctx, target);

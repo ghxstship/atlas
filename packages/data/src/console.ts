@@ -22,6 +22,7 @@ export const CONSOLE_PERMISSIONS = [
   "moderation.decide",
   "banners.write",
   "operators.manage",
+  "territories.write",
 ] as const;
 export type ConsolePermission = (typeof CONSOLE_PERMISSIONS)[number];
 

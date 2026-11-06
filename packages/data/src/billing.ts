@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { Database } from "./database.types.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Billing and Plan's billing calls (ADR 0033 decision 59, migration 1640): the checks before Atlas
@@ -237,4 +238,10 @@ export async function getSubscriptionPause(
     resumesAt: textOrNull(row.resumes_at),
     started: row.started,
   });
+}
+
+/** The currency Stripe Checkout opens in for the org (ADR 0156); USD when the answer cannot be read. */
+export async function orgCheckoutCurrency(db: XosClient, orgId: string): Promise<string> {
+  const { data, error } = await untyped(db).rpc("org_checkout_currency", { p_org_id: orgId });
+  return !error && typeof data === "string" && data !== "" ? data : "USD";
 }

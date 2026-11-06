@@ -17,6 +17,8 @@ import type { ThemePreference } from "@xos/ui-native/theme";
 import { touchMySession } from "@xos/data/account-security";
 import type { XosClient } from "@xos/data/client";
 import type { InboxLens } from "@xos/data/role-lens";
+import { launchLocales, type Locale } from "@xos/i18n/locales";
+import { readOffering, type OfferingClient } from "@xos/i18n/offering";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -138,6 +140,8 @@ export type Phase =
 export interface CompassContextValue {
   readonly config: CompassConfig;
   readonly client: SupabaseClient;
+  /** The languages offered now (ADR 0156). */
+  readonly offeredLocales: readonly Locale[];
   readonly phase: Phase;
   readonly resolved: ResolvedIdentity | null;
   /**
@@ -685,10 +689,22 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     };
   }, [client, engine, phase.kind, network.isConnected, orgId, projectId, settledSettings]);
 
+  // Where XOS is offered decides which languages count (ADR 0156). Unreachable, only the launch languages do.
+  const [offeredLocales, setOfferedLocales] = useState<readonly Locale[]>(launchLocales);
+  useEffect(() => {
+    let live = true;
+    void readOffering(client as unknown as OfferingClient).then((offering) => {
+      if (live) setOfferedLocales(offering.locales);
+    });
+    return () => {
+      live = false;
+    };
+  }, [client, network.isConnected]);
+
   // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
   useEffect(() => {
-    void applyLanguage(languageOf(resolvedSettings));
-  }, [resolvedSettings]);
+    void applyLanguage(languageOf(resolvedSettings, offeredLocales));
+  }, [resolvedSettings, offeredLocales]);
 
   /**
    * Queues a write in the org that is active now: `device_org_id` names the member org whose replay
@@ -738,6 +754,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   );
 
   const value: CompassContextValue = {
+    offeredLocales,
     config,
     client,
     phase,

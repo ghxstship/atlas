@@ -24,6 +24,7 @@ import {
   sectionSettings,
   settingOf,
   sourceKey,
+  withOfferedChoices,
   type RegistrySection,
   type ResolvedRow,
   type SettingProblem,
@@ -300,7 +301,7 @@ export function RegistrySettingsScreen({
   readonly children?: ReactNode;
 }): ReactElement {
   const { t } = useTranslation();
-  const { network } = useCompass();
+  const { network, offeredLocales } = useCompass();
   const mirror = useRegistrySettings();
   const orgName = useOrgName();
   const defs = sectionSettings(section);
@@ -320,7 +321,7 @@ export function RegistrySettingsScreen({
         : defs.map((def) => (
             <Card key={def.key}>
               <RegistrySetting
-                def={def}
+                def={withOfferedChoices(def, offeredLocales)}
                 row={mirror.rows.find((r) => r.id === def.key)}
                 orgName={orgName}
                 check={byKey[def.key]}

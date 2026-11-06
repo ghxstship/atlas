@@ -66,6 +66,8 @@ export interface NewClientOrg {
   readonly slug: string;
   readonly ownerEmail: string;
   readonly planCode: string;
+  /** The country the partner states the client is established in (ADR 0156). */
+  readonly countryCode: string;
 }
 
 export interface CreatedClientOrg {
@@ -89,6 +91,7 @@ export async function createClientOrg(
       p_slug: input.slug,
       p_owner_email: input.ownerEmail,
       p_plan_code: input.planCode,
+      p_country_code: input.countryCode,
     },
     (data) => (Array.isArray(data) ? (data[0] as Raw | undefined) : (data as Raw | null)) ?? null,
   );

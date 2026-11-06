@@ -344,7 +344,7 @@ export const a79IdentityCorrections: readonly CorrectionInput[] = [
           ? {
               ...a,
               description:
-                "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422.",
+                "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422, as is a country outside the territories XOS is offered in (`territory_not_offered`).",
             }
           : a,
       ),

@@ -1,5 +1,6 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
 import { getBillingAccount, type BillingAccount } from "@xos/data/billing";
+import { planFeatureOffered } from "@xos/i18n/offering";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -10,6 +11,7 @@ import { BillingPortalButton, CheckoutButton } from "@/components/settings/billi
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, Card, InlineAlert } from "@/components/ui";
 import { billingStatus } from "@/lib/billing/stripe";
+import { currentOffering } from "@/lib/offering";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -72,6 +74,9 @@ export default async function BillingSettingsPage({
       maximumFractionDigits: minor % 100 === 0 ? 0 : 2,
     });
   const full = usage.limit !== null && usage.used >= usage.limit;
+  // Only the currencies of open territories are mentioned (ADR 0156).
+  const offering = await currentOffering();
+  const otherCurrencies = offering.currencies.filter((c) => c !== "USD");
   const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month");
   const founding = OFFERS.find((o) => o.code === "founding_customer");
   return (
@@ -225,9 +230,11 @@ export default async function BillingSettingsPage({
                       </span>
                     ) : null}
                     <ul className="m-0 ps-16">
-                      {plan.adds.map((f) => (
-                        <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
-                      ))}
+                      {plan.adds
+                        .filter((f) => planFeatureOffered(f, offering))
+                        .map((f) => (
+                          <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
+                        ))}
                     </ul>
                   </div>
                 ) : null}
@@ -286,7 +293,13 @@ export default async function BillingSettingsPage({
           </div>
         </Card>
       ) : null}
-      <p className="m-0 text-text-12 text-text-secondary">{t("pricesInUsd")}</p>
+      <p className="m-0 text-text-12 text-text-secondary">
+        {otherCurrencies.length === 0
+          ? t("pricesInUsd")
+          : `${t("pricesInUsd")} ${t("pricesInOtherCurrencies", {
+              currencies: otherCurrencies.join(", "),
+            })}`}
+      </p>
       {founding ? (
         <p className="m-0 text-text-12 text-text-secondary">
           {t("foundingOffer", {

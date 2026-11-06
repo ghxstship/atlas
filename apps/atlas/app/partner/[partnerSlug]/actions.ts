@@ -9,10 +9,12 @@ import {
   setClientPrice,
   type RadiusScale,
 } from "@xos/data/partner";
+import { isCountryCode } from "@xos/i18n/formats";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { checkAccent } from "@/lib/brand/contrast";
 import { env } from "@/lib/env";
+import { currentOffering } from "@/lib/offering";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
@@ -37,12 +39,14 @@ export async function createClientOrgAction(
       slug: z.string().refine(isOrgSlug),
       ownerEmail: z.email().max(320),
       plan: z.enum(PLANS),
+      country: z.string().refine(isCountryCode),
     })
     .safeParse({
       name: field(form, "name"),
       slug: field(form, "slug").toLowerCase(),
       ownerEmail: field(form, "ownerEmail").toLowerCase(),
       plan: field(form, "plan"),
+      country: field(form, "country"),
     });
   if (!parsed.success) return inputError();
   const result = await createClientOrg(ctx.viewer.db, {
@@ -51,6 +55,7 @@ export async function createClientOrgAction(
     slug: parsed.data.slug,
     ownerEmail: parsed.data.ownerEmail,
     planCode: parsed.data.plan,
+    countryCode: parsed.data.country,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/partner/${ctx.org.slug}`, "layout");
@@ -108,11 +113,13 @@ export async function setClientPriceAction(
   form: FormData,
 ): Promise<PlatformActionState> {
   const ctx = await contextFor(form);
+  const offering = await currentOffering();
   const parsed = z
     .object({
       client: z.uuid(),
       amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
-      currency: z.string().regex(/^[A-Z]{3}$/),
+      // A closed territory's currency is not a price anyone can set (ADR 0156).
+      currency: z.enum(offering.currencies as [string, ...string[]]),
     })
     .safeParse({
       client: field(form, "client"),
