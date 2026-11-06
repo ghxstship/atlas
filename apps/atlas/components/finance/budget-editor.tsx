@@ -121,13 +121,6 @@ interface Props {
   readonly columnSet?: BudgetColumnSet;
   /** The budget's default markup in basis points, shown in a line's blank Markup cell. */
   readonly defaultMarkupBp?: number | null;
-  /** The sections Transactions may show; a section left out reads as withheld, never partial. */
-  readonly transactionAccess?: {
-    readonly expenses: boolean;
-    readonly labor: boolean;
-    readonly purchaseOrders: boolean;
-    readonly invoices: boolean;
-  };
   /** The import wizard for this budget (Import lines), or null when hidden. */
   readonly importHref?: string | null;
 }
@@ -267,6 +260,8 @@ export function BudgetEditor(props: Props) {
         markupPercent: l.markupBp === null ? null : l.markupBp / 100,
         clientUnitPrice: toMajor(clientPriceOf(l), props.exponent),
         onQuote: l.excludedFromQuote ? t("common.no") : t("common.yes"),
+        // Not a column: the client totals below leave these lines out (acceptance 6).
+        excludedFromQuote: l.excludedFromQuote ? 1 : 0,
         remaining: l.forecastWithheld ? null : toMajor(l.remainingCommitmentMinor, props.exponent),
         etc: toMajor(l.etcMinor, props.exponent),
         derivedEtc: l.forecastWithheld ? null : toMajor(l.forecastEtcMinor, props.exponent),
@@ -293,6 +288,7 @@ export function BudgetEditor(props: Props) {
   const withheld = lines.some((l) => l.committedWithheld);
   const forecastWithheld = lines.some((l) => l.forecastWithheld);
   const unpricedHours = lines.reduce((sum, l) => sum + l.laborUnpricedMinutes, 0) / 60;
+  const otherCurrencyPostings = lines.reduce((sum, l) => sum + l.laborOtherCurrencyCount, 0);
   const otherCurrencyLines = lines.flatMap((l, i) =>
     l.otherCurrencyPoLineCount > 0 ? [i + 1] : [],
   );
@@ -316,6 +312,7 @@ export function BudgetEditor(props: Props) {
     width: 128,
     ...extra,
   });
+  const onQuote = (r: GridRow) => r["excludedFromQuote"] !== 1;
   const defaultHint =
     defaultMarkup === null
       ? null
@@ -346,6 +343,7 @@ export function BudgetEditor(props: Props) {
     }),
     moneyColumn("clientAmount", t("budgets.columns.clientAmount"), {
       total: true,
+      totalIncludes: onQuote,
       width: 136,
       derive: (r) =>
         r["clientUnitPrice"] === null ||
@@ -356,6 +354,7 @@ export function BudgetEditor(props: Props) {
     }),
     moneyColumn("margin", t("budgets.columns.margin"), {
       total: true,
+      totalIncludes: onQuote,
       derive: (r) =>
         r["clientUnitPrice"] === null ||
         r["clientUnitPrice"] === undefined ||
@@ -667,6 +666,11 @@ export function BudgetEditor(props: Props) {
           {t("budgets.unpricedHours", { hours: Math.round(unpricedHours * 100) / 100 })}
         </p>
       ) : null}
+      {otherCurrencyPostings > 0 ? (
+        <p role="status" className="m-0 text-text-12 text-warning-text">
+          {t("budgets.laborOtherCurrency", { count: otherCurrencyPostings })}
+        </p>
+      ) : null}
       {columnSet === "forecast" && forecastWithheld ? (
         <p className="m-0 text-text-12 text-text-secondary">{t("budgets.committedWithheld")}</p>
       ) : null}
@@ -744,14 +748,6 @@ export function BudgetEditor(props: Props) {
           lineId={selectedLine}
           currency={props.currency}
           exponent={props.exponent}
-          access={
-            props.transactionAccess ?? {
-              expenses: false,
-              labor: false,
-              purchaseOrders: false,
-              invoices: false,
-            }
-          }
           onClose={() => setSheet(null)}
         />
       ) : null}

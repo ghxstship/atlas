@@ -958,6 +958,8 @@ export interface BudgetLine {
   /** Approved crew time in Actual, and the approved minutes left out of it for want of a rate (3026). */
   readonly laborActualMinor: number;
   readonly laborUnpricedMinutes: number;
+  /** Postings in another currency than the budget's: counted, never summed into Actual. */
+  readonly laborOtherCurrencyCount: number;
   /** The version the row was read at, for conflict checks on save. */
   readonly updatedAt: string;
 }
@@ -1033,6 +1035,7 @@ function toLine(r: Raw, amounts?: Raw, commitment?: Raw, price?: Raw, forecast?:
     forecastWithheld: forecast ? forecast["is_withheld"] === true : false,
     laborActualMinor: amounts ? num(amounts["labor_actual_minor"]) : 0,
     laborUnpricedMinutes: amounts ? num(amounts["labor_unpriced_minutes"]) : 0,
+    laborOtherCurrencyCount: amounts ? num(amounts["labor_other_currency_count"]) : 0,
     updatedAt: str(r["updated_at"]),
   };
 }
@@ -1091,9 +1094,19 @@ export function budgetCommittedTotal(lines: readonly BudgetLine[]): BudgetCommit
   return { totalMinor, committedLineCount, otherCurrencyLineCount };
 }
 
+/** A budget's forecast totals (app.budget_forecast_totals, 3027), with approved changes on no line. */
+export interface BudgetForecastTotals {
+  readonly efcMinor: number | null;
+  readonly forwardExposureMinor: number | null;
+  readonly unallocatedChangeMinor: number;
+  readonly isWithheld: boolean;
+}
+
 export interface BudgetDetail {
   readonly budget: BudgetSummary;
   readonly lines: readonly BudgetLine[];
+  /** Null when the view returned no row, which reads as withheld. */
+  readonly forecast: BudgetForecastTotals | null;
 }
 
 /** One budget with its live lines in line order and their derived amounts. */
@@ -1113,7 +1126,7 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts, commitments, prices, forecasts] = await Promise.all([
+  const [summaries, lines, amounts, commitments, prices, forecasts, forecastTotals] = await Promise.all([
     listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
     rows(
       db
@@ -1136,6 +1149,18 @@ export async function getBudget(
     ),
     rows(db.from("budget_line_prices").select("*").eq("budget_id", budgetId), (r) => r),
     rows(db.from("budget_line_forecasts").select("*").eq("budget_id", budgetId), (r) => r),
+    rows(
+      db
+        .from("budget_forecast_totals")
+        .select("efc_minor, forward_exposure_minor, unallocated_change_minor, is_withheld")
+        .eq("budget_id", budgetId),
+      (r): BudgetForecastTotals => ({
+        efcMinor: numOrNull(r["efc_minor"]),
+        forwardExposureMinor: numOrNull(r["forward_exposure_minor"]),
+        unallocatedChangeMinor: num(r["unallocated_change_minor"]),
+        isWithheld: r["is_withheld"] === true,
+      }),
+    ),
   ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
@@ -1143,6 +1168,7 @@ export async function getBudget(
   if (!commitments.ok) return commitments;
   if (!prices.ok) return prices;
   if (!forecasts.ok) return forecasts;
+  if (!forecastTotals.ok) return forecastTotals;
   const budget = summaries.data.find((b) => b.id === budgetId);
   if (!budget) return fail({ kind: "not-found" });
   const byLine = new Map(amounts.data.map((a) => [str(a["budget_line_id"]), a]));
@@ -1155,6 +1181,7 @@ export async function getBudget(
       const id = str(l["id"]);
       return toLine(l, byLine.get(id), committedBy.get(id), priceBy.get(id), forecastBy.get(id));
     }),
+    forecast: forecastTotals.data[0] ?? null,
   });
 }
 

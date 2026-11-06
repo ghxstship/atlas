@@ -660,6 +660,7 @@ describe("budgets", () => {
       forecastWithheld: false,
       laborActualMinor: 0,
       laborUnpricedMinutes: 0,
+      laborOtherCurrencyCount: 0,
       updatedAt: "2027-01-01T00:00:00Z",
     };
     const saved = {

@@ -155,7 +155,14 @@ export async function restoreBudgetVersion(db: XosClient, id: string): Promise<R
 
 export type CompareStatus = "added" | "removed" | "changed" | "unchanged";
 export type CompareField =
-  "description" | "quantity" | "unitPrice" | "lineType" | "urid" | "markup" | "clientPrice";
+  | "description"
+  | "quantity"
+  | "unitPrice"
+  | "lineType"
+  | "urid"
+  | "markup"
+  | "clientPrice"
+  | "onQuote";
 
 /** One side of a comparison: a version's frozen line, or a live line through liveCompareLine. */
 export type CompareLine = BudgetVersionLine;
@@ -214,12 +221,18 @@ function changedFields(from: CompareLine, to: CompareLine): CompareField[] {
   if (from.urid !== to.urid) fields.push("urid");
   if (from.effectiveMarkupBp !== to.effectiveMarkupBp) fields.push("markup");
   if (from.clientUnitPriceMinor !== to.clientUnitPriceMinor) fields.push("clientPrice");
+  if (from.excludedFromQuote !== to.excludedFromQuote) fields.push("onQuote");
   return fields;
 }
 
+/** What a line adds to a client total: nothing when it stays off the quote, priced or not. */
+const clientAmountOf = (line: CompareLine) =>
+  line.excludedFromQuote ? 0 : extendedMinor(line.quantity, line.clientUnitPriceMinor);
+
 /**
  * Compares two sets of lines by budget line id. Totals are null-aware: an unpriced line on either
- * side blanks the total's delta, and a line only on one side counts as zero on the other.
+ * side blanks the total's delta, and a line only on one side counts as zero on the other. A line
+ * excluded from the quote counts as zero in the client figures, as in every other client total.
  */
 export function compareBudgetLines(
   from: readonly CompareLine[],
@@ -234,8 +247,8 @@ export function compareBudgetLines(
     const shown = (b ?? a) as CompareLine;
     const costBefore = a ? extendedMinor(a.quantity, a.unitPriceMinor) : 0;
     const costAfter = b ? extendedMinor(b.quantity, b.unitPriceMinor) : 0;
-    const clientBefore = a ? extendedMinor(a.quantity, a.clientUnitPriceMinor) : 0;
-    const clientAfter = b ? extendedMinor(b.quantity, b.clientUnitPriceMinor) : 0;
+    const clientBefore = a ? clientAmountOf(a) : 0;
+    const clientAfter = b ? clientAmountOf(b) : 0;
     const changed = a && b ? changedFields(a, b) : [];
     return {
       budgetLineId: id,

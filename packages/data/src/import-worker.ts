@@ -257,6 +257,8 @@ export interface TargetLookups {
   nextCuePosition(runOfShowId: string): Promise<number>;
   /** The budget a budget line import writes into: its currency's exponent and its highest line number. */
   budgetDestination(budgetId: string): Promise<BudgetDestination | null>;
+  /** A budget line's URID and how its XYZ tag was set, so an update never overwrites a declared tag. */
+  budgetLineTag(id: string): Promise<{ urid: string; xyzBasis: string | null } | null>;
   /** True when the cue was already called; an import never rewrites a called cue (C11). */
   cueCalled(id: string): Promise<boolean>;
 }
@@ -528,21 +530,20 @@ export async function validateRow(
         (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
         "invalid_line_number",
       );
-      if (!text("quantity")) values["quantity"] = 1;
       await set("quantity", (v) => nonNegative(v), "invalid_quantity");
-      // A blank price or the word Unpriced is NULL, never zero (S3.7-02).
+      // The word Unpriced clears a price. A blank cell says nothing here: a new line takes the defaults in
+      // createValues, where its price is NULL and never zero (S3.7-02), and an update leaves the value alone.
       const price = text("unit_price").trim();
-      if (price === "" || price.toLowerCase() === "unpriced") {
+      if (price.toLowerCase() === "unpriced") {
         values["unit_price_minor"] = null;
-      } else {
+      } else if (price !== "") {
         const minor = minorUnits(price, exponent);
         if (minor === null)
           issues.push({ columnIndex: columnOf("unit_price"), issue: "invalid_price" });
         else values["unit_price_minor"] = minor;
       }
       const type = text("line_type").trim();
-      if (type === "") values["line_type"] = "Cost";
-      else {
+      if (type !== "") {
         const known = BUDGET_LINE_TYPES.find((k) => k.toLowerCase() === type.toLowerCase());
         if (known) values["line_type"] = known;
         else issues.push({ columnIndex: columnOf("line_type"), issue: "invalid_line_type" });
@@ -1036,6 +1037,14 @@ async function commit(
       const target = valid.mergeInto?.id ?? valid.matchedId;
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
+        // The URID's own tag never replaces a declared one unless the sheet moves the line to another URID.
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
           throw new ImportWriteError("This cue was already called");
         }
@@ -1104,7 +1113,14 @@ async function createValues(store: ImportStore, job: ImportJobRecord, values: Ro
       typeof values["line_number"] === "number"
         ? values["line_number"]
         : (budget?.maxLineNumber ?? 0) + 1;
-    return { ...values, budget_id: job.budgetId, line_number };
+    return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
+      ...values,
+      budget_id: job.budgetId,
+      line_number,
+    };
   }
   return values;
 }
@@ -1462,6 +1478,17 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         p_keys: keys,
       });
       return typeof id === "string" ? id : null;
+    },
+    async budgetLineTag(id) {
+      const line = await one(
+        app.from("budget_lines").select("urid, xyz_basis").eq("id", id),
+        "budget_lines",
+      );
+      if (!line) return null;
+      return {
+        urid: text(line, "urid"),
+        xyzBasis: typeof line["xyz_basis"] === "string" ? line["xyz_basis"] : null,
+      };
     },
     async budgetDestination(budgetId) {
       const budget = await one(

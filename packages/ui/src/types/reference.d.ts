@@ -635,6 +635,8 @@ export interface GridColumn {
   derive?: (row: Record<string, string | number | null>) => string | number | null | undefined;
   /** Shown in secondary text in a blank cell, for a value the cell falls back to. */
   blankHint?: (row: Record<string, string | number | null>) => string | null;
+  /** A `total` column counts only the rows this accepts: a row left out neither adds nor blanks it. */
+  totalIncludes?: (row: Record<string, string | number | null>) => boolean;
 }
 export interface SpreadsheetGridProps {
   label: string;

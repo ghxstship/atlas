@@ -83,26 +83,33 @@ call private.describe('app.budget_line_forecasts', 'Forecast of every live line 
 
 create view app.budget_forecast_totals with (security_invoker = true) as
 select b.id as budget_id, b.project_id, b.currency_code,
-  case when bool_or(f.is_withheld) or bool_or(f.current_budget_minor is null) then null
+  case when w.is_withheld or bool_or(f.current_budget_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.current_budget_minor), 0) + u.unallocated_minor end::bigint as current_budget_minor,
-  case when bool_or(f.is_withheld) then null else coalesce(sum(f.actual_minor), 0) end::bigint as actual_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.committed_minor is null and f.budget_line_id is not null) then null
+  case when w.is_withheld then null else coalesce(sum(f.actual_minor), 0) end::bigint as actual_minor,
+  case when w.is_withheld or bool_or(f.committed_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.committed_minor), 0) end::bigint as committed_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.remaining_commitment_minor is null and f.budget_line_id is not null) then null
+  case when w.is_withheld or bool_or(f.remaining_commitment_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.remaining_commitment_minor), 0) end::bigint as remaining_commitment_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.etc_minor is null and f.budget_line_id is not null) then null
+  case when w.is_withheld or bool_or(f.etc_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.etc_minor), 0) + u.unallocated_minor end::bigint as etc_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.efc_minor is null and f.budget_line_id is not null) then null
+  case when w.is_withheld or bool_or(f.efc_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.efc_minor), 0) + u.unallocated_minor end::bigint as efc_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.forward_exposure_minor is null and f.budget_line_id is not null) then null
+  case when w.is_withheld or bool_or(f.forward_exposure_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.forward_exposure_minor), 0) + u.unallocated_minor end::bigint as forward_exposure_minor,
-  case when bool_or(f.is_withheld) or bool_or(f.current_budget_minor is null) or bool_or(f.efc_minor is null and f.budget_line_id is not null)
+  case when w.is_withheld or bool_or(f.current_budget_minor is null and f.budget_line_id is not null)
+         or bool_or(f.efc_minor is null and f.budget_line_id is not null)
        then null else coalesce(sum(f.current_budget_minor), 0) - coalesce(sum(f.efc_minor), 0) end::bigint
     as variance_at_completion_minor,
   u.unallocated_minor::bigint as unallocated_change_minor,
-  coalesce(bool_or(f.is_withheld), false) as is_withheld
+  w.is_withheld
 from app.budgets b
 left join app.budget_line_forecasts f on f.budget_id = b.id
+cross join lateral (
+  -- Asked of the reader's capabilities, not of the lines, so a budget with no lines is withheld as well.
+  select b.project_id not in (select private.project_ids_with('procurement.po.read'))
+    or b.project_id not in (select private.project_ids_with('finance.expense.read'))
+    or b.project_id not in (select private.project_ids_with('finance.change_order.read')) as is_withheld
+) w
 cross join lateral (
   select coalesce(sum(private.extended_minor(l.quantity, l.unit_price_minor)), 0) as unallocated_minor
   from app.change_order_lines l
@@ -111,9 +118,9 @@ cross join lateral (
     and o.change_order_state = 'Approved'
 ) u
 where b.deleted_at is null
-group by b.id, b.project_id, b.currency_code, u.unallocated_minor;
+group by b.id, b.project_id, b.currency_code, u.unallocated_minor, w.is_withheld;
 
-call private.describe('app.budget_forecast_totals', 'Forecast totals of a live budget (G-205): NULL-aware sums of app.budget_line_forecasts, plus the approved change order lines that name no budget line, counted as both current budget and ETC so the total EFC reconciles with app.budget_revised_totals (0480). Withheld when any line is.', array[
+call private.describe('app.budget_forecast_totals', 'Forecast totals of a live budget (G-205): NULL-aware sums of app.budget_line_forecasts, plus the approved change order lines that name no budget line, counted as both current budget and ETC so the total EFC reconciles with app.budget_revised_totals (0480). Withheld when the reader cannot read the project''s purchase orders, expenses or change orders.', array[
   'budget_id', 'Budget.',
   'project_id', 'Project of the budget.',
   'currency_code', 'Currency of the budget.',
@@ -126,7 +133,7 @@ call private.describe('app.budget_forecast_totals', 'Forecast totals of a live b
   'forward_exposure_minor', 'Sum of the forward exposures plus approved changes not on a line; NULL when any is unknown or withheld.',
   'variance_at_completion_minor', 'Current budget less EFC over the lines; NULL when either is unknown or withheld.',
   'unallocated_change_minor', 'Approved change order lines with no budget line: Approved changes not on a line.',
-  'is_withheld', 'True when any line''s forecast is withheld from the reader.'
+  'is_withheld', 'True when the reader cannot read the project''s purchase orders, expenses or change orders: every forecast figure is then NULL, even with no lines.'
 ]);
 
 revoke all on app.budget_line_forecasts, app.budget_forecast_totals from public, anon;

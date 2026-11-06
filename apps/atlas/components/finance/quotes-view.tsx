@@ -112,6 +112,17 @@ export async function QuotesView({ page }: { page: FinancePage }) {
     accepted: q.acceptedAt ? c.dateTime(q.acceptedAt) : "",
   }));
 
+  const engagementOptions = canWrite ? await listEngagementOptions(db, scope) : null;
+  const clientOptions = engagementOptions?.ok
+    ? engagementOptions.data
+        .filter((e) => e.roleType === "Client")
+        .map((e) => ({
+          value: e.engagementId,
+          label: e.personName ?? e.accountName ?? e.projectKey,
+          projectId: e.projectId,
+        }))
+    : [];
+
   const peek = query.peek ? quotes.data.find((q) => q.id === query.peek) : undefined;
   let detail: RecordDetail | null = null;
   if (peek) {
@@ -121,20 +132,15 @@ export async function QuotesView({ page }: { page: FinancePage }) {
       const versions = loaded.data.versions;
       const current = versions.find((v) => v.id === q.currentVersionId);
       const draft = versions.find((v) => v.state === "Draft");
+      const shown = versions.find((v) => v.id === loaded.data.shownVersionId);
+      const everSent = versions.some((v) => v.sentAt !== null);
       const accepted = versions.find((v) => v.state === "Accepted");
       const email = accepted ? await quoteAcceptanceEmail(db, accepted.id) : null;
       const project = projectOf.get(q.projectId);
-      const zone = await db
-        .from("projects")
-        .select("time_zone")
-        .eq("id", q.projectId)
-        .maybeSingle();
-      const timeZone = zone.data?.time_zone ?? "UTC";
-      const money = (minor: number | null) => c.money(minor, q.currency);
+      const money = (minor: number | null) => c.money(minor, loaded.data.currency);
+      const { clientTotalMinor, marginMinor } = loaded.data;
       const marginPercent =
-        q.marginMinor !== null && q.clientTotalMinor
-          ? (q.marginMinor / q.clientTotalMinor) * 100
-          : null;
+        marginMinor !== null && clientTotalMinor ? (marginMinor / clientTotalMinor) * 100 : null;
       detail = {
         kindLabel: t("finance.quotes.kind"),
         recordKey: q.key,
@@ -148,8 +154,11 @@ export async function QuotesView({ page }: { page: FinancePage }) {
             value: q.clientName ?? t("finance.common.none"),
           },
           { label: t("finance.common.project"), value: project?.key ?? "" },
-          { label: t("finance.quotes.fields.validUntil"), value: c.date(q.validUntil) },
-          { label: t("finance.common.currency"), value: q.currency },
+          {
+            label: t("finance.quotes.fields.validUntil"),
+            value: c.date(shown?.validUntil ?? q.validUntil),
+          },
+          { label: t("finance.common.currency"), value: loaded.data.currency },
         ],
         content: (
           <>
@@ -166,22 +175,13 @@ export async function QuotesView({ page }: { page: FinancePage }) {
             ) : null}
             <div className="flex flex-wrap items-center gap-8">
               {draft && canApprove ? (
-                <SendQuoteButton
-                  versionId={draft.id}
-                  validUntil={draft.validUntil}
-                  timeZone={timeZone}
-                  canIssueLink={canIssueLink}
-                />
+                <SendQuoteButton versionId={draft.id} canIssueLink={canIssueLink} />
               ) : null}
               {!accepted && !draft && canWrite ? (
                 <NewVersionButton org={ctx.org.slug} quoteId={q.id} />
               ) : null}
               {current?.state === "Sent" && canIssueLink && current.engagementDocumentId ? (
-                <SigningLinkButton
-                  documentId={current.engagementDocumentId}
-                  validUntil={current.validUntil}
-                  timeZone={timeZone}
-                />
+                <SigningLinkButton documentId={current.engagementDocumentId} />
               ) : null}
               {current?.state === "Sent" && canApprove ? (
                 <>
@@ -200,20 +200,20 @@ export async function QuotesView({ page }: { page: FinancePage }) {
               {draft && canWrite ? (
                 <DeleteDraftButton org={ctx.org.slug} quoteId={q.id} versionId={draft.id} />
               ) : null}
-              {current ? <DocumentActions org={ctx.org.slug} kind="quote" id={current.id} /> : null}
+              {shown ? <DocumentActions org={ctx.org.slug} kind="quote" id={shown.id} /> : null}
             </div>
             <Figures
               label={t("finance.quotes.figures.label")}
               items={[
                 {
                   label: t("finance.quotes.figures.clientTotal"),
-                  value: money(q.clientTotalMinor),
+                  value: money(clientTotalMinor),
                 },
                 {
                   label: t("finance.quotes.figures.cost"),
                   value: money(loaded.data.costTotalMinor),
                 },
-                { label: t("finance.quotes.figures.margin"), value: money(q.marginMinor) },
+                { label: t("finance.quotes.figures.margin"), value: money(marginMinor) },
                 {
                   label: t("finance.quotes.figures.marginPercent"),
                   value:
@@ -227,13 +227,30 @@ export async function QuotesView({ page }: { page: FinancePage }) {
               <Section id="quote-draft" title={t("finance.quotes.draftSection")}>
                 <QuoteDraftForm
                   org={ctx.org.slug}
+                  quoteId={q.id}
                   versionId={draft.id}
+                  title={loaded.data.draftTitle}
+                  engagementId={q.engagementId}
+                  engagements={
+                    everSent
+                      ? null
+                      : clientOptions
+                          .filter((e) => e.projectId === q.projectId)
+                          .map(({ value, label }) => ({ value, label }))
+                  }
                   validUntil={draft.validUntil}
                   terms={draft.terms}
                 />
               </Section>
             ) : null}
-            <Section id="quote-lines" title={t("finance.quotes.lines")}>
+            <Section
+              id="quote-lines"
+              title={
+                draft
+                  ? t("finance.quotes.draftLines", { version: draft.versionNumber })
+                  : t("finance.quotes.lines")
+              }
+            >
               <SimpleTable
                 caption={t("finance.quotes.lines")}
                 head={[
@@ -260,9 +277,9 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   "",
                   "",
                   "",
-                  money(q.clientTotalMinor),
+                  money(clientTotalMinor),
                   money(loaded.data.costTotalMinor),
-                  money(q.marginMinor),
+                  money(marginMinor),
                 ]}
               />
               <p className="m-0 text-text-12 text-text-secondary">
@@ -307,6 +324,7 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   t("finance.common.state"),
                   t("finance.quotes.fields.validUntil"),
                   t("finance.quotes.fields.sent"),
+                  t("finance.quotes.fields.pdf"),
                 ]}
                 numeric={[0]}
                 rows={versions.map((v) => [
@@ -314,6 +332,12 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   stateLabel(v.state),
                   c.date(v.validUntil),
                   v.sentAt ? c.dateTime(v.sentAt) : "",
+                  // The version shown above has its PDF beside the other actions.
+                  v.id === shown?.id ? (
+                    ""
+                  ) : (
+                    <DocumentActions key={v.id} org={ctx.org.slug} kind="quote" id={v.id} />
+                  ),
                 ])}
               />
             </Section>
@@ -323,7 +347,6 @@ export async function QuotesView({ page }: { page: FinancePage }) {
     }
   }
 
-  const engagementOptions = canWrite ? await listEngagementOptions(db, scope) : null;
   const sheet =
     query.create && canWrite ? (
       <FormSheet title={t("finance.quotes.create")} flag="create">
@@ -335,17 +358,7 @@ export async function QuotesView({ page }: { page: FinancePage }) {
             projectId: b.projectId,
             hasDefaultMarkup: b.defaultMarkupBp !== null,
           }))}
-          engagements={
-            engagementOptions?.ok
-              ? engagementOptions.data
-                  .filter((e) => e.roleType === "Client")
-                  .map((e) => ({
-                    value: e.engagementId,
-                    label: e.personName ?? e.accountName ?? e.projectKey,
-                    projectId: e.projectId,
-                  }))
-              : []
-          }
+          engagements={clientOptions}
         />
       </FormSheet>
     ) : null;

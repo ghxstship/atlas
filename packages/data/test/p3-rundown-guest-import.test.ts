@@ -73,6 +73,7 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     uridXyz: async () => null,
     costCenterId: async () => null,
     budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async () => false,
     assetClassId: async () => null,
     venueId: async () => null,

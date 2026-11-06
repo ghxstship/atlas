@@ -3,6 +3,7 @@
 import type { LineTransactions } from "@xos/data/budget-transactions";
 import { Button, Drawer } from "@xos/ui";
 import type { Route } from "next";
+import { useFormatter } from "next-intl";
 import Link from "next/link";
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { loadLineTransactionsAction } from "@/app/[org]/finance/quote-actions";
@@ -18,40 +19,32 @@ export function LineTransactionsDrawer({
   lineId,
   currency,
   exponent,
-  access,
   onClose,
 }: {
   org: string;
   lineId: string;
   currency: string;
   exponent: number;
-  access: {
-    readonly expenses: boolean;
-    readonly labor: boolean;
-    readonly purchaseOrders: boolean;
-    readonly invoices: boolean;
-  };
   onClose: () => void;
 }) {
   const t = useFinanceT();
+  const format = useFormatter();
   const [data, setData] = useState<LineTransactions | null>(null);
   const [failed, setFailed] = useState(false);
   const [pending, start] = useTransition();
   useEffect(() => {
     start(async () => {
-      const result = await loadLineTransactionsAction(org, lineId, access, currency);
+      const result = await loadLineTransactionsAction(org, lineId);
       if (result.ok) setData(result.transactions);
       else setFailed(true);
     });
-    // access is fixed for the page; a new line reloads.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [org, lineId]);
   const money = (minor: number | null) =>
     minor === null
       ? t("common.unpriced")
-      : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
-          minor / 10 ** exponent,
-        );
+      : format.number(minor / 10 ** exponent, { style: "currency", currency });
+  const day = (iso: string) =>
+    format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00`), { dateStyle: "medium" });
   const unpricedHours = data ? Math.round((data.laborUnpricedMinutes / 60) * 100) / 100 : 0;
   return (
     <Drawer
@@ -89,7 +82,7 @@ export function LineTransactionsDrawer({
                     {e.description}
                   </Link>
                 }
-                meta={[e.incurredOn, e.submitter].filter(Boolean).join(" · ")}
+                meta={[day(e.incurredOn), e.submitter].filter(Boolean).join(" · ")}
                 amount={money(e.amountMinor)}
               />
             ))}
@@ -105,15 +98,22 @@ export function LineTransactionsDrawer({
                 {t("budgets.unpricedHours", { hours: unpricedHours })}
               </p>
             ) : null}
+            {data.laborOtherCurrencyCount > 0 ? (
+              <p className="m-0 text-text-12 text-warning-text">
+                {t("budgets.laborOtherCurrency", { count: data.laborOtherCurrencyCount })}
+              </p>
+            ) : null}
             {data.laborRows?.map((l) => (
               <Row
                 key={l.postingId}
                 main={l.person ?? t(`budgets.transactions.teams.${l.teamKind.replace(" ", "")}`)}
                 meta={[
-                  l.workDate,
+                  day(l.workDate),
                   l.teamName,
-                  l.segment,
-                  `${Math.round((l.minutes / 60) * 100) / 100} h`,
+                  t(`budgets.transactions.segments.${l.segment.replace(" ", "")}`),
+                  t("budgets.transactions.hours", {
+                    hours: Math.round((l.minutes / 60) * 100) / 100,
+                  }),
                 ]
                   .filter(Boolean)
                   .join(" · ")}

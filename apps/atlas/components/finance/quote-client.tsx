@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Dialog, Input, Textarea, ToastRegion, UndoToast } from "@xos/ui";
+import { Button, Dialog, Input, Select, Textarea, ToastRegion, UndoToast } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -35,16 +35,12 @@ import { useQueryNav } from "./kit-use-query-nav";
 interface SendTarget {
   readonly kind: "send";
   readonly versionId: string;
-  readonly validUntil: string;
-  readonly timeZone: string;
   readonly canIssueLink: boolean;
 }
 
 interface LinkTarget {
   readonly kind: "link";
   readonly documentId: string;
-  readonly validUntil: string;
-  readonly timeZone: string;
 }
 
 type Target = SendTarget | LinkTarget;
@@ -210,8 +206,6 @@ function QuoteDialog({
         noValidate
       >
         <input type="hidden" name="org" value={org} />
-        <input type="hidden" name="validUntil" value={target.validUntil} />
-        <input type="hidden" name="timeZone" value={target.timeZone} />
         {isSend ? (
           <>
             <input type="hidden" name="versionId" value={target.versionId} />
@@ -321,15 +315,27 @@ export function DeleteDraftButton({
   );
 }
 
-/** A Draft's Valid until and Terms. */
+/**
+ * A Draft's title, client engagement, Valid until and Terms. The engagement is chosen here until a
+ * version was sent, so a quote created without one can still reach Send. engagements is null once it
+ * is fixed.
+ */
 export function QuoteDraftForm({
   org,
+  quoteId,
   versionId,
+  title,
+  engagementId,
+  engagements,
   validUntil,
   terms,
 }: {
   org: string;
+  quoteId: string;
   versionId: string;
+  title: string;
+  engagementId: string | null;
+  engagements: readonly { readonly value: string; readonly label: string }[] | null;
   validUntil: string;
   terms: string | null;
 }) {
@@ -343,7 +349,28 @@ export function QuoteDraftForm({
       noValidate
     >
       <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="quoteId" value={quoteId} />
       <input type="hidden" name="versionId" value={versionId} />
+      <Input
+        id="quote-draft-title"
+        name="title"
+        required
+        width="100%"
+        label={t("quotes.fields.title")}
+        defaultValue={title}
+        error={fieldError(t, state, "title")}
+      />
+      {engagements ? (
+        <Select
+          id="quote-draft-engagement"
+          name="engagementId"
+          label={t("quotes.fields.engagement")}
+          help={t("quotes.fields.engagementHelp")}
+          value={engagementId ?? ""}
+          options={[{ value: "", label: t("common.none") }, ...engagements]}
+          error={fieldError(t, state, "engagementId")}
+        />
+      ) : null}
       <Input
         id="quote-draft-valid-until"
         name="validUntil"

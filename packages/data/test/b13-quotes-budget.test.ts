@@ -91,6 +91,37 @@ describe("compareBudgetLines", () => {
     expect(result.clientDeltaMinor).toBeNull();
   });
 
+  it("leaves a line excluded from the quote out of the client figures, priced or not", () => {
+    const off = { excludedFromQuote: true };
+    const result = compareBudgetLines(
+      [
+        line({ budgetLineId: "kept" }),
+        line({ budgetLineId: "off", lineNumber: 2, ...off }),
+        line({ budgetLineId: "blank", lineNumber: 3, clientUnitPriceMinor: null, ...off }),
+      ],
+      [
+        line({ budgetLineId: "kept" }),
+        line({ budgetLineId: "off", lineNumber: 2, quantity: 9, ...off }),
+        line({ budgetLineId: "blank", lineNumber: 3, clientUnitPriceMinor: null, ...off }),
+      ],
+    );
+    const by = new Map(result.lines.map((l) => [l.budgetLineId, l]));
+    expect(by.get("off")?.clientBeforeMinor).toBe(0);
+    expect(by.get("off")?.clientDeltaMinor).toBe(0);
+    expect(by.get("off")?.costDeltaMinor).toBe(7000);
+    expect(result.clientDeltaMinor).toBe(0);
+  });
+
+  it("names a line moved on or off the quote as a change, with the client delta it causes", () => {
+    const result = compareBudgetLines(
+      [line({ budgetLineId: "a" })],
+      [line({ budgetLineId: "a", excludedFromQuote: true })],
+    );
+    expect(result.lines[0]?.status).toBe("changed");
+    expect(result.lines[0]?.changed).toEqual(["onQuote"]);
+    expect(result.clientDeltaMinor).toBe(-2500);
+  });
+
   it("orders lines by number", () => {
     const result = compareBudgetLines(
       [line({ budgetLineId: "z", lineNumber: 9 })],
@@ -142,6 +173,7 @@ const budgetLine = (over: Partial<BudgetLine> = {}): BudgetLine => ({
   forecastWithheld: false,
   laborActualMinor: 0,
   laborUnpricedMinutes: 0,
+  laborOtherCurrencyCount: 0,
   updatedAt: "2026-11-01T00:00:00Z",
   ...over,
 });

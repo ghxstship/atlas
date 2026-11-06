@@ -12,6 +12,7 @@ import {
   listGrades,
   listUridOptions,
   nullAwareSum,
+  type BudgetForecastTotals,
   type BudgetLine,
   type BudgetSummary,
 } from "@xos/data/finance";
@@ -133,6 +134,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
   const totalsFigures = (
     b: BudgetSummary,
     lines: readonly BudgetLine[],
+    forecast: BudgetForecastTotals | null,
     target: string | null,
     rate: number | null,
   ) => {
@@ -159,13 +161,9 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       clientTotal === null || quoted.some((l) => l.marginMinor === null)
         ? null
         : quoted.reduce((sum, l) => sum + (l.marginMinor ?? 0), 0);
-    const forecastWithheld = lines.some((l) => l.forecastWithheld);
-    const allKnown = (pick: (l: BudgetLine) => number | null) =>
-      forecastWithheld || lines.some((l) => pick(l) === null)
-        ? null
-        : lines.reduce((sum, l) => sum + (pick(l) ?? 0), 0);
-    const efc = allKnown((l) => l.efcMinor);
-    const exposure = allKnown((l) => l.forwardExposureMinor);
+    // app.budget_forecast_totals, so approved changes with no line count and EFC reconciles with Revised.
+    const forecastWithheld = forecast?.isWithheld ?? true;
+    const unallocated = forecast?.unallocatedChangeMinor ?? 0;
     return [
       {
         label: t("finance.budgets.figures.total"),
@@ -221,14 +219,22 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
         : []),
       {
         label: t("finance.budgets.figures.efc"),
-        value: forecastWithheld ? t("finance.budgets.figures.withheld") : money(conv(efc), cur),
-        caption: forecastWithheld ? t("finance.budgets.committedWithheld") : undefined,
+        value: forecastWithheld
+          ? t("finance.budgets.figures.withheld")
+          : money(conv(forecast?.efcMinor ?? null), cur),
+        caption: forecastWithheld
+          ? t("finance.budgets.committedWithheld")
+          : unallocated !== 0
+            ? t("finance.budgets.figures.efcUnallocated", {
+                amount: money(conv(unallocated), cur),
+              })
+            : undefined,
       },
       {
         label: t("finance.budgets.figures.forwardExposure"),
         value: forecastWithheld
           ? t("finance.budgets.figures.withheld")
-          : money(conv(exposure), cur),
+          : money(conv(forecast?.forwardExposureMinor ?? null), cur),
       },
     ];
   };
@@ -375,7 +381,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
           <>
             <Figures
               label={t("finance.budgets.figures.label")}
-              items={totalsFigures(b, detail.data.lines, target, fx?.rate ?? null)}
+              items={totalsFigures(b, detail.data.lines, detail.data.forecast, target, fx?.rate ?? null)}
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">
@@ -641,12 +647,6 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
               canWrite={canWrite}
               columnSet={columnSet}
               defaultMarkupBp={b.defaultMarkupBp}
-              transactionAccess={{
-                expenses: access.can("finance.expense.read"),
-                labor: access.can("crew.timesheet.read"),
-                purchaseOrders: access.can("procurement.po.read"),
-                invoices: access.can("finance.invoice.read"),
-              }}
               importHref={importLinkHref(ctx.org.slug, ctx.nav, canWrite, {
                 target: "budget_lines",
                 budgetId: b.id,

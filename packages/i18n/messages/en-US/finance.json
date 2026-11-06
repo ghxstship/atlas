@@ -481,7 +481,8 @@
       "clientTotal": "Client total",
       "margin": "Margin",
       "efc": "Estimated final cost",
-      "forwardExposure": "Forward exposure"
+      "forwardExposure": "Forward exposure",
+      "efcUnallocated": "Includes {amount} of approved changes with no budget line."
     },
     "grade": "Grade",
     "gridErrors": {
@@ -594,7 +595,8 @@
         "lineType": "Type",
         "urid": "URID",
         "markup": "Markup",
-        "clientPrice": "Client price"
+        "clientPrice": "Client price",
+        "onQuote": "On quote"
       }
     },
     "transactions": {
@@ -612,8 +614,15 @@
         "OwnTeam": "Own team",
         "Agency": "Agency",
         "Engaged": "Engaged individual"
-      }
-    }
+      },
+      "segments": {
+        "Regular": "Regular",
+        "Overtime": "Overtime",
+        "DoubleTime": "Double time"
+      },
+      "hours": "{hours} h"
+    },
+    "laborOtherCurrency": "{count} labor {count, plural, one {posting} other {postings}} in another currency {count, plural, one {is} other {are}} counted here and left out of Actual."
   },
   "expenses": {
     "create": "New expense",
@@ -960,7 +969,8 @@
       "client": "Client",
       "version": "Version",
       "sent": "Sent",
-      "accepted": "Accepted"
+      "accepted": "Accepted",
+      "pdf": "PDF"
     },
     "actions": {
       "send": "Send quote",
@@ -1007,6 +1017,7 @@
       "sentTitle": "Quote sent",
       "noLinkTime": "Less than an hour of Valid until is left, so no link was issued. The client signs in Gateway's Documents tab.",
       "linkFailed": "The quote was sent, but the signing link was not issued. Close this and choose Signing link to try again."
-    }
+    },
+    "draftLines": "Draft v{version} lines"
   }
 }

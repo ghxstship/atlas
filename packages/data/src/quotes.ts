@@ -79,10 +79,17 @@ export interface QuoteLine {
 
 export interface QuoteDetail {
   readonly status: QuoteStatus;
+  /** The quote's own title: what the next Draft sends. status.title is frozen once a version is sent. */
+  readonly draftTitle: string;
   readonly versions: readonly QuoteVersion[];
-  /** Client lines of the current version: live for a Draft, the capture once sent. */
+  /** The version the lines and totals describe: the Draft when one exists, since Send acts on it. */
+  readonly shownVersionId: string;
+  /** Client lines of that version: live for a Draft, the capture once sent. */
   readonly lines: readonly QuoteLine[];
+  readonly clientTotalMinor: number | null;
+  readonly marginMinor: number | null;
   readonly costTotalMinor: number | null;
+  readonly currency: string;
 }
 
 type Raw = Record<string, unknown>;
@@ -177,8 +184,9 @@ export async function countProjectQuotes(
 
 /** A quote with its versions and the client lines of its current version. */
 export async function getQuote(db: XosClient, quoteId: string): Promise<Result<QuoteDetail>> {
-  const [status, versions] = await Promise.all([
+  const [status, quote, versions] = await Promise.all([
     rows(db.from("quote_statuses").select(STATUS_COLUMNS).eq("quote_id", quoteId), toStatus),
+    rows(db.from("quotes").select("title").eq("id", quoteId), (r) => str(r["title"])),
     rows(
       db
         .from("quote_versions")
@@ -192,24 +200,55 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
     ),
   ]);
   if (!status.ok) return status;
+  if (!quote.ok) return quote;
   if (!versions.ok) return versions;
   const head = status.data[0];
   if (!head) return fail({ kind: "not-found" });
-  const current = versions.data.find((v) => v.id === head.currentVersionId);
-  const lines = current?.budgetVersionId
-    ? await capturedLines(db, current.budgetVersionId)
+  // app.quote_statuses names the latest sent version for the list. A peek follows a Draft when there
+  // is one, so the sender reads the prices Send will freeze.
+  const draft = versions.data.find((v) => v.state === "Draft");
+  const shown = draft ?? versions.data.find((v) => v.id === head.currentVersionId);
+  const lines = shown?.budgetVersionId
+    ? await capturedLines(db, shown.budgetVersionId)
     : await liveLines(db, head.budgetId);
   if (!lines.ok) return lines;
+  const live = draft && draft.id !== head.currentVersionId ? await liveTotals(db, head.budgetId) : null;
+  if (live && !live.ok) return live;
   let costTotal: number | null = 0;
   for (const line of lines.data) {
     costTotal =
       costTotal === null || line.costAmountMinor === null ? null : costTotal + line.costAmountMinor;
   }
+  const totals = live?.ok ? live.data : null;
   return ok({
     status: head,
+    draftTitle: quote.data[0] ?? head.title,
     versions: versions.data,
+    shownVersionId: shown?.id ?? head.currentVersionId,
     lines: lines.data,
+    clientTotalMinor: totals ? totals.clientTotalMinor : head.clientTotalMinor,
+    marginMinor: totals ? totals.marginMinor : head.marginMinor,
     costTotalMinor: costTotal,
+    currency: totals?.currency ?? head.currency,
+  });
+}
+
+/** A budget's client totals as they stand, for a Draft beside an already sent version. */
+async function liveTotals(
+  db: XosClient,
+  budgetId: string,
+): Promise<Result<{ clientTotalMinor: number | null; marginMinor: number | null; currency: string }>> {
+  const { data, error } = await db
+    .from("budget_price_totals")
+    .select("client_total_minor, margin_minor, currency_code")
+    .eq("budget_id", budgetId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  return ok({
+    clientTotalMinor: numOrNull(data.client_total_minor),
+    marginMinor: numOrNull(data.margin_minor),
+    currency: str(data.currency_code),
   });
 }
 
@@ -326,13 +365,49 @@ export async function updateQuoteDraft(
 export async function updateQuote(
   db: XosClient,
   quoteId: string,
-  input: { readonly title: string; readonly engagementId: string | null },
+  input: { readonly title: string; readonly engagementId?: string | null },
 ): Promise<Result<null>> {
+  // The engagement is left out once a version was sent: the guard fixes it then (quote_sent_parties).
   const { error } = await db
     .from("quotes")
-    .update({ title: input.title.trim(), engagement_id: input.engagementId })
+    .update({
+      title: input.title.trim(),
+      ...(input.engagementId === undefined ? {} : { engagement_id: input.engagementId }),
+    })
     .eq("id", quoteId);
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * How long a signing link for a version may run, read from the database rather than from the form that
+ * asked for it: the version's valid until and the project's time zone (acceptance 18).
+ */
+export async function quoteLinkWindow(
+  db: XosClient,
+  where: { readonly versionId: string } | { readonly documentId: string },
+): Promise<Result<{ validUntil: string; timeZone: string }>> {
+  const versions = db.from("quote_versions").select("valid_until, quote_id");
+  const { data: version, error } = await ("versionId" in where
+    ? versions.eq("id", where.versionId)
+    : versions.eq("engagement_document_id", where.documentId)
+  ).maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!version) return fail({ kind: "not-found" });
+  const { data: status, error: statusError } = await db
+    .from("quote_statuses")
+    .select("project_id")
+    .eq("quote_id", version.quote_id)
+    .maybeSingle();
+  if (statusError) return fail(toDataError(statusError));
+  if (!status) return fail({ kind: "not-found" });
+  const { data: project, error: projectError } = await db
+    .from("projects")
+    .select("time_zone")
+    .eq("id", str(status.project_id))
+    .maybeSingle();
+  if (projectError) return fail(toDataError(projectError));
+  if (!project) return fail({ kind: "not-found" });
+  return ok({ validUntil: version.valid_until, timeZone: project.time_zone });
 }
 
 export async function deleteQuoteDraft(db: XosClient, versionId: string): Promise<Result<null>> {
@@ -407,13 +482,6 @@ export async function quoteAcceptanceEmail(
   const { data, error } = await db.rpc("quote_acceptance", { p_quote_version_id: versionId });
   if (error) return fail(toDataError(error));
   return ok((data as { accepted_email: string }[] | null)?.[0]?.accepted_email ?? null);
-}
-
-export interface QuoteEngagementOption {
-  readonly id: string;
-  readonly projectId: string;
-  readonly label: string;
-  readonly email: string | null;
 }
 
 /** Hours of link validity left: never past the end of valid until in the project's zone, at most 14 days. */

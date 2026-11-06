@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getBudgetLineTransactions } from "../src/budget-transactions.ts";
+import { getBudgetLineTransactions, lineTransactionScope } from "../src/budget-transactions.ts";
 import type { XosClient } from "../src/client.ts";
 
 /** B13 (RRR-237, G-210): a line's sections reconcile with its figures, and an unreadable one is withheld, not partial. */
@@ -24,11 +24,48 @@ function fake(tables: Readonly<Record<string, readonly Record<string, unknown>[]
 
 const ALL = { expenses: true, labor: true, purchaseOrders: true, invoices: true };
 
+describe("lineTransactionScope", () => {
+  const scoped = (held: readonly string[], rows: readonly Record<string, unknown>[]) => {
+    const calls: Record<string, unknown>[] = [];
+    const single = { data: rows[0] ?? null, error: null };
+    const query = { select: () => query, eq: () => query, maybeSingle: async () => single };
+    const db = {
+      from: () => query,
+      rpc: async (_: string, args: Record<string, unknown>) => {
+        calls.push(args);
+        return { data: held, error: null };
+      },
+    } as unknown as XosClient;
+    return { db, calls };
+  };
+
+  it("asks about the line's own project, so a capability held elsewhere reads as withheld", async () => {
+    const { db, calls } = scoped(
+      ["finance.expense.read"],
+      [{ project_id: "project-1", currency_code: "EUR" }],
+    );
+    const result = await lineTransactionScope(db, "line");
+    expect(calls[0]?.["p_project_id"]).toBe("project-1");
+    expect(result.ok && result.data).toEqual({
+      access: { expenses: true, labor: false, purchaseOrders: false, invoices: false },
+      currency: "EUR",
+    });
+  });
+
+  it("is null for a line the viewer cannot read", async () => {
+    const { db } = scoped([], []);
+    const result = await lineTransactionScope(db, "line");
+    expect(result.ok && result.data).toBeNull();
+  });
+});
+
 describe("getBudgetLineTransactions", () => {
   it("subtotals each section and leaves other-currency order lines out of Committed", async () => {
     const result = await getBudgetLineTransactions(
       fake({
-        budget_line_amounts: [{ labor_actual_minor: 6000, labor_unpriced_minutes: 90 }],
+        budget_line_amounts: [
+          { labor_actual_minor: 6000, labor_unpriced_minutes: 90, labor_other_currency_count: 2 },
+        ],
         expenses: [
           {
             id: "e1",
@@ -92,6 +129,7 @@ describe("getBudgetLineTransactions", () => {
     expect(result.data.expenseTotalMinor).toBe(700);
     expect(result.data.laborActualMinor).toBe(6000);
     expect(result.data.laborUnpricedMinutes).toBe(90);
+    expect(result.data.laborOtherCurrencyCount).toBe(2);
     expect(result.data.committedMinor).toBe(800);
     expect(result.data.committed?.map((c) => c.poKey)).toEqual(["NWF-PO-12"]);
     expect(result.data.invoiceTotalMinor).toBe(500);

@@ -372,7 +372,9 @@ export function SpreadsheetGrid({
                   {c.total ? (
                     <Money
                       amount={columnTotal(
-                        rows.map((r) => (c.derive ? { ...r, [c.key]: c.derive(r) ?? null } : r)),
+                        rows
+                          .filter((r) => c.totalIncludes?.(r) ?? true)
+                          .map((r) => (c.derive ? { ...r, [c.key]: c.derive(r) ?? null } : r)),
                         c.key,
                       )}
                       {...(c.currency ? { currency: c.currency } : {})}

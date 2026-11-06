@@ -58,6 +58,8 @@ export interface LineTransactions {
   readonly laborRows: readonly LineLaborPerson[] | null;
   readonly laborActualMinor: number;
   readonly laborUnpricedMinutes: number;
+  /** Postings in another currency than the budget's: counted, never summed into Actual. */
+  readonly laborOtherCurrencyCount: number;
   readonly committed: readonly LinePoLine[] | null;
   readonly committedMinor: number | null;
   readonly invoices: readonly LineVendorInvoice[] | null;
@@ -88,6 +90,46 @@ export interface LineTransactionAccess {
   readonly invoices: boolean;
 }
 
+const SECTION_CAPABILITIES = [
+  "finance.expense.read",
+  "crew.timesheet.read",
+  "procurement.po.read",
+  "finance.invoice.read",
+];
+
+/**
+ * Which sections a line opens for the viewer and the currency it is counted in, asked of the line's
+ * own project: a capability held only on another project must read as withheld here, not as an empty
+ * list with a zero subtotal. Null when the viewer cannot read the line.
+ */
+export async function lineTransactionScope(
+  db: XosClient,
+  lineId: string,
+): Promise<Result<{ access: LineTransactionAccess; currency: string } | null>> {
+  const { data: line, error } = await db
+    .from("budget_line_prices")
+    .select("project_id, currency_code")
+    .eq("budget_line_id", lineId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!line) return ok(null);
+  const { data: held, error: heldError } = await db.rpc("my_capabilities_on_project", {
+    p_project_id: str(line.project_id),
+    p_capabilities: SECTION_CAPABILITIES,
+  });
+  if (heldError) return fail(toDataError(heldError));
+  const caps = new Set<string>((held ?? []) as string[]);
+  return ok({
+    access: {
+      expenses: caps.has("finance.expense.read"),
+      labor: caps.has("crew.timesheet.read"),
+      purchaseOrders: caps.has("procurement.po.read"),
+      invoices: caps.has("finance.invoice.read"),
+    },
+    currency: str(line.currency_code),
+  });
+}
+
 /** Sums priced amounts, or null by the silence rule when any amount is unknown. */
 function subtotal(amounts: readonly (number | null)[]): number | null {
   let total = 0;
@@ -113,7 +155,7 @@ export async function getBudgetLineTransactions(
     section(
       db
         .from("budget_line_amounts")
-        .select("labor_actual_minor, labor_unpriced_minutes")
+        .select("labor_actual_minor, labor_unpriced_minutes, labor_other_currency_count")
         .eq("budget_line_id", lineId),
       (r) => r,
     ),
@@ -259,6 +301,7 @@ export async function getBudgetLineTransactions(
     laborRows: labor ? labor.data : null,
     laborActualMinor: num(head["labor_actual_minor"]),
     laborUnpricedMinutes: num(head["labor_unpriced_minutes"]),
+    laborOtherCurrencyCount: num(head["labor_other_currency_count"]),
     committed,
     committedMinor: committed ? subtotal(committed.map((c) => c.amountMinor)) : null,
     invoices: vendorInvoices,

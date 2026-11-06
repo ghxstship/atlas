@@ -85,18 +85,18 @@ export async function restoreBudgetVersionAction(org: string, id: string): Promi
 export async function loadLineTransactionsAction(
   org: string,
   lineId: string,
-  access: transactions.LineTransactionAccess,
-  currency: string,
 ): Promise<{ ok: true; transactions: transactions.LineTransactions } | { ok: false }> {
   const ctx = await contextOf(org);
   const id = z.uuid().safeParse(lineId);
   if (!id.success) return { ok: false };
+  const scope = await transactions.lineTransactionScope(ctx.viewer.db, id.data);
+  if (!scope.ok || scope.data === null) return { ok: false };
   // The flags only choose which sections to read; row level security still decides every row.
   const result = await transactions.getBudgetLineTransactions(
     ctx.viewer.db,
     id.data,
-    access,
-    currency,
+    scope.data.access,
+    scope.data.currency,
   );
   return result.ok ? { ok: true, transactions: result.data } : { ok: false };
 }
@@ -141,10 +141,30 @@ export async function saveQuoteDraftAction(_: ActionState, form: FormData): Prom
   const ctx = await contextOf(form.get("org"));
   const versionId = z.uuid().safeParse(form.get("versionId"));
   if (!versionId.success) return { error: { kind: "not-found" } };
+  const quoteId = z.uuid().safeParse(form.get("quoteId"));
+  if (!quoteId.success) return { error: { kind: "not-found" } };
+  const title = z.string().trim().min(1).max(200).safeParse(form.get("title"));
+  if (!title.success) return inputError("title");
+  // The field is absent once a version was sent: the engagement is fixed then.
+  const engagementText = form.get("engagementId");
+  if (
+    typeof engagementText === "string" &&
+    engagementText !== "" &&
+    !z.uuid().safeParse(engagementText).success
+  ) {
+    return inputError("engagementId");
+  }
   const validUntil = isoDate.safeParse(form.get("validUntil"));
   if (!validUntil.success) return inputError("validUntil");
   const termsText = String(form.get("terms") ?? "").trim();
   if (termsText.length > 4000) return inputError("terms");
+  const saved = await quotes.updateQuote(ctx.viewer.db, quoteId.data, {
+    title: title.data,
+    ...(typeof engagementText === "string"
+      ? { engagementId: engagementText === "" ? null : engagementText }
+      : {}),
+  });
+  if (!saved.ok) return finish(ctx, saved);
   return finish(
     ctx,
     await quotes.updateQuoteDraft(ctx.viewer.db, versionId.data, {
@@ -231,10 +251,11 @@ async function issueLink(
   ctx: OrgContext,
   documentId: string,
   email: string,
-  validUntil: string,
-  timeZone: string,
 ): Promise<Pick<QuoteSendState, "link" | "linkFailed" | "noLinkTime">> {
-  const hours = quotes.signingLinkHours(validUntil, timeZone);
+  // A link never outlives valid until: the window comes from the database, not from the form.
+  const window = await quotes.quoteLinkWindow(ctx.viewer.db, { documentId });
+  if (!window.ok) return { linkFailed: true };
+  const hours = quotes.signingLinkHours(window.data.validUntil, window.data.timeZone);
   if (hours < 1) return { noLinkTime: true };
   const { data, error } = await ctx.viewer.db.rpc("issue_engagement_document_token", {
     p_document_id: documentId,
@@ -258,8 +279,6 @@ async function issueLink(
 const SendInput = z.object({
   org: z.string(),
   versionId: z.uuid(),
-  validUntil: isoDate,
-  timeZone: z.string().min(1),
   reason: z.string().trim().max(500),
   email: z.union([z.literal(""), z.email().max(320)]),
 });
@@ -286,15 +305,13 @@ export async function sendQuoteAction(_: QuoteSendState, form: FormData): Promis
   const link =
     v.email === ""
       ? {}
-      : await issueLink(ctx, sent.data.engagementDocumentId, v.email, v.validUntil, v.timeZone);
+      : await issueLink(ctx, sent.data.engagementDocumentId, v.email);
   return { ok: true, at: Date.now(), ...link };
 }
 
 const LinkInput = z.object({
   org: z.string(),
   documentId: z.uuid(),
-  validUntil: isoDate,
-  timeZone: z.string().min(1),
   email: z.email().max(320),
 });
 
@@ -311,6 +328,6 @@ export async function quoteSigningLinkAction(
   return {
     ok: true,
     at: Date.now(),
-    ...(await issueLink(ctx, v.documentId, v.email, v.validUntil, v.timeZone)),
+    ...(await issueLink(ctx, v.documentId, v.email)),
   };
 }

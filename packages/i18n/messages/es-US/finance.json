@@ -481,7 +481,8 @@
       "clientTotal": "Total al cliente",
       "margin": "Margen",
       "efc": "Costo final estimado",
-      "forwardExposure": "Exposición pendiente"
+      "forwardExposure": "Exposición pendiente",
+      "efcUnallocated": "Incluye {amount} de cambios aprobados sin línea de presupuesto."
     },
     "grade": "Categoría de precio",
     "gridErrors": {
@@ -594,7 +595,8 @@
         "lineType": "Tipo",
         "urid": "URID",
         "markup": "Recargo",
-        "clientPrice": "Precio al cliente"
+        "clientPrice": "Precio al cliente",
+        "onQuote": "En la cotización"
       }
     },
     "transactions": {
@@ -612,8 +614,15 @@
         "OwnTeam": "Equipo propio",
         "Agency": "Agencia",
         "Engaged": "Persona contratada"
-      }
-    }
+      },
+      "segments": {
+        "Regular": "Normal",
+        "Overtime": "Horas extra",
+        "DoubleTime": "Horas dobles"
+      },
+      "hours": "{hours} h"
+    },
+    "laborOtherCurrency": "{count} {count, plural, one {registro de mano de obra} other {registros de mano de obra}} en otra moneda se cuentan aquí y quedan fuera de Real."
   },
   "expenses": {
     "create": "Gasto nuevo",
@@ -960,7 +969,8 @@
       "client": "Cliente",
       "version": "Versión",
       "sent": "Enviada",
-      "accepted": "Aceptada"
+      "accepted": "Aceptada",
+      "pdf": "PDF"
     },
     "actions": {
       "send": "Enviar cotización",
@@ -1007,6 +1017,7 @@
       "sentTitle": "Cotización enviada",
       "noLinkTime": "Queda menos de una hora de Válida hasta, así que no se emitió un enlace. El cliente firma en la pestaña Documentos de Gateway.",
       "linkFailed": "La cotización se envió, pero no se emitió el enlace de firma. Cierra esto y elige Enlace de firma para intentarlo de nuevo."
-    }
+    },
+    "draftLines": "Líneas del borrador v{version}"
   }
 }

@@ -54,6 +54,7 @@ function lookups(writes: Row[]): TargetLookups {
     uridXyz: async () => null,
     costCenterId: async () => null,
     budgetDestination: async () => null,
+    budgetLineTag: async () => null,
     elementExists: async (id) => id === "0000.01.01-XOS-001",
     assetClassId: async (_o, v) => (v === "Truss" ? "ac1" : null),
     venueId: async (_o, v) => (v === "Pier 9" ? "v9" : null),
