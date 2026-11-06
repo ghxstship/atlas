@@ -651,6 +651,7 @@
       "matched": "Coincide",
       "add": "{count, plural, one {Agregar # línea} other {Agregar # líneas}}",
       "cancel": "Cancelar"
-    }
+    },
+    "rfqLine": "{title}: {state}"
   }
 }

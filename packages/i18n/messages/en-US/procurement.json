@@ -651,6 +651,7 @@
       "matched": "Matched",
       "add": "{count, plural, one {Add # line} other {Add # lines}}",
       "cancel": "Cancel"
-    }
+    },
+    "rfqLine": "{title}: {state}"
   }
 }

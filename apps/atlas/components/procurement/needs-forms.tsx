@@ -36,12 +36,17 @@ export function ConsolidateForm({
   const [picked, setPicked] = useState<string[]>([]);
   const [need, setNeed] = useState("");
   const [state, formAction, pending] = useActionState(consolidateAction, INITIAL);
-  useEffect(() => {
+  // A saved consolidation clears the picks while rendering, and the refresh is the effect.
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) {
+    setSeen(state);
     if (state.ok) {
       setPicked([]);
       setNeed("");
-      router.refresh();
     }
+  }
+  useEffect(() => {
+    if (state.ok) router.refresh();
   }, [state, router]);
   return (
     <form
@@ -94,11 +99,13 @@ export function LinkOrderLinesForm({
   const router = useRouter();
   const [picked, setPicked] = useState<string[]>([]);
   const [state, formAction, pending] = useActionState(linkOrderLinesAction, INITIAL);
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) {
+    setSeen(state);
+    if (state.ok) setPicked([]);
+  }
   useEffect(() => {
-    if (state.ok) {
-      setPicked([]);
-      router.refresh();
-    }
+    if (state.ok) router.refresh();
   }, [state, router]);
   return (
     <form

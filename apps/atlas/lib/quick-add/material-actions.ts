@@ -64,7 +64,7 @@ export async function addMaterialLinesAction(_: ActionState, form: FormData): Pr
   const ctx = await actionContext(form);
   const kind = form.get("targetKind");
   const id = z.uuid().safeParse(form.get("targetId"));
-  let raw: unknown = null;
+  let raw: unknown;
   try {
     raw = JSON.parse(String(form.get("lines") ?? "null"));
   } catch {

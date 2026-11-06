@@ -555,7 +555,7 @@ async function NeedPeek({
                       href={`/${ctx.org.slug}/procurement/rfqs?peek=${l.rfqId}&full=1`}
                       size="sm"
                     >
-                      {`${l.title}: ${t(`rfqStates.${l.state}`)}`}
+                      {t("needs.rfqLine", { title: l.title, state: t(`rfqStates.${l.state}`) })}
                     </KitLink>
                   </li>
                 ))}
