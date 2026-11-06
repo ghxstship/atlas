@@ -202,6 +202,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0145](0145-change-tracking.md)                                                 | Change Tracking Is Computed From the Ledger Against One Instant per Person            | Accepted |
 | [0146](0146-day-sheets-books-feeds-and-wrap-up.md)                              | Day Sheets by Audience, Books, Named Calendar Feeds and the Wrap-up Report            | Proposed |
 | [0147][adr-0147]                                                                | Gate Scanning, Accreditation Checks, Guest Passes and the Weather Feed                | Proposed |
+| [0148](0148-crew-coverage-positions-and-scheduling-policy.md)       | Crew Coverage, Project Positions and Scheduling Policy                           | Accepted |
 | [0153](0153-event-types-setup-completeness-and-project-copy.md)                 | Event Types, Setup Completeness and Copying a Past Project                            | Accepted |
 | [0154](0154-aurora-intake-recorded-answers-restricted-fees-open-suggestions.md) | Aurora Intake: Answers Recorded for a Recipient, Restricted Fees and Open Suggestions | Proposed |
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)                    | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place      | Proposed |

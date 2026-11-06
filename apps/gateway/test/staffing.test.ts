@@ -64,11 +64,13 @@ describe("roster-staff tab set", () => {
     expect(onRoster({ roleType: "staff" })).toBe(false);
   });
 
-  it("shows training, shifts and timesheets, and never the party's tabs", () => {
+  it("shows training, positions, shifts and timesheets, and never the party's crew or invoices tabs", () => {
     const tabs = visibleEngagementTabs(sitemap, nav, "roster-staff", [], []);
     expect(tabs).toEqual([
       "engagement.overview",
       "engagement.training",
+      // B9 (ADR 0148, ADR 0100 amendment): where the holder of a project position reads its records.
+      "engagement.positions",
       "engagement.shifts",
       "engagement.timesheets",
       "engagement.credentials",
@@ -77,7 +79,6 @@ describe("roster-staff tab set", () => {
     ]);
     const managed = visibleEngagementTabs(sitemap, nav, "roster-staff", [], ["roster-manager"]);
     expect(managed).not.toContain("engagement.crew");
-    expect(managed).not.toContain("engagement.positions");
     expect(managed).not.toContain("engagement.invoices");
   });
 });
@@ -92,6 +93,15 @@ describe("placement refusals", () => {
     "roster_shift_closed",
     "roster_entry_not_working",
     "sod_roster_training",
+    // B9: a lead's no-show and the "Still coming?" answer say what happened too.
+    "shift_no_show_self",
+    "shift_no_show_state",
+    "shift_no_show_clocked_in",
+    "shift_no_show_reason",
+    "shift_no_show_frozen",
+    "no_show_id_conflict",
+    "shift_held_for_position",
+    "shift_reconfirm_answered",
   ];
   it("are known refusals with copy in both locales", () => {
     for (const rule of rules) {
@@ -108,6 +118,11 @@ describe("placement refusals", () => {
       "assignTitle",
       "person",
       "personHint",
+      // B9: the lead marks a no-show, one field too.
+      "noShow",
+      "noShowDone",
+      "noShowTitle",
+      "noShowReason",
     ]);
   });
 });

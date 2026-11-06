@@ -44,6 +44,7 @@ executionOrder:
     - crew-external-today
     - roster-member-today
     - clock-team
+    - b9-no-show
     - crew-external-work
     - itinerary-changes
     - project-details

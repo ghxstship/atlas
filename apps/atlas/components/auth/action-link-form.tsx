@@ -36,10 +36,13 @@ export function ActionLinkForm({
   token,
   action,
   inboxHref,
+  confirmKey,
 }: {
   token: string;
   action: LinkAction;
   inboxHref: string;
+  /** The button's wording when the kind says what accepting means ("Confirm you're coming", B9). */
+  confirmKey?: string;
 }) {
   const t = useSecurityCopy();
   const [state, confirm, pending] = useActionState<ActionLinkState, FormData>(
@@ -86,7 +89,7 @@ export function ActionLinkForm({
             variant={action === "reject" ? "danger" : "primary"}
             loading={pending}
           >
-            {t(`actionLink.confirm.${action}`)}
+            {t(`actionLink.confirm.${confirmKey ?? action}`)}
           </Button>
           <Link href={inboxHref as Route} className="text-text-14 text-accent-text underline">
             {t("actionLink.openInbox")}

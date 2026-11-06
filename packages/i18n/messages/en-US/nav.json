@@ -127,7 +127,9 @@
         "payPeriods": "Pay Periods",
         "payrollExports": "Payroll Exports",
         "timeOff": "Time Off",
-        "perDiems": "Per Diems"
+        "perDiems": "Per Diems",
+        "shortages": "Shortages",
+        "positions": "Positions"
       },
       "finance": {
         "budgets": "Budgets",

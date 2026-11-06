@@ -1,9 +1,18 @@
-import type { RosterShiftCandidate, ShiftCandidate, StatedAvailability } from "@xos/data/crew";
+import type {
+  PolicyWarning,
+  RosterShiftCandidate,
+  ShiftCandidate,
+  StatedAvailability,
+} from "@xos/data/crew";
 
 /** One person on the schedule's drag list: an org member, or a person of an agency's roster on the project (R12). */
-export type BoardCandidate =
+export type BoardCandidate = (
   | (ShiftCandidate & { readonly kind: "member" })
-  | (RosterShiftCandidate & { readonly kind: "staff" });
+  | (RosterShiftCandidate & { readonly kind: "staff" })
+) & {
+  /** The org's scheduling warnings if they took the shift (B9), which ask before assigning and never refuse. */
+  readonly warnings?: readonly PolicyWarning[];
+};
 
 const AVAILABILITY_ORDER: readonly StatedAvailability[] = [
   "Available",
@@ -15,6 +24,14 @@ const AVAILABILITY_ORDER: readonly StatedAvailability[] = [
 /** The key that names a candidate on the board, unique across members and agency staff. */
 export function candidateKey(c: BoardCandidate): string {
   return c.kind === "member" ? `m:${c.membershipId}` : `r:${c.rosterEntryId}`;
+}
+
+/** The candidates with their warnings, kept in their ranked order. */
+export function withWarnings(
+  candidates: readonly BoardCandidate[],
+  warnings: ReadonlyMap<string, readonly PolicyWarning[]>,
+): BoardCandidate[] {
+  return candidates.map((c) => ({ ...c, warnings: warnings.get(c.personId) ?? [] }));
 }
 
 /**

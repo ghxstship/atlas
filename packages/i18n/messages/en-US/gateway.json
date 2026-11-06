@@ -42,6 +42,14 @@
       "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
       "notification_action_invalid": "This link does not work. Open the item from Home.",
       "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
+      "shift_no_show_self": "You cannot mark yourself as a no-show. Tell the production.",
+      "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
+      "shift_no_show_clocked_in": "This person clocked in on the shift, so they are not a no-show.",
+      "shift_no_show_reason": "Say what happened, so the production knows.",
+      "shift_no_show_frozen": "This shift has a no-show. The production withdraws it before anyone else takes the shift.",
+      "no_show_id_conflict": "This no-show was already recorded for another shift. Reload the page and try again.",
+      "shift_held_for_position": "This shift is held for a position another team fills. Choose a shift on your own slots.",
+      "shift_reconfirm_answered": "This shift has already started or your answer is already in, so there is nothing more to answer.",
       "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
@@ -289,7 +297,9 @@
       "accept": "Accept shift"
     },
     "positions": {
-      "empty": "No positions assigned yet. They follow once training is done."
+      "empty": "No positions assigned yet. They follow once training is done.",
+      "records": "Records of {position}",
+      "due": "Due {date}"
     },
     "timesheets": {
       "empty": "No timesheets yet. Your clocked shifts collect into timesheets here.",
@@ -561,7 +571,9 @@
         "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
         "title": "Say what the asset is, in up to 200 characters.",
         "guestEmail": "Enter one email address, or leave it empty.",
-        "rosterAssignee": "Choose who to place on the shift."
+        "rosterAssignee": "Choose who to place on the shift.",
+        "noShowReason": "Say what happened, in up to 500 characters.",
+        "stillComing": "Open the shift from your notifications and try again."
       },
       "advance": {
         "answer": "Your answer",
@@ -773,7 +785,11 @@
         "assigned": "Assigned.",
         "assignTitle": "Assign someone from your roster",
         "person": "Person",
-        "personHint": "Choose someone from your roster"
+        "personHint": "Choose someone from your roster",
+        "noShow": "Mark no-show",
+        "noShowDone": "No-show recorded.",
+        "noShowTitle": "Mark this person as a no-show",
+        "noShowReason": "What happened"
       }
     },
     "settlement": {
@@ -976,7 +992,8 @@
       "overlaps": "overlaps another shift",
       "trainingEmpty": "No training is due before your first shift.",
       "awaitingVerification": "Waiting for verification",
-      "acknowledge": "I have read and acknowledge this"
+      "acknowledge": "I have read and acknowledge this",
+      "noShowTag": "No-show"
     }
   },
   "enums": {
@@ -1692,7 +1709,13 @@
       "representationAction": "Accept",
       "interview": "Interview for {title}",
       "rate": "Rate your work with {org}",
-      "rateAction": "Rate"
+      "rateAction": "Rate",
+      "stillComing": "Still coming to {title}?",
+      "stillComingYes": "I'm coming",
+      "stillComingNo": "Can't make it",
+      "stillComingReason": "Reason (optional)",
+      "stillComingDeclined": "Thanks for letting us know.",
+      "stillComingConfirmed": "You're confirmed. Thanks for letting us know."
     },
     "fyi": {
       "title": "For your information",
@@ -1715,7 +1738,8 @@
         "rosterFactsRequested": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
         "credentialRevoked": "Your {title} credential for {projectName} was revoked",
         "other": "{title}",
-        "untitled": "New update"
+        "untitled": "New update",
+        "shiftNoShow": "Marked as a no-show: {title}"
       }
     },
     "recommended": {
@@ -2524,6 +2548,7 @@
         "approve": "Approve {title}?",
         "reject": "Reject {title}?",
         "accept": "Accept {title}?",
+        "confirmComing": "Are you still coming to {title}?",
         "rosterAccept": "Accept your place on this crew?"
       },
       "untitled": "this item",
@@ -2532,7 +2557,8 @@
       "confirm": {
         "approve": "Approve",
         "reject": "Reject",
-        "accept": "Accept"
+        "accept": "Accept",
+        "confirmComing": "Confirm you're coming"
       },
       "reason": "Why are you rejecting it?",
       "done": {

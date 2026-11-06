@@ -236,6 +236,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     projectKey: "NWS",
   },
   "credential.revoked": { title: "All Access", projectName: "Northwind Summer Series" },
+  "shift.reconfirm": { title: "Stagehand", startsAt: "2026-11-03T14:00:00Z" },
+  "shift.reconfirm_declined": {
+    title: "Stagehand",
+    startsAt: "2026-11-03T14:00:00Z",
+    workerName: "Dana Lee",
+    named: "yes",
+    reopened: "yes",
+  },
+  "shift.no_show": { title: "Stagehand", startsAt: "2026-11-03T14:00:00Z" },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   // P8 (6123): the poll's project and days.

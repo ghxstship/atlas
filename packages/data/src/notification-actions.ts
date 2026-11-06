@@ -358,3 +358,68 @@ export async function listForYourInformation(
     })),
   );
 }
+
+/** A "Still coming?" ask (B9, ADR 0148): Gateway Home shows it in Needs You, answered through notifications act. */
+export interface StillComingItem {
+  readonly id: string;
+  readonly orgId: string;
+  readonly shiftId: string;
+  readonly createdAt: string;
+  readonly args: Readonly<Record<string, string>>;
+}
+
+/**
+ * The signed-in person's live shift.reconfirm notifications still waiting on their answer: among
+ * app.my_notifications_awaiting_answer, so one whose shift started or whose ask ended is gone.
+ */
+export async function listStillComing(
+  db: XosClient,
+  limit = 20,
+): Promise<Result<StillComingItem[]>> {
+  const awaiting = await rpc(db, "my_notifications_awaiting_answer", {}, (data) =>
+    (Array.isArray(data) ? data : [])
+      .map((v) => (typeof v === "string" ? v : str((v as Raw)["my_notifications_awaiting_answer"])))
+      .filter((v) => UUID.test(v)),
+  );
+  if (!awaiting.ok) return awaiting;
+  if (awaiting.data.length === 0) return ok([]);
+  const result = await rows(
+    untyped(db)
+      .from("notifications")
+      .select("id, org_id, created_at, message_args, subject_id")
+      .eq("kind", "shift.reconfirm")
+      .in("id", awaiting.data)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(limit),
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.map((r) => ({
+      id: str(r["id"]),
+      orgId: str(r["org_id"]),
+      shiftId: str(r["subject_id"]),
+      createdAt: str(r["created_at"]),
+      args: stringArgs(r["message_args"]),
+    })),
+  );
+}
+
+/** Answers "Still coming?" where the notification arrived (app.act_on_notification), which retires it. */
+export function answerStillComing(
+  db: XosClient,
+  notificationId: string,
+  coming: boolean,
+  comment?: string | null,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "act_on_notification",
+    {
+      p_notification_id: notificationId,
+      p_action: coming ? "accept" : "decline",
+      p_comment: comment ?? null,
+    },
+    str,
+  );
+}

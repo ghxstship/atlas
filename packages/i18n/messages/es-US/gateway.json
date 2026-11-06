@@ -42,6 +42,14 @@
       "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
       "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
       "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
+      "shift_no_show_self": "No puedes marcarte como ausente. Avísale a la producción.",
+      "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
+      "shift_no_show_clocked_in": "Esta persona registró su entrada en el turno, así que no está ausente.",
+      "shift_no_show_reason": "Indica qué pasó, para que la producción lo sepa.",
+      "shift_no_show_frozen": "Este turno tiene una ausencia. La producción debe retirarla antes de que otra persona tome el turno.",
+      "no_show_id_conflict": "Esta ausencia ya se registró para otro turno. Vuelve a cargar la página e inténtalo de nuevo.",
+      "shift_held_for_position": "Este turno está reservado para un puesto que cubre otro equipo. Elige un turno de tus propios espacios.",
+      "shift_reconfirm_answered": "Este turno ya empezó o ya respondiste, así que no hay nada más que contestar.",
       "notification_action_reason": "Di por qué lo rechazas.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
@@ -289,7 +297,9 @@
       "accept": "Aceptar turno"
     },
     "positions": {
-      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación."
+      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación.",
+      "records": "Registros de {position}",
+      "due": "Vence el {date}"
     },
     "timesheets": {
       "empty": "Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.",
@@ -561,7 +571,9 @@
         "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
         "title": "Di qué es el recurso, en hasta 200 caracteres.",
         "guestEmail": "Escribe una dirección de correo, o déjala vacía.",
-        "rosterAssignee": "Elige a quién asignar al turno."
+        "rosterAssignee": "Elige a quién asignar al turno.",
+        "noShowReason": "Indica qué pasó, en hasta 500 caracteres.",
+        "stillComing": "Abre el turno desde tus notificaciones y vuelve a intentarlo."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -773,7 +785,11 @@
         "assigned": "Asignado.",
         "assignTitle": "Asigna a alguien de tu equipo",
         "person": "Persona",
-        "personHint": "Elige a alguien de tu equipo"
+        "personHint": "Elige a alguien de tu equipo",
+        "noShow": "Marcar ausencia",
+        "noShowDone": "Ausencia registrada.",
+        "noShowTitle": "Marcar a esta persona como ausente",
+        "noShowReason": "Qué pasó"
       }
     },
     "settlement": {
@@ -976,7 +992,8 @@
       "overlaps": "se superpone con otro turno",
       "trainingEmpty": "No tienes formación pendiente antes de tu primer turno.",
       "awaitingVerification": "Pendiente de verificación",
-      "acknowledge": "Lo he leído y lo confirmo"
+      "acknowledge": "Lo he leído y lo confirmo",
+      "noShowTag": "Ausencia"
     }
   },
   "enums": {
@@ -1692,7 +1709,13 @@
       "representationAction": "Aceptar",
       "interview": "Entrevista para {title}",
       "rate": "Califica tu trabajo con {org}",
-      "rateAction": "Calificar"
+      "rateAction": "Calificar",
+      "stillComing": "¿Sigues yendo a {title}?",
+      "stillComingYes": "Voy a ir",
+      "stillComingNo": "No puedo ir",
+      "stillComingReason": "Motivo (opcional)",
+      "stillComingDeclined": "Gracias por avisar.",
+      "stillComingConfirmed": "Quedaste confirmado. Gracias por avisar."
     },
     "fyi": {
       "title": "Para tu información",
@@ -1715,7 +1738,8 @@
         "rosterFactsRequested": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
         "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
-        "untitled": "Novedad"
+        "untitled": "Novedad",
+        "shiftNoShow": "Marcado como ausente: {title}"
       }
     },
     "recommended": {
@@ -2524,6 +2548,7 @@
         "approve": "¿Aprobar {title}?",
         "reject": "¿Rechazar {title}?",
         "accept": "¿Aceptar {title}?",
+        "confirmComing": "¿Sigues yendo a {title}?",
         "rosterAccept": "¿Aceptas tu lugar en este equipo?"
       },
       "untitled": "este elemento",
@@ -2532,7 +2557,8 @@
       "confirm": {
         "approve": "Aprobar",
         "reject": "Rechazar",
-        "accept": "Aceptar"
+        "accept": "Aceptar",
+        "confirmComing": "Confirma que vas"
       },
       "reason": "¿Por qué lo rechazas?",
       "done": {

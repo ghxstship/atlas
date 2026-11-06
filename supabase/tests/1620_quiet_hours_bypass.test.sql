@@ -42,7 +42,7 @@ values (pg_temp.id('dave@org_a'), 'ExponentPushToken[cccccccccccccccccccc]', 'io
 select pg_temp.as_platform();
 
 select set_eq($$select kind, starts_within from private.notification_quiet_hours_bypass$$,
-  $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('incident.reported', null::interval),
+  $$values ('shift.assigned', interval '12 hours'), ('shift.changed', interval '12 hours'), ('shift.reconfirm', interval '12 hours'), ('incident.reported', null::interval),
     ('occupancy.threshold', null::interval), ('weather.alert', null::interval), ('account.security_changed', null::interval),
     ('account.recovery_code_used', null::interval), ('access.break_glass_started', null::interval),
     ('weather.warning', null::interval), ('weather.hold', null::interval), ('weather.all_clear', null::interval)$$,

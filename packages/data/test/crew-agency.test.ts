@@ -166,6 +166,7 @@ describe("agency shifts (R12)", () => {
       "membership_id",
       "engagement_id",
       "roster_entry_id",
+      "project_position_id",
     ]);
   });
 

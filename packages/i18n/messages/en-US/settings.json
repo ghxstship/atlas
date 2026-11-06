@@ -375,6 +375,34 @@
       "label": "Requests beyond the allowance",
       "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
     },
+    "reconfirmShifts": {
+      "label": "Ask crew if they are still coming",
+      "help": "Before a shift starts, ask its worker once whether they are still coming. Off until you turn it on."
+    },
+    "reconfirmLeadHours": {
+      "label": "Hours before a shift to ask",
+      "help": "How long before the shift starts the question goes out, from 2 to 72 hours."
+    },
+    "reconfirmReopen": {
+      "label": "Reopen a shift when someone can't make it",
+      "help": "When on, the shift goes back to open shifts, or to its agency's slot. When off, the worker stays on it and it shows on Crew, Shortages."
+    },
+    "swapReasonRequired": {
+      "label": "Require a reason for a shift swap",
+      "help": "Crew say why when they ask to hand over a shift."
+    },
+    "minRestHours": {
+      "label": "Minimum rest between shifts (hours)",
+      "help": "An organization scheduling warning shown before someone is assigned, never a refusal, pay rule or state overtime rule. 0 turns it off."
+    },
+    "maxDailyHours": {
+      "label": "Maximum scheduled hours in a day",
+      "help": "An organization scheduling warning shown before someone is assigned, never a pay or state overtime rule. It counts scheduled shift minutes and differs from the workload threshold. 0 turns it off."
+    },
+    "maxWeeklyHours": {
+      "label": "Maximum scheduled hours in a week",
+      "help": "An organization scheduling warning shown before someone is assigned, never a pay or state overtime rule. The week starts on your payroll week start. 0 turns it off."
+    },
     "advancingReminders": {
       "label": "Send advance reminders",
       "help": "Remind the people answering an advance packet before it is due and while it is overdue. Reminders reach the person, the company's Owners and Admins and its assigned Advancing Leads."

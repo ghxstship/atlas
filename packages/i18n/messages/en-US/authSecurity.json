@@ -273,7 +273,8 @@
     "heading": {
       "approve": "Approve {title}?",
       "reject": "Reject {title}?",
-      "accept": "Accept {title}?"
+      "accept": "Accept {title}?",
+      "confirmComing": "Are you still coming to {title}?"
     },
     "untitled": "this item",
     "org": "From {org}. Nothing happens until you confirm.",
@@ -281,7 +282,8 @@
     "confirm": {
       "approve": "Approve",
       "reject": "Reject",
-      "accept": "Accept"
+      "accept": "Accept",
+      "confirmComing": "Confirm you're coming"
     },
     "reason": "Why are you rejecting it?",
     "reasonHelp": "The person who asked sees your reason.",

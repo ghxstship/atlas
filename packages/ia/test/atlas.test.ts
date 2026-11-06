@@ -125,6 +125,8 @@ describe("atlas sitemap", () => {
       "Schedule",
       "Shifts",
       "Swaps",
+      "Shortages",
+      "Positions",
       "Time Entries",
       "Timesheets",
       "Rate Cards",

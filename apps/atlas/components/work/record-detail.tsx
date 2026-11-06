@@ -74,6 +74,7 @@ import { AnchorPin } from "@/components/schedule/anchor-pin";
 import { RecordReview } from "./record-review";
 import { FileReviewControls } from "@/components/files/file-review";
 import { listVersionReviews, type VersionReview } from "@xos/data/attachments";
+import { RecordPositionButton } from "./record-position-button";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -498,6 +499,9 @@ export async function RecordBody({
           />
         )}
       </RegionContent>
+      {detail.canWrite && !record.deletedAt ? (
+        <RecordPositionButton org={org} recordId={record.id} projectId={record.projectId} />
+      ) : null}
       {record.deletedAt ? null : (
         <RegionContent data={detail.watchId}>
           {(watchId) => <WatchButton org={org} recordId={record.id} watchId={watchId} />}

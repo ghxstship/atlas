@@ -41,6 +41,8 @@ export function pushCategoryFor(
     messageArgs["shiftState"] === "Published"
   )
     return SHIFT_OFFER_CATEGORY;
+  // "Still coming?" (B9, ADR 0148): answered from the lock screen.
+  if (kind === "shift.reconfirm") return "shift_reconfirm";
   if (kind === "offer.sent" || kind === "roster_entry.invited") return ENGAGEMENT_OFFER_CATEGORY;
   if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
   return null;

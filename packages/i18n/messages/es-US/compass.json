@@ -165,6 +165,8 @@
       "roster_entries": "entradas de lista",
       "advance_allocations": "artículos asignados a ti",
       "parking_passes": "pases de estacionamiento",
+      "shift_no_shows": "ausencias",
+      "break_types": "tipos de descanso",
       "itinerary_changes": "cambios del itinerario",
       "my_transfers": "Traslados que conduzco",
       "local_contacts": "Contactos locales"
@@ -282,6 +284,7 @@
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
       "expenseReceipt": "Gasto: {description}, {day}",
+      "noShow": "Marcar a un miembro del equipo como ausente",
       "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
       "accessExit": "Escaneo de salida a las {time}",
       "accessExitZone": "Escaneo de salida en {zone}, {time}",
@@ -441,7 +444,11 @@
     },
     "shortcut": {
       "clockedIn": "Entrada registrada en {project}. Descanso y Salida están en su pantalla de bloqueo."
-    }
+    },
+    "breakTypeTitle": "¿Qué descanso?",
+    "breakTypeCancel": "Cancelar",
+    "breakTypePaid": "{name} (pagado)",
+    "breakTypeUnpaid": "{name} (sin pagar)"
   },
   "schedule": {
     "title": "Agenda",
@@ -743,7 +750,15 @@
     "boardEmpty": "Nadie ha marcado entrada en este proyecto todavía.",
     "late": "Tarde",
     "approvalsEmpty": "No hay hojas de horas por aprobar.",
-    "coverageEmpty": "Todos los turnos de hoy están cubiertos."
+    "coverageEmpty": "Todos los turnos de hoy están cubiertos.",
+    "noShow": {
+      "mark": "Marcar ausencia",
+      "title": "Marcar a {name} como ausente",
+      "cancel": "Cancelar",
+      "submit": "Marcar ausencia",
+      "reason": "Qué pasó",
+      "reasonHelp": "Lo leen la persona y quienes planifican los turnos. Espera en este dispositivo si no tienes conexión."
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -1039,7 +1054,11 @@
     "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
     "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
     "offerDeclined": "Oferta rechazada.",
-    "replied": "Respuesta enviada."
+    "replied": "Respuesta enviada.",
+    "coming": "Voy a ir",
+    "notComing": "No puedo ir",
+    "reconfirmComing": "Confirmado. Nos vemos allí.",
+    "reconfirmNotComing": "Ya se le avisó a quien planifica."
   },
   "help": {
     "title": "Ayuda",

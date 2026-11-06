@@ -60,7 +60,7 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
 | artist-representative, Advance scope | advance, crew, project-details, rider, set-times, hospitality, guest-list, credentials                                                     |
 | sponsor                              | overview, entitlements, asset-approvals, activation-schedule, advance, crew, proof-of-performance, invoices, documents, messages           |
 | roster-member (new)                  | overview, project-details, credentials, travel-and-lodging, per-diem, documents, messages                                                  |
-| roster-staff (new)                   | overview, project-details, training, shifts, timesheets, credentials, travel-and-lodging, per-diem, documents, messages                    |
+| roster-staff (new)                   | overview, project-details, training, positions, shifts, timesheets, credentials, travel-and-lodging, per-diem, documents, messages         |
 
 - Client is unchanged.
 - **The representative's Advance scope carries project-details as well.** The validator requires a delegating set to
@@ -69,7 +69,10 @@ opens on `engagement.overview` and carries `engagement.documents` and `engagemen
   principal (ADR 0101), so this grants nothing the roster rules do not already allow.
 - **roster-member** renders when a person reaches an engagement only through an Accepted roster entry (R8).
 - **roster-staff** renders for a person who reaches a Staff company engagement only through a roster entry (R12).
-- Amendment (R12, migrations 2750 to 2756): agency staff work through roster entries, never through engagements of
+- Amendment (B9, migration 6514, ADR 0148): roster-staff also carries positions, after training, because that tab is where
+  the holder of a project position reads its records. It stays apart from the party's own tabs: crew and invoices do not
+  appear in it.
+- Amendment (R12, migrations 4750 to 4756): agency staff work through roster entries, never through engagements of
   their own. An agency slot is a shift whose `engagement_id` is a Staff company engagement (counterparty set, no
   person); `app.assign_roster_shift` places an accepted, trained roster entry on it, after which the shift names
   `roster_entry_id` and no longer the engagement, so a shift names exactly one worker column. Time entries,
@@ -149,13 +152,13 @@ Every package has a Linear issue under P-RRR-1. Blocks are recorded in ADR 0022.
 | R5      | RRR-184 | Project facts                                               | R0, R3, R4                   | none                         | 2650-2659 | 0102       |
 | R6a     | RRR-185 | Profile deprecation, Restricted allergies, Contact          | R0, R4, R5                   | none                         | 2660-2669 | 0102, 0105 |
 | R6b     | RRR-186 | Profile contract, one release after R6a                     | R6a                          | none                         | 2760-2769 | 0102       |
-| R7a     | RRR-183 | Supply bridge                                               | R0, R1                       | A120                         | 2680-2689 | 0104       |
-| R7      | RRR-187 | Allocations, Atlas side                                     | R0, R1, R3, R4, R5, R6a, R7a | A120, A121                   | 2690-2699 | 0103, 0104 |
-| R8      | RRR-188 | Gateway assignment, the roster-member set and Compass Today | R0, R1, R2, R3, R4, R5, R7   | A122                         | 2700-2709 | 0100, 0103 |
+| R7a     | RRR-183 | Supply bridge                                               | R0, R1                       | A120                         | 4680-2689 | 0104       |
+| R7      | RRR-187 | Allocations, Atlas side                                     | R0, R1, R3, R4, R5, R6a, R7a | A120, A121                   | 4690-2699 | 0103, 0104 |
+| R8      | RRR-188 | Gateway assignment, the roster-member set and Compass Today | R0, R1, R2, R3, R4, R5, R7   | A122                         | 4700-2709 | 0100, 0103 |
 | R9      | RRR-189 | Typed sections, uploads, contractor and sponsor Advance     | R0, R3, R4, R7, R8           | A106, A107, A108, A121, A140 | 2710-2729 | 0100       |
 | R10     | RRR-191 | Token parity                                                | R4, R7, R9                   | none                         | 2730-2739 | 0100       |
 | R11     | RRR-192 | Heatmap, reminders and notices                              | R3, R4, R5, R6a, R7, R9      | A123, A127, A131, A146       | 2740-2749 | 0100, 0103 |
-| R12     | RRR-190 | Agency staff on shifts                                      | R0, R4, R7, R8               | A107, A108, A130, A132       | 2750-2759 | 0100, 0101 |
+| R12     | RRR-190 | Agency staff on shifts                                      | R0, R4, R7, R8               | A107, A108, A130, A132       | 4750-2759 | 0100, 0101 |
 
 R7a merges before R7. The open-work packages advancing waits on have issues too: A123 (RRR-168), A127 (RRR-172),
 A131 (RRR-177) and A146 (RRR-178).

@@ -165,6 +165,8 @@
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
       "parking_passes": "parking passes",
+      "shift_no_shows": "no-shows",
+      "break_types": "break types",
       "itinerary_changes": "itinerary changes",
       "my_transfers": "Drives",
       "local_contacts": "Local contacts"
@@ -282,6 +284,7 @@
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
       "expenseReceipt": "Expense: {description}, {day}",
+      "noShow": "Mark a crew member as a no-show",
       "proofPhoto": "Proof of performance photo, {time}",
       "accessExit": "Exit scan at {time}",
       "accessExitZone": "Exit scan at {zone}, {time}",
@@ -441,7 +444,11 @@
     },
     "shortcut": {
       "clockedIn": "Clocked in at {project}. Break and Clock Out are on your lock screen."
-    }
+    },
+    "breakTypeTitle": "Which break?",
+    "breakTypeCancel": "Cancel",
+    "breakTypePaid": "{name} (paid)",
+    "breakTypeUnpaid": "{name} (unpaid)"
   },
   "schedule": {
     "title": "Schedule",
@@ -743,7 +750,15 @@
     "boardEmpty": "No one is clocked in on this project yet.",
     "late": "Late",
     "approvalsEmpty": "No timesheets waiting for approval.",
-    "coverageEmpty": "Every shift today is filled."
+    "coverageEmpty": "Every shift today is filled.",
+    "noShow": {
+      "mark": "Mark no-show",
+      "title": "Mark {name} as a no-show",
+      "cancel": "Cancel",
+      "submit": "Mark no-show",
+      "reason": "What happened",
+      "reasonHelp": "The worker and shift planners read this. It waits on this device if you are offline."
+    }
   },
   "profile": {
     "title": "Profile",
@@ -1039,7 +1054,11 @@
     "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
     "offerAccepted": "Offer accepted. The organization sets up your engagement next.",
     "offerDeclined": "Offer declined.",
-    "replied": "Reply sent."
+    "replied": "Reply sent.",
+    "coming": "I'm coming",
+    "notComing": "Can't make it",
+    "reconfirmComing": "Confirmed. See you there.",
+    "reconfirmNotComing": "Your planner has been told."
   },
   "help": {
     "title": "Help",

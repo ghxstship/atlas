@@ -1436,6 +1436,7 @@ describe("texts held by quiet hours go out as one summary", () => {
     ).toEqual([
       "shift.assigned",
       "shift.changed",
+      "shift.reconfirm",
       "incident.reported",
       "occupancy.threshold",
       "weather.alert",

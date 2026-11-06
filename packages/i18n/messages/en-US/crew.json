@@ -176,7 +176,27 @@
     "roster_shift_not_assigned": "No one from an agency's roster holds this shift.",
     "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
     "sod_roster_training": "A person cannot verify their own training. Ask someone else to verify it.",
-    "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet."
+    "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet.",
+    "shift_reconfirm_answered": "This shift was already confirmed, or nobody is asking any more.",
+    "shift_no_show_self": "You cannot mark yourself as a no-show. Tell your supervisor.",
+    "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
+    "shift_no_show_clocked_in": "This person clocked in on the shift, so they are not a no-show.",
+    "shift_no_show_reason": "Say what happened.",
+    "shift_no_show_too_late": "Less than 15 minutes of this shift are left, too little for a replacement. Mark the no-show without one.",
+    "shift_no_show_frozen": "This shift has a no-show. Withdraw the no-show before changing its worker, times or state, or cancel the shift.",
+    "no_show_id_conflict": "This no-show was already recorded for another shift. Open the shift again and retry.",
+    "swap_reason_required": "Say why you are asking to swap this shift.",
+    "shift_policy_batch": "Ask about 1 to 200 people at a time.",
+    "shift_held_for_position": "This shift is held for a position. Fill the position, or take the shift off it first.",
+    "position_holder_one": "Fill a position with one member or one person of an agency's roster.",
+    "position_holder_kind": "A member position is filled by a member, and an agency position by a person of its own agency's roster.",
+    "position_filled": "Someone holds this position. Vacate it first.",
+    "position_vacant": "Nobody holds this position.",
+    "position_in_use": "Vacate the position and move its shifts and records off it first.",
+    "position_engagement_not_agency": "An agency position names a staffing agency's Staff engagement.",
+    "position_holder_rpc": "Fill a position from its record, and vacate it there too.",
+    "break_type_unknown": "That break type is retired or belongs to another organization. Pick one of this organization's break types.",
+    "crew_shortages_range": "Pick a range of 1 to 62 days."
   },
   "states": {
     "shift": {
@@ -239,7 +259,8 @@
     "rateCard": "Rate card",
     "payPeriod": "Pay period",
     "payrollRun": "Payroll run",
-    "timeOff": "Time off"
+    "timeOff": "Time off",
+    "position": "Position"
   },
   "fields": {
     "project": "Project",
@@ -337,7 +358,10 @@
   "swaps": {
     "requestTitle": "Ask to swap this shift",
     "request": "Send swap request",
-    "proposed": "Hand the shift to"
+    "proposed": "Hand the shift to",
+    "reason": "Reason",
+    "reasonHelp": "Optional. Say why you are asking.",
+    "reasonRequired": "Required on this project. Say why you are asking."
   },
   "shifts": {
     "openRow": "Open shifts",
@@ -477,7 +501,8 @@
       "Mobile": "Compass",
       "Kiosk": "Kiosk",
       "Supervisor": "Supervisor"
-    }
+    },
+    "paidBreak": "Paid break (minutes)"
   },
   "sheets": {
     "title": "{name} · {hours} h",
@@ -857,6 +882,12 @@
         "duplicate": "Another template already has this name. Choose another."
       }
     },
+    "heldShifts": {
+      "title": "Held for a position ({count})",
+      "help": "Nobody goes on these shifts until the position is filled, and they still count as unfilled.",
+      "fill": "Fill {position} for {shift}",
+      "placeHolder": "Put the holder of {position} on {shift}"
+    },
     "polls": {
       "ask": "Ask for availability",
       "title": "Ask for availability",
@@ -980,5 +1011,160 @@
   "timesheets": {
     "clockedBy": "Clocked by {name}",
     "clockedByColumn": "Clocked by"
+  },
+  "policy": {
+    "title": "Scheduling warnings",
+    "tags": {
+      "shift_rest_short": "Under {hours} h rest",
+      "shift_day_over": "Over {hours} h that day",
+      "shift_week_over": "Over {hours} h that week"
+    },
+    "ask": "{name} has warnings for {shift}: {warnings}. Assign anyway, or keep looking.",
+    "askTitle": "Assign {name} to {shift} anyway?",
+    "askHelp": "These are your organization's scheduling warnings, not pay or overtime rules. Nothing stops you assigning.",
+    "assignAnyway": "Assign anyway",
+    "keepLooking": "Keep looking",
+    "notAssigned": "{name} was not assigned."
+  },
+  "noShow": {
+    "mark": "Mark no-show",
+    "title": "Mark {name} as a no-show",
+    "reason": "What happened",
+    "reasonHelp": "The worker and shift planners read this.",
+    "replacement": "Replacement",
+    "replacementHelp": "A replacement runs from now to the end of the shift.",
+    "replacementNo": "No replacement",
+    "replacementYes": "Open a replacement shift",
+    "bannerTitle": "No-show recorded",
+    "openReplacement": "Open the replacement shift",
+    "withdraw": "Withdraw no-show",
+    "withdrawTitle": "Withdraw this no-show?",
+    "errors": {
+      "reason": "Say what happened, in up to 500 characters."
+    }
+  },
+  "reconfirm": {
+    "coming": "I'm coming",
+    "comingTitle": "Confirm you're coming to this shift?",
+    "notComing": "Can't make it",
+    "notComingTitle": "Tell your planner you can't make it?",
+    "notComingHelp": "The shift may reopen for someone else. A reason is optional.",
+    "offerLabel": "Offer",
+    "askLabel": "Still coming?",
+    "answers": {
+      "Waiting": "Waiting",
+      "Accepted": "Accepted",
+      "Declined": "Declined",
+      "No Answer": "No answer",
+      "Withdrawn": "Withdrawn"
+    }
+  },
+  "shortages": {
+    "from": "From",
+    "to": "To",
+    "kind": "Kind",
+    "allKinds": "All kinds ({count})",
+    "kindCount": "{kind} ({count})",
+    "day": "Day",
+    "what": "Short",
+    "who": "Who",
+    "why": "Reason",
+    "caption": "Shortages",
+    "rangeTitle": "These dates cannot be read",
+    "empty": "Nothing uncovered in these dates. Plan shifts from a template.",
+    "emptyReader": "Nothing uncovered in these dates.",
+    "emptyFiltered": "Nothing of this kind in these dates. Clear the filter to see every shortage.",
+    "plan": "Plan from a template",
+    "unnamedVendor": "Vendor",
+    "unnamedPerson": "Someone on the shift",
+    "quantity": "{count} × {line}",
+    "kinds": {
+      "open": "Open shift",
+      "agency_unfilled": "Agency slot unfilled",
+      "awaiting_answer": "Waiting on an answer",
+      "not_reconfirmed": "Not reconfirmed",
+      "reconfirm_declined": "Said they cannot come",
+      "no_show": "No-show",
+      "vendor_unconfirmed": "Vendor labor not acknowledged"
+    }
+  },
+  "positions": {
+    "position": "Position",
+    "none": "No position",
+    "shiftHelp": "A shift held for a position waits for whoever fills it.",
+    "title": "Title",
+    "titleHelp": "The seat, such as Stage Manager or Rigger 2. Unique on the project.",
+    "agency": "Agency",
+    "agencyHelp": "For a seat a staffing agency fills from its roster. Leave empty for a member.",
+    "noAgency": "Member position",
+    "holder": "Holder",
+    "holderMember": "Member",
+    "holderStaff": "Person on the roster",
+    "unfilled": "Unfilled position",
+    "unfilledTitle": "Unfilled position: {title}",
+    "openOnTitle": "Open shift on {title}",
+    "filled": "Filled",
+    "shifts": "Shifts held",
+    "records": "Records",
+    "caption": "Positions",
+    "create": "New position",
+    "createTitle": "New position",
+    "editTitle": "Edit position",
+    "fill": "Fill position",
+    "fillTitle": "Fill {title}",
+    "fillHelp": "Shifts held for this position and its records go to this person. A warning or a skipped shift never stops the rest.",
+    "vacate": "Vacate",
+    "vacateTitle": "Vacate {title}?",
+    "vacateHelp": "Shifts that have not started go back to the position. Only the record assignments filling made are removed.",
+    "vacateReason": "Position vacated.",
+    "trashTitle": "Move {title} to Trash?",
+    "trashHelp": "Only an unfilled position with no shifts or records left on it goes to Trash.",
+    "filledNotice": "Position filled",
+    "filledSummary": "{filled, plural, one {# shift} other {# shifts}} filled, {skipped, plural, one {# skipped} other {# skipped}}, {warned, plural, one {# warning} other {# warnings}}, {records, plural, one {# record assigned} other {# records assigned}}.",
+    "empty": "No positions yet. Add a seat, then plan shifts and records against it.",
+    "emptyReader": "No positions on these projects yet.",
+    "assignRecord": "Assign a position",
+    "assignRecordSubmit": "Assign",
+    "unassignRecord": "Take off {title}",
+    "recordPositions": "Positions of this record",
+    "noneToAssign": "This project has no other position to assign. Add one on Crew, Positions.",
+    "loading": "Loading positions.",
+    "loadFailed": "These positions could not be loaded. Close this and try again.",
+    "errors": {
+      "title": "Name the position, in up to 120 characters.",
+      "duplicate": "This project already has a position with that title.",
+      "holder": "Choose who fills the position.",
+      "position": "Choose a position.",
+      "alreadyAssigned": "This record is already assigned to that position."
+    }
+  },
+  "breakTypes": {
+    "title": "Break types",
+    "description": "The kinds of break crew take. A paid break is worked time: its minutes are never subtracted, so payroll pays them under your earning codes. These are your organization's definitions, not state break or meal rules.",
+    "empty": "No break types yet. Breaks are unpaid and untyped until you add one.",
+    "name": "Name",
+    "paid": "Paid break",
+    "paidLabel": "Paid",
+    "unpaidLabel": "Unpaid",
+    "plannedMinutes": "Planned minutes",
+    "plannedHelp": "Optional. From 1 to 240.",
+    "planned": "{minutes} min planned",
+    "add": "Add break type",
+    "addTitle": "Add a break type",
+    "edit": "Edit {name}",
+    "save": "Save",
+    "saved": "Saved.",
+    "added": "Added.",
+    "retire": "Retire {name}",
+    "default": "Default",
+    "makeDefault": "Make {name} the default",
+    "defaultHelp": "A break takes the default when no type is chosen: the Live Activity, the kiosk and team punches.",
+    "loadFailed": "These break types could not be loaded. Refresh the page.",
+    "readOnly": "An Owner or Admin edits break types.",
+    "errors": {
+      "name": "Name the break type, in up to 80 characters.",
+      "planned": "Planned minutes run from 1 to 240.",
+      "taken": "This organization already has a break type with that name."
+    }
   }
 }

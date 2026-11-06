@@ -136,15 +136,22 @@ function kindKey(kind: string, part: "subject" | "body"): string {
   return `kinds.${kind}.${part}`;
 }
 
+/** Kinds whose Accept button says what accepting means (B9: "Still coming?" accepts as Confirm you're coming). */
+const ACCEPT_LABELS: Readonly<Record<string, string>> = {
+  "shift.reconfirm": "notification.actions.confirmComing",
+};
+
 /**
  * The one-tap action buttons (A127): each opens the confirm page, so acting from an email takes two taps. Approve and
  * accept are filled; reject is outlined, after them.
  */
 function ActionLinks({
   actions,
+  kind,
   t,
 }: {
   readonly actions: readonly EmailAction[];
+  readonly kind: string;
   readonly t: Translate;
 }) {
   const ordered = EMAIL_ACTIONS.flatMap((name) => actions.filter((a) => a.action === name));
@@ -159,7 +166,11 @@ function ActionLinks({
             href={a.url}
             style={a.action === "reject" ? actionStyles.secondary : actionStyles.primary}
           >
-            {t(`notification.actions.${a.action}`)}
+            {t(
+              a.action === "accept" && ACCEPT_LABELS[kind]
+                ? ACCEPT_LABELS[kind]
+                : `notification.actions.${a.action}`,
+            )}
           </Button>,
         ])}
       </Text>
@@ -220,7 +231,7 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
           >
             <Greeting ctx={ctx} />
             <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
-            <ActionLinks actions={item.actions ?? []} t={ctx.t} />
+            <ActionLinks actions={item.actions ?? []} kind={item.kind} t={ctx.t} />
           </Layout>
         ),
       };

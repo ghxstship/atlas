@@ -101,11 +101,13 @@ export default async function ActionLinkPage({ params }: PageProps<"/auth/act/[t
     <div className="flex flex-col gap-16">
       {icon}
       <h1 className="m-0 text-heading-20 font-semibold">
+        {/* "Still coming?" accepts as Confirm you're coming (B9). */}
         {link.kind === "roster_entry.invited"
           ? t("heading.rosterAccept")
-          : tr(`gateway.auth.actionLink.heading.${link.action}`, {
-              title: link.title ?? t("untitled"),
-            })}
+          : tr(
+              `gateway.auth.actionLink.heading.${link.kind === "shift.reconfirm" ? "confirmComing" : link.action}`,
+              { title: link.title ?? t("untitled") },
+            )}
       </h1>
       {link.orgName ? (
         <p className="m-0 text-text-14 text-text-secondary">{t("org", { org: link.orgName })}</p>
@@ -115,7 +117,11 @@ export default async function ActionLinkPage({ params }: PageProps<"/auth/act/[t
           {t("signedInAs", { email: ctx.email })}
         </p>
       ) : null}
-      <ActionLinkForm token={token} action={link.action} />
+      <ActionLinkForm
+        token={token}
+        action={link.action}
+        {...(link.kind === "shift.reconfirm" ? { confirmKey: "confirmComing" } : {})}
+      />
     </div>
   );
 }

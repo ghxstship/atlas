@@ -7,11 +7,13 @@ import { View } from "react-native";
 import { access, operationalEngagements, rosterOnly, todayBlocks } from "../../src/domain/access";
 import { currentShift, isMine } from "../../src/domain/shifts";
 import {
+  breakChoice,
   formatElapsed,
   needsPreciseFix,
   primaryPunch,
   secondaryPunches,
   workedMs,
+  type BreakTypeRow,
   type ClockSnapshot,
   type PunchKind,
   type PunchRefusal,
@@ -47,6 +49,7 @@ import {
   InlineAlert,
   LiveActivity,
   Screen,
+  Sheet,
   ShiftCard,
   Text,
   useTheme,
@@ -173,14 +176,23 @@ function ClockCard({
       return t(g.reason === "coarse" ? "compass.clock.locationCoarse" : "compass.clock.locating");
     return t("compass.clock.unfenced");
   })();
-  const run = async (kind: PunchKind) => {
+  // Break offers the org's types when it has two or more (B9); one or none needs no question.
+  const { rows: breakTypes } = useRows<BreakTypeRow & Row>("break_types");
+  const [choosingBreak, setChoosingBreak] = useState(false);
+  const run = async (kind: PunchKind, breakTypeId?: string | null) => {
     const refused = clock.refusal(kind);
     if (refused) {
       setNotice(t(REFUSAL_KEY[refused]));
       return;
     }
+    const choice = kind === "Break Start" ? breakChoice(breakTypes) : null;
+    if (choice?.ask && breakTypeId === undefined) {
+      setChoosingBreak(true);
+      return;
+    }
+    setChoosingBreak(false);
     setPunching(true);
-    await clock.punch(kind);
+    await clock.punch(kind, breakTypeId ?? (choice && !choice.ask ? choice.typeId : null));
     setPunching(false);
     setNotice(status?.online ? null : t("compass.clock.queued"));
     announce(t(punchAnnouncementKey(kind, status?.online ?? false)));
@@ -191,6 +203,28 @@ function ClockCard({
       : clock.snapshot.state === "break"
         ? t("compass.clock.onBreak")
         : t("compass.clock.onShift");
+  const breakSheet = (
+    <Sheet
+      testID="clock-break-types"
+      open={choosingBreak}
+      title={t("compass.clock.breakTypeTitle")}
+      closeLabel={t("compass.clock.breakTypeCancel")}
+      onClose={() => setChoosingBreak(false)}
+    >
+      {breakTypes.map((b) => (
+        <Button
+          key={b.id}
+          testID={`clock-break-type-${b.id}`}
+          variant="secondary"
+          block
+          label={t(b.paid ? "compass.clock.breakTypePaid" : "compass.clock.breakTypeUnpaid", {
+            name: b.name,
+          })}
+          onPress={() => void run("Break Start", b.id)}
+        />
+      ))}
+    </Sheet>
+  );
   if (clock.snapshot.state !== "out") {
     // On shift: the Live Activity summary with its break toggle and clock out (Section 11.13 Clock).
     return (
@@ -221,6 +255,7 @@ function ClockCard({
         {lockScreenNotice ? (
           <InlineAlert testID="clock-lock-screen" tone="warning" message={lockScreenNotice} />
         ) : null}
+        {breakSheet}
       </View>
     );
   }

@@ -30,10 +30,12 @@ export interface ShiftSwap {
   readonly requestedBy: MemberRef;
   readonly proposed: MemberRef;
   readonly state: SwapState;
+  /** Why it was asked for; required while scheduling.swap_reason_required is on (B9). */
+  readonly reason: string | null;
   readonly createdAt: string;
 }
 
-const SWAP_SELECT = `id, shift_id, project_id, swap_state, created_at, requested_by_membership_id, proposed_membership_id, shift:shifts!shift_swaps_shift_id_fkey(starts_at, ends_at, role_code, project:projects!shifts_project_id_fkey(project_key)), requester:memberships!shift_swaps_requested_by_membership_id_fkey(${MEMBERSHIP_EMBED}), proposed:memberships!shift_swaps_proposed_membership_id_fkey(${MEMBERSHIP_EMBED})`;
+const SWAP_SELECT = `id, shift_id, project_id, swap_state, reason, created_at, requested_by_membership_id, proposed_membership_id, shift:shifts!shift_swaps_shift_id_fkey(starts_at, ends_at, role_code, project:projects!shifts_project_id_fkey(project_key)), requester:memberships!shift_swaps_requested_by_membership_id_fkey(${MEMBERSHIP_EMBED}), proposed:memberships!shift_swaps_proposed_membership_id_fkey(${MEMBERSHIP_EMBED})`;
 
 interface MembershipEmbed {
   id: string;
@@ -46,6 +48,7 @@ interface SwapRow {
   shift_id: string;
   project_id: string;
   swap_state: SwapState;
+  reason: string | null;
   created_at: string;
   requested_by_membership_id: string;
   proposed_membership_id: string;
@@ -71,6 +74,7 @@ function toSwap(row: SwapRow): ShiftSwap {
     requestedBy: toMemberRef(row.requester, row.requested_by_membership_id),
     proposed: toMemberRef(row.proposed, row.proposed_membership_id),
     state: row.swap_state,
+    reason: row.reason,
     createdAt: row.created_at,
   };
 }
@@ -127,6 +131,8 @@ export async function requestSwap(
     readonly shiftId: string;
     readonly requestedByMembershipId: string;
     readonly proposedMembershipId: string;
+    /** Refused with swap_reason_required when the project requires one and this is empty. */
+    readonly reason?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db
@@ -137,6 +143,7 @@ export async function requestSwap(
       shift_id: input.shiftId,
       requested_by_membership_id: input.requestedByMembershipId,
       proposed_membership_id: input.proposedMembershipId,
+      reason: input.reason?.trim() || null,
     })
     .select("id")
     .single();

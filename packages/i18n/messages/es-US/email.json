@@ -55,6 +55,18 @@
       "changed": {
         "subject": "Turno modificado: {title}",
         "body": "Tu turno {title} ahora empieza el {startsAt, date, full} a las {startsAt, time, short}."
+      },
+      "reconfirm": {
+        "subject": "¿Sigues yendo? {title}",
+        "body": "Tienes programado {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. ¿Sigues yendo?"
+      },
+      "reconfirm_declined": {
+        "subject": "Alguien no puede ir a {title}",
+        "body": "{named, select, yes {{workerName}} other {La persona de este turno}} dijo que no puede ir a {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. {reopened, select, yes {El turno volvió a quedar abierto.} other {Sigue en él hasta que lo cambies.}}"
+      },
+      "no_show": {
+        "subject": "Marcado como ausente: {title}",
+        "body": "Te marcaron como ausente en {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. Registrar tu entrada lo retira."
       }
     },
     "availability": {
@@ -466,7 +478,8 @@
       "approve": "Aprobar",
       "reject": "Rechazar",
       "accept": "Aceptar",
-      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días."
+      "note": "Cada botón abre una página para confirmar. Funciona una vez, durante 7 días.",
+      "confirmComing": "Confirma que vas"
     }
   },
   "digest": {

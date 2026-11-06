@@ -20,6 +20,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "offer.sent": "fyi.kinds.offerSent",
   "shift.assigned": "fyi.kinds.shiftAssigned",
   "shift.changed": "fyi.kinds.shiftChanged",
+  // A no-show recorded for a shift the person works (B9, migration 6512).
+  "shift.no_show": "fyi.kinds.shiftNoShow",
   "message.received": "fyi.kinds.messageReceived",
   // A company entered project details for the person (R5): they open their details here and correct them.
   "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",

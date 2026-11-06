@@ -1,4 +1,11 @@
-import { getSwap, listSwaps, SWAP_STATES, type ShiftSwap } from "@xos/data/crew";
+import {
+  getSwap,
+  listSwaps,
+  shiftPolicyWarnings,
+  SWAP_STATES,
+  type ShiftSwap,
+} from "@xos/data/crew";
+import { policyTag } from "@/lib/crew/policy-tags";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
@@ -63,6 +70,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       const scheduling = await resolveSettings(db, { orgId: crew.orgId, projectId: s.projectId });
       const needsApproval =
         !scheduling.ok || scheduling.data.get("scheduling.swap_requires_approval")?.value !== false;
+      // Who would take the shift, against the org's scheduling warnings (B9), while it is still a choice.
+      const warned =
+        s.state === "Proposed" && s.proposed.personId && crew.can("crew.shift.write")
+          ? await shiftPolicyWarnings(db, s.shiftId, [s.proposed.personId])
+          : null;
+      const warnings = warned?.ok ? (warned.data.get(s.proposed.personId ?? "") ?? []) : [];
       const record = (
         <CrewRecord
           crew={crew}
@@ -132,6 +145,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 : t("crew.common.noRole"),
             },
             { label: t("crew.fields.when"), value: shiftWhen(s) },
+            ...(s.reason ? [{ label: t("crew.swaps.reason"), value: s.reason }] : []),
+            ...(warnings.length > 0
+              ? [
+                  {
+                    label: t("crew.policy.title"),
+                    value: warnings.map((w) => policyTag(t, w)).join(", "),
+                  },
+                ]
+              : []),
             {
               label: t("crew.kinds.shift"),
               value: (
@@ -188,6 +210,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           { key: "from", label: t("crew.swapsPage.requestedBy") },
           { key: "to", label: t("crew.swaps.proposed") },
           { key: "when", label: t("crew.fields.when") },
+          { key: "reason", label: t("crew.swaps.reason"), wrap: true },
           { key: "state", label: t("crew.fields.state"), type: "state" },
         ]}
         rows={swaps.map((s) => ({
@@ -196,6 +219,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           from: name(s.requestedBy.name),
           to: name(s.proposed.name),
           when: shiftWhen(s),
+          reason: s.reason ?? "",
           state: { state: stateIcon("swap", s.state), label: t(`crew.states.swap.${s.state}`) },
         }))}
       />
@@ -217,6 +241,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 <span className="text-text-12 text-text-secondary">
                   {t("crew.common.pair", { a: s.projectKey, b: shiftWhen(s) })}
                 </span>
+                {s.reason ? (
+                  <span className="text-text-12 text-text-secondary">{s.reason}</span>
+                ) : null}
               </span>
               <span className="text-text-12 text-text-secondary">
                 {t(`crew.states.swap.${s.state}`)}

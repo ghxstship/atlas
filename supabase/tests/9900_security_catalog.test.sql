@@ -107,7 +107,7 @@ select set_eq($$
   where c.relkind in ('v', 'm') and n.nspname = 'app'
     and not coalesce(c.reloptions::text[] && array['security_invoker=true', 'security_invoker=on'], false)
 $$, $$values ('advance_allocation_status'), ('ai_never_send'), ('allocation_holders'), ('application_board'), ('asset_reservation_conflicts'), ('asset_unit_hire'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
-  ('comment_subjects'), ('consent_purposes'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
+  ('comment_subjects'), ('consent_purposes'), ('crew_ratings'), ('crew_removals'), ('crew_responses'), ('crew_shift_hours'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
   ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
