@@ -387,6 +387,12 @@
         "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
       }
     },
+    "advance_answer": {
+      "recorded": {
+        "subject": "{actorName} registró tu respuesta a {sectionTitle} para {projectName}",
+        "body": "La registró a partir de tu mensaje o de un archivo que enviaste. Pídele que la devuelva si necesita cambios."
+      }
+    },
     "allocation": {
       "decided": {
         "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",

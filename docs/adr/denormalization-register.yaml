@@ -165,6 +165,12 @@ derived:
     reason: API v1 documents an answer's body as required (packages/schemas/src/common/fields.ts), and v1 readers see only the body, so a typed answer carries its locale-neutral summary there
     adr: "0104"
   - objects:
+      - app.advance_answer_sources.source_excerpt
+    source: "`app.ai_suggestion_fields.source_excerpt` of the accepted suggestion"
+    refresh: Written once by `app.record_drafted_advance_answer`; the row never changes (migration 6273, B15)
+    reason: A reviewer cannot read the asker's suggestion, and retention of the answer must not hang on it
+    adr: "0154"
+  - objects:
       - app.advance_allocations.project_id
     source: "The holder's project: the pool engagement's, or the roster entry's engagement's"
     refresh: Stamped by `private.stamp_allocation_project` on every write; a change is refused (allocation_project_fixed, migration 4691, R7)
@@ -1996,6 +2002,9 @@ stored:
   - column: app.invite_links.use_count
     kind: fact
     note: Memberships do not record the link they came from (A22 review).
+  - column: app.invoices.printed_total_minor
+    kind: fact
+    note: The total a document printed, kept as read; the computed total stays in `app.invoice_totals` and `app.invoice_tie_out` compares them (migration 6274, B15).
   - column: app.live_links.open_count
     kind: fact
     note: Successful opens with the access code; the anonymous open writes no other per-link record (migration 3781).

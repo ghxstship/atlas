@@ -43,3 +43,11 @@ Related: [Venues, spaces and site plans](help:places).
 Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. Add guest asks for the pass type and email; set the table and host from the guest's pass details. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.
 
 Email guests sends the guests you choose an invitation, their pass as a PDF, or a message with a subject and text, in English or Spanish. Guests without an email, and, for a pass, guests not yet approved, are skipped, and addresses that asked your organization to stop are not emailed. Every guest email comes from your organization, with an unsubscribe link and the postal address. Each send lists what happened to every guest.
+
+## Draft answers from a reply
+
+When a party answers by email or sends a tour book or rider, a reviewer can choose **Draft Answers from a Reply** on a recipient of a sent packet. Aurora reads one source, verified mail in the project inbox or a file you choose, into proposed answers for the recipient's open sections, with the words it read and who sent the mail. It never drafts a guest list, a file, a crew roster or a per-person section. Each answer you accept is recorded for the recipient: someone else reviews it, the recipient is told, and they can ask you to return it.
+
+## Contracts and riders with Aurora
+
+On the engagements list, **Read Contracts and Riders** reads contracts and riders, groups them by act and adds each booking you keep as an Artist engagement at Onboarding. You choose the party and the terms; Aurora creates no person, account or counterparty. A fee is read only for people allowed to read pay. A fee printed as a total fills in only on a flat fee, because an engagement's rate is per unit, and a contract's file is kept Restricted.

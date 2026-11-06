@@ -599,7 +599,8 @@
     "paymentAmountHint": "Leave blank to pay the whole balance.",
     "paymentReferenceHint": "The remittance reference from your bank or payout provider.",
     "payee": "Payee",
-    "individual": "Individual"
+    "individual": "Individual",
+    "residual": "Printed total {printed}. Lines add to {computed}. Difference {residual}. This does not block approval."
   },
   "payments": {
     "applied": "Payment applied.",

@@ -810,6 +810,9 @@
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
       },
+      "advance_answer": {
+        "recorded": "Answer recorded for you"
+      },
       "guest": {
         "arrived": "Your guest arrived"
       },

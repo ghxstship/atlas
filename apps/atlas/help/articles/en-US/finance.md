@@ -26,3 +26,7 @@ Invoices from vendors and to clients collect in **Invoices**. Approved invoices 
 - **Chart of Accounts** comes from canon; map your general ledger to it. **Cost Centers** are what you report against.
 - **Universal Posting Line Export** writes posting lines for your accounting system.
 - **Year-End** lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.
+
+## Review an invoice's lines from the document
+
+When Aurora fills an invoice from a document, its lines wait on the saved invoice. **Review Lines from the Document** shows them with the live difference from the printed total and what the vendor last billed. You choose each budget line: **Use This Budget Line** fills it only when you click. When the lines and the total differ, check **I checked the difference** before you add them. A residual then shows on the invoice as a warning, and it blocks neither approval nor posting.

@@ -63,8 +63,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
     // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
-    // three weather kinds (6256, 6257).
-    expect(registry.kinds).toHaveLength(85);
+    // three weather kinds (6256, 6257), and B15's advance_answer.recorded (6273).
+    expect(registry.kinds).toHaveLength(86);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

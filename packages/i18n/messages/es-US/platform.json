@@ -810,6 +810,9 @@
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
       },
+      "advance_answer": {
+        "recorded": "Respuesta registrada para ti"
+      },
       "guest": {
         "arrived": "Llegó tu invitado"
       },

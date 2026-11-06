@@ -41,3 +41,11 @@ Las asignaciones dicen lo que recibe cada parte y cada persona para una producci
 Cada invitado puede tener un tipo de pase (una categoría de acceso del proyecto, como GUEST o VIP), una mesa, un anfitrión entre las personas del proyecto y una dirección de correo. Agregar invitado pide el tipo de pase y el correo; la mesa y el anfitrión se definen en los datos del pase del invitado. Cuando se aprueba un invitado, recibe un código de pase; Imprimir pase y Descargar pase dan su pase A6 con el código que se escanea a la entrada. Los invitados tienen pases, no credenciales.
 
 Enviar correo a invitados manda a los invitados que elija una invitación, su pase en PDF o un mensaje con asunto y texto, en inglés o en español. Se omiten los invitados sin correo y, para un pase, los que aún no están aprobados, y no se envía a las direcciones que pidieron a su organización que deje de escribirles. Cada correo a invitados sale de su organización, con un enlace para darse de baja y la dirección postal. Cada envío muestra qué pasó con cada invitado.
+
+## Redactar respuestas desde una respuesta recibida
+
+Cuando una parte responde por correo o envía un libro de gira o un rider, quien revisa puede elegir **Redactar respuestas desde una respuesta recibida** en un destinatario de un paquete enviado. Aurora lee una fuente, correo verificado de la bandeja del proyecto o un archivo que elijas, y propone respuestas para las secciones abiertas del destinatario, con las palabras que leyó y quién envió el correo. Nunca redacta una lista de invitados, un archivo, un equipo ni una sección por persona. Cada respuesta que aceptes se registra para el destinatario: otra persona la revisa, se le avisa al destinatario y puede pedirte que la devuelvas.
+
+## Contratos y riders con Aurora
+
+En la lista de contrataciones, **Leer contratos y riders** lee contratos y riders, los agrupa por acto y agrega cada contratación que conserves como una contratación de artista en incorporación. Tú eliges la parte y las condiciones; Aurora no crea personas, cuentas ni contrapartes. Un honorario solo se lee para quienes pueden ver pagos. Un honorario impreso como total solo se completa en una tarifa fija, porque la tarifa de una contratación es por unidad, y el archivo de un contrato queda como Restringido.

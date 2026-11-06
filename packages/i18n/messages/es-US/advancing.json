@@ -51,7 +51,7 @@
     "advance_submission_immutable": "Una respuesta nunca cambia después de llegar. Devuélvela para que el destinatario responda de nuevo.",
     "advance_submission_reviewed": "Alguien ya revisó esta respuesta. Actualiza para ver la revisión.",
     "advance_review_person": "Inicia sesión de nuevo para revisar respuestas.",
-    "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona debe revisarla.",
+    "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona la revisa.",
     "advance_token_email": "Ingresa un correo electrónico válido para el enlace.",
     "advance_token_validity": "Un enlace es válido de 1 a 90 días.",
     "reconciliation_no_requirements": "Este proyecto aún no tiene requisitos. Agrégalos en la pestaña Alcance del proyecto y luego concilia.",
@@ -357,7 +357,14 @@
     "named": "{n} de {q} con nombre",
     "pool": "Todo el equipo",
     "windowRange": "{from} a {to}",
-    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona."
+    "needDecision": "{n, plural, one {# artículo necesita una decisión} other {# artículos necesitan una decisión}} en Asignaciones: fuentes, capacidad, la asignación permitida o la aceptación de la persona.",
+    "source": {
+      "recordedFrom": "Registrado desde {from}.",
+      "projectInbox": "correo de la bandeja del proyecto",
+      "sender": "Enviado desde {from}.",
+      "acceptedBy": "Redactado por Aurora, aceptado por {name}.",
+      "someone": "alguien"
+    }
   },
   "review": {
     "accept": "Aceptar",

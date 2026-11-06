@@ -11,9 +11,9 @@ import {
   type ListDraftKind,
   type RunOfShowFlag,
 } from "../lists.ts";
-import type { ModelUsage } from "../model.ts";
+import type { DocumentContent, ModelUsage } from "../model.ts";
 import type { NeverSendList } from "../redact.ts";
-import { scrubRecord } from "../redact.ts";
+import { scrubRecord, withholdIdentity } from "../redact.ts";
 import {
   FeatureError,
   runFeature,
@@ -23,6 +23,7 @@ import {
   type ProposedField,
   type Subject,
 } from "../session.ts";
+import { excerptSupports, readLocalDateTime } from "./extraction.ts";
 import { callTool, dataBlock, GUARDRAILS } from "./shared.ts";
 
 /**
@@ -43,8 +44,25 @@ export const DRAFT_KINDS = [
   "change_order_description",
   "run_of_show",
   "risk_assessment",
+  "event_plan",
+  "event_brief",
+  "approval_pack",
+  "waste_plan",
 ] as const;
 export type DraftKind = (typeof DRAFT_KINDS)[number];
+
+/** Governance drafts (B15, G-240): Markdown for the editor of a Document record, no suggestions. */
+export const GOVERNANCE_KINDS = [
+  "event_plan",
+  "event_brief",
+  "approval_pack",
+  "waste_plan",
+] as const;
+export type GovernanceKind = (typeof GOVERNANCE_KINDS)[number];
+
+export function isGovernanceKind(kind: string): kind is GovernanceKind {
+  return (GOVERNANCE_KINDS as readonly string[]).includes(kind);
+}
 
 /** A verbiage library entry: the term the org avoids and the phrasing it prefers. */
 export interface VerbiageEntry {
@@ -87,6 +105,14 @@ const GUIDE: Readonly<Record<DraftKind, string>> = {
     "Draft a run of show: the show day's running order of cues for the event's type and dates, in chronological order.",
   risk_assessment:
     "Draft a risk assessment: the exposures the production faces, each with a category, a likelihood, an impact and a mitigation.",
+  event_plan:
+    "Draft an event management plan for qualified people to review, from the project's own records: how the event runs, who is responsible, and how safety, medical care, communications and permits are handled. Never state that anything is approved, signed or compliant. Write no price the context lacks.",
+  event_brief:
+    "Draft a one-page event brief for the team: why the event happens, its key facts, schedule highlights, contacts by role and what is still needed. Write no price the context lacks.",
+  approval_pack:
+    "Draft the summary of an approval pack for qualified people to review, from the gate readiness and records given. Never state that anything is approved, signed or compliant: report what the records show, and mark what is outstanding. Write no price the context lacks.",
+  waste_plan:
+    "Draft a waste management plan for qualified people to review: waste streams, bins and placement, vendor responsibilities, the collection schedule, objectives and reporting. Waste figures come only from the measurements given; write Unmeasured for a figure with no measurement, never zero. Write no price the context lacks.",
 };
 
 /** Library terms still present in the text, compared case-insensitively on word boundaries. */
@@ -624,4 +650,347 @@ export async function draftList(
       ...done,
     };
   });
+}
+
+// Advance answers (B15, G-173) ------------------------------------------------------------------
+
+/** A section Aurora may draft, as app.advance_draft_scope returns it (6273). */
+export interface DraftableSection {
+  readonly id: string;
+  readonly title: string;
+  readonly prompt: string | null;
+  readonly kind: "Text" | "Schedule Window" | "Item Request" | "Credential Request";
+  readonly window_kind: string | null;
+  readonly max_lines: number | null;
+  /** app.advance_section_choices rows, resolved to a class or category only when the answer is recorded. */
+  readonly choices: readonly { readonly id: string; readonly name: string }[];
+}
+
+/** What the draft is read from: verified mail, or a file the person chose. */
+export type AdvanceSource =
+  | { readonly kind: "Project Inbox"; readonly messageId: string; readonly body: string }
+  | { readonly kind: "File"; readonly document: DocumentContent; readonly fileName: string };
+
+export interface AdvanceAnswersInput {
+  readonly recipientId: string;
+  readonly sections: readonly DraftableSection[];
+  /** The project's IANA zone: windows are read in it. */
+  readonly timeZone: string;
+  /** Today in the project's zone, for dates printed without a year. */
+  readonly projectToday: string;
+  readonly source: AdvanceSource;
+  readonly verbiage: readonly VerbiageEntry[];
+  readonly neverSend: NeverSendList;
+}
+
+/** A line as app.record_drafted_advance_answer takes it (6273). */
+export interface DraftedAnswerLine {
+  readonly choice_id?: string;
+  readonly quantity?: number;
+  readonly needed_window_start?: string;
+  readonly needed_window_end?: string;
+  readonly window_zone?: string;
+  readonly note?: string;
+}
+
+export interface DraftedAnswer {
+  readonly section_id: string;
+  readonly section_title: string;
+  readonly kind: DraftableSection["kind"];
+  readonly text: string | null;
+  readonly note: string | null;
+  readonly lines: readonly DraftedAnswerLine[];
+  readonly source_excerpt: string;
+  readonly confidence: number;
+  /** True when the excerpt was found in the source; a PDF or image cannot be checked. */
+  readonly excerpt_checked: boolean;
+}
+
+export type AdvanceAnswerDropReason =
+  "section" | "excerpt" | "text" | "choice" | "quantity" | "note" | "time" | "too_many" | "lines";
+
+export interface AdvanceAnswersDraft {
+  readonly answers: readonly DraftedAnswer[];
+  /** Sections the source does not answer, with what is missing, never invented. */
+  readonly unanswered: readonly { readonly section_id: string; readonly missing: string }[];
+  /** Answers that broke a rule, dropped and reported, never repaired. */
+  readonly dropped: readonly {
+    readonly section_id: string;
+    readonly reason: AdvanceAnswerDropReason;
+  }[];
+}
+
+const AdvanceAnswersSchema = z.object({
+  answers: z.array(
+    z.object({
+      section_id: z.string(),
+      text: z.string().nullable().optional(),
+      note: z.string().nullable().optional(),
+      lines: z
+        .array(
+          z.object({
+            choice_id: z.string().nullable().optional(),
+            quantity: z.number().nullable().optional(),
+            local_start: z.string().nullable().optional(),
+            local_end: z.string().nullable().optional(),
+            note: z.string().nullable().optional(),
+          }),
+        )
+        .default([]),
+      source_excerpt: z.string().nullable().optional(),
+      confidence: z.number().nullable().optional(),
+    }),
+  ),
+  unanswered: z
+    .array(z.object({ section_id: z.string(), missing: z.string().max(500) }))
+    .default([]),
+});
+
+const squeeze = (text: string) => text.replace(/\s+/g, " ").trim();
+
+/**
+ * Drafts answers to a recipient's open advance sections (B15, G-173) from one source, verified project
+ * inbox mail or a file the person chose. The source goes as a document block, so the request log never
+ * holds it. The model receives only the source, the open sections with their choices, the project's
+ * zone and the verbiage library: never the roster, a profile, a project fact or another answer. Each
+ * answer is checked on its own and one that breaks a rule is dropped and reported, never repaired.
+ * Each kept answer is one advanceAnswers.record suggestion whose target is the section, recorded only
+ * by app.record_drafted_advance_answer.
+ */
+export async function draftAdvanceAnswers(
+  ctx: AuroraContext,
+  input: AdvanceAnswersInput,
+): Promise<AuroraResult<AdvanceAnswersDraft>> {
+  const source = input.source;
+  // Passport and known traveler values never go to the model (ADR 0033 item 38).
+  const mailBody =
+    source.kind === "Project Inbox"
+      ? withholdIdentity(
+          String(
+            scrubRecord("app.inbound_messages", { body_text: source.body }, input.neverSend)?.[
+              "body_text"
+            ] ?? "",
+          ),
+        )
+      : null;
+  const document: DocumentContent =
+    source.kind === "Project Inbox"
+      ? { type: "document", mediaType: "text/plain", data: mailBody ?? "" }
+      : source.document;
+  // Mail and text files can be held to the excerpt; a PDF or an image cannot.
+  const checkable =
+    source.kind === "Project Inbox"
+      ? squeeze(source.body)
+      : source.document.mediaType === "text/plain"
+        ? squeeze(source.document.data)
+        : null;
+  return runFeature(
+    ctx,
+    "drafting",
+    { table: "app.advance_recipients", id: input.recipientId },
+    async (model, maxTokens) => {
+      const verbiage =
+        input.verbiage.length > 0
+          ? [
+              "Use the org's phrasing. Replace each term with its preferred wording:",
+              dataBlock("verbiage library", input.verbiage),
+            ]
+          : [];
+      const system = [
+        GUARDRAILS,
+        "Draft the party's answers to the advance sections from the attached source. A person reviews each answer before anything is recorded.",
+        "Answer a section only when the source answers it, at most one answer per section, with source_excerpt: the exact words it came from. List every other section in unanswered with what is missing.",
+        "A Text section takes text. A Schedule Window section takes lines with local_start and local_end, YYYY-MM-DDTHH:MM as printed. An Item Request or Credential Request section takes lines with the choice_id of one of its choices and a quantity the source states.",
+        "Never invent a time, a quantity or an item. Never quote a passport number, a date of birth or a known traveler number.",
+        ...verbiage,
+        `The project's time zone is ${input.timeZone}. Today is ${input.projectToday}.`,
+      ].join("\n\n");
+      const result = await callTool({
+        client: ctx.client,
+        model,
+        maxTokens,
+        system,
+        content: [
+          document,
+          {
+            type: "text",
+            text: dataBlock(
+              "sections",
+              input.sections.map((s) => ({
+                id: s.id,
+                title: s.title,
+                prompt: s.prompt,
+                kind: s.kind,
+                window_kind: s.window_kind,
+                max_lines: s.max_lines,
+                choices: s.choices,
+              })),
+            ),
+          },
+        ],
+        tool: {
+          name: "draft_advance_answers",
+          description: "Returns at most one answer per section and the sections left unanswered.",
+          inputSchema: z.toJSONSchema(AdvanceAnswersSchema) as Record<string, unknown>,
+        },
+        schema: AdvanceAnswersSchema,
+      });
+      if (result.stopReason === "max_tokens") {
+        throw new FeatureError(
+          "model_output_invalid",
+          "The model's answers were cut off at the token limit.",
+        );
+      }
+
+      const answers: DraftedAnswer[] = [];
+      const proposals: ProposedChange[] = [];
+      const dropped: { section_id: string; reason: AdvanceAnswerDropReason }[] = [];
+      const answered = new Set<string>();
+      const sourceFields: ProposedField[] =
+        source.kind === "Project Inbox"
+          ? [{ field_path: "inbound_message_id", value: source.messageId, confidence: 1 }]
+          : [{ field_path: "file_name", value: source.fileName, confidence: 1 }];
+      for (const raw of result.value.answers) {
+        const section = input.sections.find((s) => s.id === raw.section_id);
+        const drop = (reason: AdvanceAnswerDropReason) =>
+          dropped.push({ section_id: raw.section_id, reason });
+        if (!section || answered.has(section.id)) {
+          drop("section");
+          continue;
+        }
+        const excerpt = squeeze(raw.source_excerpt ?? "");
+        if (excerpt === "" || (checkable !== null && !checkable.includes(excerpt))) {
+          drop("excerpt");
+          continue;
+        }
+        const confidence = confidenceOf(raw.confidence ?? undefined);
+        const lines: DraftedAnswerLine[] = [];
+        let text: string | null = null;
+        let note: string | null = null;
+        let broke: AdvanceAnswerDropReason | null = null;
+        if (section.kind === "Text") {
+          const value = columnText(raw.text ?? null, 20000);
+          if (value === null || value === false) broke = "text";
+          else text = value;
+        } else {
+          if (raw.lines.length === 0) broke = "lines";
+          if (raw.lines.length > (section.max_lines ?? 0)) broke = "too_many";
+          for (const line of raw.lines) {
+            if (broke) break;
+            if (section.kind === "Schedule Window") {
+              const from = line.local_start
+                ? readLocalDateTime(line.local_start, excerpt, input.projectToday)
+                : null;
+              const to =
+                from && line.local_end
+                  ? readLocalDateTime(line.local_end, excerpt, from.value.slice(0, 10), from.value)
+                  : null;
+              const start =
+                from && zonedInstant(from.value.slice(0, 10), from.value.slice(11), input.timeZone);
+              const end =
+                to && zonedInstant(to.value.slice(0, 10), to.value.slice(11), input.timeZone);
+              if (!start || !end || Date.parse(end) <= Date.parse(start)) {
+                broke = "time";
+                break;
+              }
+              // A window line takes no note (advance_line_kind), so the model's is dropped, not offered.
+              lines.push({
+                needed_window_start: start,
+                needed_window_end: end,
+                window_zone: input.timeZone,
+              });
+            } else {
+              if (!section.choices.some((c) => c.id === line.choice_id)) {
+                broke = "choice";
+                break;
+              }
+              const quantity = line.quantity ?? null;
+              if (
+                quantity === null ||
+                !Number.isInteger(quantity) ||
+                quantity < 1 ||
+                quantity > 10000 ||
+                !excerptSupports("quantity", quantity, excerpt)
+              ) {
+                broke = "quantity";
+                break;
+              }
+              const lineNote = columnText(line.note ?? null, 500);
+              if (lineNote === false) {
+                broke = "note";
+                break;
+              }
+              lines.push({
+                choice_id: line.choice_id ?? "",
+                quantity,
+                ...(lineNote ? { note: lineNote } : {}),
+              });
+            }
+          }
+          if (section.kind !== "Schedule Window") {
+            const value = columnText(raw.note ?? null, 500);
+            if (value === false) broke = broke ?? "note";
+            else note = value;
+          }
+        }
+        if (broke) {
+          drop(broke);
+          continue;
+        }
+        answered.add(section.id);
+        const kept = withholdIdentity(excerpt).slice(0, 2000);
+        answers.push({
+          section_id: section.id,
+          section_title: section.title,
+          kind: section.kind,
+          text,
+          note,
+          lines,
+          source_excerpt: kept,
+          confidence,
+          excerpt_checked: checkable !== null,
+        });
+        proposals.push({
+          operationId: "advanceAnswers.record",
+          targetId: section.id,
+          summary: `Answer ${section.title}.`.slice(0, 1000),
+          fields: [
+            { field_path: "section_id", value: section.id, confidence: 1 },
+            { field_path: "recipient_id", value: input.recipientId, confidence: 1 },
+            { field_path: "source_kind", value: source.kind, confidence, source_excerpt: kept },
+            ...sourceFields,
+            ...(section.kind === "Text"
+              ? [{ field_path: "text", value: text, confidence }]
+              : [{ field_path: "lines", value: lines, confidence }]),
+            ...(note ? [{ field_path: "note", value: note, confidence }] : []),
+          ],
+        });
+      }
+      const unanswered = input.sections
+        .filter((s) => !answered.has(s.id))
+        .map((s) => ({
+          section_id: s.id,
+          missing:
+            result.value.unanswered.find((u) => u.section_id === s.id)?.missing ??
+            "The source does not answer this section.",
+        }));
+      if (answers.length === 0) {
+        return {
+          kind: "no-answer",
+          missing: "The source does not answer any open section of this advance.",
+          prompt: result.prompt,
+          output: result.output,
+          usage: result.usage,
+        };
+      }
+      return {
+        kind: "answer",
+        value: { answers, unanswered, dropped },
+        prompt: result.prompt,
+        output: result.output,
+        usage: result.usage,
+        proposals,
+      };
+    },
+  );
 }

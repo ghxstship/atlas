@@ -14,6 +14,7 @@ import {
   type EngagementCard,
 } from "@xos/data/opportunities";
 import { resolveSettings } from "@xos/data/settings";
+import { isNodeVisible } from "@xos/ia";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -31,7 +32,9 @@ import {
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
 import { RecordHistory } from "@/components/history/record-history";
+import { ContractIntakeEntry } from "@/components/aurora/entry/intake-entry";
 import { ActionForm } from "@/components/opportunities/action-form";
+import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { ratingPromptsOn } from "@/lib/shell/org-settings";
 import { EngagementInsureds } from "@/components/opportunities/insured-checks";
 import {
@@ -101,12 +104,33 @@ export async function EngagementsView({
     settings.ok ? settings.data.get(key)?.value : undefined,
   );
   const open = (e: EngagementCard) => page.href({ id: e.id });
+  // B15 contract intake: a project's tab offers its own project, the org page each readable project.
+  const books = ctx.capabilities.has("opportunities.engagement.write");
+  const projects = books
+    ? projectId
+      ? [{ id: projectId, label: "" }]
+      : (
+          (
+            await ctx.viewer.db
+              .from("projects")
+              .select("id, name")
+              .is("deleted_at", null)
+              .order("name")
+          ).data ?? []
+        ).map((p) => ({ id: p.id, label: p.name }))
+    : [];
+  const importHref = isNodeVisible(sitemap, "import", ctx.nav)
+    ? (nodeHref("import", { org: ctx.org.slug }) ?? null)
+    : null;
   return (
     <TemplateCollection
       header={
         <PageHeader
           title={t("engagements.title")}
           count={rows.length}
+          {...(projects.length > 0
+            ? { actions: <ContractIntakeEntry projects={projects} importHref={importHref} /> }
+            : {})}
           views={
             <ViewSwitch
               label={t("views.label")}

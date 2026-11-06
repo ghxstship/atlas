@@ -119,6 +119,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0146](0146-day-sheets-books-feeds-and-wrap-up.md)                  | Day Sheets by Audience, Books, Named Calendar Feeds and the Wrap-up Report       | Proposed |
 | [0147][adr-0147]                                                    | Gate Scanning, Accreditation Checks, Guest Passes and the Weather Feed           | Proposed |
 | [0153](0153-event-types-setup-completeness-and-project-copy.md)     | Event Types, Setup Completeness and Copying a Past Project                       | Accepted |
+| [0154](0154-aurora-intake-recorded-answers-restricted-fees-open-suggestions.md) | Aurora Intake: Answers Recorded for a Recipient, Restricted Fees and Open Suggestions | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

@@ -313,6 +313,12 @@ function sectionRow(s: SectionRow, submissions: readonly SubmissionRow[], ctx: C
           </p>
         ) : null}
         {latest && kind !== "Text" ? <AnswerDetail answer={latest} kind={kind} ctx={ctx} /> : null}
+        {latest?.recorded_by_producer ? (
+          // B15 (ADR 0154 D1): an answer the org recorded from an Aurora draft says so.
+          <p className="m-0 text-text-12 text-text-secondary" data-testid="recorded-by-producer">
+            {t("gateway.engagement.advance.recordedBy", { org: ctx.orgName })}
+          </p>
+        ) : null}
         {returned && latest?.return_reason ? (
           <p className="m-0 text-text-13 text-danger-text">{latest.return_reason}</p>
         ) : null}

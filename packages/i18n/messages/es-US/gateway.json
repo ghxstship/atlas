@@ -388,6 +388,7 @@
       "noGuestList": "Las listas de invitados no forman parte del avance de un contratista o patrocinador.",
       "guestsUsed": "{n} lugares en la lista de invitados, acompañantes incluidos.",
       "guestsCap": "{n} de {cap} lugares usados, acompañantes incluidos.",
+      "recordedBy": "{org} lo registró a partir de tu mensaje. Pídele que lo devuelva si necesita cambios.",
       "tracks": {
         "label": "Área {track}",
         "states": {

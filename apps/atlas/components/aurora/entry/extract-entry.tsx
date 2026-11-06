@@ -44,12 +44,16 @@ export function ExtractEntry(props: ExtractEntryProps) {
   const anchor = useRef<HTMLDivElement>(null);
   const panel = useEntryPanel(dialog);
   const [ids, setIds] = useState<readonly string[]>([]);
+  const [deferred, setDeferred] = useState<readonly string[]>([]);
   const form = useCallback(() => anchor.current?.closest("form") ?? null, []);
   // A form cleared after a save starts the next entry without the last document's suggestions.
   useEffect(() => {
     const target = form();
     if (!target) return;
-    const clear = () => setIds([]);
+    const clear = () => {
+      setIds([]);
+      setDeferred([]);
+    };
     target.addEventListener("reset", clear);
     return () => target.removeEventListener("reset", clear);
   }, [form, on]);
@@ -74,7 +78,11 @@ export function ExtractEntry(props: ExtractEntryProps) {
           {...props}
           form={form}
           filled={ids}
-          onFilled={setIds}
+          deferred={deferred}
+          onFilled={(kept, lines) => {
+            setIds(kept);
+            setDeferred(lines);
+          }}
           open={panel.open}
           onOpenChange={panel.setOpen}
         />

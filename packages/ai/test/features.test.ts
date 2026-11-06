@@ -211,6 +211,7 @@ describe("document extraction", () => {
       "issued_on",
       "due_on",
       "currency_code",
+      "printed_total_minor",
     ]);
   });
 

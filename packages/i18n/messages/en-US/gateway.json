@@ -388,6 +388,7 @@
       "noGuestList": "Guest lists are not part of a contractor's or sponsor's advance.",
       "guestsUsed": "{n} places on the guest list, plus-ones included.",
       "guestsCap": "{n} of {cap} places used, plus-ones included.",
+      "recordedBy": "Recorded by {org} from your message. Ask them to return it if it needs changing.",
       "tracks": {
         "label": "{track} track",
         "states": {

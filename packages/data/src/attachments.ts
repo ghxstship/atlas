@@ -340,3 +340,38 @@ export async function reviewAttachmentVersion(
     ? ok({ id: data })
     : fail({ kind: "unexpected", message: "no review id" });
 }
+
+/**
+ * Raises a file to Restricted (any reader may raise it, 1380). A contract's file carries the fee, and
+ * app.attachments.classification defaults to Internal, which every reader of its subject could open.
+ */
+export async function raiseAttachmentToRestricted(
+  db: XosClient,
+  attachmentId: string,
+): Promise<Result<null>> {
+  const { error } = await db
+    .from("attachments")
+    .update({ classification: "Restricted" })
+    .eq("id", attachmentId);
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+/**
+ * Uploads a contract's file to its engagement document, Restricted from the first moment a reader
+ * could see it: if the raise fails, the attachment is removed and the failure reported.
+ */
+export async function uploadRestrictedAttachment(
+  db: XosClient,
+  input: UploadAttachment,
+): Promise<Result<string>> {
+  const uploaded = await uploadAttachment(db, input);
+  if (!uploaded.ok) return uploaded;
+  const attachmentId = uploaded.data.attachmentId;
+  const raised = await raiseAttachmentToRestricted(db, attachmentId);
+  if (!raised.ok) {
+    await removeAttachment(db, attachmentId);
+    return raised;
+  }
+  return ok(attachmentId);
+}

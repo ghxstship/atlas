@@ -51,7 +51,7 @@
     "advance_submission_immutable": "An answer never changes after it arrives. Return it so the recipient answers again.",
     "advance_submission_reviewed": "Someone already reviewed this answer. Refresh to see the review.",
     "advance_review_person": "Sign in again to review answers.",
-    "sod_advance_submitter": "You recorded this answer, so someone else must review it.",
+    "sod_advance_submitter": "You recorded this answer, so someone else reviews it.",
     "advance_token_email": "Enter a valid email address for the link.",
     "advance_token_validity": "A link is valid for 1 to 90 days.",
     "reconciliation_no_requirements": "This project has no requirements yet. Add them in the project's Scope tab, then reconcile.",
@@ -357,7 +357,14 @@
     "named": "Named {n} of {q}",
     "pool": "Whole team",
     "windowRange": "{from} to {to}",
-    "needDecision": "{n, plural, one {# item needs a decision} other {# items need a decision}} in Allocations: sources, capacity, the allowance or the person's acceptance."
+    "needDecision": "{n, plural, one {# item needs a decision} other {# items need a decision}} in Allocations: sources, capacity, the allowance or the person's acceptance.",
+    "source": {
+      "recordedFrom": "Recorded from {from}.",
+      "projectInbox": "Project Inbox mail",
+      "sender": "Sent from {from}.",
+      "acceptedBy": "Drafted by Aurora, accepted by {name}.",
+      "someone": "someone"
+    }
   },
   "review": {
     "accept": "Accept",

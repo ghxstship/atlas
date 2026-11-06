@@ -26,3 +26,7 @@ Las facturas de proveedores y a clientes se reúnen en **Facturas**. Las factura
 - El **Catálogo de cuentas** viene del canon; asocie su libro mayor con él. Los **Centros de costos** son aquello sobre lo que informa.
 - La **Exportación de la línea de registro universal** genera las líneas contables para su sistema de contabilidad.
 - **Cierre del año** lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.
+
+## Revisar las líneas de una factura desde el documento
+
+Cuando Aurora completa una factura desde un documento, sus líneas esperan en la factura guardada. **Revisar líneas del documento** las muestra con la diferencia con el total impreso y lo que el proveedor cobró antes. Tú eliges cada línea de presupuesto: **Usar esta línea de presupuesto** la completa solo cuando haces clic. Cuando las líneas y el total difieren, marca **Revisé la diferencia** antes de agregarlas. La diferencia aparece después en la factura como una advertencia y no bloquea la aprobación ni el asiento.

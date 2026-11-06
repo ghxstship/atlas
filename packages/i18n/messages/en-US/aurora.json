@@ -130,7 +130,8 @@
     "saved": "Rider lines added from the document.",
     "suggestionsOpen": "The lines were added, but some proposals are still open in the suggestion log.",
     "saveFailed": "The lines were not saved. Check the rider and try again.",
-    "noLines": "Aurora found no asks in this rider. Add them by hand above."
+    "noLines": "Aurora found no asks in this rider. Add them by hand above.",
+    "tooManyLines": "The rider has too many lines for one read. Split it and try again."
   },
   "compass": {
     "menuLabel": "Aurora",
@@ -169,7 +170,10 @@
       "listNotEmpty": "This list already has entries. Aurora only drafts into an empty list.",
       "refused": "Aurora could not do this: {detail}",
       "unexpected": "Something went wrong and nothing was changed. Try again.",
-      "failed": "The model did not answer, and nothing was changed. Try again in a moment."
+      "failed": "The model did not answer, and nothing was changed. Try again in a moment.",
+      "itineraryDuplicate": "{detail}",
+      "feeRestricted": "Only someone who may read pay sets a fee. Nothing was changed.",
+      "sourceUnverified": "Aurora drafts only from verified mail in this project's inbox. Nothing was changed."
     },
     "sent": {
       "heading": "What Aurora receives",
@@ -190,14 +194,22 @@
         "change_order_description": "Draft a description with Aurora",
         "day_sheet": "Draft a day sheet with Aurora",
         "run_of_show": "Draft a run of show with Aurora",
-        "risk_assessment": "Draft a risk assessment with Aurora"
+        "risk_assessment": "Draft a risk assessment with Aurora",
+        "event_plan": "Draft an event plan with Aurora",
+        "waste_plan": "Draft a waste plan with Aurora",
+        "event_brief": "Draft a brief with Aurora",
+        "approval_pack": "Draft an approval pack with Aurora"
       },
       "instructions": "What should the draft say?",
       "instructionsHelp": {
         "sop": "For example: the load-in procedure for the main stage, with the crew lead responsible.",
         "advance_packet": "For example: ask the artist's team for their hospitality needs and arrival times.",
         "change_order_description": "For example: four more rigging points over the downstage edge, asked for by the client.",
-        "day_sheet": "For example: load-in at 7:00 with the rigging crew, doors at 19:00, and the stage manager's contacts."
+        "day_sheet": "For example: load-in at 7:00 with the rigging crew, doors at 19:00, and the stage manager's contacts.",
+        "event_plan": "For example: the plan for the outdoor stage, with staffing and the emergency route.",
+        "waste_plan": "For example: the waste streams for the food court and how each is collected.",
+        "event_brief": "For example: a one-page brief for the crew leads.",
+        "approval_pack": "For example: the summary for the city's event office."
       },
       "kind": {
         "sop": "Standard operating procedure",
@@ -205,7 +217,11 @@
         "change_order_description": "Change order description",
         "day_sheet": "Day sheet",
         "run_of_show": "Run of show",
-        "risk_assessment": "Risk assessment"
+        "risk_assessment": "Risk assessment",
+        "event_plan": "Event plan",
+        "waste_plan": "Waste plan",
+        "event_brief": "Brief",
+        "approval_pack": "Approval pack"
       },
       "sentKind": "Draft",
       "sentInstructions": "Your instructions",
@@ -374,7 +390,8 @@
         "description": "Description",
         "amount_minor": "Amount",
         "incurred_on": "Date",
-        "valid_until": "Valid until"
+        "valid_until": "Valid until",
+        "printed_total_minor": "Printed total"
       },
       "notRead": "Not read: {missing}",
       "confidence": "{percent, number} percent confident.",
@@ -385,7 +402,10 @@
       "lineDescription": "Line {n, number} description",
       "lineQuantity": "Quantity",
       "lineUnitPrice": "Unit price",
-      "lineNotRead": "Not on the document"
+      "lineNotRead": "Not on the document",
+      "vendor": "Vendor: {name}",
+      "linesLater": "{count, plural, one {# line stays} other {# lines stay}} open to review on the invoice after you save it.",
+      "tooManyLines": "Aurora could not finish reading this file. It may have too many lines for one read. Split it and try again."
     },
     "binding": {
       "button": "Suggest binding",
@@ -449,6 +469,192 @@
         "expenses": "expenses",
         "changeOrders": "change orders"
       }
+    },
+    "intake": {
+      "fileStatusLabel": "Files",
+      "fileStatus": {
+        "waiting": "Waiting",
+        "reading": "Reading",
+        "read": "Read",
+        "failed": "Could not read"
+      },
+      "fileReading": "Reading {name}.",
+      "files": "Files",
+      "filesHelp": "Up to {max} files, 10 MB each: PDF, text or images.",
+      "tooMany": "Choose at most {max} files.",
+      "tooBig": "Each file can be at most 10 MB.",
+      "sentKind": "What it is",
+      "sentFiles": "Files",
+      "noFiles": "None yet",
+      "uses": "This uses {n} of your {left} remaining requests.",
+      "usesUnlimited": "This uses {n, plural, one {# request} other {# requests}}.",
+      "keepsNothing": "XOS keeps nothing from these files until you add them.",
+      "tooManyDropped": "{file}: {count, plural, one {# line was} other {# lines were}} left out because one read holds 40 lines. Split the file to read the rest.",
+      "tooManyLines": "{file} has too many lines for one read. Split it and try again.",
+      "rejectAll": "Reject All",
+      "rejectReason": "Rejected in the review.",
+      "choose": "Choose",
+      "next": "Next",
+      "done": "Done",
+      "correct": "Correct",
+      "keep": "Keep",
+      "keepLine": "Keep {name}",
+      "confidence": "Confidence",
+      "excerpt": "Source",
+      "status": "Status",
+      "itinerary": {
+        "button": "Read Itineraries",
+        "title": "Read Itineraries",
+        "kind": "Travel itinerary",
+        "ready": "The lines are ready to review.",
+        "add": "Add {count, plural, one {# Segment} other {# Segments}}",
+        "added": "Added {count, plural, one {# segment} other {# segments}}.",
+        "review": "Choose who each passenger is and confirm each zone. Nothing is added until you choose Add, and lines you leave stay open for 7 days.",
+        "travelersTitle": "Travelers",
+        "printedAs": "Printed as {name}",
+        "zonesTitle": "Zones",
+        "checkZone": "Check this zone. Aurora inferred it from the airport or city.",
+        "zoneOf": "Zone of {place}",
+        "badZone": "Use an IANA name such as America/Chicago.",
+        "confirmZone": "Confirmed",
+        "linesTitle": "Lines",
+        "traveler": "Traveler",
+        "route": "Route",
+        "routeLine": "{from} to {to}",
+        "yearInferred": "The year was not printed. Aurora used the next time this date comes.",
+        "mode": "Mode",
+        "flight": "Flight",
+        "ground": "Ground",
+        "operator": "Operator",
+        "service": "Service",
+        "confirmation": "Confirmation",
+        "price": "Price",
+        "currency": "Currency",
+        "place": "Place",
+        "localTime": "Local time",
+        "zone": "Zone",
+        "steps": {
+          "0": "Service",
+          "1": "Departure",
+          "2": "Arrival"
+        },
+        "status": {
+          "ready": "Ready",
+          "needsTraveler": "Needs Traveler",
+          "needsDetails": "Needs Details",
+          "checkZone": "Check Zone",
+          "alreadyBooked": "Already Booked"
+        },
+        "dropped": {
+          "length": "{file}, line {line}: left out, because a value is longer than a segment holds.",
+          "zone": "{file}, line {line}: left out, because its zone is not an IANA name.",
+          "time": "{file}, line {line}: left out, because it arrives before it departs.",
+          "too_many": "{file}, line {line}: left out."
+        }
+      },
+      "contract": {
+        "button": "Read Contracts and Riders",
+        "title": "Read Contracts and Riders",
+        "kind": "Contract or rider",
+        "project": "Project",
+        "ready": "The documents are ready to review.",
+        "add": "Add {count, plural, one {# Booking} other {# Bookings}}",
+        "added": "Added {count, plural, one {# booking} other {# bookings}}.",
+        "review": "Documents are grouped by act. You choose every booking and fee. Aurora creates no person, account or counterparty.",
+        "terms": "Terms",
+        "termsHelp": "Each booking takes this job, classification, pay basis and arrangement.",
+        "termLabel": "{role} · {classification} · {basis} · {arrangement}",
+        "groups": "Bookings",
+        "party": "Party",
+        "noAct": "No act named",
+        "importCounterparties": "Import Counterparties",
+        "attachOnly": "This party already has a booking here. The documents attach to it, and the fee is ignored.",
+        "chooseBooking": "Booking",
+        "bookingN": "Booking {n}",
+        "vendorNeedsCounterparty": "Vendor-supplied terms need a counterparty.",
+        "dates": "{start} to {end}.",
+        "printedFee": "Printed fee: {fee}. A fee is read only for people allowed to read pay.",
+        "rate": "Rate per unit: {rate}",
+        "startDate": "Start",
+        "endDate": "End",
+        "fee": "Fee",
+        "currency": "Currency",
+        "feeHint": "This fee is a total. Enter the rate per unit.",
+        "attachFile": "Attach File",
+        "type": {
+          "Contract": "Contract",
+          "Rider": "Rider",
+          "Other": "Other Document"
+        },
+        "upload": {
+          "pending": "Attaching",
+          "attached": "Attached",
+          "failed": "Could not attach"
+        },
+        "status": {
+          "ready": "Ready",
+          "needsParty": "Needs Party",
+          "needsStartDate": "Needs Start Date",
+          "alreadyBooked": "Already Booked",
+          "other": "Other Document"
+        }
+      },
+      "invoiceLines": {
+        "button": "Review Lines from the Document",
+        "title": "Review Lines from the Document",
+        "add": "Add Lines",
+        "added": "Added {count, plural, one {# line} other {# lines}}.",
+        "tieOut": "Printed total {printed}. Lines add to {computed}. Difference {residual}.",
+        "notCheckable": "The total cannot be checked yet: a line has no price, or no total was printed.",
+        "checked": "I checked the difference",
+        "lines": "Lines",
+        "budgetLine": "Budget line",
+        "lastBilled": "Last billed at {price} on {invoice}.",
+        "lastBilledCoded": "Last billed at {price} on {invoice}. Coded to {line}.",
+        "useBudgetLine": "Use This Budget Line"
+      },
+      "advanceDraft": {
+        "button": "Draft Answers from a Reply",
+        "title": "Draft Answers for {name}",
+        "kind": "Advance answers",
+        "ready": "The answers are ready to review.",
+        "source": "Source",
+        "mailOption": "{subject}, from {from}",
+        "noSubject": "No subject",
+        "fileOption": "Choose a file",
+        "file": "File",
+        "mailRecord": "The message",
+        "emptyInbox": "No mail you can read has reached this project's inbox yet. Choose a file instead.",
+        "fromSender": "Sent from {from}.",
+        "fromFile": "Read from {name}.",
+        "secondPerson": "Someone else reviews what you accept.",
+        "answers": "Answers",
+        "answer": "Answer",
+        "window": "{start} to {end}, {zone}",
+        "checkFile": "Check this against the file.",
+        "accept": "Accept",
+        "reject": "Reject",
+        "accepted": "Recorded an answer to {section}.",
+        "decision": {
+          "accepted": "Recorded",
+          "rejected": "Rejected"
+        },
+        "dropped": "{count, plural, one {# answer was} other {# answers were}} left out, because they could not be checked against the source.",
+        "unanswered": "Not answered"
+      }
+    },
+    "rules": {
+      "aurora_intake_item_invalid": "{detail}",
+      "aurora_intake_project_required": "An itinerary or a contract is read for a project.",
+      "aurora_itinerary_traveler": "{detail}",
+      "aurora_invoice_currency": "{detail}",
+      "aurora_invoice_lines_foreign": "These lines were read for another invoice.",
+      "aurora_advance_no_open_sections": "This recipient has no open section Aurora can draft.",
+      "aurora_advance_source_empty": "This message has no text to read. Choose a file instead.",
+      "aurora_advance_section_not_allowed": "Aurora does not record an answer to this section.",
+      "advance_answer_pending": "This section is answered. It can be answered again only after it is returned.",
+      "invoice_locked": "Invoice lines change only while the invoice is Proposed.",
+      "sod_advance_submitter": "You recorded this answer, so someone else reviews it."
     }
   }
 }

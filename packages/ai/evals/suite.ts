@@ -8,8 +8,10 @@ import { loadModelConfig, type ModelConfig } from "../src/config.ts";
 import { askAssistant, type PublicApi } from "../src/features/assistant.ts";
 import {
   draft,
+  draftAdvanceAnswers,
   draftList,
   type ContextRecord,
+  type DraftableSection,
   type DraftKind,
   type ListDraft,
   type VerbiageEntry,
@@ -117,8 +119,11 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
       document: { type: "document", mediaType: "text/plain", data: c.document },
       fileName: `${c.id}.txt`,
       subject: null,
+      ...("feeVisible" in c ? { feeVisible: c.feeVisible as boolean } : {}),
     });
-    const header = proposals[0]?.fields ?? [];
+    // An itinerary has no header: every proposal is a line.
+    const headerless = c.kind === "itinerary";
+    const header = headerless ? [] : (proposals[0]?.fields ?? []);
     const wrong = Object.entries(c.expected).find(
       ([path, value]) =>
         !sameValue(
@@ -130,7 +135,7 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
     const expectedLines =
       "expectedLines" in c ? (c.expectedLines as Record<string, unknown>[]) : [];
     if (!detail && expectedLines.length > 0) {
-      const lines = proposals.slice(1);
+      const lines = headerless ? proposals : proposals.slice(1);
       if (lines.length !== expectedLines.length)
         detail = `expected ${expectedLines.length} lines, got ${lines.length}`;
       expectedLines.forEach((line, i) => {
@@ -320,6 +325,32 @@ async function draftingCases(client: ModelClient, config: ModelConfig): Promise<
     if (!problem && !c.allowMoney && MONEY.test(body))
       problem = "states a price the context does not give";
     out.push({ id: c.id, pass: problem === null, detail: problem ?? "ok" });
+  }
+  for (const c of draftingSet.advanceCases) {
+    const { store } = evalStore();
+    const result = await draftAdvanceAnswers(ctxFor(client, config, "2027-01-04", store), {
+      recipientId: "eval-recipient",
+      sections: c.sections as unknown as DraftableSection[],
+      timeZone: "America/New_York",
+      projectToday: "2027-01-04",
+      source: { kind: "Project Inbox", messageId: "eval-message", body: c.source },
+      verbiage: [],
+      neverSend: EVAL_NEVER_SEND,
+    });
+    if (c.answered.length === 0) {
+      out.push({ id: c.id, pass: result.kind === "no-answer", detail: describeFailure(result) });
+      continue;
+    }
+    if (result.kind !== "answer") {
+      out.push({ id: c.id, pass: false, detail: describeFailure(result) });
+      continue;
+    }
+    const got = result.value.answers.map((a) => a.section_id).sort();
+    const left = result.value.unanswered.map((u) => u.section_id).sort();
+    const pass =
+      JSON.stringify(got) === JSON.stringify([...c.answered].sort()) &&
+      JSON.stringify(left) === JSON.stringify([...c.unanswered].sort());
+    out.push({ id: c.id, pass, detail: pass ? "ok" : `answered ${got.join(", ")}` });
   }
   return out;
 }

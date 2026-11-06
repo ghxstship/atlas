@@ -25,9 +25,14 @@ import {
   askAssistant,
   buildFilter,
   draft,
+  draftAdvanceAnswers,
   draftList,
+  isGovernanceKind,
   isListDraftKind,
   extractDocument,
+  withholdIdentity,
+  type DocumentKind,
+  type GovernanceKind,
   loadModelConfig,
   NeverSendList,
   scrubRecord,
@@ -41,14 +46,26 @@ import {
   type VocabularyTerm,
 } from "@xos/ai";
 import {
+  advanceDraftScope,
+  applyContractIntake,
   applyDraftedList,
+  applyInvoiceLineSuggestions,
+  applyItineraryLines,
+  auroraIntakeScope,
+  contractIntakeOptions,
   createAuroraStore,
   draftedListIsEmpty,
   getAiAllowance,
+  itineraryTravelerCandidates,
   listAiNeverSend,
   listEnabledAiFeatures,
+  listInvoiceLineProposals,
+  listOpenProposals,
+  recordDraftedAdvanceAnswer,
   saveAiSettings,
   transitionAiSuggestion,
+  type ContractIntakeItem,
+  type OpenProposal,
 } from "@xos/data/ai";
 import { todayIn } from "@xos/data/calendar";
 import { getMyOrganization, listRoleCapabilities } from "@xos/data/identity";
@@ -72,6 +89,13 @@ import {
   type ErasedResult,
 } from "../../runtime/handler.ts";
 import { from, run, tableResource, unwrap, type Row } from "../support/table.ts";
+
+import {
+  governanceDraftItems,
+  governanceTarget,
+  readInboxMessage,
+  type GovernanceItem,
+} from "./aurora-intake.ts";
 
 export interface AuroraDeps {
   /** The model client for one request. */
@@ -665,6 +689,37 @@ const TRANSITIONS: Readonly<Record<string, Transition>> = {
   reopen: { expected: "Confirmed", next: "Proposed" },
 };
 
+/** A document as the model takes it: a text file decoded, anything else kept in base64. */
+function documentOf(body: {
+  media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+  content_base64: string;
+}) {
+  return {
+    type: "document" as const,
+    mediaType: body.media_type,
+    data:
+      body.media_type === "text/plain"
+        ? Buffer.from(body.content_base64, "base64").toString("utf8")
+        : body.content_base64,
+  };
+}
+
+/** An open proposal as the API answers it, each field with its provenance. */
+const proposalBody = (p: OpenProposal) => ({
+  ...p,
+  proposed_fields: p.proposed_fields.map((f) => ({
+    ...f,
+    confidence: f.confidence === null ? null : Number(f.confidence),
+    provenance: "agent" as const,
+  })),
+});
+
+/** The governance items named for a preview: gate readiness is its own record, cited by the project. */
+const namedItems = (read: readonly GovernanceItem[]) =>
+  read
+    .filter((r) => r.table !== "app.gate_criteria_status")
+    .map((r) => ({ collection: r.collection, id: r.id }));
+
 /** The Aurora handler set, keyed by operationId, for the Settings module file to spread. */
 export function auroraHandlers(
   overrides: Partial<AuroraDeps> = {},
@@ -760,6 +815,47 @@ export function auroraHandlers(
     });
   };
 
+  /** Today in a project's zone, for dates printed without a year; never the org's or UTC's. */
+  const projectZone = async (context: RequestContext, projectId: string) => {
+    const project = (
+      await run<Row[]>(from(context.db, "projects").select("time_zone").eq("id", projectId))
+    )[0];
+    const zone = project?.["time_zone"];
+    return typeof zone === "string" && zone !== "" ? zone : await deps.timeZone(context);
+  };
+
+  /** An event plan, brief, approval pack or waste plan for a Document record's editor (B15, G-240). */
+  const draftGovernance = async (
+    context: RequestContext,
+    kind: GovernanceKind,
+    body: {
+      instructions: string;
+      target?: { collection: string; id: string };
+      context?: { collection: string; id: string }[];
+      verbiage?: { term: string; preferred: string }[];
+    },
+  ) => {
+    const { neverSend, specs, api } = await readSetup(context);
+    const target = await governanceTarget(api, kind, body.target);
+    // Before any model call or metering: work.record.write on the record's project, 404 otherwise.
+    unwrap(await auroraIntakeScope(context.db, "governance", target.projectId));
+    const [records, vocabulary] = await Promise.all([
+      governanceDraftItems(api, specs, kind, target, body.context ?? []),
+      readVocabulary(api),
+    ]);
+    return toResponse(
+      await draft(await modelSetup(context), {
+        kind,
+        instructions: body.instructions,
+        context: records,
+        verbiage: body.verbiage ?? [],
+        vocabulary,
+        neverSend,
+        subject: { table: "app.records", id: target.id },
+      }),
+    );
+  };
+
   const handlers: Record<string, ErasedHandler> = {
     ...settings.handlers,
     ...requests.handlers,
@@ -850,23 +946,50 @@ export function auroraHandlers(
 
     "aurora.extract": async (request, context) => {
       const body = request.body as {
-        kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+        kind: DocumentKind;
         document_id?: string | null;
+        project_id?: string;
         media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
         content_base64: string;
         file_name: string;
       };
+      requireOrg(context);
+      requirePerson(context);
+      const intake = body.kind === "itinerary" || body.kind === "contract" ? body.kind : null;
+      if (intake && !body.project_id) {
+        throw refused(
+          "REFUSE",
+          "An itinerary or a contract is read for a project.",
+          "aurora_intake_project_required",
+        );
+      }
+      // Before any model call or metering: the write capability of the intake on the project.
+      const scope =
+        intake && body.project_id
+          ? unwrap(await auroraIntakeScope(context.db, intake, body.project_id))
+          : null;
+      const projectToday =
+        body.kind === "itinerary" && scope
+          ? todayIn(await projectZone(context, scope.project_id))
+          : null;
       const { ctx } = await setup(context);
-      const data =
-        body.media_type === "text/plain"
-          ? Buffer.from(body.content_base64, "base64").toString("utf8")
-          : body.content_base64;
+      const document = documentOf(body);
       return toResponse(
         await extractDocument(ctx, {
           kind: body.kind,
-          document: { type: "document", mediaType: body.media_type, data },
+          // Passport and known traveler values never go to the model (ADR 0033 item 38).
+          document:
+            intake && document.mediaType === "text/plain"
+              ? { ...document, data: withholdIdentity(document.data) }
+              : document,
           fileName: body.file_name,
-          subject: body.document_id ? { table: "app.documents", id: body.document_id } : null,
+          subject: scope
+            ? { table: "app.projects", id: scope.project_id }
+            : body.document_id
+              ? { table: "app.documents", id: body.document_id }
+              : null,
+          ...(scope?.fee_visible !== undefined ? { feeVisible: scope.fee_visible } : {}),
+          ...(projectToday ? { projectToday } : {}),
         }),
       );
     },
@@ -879,13 +1002,15 @@ export function auroraHandlers(
           | "email"
           | "day_sheet"
           | "change_order_description"
-          | ListDraftKind;
+          | ListDraftKind
+          | GovernanceKind;
         instructions: string;
         target?: { collection: string; id: string };
         context?: { collection: string; id: string }[];
         verbiage?: { term: string; preferred: string }[];
       };
       if (isListDraftKind(body.kind)) return draftIntoList(context, body.kind, body);
+      if (isGovernanceKind(body.kind)) return draftGovernance(context, body.kind, body);
       const kind = body.kind;
       const { ctx, neverSend, specs, api } = await setup(context);
       const [records, vocabulary] = await Promise.all([
@@ -908,8 +1033,10 @@ export function auroraHandlers(
     "aurora.preview": async (request, context) => {
       const body = request.body as {
         feature: "drafting" | "summaries";
-        draft_kind?: ListDraftKind;
+        draft_kind?: ListDraftKind | GovernanceKind | "advance_answers";
         target?: { collection: string; id: string };
+        advance_recipient_id?: string;
+        inbound_message_id?: string;
         kind?: SummaryKind;
         subject_collection?: string;
         subject_id?: string;
@@ -917,7 +1044,72 @@ export function auroraHandlers(
       };
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
-      if (drafting && body.draft_kind) {
+      if (drafting && body.draft_kind === "advance_answers") {
+        // Exactly what drafted answers send (B15): the open sections and the mail, never the roster.
+        const scope = unwrap(
+          await advanceDraftScope(context.db, String(body.advance_recipient_id)),
+        );
+        const message = body.inbound_message_id
+          ? await readInboxMessage(context, body.inbound_message_id, scope.project_id)
+          : null;
+        return ok({
+          records: [
+            ...scope.sections.map((s) => ({
+              collection: "advance-sections",
+              id: s.id,
+              sent: true,
+              fields: ["title", "prompt", "kind", "window_kind", "max_lines", "choices"],
+              withheld: [],
+              data: {
+                title: s.title,
+                prompt: s.prompt,
+                kind: s.kind,
+                window_kind: s.window_kind,
+                max_lines: s.max_lines,
+                choices: s.choices,
+              },
+            })),
+            ...(message
+              ? [
+                  {
+                    collection: "inbound-messages",
+                    id: message.id,
+                    sent: true,
+                    fields: ["from_address", "body_text"],
+                    withheld: [],
+                    data: {
+                      from_address: message.fromAddress,
+                      body_text: withholdIdentity(
+                        String(
+                          scrubRecord(
+                            "app.inbound_messages",
+                            { body_text: message.body },
+                            neverSend,
+                          )?.["body_text"] ?? "",
+                        ),
+                      ),
+                    },
+                  },
+                ]
+              : []),
+          ],
+          vocabulary_terms: 0,
+        });
+      }
+      if (drafting && body.draft_kind && isGovernanceKind(body.draft_kind)) {
+        // Exactly what the governance draft reads and sends (B15).
+        const target = await governanceTarget(api, body.draft_kind, body.target);
+        unwrap(await auroraIntakeScope(context.db, "governance", target.projectId));
+        const [read, vocabulary] = await Promise.all([
+          governanceDraftItems(api, specs, body.draft_kind, target, body.items),
+          readVocabulary(api),
+        ]);
+        return ok({
+          records: previewRecords(namedItems(read), read, specs, neverSend),
+          vocabulary_terms: vocabulary.length,
+        });
+      }
+      if (drafting && body.draft_kind && isListDraftKind(body.draft_kind)) {
         // Exactly what the drafted list reads and sends (P6, S4.7, A95).
         const kind = body.draft_kind;
         const target = listTarget(kind, body.target);
@@ -981,6 +1173,179 @@ export function auroraHandlers(
           await applyDraftedList(context.db, { requestId: body.request_id, items: body.items }),
         ),
       );
+    },
+
+    "aurora.intakeOptions": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const query = request.query as { kind: "itinerary" | "contract"; project_id: string };
+      const scope = unwrap(await auroraIntakeScope(context.db, query.kind, query.project_id));
+      if (query.kind === "itinerary") {
+        return ok({
+          fee_visible: false,
+          can_write_riders: false,
+          travelers: unwrap(await itineraryTravelerCandidates(context.db, query.project_id)),
+          segments: await run<Row[]>(
+            from(context.db, "travel_segments")
+              .select("person_id, service_identifier, departs_at")
+              .eq("project_id", query.project_id)
+              .is("deleted_at", null)
+              .limit(1000),
+          ),
+          parties: [],
+          rate_cards: [],
+        });
+      }
+      const options = unwrap(await contractIntakeOptions(context.db, query.project_id));
+      return ok({
+        fee_visible: scope.fee_visible === true,
+        can_write_riders: scope.can_write_riders === true,
+        travelers: [],
+        segments: [],
+        parties: options.parties,
+        rate_cards: options.rate_cards,
+      });
+    },
+
+    "aurora.openProposals": async (request, context) => {
+      requireOrg(context);
+      const personId = requirePerson(context);
+      const query = request.query as { project_id: string; operation_id: string };
+      const kind = query.operation_id === "travelSegments.create" ? "itinerary" : "contract";
+      unwrap(await auroraIntakeScope(context.db, kind, query.project_id));
+      const proposals = unwrap(
+        await listOpenProposals(context.db, {
+          personId,
+          projectId: query.project_id,
+          operationId: query.operation_id,
+        }),
+      );
+      return ok({ data: proposals.map(proposalBody) });
+    },
+
+    "aurora.invoiceLineProposals": async (request, context) => {
+      requireOrg(context);
+      const personId = requirePerson(context);
+      const query = request.query as { invoice_id: string };
+      const proposals = unwrap(
+        await listInvoiceLineProposals(context.db, query.invoice_id, personId),
+      );
+      return ok({ data: proposals.map(proposalBody) });
+    },
+
+    "aurora.applyItinerary": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        project_id: string;
+        fulfillment_id?: string | null;
+        items: { suggestion_id: string; values: Record<string, unknown> }[];
+      };
+      return ok(
+        unwrap(
+          await applyItineraryLines(context.db, {
+            projectId: body.project_id,
+            fulfillmentId: body.fulfillment_id ?? null,
+            items: body.items,
+          }),
+        ),
+      );
+    },
+
+    "aurora.applyContractIntake": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as { project_id: string; items: ContractIntakeItem[] };
+      return ok(
+        unwrap(
+          await applyContractIntake(context.db, { projectId: body.project_id, items: body.items }),
+        ),
+      );
+    },
+
+    "aurora.applyInvoiceLines": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as {
+        invoice_id: string;
+        items: { suggestion_id: string; values: Record<string, unknown> }[];
+      };
+      return ok(unwrap(await applyInvoiceLineSuggestions(context.db, body.invoice_id, body.items)));
+    },
+
+    "aurora.draftAdvanceAnswers": async (request, context) => {
+      const body = request.body as {
+        advance_recipient_id: string;
+        inbound_message_id?: string;
+        media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+        content_base64?: string;
+        file_name?: string;
+        verbiage?: { term: string; preferred: string }[];
+      };
+      requireOrg(context);
+      requirePerson(context);
+      const hasFile = body.content_base64 !== undefined;
+      if (
+        hasFile === (body.inbound_message_id !== undefined) ||
+        (hasFile && (!body.media_type || !body.file_name))
+      ) {
+        throw refused(
+          "REFUSE",
+          "Name one source: a message from the project's inbox, or a file.",
+          "aurora_advance_source_required",
+        );
+      }
+      // Every refusal comes before any model call or metering.
+      const scope = unwrap(await advanceDraftScope(context.db, body.advance_recipient_id));
+      const message = body.inbound_message_id
+        ? await readInboxMessage(context, body.inbound_message_id, scope.project_id)
+        : null;
+      const { ctx, neverSend } = await setup(context);
+      const result = await draftAdvanceAnswers(ctx, {
+        recipientId: body.advance_recipient_id,
+        sections: scope.sections,
+        timeZone: scope.time_zone,
+        projectToday: todayIn(scope.time_zone),
+        source: message
+          ? { kind: "Project Inbox", messageId: message.id, body: message.body }
+          : {
+              kind: "File",
+              fileName: String(body.file_name),
+              document: documentOf({
+                media_type: body.media_type ?? "text/plain",
+                content_base64: String(body.content_base64),
+              }),
+            },
+        verbiage: body.verbiage ?? [],
+        neverSend,
+      });
+      if (result.kind !== "answer") return toResponse(result);
+      // Answers and their suggestions come in the same order.
+      return toResponse({
+        ...result,
+        value: {
+          ...result.value,
+          source: message
+            ? { kind: "Project Inbox", from_address: message.fromAddress }
+            : { kind: "File", file_name: body.file_name },
+          sections: scope.sections.map((s) => ({ id: s.id, title: s.title, choices: s.choices })),
+          answers: result.value.answers.map((a, i) => ({
+            suggestion_id: result.proposals[i]?.suggestionId ?? null,
+            ...a,
+          })),
+        },
+      });
+    },
+
+    "aurora.applyAdvanceAnswer": async (request, context) => {
+      requireOrg(context);
+      requirePerson(context);
+      const body = request.body as { suggestion_id: string; values?: Record<string, unknown> };
+      return ok({
+        submission_id: unwrap(
+          await recordDraftedAdvanceAnswer(context.db, body.suggestion_id, body.values ?? {}),
+        ),
+      });
     },
 
     "aurora.mapColumns": async (request, context) => {

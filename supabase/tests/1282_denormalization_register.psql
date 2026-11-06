@@ -469,6 +469,7 @@ insert into register_stored values
   ('app.import_job_sheets.column_count', 'fact'),
   ('app.import_job_sheets.data_row_count', 'fact'),
   ('app.invite_links.use_count', 'fact'),
+  ('app.invoices.printed_total_minor', 'fact'),
   ('app.live_links.open_count', 'fact'),
   ('app.notification_deliveries.attempt_count', 'fact'),
   ('app.occupancy_counters.alert_level_percent', 'registered'),

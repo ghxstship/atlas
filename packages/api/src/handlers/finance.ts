@@ -33,8 +33,9 @@ import {
   type InvoiceState,
   type PeriodState,
 } from "@xos/data/finance";
+import { getInvoiceTieOut, vendorLineHistory } from "@xos/data/ai";
 import { listForm1099NecRows } from "@xos/data/form-1099";
-import { conflict, refused } from "../problem.ts";
+import { conflict, notFound, refused } from "../problem.ts";
 import type { RequestContext } from "../runtime/context.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
@@ -475,6 +476,13 @@ export const handlers = defineHandlers("Finance", {
     ok((await bulkEdit(context, "invoices", body, true)) as never),
   "invoices.bulkUpdate": async ({ body }, context) =>
     ok((await bulkEdit(context, "invoices", body, false)) as never),
+  "invoices.tieOut": async ({ params }, context) => {
+    const row = unwrap(await getInvoiceTieOut(context.db, params.id));
+    if (!row) throw notFound("The invoice is not visible to you.");
+    return ok(row);
+  },
+  "invoices.lineHistory": async ({ params, body }, context) =>
+    ok({ data: [...unwrap(await vendorLineHistory(context.db, params.id, body.descriptions))] }),
   "invoices.fieldHistory": async ({ params, query }, context) =>
     ok((await fieldHistory(context, "app.invoices", params.id, query.limit)) as never),
 });

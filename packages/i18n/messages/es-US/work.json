@@ -821,7 +821,8 @@
     "score": "Puntuación",
     "mitigation": "Mitigación",
     "baseline_locked_at": "Fijado en una línea base",
-    "title": "Detalles de {kind}"
+    "title": "Detalles de {kind}",
+    "body": "Texto"
   },
   "undo": {
     "edited": "Se editó {key}.",

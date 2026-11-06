@@ -51,6 +51,7 @@ import {
 } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import { loadConversation, loadRelations, type Conversation } from "./record-sections";
@@ -463,6 +464,11 @@ export async function RecordBody({
             people={meta.people}
             currencies={attributes.currencies}
             canEdit={detail.canWrite}
+            draftEntry={
+              detail.canWrite && record.kind === "Document" && record.subtype ? (
+                <GovernanceDraft record={record} />
+              ) : null
+            }
           />
         )}
       </RegionContent>
@@ -673,5 +679,30 @@ export async function RecordBody({
       )}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
+  );
+}
+
+/** The governance kinds each Document subtype takes (B15); other subtypes show no entry. */
+const GOVERNANCE_KINDS: Readonly<
+  Record<string, readonly ("event_plan" | "waste_plan" | "event_brief" | "approval_pack")[]>
+> = {
+  Plan: ["event_plan", "waste_plan"],
+  Brief: ["event_brief"],
+  Package: ["approval_pack"],
+};
+
+function GovernanceDraft({ record }: { record: RecordSummary }) {
+  const kinds = GOVERNANCE_KINDS[record.subtype ?? ""];
+  const first = kinds?.[0];
+  if (!kinds || !first) return null;
+  return (
+    <DraftEntry
+      kind={first}
+      kinds={kinds}
+      target={{ collection: "records", id: record.id }}
+      fields={{ body: "body" }}
+      context={[]}
+      maxBody={100000}
+    />
   );
 }

@@ -442,3 +442,444 @@ export async function listAiRequests(
     })),
   );
 }
+
+// Aurora intake (B15, migrations 6270 to 6274; ADR 0154) ------------------------------------------
+
+/** A refusal for a value of the wrong type or format, named by its line, is an invalid value. */
+function intakeError(error: { code?: string; message: string; hint?: string | null }) {
+  if (["22007", "22008", "23502", "22003", "22P02"].includes(error.code ?? "")) {
+    return fail({ kind: "invalid", message: error.message });
+  }
+  return fail(toDataError(error));
+}
+
+export type IntakeScopeKind = "itinerary" | "contract" | "governance";
+
+export interface IntakeScope {
+  readonly project_id: string;
+  /** A contract: the caller reads pay, so the model is asked for a fee. */
+  readonly fee_visible?: boolean;
+  /** A contract: the caller may add riders. */
+  readonly can_write_riders?: boolean;
+}
+
+/** The capability check of an intake or governance draft, before any model call (app.aurora_intake_scope). */
+export async function auroraIntakeScope(
+  db: XosClient,
+  kind: IntakeScopeKind,
+  projectId: string,
+): Promise<Result<IntakeScope>> {
+  const { data, error } = await db.rpc("aurora_intake_scope", {
+    p_kind: kind,
+    p_project_id: projectId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data as unknown as IntakeScope);
+}
+
+export interface TravelerCandidate {
+  readonly person_id: string;
+  readonly engagement_id: string | null;
+  readonly display_name: string;
+  readonly source: "Member" | "Engagement" | "Roster";
+}
+
+/** Who an itinerary's passengers may be: names only, no travel value (app.itinerary_traveler_candidates). */
+export async function itineraryTravelerCandidates(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<readonly TravelerCandidate[]>> {
+  const { data, error } = await db.rpc("itinerary_traveler_candidates", {
+    p_project_id: projectId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []) as unknown as TravelerCandidate[]);
+}
+
+export interface ContractParty {
+  readonly kind: "counterparty" | "person";
+  readonly id: string;
+  readonly name: string;
+  /** The party's live Artist engagements on the project. */
+  readonly engagement_ids: readonly string[];
+}
+
+export interface ContractRateCard {
+  readonly role_code: string;
+  readonly role_name: string;
+  readonly worker_classification: string;
+  readonly worker_classification_label: string;
+  readonly pay_basis: string;
+  readonly arrangement: string;
+}
+
+export interface ContractIntakeOptions {
+  readonly parties: readonly ContractParty[];
+  readonly rate_cards: readonly ContractRateCard[];
+}
+
+/** The parties and non-employee rate card rows a contract review offers (app.contract_intake_options). */
+export async function contractIntakeOptions(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ContractIntakeOptions>> {
+  const { data, error } = await db.rpc("contract_intake_options", { p_project_id: projectId });
+  if (error) return fail(toDataError(error));
+  return ok(data as unknown as ContractIntakeOptions);
+}
+
+export interface AppliedItineraryLines {
+  readonly written: readonly { readonly suggestion_id: string; readonly id: string }[];
+  readonly duplicates_checked: number;
+}
+
+/** Adds kept itinerary lines as travel segments in one transaction (app.apply_itinerary_lines). */
+export async function applyItineraryLines(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly fulfillmentId: string | null;
+    readonly items: readonly {
+      readonly suggestion_id: string;
+      readonly values: Readonly<Record<string, unknown>>;
+    }[];
+  },
+): Promise<Result<AppliedItineraryLines>> {
+  const { data, error } = await db.rpc("apply_itinerary_lines", {
+    p_project_id: input.projectId,
+    // The generated argument type takes a uuid; the function accepts null for no fulfillment.
+    p_fulfillment_id: input.fulfillmentId as string,
+    p_items: input.items as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  return ok(data as unknown as AppliedItineraryLines);
+}
+
+export interface ContractIntakeItem {
+  readonly suggestion_ids: readonly string[];
+  readonly party: { readonly person_id?: string; readonly counterparty_id?: string };
+  readonly engagement_id?: string;
+  readonly role_code?: string;
+  readonly worker_classification?: string;
+  readonly pay_basis?: string;
+  readonly arrangement?: string;
+  readonly start_date?: string;
+  readonly end_date?: string;
+  readonly agreed_rate_minor?: number;
+  readonly currency_code?: string;
+  readonly create_riders?: boolean;
+}
+
+export interface AppliedContractIntake {
+  readonly engagements: readonly {
+    readonly suggestion_ids: readonly string[];
+    readonly engagement_id: string;
+    readonly created: boolean;
+    readonly documents: readonly {
+      readonly suggestion_id: string;
+      readonly engagement_document_id: string | null;
+      readonly document_type: "Contract" | "Rider";
+    }[];
+  }[];
+  readonly riders: number;
+}
+
+/** Books the groups of a contract review in one transaction (app.apply_contract_intake). */
+export async function applyContractIntake(
+  db: XosClient,
+  input: { readonly projectId: string; readonly items: readonly ContractIntakeItem[] },
+): Promise<Result<AppliedContractIntake>> {
+  const { data, error } = await db.rpc("apply_contract_intake", {
+    p_project_id: input.projectId,
+    p_items: input.items as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  return ok(data as unknown as AppliedContractIntake);
+}
+
+export interface OpenProposalField {
+  readonly field_path: string;
+  readonly proposed_value: unknown;
+  readonly confidence: number | null;
+  readonly refusal: string | null;
+  readonly missing: string | null;
+  readonly source_excerpt: string | null;
+}
+
+export interface OpenProposal {
+  readonly id: string;
+  readonly request_id: string;
+  readonly operation_id: string;
+  readonly target_id: string | null;
+  readonly summary: string;
+  readonly expires_at: string;
+  readonly proposed_fields: readonly OpenProposalField[];
+}
+
+async function withFields(
+  db: XosClient,
+  rows: readonly Omit<OpenProposal, "proposed_fields">[],
+): Promise<Result<readonly OpenProposal[]>> {
+  if (rows.length === 0) return ok([]);
+  // Read as the caller, so row level security leaves out a Restricted fee.
+  const { data, error } = await db
+    .from("ai_suggestion_fields")
+    .select(
+      "suggestion_id, field_path, proposed_value, confidence, refusal, missing, source_excerpt, position",
+    )
+    .in(
+      "suggestion_id",
+      rows.map((r) => r.id),
+    )
+    .is("deleted_at", null)
+    .order("position");
+  if (error) return fail(toDataError(error));
+  return ok(
+    rows.map((r) => ({
+      ...r,
+      proposed_fields: (data ?? [])
+        .filter((f) => f.suggestion_id === r.id)
+        .map((f) => ({
+          field_path: f.field_path,
+          proposed_value: f.proposed_value,
+          confidence: f.confidence,
+          refusal: f.refusal,
+          missing: f.missing,
+          source_excerpt: f.source_excerpt,
+        })),
+    })),
+  );
+}
+
+const OPEN_PROPOSAL_COLUMNS = "id, request_id, operation_id, target_id, summary, expires_at";
+
+/**
+ * The caller's open proposals of a project's intake: an intake is its open suggestions, so a reload
+ * resumes the review until they expire at 7 days (ADR 0154 D3). Asks no model and meters nothing.
+ */
+export async function listOpenProposals(
+  db: XosClient,
+  input: {
+    readonly personId: string;
+    readonly projectId: string;
+    readonly operationId: string;
+  },
+): Promise<Result<readonly OpenProposal[]>> {
+  const requests = await db
+    .from("ai_requests")
+    .select("id")
+    .eq("person_id", input.personId)
+    .eq("feature", "extraction")
+    .eq("subject_table", "app.projects")
+    .eq("subject_id", input.projectId)
+    .is("deleted_at", null);
+  if (requests.error) return fail(toDataError(requests.error));
+  const ids = (requests.data ?? []).map((r) => r.id);
+  if (ids.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("ai_suggestions")
+    .select(OPEN_PROPOSAL_COLUMNS)
+    .in("request_id", ids)
+    .eq("operation_id", input.operationId)
+    .eq("suggestion_state", "Proposed")
+    .gt("expires_at", new Date().toISOString())
+    .is("deleted_at", null)
+    .order("created_at")
+    .limit(500);
+  if (error) return fail(toDataError(error));
+  return withFields(db, data ?? []);
+}
+
+/**
+ * The caller's open line suggestions of an invoice: the lines whose request's invoices.create
+ * suggestion was saved as this invoice, never another invoice's (ADR 0154).
+ */
+export async function listInvoiceLineProposals(
+  db: XosClient,
+  invoiceId: string,
+  personId: string,
+): Promise<Result<readonly OpenProposal[]>> {
+  const headers = await db
+    .from("ai_suggestions")
+    .select("request_id, ai_requests!inner(person_id)")
+    .eq("operation_id", "invoices.create")
+    .eq("suggestion_state", "Applied")
+    .eq("applied_id", invoiceId)
+    .eq("ai_requests.person_id", personId)
+    .is("deleted_at", null);
+  if (headers.error) return fail(toDataError(headers.error));
+  const ids = (headers.data ?? []).map((h) => h.request_id);
+  if (ids.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("ai_suggestions")
+    .select(OPEN_PROPOSAL_COLUMNS)
+    .in("request_id", ids)
+    .eq("operation_id", "invoiceLines.create")
+    .eq("suggestion_state", "Proposed")
+    .gt("expires_at", new Date().toISOString())
+    .is("deleted_at", null)
+    .order("created_at")
+    .limit(100);
+  if (error) return fail(toDataError(error));
+  return withFields(db, data ?? []);
+}
+
+/** Adds kept invoice lines, as the caller (app.apply_invoice_line_suggestions). */
+export async function applyInvoiceLineSuggestions(
+  db: XosClient,
+  invoiceId: string,
+  items: readonly {
+    readonly suggestion_id: string;
+    readonly values: Readonly<Record<string, unknown>>;
+  }[],
+): Promise<Result<{ readonly written: readonly { suggestion_id: string; id: string }[] }>> {
+  const { data, error } = await db.rpc("apply_invoice_line_suggestions", {
+    p_invoice_id: invoiceId,
+    p_items: items as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  return ok(data as unknown as { written: { suggestion_id: string; id: string }[] });
+}
+
+export interface VendorLineHistoryEntry {
+  readonly description_index: number;
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit_price_minor: number | null;
+  readonly currency_code: string;
+  readonly invoice_number: string | null;
+  readonly issued_on: string | null;
+  readonly budget_line_id: string | null;
+  readonly budget_line_name: string | null;
+}
+
+/** What the same counterparty billed before, by row level security (app.vendor_line_history). */
+export async function vendorLineHistory(
+  db: XosClient,
+  invoiceId: string,
+  descriptions: readonly string[],
+): Promise<Result<readonly VendorLineHistoryEntry[]>> {
+  const { data, error } = await db.rpc("vendor_line_history", {
+    p_invoice_id: invoiceId,
+    p_descriptions: [...descriptions],
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []) as unknown as VendorLineHistoryEntry[]);
+}
+
+export interface InvoiceTieOutRow {
+  readonly invoice_id: string;
+  readonly printed_total_minor: number | null;
+  readonly computed_total_minor: number | null;
+  readonly residual_minor: number | null;
+}
+
+/** An invoice's printed total against its lines, computed and never stored (app.invoice_tie_out). */
+export async function getInvoiceTieOut(
+  db: XosClient,
+  invoiceId: string,
+): Promise<Result<InvoiceTieOutRow | null>> {
+  const { data, error } = await db
+    .from("invoice_tie_out")
+    .select("invoice_id, printed_total_minor, computed_total_minor, residual_minor")
+    .eq("invoice_id", invoiceId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return ok((data as InvoiceTieOutRow | null) ?? null);
+}
+
+// Advance answers (B15) -----------------------------------------------------------------------------
+
+export interface AdvanceDraftScope {
+  readonly recipient_id: string;
+  readonly packet_id: string;
+  readonly project_id: string;
+  readonly time_zone: string;
+  readonly sections: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly prompt: string | null;
+    readonly kind: "Text" | "Schedule Window" | "Item Request" | "Credential Request";
+    readonly window_kind: string | null;
+    readonly max_lines: number | null;
+    readonly choices: readonly { readonly id: string; readonly name: string }[];
+  }[];
+}
+
+/** What Aurora may draft for a recipient, before any model call (app.advance_draft_scope). */
+export async function advanceDraftScope(
+  db: XosClient,
+  recipientId: string,
+): Promise<Result<AdvanceDraftScope>> {
+  const { data, error } = await db.rpc("advance_draft_scope", { p_recipient_id: recipientId });
+  if (error) return fail(toDataError(error));
+  return ok(data as unknown as AdvanceDraftScope);
+}
+
+/** Records one accepted answer for the person who accepts it (app.record_drafted_advance_answer). */
+export async function recordDraftedAdvanceAnswer(
+  db: XosClient,
+  suggestionId: string,
+  values: Readonly<Record<string, unknown>> = {},
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("record_drafted_advance_answer", {
+    p_suggestion_id: suggestionId,
+    p_values: values as unknown as Json,
+  });
+  if (error) return intakeError(error);
+  return ok(data as string);
+}
+
+/** Where an advance answer recorded from an Aurora draft came from. */
+export interface AnswerSource {
+  readonly submissionId: string;
+  readonly sourceKind: "Project Inbox" | "File";
+  readonly fileName: string | null;
+  readonly excerpt: string;
+  /** The sender of the mail, only when the reader may read that message. */
+  readonly fromAddress: string | null;
+  readonly accepterName: string | null;
+}
+
+/** The sources of the given answers, as the caller reads them (app.advance_answer_sources). */
+export async function listAnswerSources(
+  db: XosClient,
+  submissionIds: readonly string[],
+): Promise<Result<readonly AnswerSource[]>> {
+  if (submissionIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("advance_answer_sources")
+    .select(
+      "advance_submission_id, source_kind, inbound_message_id, file_name, source_excerpt, created_by",
+    )
+    .in("advance_submission_id", [...submissionIds]);
+  if (error) return fail(toDataError(error));
+  const rows = data ?? [];
+  const messageIds = rows.flatMap((r) => (r.inbound_message_id ? [r.inbound_message_id] : []));
+  const senders = new Map<string, string>();
+  if (messageIds.length > 0) {
+    const messages = await db
+      .from("inbound_messages")
+      .select("id, from_address")
+      .in("id", messageIds);
+    if (messages.error) return fail(toDataError(messages.error));
+    for (const m of messages.data ?? []) senders.set(m.id, m.from_address);
+  }
+  const people = rows.flatMap((r) => (r.created_by ? [r.created_by] : []));
+  const names = new Map<string, string>();
+  if (people.length > 0) {
+    const named = await db.rpc("person_names", { p_person_ids: people });
+    if (named.error) return fail(toDataError(named.error));
+    for (const p of named.data ?? []) names.set(p.person_id, p.full_name);
+  }
+  return ok(
+    rows.map((r) => ({
+      submissionId: r.advance_submission_id,
+      sourceKind: r.source_kind,
+      fileName: r.file_name,
+      excerpt: r.source_excerpt,
+      fromAddress: r.inbound_message_id ? (senders.get(r.inbound_message_id) ?? null) : null,
+      accepterName: r.created_by ? (names.get(r.created_by) ?? null) : null,
+    })),
+  );
+}

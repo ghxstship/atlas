@@ -47,3 +47,7 @@ La vista Matriz de los bloques de alojamiento muestra en cada noche las habitaci
 ## Lista de alojamiento
 
 La sección Lista de alojamiento del proyecto muestra a las personas del grupo de viaje que necesitan habitación: las estancias que sugieren sus pases o fechas de viaje, las habitaciones que tienen, las noches sin cubrir y su costo. Filtre por Falta, Parcial o Sin fechas. Asignar habitación abre la asignación por entregar cuando la persona tiene una aprobada y, si no, el formulario de habitación con la estancia sugerida; no se guarda nada hasta que confirme. Cada lectura de la lista queda registrada en el historial de acceso de cada persona, así que solo se carga cuando lo pide y no se puede exportar.
+
+## Leer itinerarios con Aurora
+
+En un cumplimiento de viaje, **Leer itinerarios** lee hasta 25 confirmaciones. Cada archivo es una solicitud de Aurora de la asignación de este mes. Tú eliges quién es cada pasajero y confirmas cada zona, porque Aurora deduce las zonas del aeropuerto o la ciudad. Un año que la confirmación no imprime es la próxima vez que llega esa fecha, y lo indica. Una línea igual a un tramo ya reservado empieza sin marcar. Las líneas que dejes siguen abiertas 7 días, para que puedas volver a ellas.
