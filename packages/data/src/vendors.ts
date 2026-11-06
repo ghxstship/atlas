@@ -10,7 +10,7 @@ import {
   touched,
   type Transition,
 } from "./commercial-common.ts";
-import { fail, ok, type Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 import * as enums from "./enums.generated.ts";
 
 /**
