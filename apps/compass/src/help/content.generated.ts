@@ -719,7 +719,9 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "budget line" },
                 { t: "text", v: " the expense posts to, and tap " },
                 { t: "strong", v: "Save expense" },
-                { t: "text", v: "." },
+                { t: "text", v: ". If it came out of your own pocket, turn on " },
+                { t: "strong", v: "I paid this myself" },
+                { t: "text", v: " first." },
               ],
             ],
           },
@@ -748,6 +750,28 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Your expenses list shows each one's state, such as Submitted or Approved. Someone else approves it; you cannot approve your own.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "An expense you paid yourself also shows where it stands: " },
+              { t: "strong", v: "Recorded" },
+              { t: "text", v: " until it is approved, " },
+              { t: "strong", v: "Owed to you" },
+              { t: "text", v: " once approved, and " },
+              { t: "strong", v: "Paid to you" },
+              { t: "text", v: " once finance records the reimbursement. " },
+              { t: "strong", v: "Not owed" },
+              {
+                t: "text",
+                v: " means it was rejected or canceled. Compass cannot see credits finance recorded against your expense, so one credited in full can still say ",
+              },
+              { t: "strong", v: "Owed to you" },
+              {
+                t: "text",
+                v: "; ask finance if the amount looks wrong. XOS records the reimbursement and moves no money.",
               },
             ],
           },
@@ -1060,6 +1084,58 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Forget this kiosk" },
               { t: "text", v: " and enters the new device key." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "logistics-gate",
+        title: "Gate",
+        summary:
+          "Find a delivery booking at the gate and move it through arrival, release and check-in.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Pick a gate" },
+                {
+                  t: "text",
+                  v: " to see today's delivery windows, in the project's time zone, with how many vehicles are booked.",
+                },
+              ],
+              [
+                { t: "strong", v: "Find a booking" },
+                {
+                  t: "text",
+                  v: " by its reference code or plate. The search runs on this phone, so it works with no signal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Arrived" },
+                {
+                  t: "text",
+                  v: ": the vehicle is at the gate. Enter the plate when the booking has none.",
+                },
+              ],
+              [
+                { t: "strong", v: "Release" },
+                { t: "text", v: " lets a waiting vehicle into the site, and " },
+                { t: "strong", v: "Check In" },
+                { t: "text", v: " records it at the dock." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Every change works offline and sends once when you reconnect. Choose a project first.",
+              },
             ],
           },
         ],
@@ -4135,6 +4211,8 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "partida del presupuesto" },
                 { t: "text", v: " en la que se registra el gasto y toca " },
                 { t: "strong", v: "Guardar gasto" },
+                { t: "text", v: ". Si salió de tu bolsillo, activa antes " },
+                { t: "strong", v: "Lo pagué yo" },
                 { t: "text", v: "." },
               ],
             ],
@@ -4164,6 +4242,28 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Tu lista de gastos muestra el estado de cada uno, como Enviado o Aprobado. Otra persona lo aprueba; no puedes aprobar el tuyo.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Un gasto que pagaste tú también muestra cómo va: " },
+              { t: "strong", v: "Registrado" },
+              { t: "text", v: " hasta que se aprueba, " },
+              { t: "strong", v: "Te lo deben" },
+              { t: "text", v: " una vez aprobado y " },
+              { t: "strong", v: "Te lo pagaron" },
+              { t: "text", v: " cuando finanzas registra el reembolso. " },
+              { t: "strong", v: "No adeudado" },
+              {
+                t: "text",
+                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró contra tu gasto, así que uno acreditado por completo puede seguir diciendo ",
+              },
+              { t: "strong", v: "Te lo deben" },
+              {
+                t: "text",
+                v: "; pregunta a finanzas si el importe no parece correcto. XOS registra el reembolso y no mueve dinero.",
               },
             ],
           },
@@ -4483,6 +4583,58 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Olvidar este quiosco" },
               { t: "text", v: " y escribe la nueva clave del dispositivo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "logistics-gate",
+        title: "Puerta",
+        summary:
+          "Busca una reserva de entrega en la puerta y llévala por la llegada, la liberación y el registro.",
+        kind: "workflow",
+        nodes: ["logistics.gate"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Elige una puerta" },
+                {
+                  t: "text",
+                  v: " para ver las franjas de entrega de hoy, en la zona horaria del proyecto, con cuántos vehículos hay reservados.",
+                },
+              ],
+              [
+                { t: "strong", v: "Busca una reserva" },
+                {
+                  t: "text",
+                  v: " por su código de referencia o su placa. La búsqueda se hace en este teléfono, así que funciona sin señal.",
+                },
+              ],
+              [
+                { t: "strong", v: "Llegó" },
+                {
+                  t: "text",
+                  v: ": el vehículo está en la puerta. Escribe la placa si la reserva no la tiene.",
+                },
+              ],
+              [
+                { t: "strong", v: "Liberar" },
+                { t: "text", v: " deja entrar a un vehículo en espera, y " },
+                { t: "strong", v: "Registrar" },
+                { t: "text", v: " lo anota en el muelle." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Cada cambio funciona sin conexión y se envía una vez cuando vuelves a conectarte. Primero elige un proyecto.",
+              },
             ],
           },
         ],

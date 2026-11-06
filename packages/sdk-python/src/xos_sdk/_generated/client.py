@@ -355,6 +355,7 @@ from .resources import (
     SegmentLibraryCueCallsResource,
     RunSegmentInstancesResource,
     ShowcallerLinksResource,
+    DeliveryWindowsResource,
     RosterEntriesResource,
     AdvanceAllocationsResource,
     AssetReservationConflictsResource,
@@ -371,13 +372,19 @@ from .resources import (
     SpaceBookingsResource,
     LocalContactsResource,
     AccommodationNightsResource,
+    AssetMaintenancePlansResource,
+    AssetMaintenanceDueResource,
     AssetUnitHireResource,
     AssetReservationsResource,
     CredentialCategoryRequirementsResource,
+    QuotesResource,
     Form1099NecResource,
     GoodsReturnsResource,
     ReturnLinesResource,
     PoLineHireWarningsResource,
+    ProcurementNeedsResource,
+    ProcurementNeedStatusResource,
+    RfqLinesResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
     CanonStdEmergencyProtocolsResource,
@@ -414,6 +421,15 @@ from .resources import (
     ShareLinksResource,
     LiveLinksResource,
     CueFieldAudiencesResource,
+    StakeholderPacksResource,
+    StakeholderPackItemsResource,
+    StakeholderPackRecipientsResource,
+    StakeholderPackEventsResource,
+    VendorIntakeLinksResource,
+    VendorIntakeRequestsResource,
+    FormLinksResource,
+    FormLinkResponsesResource,
+    OutsideAccessResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
@@ -821,6 +837,7 @@ class XosClient(XosClientCore):
     segment_library_cue_calls: SegmentLibraryCueCallsResource
     run_segment_instances: RunSegmentInstancesResource
     showcaller_links: ShowcallerLinksResource
+    delivery_windows: DeliveryWindowsResource
     roster_entries: RosterEntriesResource
     advance_allocations: AdvanceAllocationsResource
     asset_reservation_conflicts: AssetReservationConflictsResource
@@ -837,13 +854,19 @@ class XosClient(XosClientCore):
     space_bookings: SpaceBookingsResource
     local_contacts: LocalContactsResource
     accommodation_nights: AccommodationNightsResource
+    asset_maintenance_plans: AssetMaintenancePlansResource
+    asset_maintenance_due: AssetMaintenanceDueResource
     asset_unit_hire: AssetUnitHireResource
     asset_reservations: AssetReservationsResource
     credential_category_requirements: CredentialCategoryRequirementsResource
+    quotes: QuotesResource
     form1099_nec: Form1099NecResource
     goods_returns: GoodsReturnsResource
     return_lines: ReturnLinesResource
     po_line_hire_warnings: PoLineHireWarningsResource
+    procurement_needs: ProcurementNeedsResource
+    procurement_need_status: ProcurementNeedStatusResource
+    rfq_lines: RfqLinesResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
     canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
@@ -880,6 +903,15 @@ class XosClient(XosClientCore):
     share_links: ShareLinksResource
     live_links: LiveLinksResource
     cue_field_audiences: CueFieldAudiencesResource
+    stakeholder_packs: StakeholderPacksResource
+    stakeholder_pack_items: StakeholderPackItemsResource
+    stakeholder_pack_recipients: StakeholderPackRecipientsResource
+    stakeholder_pack_events: StakeholderPackEventsResource
+    vendor_intake_links: VendorIntakeLinksResource
+    vendor_intake_requests: VendorIntakeRequestsResource
+    form_links: FormLinksResource
+    form_link_responses: FormLinkResponsesResource
+    outside_access: OutsideAccessResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
@@ -1275,6 +1307,7 @@ class XosClient(XosClientCore):
         self.segment_library_cue_calls = SegmentLibraryCueCallsResource(self)
         self.run_segment_instances = RunSegmentInstancesResource(self)
         self.showcaller_links = ShowcallerLinksResource(self)
+        self.delivery_windows = DeliveryWindowsResource(self)
         self.roster_entries = RosterEntriesResource(self)
         self.advance_allocations = AdvanceAllocationsResource(self)
         self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
@@ -1291,13 +1324,19 @@ class XosClient(XosClientCore):
         self.space_bookings = SpaceBookingsResource(self)
         self.local_contacts = LocalContactsResource(self)
         self.accommodation_nights = AccommodationNightsResource(self)
+        self.asset_maintenance_plans = AssetMaintenancePlansResource(self)
+        self.asset_maintenance_due = AssetMaintenanceDueResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
         self.asset_reservations = AssetReservationsResource(self)
         self.credential_category_requirements = CredentialCategoryRequirementsResource(self)
+        self.quotes = QuotesResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.goods_returns = GoodsReturnsResource(self)
         self.return_lines = ReturnLinesResource(self)
         self.po_line_hire_warnings = PoLineHireWarningsResource(self)
+        self.procurement_needs = ProcurementNeedsResource(self)
+        self.procurement_need_status = ProcurementNeedStatusResource(self)
+        self.rfq_lines = RfqLinesResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)
@@ -1334,6 +1373,15 @@ class XosClient(XosClientCore):
         self.share_links = ShareLinksResource(self)
         self.live_links = LiveLinksResource(self)
         self.cue_field_audiences = CueFieldAudiencesResource(self)
+        self.stakeholder_packs = StakeholderPacksResource(self)
+        self.stakeholder_pack_items = StakeholderPackItemsResource(self)
+        self.stakeholder_pack_recipients = StakeholderPackRecipientsResource(self)
+        self.stakeholder_pack_events = StakeholderPackEventsResource(self)
+        self.vendor_intake_links = VendorIntakeLinksResource(self)
+        self.vendor_intake_requests = VendorIntakeRequestsResource(self)
+        self.form_links = FormLinksResource(self)
+        self.form_link_responses = FormLinkResponsesResource(self)
+        self.outside_access = OutsideAccessResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)

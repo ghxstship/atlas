@@ -13,7 +13,7 @@
 --     p_budget_id default null, so the old signatures are dropped once the import_jobs policies use the new one.
 --     private.import_target_orgs, private.readable_import_job_ids, app.record_import_row and private.fuzzy_candidates
 --     do not branch on the destination column (budget lines are not matched fuzzily), so they are unchanged.
---   * The target budget_lines (finance.budget.write, sort order 7) with its fields; line_number is the strong key: a
+--   * The target budget_lines (finance.budget.write, sort order 10) with its fields; line_number is the strong key: a
 --     row with a number updates that line of the destination budget, others append in sheet order.
 --   * app.import_jobs.project_id now restates the project of a budget destination's budget only for guest lists; it is
 --     registered as the import's own destination.
@@ -619,7 +619,7 @@ grant execute on function app.import_strong_key_match(uuid, jsonb) to service_ro
 -- 10. The target -------------------------------------------------------------------------------------------------------
 
 insert into private.import_targets (code, target_table, write_capability, fuzzy_match, sort_order, destination) values
-  ('budget_lines', 'app.budget_lines', 'finance.budget.write', false, 7, 'budget_id');
+  ('budget_lines', 'app.budget_lines', 'finance.budget.write', false, 10, 'budget_id');
 
 insert into private.import_target_fields (target_code, field_name, required, strong_key) values
   ('budget_lines', 'line_number', false, true),

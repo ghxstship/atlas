@@ -72,6 +72,7 @@ var REPORT_SOURCES = [
     code: "finance",
     relation: "budget_line_facts",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       {
@@ -131,6 +132,7 @@ var REPORT_SOURCES = [
     code: "procurement",
     relation: "purchase_order_totals",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       {
@@ -208,6 +210,142 @@ var REPORT_SOURCES = [
       },
       {
         key: "created_at",
+        type: "date",
+      },
+    ],
+  },
+  {
+    code: "crew_hours",
+    relation: "crew_shift_hours",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      {
+        key: "shift_id",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+      {
+        key: "worker_kind",
+        type: "text",
+      },
+      {
+        key: "worker_name",
+        type: "text",
+      },
+      {
+        key: "starts_at",
+        type: "date",
+      },
+      {
+        key: "scheduled_hours",
+        type: "number",
+      },
+      {
+        key: "actual_hours",
+        type: "number",
+      },
+      {
+        key: "variance_hours",
+        type: "number",
+      },
+      {
+        key: "no_show",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_responses",
+    relation: "crew_responses",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      {
+        key: "kind",
+        type: "text",
+      },
+      {
+        key: "answer",
+        type: "text",
+      },
+      {
+        key: "asked_at",
+        type: "date",
+      },
+      {
+        key: "answered_at",
+        type: "date",
+      },
+      {
+        key: "person_name",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_removals",
+    relation: "crew_removals",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      {
+        key: "removed_at",
+        type: "date",
+      },
+      {
+        key: "from_state",
+        type: "text",
+      },
+      {
+        key: "person_name",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+      {
+        key: "engagement_party",
+        type: "text",
+      },
+      {
+        key: "reason",
+        type: "text",
+      },
+      {
+        key: "removed_by_name",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_ratings",
+    relation: "crew_ratings",
+    orgColumn: "org_id",
+    softDeletes: false,
+    fields: [
+      {
+        key: "party_name",
+        type: "text",
+      },
+      {
+        key: "role_type",
+        type: "text",
+      },
+      {
+        key: "score",
+        type: "number",
+      },
+      {
+        key: "submitted_at",
         type: "date",
       },
     ],
@@ -322,6 +460,7 @@ function planReport(d) {
         ...fields.map((f) => f.field),
         ...(group ? [group] : []),
         ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
+        ...d.filters.filter((f) => known.has(f.field)).map((f) => f.field),
       ]),
     ],
     group,
@@ -901,13 +1040,18 @@ function mailpitMailer(baseUrl, from, fetchImpl = fetch) {
           Subject: email.subject,
           Text: email.text,
           HTML: email.html,
-          Attachments: [
-            {
-              Content: toBase64(email.attachment.content),
-              Filename: email.attachment.filename,
-              ContentType: email.attachment.contentType,
-            },
-          ],
+          ...(email.headers ? { Headers: email.headers } : {}),
+          ...(email.attachment
+            ? {
+                Attachments: [
+                  {
+                    Content: toBase64(email.attachment.content),
+                    Filename: email.attachment.filename,
+                    ContentType: email.attachment.contentType,
+                  },
+                ],
+              }
+            : {}),
         }),
       });
       if (!response.ok)
@@ -931,13 +1075,18 @@ function resendMailer(client, from, allowed) {
         subject: email.subject,
         text: email.text,
         html: email.html,
-        attachments: [
-          {
-            filename: email.attachment.filename,
-            content: toBase64(email.attachment.content),
-            contentType: email.attachment.contentType,
-          },
-        ],
+        ...(email.headers ? { headers: { ...email.headers } } : {}),
+        ...(email.attachment
+          ? {
+              attachments: [
+                {
+                  filename: email.attachment.filename,
+                  content: toBase64(email.attachment.content),
+                  contentType: email.attachment.contentType,
+                },
+              ],
+            }
+          : {}),
       });
       if (error || !data) throw new Error(`Resend refused the message: ${error?.message ?? ""}`);
       return { messageId: data.id };

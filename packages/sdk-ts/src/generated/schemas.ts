@@ -5565,6 +5565,21 @@ export interface DockSlot {
    */
   readonly checked_in_at: string | null;
   /**
+   * Identifier of the delivery window the booking holds a place in.
+   * Format: `uuid`.
+   */
+  readonly delivery_window_id: string | null;
+  /**
+   * Label to quote at the gate.
+   * Length: 1 to 300.
+   */
+  readonly reference_code: string | null;
+  /**
+   * Plate or trailer number expected.
+   * Length: 1 to 300.
+   */
+  readonly vehicle_identifier: string | null;
+  /**
    * Identifier of the project whose site the dock is at.
    * Format: `uuid`.
    */
@@ -5636,6 +5651,17 @@ export interface DockSlotUpdate {
    * Format: `uuid`.
    */
   readonly zone_id?: string;
+}
+
+/**
+ * The booking canceled.
+ */
+export interface DockSlotCancelBookingResult {
+  /**
+   * The booking.
+   * Format: `uuid`.
+   */
+  readonly id: string;
 }
 
 /**
@@ -7597,6 +7623,71 @@ export interface AssetClassAvailability {
 }
 
 /**
+ * What is short against own stock.
+ */
+export interface AssetShortages {
+  /**
+   * Shortages.
+   */
+  readonly data: ReadonlyArray<AssetShortage>;
+}
+
+/**
+ * A class short against own stock on a project.
+ */
+export interface AssetShortage {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the asset class.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string;
+  /**
+   * Name of the class.
+   * Length: 1 to 300.
+   */
+  readonly class_name: string;
+  /**
+   * Catalog element of the class.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * How many more the open allocations want than can supply them.
+   */
+  readonly short_quantity: number;
+  /**
+   * When the allocations that are short begin.
+   * Format: `date-time`.
+   */
+  readonly window_from: string;
+  /**
+   * When the allocations that are short end.
+   * Format: `date-time`.
+   */
+  readonly window_to: string;
+  /**
+   * Identifier of the live need of the class overlapping the window.
+   * Format: `uuid`.
+   */
+  readonly open_need_id: string | null;
+  /**
+   * Identifier of the RFQ in Proposed or Issued sourcing that need.
+   * Format: `uuid`.
+   */
+  readonly open_rfq_id: string | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface AssetUnitPage {
@@ -8325,6 +8416,11 @@ export interface AssetMaintenance {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id: string | null;
 }
 
 /**
@@ -8356,6 +8452,11 @@ export interface AssetMaintenanceCreate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id?: string | null;
 }
 
 /**
@@ -8382,6 +8483,11 @@ export interface AssetMaintenanceUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string | null;
+  /**
+   * Identifier of the plan this work fulfilled.
+   * Format: `uuid`.
+   */
+  readonly maintenance_plan_id?: string | null;
 }
 
 /**
@@ -9956,6 +10062,41 @@ export interface MarkCommunicatedRequest {
 }
 
 /**
+ * A no-show of a shift's worker.
+ */
+export interface ShiftNoShowRequest {
+  /**
+   * Identifier of the no-show, chosen by the client so a retry is recognized.
+   * Format: `uuid`.
+   */
+  readonly no_show_id: string;
+  /**
+   * What the supervisor saw.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+  /**
+   * Open a replacement shift for the rest of this one.
+   */
+  readonly open_replacement?: boolean;
+}
+
+/**
+ * An answer to Still coming?.
+ */
+export interface ShiftReconfirmRequest {
+  /**
+   * True when the person is still coming.
+   */
+  readonly coming: boolean;
+  /**
+   * Why the person cannot come.
+   * Length: 1 to 20000.
+   */
+  readonly reason?: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ShiftSwapPage {
@@ -10027,6 +10168,11 @@ export interface ShiftSwap {
    * Format: `uuid`.
    */
   readonly proposed_membership_id: string;
+  /**
+   * Why the person asks to swap.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string | null;
 }
 
 /**
@@ -10043,6 +10189,11 @@ export interface ShiftSwapCreate {
    * Format: `uuid`.
    */
   readonly proposed_membership_id: string;
+  /**
+   * Why the person asks to swap.
+   * Length: 1 to 20000.
+   */
+  readonly reason?: string | null;
 }
 
 /**
@@ -13042,6 +13193,11 @@ export interface Budget {
    */
   readonly currency_code: string;
   /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp: number | null;
+  /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
   readonly is_baseline: boolean;
@@ -13067,6 +13223,11 @@ export interface BudgetCreate {
    */
   readonly currency_code: string;
   /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp?: number | null;
+  /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
   readonly is_baseline?: boolean;
@@ -13086,6 +13247,11 @@ export interface BudgetUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string;
+  /**
+   * Default markup of the budget's lines in basis points; 2500 is 25 percent.
+   * Range: 0 to unbounded.
+   */
+  readonly default_markup_bp?: number | null;
   /**
    * Whether this is the gate 3 baseline the final cost report compares against.
    */
@@ -13200,6 +13366,25 @@ export interface BudgetLine {
    */
   readonly line_total_minor: number | null;
   /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor: number | null;
+  /**
    * Line number within the budget.
    * Range: 1 to unbounded.
    */
@@ -13273,6 +13458,25 @@ export interface BudgetLineCreate {
    */
   readonly unit_price_minor?: number | null;
   /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp?: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor?: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote?: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor?: number | null;
+  /**
    * Line number within the budget.
    * Range: 1 to unbounded.
    */
@@ -13319,6 +13523,25 @@ export interface BudgetLineUpdate {
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
+  /**
+   * The line's markup in basis points; null uses the budget's default.
+   * Range: 0 to unbounded.
+   */
+  readonly markup_bp?: number | null;
+  /**
+   * Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_unit_price_minor?: number | null;
+  /**
+   * True for an internal line that never appears on a quote.
+   */
+  readonly excluded_from_quote?: boolean;
+  /**
+   * Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly etc_minor?: number | null;
   /**
    * Line number within the budget.
    * Range: 1 to unbounded.
@@ -15902,6 +16125,37 @@ export interface RFQTransitionRequest {
 }
 
 /**
+ * The RFQ drafted.
+ */
+export interface RfqCreateSubHireResult {
+  /**
+   * The RFQ drafted.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+}
+
+/**
+ * A sub-hire draft.
+ */
+export interface RfqCreateSubHireRequest {
+  /**
+   * Identifier of the project short of them.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Classes that are short.
+   */
+  readonly asset_class_ids: ReadonlyArray<string>;
+  /**
+   * What is being sourced.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface RfqInvitationPage {
@@ -16204,6 +16458,11 @@ export interface RfqResponseLine {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code: string;
+  /**
+   * Identifier of the request line this quoted line answers.
+   * Format: `uuid`.
+   */
+  readonly rfq_line_id: string | null;
   /**
    * Catalog element quoted.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -16706,6 +16965,11 @@ export interface PoLine {
    * Format: `int64`.
    */
   readonly unit_price_minor: number | null;
+  /**
+   * Identifier of the need this line serves.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id: string | null;
   /**
    * Order of the line within the purchase order.
    * Range: 1 to unbounded.
@@ -21830,7 +22094,8 @@ export interface EngagementDocument {
     | "Lien Waiver"
     | "Settlement"
     | "Proof of Performance"
-    | "Content Consent";
+    | "Content Consent"
+    | "Quote";
   /**
    * Last day the document is valid, for documents that expire.
    * Format: `date`.
@@ -21871,7 +22136,8 @@ export interface EngagementDocumentCreate {
     | "Lien Waiver"
     | "Settlement"
     | "Proof of Performance"
-    | "Content Consent";
+    | "Content Consent"
+    | "Quote";
   /**
    * Last day the document is valid, for documents that expire.
    * Format: `date`.
@@ -38773,6 +39039,243 @@ export interface ShowcallerDevicesSignedOut {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface DeliveryWindowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<DeliveryWindow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone.
+ */
+export interface DeliveryWindow {
+  /**
+   * Identifier of the delivery window.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open: boolean;
+}
+
+/**
+ * Fields accepted when creating a DeliveryWindow.
+ */
+export interface DeliveryWindowCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open: boolean;
+}
+
+/**
+ * Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged.
+ */
+export interface DeliveryWindowUpdate {
+  /**
+   * Identifier of the gate: a live zone of the org.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string;
+  /**
+   * When the window opens.
+   * Format: `date-time`.
+   */
+  readonly starts_at?: string;
+  /**
+   * When the window closes.
+   * Format: `date-time`.
+   */
+  readonly ends_at?: string;
+  /**
+   * How many vehicles it takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit?: number;
+  /**
+   * False stops new bookings; bookings already made stay.
+   */
+  readonly is_open?: boolean;
+}
+
+/**
+ * The windows added.
+ */
+export interface DeliveryWindowGenerateResult {
+  /**
+   * The windows added.
+   */
+  readonly data: ReadonlyArray<string>;
+}
+
+/**
+ * A schedule of windows.
+ */
+export interface DeliveryWindowGenerateRequest {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the gate.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * First day.
+   * Format: `date`.
+   */
+  readonly first_day: string;
+  /**
+   * Last day.
+   * Format: `date`.
+   */
+  readonly last_day: string;
+  /**
+   * Local start time.
+   * Length: 1 to 300.
+   */
+  readonly from_time: string;
+  /**
+   * Local end time.
+   * Length: 1 to 300.
+   */
+  readonly to_time: string;
+  /**
+   * Length of each window in minutes, up to 1440.
+   * Range: 5 to unbounded.
+   */
+  readonly slot_minutes: number;
+  /**
+   * How many vehicles each takes, up to 500.
+   * Range: 1 to unbounded.
+   */
+  readonly vehicle_limit: number;
+}
+
+/**
+ * The booking.
+ */
+export interface DeliveryWindowBookResult {
+  /**
+   * The booking.
+   * Format: `uuid`.
+   */
+  readonly dock_slot_id: string;
+  /**
+   * Label to quote at the gate.
+   * Length: 1 to 300.
+   */
+  readonly reference_code: string;
+}
+
+/**
+ * A place in a window.
+ */
+export interface DeliveryWindowBookRequest {
+  /**
+   * Identifier of the Vendor engagement the booking is for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * Plate or trailer number.
+   * Length: 1 to 300.
+   */
+  readonly vehicle_identifier?: string | null;
+  /**
+   * Identifier of the shipment the vendor carries.
+   * Format: `uuid`.
+   */
+  readonly shipment_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface RosterEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -41712,6 +42215,219 @@ export interface RoomingCost {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AssetMaintenancePlanPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetMaintenancePlan>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null.
+ */
+export interface AssetMaintenancePlan {
+  /**
+   * Identifier of the asset maintenance plan.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * Fields accepted when creating a AssetMaintenancePlan.
+ */
+export interface AssetMaintenancePlanCreate {
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions?: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count?: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * Fields accepted when updating a AssetMaintenancePlan. Omitted fields are unchanged.
+ */
+export interface AssetMaintenancePlanUpdate {
+  /**
+   * Identifier of the unit the plan applies to; exactly one of unit and class.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string | null;
+  /**
+   * Identifier of the class whose units the plan applies to.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title?: string;
+  /**
+   * How to do it.
+   * Length: 1 to 20000.
+   */
+  readonly instructions?: string | null;
+  /**
+   * Day the work is first due.
+   * Format: `date`.
+   */
+  readonly first_due_on?: string;
+  /**
+   * How many intervals between doing it, up to 999.
+   * Range: 1 to unbounded.
+   */
+  readonly every_count?: number | null;
+  /**
+   * Unit of the interval.
+   */
+  readonly every_unit?: "Day" | "Week" | "Month" | "Year" | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetMaintenanceDuePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetMaintenanceDue>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log.
+ */
+export interface AssetMaintenanceDue {
+  /**
+   * Identifier of the plan.
+   * Format: `uuid`.
+   */
+  readonly plan_id: string;
+  /**
+   * Identifier of the unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string;
+  /**
+   * What is to be done.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Latest log entry of this plan on this unit.
+   * Format: `date`.
+   */
+  readonly last_performed_on: string | null;
+  /**
+   * When it is next due; null when work done once is done.
+   * Format: `date`.
+   */
+  readonly due_on: string | null;
+  /**
+   * Computed on the org's calendar.
+   */
+  readonly due_status: "Pending" | "Overdue" | "Completed";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface AssetUnitHirePage {
   /**
    * Items on this page, in the documented default order.
@@ -41931,6 +42647,199 @@ export interface CredentialCategoryRequirementCreate {
    * Format: `uuid`.
    */
   readonly certification_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface QuotePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Quote>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state.
+ */
+export interface Quote {
+  /**
+   * Identifier of the quote.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Display key, the project key, -Q- and the number.
+   * Length: 1 to 300.
+   */
+  readonly quote_key: string;
+  /**
+   * Title of the current version; frozen once sent.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Identifier of the project of the quote's budget.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the budget the quote prices from.
+   * Format: `uuid`.
+   */
+  readonly budget_id: string;
+  /**
+   * Identifier of the Client engagement the quote is for.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Who the current version is for.
+   * Length: 1 to 300.
+   */
+  readonly client_name: string | null;
+  /**
+   * Identifier of the latest sent version, else the Draft.
+   * Format: `uuid`.
+   */
+  readonly current_version_id: string;
+  /**
+   * Number of the current version.
+   * Range: 1 to unbounded.
+   */
+  readonly current_version_number: number;
+  /**
+   * State; Expired is computed, never stored.
+   */
+  readonly display_state:
+    "Draft" | "Sent" | "Expired" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+  /**
+   * Last day the client can accept, on the project's calendar.
+   * Format: `date`.
+   */
+  readonly valid_until: string;
+  /**
+   * When the current version was sent.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * When the current version was accepted.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
+  /**
+   * ISO 4217 currency code of every money field on the row.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Client total of the current version; null while any line is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly client_total_minor: number | null;
+  /**
+   * Client total less cost; null whenever either is unknown. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly margin_minor: number | null;
+  /**
+   * Whether the quote has a live Draft version.
+   */
+  readonly has_draft: boolean;
+  /**
+   * Internal cost of the current version's lines; returned by GET /quotes/{id}. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly cost_total_minor: number | null;
+  /**
+   * Versions, newest first; returned by GET /quotes/{id}, null in lists.
+   */
+  readonly versions: ReadonlyArray<{
+    /**
+     * Identifier of the quote version.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+    /**
+     * Version number.
+     * Range: 1 to unbounded.
+     */
+    readonly version_number: number;
+    /**
+     * Stored state of the version.
+     */
+    readonly quote_version_state:
+      "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+    /**
+     * Last day the client can accept.
+     * Format: `date`.
+     */
+    readonly valid_until: string;
+    /**
+     * Notes and terms.
+     * Length: 1 to 4000.
+     */
+    readonly terms: string | null;
+    /**
+     * SHA-256 of the content frozen at send.
+     * Length: 1 to 64.
+     */
+    readonly content_sha256: string | null;
+    /**
+     * When the version was sent.
+     * Format: `date-time`.
+     */
+    readonly sent_at: string | null;
+    /**
+     * When the version was accepted.
+     * Format: `date-time`.
+     */
+    readonly accepted_at: string | null;
+    /**
+     * Name as signed.
+     * Length: 1 to 300.
+     */
+    readonly accepted_name: string | null;
+  }> | null;
+  /**
+   * Client lines of the current version: live for a Draft, the frozen capture once sent. Returned by GET /quotes/{id}, null in lists.
+   */
+  readonly lines: ReadonlyArray<{
+    /**
+     * Line number.
+     * Range: 1 to unbounded.
+     */
+    readonly line_number: number;
+    /**
+     * Description.
+     * Length: 1 to 300.
+     */
+    readonly description: string;
+    /**
+     * Quantity; defaults to 1.
+     */
+    readonly quantity: number;
+    /**
+     * Unit.
+     * Length: 1 to 300.
+     */
+    readonly unit_basis: string | null;
+    /**
+     * Client unit price; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+     * Format: `int64`.
+     */
+    readonly unit_price_minor: number | null;
+    /**
+     * Client amount; null is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+     * Format: `int64`.
+     */
+    readonly amount_minor: number | null;
+  }> | null;
 }
 
 /**
@@ -42201,6 +43110,475 @@ export interface PoLineHireWarning {
     | "Hire Beyond Site Window"
     | "Delivery Docks Full"
     | "Return Docks Full";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProcurementNeedPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProcurementNeed>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element.
+ */
+export interface ProcurementNeed {
+  /**
+   * Identifier of the procurement need.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project buying.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Number from the project's display key sequence, issued on insert.
+   * Range: 1 to unbounded.
+   */
+  readonly need_number: number;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProcurementNeed.
+ */
+export interface ProcurementNeedCreate {
+  /**
+   * Identifier of the project buying.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from?: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to?: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged.
+ */
+export interface ProcurementNeedUpdate {
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Identifier of the asset class the need is for.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string | null;
+  /**
+   * Catalog element the need is for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When it is needed from; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_from?: string | null;
+  /**
+   * When it is needed until; both or neither.
+   * Format: `date-time`.
+   */
+  readonly needed_to?: string | null;
+  /**
+   * What the buyer noted.
+   * Length: 1 to 20000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * The needs linked or added.
+ */
+export interface ProcurementNeedConsolidateResult {
+  /**
+   * The needs linked or added.
+   */
+  readonly data: ReadonlyArray<string>;
+}
+
+/**
+ * Requests to consolidate.
+ */
+export interface ProcurementNeedConsolidateRequest {
+  /**
+   * Allocations of one project.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+  /**
+   * Identifier of the need to link them to.
+   * Format: `uuid`.
+   */
+  readonly need_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProcurementNeedStatusPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProcurementNeedStatus>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted.
+ */
+export interface ProcurementNeedStatus {
+  /**
+   * Identifier of the need.
+   * Format: `uuid`.
+   */
+  readonly need_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * What is needed.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * How much the event will get.
+   */
+  readonly quantity: number;
+  /**
+   * Live requests linked, with their Split children.
+   */
+  readonly requested_quantity: number;
+  /**
+   * On lines of Proposed orders: shown, never counted.
+   */
+  readonly drafted_quantity: number;
+  /**
+   * On lines of Approved, Sent or Closed orders, less returns.
+   */
+  readonly ordered_quantity: number;
+  /**
+   * Received on those lines.
+   */
+  readonly received_quantity: number;
+  /**
+   * Computed from ordered against quantity.
+   */
+  readonly need_status: "Needs Ordered" | "Short" | "On Order" | "Excess";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RfqLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RfqLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response.
+ */
+export interface RfqLine {
+  /**
+   * Identifier of the rfq line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the RFQ the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly rfq_id: string;
+  /**
+   * Order of the line within the RFQ, assigned on create.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a RfqLine.
+ */
+export interface RfqLineCreate {
+  /**
+   * Identifier of the RFQ the line belongs to.
+   * Format: `uuid`.
+   */
+  readonly rfq_id: string;
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id?: string | null;
+}
+
+/**
+ * Fields accepted when updating a RfqLine. Omitted fields are unchanged.
+ */
+export interface RfqLineUpdate {
+  /**
+   * What is asked for.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
+  /**
+   * Catalog element asked for.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
+  /**
+   * Quantity asked for.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit of the quantity.
+   * Length: 1 to 300.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Purchase, or Rental for a hire.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines only: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines only: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+  /**
+   * Identifier of the need of the same project the line sources.
+   * Format: `uuid`.
+   */
+  readonly procurement_need_id?: string | null;
 }
 
 /**
@@ -42811,7 +44189,14 @@ export interface AuroraExtractRequest {
    * What the document is.
    */
   readonly kind:
-    "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "itinerary" | "contract";
+    | "rider"
+    | "insurance_certificate"
+    | "invoice"
+    | "receipt"
+    | "quote"
+    | "itinerary"
+    | "contract"
+    | "material_list";
   /**
    * Identifier of the stored document read, when the file is one.
    * Format: `uuid`.
@@ -47731,6 +49116,1482 @@ export interface CueFieldAudienceCreate {
    * Who the field is for.
    */
   readonly audience: "Crew" | "Showcaller" | "Client";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface StakeholderPackPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<StakeholderPack>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once.
+ */
+export interface StakeholderPack {
+  /**
+   * Identifier of the stakeholder pack.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project the pack shares from.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Pack name shown to recipients.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * Message shown to recipients at the top of the pack.
+   * Length: 1 to 2000.
+   */
+  readonly message: string | null;
+  /**
+   * What the pack is for, for the team. Never on a token page or in an email.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * When the pack stops opening: after now and within 90 days.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * When the pack was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the pack.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new stakeholder pack.
+ */
+export interface StakeholderPackRequest {
+  /**
+   * Identifier of the project the pack shares from.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Pack name shown to recipients.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * When the pack stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Message shown to recipients.
+   * Length: 1 to 2000.
+   */
+  readonly message?: string;
+  /**
+   * For the team; never shown to recipients.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A stakeholder pack's new details.
+ */
+export interface StakeholderPackChange {
+  /**
+   * Pack name shown to recipients.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * When the pack stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Message shown to recipients.
+   * Length: 1 to 2000.
+   */
+  readonly message: string | null;
+  /**
+   * For the team; never shown to recipients.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * When a stakeholder pack emails its recipients a fresh sign-in link.
+ */
+export interface StakeholderPackSchedule {
+  /**
+   * The schedule.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * The pack.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * How often a fresh sign-in link goes out.
+   */
+  readonly cadence: "Daily" | "Weekly" | "Monthly";
+  /**
+   * Hour of the day it sends, 0 to 23, in time_zone.
+   * Range: 0 to unbounded.
+   */
+  readonly local_hour: number;
+  /**
+   * Weekly only: day of the week, 1 (Monday) to 7.
+   * Range: 0 to unbounded.
+   */
+  readonly weekday: number | null;
+  /**
+   * Monthly only: day of the month, 1 to 28.
+   * Range: 0 to unbounded.
+   */
+  readonly month_day: number | null;
+  /**
+   * IANA time zone the hour is in.
+   * Length: 1 to 80.
+   */
+  readonly time_zone: string;
+  /**
+   * Next slot.
+   * Format: `date-time`.
+   */
+  readonly next_run_at: string;
+  /**
+   * When the scheduler ended the schedule at the pack's expiry.
+   * Format: `date-time`.
+   */
+  readonly paused_at: string | null;
+}
+
+/**
+ * When a pack sends.
+ */
+export interface StakeholderPackScheduleRequest {
+  /**
+   * How often a fresh sign-in link goes out.
+   */
+  readonly cadence: "Daily" | "Weekly" | "Monthly";
+  /**
+   * Hour of the day it sends, 0 to 23.
+   * Range: 0 to unbounded.
+   */
+  readonly local_hour: number;
+  /**
+   * Weekly only: 1 (Monday) to 7.
+   * Range: 0 to unbounded.
+   */
+  readonly weekday?: number;
+  /**
+   * Monthly only: 1 to 28.
+   * Range: 0 to unbounded.
+   */
+  readonly month_day?: number;
+  /**
+   * IANA time zone; the project's by default.
+   * Length: 1 to 80.
+   */
+  readonly time_zone?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface StakeholderPackItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<StakeholderPackItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it.
+ */
+export interface StakeholderPackItem {
+  /**
+   * Identifier of the stakeholder pack item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the pack the item belongs to.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Live Link, one P1 live link of the project; File, one Public or Internal file of the project.
+   */
+  readonly item_kind: "Live Link" | "File";
+  /**
+   * Identifier of the live link the item opens.
+   * Format: `uuid`.
+   */
+  readonly live_link_id: string | null;
+  /**
+   * Identifier of the file the item downloads.
+   * Format: `uuid`.
+   */
+  readonly attachment_id: string | null;
+  /**
+   * Item title shown to recipients.
+   * Length: 1 to 200.
+   */
+  readonly title: string;
+  /**
+   * Order in the pack, from 0.
+   * Range: 0 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * True when each recipient is asked to type their name to acknowledge the item: a receipt, not a signature of a contract.
+   */
+  readonly requires_acknowledgement: boolean;
+}
+
+/**
+ * An item for a stakeholder pack.
+ */
+export interface StakeholderPackItemRequest {
+  /**
+   * Identifier of the pack the item joins.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Identifier of the live link to share.
+   * Format: `uuid`.
+   */
+  readonly live_link_id?: string;
+  /**
+   * Identifier of the file to share.
+   * Format: `uuid`.
+   */
+  readonly attachment_id?: string;
+  /**
+   * Item title shown to recipients.
+   * Length: 1 to 200.
+   */
+  readonly title: string;
+  /**
+   * Ask each recipient to type their name.
+   */
+  readonly requires_acknowledgement?: boolean;
+}
+
+/**
+ * The item removed.
+ */
+export interface StakeholderPackItemRemoved {
+  /**
+   * The item removed.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface StakeholderPackRecipientPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<StakeholderPackRecipient>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here.
+ */
+export interface StakeholderPackRecipient {
+  /**
+   * Identifier of the stakeholder pack recipient.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the pack the recipient may open.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Recipient's name as the team entered it.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * Where the pack's sign-in links go, lower case.
+   * Length: 1 to 320.
+   */
+  readonly email: string;
+  /**
+   * Identifier of the supplier the recipient works for.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  /**
+   * Group the recipient belongs to, for example a department.
+   * Length: 1 to 80.
+   */
+  readonly label: string | null;
+  /**
+   * Wrong access codes since the code was set; the recipient locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * When the recipient stopped the pack's emails.
+   * Format: `date-time`.
+   */
+  readonly unsubscribed_at: string | null;
+  /**
+   * When the recipient was revoked.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the recipient.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new recipient and their access code, shown once.
+ */
+export interface StakeholderPackRecipientCode {
+  /**
+   * The new recipient.
+   * Format: `uuid`.
+   */
+  readonly recipient_id: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+}
+
+/**
+ * A recipient for a stakeholder pack.
+ */
+export interface StakeholderPackRecipientRequest {
+  /**
+   * Identifier of the pack the recipient may open.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Recipient's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * Recipient's email.
+   * Length: 1 to 320.
+   */
+  readonly email: string;
+  /**
+   * Identifier of the supplier the recipient works for.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string;
+  /**
+   * Group, for example a department.
+   * Length: 1 to 80.
+   */
+  readonly label?: string;
+}
+
+/**
+ * A recipient's new access code, shown once.
+ */
+export interface StakeholderPackRecipientCodeReset {
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+}
+
+/**
+ * How many deliveries were queued.
+ */
+export interface StakeholderPackSent {
+  /**
+   * Deliveries queued.
+   * Range: 0 to unbounded.
+   */
+  readonly queued: number;
+}
+
+/**
+ * Which recipients to email.
+ */
+export interface StakeholderPackSendRequest {
+  /**
+   * Identifier of the pack to send.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Only these recipients; every live recipient when left out.
+   */
+  readonly recipient_ids?: ReadonlyArray<string>;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface StakeholderPackEventPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<StakeholderPackEvent>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept.
+ */
+export interface StakeholderPackEvent {
+  /**
+   * Identifier of the stakeholder pack event.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the pack the event belongs to.
+   * Format: `uuid`.
+   */
+  readonly stakeholder_pack_id: string;
+  /**
+   * Identifier of the recipient who acted.
+   * Format: `uuid`.
+   */
+  readonly recipient_id: string;
+  /**
+   * Identifier of the item viewed, downloaded or signed.
+   * Format: `uuid`.
+   */
+  readonly item_id: string | null;
+  /**
+   * What happened.
+   */
+  readonly action: "Sent" | "Opened" | "Viewed" | "Downloaded" | "Signed" | "Unsubscribed";
+  /**
+   * Name typed to acknowledge the item; Signed only.
+   * Length: 1 to 200.
+   */
+  readonly signer_name: string | null;
+  /**
+   * When it happened.
+   * Format: `date-time`.
+   */
+  readonly occurred_at: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface VendorIntakeLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<VendorIntakeLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes.
+ */
+export interface VendorIntakeLink {
+  /**
+   * Identifier of the vendor intake link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the engagements join.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Vendor, a company account engages; Contractor, the signed-in person engages.
+   */
+  readonly role_type: "Vendor" | "Contractor";
+  /**
+   * Canon role the engagements take.
+   * Length: 1 to 40.
+   */
+  readonly role_code: string;
+  /**
+   * Canon worker classification; never an employee one.
+   * Length: 1 to 60.
+   */
+  readonly worker_classification: string;
+  /**
+   * Canon pay basis.
+   * Length: 1 to 60.
+   */
+  readonly pay_basis: string | null;
+  /**
+   * Canon arrangement.
+   * Length: 1 to 60.
+   */
+  readonly arrangement: string | null;
+  /**
+   * Canon counterparty type a new vendor gets; required for Vendor.
+   * Length: 1 to 80.
+   */
+  readonly counterparty_type: string | null;
+  /**
+   * First day of the engagements.
+   * Format: `date`.
+   */
+  readonly start_date: string;
+  /**
+   * Last day of the engagements, when known.
+   * Format: `date`.
+   */
+  readonly end_date: string | null;
+  /**
+   * Identifier of the Knowledge document each requester signs.
+   * Format: `uuid`.
+   */
+  readonly agreement_document_id: string | null;
+  /**
+   * Identifier of the version pinned when the link was made.
+   * Format: `uuid`.
+   */
+  readonly agreement_version_id: string | null;
+  /**
+   * What the link is for, shown on the public page.
+   * Length: 1 to 120.
+   */
+  readonly title: string;
+  /**
+   * Instructions shown on the public page.
+   * Length: 1 to 2000.
+   */
+  readonly instructions: string | null;
+  /**
+   * What the link is for, for the team. Never on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * True when a request must carry a tax form.
+   */
+  readonly collect_tax_form: boolean;
+  /**
+   * True when the intake asks for a payout reference.
+   */
+  readonly collect_payout: boolean;
+  /**
+   * True when a request may carry a first invoice draft.
+   */
+  readonly collect_invoice: boolean;
+  /**
+   * Last four characters of the token, to tell links apart.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * When the link stops opening: within 90 days of when it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Most requests the link takes, 1 to 500.
+   * Range: 0 to unbounded.
+   */
+  readonly max_requests: number;
+  /**
+   * Wrong access codes since the link was made or regenerated; it locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * When the link was last regenerated.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new intake link with its token and access code, shown once.
+ */
+export interface VendorIntakeLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly vendor_intake_link_id: string;
+  /**
+   * The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xvin_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A new vendor intake link.
+ */
+export interface VendorIntakeLinkRequest {
+  /**
+   * Identifier of the project the engagements join.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * What the link is for, shown on the public page.
+   * Length: 1 to 120.
+   */
+  readonly title: string;
+  /**
+   * Vendor or Contractor.
+   */
+  readonly role_type: "Vendor" | "Contractor";
+  /**
+   * Canon role.
+   * Length: 1 to 40.
+   */
+  readonly role_code: string;
+  /**
+   * Canon worker classification.
+   * Length: 1 to 60.
+   */
+  readonly worker_classification: string;
+  /**
+   * Canon pay basis.
+   * Length: 1 to 60.
+   */
+  readonly pay_basis: string;
+  /**
+   * Canon arrangement.
+   * Length: 1 to 60.
+   */
+  readonly arrangement: string;
+  /**
+   * First day of the engagements.
+   * Format: `date`.
+   */
+  readonly start_date: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Last day of the engagements.
+   * Format: `date`.
+   */
+  readonly end_date?: string;
+  /**
+   * Counterparty type a new vendor gets.
+   * Length: 1 to 80.
+   */
+  readonly counterparty_type?: string;
+  /**
+   * Identifier of the Knowledge document each requester signs.
+   * Format: `uuid`.
+   */
+  readonly agreement_document_id?: string;
+  /**
+   * Instructions on the public page.
+   * Length: 1 to 2000.
+   */
+  readonly instructions?: string;
+  /**
+   * For the team.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+  /**
+   * Ask for a tax form.
+   */
+  readonly collect_tax_form?: boolean;
+  /**
+   * Ask for a payout reference.
+   */
+  readonly collect_payout?: boolean;
+  /**
+   * Take a first invoice draft.
+   */
+  readonly collect_invoice?: boolean;
+  /**
+   * Most requests the link takes, 1 to 500.
+   * Range: 0 to unbounded.
+   */
+  readonly max_requests?: number;
+}
+
+/**
+ * A regenerated intake link's new token and access code, shown once.
+ */
+export interface VendorIntakeLinkRegenerated {
+  /**
+   * The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xvin_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening; regenerating keeps the expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface VendorIntakeRequestPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<VendorIntakeRequest>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here.
+ */
+export interface VendorIntakeRequest {
+  /**
+   * Identifier of the vendor intake request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the intake link the request came through.
+   * Format: `uuid`.
+   */
+  readonly vendor_intake_link_id: string;
+  /**
+   * Identifier of the project of the link.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the person who sent the request.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string;
+  /**
+   * Identifier of the company account, for a Vendor link.
+   * Format: `uuid`.
+   */
+  readonly account_id: string | null;
+  /**
+   * Identifier of the the requester's own tax form.
+   * Format: `uuid`.
+   */
+  readonly tax_form_id: string | null;
+  /**
+   * Identifier of the the requester's own payout reference.
+   * Format: `uuid`.
+   */
+  readonly payout_account_id: string | null;
+  /**
+   * Name typed to sign the agreement.
+   * Length: 1 to 200.
+   */
+  readonly signer_name: string | null;
+  /**
+   * When the requester signed.
+   * Format: `date-time`.
+   */
+  readonly signed_at: string | null;
+  /**
+   * Identifier of the agreement version signed.
+   * Format: `uuid`.
+   */
+  readonly signed_version_id: string | null;
+  /**
+   * Optional first invoice: invoice_number, issue_date, due_date, currency_code and up to 50 lines.
+   */
+  readonly invoice_draft: { readonly [key: string]: unknown } | null;
+  /**
+   * Pending, Approved, Declined or Withdrawn.
+   */
+  readonly request_state: "Pending" | "Approved" | "Declined" | "Withdrawn";
+  /**
+   * Identifier of the member who decided.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * When it was decided.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
+  /**
+   * Why it was declined, or a note on approval.
+   * Length: 1 to 1000.
+   */
+  readonly decision_reason: string | null;
+  /**
+   * Identifier of the engagement the approval created.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Identifier of the invoice the draft became.
+   * Format: `uuid`.
+   */
+  readonly invoice_id: string | null;
+}
+
+/**
+ * An optional note.
+ */
+export interface VendorIntakeApproval {
+  /**
+   * Why, at least 10 characters to decline.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * Why it is declined.
+ */
+export interface VendorIntakeDecline {
+  /**
+   * Why, at least 10 characters to decline.
+   * Length: 1 to 1000.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface FormLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<FormLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes.
+ */
+export interface FormLink {
+  /**
+   * Identifier of the form link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the form the link answers.
+   * Format: `uuid`.
+   */
+  readonly form_template_id: string;
+  /**
+   * Identifier of the project the responses belong to.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * What the link is for, for the team. Never on the public page.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * Last four characters of the token, to tell links apart.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * When the link stops opening: within 90 days of when it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Most responses in any 24 hours, 1 to 1000.
+   * Range: 0 to unbounded.
+   */
+  readonly daily_cap: number;
+  /**
+   * Most responses in all, 1 to 10000, or none.
+   */
+  readonly max_responses: number | null;
+  /**
+   * True when each email address answers the link once.
+   */
+  readonly one_per_email: boolean;
+  /**
+   * Wrong access codes since the link was made or regenerated; it locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * When the link was last regenerated.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new form link with its token and access code, shown once.
+ */
+export interface FormLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly form_link_id: string;
+  /**
+   * The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xfrm_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * A new public form link.
+ */
+export interface FormLinkRequest {
+  /**
+   * Identifier of the form the link answers.
+   * Format: `uuid`.
+   */
+  readonly form_template_id: string;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Identifier of the project the responses belong to.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Most responses in any 24 hours, 1 to 1000.
+   * Range: 0 to unbounded.
+   */
+  readonly daily_cap?: number;
+  /**
+   * Most responses in all, 1 to 10000.
+   * Range: 0 to unbounded.
+   */
+  readonly max_responses?: number;
+  /**
+   * Each email answers once.
+   */
+  readonly one_per_email?: boolean;
+  /**
+   * For the team.
+   * Length: 1 to 200.
+   */
+  readonly note?: string;
+}
+
+/**
+ * A regenerated form link's new token and access code, shown once.
+ */
+export interface FormLinkRegenerated {
+  /**
+   * The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xfrm_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code. Shown once; send it apart from the link, never by email.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string;
+  /**
+   * When the link stops opening; regenerating keeps the expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface FormLinkResponsePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<FormLinkResponse>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only.
+ */
+export interface FormLinkResponse {
+  /**
+   * Identifier of the form link response.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the public link the response came through.
+   * Format: `uuid`.
+   */
+  readonly form_link_id: string;
+  /**
+   * Identifier of the form answered.
+   * Format: `uuid`.
+   */
+  readonly form_template_id: string;
+  /**
+   * Identifier of the version answered.
+   * Format: `uuid`.
+   */
+  readonly form_template_version_id: string;
+  /**
+   * Identifier of the project the response belongs to.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * Identifier of the record the approval made.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
+  /**
+   * Name the respondent gave.
+   * Length: 1 to 200.
+   */
+  readonly respondent_name: string;
+  /**
+   * Email the respondent gave, lower case.
+   * Length: 1 to 320.
+   */
+  readonly respondent_email: string;
+  /**
+   * Answers keyed by field key.
+   */
+  readonly answers: { readonly [key: string]: unknown };
+  /**
+   * Points earned.
+   */
+  readonly score: number | null;
+  /**
+   * Points available on the shown fields.
+   */
+  readonly max_score: number | null;
+  /**
+   * Whether the pass score was met.
+   */
+  readonly passed: boolean | null;
+  /**
+   * Where the response stands.
+   */
+  readonly submission_state: "Submitted" | "Approved" | "Rejected" | "Recorded";
+  /**
+   * Identifier of the member who decided.
+   * Format: `uuid`.
+   */
+  readonly decided_by_membership_id: string | null;
+  /**
+   * Why it was rejected, or a note on approval.
+   * Length: 1 to 2000.
+   */
+  readonly decision_note: string | null;
+}
+
+/**
+ * The decision on a public form response.
+ */
+export interface FormLinkResponseDecision {
+  /**
+   * True to approve, false to reject.
+   */
+  readonly approve: boolean;
+  /**
+   * Why it is rejected, or a note on approval.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OutsideAccessRowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OutsideAccessRow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably.
+ */
+export interface OutsideAccessRow {
+  /**
+   * Project reached.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * What kind of access it is.
+   */
+  readonly source:
+    | "Live view link"
+    | "Display link"
+    | "File link"
+    | "Advance link"
+    | "Signing link"
+    | "Roster invitation"
+    | "Pack recipient"
+    | "Intake link"
+    | "Form link"
+    | "Engagement";
+  /**
+   * Id of the row in its source table, for its own revoke or regenerate operation.
+   * Format: `uuid`.
+   */
+  readonly source_id: string;
+  /**
+   * What the row is, in the words people wrote; null for a live link with no note and a roster invitation.
+   * Length: 1 to 400.
+   */
+  readonly label: string | null;
+  /**
+   * Who it was sent to, when the source names one.
+   * Length: 1 to 320.
+   */
+  readonly recipient_email: string | null;
+  /**
+   * Last four characters of the token.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string | null;
+  /**
+   * Active, Locked, Expired, Revoked or Used for links; a roster invitation's or engagement's state.
+   * Length: 1 to 40.
+   */
+  readonly link_state: string;
+  /**
+   * When it stops working; null for an engagement.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+  /**
+   * Successful opens, where the source counts them.
+   */
+  readonly open_count: number | null;
+  /**
+   * Last successful open, where the source records it.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When it was made.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Person who made it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * Whether the caller may revoke or regenerate it: the check that source's own operation makes.
+   */
+  readonly viewer_can_manage: boolean;
 }
 
 /**

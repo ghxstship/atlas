@@ -211,6 +211,8 @@ export const blocklistEntryKind = ["Email", "Domain"] as const;
 export const brandRadiusScale = ["Compact", "Default", "Rounded"] as const;
 /** app.budget_line_type */
 export const budgetLineType = ["Cost", "Labor", "Fee", "Contingency"] as const;
+/** app.budget_version_purpose */
+export const budgetVersionPurpose = ["Snapshot", "Quote"] as const;
 /** app.calendar_conflict_policy */
 export const calendarConflictPolicy = ["XOS Wins", "Provider Wins", "Latest Wins"] as const;
 /** app.calendar_feed_source */
@@ -281,6 +283,8 @@ export const credentialPhotoState = [
   "Requested",
   "Missing",
 ] as const;
+/** app.crew_registration_state */
+export const crewRegistrationState = ["Submitted", "Approved", "Declined", "Withdrawn"] as const;
 /** app.cue_call_kind */
 export const cueCallKind = ["Audio", "Lighting", "Video", "Special Effects", "Stage"] as const;
 /** app.cue_field_audience */
@@ -402,6 +406,7 @@ export const engagementDocumentKind = [
   "Settlement",
   "Proof of Performance",
   "Content Consent",
+  "Quote",
 ] as const;
 /** app.engagement_document_state */
 export const engagementDocumentState = [
@@ -632,6 +637,12 @@ export const jobStatus = ["Queued", "Running", "Succeeded", "Failed", "Canceled"
 export const joinRequestState = ["Pending", "Approved", "Declined", "Withdrawn"] as const;
 /** app.journal_state */
 export const journalState = ["Proposed", "Posted", "Canceled"] as const;
+/** app.labor_rate_source */
+export const laborRateSource = ["Pay Rate", "Engagement Rate", "Rate Card"] as const;
+/** app.labor_segment */
+export const laborSegment = ["Regular", "Overtime", "Double Time"] as const;
+/** app.labor_team_kind */
+export const laborTeamKind = ["Own Team", "Agency", "Engaged"] as const;
 /** app.language_proficiency */
 export const languageProficiency = ["Basic", "Conversational", "Fluent", "Native"] as const;
 /** app.listing_report_reason */
@@ -673,6 +684,8 @@ export const lostItemCategory = [
 export const lostItemState = ["Logged", "Claimed", "Returned", "Disposed"] as const;
 /** app.loyalty_program_kind */
 export const loyaltyProgramKind = ["Airline", "Hotel", "Car Rental", "Rail"] as const;
+/** app.maintenance_interval_unit */
+export const maintenanceIntervalUnit = ["Day", "Week", "Month", "Year"] as const;
 /** app.mcp_client_kind */
 export const mcpClientKind = ["Claude", "ChatGPT", "Other"] as const;
 /** app.measurement_correction_kind */
@@ -773,6 +786,17 @@ export const opportunityVisibility = ["Invited", "Pool", "Network", "Public"] as
 export const orgDomainPurpose = ["Atlas", "Gateway", "Email Sending", "Verified Domain"] as const;
 /** app.organization_verification_method */
 export const organizationVerificationMethod = ["Stripe Identity", "Business Registry"] as const;
+/** app.pack_event_action */
+export const packEventAction = [
+  "Sent",
+  "Opened",
+  "Viewed",
+  "Downloaded",
+  "Signed",
+  "Unsubscribed",
+] as const;
+/** app.pack_item_kind */
+export const packItemKind = ["Live Link", "File"] as const;
 /** app.pay_period_state */
 export const payPeriodState = ["Open", "Closed", "Posted"] as const;
 /** app.payment_state */
@@ -906,6 +930,15 @@ export const punchKind = ["In", "Break Start", "Break End", "Out"] as const;
 export const punchSource = ["Mobile", "Kiosk", "Supervisor"] as const;
 /** app.purge_method */
 export const purgeMethod = ["Delete", "Drop Partition", "Account Lifecycle"] as const;
+/** app.quote_version_state */
+export const quoteVersionState = [
+  "Draft",
+  "Sent",
+  "Accepted",
+  "Declined",
+  "Withdrawn",
+  "Superseded",
+] as const;
 /** app.rate_type */
 export const rateType = ["Hourly", "Day", "Flat", "Milestone", "Bid"] as const;
 /** app.rate_unit */
@@ -914,6 +947,8 @@ export const rateUnit = ["Hour", "Day", "Week", "Project"] as const;
 export const ratingSide = ["Organization", "Party"] as const;
 /** app.reconciliation_result */
 export const reconciliationResult = ["Met", "Gap", "Unknown"] as const;
+/** app.registration_page_state */
+export const registrationPageState = ["Draft", "Open", "Closed"] as const;
 /** app.report_aggregate */
 export const reportAggregate = ["None", "Count", "Sum", "Average", "Minimum", "Maximum"] as const;
 /** app.report_chart */
@@ -934,6 +969,8 @@ export const reservationReleaseReason = [
 export const retentionBasis = ["Soft Deleted", "Age"] as const;
 /** app.review_state */
 export const reviewState = ["Proposed", "Submitted", "Approved", "Returned", "Canceled"] as const;
+/** app.rfq_notice_kind */
+export const rfqNoticeKind = ["Quote Reminder", "Not Awarded"] as const;
 /** app.rfq_state */
 export const rfqState = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"] as const;
 /** app.role_assignment_state */
@@ -1029,6 +1066,10 @@ export const settlementState = [
   "Paid",
   "Canceled",
 ] as const;
+/** app.shift_answer */
+export const shiftAnswer = ["Waiting", "Accepted", "Declined", "No Answer", "Withdrawn"] as const;
+/** app.shift_ask_kind */
+export const shiftAskKind = ["Offer", "Reconfirmation"] as const;
 /** app.shift_claim_state */
 export const shiftClaimState = [
   "Requested",

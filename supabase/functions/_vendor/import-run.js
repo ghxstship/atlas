@@ -188,6 +188,14 @@ var FIELD_SYNONYMS = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
+  email: ["mail", "emailaddress", "correo"],
+  pool_name: ["pool", "crewlist", "lista"],
+  invitee_name: ["name", "fullname", "nombre"],
+  work_phone: ["phone", "mobile", "cell", "telefono", "celular"],
+  role: ["jobtitle", "position", "puesto", "rol"],
+  rate: ["dayrate", "hourlyrate", "tarifa"],
+  rate_currency: ["currency", "moneda"],
+  rate_type: ["basis", "paybasis"],
 };
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
 function similarField(header, fields) {
@@ -221,6 +229,9 @@ var IMPORT_TARGET_TABLES = {
   asset_units: "app.asset_units",
   cues: "app.cues",
   guest_list_entries: "app.guest_list_entries",
+  procurement_needs: "app.procurement_needs",
+  po_lines: "app.po_lines",
+  budget_lines: "app.budget_lines",
 };
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
 var PLAYBOOK_ALIASES = { counterparties: { "app.organizations.name": "name" } };
@@ -494,7 +505,7 @@ async function readGoogleSheet(fetchImpl, token, link) {
  * Cues and guest list entries (P3, 5800 to 5802) import into the running order or project the import names: every
  * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
  * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview.
+ * the uploader's mapping preview. Pool invitations (B10) load import-pool-target.ts, only for that target.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
@@ -589,6 +600,45 @@ function importGuestEmail(value) {
   const email = value.trim().toLowerCase();
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
 }
+/** The longest text of the B11 targets, by target (the column checks of 0331 and 6531). */
+var MATERIAL_MAX_LENGTH = {
+  description: 500,
+  note: 1e3,
+};
+var QUANTITY = /^\d+(?:[.,]\d+)?$/;
+var LOCAL_DATE = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(?::\d{2})?)?$/;
+function positiveQuantity(value) {
+  const v = value.trim();
+  if (!QUANTITY.test(v)) return null;
+  const n = Number(v.replace(",", "."));
+  return n > 0 ? n : null;
+}
+/** The offset of a time zone at an instant, in milliseconds. */
+function zoneOffsetMs(utcMs, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).formatToParts(new Date(utcMs));
+  const of = (type) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return (
+    Date.UTC(of("year"), of("month") - 1, of("day"), of("hour"), of("minute"), of("second")) - utcMs
+  );
+}
+/** A date or date and time typed in a project's time zone, as an instant; null when it does not read. */
+function zonedInstant(value, timeZone) {
+  const hit = LOCAL_DATE.exec(value.trim());
+  if (!hit) return null;
+  const local = Date.parse(`${hit[1]}T${hit[2] ?? "00:00"}:00Z`);
+  if (Number.isNaN(local)) return null;
+  const first = local - zoneOffsetMs(local, timeZone);
+  return new Date(local - zoneOffsetMs(first, timeZone)).toISOString();
+}
 /**
  * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
  * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
@@ -633,6 +683,18 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       });
     else values[field] = v;
   };
+  const materialBounded = (field) => {
+    const v = text(field).trim();
+    if (!v) return;
+    if (v.length > (MATERIAL_MAX_LENGTH[field] ?? 200))
+      issues.push({
+        columnIndex: columnOf(field),
+        issue: "too_long",
+      });
+    else values[field] = v;
+  };
+  let materialMatch;
+  let matchNote = null;
   switch (targetCode) {
     case "counterparties":
       if (text("name")) values["name"] = text("name");
@@ -723,6 +785,195 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "pool_invitations": {
+      const { checkPoolInvitationRow } = await import("./chunks/data-import-pool-target.js");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
+      break;
+    }
+    case "procurement_needs": {
+      const projectId = destination.project?.id ?? null;
+      materialBounded("description");
+      materialBounded("note");
+      await set("quantity", (v) => positiveQuantity(v), "invalid_quantity");
+      await set("unit_basis", (v) => lookups.unitExists(v), "unknown_unit");
+      await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
+      const zone = projectId ? await lookups.projectTimeZone(projectId) : "UTC";
+      const from = text("needed_from") ? zonedInstant(text("needed_from"), zone) : null;
+      const to = text("needed_to") ? zonedInstant(text("needed_to"), zone) : null;
+      if (text("needed_from") && from === null)
+        issues.push({
+          columnIndex: columnOf("needed_from"),
+          issue: "invalid_time",
+        });
+      if (text("needed_to") && to === null)
+        issues.push({
+          columnIndex: columnOf("needed_to"),
+          issue: "invalid_time",
+        });
+      if (from && to && to <= from)
+        issues.push({
+          columnIndex: columnOf("needed_to"),
+          issue: "invalid_time",
+        });
+      if ((text("needed_from") !== "") !== (text("needed_to") !== ""))
+        issues.push({
+          columnIndex: columnOf(text("needed_from") ? "needed_to" : "needed_from"),
+          issue: "required",
+        });
+      if (from && to) values["needed_during"] = `[${from},${to})`;
+      if (destination.jobId && issues.length === 0) {
+        const explicit = values["asset_class_id"] !== void 0;
+        const match = explicit
+          ? null
+          : await lookups.materialMatch(destination.jobId, null, text("description"));
+        if (match?.assetClassId) values["asset_class_id"] = match.assetClassId;
+        materialMatch = explicit || match ? "Matched" : "Unmatched";
+      }
+      break;
+    }
+    case "po_lines":
+      materialBounded("description");
+      await set("quantity", (v) => positiveQuantity(v), "invalid_quantity");
+      await set(
+        "line_number",
+        (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
+        "invalid_position",
+      );
+      await set("unit_basis", (v) => lookups.unitExists(v), "unknown_unit");
+      await set("element_id", (v) => lookups.elementExists(v), "unknown_element");
+      await set(
+        "unit_price_minor",
+        (v) => (INTEGER.test(v) && Number(v) >= 0 ? Number(v) : null),
+        "invalid_amount",
+      );
+      if (destination.jobId && issues.length === 0) {
+        const match = await lookups.materialMatch(
+          destination.jobId,
+          text("vendor_sku") || null,
+          text("description"),
+        );
+        if (match?.elementId && values["element_id"] === void 0)
+          values["element_id"] = match.elementId;
+        if (match && match.unitPriceMinor !== null && values["unit_price_minor"] === void 0) {
+          if (match.currencyCode === match.orderCurrencyCode)
+            values["unit_price_minor"] = match.unitPriceMinor;
+          else matchNote = "price_currency_differs";
+        }
+        materialMatch = match || values["element_id"] !== void 0 ? "Matched" : "Unmatched";
+      }
+      break;
+    case "budget_lines": {
+      const exponent = destination.budget?.exponent ?? 2;
+      bounded("description");
+      await set(
+        "unit_basis",
+        async (v) => {
+          const unit = v.trim().toLowerCase();
+          return (await lookups.unitExists(unit)) ? unit : null;
+        },
+        "unknown_unit",
+      );
+      await set("urid", (v) => lookups.uridExists(v), "unknown_urid");
+      await set(
+        "line_number",
+        (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
+        "invalid_line_number",
+      );
+      await set("quantity", (v) => nonNegative(v), "invalid_quantity");
+      const price = text("unit_price").trim();
+      if (price.toLowerCase() === "unpriced") values["unit_price_minor"] = null;
+      else if (price !== "") {
+        const minor = minorUnits(price, exponent);
+        if (minor === null)
+          issues.push({
+            columnIndex: columnOf("unit_price"),
+            issue: "invalid_price",
+          });
+        else values["unit_price_minor"] = minor;
+      }
+      const type = text("line_type").trim();
+      if (type !== "") {
+        const known = BUDGET_LINE_TYPES.find((k) => k.toLowerCase() === type.toLowerCase());
+        if (known) values["line_type"] = known;
+        else
+          issues.push({
+            columnIndex: columnOf("line_type"),
+            issue: "invalid_line_type",
+          });
+      }
+      await set(
+        "cost_center",
+        (v) => lookups.costCenterId(orgId, v),
+        "unknown_cost_center",
+        "cost_center_id",
+      );
+      await set("element_id", (v) => lookups.elementExists(v.trim()), "unknown_element");
+      for (const [field, kind, issue] of [
+        ["grade_code", "grade", "unknown_grade"],
+        ["phase_code", "phase", "unknown_phase"],
+        ["tier_code", "tier", "unknown_tier"],
+      ])
+        await set(
+          field,
+          async (v) => ((await lookups.canonCodeExists(kind, v.trim())) ? v.trim() : null),
+          issue,
+        );
+      const declared = text("xyz").trim().toUpperCase();
+      if (declared !== "") {
+        if (declared === "X" || declared === "Y" || declared === "Z") {
+          values["xyz"] = declared;
+          values["xyz_basis"] = "Declared";
+        } else
+          issues.push({
+            columnIndex: columnOf("xyz"),
+            issue: "invalid_xyz",
+          });
+      } else if (text("urid")) {
+        const tag = await lookups.uridXyz(text("urid"));
+        if (tag) {
+          values["xyz"] = tag;
+          values["xyz_basis"] = "Category";
+        } else
+          issues.push({
+            columnIndex: columnOf("urid"),
+            issue: "xyz_required",
+          });
+      }
+      await set(
+        "markup_percent",
+        (v) => {
+          const n = Number(v.trim().replace(/%$/, ""));
+          return Number.isFinite(n) && n >= 0 && n <= 1e3 ? Math.round(n * 100) : null;
+        },
+        "invalid_markup",
+        "markup_bp",
+      );
+      await set(
+        "client_unit_price",
+        (v) => minorUnits(v.trim(), exponent),
+        "invalid_price",
+        "client_unit_price_minor",
+      );
+      const excluded = text("excluded_from_quote").trim().toLowerCase();
+      if (excluded !== "") {
+        if (["true", "yes", "1"].includes(excluded)) values["excluded_from_quote"] = true;
+        else if (["false", "no", "0"].includes(excluded)) values["excluded_from_quote"] = false;
+        else
+          issues.push({
+            columnIndex: columnOf("excluded_from_quote"),
+            issue: "invalid_boolean",
+          });
+      }
+      break;
+    }
     default:
       issues.push({
         columnIndex: 0,
@@ -738,8 +989,15 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
   const matchName =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries"
-      ? text(targetCode === "guest_list_entries" ? "guest_name" : "name").trim()
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations"
+      ? text(
+          targetCode === "guest_list_entries"
+            ? "guest_name"
+            : targetCode === "pool_invitations"
+              ? "invitee_name"
+              : "name",
+        ).trim()
       : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -753,10 +1011,36 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
             .filter(Boolean)
             .join(" ") || null
         : null,
+    ...(materialMatch
+      ? {
+          materialMatch,
+          matchNote,
+        }
+      : {}),
   };
 }
-/** Targets whose imports name a running order or a project (P3). */
-var DESTINATION_TARGETS = /* @__PURE__ */ new Set(["cues", "guest_list_entries"]);
+/** Targets matched through app.import_strong_key_match (P3, B10, B11, B13). */
+var DESTINATION_TARGETS = /* @__PURE__ */ new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+  "procurement_needs",
+  "po_lines",
+  "budget_lines",
+]);
+var BUDGET_LINE_TYPES = ["Cost", "Labor", "Fee", "Contingency"];
+/** A number of at least zero, or null. */
+function nonNegative(text) {
+  const cleaned = text.trim().replace(/,/g, "");
+  if (cleaned === "") return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+/** Major units of a currency as integer minor units, half away from zero; null when it is no amount. */
+function minorUnits(text, exponent) {
+  const n = nonNegative(text.replace(/^\s*[$€£¥]/u, ""));
+  return n === null ? null : Math.round(n * 10 ** exponent);
+}
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
  * label and planned time; a guest's trimmed, lower-case name and show. A missing time or show is left out, which
@@ -788,6 +1072,24 @@ function destinationStrongKeys(targetCode, values) {
           scope_node_id: show,
         };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null
+      ? {}
+      : {
+          email,
+          talent_pool_id: pool,
+        };
+  }
+  if (targetCode === "procurement_needs") {
+    const description = str("description");
+    return description === null ? {} : { description: description.trim().toLowerCase() };
+  }
+  if (targetCode === "po_lines" || targetCode === "budget_lines")
+    return typeof values["line_number"] === "number"
+      ? { line_number: String(values["line_number"]) }
+      : {};
   return null;
 }
 /** The column whose cell a duplicate-in-file issue points at. */
@@ -795,6 +1097,9 @@ var DUPLICATE_COLUMN_FIELD = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
+  description: "description",
+  line_number: "line_number",
 };
 /**
  * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
@@ -836,6 +1141,19 @@ async function destinationOf(store, job) {
   }
   if (job.targetCode === "guest_list_entries" && job.projectId)
     return { project: { id: job.projectId } };
+  if (job.targetCode === "pool_invitations")
+    return { pools: await store.lookups.poolInvitationContext(job) };
+  if (job.targetCode === "procurement_needs" && job.projectId)
+    return {
+      project: { id: job.projectId },
+      jobId: job.id,
+    };
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) return { jobId: job.id };
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    if (budget === null) throw new Error(`The budget of import ${job.id} no longer exists.`);
+    return { budget };
+  }
   return {};
 }
 /** Every data row of a sheet checked against the target, with repeats within the file marked. */
@@ -1045,6 +1363,8 @@ async function validate(store, jobId, options) {
     });
     if (result.issues.length > 0) await store.recordCellIssues(rowId, result.issues);
     if (match) await store.recordMatch(rowId, match);
+    if (result.materialMatch)
+      await store.recordMaterialMatch(rowId, result.materialMatch, result.matchNote ?? null);
   }
   await store.setStatus(job.id, "Validated");
   return notifyFinished(store, job, null, options);
@@ -1068,10 +1388,12 @@ async function commit(store, batchId, options) {
   const byNumber = new Map(rows.map((r, i) => [r.rowNumber, checkedRows[i]]));
   const valids = await store.validRows(job.id);
   const appended = (v) =>
-    job.targetCode === "cues" &&
     v.mergeInto === null &&
     v.matchedId === null &&
-    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+    ((job.targetCode === "cues" &&
+      typeof byNumber.get(v.rowNumber)?.values["position"] !== "number") ||
+      (job.targetCode === "budget_lines" &&
+        typeof byNumber.get(v.rowNumber)?.values["line_number"] !== "number"));
   const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
   for (const valid of ordered) {
     const checked = byNumber.get(valid.rowNumber);
@@ -1083,10 +1405,36 @@ async function commit(store, batchId, options) {
       await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
       continue;
     }
+    if (
+      job.targetCode === "po_lines" &&
+      job.purchaseOrderId &&
+      (await store.lookups.purchaseOrderState(job.purchaseOrderId)) !== "Proposed"
+    ) {
+      await store.refuseRow(valid.id, "import_po_not_proposed");
+      continue;
+    }
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        const { commitPoolMatch } = await import("./chunks/data-import-pool-target.js");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
+        if (job.targetCode === "budget_lines" && changes["xyz_basis"] === "Category") {
+          const current = await store.lookups.budgetLineTag(target);
+          if (current?.xyzBasis === "Declared" && current.urid === changes["urid"]) {
+            delete changes["xyz"];
+            delete changes["xyz_basis"];
+          }
+        }
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target)))
           throw new ImportWriteError("This cue was already called");
         const before = await store.lookups.update(job.targetCode, target, changes);
@@ -1110,7 +1458,9 @@ async function commit(store, batchId, options) {
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1e3));
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1e3));
     }
   }
   await store.finishBatch(batchId);
@@ -1126,6 +1476,10 @@ function updateChanges(targetCode, values) {
       counterparties: ["name"],
       cues: ["run_of_show_id", "project_id", "position"],
       guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+      pool_invitations: ["talent_pool_id", "email", "invited_by"],
+      procurement_needs: ["project_id", "description"],
+      po_lines: ["purchase_order_id", "line_number"],
+      budget_lines: ["budget_id", "line_number"],
     }[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
 }
@@ -1151,6 +1505,44 @@ async function createValues(store, job, values) {
       project_id: job.projectId,
       entry_state: "Requested",
     };
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return {
+      ...values,
+      invited_by: job.createdBy,
+    };
+  }
+  if (job.targetCode === "procurement_needs" && job.projectId)
+    return {
+      ...values,
+      project_id: job.projectId,
+    };
+  if (job.targetCode === "po_lines" && job.purchaseOrderId) {
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : await store.lookups.nextPoLineNumber(job.purchaseOrderId);
+    return {
+      ...values,
+      purchase_order_id: job.purchaseOrderId,
+      line_number,
+    };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : (budget?.maxLineNumber ?? 0) + 1;
+    return {
+      quantity: 1,
+      unit_price_minor: null,
+      line_type: "Cost",
+      ...values,
+      budget_id: job.budgetId,
+      line_number,
+    };
+  }
   return values;
 }
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -1208,6 +1600,10 @@ var TABLES = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
+  procurement_needs: "procurement_needs",
+  po_lines: "po_lines",
+  budget_lines: "budget_lines",
 };
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
 var nameKey = (v) => v.trim().toLowerCase();
@@ -1242,6 +1638,17 @@ function supabaseImportStore(client) {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId, values) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./chunks/data-import-pool-target.js")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   return {
     lookups: {
       async counterpartyTypeExists(type) {
@@ -1279,6 +1686,40 @@ function supabaseImportStore(client) {
           );
         });
         return match ? text(match, "id") : null;
+      },
+      async uridExists(urid) {
+        const [discipline, category] = await Promise.all([
+          one(
+            canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1),
+            "dim_discipline",
+          ),
+          one(
+            canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1),
+            "dim_category",
+          ),
+        ]);
+        return discipline !== null || category !== null;
+      },
+      async uridXyz(urid) {
+        const row = await one(
+          canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1),
+          "dim_category",
+        );
+        const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
+        return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
+      },
+      async costCenterId(orgId, code) {
+        const row = await one(
+          app
+            .from("cost_centers")
+            .select("id")
+            .eq("org_id", orgId)
+            .eq("code", code.trim().toUpperCase())
+            .is("deleted_at", null)
+            .limit(1),
+          "cost_centers",
+        );
+        return typeof row?.["id"] === "string" ? row["id"] : null;
       },
       async elementExists(id) {
         return (
@@ -1443,6 +1884,113 @@ function supabaseImportStore(client) {
         });
         return typeof id === "string" ? id : null;
       },
+      async canonCodeExists(kind, code) {
+        const [table, column] = {
+          grade: ["grade", "code"],
+          phase: ["dim_phase", "phase_code"],
+          tier: ["dim_tier", "tier_code"],
+        }[kind];
+        return (
+          (await one(canon.from(table).select(column).eq(column, code).limit(1), table)) !== null
+        );
+      },
+      async unitExists(unit) {
+        return (
+          (await one(
+            canon.from("dim_unit_alias").select("alias").eq("alias", unit.trim()).limit(1),
+            "dim_unit_alias",
+          )) !== null
+        );
+      },
+      async materialMatch(importJobId, vendorSku, matchText) {
+        const row = await call("import_material_match", {
+          p_import_job_id: importJobId,
+          p_vendor_sku: vendorSku,
+          p_text: matchText,
+        });
+        const first = Array.isArray(row) ? row[0] : null;
+        if (!first) return null;
+        return {
+          source: first["match_source"] === "vendor_sku" ? "vendor_sku" : "asset_class",
+          elementId: first["element_id"] ?? null,
+          assetClassId: first["asset_class_id"] ?? null,
+          unitPriceMinor: first["unit_price_minor"] ?? null,
+          currencyCode: first["currency_code"] ?? null,
+          orderCurrencyCode: first["order_currency_code"] ?? null,
+        };
+      },
+      async projectTimeZone(projectId) {
+        const row = await one(
+          app.from("projects").select("time_zone").eq("id", projectId),
+          "projects",
+        );
+        return typeof row?.["time_zone"] === "string" ? row["time_zone"] : "UTC";
+      },
+      async purchaseOrderState(id) {
+        const row = await one(
+          app.from("purchase_orders").select("po_state").eq("id", id).is("deleted_at", null),
+          "purchase_orders",
+        );
+        return typeof row?.["po_state"] === "string" ? row["po_state"] : null;
+      },
+      async nextPoLineNumber(purchaseOrderId) {
+        const row = await one(
+          app
+            .from("po_lines")
+            .select("line_number")
+            .eq("purchase_order_id", purchaseOrderId)
+            .is("deleted_at", null)
+            .order("line_number", { ascending: false })
+            .limit(1),
+          "po_lines",
+        );
+        return (typeof row?.["line_number"] === "number" ? row["line_number"] : 0) + 1;
+      },
+      async budgetLineTag(id) {
+        const line = await one(
+          app.from("budget_lines").select("urid, xyz_basis").eq("id", id),
+          "budget_lines",
+        );
+        if (!line) return null;
+        return {
+          urid: text(line, "urid"),
+          xyzBasis: typeof line["xyz_basis"] === "string" ? line["xyz_basis"] : null,
+        };
+      },
+      async budgetDestination(budgetId) {
+        const budget = await one(
+          app.from("budgets").select("currency_code").eq("id", budgetId).is("deleted_at", null),
+          "budgets",
+        );
+        if (!budget) return null;
+        const [currency, last] = await Promise.all([
+          one(
+            app
+              .from("currencies")
+              .select("minor_unit_exponent")
+              .eq("currency_code", budget["currency_code"]),
+            "currencies",
+          ),
+          one(
+            app
+              .from("budget_lines")
+              .select("line_number")
+              .eq("budget_id", budgetId)
+              .is("deleted_at", null)
+              .order("line_number", { ascending: false })
+              .limit(1),
+            "budget_lines",
+          ),
+        ]);
+        return {
+          id: budgetId,
+          exponent:
+            typeof currency?.["minor_unit_exponent"] === "number"
+              ? currency["minor_unit_exponent"]
+              : 2,
+          maxLineNumber: typeof last?.["line_number"] === "number" ? last["line_number"] : 0,
+        };
+      },
       async nextCuePosition(runOfShowId) {
         const row = await one(
           app
@@ -1463,6 +2011,10 @@ function supabaseImportStore(client) {
           ] === "string"
         );
       },
+      talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+      roleCode: async (v) => (await poolStore()).roleCode(v),
+      poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+      poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1508,7 +2060,7 @@ function supabaseImportStore(client) {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, purchase_order_id, budget_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1529,6 +2081,11 @@ function supabaseImportStore(client) {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: optional("number_format") ?? "comma-dot",
+            createdBy: optional("created_by"),
+            purchaseOrderId: optional("purchase_order_id"),
+            budgetId: optional("budget_id"),
           }
         : null;
     },
@@ -1759,6 +2316,18 @@ function supabaseImportStore(client) {
         "import_cell_issues",
       );
     },
+    async recordMaterialMatch(rowId, match, note) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({
+            material_match: match,
+            match_note: note,
+          })
+          .eq("id", rowId),
+        "import_row_results",
+      );
+    },
     async recordMatch(rowId, targetId) {
       await exec(
         app.from("import_row_matches").insert({
@@ -1818,6 +2387,12 @@ function supabaseImportStore(client) {
         "import_row_results",
       );
     },
+    skipRow: (rowId, reason) =>
+      setRow(rowId, {
+        row_state: "Skipped",
+        reason,
+      }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
     },

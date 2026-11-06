@@ -183,6 +183,7 @@ function pushCategoryFor(kind, messageArgs) {
     messageArgs["shiftState"] === "Published"
   )
     return SHIFT_OFFER_CATEGORY;
+  if (kind === "shift.reconfirm") return "shift_reconfirm";
   if (kind === "offer.sent" || kind === "roster_entry.invited") return ENGAGEMENT_OFFER_CATEGORY;
   if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
   return null;

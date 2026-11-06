@@ -71,6 +71,7 @@ var Constants = {
       accounting_period_state: ["Open", "In Period", "Closing", "Closed", "Audited", "Archived"],
       acquisition_kind: ["Purchase", "Rental"],
       actor_kind: ["Person", "Service", "System"],
+      advance_answer_source_kind: ["Project Inbox", "File"],
       advance_review_outcome: ["Accepted", "Returned"],
       advance_section_kind: [
         "Text",
@@ -80,6 +81,15 @@ var Constants = {
         "Crew Roster",
         "Guest List",
         "Credential Request",
+      ],
+      advance_track: [
+        "Finance",
+        "Technical",
+        "Hospitality",
+        "Catering",
+        "Travel",
+        "Logistics",
+        "General",
       ],
       advance_window_kind: [
         "Load In",
@@ -151,7 +161,9 @@ var Constants = {
       blocklist_entry_kind: ["Email", "Domain"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
+      budget_version_purpose: ["Snapshot", "Quote"],
       calendar_conflict_policy: ["XOS Wins", "Provider Wins", "Latest Wins"],
+      calendar_feed_source: ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"],
       calendar_sync_kind: ["Meeting", "Event", "Shift"],
       canon_extension_level: ["Discipline", "Category"],
       canon_extension_state: ["Proposed", "Approved", "Rejected", "Withdrawn"],
@@ -182,7 +194,9 @@ var Constants = {
         "Requested",
         "Missing",
       ],
+      crew_registration_state: ["Submitted", "Approved", "Declined", "Withdrawn"],
       cue_call_kind: ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+      cue_field_audience: ["Crew", "Showcaller", "Client"],
       custom_data_type: [
         "Text",
         "Number",
@@ -196,6 +210,18 @@ var Constants = {
         "URL",
       ],
       data_classification: ["Public", "Internal", "Confidential", "Restricted"],
+      day_template_item_kind: ["Record", "Cue"],
+      debrief_area: [
+        "Schedule",
+        "Budget",
+        "Safety",
+        "Audience",
+        "Sustainability",
+        "Crew",
+        "Vendors",
+        "Other",
+      ],
+      debrief_item_kind: ["Went Well", "To Improve", "Action"],
       deliverable_state: ["Open", "Submitted", "Accepted", "Returned"],
       delivery_status: ["Pending", "Delivering", "Delivered", "Retrying", "Expired"],
       dependency_type: ["Finish to Start", "Start to Start", "Finish to Finish", "Start to Finish"],
@@ -212,6 +238,8 @@ var Constants = {
       ],
       digest_frequency: ["Off", "Daily", "Weekly"],
       display_mode: ["Room Clock", "Presenter Timer", "Backstage"],
+      document_book_kind: ["Tour Book", "Production Book"],
+      document_requirement: ["Required", "Recommended"],
       domain_provisioning_status: [
         "Not Started",
         "Requested",
@@ -256,6 +284,7 @@ var Constants = {
         "Settlement",
         "Proof of Performance",
         "Content Consent",
+        "Quote",
       ],
       engagement_document_state: [
         "Proposed",
@@ -267,6 +296,8 @@ var Constants = {
         "Canceled",
       ],
       engagement_state: ["Onboarding", "Blocked", "Active", "Closing", "Complete", "Canceled"],
+      event_audience: ["Public Ticketed", "Public Free", "Invite Only", "Trade", "Internal"],
+      event_scale: ["Intimate", "Small", "Medium", "Large", "Major"],
       expense_state: ["Proposed", "Approved", "Rejected", "Paid", "Canceled"],
       export_filter_operator: ["eq", "in", "search", "is_null", "not_null"],
       export_format: ["CSV", "XLSX", "PDF"],
@@ -284,6 +315,7 @@ var Constants = {
       feed_post_kind: ["Announcement", "Update", "Poll", "Recognition"],
       file_access_action: ["View", "Download", "Export", "Share Link Created", "Share Link Opened"],
       file_link_mode: ["Link", "Import"],
+      file_review_decision: ["Approved", "Changes Requested"],
       filter_operator: ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"],
       form_submission_state: ["Submitted", "Approved", "Rejected", "Recorded"],
       form_template_state: ["Draft", "Published", "Retired"],
@@ -294,6 +326,9 @@ var Constants = {
       grant_target_kind: ["organization", "workspace", "team", "project", "record"],
       group_kind: ["Department", "Project", "Crew", "Custom"],
       group_role: ["Owner", "Member"],
+      guest_email_kind: ["Invitation", "Pass", "Message"],
+      guest_email_skip_reason: ["No Email", "Not Live", "No Pass"],
+      guest_email_state: ["Queued", "Sending", "Sent", "Failed", "Suppressed", "Skipped"],
       guest_entry_state: ["Requested", "Approved", "Declined", "Checked In"],
       handbook_article_state: ["Draft", "Published", "Archived"],
       handle_kind: ["Person", "Organization"],
@@ -368,6 +403,9 @@ var Constants = {
       job_status: ["Queued", "Running", "Succeeded", "Failed", "Canceled"],
       join_request_state: ["Pending", "Approved", "Declined", "Withdrawn"],
       journal_state: ["Proposed", "Posted", "Canceled"],
+      labor_rate_source: ["Pay Rate", "Engagement Rate", "Rate Card"],
+      labor_segment: ["Regular", "Overtime", "Double Time"],
+      labor_team_kind: ["Own Team", "Agency", "Engaged"],
       language_proficiency: ["Basic", "Conversational", "Fluent", "Native"],
       listing_report_reason: [
         "Illegal Content",
@@ -401,6 +439,7 @@ var Constants = {
       ],
       lost_item_state: ["Logged", "Claimed", "Returned", "Disposed"],
       loyalty_program_kind: ["Airline", "Hotel", "Car Rental", "Rail"],
+      maintenance_interval_unit: ["Day", "Week", "Month", "Year"],
       mcp_client_kind: ["Claude", "ChatGPT", "Other"],
       measurement_correction_kind: ["Corrected", "Withdrawn", "Restored"],
       measurement_source: ["Manual", "Import", "Integration"],
@@ -471,6 +510,8 @@ var Constants = {
       opportunity_visibility: ["Invited", "Pool", "Network", "Public"],
       org_domain_purpose: ["Atlas", "Gateway", "Email Sending", "Verified Domain"],
       organization_verification_method: ["Stripe Identity", "Business Registry"],
+      pack_event_action: ["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"],
+      pack_item_kind: ["Live Link", "File"],
       pay_period_state: ["Open", "Closed", "Posted"],
       payment_state: ["Proposed", "Approved", "Canceled"],
       payout_provider: ["Stripe Connect", "Accounting System"],
@@ -537,16 +578,20 @@ var Constants = {
         "organizations",
       ],
       profile_visibility: ["Private", "Network", "Public"],
+      project_copy_part: ["Plan", "Pass Categories", "Hotel Blocks", "Budgets", "Advance Forms"],
+      project_day_type: ["Load In", "Show", "Load Out", "Travel", "Off", "Rehearsal", "Other"],
       project_fact_kind: ["Travel", "Uniform", "Vehicle"],
       project_role: ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
       project_state: ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
       punch_kind: ["In", "Break Start", "Break End", "Out"],
       punch_source: ["Mobile", "Kiosk", "Supervisor"],
       purge_method: ["Delete", "Drop Partition", "Account Lifecycle"],
+      quote_version_state: ["Draft", "Sent", "Accepted", "Declined", "Withdrawn", "Superseded"],
       rate_type: ["Hourly", "Day", "Flat", "Milestone", "Bid"],
       rate_unit: ["Hour", "Day", "Week", "Project"],
       rating_side: ["Organization", "Party"],
       reconciliation_result: ["Met", "Gap", "Unknown"],
+      registration_page_state: ["Draft", "Open", "Closed"],
       report_aggregate: ["None", "Count", "Sum", "Average", "Minimum", "Maximum"],
       report_chart: ["Table", "Bar", "Line", "Area", "Pie", "Number"],
       representation_scope: ["Offers", "Advance", "Settlement", "Documents"],
@@ -560,13 +605,23 @@ var Constants = {
       ],
       retention_basis: ["Soft Deleted", "Age"],
       review_state: ["Proposed", "Submitted", "Approved", "Returned", "Canceled"],
+      rfq_notice_kind: ["Quote Reminder", "Not Awarded"],
       rfq_state: ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
       role_assignment_state: ["Proposed", "Active", "Complete", "Canceled"],
       roster_entry_state: ["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"],
       roster_person_response: ["Pending", "Accepted", "Declined"],
       rsvp_response: ["Going", "Maybe", "Declined"],
       run_status: ["Queued", "Running", "Succeeded", "Failed"],
+      scan_direction: ["In", "Out"],
       scan_mode: ["Asset", "Credential", "Shipment", "Inventory", "Lookup"],
+      scan_refusal_reason: [
+        "Revoked",
+        "Not Yet Valid",
+        "Expired",
+        "No Zone Access",
+        "Outside Window",
+        "Not Approved",
+      ],
       scan_resolution: ["Matched", "Created", "Dismissed"],
       scan_result: ["Granted", "Denied"],
       scan_status: ["Pending Upload", "Scanning", "Clean", "Infected", "Scan Failed"],
@@ -591,6 +646,8 @@ var Constants = {
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
       settlement_line_kind: ["Guarantee", "Bonus", "Split", "Expense", "Deduction", "Withholding"],
       settlement_state: ["Proposed", "Submitted", "Accepted", "Disputed", "Paid", "Canceled"],
+      shift_answer: ["Waiting", "Accepted", "Declined", "No Answer", "Withdrawn"],
+      shift_ask_kind: ["Offer", "Reconfirmation"],
       shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
@@ -716,6 +773,7 @@ var Constants = {
         "Chart",
         "Feed",
         "Inbox",
+        "Heatmap",
       ],
       warehouse_delivery_state: ["Queued", "Running", "Delivered", "Retrying", "Failed"],
       warehouse_destination_state: ["Active", "Paused"],
@@ -723,6 +781,9 @@ var Constants = {
       warehouse_provider: ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery", "Snowflake"],
       weather_alert_level: ["Monitor", "Restrict", "Evacuate"],
       weather_hazard: ["Wind", "Lightning", "Heat"],
+      weather_message_kind: ["Hold", "All Clear"],
+      weather_provider: ["NWS"],
+      weather_reading_source: ["Manual", "NWS"],
       work_detail_category: [
         "Emergency Contacts",
         "Contact",
@@ -1402,6 +1463,14 @@ var DESCRIBE = {
   "guest-pass": (d) => ({
     recordKey: d.guest.passCode,
     issuedAt: d.guest.decidedAt,
+  }),
+  "engagement-document": (d) => ({
+    recordKey: keyed(d.project?.key ?? "", `DOC-${d.document.id.slice(0, 8)}`),
+    issuedAt: d.document.signedAt ?? d.document.createdAt,
+  }),
+  quote: (d) => ({
+    recordKey: `${d.quote.key}-v${d.quote.versionNumber}`,
+    issuedAt: d.quote.issuedAt,
   }),
 };
 var field = (label, value) => ({
@@ -2950,6 +3019,47 @@ var TEMPLATES = {
       }),
     },
   ],
+  "engagement-document": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, document }, { t, f }) => ({
+        title: document.title,
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("agreementCertificate.signature"),
+            fields: [
+              field(
+                t("agreementCertificate.kind"),
+                t(`engagementDocument.kinds.${keyOf(document.kind)}`),
+              ),
+              field(t("common.project"), project ? projectLabel(project) : t("common.none")),
+              field(t("common.state"), t(`agreementCertificate.states.${keyOf(document.state)}`)),
+              field(t("agreementCertificate.signedName"), document.signedName ?? t("common.none")),
+              field(t("agreementCertificate.signedAt"), f.dateTime(document.signedAt)),
+              field(t("agreementCertificate.hash"), document.sha256 ?? t("common.none")),
+            ],
+          },
+          {
+            kind: "paragraph",
+            text: t("agreementCertificate.statement"),
+          },
+          {
+            kind: "heading",
+            text: t("engagementDocument.text"),
+          },
+          ...document.body
+            .split(/\n{2,}/)
+            .filter((part) => part.trim() !== "")
+            .map((text) => ({
+              kind: "paragraph",
+              text,
+            })),
+        ],
+      }),
+    },
+  ],
   "radio-handout": [
     {
       version: 1,
@@ -3126,6 +3236,123 @@ var TEMPLATES = {
                   text: t("guestPass.scanNote"),
                 },
               ],
+        };
+      },
+    },
+  ],
+  quote: [
+    {
+      version: 1,
+      effectiveFrom: "2026-11-01T00:00:00Z",
+      build: ({ project, quote }, { t, f }) => {
+        const money = (m) => f.money(m, quote.currency);
+        const draft = quote.state === "Draft";
+        const accepted = quote.state === "Accepted" && quote.acceptedAt !== null;
+        return {
+          title: t("quote.title", { key: quote.key }),
+          blocks: [
+            {
+              kind: "paragraph",
+              text: quote.title,
+              size: "large",
+            },
+            {
+              kind: "fields",
+              caption: t("common.details"),
+              fields: [
+                field(t("quote.key"), quote.key),
+                field(t("quote.version"), String(quote.versionNumber)),
+                field(t("quote.client"), quote.clientName ?? t("common.none")),
+                field(t("common.project"), projectLabel(project)),
+                field(t("quote.issued"), f.dateTime(quote.issuedAt)),
+                field(t("quote.validUntil"), f.day(quote.validUntil)),
+                field(t("common.currency"), quote.currency),
+                ...(draft ? [field(t("common.state"), t("quote.draftNotSent"))] : []),
+              ],
+            },
+            {
+              kind: "table",
+              caption: t("quote.linesCaption", { key: quote.key }),
+              columns: [
+                {
+                  label: t("common.description"),
+                  weight: 4,
+                },
+                {
+                  label: t("common.quantity"),
+                  numeric: true,
+                },
+                { label: t("quote.unit") },
+                {
+                  label: t("common.unitPrice"),
+                  numeric: true,
+                  weight: 1.6,
+                },
+                {
+                  label: t("common.amount"),
+                  numeric: true,
+                  weight: 1.6,
+                },
+              ],
+              rows: quote.lines.map((l) => [
+                l.description,
+                f.number(l.quantity),
+                l.unitBasis ?? "",
+                money(l.unitPriceMinor),
+                money(l.amountMinor),
+              ]),
+              footer: [[t("common.total"), "", "", "", money(quote.totalMinor)]],
+              empty: t("common.noLines"),
+            },
+            ...(quote.terms
+              ? [
+                  {
+                    kind: "heading",
+                    text: t("quote.terms"),
+                  },
+                  {
+                    kind: "paragraph",
+                    text: quote.terms,
+                  },
+                ]
+              : []),
+            {
+              kind: "paragraph",
+              text: t("quote.taxNote"),
+            },
+            ...(!draft && quote.contentSha256 && !accepted
+              ? [
+                  {
+                    kind: "fields",
+                    caption: t("quote.fingerprint"),
+                    fields: [field(t("quote.fingerprint"), quote.contentSha256)],
+                  },
+                ]
+              : []),
+            ...(accepted
+              ? [
+                  {
+                    kind: "fields",
+                    caption: t("quote.signature"),
+                    fields: [
+                      field(t("quote.nameAsSigned"), quote.acceptedName ?? t("common.none")),
+                      field(t("quote.signed"), f.dateTime(quote.acceptedAt)),
+                      field(
+                        t("quote.howSigned"),
+                        quote.acceptedEmail
+                          ? t("quote.signedByLink", { email: quote.acceptedEmail })
+                          : t("quote.signedIn"),
+                      ),
+                      field(t("quote.fingerprint"), quote.contentSha256 ?? t("common.none")),
+                    ],
+                  },
+                  {
+                    kind: "paragraph",
+                    text: t("quote.signatureStatement"),
+                  },
+                ]
+              : []),
+          ],
         };
       },
     },

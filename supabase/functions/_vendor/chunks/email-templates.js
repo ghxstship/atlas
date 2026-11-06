@@ -264,11 +264,13 @@ function kindKey(kind, part) {
     throw new Error(`Invalid notification kind ${kind}`);
   return `kinds.${kind}.${part}`;
 }
+/** Kinds whose Accept button says what accepting means (B9: "Still coming?" accepts as Confirm you're coming). */
+var ACCEPT_LABELS = { "shift.reconfirm": "notification.actions.confirmComing" };
 /**
  * The one-tap action buttons (A127): each opens the confirm page, so acting from an email takes two taps. Approve and
  * accept are filled; reject is outlined, after them.
  */
-function ActionLinks({ actions, t }) {
+function ActionLinks({ actions, kind, t }) {
   const ordered = EMAIL_ACTIONS.flatMap((name) => actions.filter((a) => a.action === name));
   if (ordered.length === 0) return null;
   return /* @__PURE__ */ jsxs(Section, {
@@ -282,7 +284,11 @@ function ActionLinks({ actions, t }) {
             {
               href: a.url,
               style: a.action === "reject" ? actionStyles.secondary : actionStyles.primary,
-              children: t(`notification.actions.${a.action}`),
+              children: t(
+                a.action === "accept" && ACCEPT_LABELS[kind]
+                  ? ACCEPT_LABELS[kind]
+                  : `notification.actions.${a.action}`,
+              ),
             },
             a.action,
           ),
@@ -356,6 +362,7 @@ var templates = {
             }),
             /* @__PURE__ */ jsx(ActionLinks, {
               actions: item.actions ?? [],
+              kind: item.kind,
               t: ctx.t,
             }),
           ],
@@ -612,14 +619,19 @@ var templates = {
               inviterName: p.inviterName,
               accountName: p.accountName,
             })
-          : ctx.t("party_invitation.rosterSubject", {
-              inviterName: p.inviterName,
-              partyName: p.partyName,
-              projectName: p.projectName,
-            });
+          : p.kind === "pool"
+            ? ctx.t("party_invitation.poolSubject", {
+                inviterName: p.inviterName,
+                orgName: p.orgName ?? "",
+              })
+            : ctx.t("party_invitation.rosterSubject", {
+                inviterName: p.inviterName,
+                partyName: p.partyName,
+                projectName: p.projectName,
+              });
       return {
         subject,
-        element: /* @__PURE__ */ jsx(Layout, {
+        element: /* @__PURE__ */ jsxs(Layout, {
           locale: ctx.locale,
           t: ctx.t,
           sender: ctx.sender,
@@ -630,9 +642,19 @@ var templates = {
             label: ctx.t("party_invitation.action"),
             url: p.signInUrl,
           },
-          children: /* @__PURE__ */ jsx(Paragraph, {
-            children: ctx.t("party_invitation.how", { expiresAt: p.expiresAt }),
-          }),
+          children: [
+            p.kind === "pool" && p.jobTitle
+              ? /* @__PURE__ */ jsx(Paragraph, {
+                  children: ctx.t("party_invitation.poolRole", { jobTitle: p.jobTitle }),
+                })
+              : null,
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t(
+                p.kind === "pool" ? "party_invitation.poolHow" : "party_invitation.how",
+                { expiresAt: p.expiresAt },
+              ),
+            }),
+          ],
         }),
       };
     },

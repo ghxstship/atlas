@@ -19,6 +19,18 @@ var email = {
   subject: "{report} de {org}",
   body: "Adjuntamos tu informe programado {report} de {org}. Tiene {rows} filas; {unpriced} tienen un importe sin precio, fuera de sus totales. Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver.",
 };
+var packEmail = {
+  subject: "{sender} compartió {pack} contigo",
+  intro:
+    "{sender} compartió {pack} contigo. Ábrelo con el enlace de abajo y el código de acceso que te dio.",
+  message: "Su mensaje: {message}",
+  items: "En este paquete: {items}",
+  open: "Abrir el paquete: {url}",
+  expires: "Este enlace funciona hasta {date}.",
+  code: "El código de acceso nunca llega por correo. Si no lo tienes, pídeselo a quien compartió este paquete.",
+  sentBy: "Enviado por {org}, {address}.",
+  stop: "Dejar de recibir estos correos: {url}",
+};
 var dashboards = {
   count: "{count, plural, =0 {Sin tableros} one {# tablero} other {# tableros}}",
   empty: "Aún no hay tableros. Crea uno y agrégale informes guardados desde Informes guardados.",
@@ -121,6 +133,7 @@ var reporting_default = {
   file,
   exportFile,
   email,
+  packEmail,
   dashboards,
   tile,
   schedule,
@@ -134,6 +147,7 @@ export {
   errors,
   exportFile,
   file,
+  packEmail,
   schedule,
   tile,
 };

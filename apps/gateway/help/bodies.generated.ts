@@ -532,7 +532,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Each shows its title, kind, organization, expiry date and state. A document waiting for your signature has ",
           },
           { t: "strong", v: "Sign" },
-          { t: "text", v: ". Open one to go to its engagement's Documents tab." },
+          {
+            t: "text",
+            v: ". A generated agreement or a quote is read first: open it to read and sign on its engagement's Documents tab. Open one to go to its engagement's Documents tab.",
+          },
         ],
       },
       { t: "h2", v: "Signed by link" },
@@ -4750,7 +4753,10 @@ export const HELP_BODIES: HelpBodies = {
             v: "Cada uno muestra su título, tipo, organización, fecha de vencimiento y estado. Un documento que espera tu firma tiene ",
           },
           { t: "strong", v: "Firmar" },
-          { t: "text", v: ". Abre uno para ir a la pestaña Documentos de su contratación." },
+          {
+            t: "text",
+            v: ". Un acuerdo generado o una cotización se lee primero: ábrelo para leer y firmar en la pestaña Documentos de su contratación. Abre uno para ir a la pestaña Documentos de su contratación.",
+          },
         ],
       },
       { t: "h2", v: "Firmados por enlace" },

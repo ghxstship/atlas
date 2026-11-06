@@ -349,6 +349,7 @@ import {
   SegmentLibraryCueCallsResource,
   RunSegmentInstancesResource,
   ShowcallerLinksResource,
+  DeliveryWindowsResource,
   RosterEntriesResource,
   AdvanceAllocationsResource,
   AssetReservationConflictsResource,
@@ -365,13 +366,19 @@ import {
   SpaceBookingsResource,
   LocalContactsResource,
   AccommodationNightsResource,
+  AssetMaintenancePlansResource,
+  AssetMaintenanceDueResource,
   AssetUnitHireResource,
   AssetReservationsResource,
   CredentialCategoryRequirementsResource,
+  QuotesResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
   PoLineHireWarningsResource,
+  ProcurementNeedsResource,
+  ProcurementNeedStatusResource,
+  RfqLinesResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
   CanonStdEmergencyProtocolsResource,
@@ -408,6 +415,15 @@ import {
   ShareLinksResource,
   LiveLinksResource,
   CueFieldAudiencesResource,
+  StakeholderPacksResource,
+  StakeholderPackItemsResource,
+  StakeholderPackRecipientsResource,
+  StakeholderPackEventsResource,
+  VendorIntakeLinksResource,
+  VendorIntakeRequestsResource,
+  FormLinksResource,
+  FormLinkResponsesResource,
+  OutsideAccessResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -1247,6 +1263,8 @@ export class XosClient extends XosClientCore {
   readonly runSegmentInstances: RunSegmentInstancesResource = new RunSegmentInstancesResource(this);
   /** Show: operations on `showcallerLinks`. */
   readonly showcallerLinks: ShowcallerLinksResource = new ShowcallerLinksResource(this);
+  /** Logistics: operations on `deliveryWindows`. */
+  readonly deliveryWindows: DeliveryWindowsResource = new DeliveryWindowsResource(this);
   /** Advancing: operations on `rosterEntries`. */
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `advanceAllocations`. */
@@ -1288,6 +1306,12 @@ export class XosClient extends XosClientCore {
   readonly localContacts: LocalContactsResource = new LocalContactsResource(this);
   /** Hospitality: operations on `accommodationNights`. */
   readonly accommodationNights: AccommodationNightsResource = new AccommodationNightsResource(this);
+  /** Assets: operations on `assetMaintenancePlans`. */
+  readonly assetMaintenancePlans: AssetMaintenancePlansResource = new AssetMaintenancePlansResource(
+    this,
+  );
+  /** Assets: operations on `assetMaintenanceDue`. */
+  readonly assetMaintenanceDue: AssetMaintenanceDueResource = new AssetMaintenanceDueResource(this);
   /** Assets: operations on `assetUnitHire`. */
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
   /** Assets: operations on `assetReservations`. */
@@ -1295,6 +1319,8 @@ export class XosClient extends XosClientCore {
   /** Credentials: operations on `credentialCategoryRequirements`. */
   readonly credentialCategoryRequirements: CredentialCategoryRequirementsResource =
     new CredentialCategoryRequirementsResource(this);
+  /** Finance: operations on `quotes`. */
+  readonly quotes: QuotesResource = new QuotesResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Procurement: operations on `goodsReturns`. */
@@ -1303,6 +1329,14 @@ export class XosClient extends XosClientCore {
   readonly returnLines: ReturnLinesResource = new ReturnLinesResource(this);
   /** Procurement: operations on `poLineHireWarnings`. */
   readonly poLineHireWarnings: PoLineHireWarningsResource = new PoLineHireWarningsResource(this);
+  /** Procurement: operations on `procurementNeeds`. */
+  readonly procurementNeeds: ProcurementNeedsResource = new ProcurementNeedsResource(this);
+  /** Procurement: operations on `procurementNeedStatus`. */
+  readonly procurementNeedStatus: ProcurementNeedStatusResource = new ProcurementNeedStatusResource(
+    this,
+  );
+  /** Procurement: operations on `rfqLines`. */
+  readonly rfqLines: RfqLinesResource = new RfqLinesResource(this);
   /** Vendors: operations on `insuranceCertificateInsureds`. */
   readonly insuranceCertificateInsureds: InsuranceCertificateInsuredsResource =
     new InsuranceCertificateInsuredsResource(this);
@@ -1386,6 +1420,31 @@ export class XosClient extends XosClientCore {
   readonly liveLinks: LiveLinksResource = new LiveLinksResource(this);
   /** Platform: operations on `cueFieldAudiences`. */
   readonly cueFieldAudiences: CueFieldAudiencesResource = new CueFieldAudiencesResource(this);
+  /** Platform: operations on `stakeholderPacks`. */
+  readonly stakeholderPacks: StakeholderPacksResource = new StakeholderPacksResource(this);
+  /** Platform: operations on `stakeholderPackItems`. */
+  readonly stakeholderPackItems: StakeholderPackItemsResource = new StakeholderPackItemsResource(
+    this,
+  );
+  /** Platform: operations on `stakeholderPackRecipients`. */
+  readonly stakeholderPackRecipients: StakeholderPackRecipientsResource =
+    new StakeholderPackRecipientsResource(this);
+  /** Platform: operations on `stakeholderPackEvents`. */
+  readonly stakeholderPackEvents: StakeholderPackEventsResource = new StakeholderPackEventsResource(
+    this,
+  );
+  /** Platform: operations on `vendorIntakeLinks`. */
+  readonly vendorIntakeLinks: VendorIntakeLinksResource = new VendorIntakeLinksResource(this);
+  /** Platform: operations on `vendorIntakeRequests`. */
+  readonly vendorIntakeRequests: VendorIntakeRequestsResource = new VendorIntakeRequestsResource(
+    this,
+  );
+  /** Platform: operations on `formLinks`. */
+  readonly formLinks: FormLinksResource = new FormLinksResource(this);
+  /** Platform: operations on `formLinkResponses`. */
+  readonly formLinkResponses: FormLinkResponsesResource = new FormLinkResponsesResource(this);
+  /** Platform: operations on `outsideAccess`. */
+  readonly outsideAccess: OutsideAccessResource = new OutsideAccessResource(this);
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */

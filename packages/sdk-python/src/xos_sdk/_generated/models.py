@@ -190,6 +190,7 @@ __all__ = [
     "DockSlot",
     "DockSlotCreate",
     "DockSlotUpdate",
+    "DockSlotCancelBookingResult",
     "GateQueueEntryPage",
     "GateQueueEntry",
     "GateQueueEntryCreate",
@@ -252,6 +253,8 @@ __all__ = [
     "AssetClassCreate",
     "AssetClassUpdate",
     "AssetClassAvailability",
+    "AssetShortages",
+    "AssetShortage",
     "AssetUnitPage",
     "AssetUnit",
     "AssetUnitCreate",
@@ -319,6 +322,8 @@ __all__ = [
     "ShiftCommunicationStatus",
     "MarkCommunicatedResult",
     "MarkCommunicatedRequest",
+    "ShiftNoShowRequest",
+    "ShiftReconfirmRequest",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -508,6 +513,8 @@ __all__ = [
     "RfqCreate",
     "RfqUpdate",
     "RFQTransitionRequest",
+    "RfqCreateSubHireResult",
+    "RfqCreateSubHireRequest",
     "RfqInvitationPage",
     "RfqInvitation",
     "RfqInvitationCreate",
@@ -1298,6 +1305,14 @@ __all__ = [
     "ShowcallerLinkRequest",
     "ShowcallerLinkRegenerated",
     "ShowcallerDevicesSignedOut",
+    "DeliveryWindowPage",
+    "DeliveryWindow",
+    "DeliveryWindowCreate",
+    "DeliveryWindowUpdate",
+    "DeliveryWindowGenerateResult",
+    "DeliveryWindowGenerateRequest",
+    "DeliveryWindowBookResult",
+    "DeliveryWindowBookRequest",
     "RosterEntryPage",
     "RosterEntry",
     "RosterEntryState",
@@ -1384,6 +1399,12 @@ __all__ = [
     "SuggestedStay",
     "AssignedStay",
     "RoomingCost",
+    "AssetMaintenancePlanPage",
+    "AssetMaintenancePlan",
+    "AssetMaintenancePlanCreate",
+    "AssetMaintenancePlanUpdate",
+    "AssetMaintenanceDuePage",
+    "AssetMaintenanceDue",
     "AssetUnitHirePage",
     "AssetUnitHire",
     "AssetReservationPage",
@@ -1392,6 +1413,8 @@ __all__ = [
     "CredentialCategoryRequirementPage",
     "CredentialCategoryRequirement",
     "CredentialCategoryRequirementCreate",
+    "QuotePage",
+    "Quote",
     "Form1099NecRowPage",
     "Form1099NecRow",
     "GoodsReturnPage",
@@ -1400,6 +1423,18 @@ __all__ = [
     "ReturnLine",
     "PoLineHireWarningPage",
     "PoLineHireWarning",
+    "ProcurementNeedPage",
+    "ProcurementNeed",
+    "ProcurementNeedCreate",
+    "ProcurementNeedUpdate",
+    "ProcurementNeedConsolidateResult",
+    "ProcurementNeedConsolidateRequest",
+    "ProcurementNeedStatusPage",
+    "ProcurementNeedStatus",
+    "RfqLinePage",
+    "RfqLine",
+    "RfqLineCreate",
+    "RfqLineUpdate",
     "InsuranceCertificateInsuredPage",
     "InsuranceCertificateInsured",
     "InsuranceCertificateInsuredCreate",
@@ -1572,6 +1607,44 @@ __all__ = [
     "CueFieldAudiencePage",
     "CueFieldAudience",
     "CueFieldAudienceCreate",
+    "StakeholderPackPage",
+    "StakeholderPack",
+    "StakeholderPackRequest",
+    "StakeholderPackChange",
+    "StakeholderPackSchedule",
+    "StakeholderPackScheduleRequest",
+    "StakeholderPackItemPage",
+    "StakeholderPackItem",
+    "StakeholderPackItemRequest",
+    "StakeholderPackItemRemoved",
+    "StakeholderPackRecipientPage",
+    "StakeholderPackRecipient",
+    "StakeholderPackRecipientCode",
+    "StakeholderPackRecipientRequest",
+    "StakeholderPackRecipientCodeReset",
+    "StakeholderPackSent",
+    "StakeholderPackSendRequest",
+    "StakeholderPackEventPage",
+    "StakeholderPackEvent",
+    "VendorIntakeLinkPage",
+    "VendorIntakeLink",
+    "VendorIntakeLinkToken",
+    "VendorIntakeLinkRequest",
+    "VendorIntakeLinkRegenerated",
+    "VendorIntakeRequestPage",
+    "VendorIntakeRequest",
+    "VendorIntakeApproval",
+    "VendorIntakeDecline",
+    "FormLinkPage",
+    "FormLink",
+    "FormLinkToken",
+    "FormLinkRequest",
+    "FormLinkRegenerated",
+    "FormLinkResponsePage",
+    "FormLinkResponse",
+    "FormLinkResponseDecision",
+    "OutsideAccessRowPage",
+    "OutsideAccessRow",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "PersonCalendarFeedConfiguration",
@@ -4543,6 +4616,12 @@ class DockSlot(TypedDict):
     ends_at: str
     #: When the vehicle checked in.
     checked_in_at: Optional[str]
+    #: Identifier of the delivery window the booking holds a place in.
+    delivery_window_id: Optional[str]
+    #: Label to quote at the gate.
+    reference_code: Optional[str]
+    #: Plate or trailer number expected.
+    vehicle_identifier: Optional[str]
     #: Identifier of the project whose site the dock is at.
     project_id: str
     #: Identifier of the loading dock zone of the project.
@@ -4580,6 +4659,13 @@ class DockSlotUpdate(TypedDict, total=False):
     ends_at: str
     #: Identifier of the loading dock zone of the project.
     zone_id: str
+
+
+class DockSlotCancelBookingResult(TypedDict):
+    """The booking canceled."""
+
+    #: The booking.
+    id: str
 
 
 class GateQueueEntryPage(TypedDict):
@@ -5577,6 +5663,38 @@ class AssetClassAvailability(TypedDict):
     unit_basis: str
 
 
+class AssetShortages(TypedDict):
+    """What is short against own stock."""
+
+    #: Shortages.
+    data: List[AssetShortage]
+
+
+class AssetShortage(TypedDict):
+    """A class short against own stock on a project."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the asset class.
+    asset_class_id: str
+    #: Name of the class.
+    class_name: str
+    #: Catalog element of the class.
+    element_id: str
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: How many more the open allocations want than can supply them.
+    short_quantity: float
+    #: When the allocations that are short begin.
+    window_from: str
+    #: When the allocations that are short end.
+    window_to: str
+    #: Identifier of the live need of the class overlapping the window.
+    open_need_id: Optional[str]
+    #: Identifier of the RFQ in Proposed or Issued sourcing that need.
+    open_rfq_id: Optional[str]
+
+
 class AssetUnitPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -5947,6 +6065,8 @@ class AssetMaintenance(TypedDict):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class _AssetMaintenanceCreateRequired(TypedDict):
@@ -5965,6 +6085,8 @@ class AssetMaintenanceCreate(_AssetMaintenanceCreateRequired, total=False):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class AssetMaintenanceUpdate(TypedDict, total=False):
@@ -5978,6 +6100,8 @@ class AssetMaintenanceUpdate(TypedDict, total=False):
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: Optional[str]
+    #: Identifier of the plan this work fulfilled.
+    maintenance_plan_id: Optional[str]
 
 
 class AssetDamagePage(TypedDict):
@@ -6746,6 +6870,32 @@ class MarkCommunicatedRequest(_MarkCommunicatedRequestRequired, total=False):
     note: str
 
 
+class _ShiftNoShowRequestRequired(TypedDict):
+    #: Identifier of the no-show, chosen by the client so a retry is recognized.
+    no_show_id: str
+    #: What the supervisor saw.
+    reason: str
+
+
+class ShiftNoShowRequest(_ShiftNoShowRequestRequired, total=False):
+    """A no-show of a shift's worker."""
+
+    #: Open a replacement shift for the rest of this one.
+    open_replacement: bool
+
+
+class _ShiftReconfirmRequestRequired(TypedDict):
+    #: True when the person is still coming.
+    coming: bool
+
+
+class ShiftReconfirmRequest(_ShiftReconfirmRequestRequired, total=False):
+    """An answer to Still coming?."""
+
+    #: Why the person cannot come.
+    reason: str
+
+
 class ShiftSwapPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -6780,15 +6930,22 @@ class ShiftSwap(TypedDict):
     requested_by_membership_id: str
     #: Identifier of the membership of the person who would take the shift.
     proposed_membership_id: str
+    #: Why the person asks to swap.
+    reason: Optional[str]
 
 
-class ShiftSwapCreate(TypedDict):
-    """Fields accepted when creating a ShiftSwap."""
-
+class _ShiftSwapCreateRequired(TypedDict):
     #: Identifier of the shift.
     shift_id: str
     #: Identifier of the membership of the person who would take the shift.
     proposed_membership_id: str
+
+
+class ShiftSwapCreate(_ShiftSwapCreateRequired, total=False):
+    """Fields accepted when creating a ShiftSwap."""
+
+    #: Why the person asks to swap.
+    reason: Optional[str]
 
 
 class TimeEntryPage(TypedDict):
@@ -8329,6 +8486,8 @@ class Budget(TypedDict):
     name: str
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8345,6 +8504,8 @@ class _BudgetCreateRequired(TypedDict):
 class BudgetCreate(_BudgetCreateRequired, total=False):
     """Fields accepted when creating a Budget."""
 
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8356,6 +8517,8 @@ class BudgetUpdate(TypedDict, total=False):
     name: str
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Default markup of the budget's lines in basis points; 2500 is 25 percent.
+    default_markup_bp: Optional[int]
     #: Whether this is the gate 3 baseline the final cost report compares against.
     is_baseline: bool
 
@@ -8416,6 +8579,14 @@ class BudgetLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Line total, generated from quantity and unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     line_total_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
     phase_code: Optional[PhaseCode]
@@ -8452,6 +8623,14 @@ class BudgetLineCreate(_BudgetLineCreateRequired, total=False):
     unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     phase_code: Optional[PhaseCode]
     tier_code: Optional[TierCode]
 
@@ -8476,6 +8655,14 @@ class BudgetLineUpdate(TypedDict, total=False):
     unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: The line's markup in basis points; null uses the budget's default.
+    markup_bp: Optional[int]
+    #: Override of the client unit price; null derives it from the markup. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_unit_price_minor: Optional[int]
+    #: True for an internal line that never appears on a quote.
+    excluded_from_quote: bool
+    #: Entered estimate to complete; null derives it. Integer minor units of the resource currency; null means unpriced, never zero.
+    etc_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
     phase_code: Optional[PhaseCode]
@@ -9798,6 +9985,24 @@ class RFQTransitionRequest(_RFQTransitionRequestRequired, total=False):
     reason: str
 
 
+class RfqCreateSubHireResult(TypedDict):
+    """The RFQ drafted."""
+
+    #: The RFQ drafted.
+    id: str
+
+
+class RfqCreateSubHireRequest(TypedDict):
+    """A sub-hire draft."""
+
+    #: Identifier of the project short of them.
+    project_id: str
+    #: Classes that are short.
+    asset_class_ids: List[str]
+    #: What is being sourced.
+    title: str
+
+
 class RfqInvitationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -9954,6 +10159,8 @@ class RfqResponseLine(TypedDict):
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency_code: str
+    #: Identifier of the request line this quoted line answers.
+    rfq_line_id: Optional[str]
     #: Catalog element quoted.
     element_id: Optional[str]
 
@@ -10227,6 +10434,8 @@ class PoLine(TypedDict):
     unit_basis: Optional[UnitCode]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: Identifier of the need this line serves.
+    procurement_need_id: Optional[str]
     #: Order of the line within the purchase order.
     line_number: int
     #: Whether the line buys or hires its item.
@@ -12852,7 +13061,7 @@ class EngagementDocument(TypedDict):
     #: Engagement-Document lifecycle state. A Title Case value from the lifecycle's database enum.
     engagement_document_state: str
     #: Kind of document.
-    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent", "Quote"]
     #: Last day the document is valid, for documents that expire.
     expires_on: Optional[str]
 
@@ -12863,7 +13072,7 @@ class _EngagementDocumentCreateRequired(TypedDict):
     #: Document title.
     title: str
     #: Kind of document.
-    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent", "Quote"]
 
 
 class EngagementDocumentCreate(_EngagementDocumentCreateRequired, total=False):
@@ -21582,6 +21791,124 @@ class ShowcallerDevicesSignedOut(TypedDict):
     devices: int
 
 
+class DeliveryWindowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DeliveryWindow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DeliveryWindow(TypedDict):
+    """A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone."""
+
+    #: Identifier of the delivery window.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowCreate(TypedDict):
+    """Fields accepted when creating a DeliveryWindow."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowUpdate(TypedDict, total=False):
+    """Fields accepted when updating a DeliveryWindow. Omitted fields are unchanged."""
+
+    #: Identifier of the gate: a live zone of the org.
+    zone_id: str
+    #: When the window opens.
+    starts_at: str
+    #: When the window closes.
+    ends_at: str
+    #: How many vehicles it takes, up to 500.
+    vehicle_limit: int
+    #: False stops new bookings; bookings already made stay.
+    is_open: bool
+
+
+class DeliveryWindowGenerateResult(TypedDict):
+    """The windows added."""
+
+    #: The windows added.
+    data: List[str]
+
+
+class DeliveryWindowGenerateRequest(TypedDict):
+    """A schedule of windows."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the gate.
+    zone_id: str
+    #: First day.
+    first_day: str
+    #: Last day.
+    last_day: str
+    #: Local start time.
+    from_time: str
+    #: Local end time.
+    to_time: str
+    #: Length of each window in minutes, up to 1440.
+    slot_minutes: int
+    #: How many vehicles each takes, up to 500.
+    vehicle_limit: int
+
+
+class DeliveryWindowBookResult(TypedDict):
+    """The booking."""
+
+    #: The booking.
+    dock_slot_id: str
+    #: Label to quote at the gate.
+    reference_code: str
+
+
+class DeliveryWindowBookRequest(TypedDict, total=False):
+    """A place in a window."""
+
+    #: Identifier of the Vendor engagement the booking is for.
+    engagement_id: Optional[str]
+    #: Plate or trailer number.
+    vehicle_identifier: Optional[str]
+    #: Identifier of the shipment the vendor carries.
+    shipment_id: Optional[str]
+
+
 class RosterEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -23064,6 +23391,113 @@ class RoomingCost(TypedDict):
     amount_minor: Optional[int]
 
 
+class AssetMaintenancePlanPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetMaintenancePlan]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetMaintenancePlan(TypedDict):
+    """Maintenance to do, on one unit or on every serviceable unit of a class: first due on a day, then every interval after it was last done, or once when the interval is null."""
+
+    #: Identifier of the asset maintenance plan.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: What is to be done.
+    title: str
+    #: How to do it.
+    instructions: Optional[str]
+    #: Day the work is first due.
+    first_due_on: str
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class _AssetMaintenancePlanCreateRequired(TypedDict):
+    #: What is to be done.
+    title: str
+    #: Day the work is first due.
+    first_due_on: str
+
+
+class AssetMaintenancePlanCreate(_AssetMaintenancePlanCreateRequired, total=False):
+    """Fields accepted when creating a AssetMaintenancePlan."""
+
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: How to do it.
+    instructions: Optional[str]
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class AssetMaintenancePlanUpdate(TypedDict, total=False):
+    """Fields accepted when updating a AssetMaintenancePlan. Omitted fields are unchanged."""
+
+    #: Identifier of the unit the plan applies to; exactly one of unit and class.
+    asset_unit_id: Optional[str]
+    #: Identifier of the class whose units the plan applies to.
+    asset_class_id: Optional[str]
+    #: What is to be done.
+    title: str
+    #: How to do it.
+    instructions: Optional[str]
+    #: Day the work is first due.
+    first_due_on: str
+    #: How many intervals between doing it, up to 999.
+    every_count: Optional[int]
+    #: Unit of the interval.
+    every_unit: Optional[Literal["Day", "Week", "Month", "Year"]]
+
+
+class AssetMaintenanceDuePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetMaintenanceDue]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetMaintenanceDue(TypedDict):
+    """Maintenance due, one row per plan and unit: computed on the org's calendar, never stored. A recurring plan never reads Completed: done work is the log."""
+
+    #: Identifier of the plan.
+    plan_id: str
+    #: Identifier of the unit.
+    asset_unit_id: str
+    #: What is to be done.
+    title: str
+    #: Latest log entry of this plan on this unit.
+    last_performed_on: Optional[str]
+    #: When it is next due; null when work done once is done.
+    due_on: Optional[str]
+    #: Computed on the org's calendar.
+    due_status: Literal["Pending", "Overdue", "Completed"]
+
+
 class AssetUnitHirePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -23179,6 +23613,60 @@ class CredentialCategoryRequirementCreate(_CredentialCategoryRequirementCreateRe
     training_course_id: Optional[str]
     #: Identifier of the certification the holder must hold.
     certification_id: Optional[str]
+
+
+class QuotePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Quote]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Quote(TypedDict):
+    """A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state."""
+
+    #: Identifier of the quote.
+    id: str
+    #: Display key, the project key, -Q- and the number.
+    quote_key: str
+    #: Title of the current version; frozen once sent.
+    title: str
+    #: Identifier of the project of the quote's budget.
+    project_id: str
+    #: Identifier of the budget the quote prices from.
+    budget_id: str
+    #: Identifier of the Client engagement the quote is for.
+    engagement_id: Optional[str]
+    #: Who the current version is for.
+    client_name: Optional[str]
+    #: Identifier of the latest sent version, else the Draft.
+    current_version_id: str
+    #: Number of the current version.
+    current_version_number: int
+    #: State; Expired is computed, never stored.
+    display_state: Literal["Draft", "Sent", "Expired", "Accepted", "Declined", "Withdrawn", "Superseded"]
+    #: Last day the client can accept, on the project's calendar.
+    valid_until: str
+    #: When the current version was sent.
+    sent_at: Optional[str]
+    #: When the current version was accepted.
+    accepted_at: Optional[str]
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
+    #: Client total of the current version; null while any line is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    client_total_minor: Optional[int]
+    #: Client total less cost; null whenever either is unknown. Integer minor units of the resource currency; null means unpriced, never zero.
+    margin_minor: Optional[int]
+    #: Whether the quote has a live Draft version.
+    has_draft: bool
+    #: Internal cost of the current version's lines; returned by GET /quotes/{id}. Integer minor units of the resource currency; null means unpriced, never zero.
+    cost_total_minor: Optional[int]
+    #: Versions, newest first; returned by GET /quotes/{id}, null in lists.
+    versions: Optional[List[Dict[str, Any]]]
+    #: Client lines of the current version: live for a Draft, the frozen capture once sent. Returned by GET /quotes/{id}, null in lists.
+    lines: Optional[List[Dict[str, Any]]]
 
 
 class Form1099NecRowPage(TypedDict):
@@ -23311,6 +23799,243 @@ class PoLineHireWarning(TypedDict):
     site_closes_at: Optional[str]
     #: The window rule the hire breaks.
     warning: Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]
+
+
+class ProcurementNeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProcurementNeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProcurementNeed(TypedDict):
+    """What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element."""
+
+    #: Identifier of the procurement need.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project buying.
+    project_id: str
+    #: Number from the project's display key sequence, issued on insert.
+    need_number: int
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class _ProcurementNeedCreateRequired(TypedDict):
+    #: Identifier of the project buying.
+    project_id: str
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+
+
+class ProcurementNeedCreate(_ProcurementNeedCreateRequired, total=False):
+    """Fields accepted when creating a ProcurementNeed."""
+
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class ProcurementNeedUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged."""
+
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Identifier of the asset class the need is for.
+    asset_class_id: Optional[str]
+    #: Catalog element the need is for.
+    element_id: Optional[str]
+    #: When it is needed from; both or neither.
+    needed_from: Optional[str]
+    #: When it is needed until; both or neither.
+    needed_to: Optional[str]
+    #: What the buyer noted.
+    note: Optional[str]
+
+
+class ProcurementNeedConsolidateResult(TypedDict):
+    """The needs linked or added."""
+
+    #: The needs linked or added.
+    data: List[str]
+
+
+class _ProcurementNeedConsolidateRequestRequired(TypedDict):
+    #: Allocations of one project.
+    allocation_ids: List[str]
+
+
+class ProcurementNeedConsolidateRequest(_ProcurementNeedConsolidateRequestRequired, total=False):
+    """Requests to consolidate."""
+
+    #: Identifier of the need to link them to.
+    need_id: Optional[str]
+
+
+class ProcurementNeedStatusPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProcurementNeedStatus]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProcurementNeedStatus(TypedDict):
+    """Each live need with what was asked for and what is ordered: computed, never stored. Ordered counts lines on Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery; Proposed lines show only as drafted."""
+
+    #: Identifier of the need.
+    need_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: What is needed.
+    description: str
+    #: How much the event will get.
+    quantity: float
+    #: Live requests linked, with their Split children.
+    requested_quantity: float
+    #: On lines of Proposed orders: shown, never counted.
+    drafted_quantity: float
+    #: On lines of Approved, Sent or Closed orders, less returns.
+    ordered_quantity: float
+    #: Received on those lines.
+    received_quantity: float
+    #: Computed from ordered against quantity.
+    need_status: Literal["Needs Ordered", "Short", "On Order", "Excess"]
+
+
+class RfqLinePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RfqLine]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RfqLine(TypedDict):
+    """What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response."""
+
+    #: Identifier of the rfq line.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the RFQ the line belongs to.
+    rfq_id: str
+    #: Order of the line within the RFQ, assigned on create.
+    line_number: int
+    #: What is asked for.
+    description: str
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Quantity asked for.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
+
+
+class _RfqLineCreateRequired(TypedDict):
+    #: Identifier of the RFQ the line belongs to.
+    rfq_id: str
+    #: What is asked for.
+    description: str
+    #: Quantity asked for.
+    quantity: float
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+
+
+class RfqLineCreate(_RfqLineCreateRequired, total=False):
+    """Fields accepted when creating a RfqLine."""
+
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
+
+
+class RfqLineUpdate(TypedDict, total=False):
+    """Fields accepted when updating a RfqLine. Omitted fields are unchanged."""
+
+    #: What is asked for.
+    description: str
+    #: Catalog element asked for.
+    element_id: Optional[str]
+    #: Quantity asked for.
+    quantity: float
+    #: Unit of the quantity.
+    unit_basis: Optional[str]
+    #: Purchase, or Rental for a hire.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines only: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines only: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: Identifier of the need of the same project the line sources.
+    procurement_need_id: Optional[str]
 
 
 class InsuranceCertificateInsuredPage(TypedDict):
@@ -23614,7 +24339,7 @@ class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
 
 class _AuroraExtractRequestRequired(TypedDict):
     #: What the document is.
-    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote", "itinerary", "contract"]
+    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote", "itinerary", "contract", "material_list"]
     #: Media type of the content.
     media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"]
     #: The document content in base64, read by the caller from storage.
@@ -25922,6 +26647,734 @@ class CueFieldAudienceCreate(TypedDict):
     custom_field_definition_id: str
     #: Who the field is for.
     audience: Literal["Crew", "Showcaller", "Client"]
+
+
+class StakeholderPackPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPack]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPack(TypedDict):
+    """A named bundle of a project's live links and Public or Internal files for people outside the org (ADR 0141). Members holding projects.settings.write on the project read and change packs; a partner org reaching the project through a project share sees none. Revoking a pack stops every link and device grant at once."""
+
+    #: Identifier of the stakeholder pack.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project the pack shares from.
+    project_id: str
+    #: Pack name shown to recipients.
+    name: str
+    #: Message shown to recipients at the top of the pack.
+    message: Optional[str]
+    #: What the pack is for, for the team. Never on a token page or in an email.
+    note: Optional[str]
+    #: When the pack stops opening: after now and within 90 days.
+    expires_at: str
+    #: When the pack was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the pack.
+    revoked_by: Optional[str]
+
+
+class _StakeholderPackRequestRequired(TypedDict):
+    #: Identifier of the project the pack shares from.
+    project_id: str
+    #: Pack name shown to recipients.
+    name: str
+    #: When the pack stops opening.
+    expires_at: str
+
+
+class StakeholderPackRequest(_StakeholderPackRequestRequired, total=False):
+    """A new stakeholder pack."""
+
+    #: Message shown to recipients.
+    message: str
+    #: For the team; never shown to recipients.
+    note: str
+
+
+class StakeholderPackChange(TypedDict):
+    """A stakeholder pack's new details."""
+
+    #: Pack name shown to recipients.
+    name: str
+    #: When the pack stops opening.
+    expires_at: str
+    #: Message shown to recipients.
+    message: Optional[str]
+    #: For the team; never shown to recipients.
+    note: Optional[str]
+
+
+class StakeholderPackSchedule(TypedDict):
+    """When a stakeholder pack emails its recipients a fresh sign-in link."""
+
+    #: The schedule.
+    id: str
+    #: The pack.
+    stakeholder_pack_id: str
+    #: How often a fresh sign-in link goes out.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Hour of the day it sends, 0 to 23, in time_zone.
+    local_hour: int
+    #: Weekly only: day of the week, 1 (Monday) to 7.
+    weekday: Optional[int]
+    #: Monthly only: day of the month, 1 to 28.
+    month_day: Optional[int]
+    #: IANA time zone the hour is in.
+    time_zone: str
+    #: Next slot.
+    next_run_at: str
+    #: When the scheduler ended the schedule at the pack's expiry.
+    paused_at: Optional[str]
+
+
+class _StakeholderPackScheduleRequestRequired(TypedDict):
+    #: How often a fresh sign-in link goes out.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Hour of the day it sends, 0 to 23.
+    local_hour: int
+
+
+class StakeholderPackScheduleRequest(_StakeholderPackScheduleRequestRequired, total=False):
+    """When a pack sends."""
+
+    #: Weekly only: 1 (Monday) to 7.
+    weekday: int
+    #: Monthly only: 1 to 28.
+    month_day: int
+    #: IANA time zone; the project's by default.
+    time_zone: str
+
+
+class StakeholderPackItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackItem(TypedDict):
+    """One item of a stakeholder pack (ADR 0141), at most 30: a live link of the pack's project or a file of the project whose current version scanned clean and is Public or Internal. The file's own read policy decides whether the caller may add it."""
+
+    #: Identifier of the stakeholder pack item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the pack the item belongs to.
+    stakeholder_pack_id: str
+    #: Live Link, one P1 live link of the project; File, one Public or Internal file of the project.
+    item_kind: Literal["Live Link", "File"]
+    #: Identifier of the live link the item opens.
+    live_link_id: Optional[str]
+    #: Identifier of the file the item downloads.
+    attachment_id: Optional[str]
+    #: Item title shown to recipients.
+    title: str
+    #: Order in the pack, from 0.
+    position: int
+    #: True when each recipient is asked to type their name to acknowledge the item: a receipt, not a signature of a contract.
+    requires_acknowledgement: bool
+
+
+class _StakeholderPackItemRequestRequired(TypedDict):
+    #: Identifier of the pack the item joins.
+    stakeholder_pack_id: str
+    #: Item title shown to recipients.
+    title: str
+
+
+class StakeholderPackItemRequest(_StakeholderPackItemRequestRequired, total=False):
+    """An item for a stakeholder pack."""
+
+    #: Identifier of the live link to share.
+    live_link_id: str
+    #: Identifier of the file to share.
+    attachment_id: str
+    #: Ask each recipient to type their name.
+    requires_acknowledgement: bool
+
+
+class StakeholderPackItemRemoved(TypedDict):
+    """The item removed."""
+
+    #: The item removed.
+    id: str
+
+
+class StakeholderPackRecipientPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackRecipient]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackRecipient(TypedDict):
+    """One person outside the org a stakeholder pack is for (ADR 0141), at most 200 per pack. The 6-digit access code is returned once by `stakeholderPackRecipients.add` and `stakeholderPackRecipients.resetCode` and stored only as a salted hash, so it never appears here."""
+
+    #: Identifier of the stakeholder pack recipient.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the pack the recipient may open.
+    stakeholder_pack_id: str
+    #: Recipient's name as the team entered it.
+    full_name: str
+    #: Where the pack's sign-in links go, lower case.
+    email: str
+    #: Identifier of the supplier the recipient works for.
+    counterparty_id: Optional[str]
+    #: Group the recipient belongs to, for example a department.
+    label: Optional[str]
+    #: Wrong access codes since the code was set; the recipient locks at 5.
+    failed_attempts: int
+    #: When the recipient stopped the pack's emails.
+    unsubscribed_at: Optional[str]
+    #: When the recipient was revoked.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the recipient.
+    revoked_by: Optional[str]
+
+
+class StakeholderPackRecipientCode(TypedDict):
+    """A new recipient and their access code, shown once."""
+
+    #: The new recipient.
+    recipient_id: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+
+
+class _StakeholderPackRecipientRequestRequired(TypedDict):
+    #: Identifier of the pack the recipient may open.
+    stakeholder_pack_id: str
+    #: Recipient's name.
+    full_name: str
+    #: Recipient's email.
+    email: str
+
+
+class StakeholderPackRecipientRequest(_StakeholderPackRecipientRequestRequired, total=False):
+    """A recipient for a stakeholder pack."""
+
+    #: Identifier of the supplier the recipient works for.
+    counterparty_id: str
+    #: Group, for example a department.
+    label: str
+
+
+class StakeholderPackRecipientCodeReset(TypedDict):
+    """A recipient's new access code, shown once."""
+
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+
+
+class StakeholderPackSent(TypedDict):
+    """How many deliveries were queued."""
+
+    #: Deliveries queued.
+    queued: int
+
+
+class _StakeholderPackSendRequestRequired(TypedDict):
+    #: Identifier of the pack to send.
+    stakeholder_pack_id: str
+
+
+class StakeholderPackSendRequest(_StakeholderPackSendRequestRequired, total=False):
+    """Which recipients to email."""
+
+    #: Only these recipients; every live recipient when left out.
+    recipient_ids: List[str]
+
+
+class StakeholderPackEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[StakeholderPackEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class StakeholderPackEvent(TypedDict):
+    """What each stakeholder pack recipient did (ADR 0141), append-only. Written only by the pack RPCs; no visitor address is kept."""
+
+    #: Identifier of the stakeholder pack event.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the pack the event belongs to.
+    stakeholder_pack_id: str
+    #: Identifier of the recipient who acted.
+    recipient_id: str
+    #: Identifier of the item viewed, downloaded or signed.
+    item_id: Optional[str]
+    #: What happened.
+    action: Literal["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"]
+    #: Name typed to acknowledge the item; Signed only.
+    signer_name: Optional[str]
+    #: When it happened.
+    occurred_at: str
+
+
+class VendorIntakeLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[VendorIntakeLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class VendorIntakeLink(TypedDict):
+    """A reusable vendor intake link (ADR 0141): one link and 6-digit access code a project gives to many vendors or contractors. Each signs in to Gateway and sends a request that, once approved, becomes an Onboarding engagement on these terms. The token and code are returned once by `vendorIntakeLinks.create` and `vendorIntakeLinks.regenerate` and stored only as hashes."""
+
+    #: Identifier of the vendor intake link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the engagements join.
+    project_id: str
+    #: Vendor, a company account engages; Contractor, the signed-in person engages.
+    role_type: Literal["Vendor", "Contractor"]
+    #: Canon role the engagements take.
+    role_code: str
+    #: Canon worker classification; never an employee one.
+    worker_classification: str
+    #: Canon pay basis.
+    pay_basis: Optional[str]
+    #: Canon arrangement.
+    arrangement: Optional[str]
+    #: Canon counterparty type a new vendor gets; required for Vendor.
+    counterparty_type: Optional[str]
+    #: First day of the engagements.
+    start_date: str
+    #: Last day of the engagements, when known.
+    end_date: Optional[str]
+    #: Identifier of the Knowledge document each requester signs.
+    agreement_document_id: Optional[str]
+    #: Identifier of the version pinned when the link was made.
+    agreement_version_id: Optional[str]
+    #: What the link is for, shown on the public page.
+    title: str
+    #: Instructions shown on the public page.
+    instructions: Optional[str]
+    #: What the link is for, for the team. Never on the public page.
+    note: Optional[str]
+    #: True when a request must carry a tax form.
+    collect_tax_form: bool
+    #: True when the intake asks for a payout reference.
+    collect_payout: bool
+    #: True when a request may carry a first invoice draft.
+    collect_invoice: bool
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Most requests the link takes, 1 to 500.
+    max_requests: int
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class VendorIntakeLinkToken(TypedDict):
+    """A new intake link with its token and access code, shown once."""
+
+    #: The new link.
+    vendor_intake_link_id: str
+    #: The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _VendorIntakeLinkRequestRequired(TypedDict):
+    #: Identifier of the project the engagements join.
+    project_id: str
+    #: What the link is for, shown on the public page.
+    title: str
+    #: Vendor or Contractor.
+    role_type: Literal["Vendor", "Contractor"]
+    #: Canon role.
+    role_code: str
+    #: Canon worker classification.
+    worker_classification: str
+    #: Canon pay basis.
+    pay_basis: str
+    #: Canon arrangement.
+    arrangement: str
+    #: First day of the engagements.
+    start_date: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class VendorIntakeLinkRequest(_VendorIntakeLinkRequestRequired, total=False):
+    """A new vendor intake link."""
+
+    #: Last day of the engagements.
+    end_date: str
+    #: Counterparty type a new vendor gets.
+    counterparty_type: str
+    #: Identifier of the Knowledge document each requester signs.
+    agreement_document_id: str
+    #: Instructions on the public page.
+    instructions: str
+    #: For the team.
+    note: str
+    #: Ask for a tax form.
+    collect_tax_form: bool
+    #: Ask for a payout reference.
+    collect_payout: bool
+    #: Take a first invoice draft.
+    collect_invoice: bool
+    #: Most requests the link takes, 1 to 500.
+    max_requests: int
+
+
+class VendorIntakeLinkRegenerated(TypedDict):
+    """A regenerated intake link's new token and access code, shown once."""
+
+    #: The link token; the address is `{Gateway origin}/onboard/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
+class VendorIntakeRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[VendorIntakeRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class VendorIntakeRequest(TypedDict):
+    """What a vendor or contractor sent through a reusable intake link (ADR 0141). It holds references only: no tax identifier or bank number. Members holding opportunities.engagement.read on the project read it; the requester reads through Gateway. A request is written by Gateway's server actions and decided here."""
+
+    #: Identifier of the vendor intake request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the intake link the request came through.
+    vendor_intake_link_id: str
+    #: Identifier of the project of the link.
+    project_id: str
+    #: Identifier of the person who sent the request.
+    requested_by: str
+    #: Identifier of the company account, for a Vendor link.
+    account_id: Optional[str]
+    #: Identifier of the the requester's own tax form.
+    tax_form_id: Optional[str]
+    #: Identifier of the the requester's own payout reference.
+    payout_account_id: Optional[str]
+    #: Name typed to sign the agreement.
+    signer_name: Optional[str]
+    #: When the requester signed.
+    signed_at: Optional[str]
+    #: Identifier of the agreement version signed.
+    signed_version_id: Optional[str]
+    #: Optional first invoice: invoice_number, issue_date, due_date, currency_code and up to 50 lines.
+    invoice_draft: Optional[Dict[str, Any]]
+    #: Pending, Approved, Declined or Withdrawn.
+    request_state: Literal["Pending", "Approved", "Declined", "Withdrawn"]
+    #: Identifier of the member who decided.
+    decided_by: Optional[str]
+    #: When it was decided.
+    decided_at: Optional[str]
+    #: Why it was declined, or a note on approval.
+    decision_reason: Optional[str]
+    #: Identifier of the engagement the approval created.
+    engagement_id: Optional[str]
+    #: Identifier of the invoice the draft became.
+    invoice_id: Optional[str]
+
+
+class VendorIntakeApproval(TypedDict, total=False):
+    """An optional note."""
+
+    #: Why, at least 10 characters to decline.
+    reason: str
+
+
+class VendorIntakeDecline(TypedDict):
+    """Why it is declined."""
+
+    #: Why, at least 10 characters to decline.
+    reason: str
+
+
+class FormLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FormLink(TypedDict):
+    """A public link to a Published form with no photo, signature or GPS (ADR 0141): people outside the org open it with a 6-digit access code and answer without an account. Responses are filed Submitted and become project records only when approved. The token and code are returned once and stored only as hashes."""
+
+    #: Identifier of the form link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the form the link answers.
+    form_template_id: str
+    #: Identifier of the project the responses belong to.
+    project_id: Optional[str]
+    #: What the link is for, for the team. Never on the public page.
+    note: Optional[str]
+    #: Last four characters of the token, to tell links apart.
+    token_hint: str
+    #: When the link stops opening: within 90 days of when it was made.
+    expires_at: str
+    #: Most responses in any 24 hours, 1 to 1000.
+    daily_cap: int
+    #: Most responses in all, 1 to 10000, or none.
+    max_responses: Optional[int]
+    #: True when each email address answers the link once.
+    one_per_email: bool
+    #: Wrong access codes since the link was made or regenerated; it locks at 5.
+    failed_attempts: int
+    #: When the link was last regenerated.
+    rotated_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class FormLinkToken(TypedDict):
+    """A new form link with its token and access code, shown once."""
+
+    #: The new link.
+    form_link_id: str
+    #: The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening.
+    expires_at: str
+
+
+class _FormLinkRequestRequired(TypedDict):
+    #: Identifier of the form the link answers.
+    form_template_id: str
+    #: When the link stops opening.
+    expires_at: str
+    #: Identifier of the project the responses belong to.
+    project_id: str
+
+
+class FormLinkRequest(_FormLinkRequestRequired, total=False):
+    """A new public form link."""
+
+    #: Most responses in any 24 hours, 1 to 1000.
+    daily_cap: int
+    #: Most responses in all, 1 to 10000.
+    max_responses: int
+    #: Each email answers once.
+    one_per_email: bool
+    #: For the team.
+    note: str
+
+
+class FormLinkRegenerated(TypedDict):
+    """A regenerated form link's new token and access code, shown once."""
+
+    #: The link token; the address is `{Gateway origin}/forms/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code. Shown once; send it apart from the link, never by email.
+    access_code: str
+    #: When the link stops opening; regenerating keeps the expiry.
+    expires_at: str
+
+
+class FormLinkResponsePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormLinkResponse]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FormLinkResponse(TypedDict):
+    """A response to a public form link (ADR 0141): the respondent's name and email, answers against one template version and the score. It stays Submitted until `formLinkResponses.decide`, and approving one on a project makes its record. `formSubmissions` lists members' submissions only."""
+
+    #: Identifier of the form link response.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the public link the response came through.
+    form_link_id: str
+    #: Identifier of the form answered.
+    form_template_id: str
+    #: Identifier of the version answered.
+    form_template_version_id: str
+    #: Identifier of the project the response belongs to.
+    project_id: Optional[str]
+    #: Identifier of the record the approval made.
+    record_id: Optional[str]
+    #: Name the respondent gave.
+    respondent_name: str
+    #: Email the respondent gave, lower case.
+    respondent_email: str
+    #: Answers keyed by field key.
+    answers: Dict[str, Any]
+    #: Points earned.
+    score: Optional[float]
+    #: Points available on the shown fields.
+    max_score: Optional[float]
+    #: Whether the pass score was met.
+    passed: Optional[bool]
+    #: Where the response stands.
+    submission_state: Literal["Submitted", "Approved", "Rejected", "Recorded"]
+    #: Identifier of the member who decided.
+    decided_by_membership_id: Optional[str]
+    #: Why it was rejected, or a note on approval.
+    decision_note: Optional[str]
+
+
+class _FormLinkResponseDecisionRequired(TypedDict):
+    #: True to approve, false to reject.
+    approve: bool
+
+
+class FormLinkResponseDecision(_FormLinkResponseDecisionRequired, total=False):
+    """The decision on a public form response."""
+
+    #: Why it is rejected, or a note on approval.
+    note: str
+
+
+class OutsideAccessRowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OutsideAccessRow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OutsideAccessRow(TypedDict):
+    """One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably."""
+
+    #: Project reached.
+    project_id: str
+    #: What kind of access it is.
+    source: Literal["Live view link", "Display link", "File link", "Advance link", "Signing link", "Roster invitation", "Pack recipient", "Intake link", "Form link", "Engagement"]
+    #: Id of the row in its source table, for its own revoke or regenerate operation.
+    source_id: str
+    #: What the row is, in the words people wrote; null for a live link with no note and a roster invitation.
+    label: Optional[str]
+    #: Who it was sent to, when the source names one.
+    recipient_email: Optional[str]
+    #: Last four characters of the token.
+    token_hint: Optional[str]
+    #: Active, Locked, Expired, Revoked or Used for links; a roster invitation's or engagement's state.
+    link_state: str
+    #: When it stops working; null for an engagement.
+    expires_at: Optional[str]
+    #: Successful opens, where the source counts them.
+    open_count: Optional[int]
+    #: Last successful open, where the source records it.
+    last_opened_at: Optional[str]
+    #: When it was made.
+    created_at: str
+    #: Person who made it.
+    created_by: Optional[str]
+    #: Whether the caller may revoke or regenerate it: the check that source's own operation makes.
+    viewer_can_manage: bool
 
 
 class PersonCalendarFeedPage(TypedDict):

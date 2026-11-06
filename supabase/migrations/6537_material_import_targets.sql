@@ -544,8 +544,8 @@ grant execute on function app.import_material_match(uuid, text, text) to service
 -- 9. The targets ----------------------------------------------------------------------------------------------------------------------
 
 insert into private.import_targets (code, target_table, write_capability, fuzzy_match, sort_order, destination) values
-  ('procurement_needs', 'app.procurement_needs', 'procurement.po.write', false, 7, 'project_id'),
-  ('po_lines', 'app.po_lines', 'procurement.po.write', false, 8, 'purchase_order_id');
+  ('procurement_needs', 'app.procurement_needs', 'procurement.po.write', false, 8, 'project_id'),
+  ('po_lines', 'app.po_lines', 'procurement.po.write', false, 9, 'purchase_order_id');
 
 insert into private.import_target_fields (target_code, field_name, required, strong_key) values
   ('procurement_needs', 'description', true, true),
