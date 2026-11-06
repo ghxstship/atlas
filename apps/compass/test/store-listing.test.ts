@@ -103,7 +103,8 @@ describe("App Store listing (store/store.config.json)", () => {
     expect(advisory["advertising"]).toBe(false);
     expect(advisory["unrestrictedWebAccess"]).toBe(false);
     expect(advisory["kidsAgeBand"]).toBeNull();
-    expect(advisory["ageRatingOverrideV2"]).toBeNull();
+    // Every XOS account is 18 or older (ADR 0156), so the listing says what the app asks.
+    expect(advisory["ageRatingOverrideV2"]).toBe("EIGHTEEN_PLUS");
   });
 
   it("holds no demo password, and the review notes match store/review-notes.md", () => {

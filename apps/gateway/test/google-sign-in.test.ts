@@ -110,6 +110,7 @@ beforeEach(() => {
       return json(1);
     }
     if (url.pathname === "/rest/v1/rpc/minimum_age_confirmed") return json(ages.length > 0);
+    if (url.pathname === "/rest/v1/rpc/minimum_age_outdated") return json(false);
     if (url.pathname === "/rest/v1/rpc/confirm_minimum_age") {
       ages.push(JSON.parse(String(init?.body)));
       return json("2026-10-20T10:00:00Z");
@@ -275,9 +276,9 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     const ticked = new FormData();
     ticked.set("next", "/auth/claim");
     ticked.set("acceptTerms", "yes");
-    ticked.set("ageConfirmed", "16");
+    ticked.set("ageConfirmed", "18");
     await expect(acceptSignUpTerms({}, ticked)).rejects.toMatchObject({ url: "/auth/claim" });
-    // A Google account confirms "16 or older" here, since no form asked before (A65-014).
+    // A Google account confirms "18 or older" here, since no form asked before (A65-014).
     expect(ages).toEqual([{ p_surface: "Gateway" }]);
     expect(recorded).toEqual([
       {

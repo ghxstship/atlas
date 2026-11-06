@@ -5,7 +5,13 @@ import {
   CONSENT_BANNER_VERSION,
   ageMetadata,
   confirmMinimumAge,
+  MINIMUM_AGE,
   minimumAgeConfirmed,
+  minimumAgeOutdated,
+  parseLegalStanding,
+  readLegalStanding,
+  recordAiChoice,
+  refuseMinimumAge,
   newVisitorId,
   parseConsent,
   preferenceCookieOptions,
@@ -93,9 +99,51 @@ describe("recording", () => {
   });
 });
 
-describe("16 or older", () => {
-  it("carries the ticked box in the sign-up metadata", () => {
-    expect(ageMetadata("Gateway")).toEqual({ age_confirmed: "16", signup_surface: "Gateway" });
+describe("18 or older", () => {
+  it("carries the answer in the sign-up metadata", () => {
+    expect(MINIMUM_AGE).toBe(18);
+    expect(ageMetadata("Gateway")).toEqual({ age_confirmed: "18", signup_surface: "Gateway" });
+  });
+
+  it("tells a confirmation under the earlier rule from none, and treats a failure as neither", async () => {
+    const { db } = fakeClient({
+      "rpc:minimum_age_outdated": [okResponse(true), errorResponse("42501", "not signed in")],
+    });
+    expect(await minimumAgeOutdated(db)).toBe(true);
+    expect(await minimumAgeOutdated(db)).toBe(false);
+  });
+
+  it("closes the account of someone who answers under 18, and says why when it cannot", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:refuse_minimum_age": [
+        okResponse({ outcome: "Account Removed" }),
+        okResponse({ outcome: "Account Closed" }),
+        okResponse({
+          outcome: "Account Held",
+          reason: "account_delete_on_shift",
+          org_name: "Northwind Live",
+        }),
+        errorResponse("XR001", "age_already_confirmed"),
+      ],
+    });
+    expect(await refuseMinimumAge(db, "Compass")).toEqual({
+      ok: true,
+      data: { outcome: "Account Removed" },
+    });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_surface: "Compass" });
+    expect(await refuseMinimumAge(db, "Atlas")).toEqual({
+      ok: true,
+      data: { outcome: "Account Closed" },
+    });
+    expect(await refuseMinimumAge(db, "Atlas")).toEqual({
+      ok: true,
+      data: {
+        outcome: "Account Held",
+        reason: "account_delete_on_shift",
+        orgName: "Northwind Live",
+      },
+    });
+    expect((await refuseMinimumAge(db, "Atlas")).ok).toBe(false);
   });
 
   it("reads and records the confirmation", async () => {
@@ -113,5 +161,59 @@ describe("16 or older", () => {
     });
     expect(calls[1]?.steps[0]?.[1][0]).toEqual({ p_surface: "Atlas", p_client_ip: "203.0.113.5" });
     expect((await confirmMinimumAge(db, "Atlas", null)).ok).toBe(false);
+  });
+});
+
+describe("what a sign-in owes", () => {
+  it("reads the standing, and takes anything malformed as owing", async () => {
+    const { db } = fakeClient({
+      "rpc:my_legal_standing": [
+        okResponse({
+          age_confirmed: true,
+          accepted_documents: ["mobile-eula"],
+          worker_terms_apply: false,
+          ai_choice: "Allowed",
+          ai_disclosure_version: "2026-11-06",
+        }),
+        errorResponse("42501", "not signed in"),
+      ],
+    });
+    expect(await readLegalStanding(db)).toEqual({
+      ok: true,
+      data: {
+        ageConfirmed: true,
+        acceptedDocuments: ["mobile-eula"],
+        workerTermsApply: false,
+        aiChoice: "Allowed",
+        aiDisclosureVersion: "2026-11-06",
+      },
+    });
+    expect((await readLegalStanding(db)).ok).toBe(false);
+    expect(parseLegalStanding({ ai_choice: "Maybe" })).toEqual({
+      ageConfirmed: false,
+      acceptedDocuments: [],
+      workerTermsApply: true,
+      aiChoice: null,
+      aiDisclosureVersion: null,
+    });
+  });
+
+  it("records the AI choice with the words the person saw", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:record_ai_choice": [okResponse("2026-11-06T10:00:00Z")],
+    });
+    expect(
+      await recordAiChoice(db, {
+        surface: "Compass",
+        disclosureVersion: "2026-11-06",
+        choice: "Declined",
+        clientIp: null,
+      }),
+    ).toEqual({ ok: true, data: "2026-11-06T10:00:00Z" });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({
+      p_surface: "Compass",
+      p_disclosure_version: "2026-11-06",
+      p_choice: "Declined",
+    });
   });
 });

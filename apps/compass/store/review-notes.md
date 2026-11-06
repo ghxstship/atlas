@@ -25,6 +25,12 @@ The user name and password are in the Sign-In Information fields. The account is
 SIGN IN
 On the sign-in screen tap "Use Password", enter the demo email and password, and tap "Sign In". Sign in with Apple is offered above Continue with Google.
 
+FIRST SIGN-IN
+Before anything else, Compass asks your age and for your agreement to the Mobile End User License Agreement (and the Worker Terms where they apply), and records your answers. Choose "I am 18 or older", turn on the agreement and tap "Agree and Continue". Choosing "I am under 18" closes the account, so please do not use it on the demo account; use the deletion test account to see it.
+
+AI FEATURES (guideline 5.1.2(i))
+The first time an AI feature would send anything, Compass names the third-party AI provider, says what goes to it and asks. Nothing is sent unless you allow it. "Don't Allow" leaves AI features off for that person, and More, Settings, AI Features changes the choice.
+
 WHAT TO TRY
 1. Today: tap "Clock In" and allow location. Compass records where the punch happened; it never tracks location in the background. Then try "Start Break", "End Break" and "Clock Out". While you are clocked in, a Live Activity shows the shift on the Lock Screen.
 2. Scan: pick "Credential" and an access point, then type OWNER_REVIEW_CREDENTIAL_CODE in "Type a code" to see an allowed scan. The camera scans badge QR codes, asset tags and barcodes; typing a code is for badges that will not scan.
