@@ -64,6 +64,7 @@ const EXPLAINED = new Set([
   "same_project",
   "sod_approval_requester",
   "approval_decided",
+  "approval_subject_immutable",
   "approval_not_eligible",
   "time_zone_unknown",
   // B4 scheduling depth (migrations 2930 to 2936).

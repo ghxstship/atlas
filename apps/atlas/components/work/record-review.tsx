@@ -50,7 +50,9 @@ export function RecordReview({
   const latest = reviews.find((r) => r.approvalState !== "Canceled") ?? null;
   const reviewers = people.filter((p) => p.personId !== me && p.personId !== ownerId);
   const open = latest !== null && latest.decision === null;
-  const canDecide = canWrite && open && latest.requesterId !== me;
+  // The database refuses the asker (sod_approval_requester) and the record's owner (sod_record_review_owner), so
+  // neither is offered a decision.
+  const canDecide = canWrite && open && latest.requesterId !== me && me !== ownerId;
   const decisionLabel = (r: Review) =>
     r.decision === "Approved"
       ? t("review.approved")

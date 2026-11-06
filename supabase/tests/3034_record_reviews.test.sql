@@ -4,14 +4,15 @@
 -- the requester never decides it; asking for changes needs a note, moves the record back to Active with the note and
 -- tells the requester; Approve and Reject also work from Inbox. Only an independent decision about the work as it
 -- stands counts: never one by the record's owner or by the person completing it, nor one decided before the record last
--- entered Active, so a hand-made Approval record with a borrowed requester, or a reopened record, needs a new review.
+-- entered Active, so a hand-made Approval record with a borrowed requester, or a reopened record, needs a new review;
+-- and a decided review is never moved onto another record or re-dated.
 -- Clearing the flag needs projects.settings.write, and templates carry the flag both ways.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(43);
+select plan(45);
 
 create function pg_temp.new_record(p_key text, p_title text, p_review boolean default true) returns uuid
 language plpgsql as $$
@@ -39,8 +40,20 @@ begin
   update app.record_state_transitions set created_at = created_at - interval '1 hour' where record_id = pg_temp.id(p_key);
   alter table app.record_state_transitions enable trigger t95_append_only;
   alter table app.record_state_transitions enable trigger t90_stamp_audit_columns;
+  alter table app.record_approval disable trigger t41_record_approval_fixed;
   update app.record_approval set decided_at = decided_at - interval '1 hour'
   where subject_record_id = pg_temp.id(p_key) and decided_at is not null;
+  alter table app.record_approval enable trigger t41_record_approval_fixed;
+end $$;
+-- A decision recorded in a later request than everything before it: decided_at is fixed once set (t41), so the test
+-- moves it with that trigger off.
+create function pg_temp.decided_later(p_key text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  alter table app.record_approval disable trigger t41_record_approval_fixed;
+  update app.record_approval set decided_at = decided_at + interval '1 minute' where record_id = pg_temp.id(p_key);
+  alter table app.record_approval enable trigger t41_record_approval_fixed;
 end $$;
 create function pg_temp.bulk_complete(p_key text) returns text
 language sql as $$
@@ -123,8 +136,7 @@ select throws_ok(format($$select app.act_on_notification(%L, 'reject')$$, pg_tem
 select lives_ok(format($$select app.act_on_notification(%L, 'approve')$$, pg_temp.id('n2')), 'the reviewer approves from Inbox');
 select is((select record_state from app.records where id = pg_temp.id('t1')), 'In Review', 'an approval leaves the record In Review');
 -- The decision was a later request than the record's last move into Active.
-select pg_temp.as_platform();
-update app.record_approval set decided_at = decided_at + interval '1 minute' where record_id = pg_temp.id('ap2');
+select pg_temp.decided_later('ap2');
 select pg_temp.as_user('carol');
 select lives_ok(format($$select app.transition_record(%L, 'In Review', 'Complete', 'Done.')$$, pg_temp.id('t1')),
   'after an Approved decision the owner completes it');
@@ -183,12 +195,21 @@ select lives_ok(format($$insert into app.record_approval (record_id, subject_rec
   'carol records an approval of her own task, naming erin as requester');
 select is((select approver_person_id from app.record_approval where record_id = pg_temp.id('ap_spoof')), pg_temp.id('carol'),
   'the database names carol as its approver');
-select pg_temp.as_platform();
-update app.record_approval set decided_at = decided_at + interval '1 minute' where record_id = pg_temp.id('ap_spoof');
+select pg_temp.decided_later('ap_spoof');
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.transition_record(%L, 'Active', 'Complete', 'Done.')$$, pg_temp.id('t7')),
   'XR001', 'record_review_required: This record needs an approved review before it is Complete.',
   'her own approval does not let her complete it');
+-- Nor does someone else's: erin's Approved review of another task cannot be moved onto carol's, or re-dated past
+-- the reopen that voided it, by anyone who may write the project's records.
+select throws_ok(format('update app.record_approval set subject_record_id = %L where record_id = %L',
+  pg_temp.id('t7'), pg_temp.id('ap6')),
+  'XR001', 'approval_subject_immutable: An approval stays with the record it was raised about.',
+  'a decided review is not re-pointed at another record');
+select throws_ok(format($$update app.record_approval set decided_at = decided_at + interval '1 day' where record_id = %L$$,
+  pg_temp.id('ap6')),
+  'XR001', 'approval_decided: A decided approval is final; raise a new approval instead.',
+  'nor re-dated');
 
 -- An open review blocks another; an Approval record is not reviewed.
 select pg_temp.new_record('t2', 'Label the cable runs');

@@ -90,7 +90,9 @@ never reviews it or decides its review (a new built-in rule, `sod_record_review_
 Approved review only when its approver is neither the owner nor the person completing the record, it is in the
 record's project, and it was decided after the record last entered Active. So an Approval record inserted by hand with
 a borrowed requester does not complete its approver's own work, and a reopened record, or one whose later Rejected
-review was deleted, needs a new review. Asking for changes needs a note and moves the record back to
+review was deleted, needs a new review. The gate reads an approval's subject and decision time, which 0311's write
+policy would let any project editor update, so a new trigger keeps both fixed (`approval_subject_immutable`,
+`approval_decided`): a decided review is never moved onto another record or re-dated past a reopen. Asking for changes needs a note and moves the record back to
 Active only while it is still In Review; an approval leaves it In Review for the owner to complete. Requests and
 decisions reuse approval.requested and approval.decided about the review's Approval record, with the reviewed record's
 title and key; Inbox and Compass's push actions decide them through `app.act_on_notification`, restated from A127's

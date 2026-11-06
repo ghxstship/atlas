@@ -642,6 +642,7 @@
       "same_project": "Everything you link must belong to the same project.",
       "sod_approval_requester": "Someone other than the requester must decide this approval.",
       "approval_decided": "A decided approval is final. Raise a new approval instead.",
+      "approval_subject_immutable": "An approval stays with the record it was raised about. Raise a new approval instead.",
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list.",
       "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",

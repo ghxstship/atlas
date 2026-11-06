@@ -21,6 +21,9 @@
 --     the record's owner nor the person completing it, it was decided after the record last entered Active, and it
 --     is in the record's project. The record's owner is never its reviewer (sod_record_review_owner, a new built-in
 --     rule), so an Approval record inserted by hand with a borrowed requester cannot carry a record to Complete.
+--     t41_record_approval_fixed keeps an approval's record, subject and decision time from changing, so a decided
+--     review cannot be re-pointed at another record or re-dated past a reopen (approval_subject_immutable,
+--     approval_decided).
 --   * app.act_on_notification is restated from A127's 2200, the latest definition, so Approve and Reject on an
 --     approval.requested about app.records decide the review from Inbox and from Compass's push actions; Reject needs a
 --     comment. private.notification_link_actions (2200) is not restated, so email one-tap links are not offered for
@@ -415,6 +418,35 @@ revoke all on function private.guard_record_review() from public, anon, authenti
 
 create trigger t47_record_review_gate before update of record_state, requires_review on app.records
   for each row execute function private.guard_record_review();
+
+-- What a decision is about ----------------------------------------------------------------------------------------------------
+-- The gate trusts an approval's subject and decision time. 0311's write policy lets anyone who writes the project's
+-- records update app.record_approval, and private.guard_record_approval locks only the requester, the decision and the
+-- approver, so without this an owner could re-point someone else's Approved review at their own record, or re-date an
+-- old one past a reopen, and complete it. guard_record_approval is not restated (it stays as 0311 left it).
+
+create or replace function private.guard_record_approval_fixed()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.record_id is distinct from old.record_id or new.subject_record_id is distinct from old.subject_record_id then
+    perform private.refuse('approval_subject_immutable', 'An approval stays with the record it was raised about.');
+  end if;
+  if old.decided_at is not null and new.decided_at is distinct from old.decided_at then
+    perform private.refuse('approval_decided', 'A decided approval is final; raise a new approval instead.');
+  end if;
+  return new;
+end;
+$$;
+
+comment on function private.guard_record_approval_fixed() is 'Keeps what an approval is about and when it was decided (G-268, ADR 0153 D5): record_id and subject_record_id never change (approval_subject_immutable), and decided_at never changes once set (approval_decided), for every writer. The review done-gate (private.guard_record_review) reads both, so a decided review cannot be moved onto another record or re-dated past the record''s last move into Active. Runs after t40_guard_record_approval, which sets decided_at when the decision is recorded.';
+revoke all on function private.guard_record_approval_fixed() from public, anon, authenticated;
+
+create trigger t41_record_approval_fixed before update on app.record_approval
+  for each row execute function private.guard_record_approval_fixed();
 
 -- Acting on a review request from Inbox -------------------------------------------------------------------------------------------
 -- Restated from A127's 2200_one_tap_actions.sql, the latest definition, with the app.records branch.
