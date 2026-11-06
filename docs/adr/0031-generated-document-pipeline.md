@@ -133,3 +133,22 @@ signage decisions behind them.
    the plan's peek, or the project's signage page.
 6. **veraPDF** also renders, per locale, site plans with a landscape and a portrait drawing and a legacy plan without
    one, with the kinds and items legends, and build sheets with and without artwork, on Letter and A4.
+
+## Amendment (B7, ADR 0146): the wrap-up report and books
+
+The owner approved the deferred parity themes on 2026-10-28; package B7 (RRR-231) adds a thirteenth record document and
+compiled books.
+
+1. **Thirteen record documents.** `DOCUMENT_KINDS` adds `wrap-up-report`, so decision 6's per-kind loop renders thirteen
+   templates. Its row in decision 3's table: issue time the debrief's `completed_at`, else the generation time
+   (computed live, like the final cost report). Each of its sections is read only when the reader holds its capability
+   and otherwise prints "Not included" (ADR 0146 decision 5).
+2. **Books are compiled documents.** `COMPILED_DOCUMENT_KINDS` holds `document-book`, classified Internal: a book's cover
+   with its contents, rendered by `streamBookPdf` over the per-document drawing P5's batch file uses. Its row in decision
+   3's table: issue time the book's `created_at`, which picks the version of `BOOK_COVER_TEMPLATES`; each document in a
+   book keeps the version its own issue time picks. A book has one `Document` root, the cover `Sect` with a `TOC` and a
+   `TOCI` per document, a `Sect` per document and an outline item per section; footers number the whole book (ADR 0146
+   decision 4).
+3. **A version may print for an audience.** `TemplateVersion.audiences` marks a version that prints a copy for a team or
+   a department; `templateFor` considers only such versions when one is asked for, so a filtered day sheet always renders
+   day sheet version 2 (ADR 0146 decision 3).

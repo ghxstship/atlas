@@ -341,12 +341,18 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.calendar_feeds.sources
+    kind: reviewed
+    note: A set of fixed enum values a member picks for a feed, never joined on; null is the default set (migration 6210, ADR 0146).
   - column: app.mcp_connectors.default_scopes
     kind: reviewed
     note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).
   - column: app.oauth_grants.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.person_calendar_feeds.sources
+    kind: reviewed
+    note: A set of fixed enum values a person picks for a feed, never joined on; the table has no org_id for a tenant child table (migration 6210, ADR 0146).
   - column: app.person_work_details.accessibility_needs
     kind: reviewed
     note: A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).
@@ -598,6 +604,10 @@ restated:
     parent: xpms.elements.xyz
     kind: own
     note: The line's XYZ tag; `private.guard_budget_line` requires its category's tag, and the element is optional.
+  - column: app.calendar_feed_members.membership_id
+    parent: app.calendar_feeds.membership_id
+    kind: own
+    note: A member in the feed's people audience; the feed's own membership_id is its owner (migration 6210).
   - column: app.calendars.time_zone
     parent: app.projects.time_zone
     kind: own
@@ -775,6 +785,14 @@ restated:
     parent: app.shipments.project_id
     kind: own
     note: The slot's project; the shipment link is optional.
+  - column: app.document_books.ends_on
+    parent: app.projects.ends_on
+    kind: own
+    note: The last day the book covers, inside or beyond the project's dates; null with starts_on for the whole project (migration 6214).
+  - column: app.document_books.starts_on
+    parent: app.projects.starts_on
+    kind: own
+    note: The first day the book covers, chosen for the book; null with ends_on for the whole project (migration 6214).
   - column: app.documents.archived_at
     parent: app.projects.archived_at
     kind: own

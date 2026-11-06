@@ -59,6 +59,15 @@ describe("eval suite", () => {
         bullets: [{ text: "Blocked on the rigging plot.", citations: ["a2"] }],
       }),
       toolCall("summary", { no_answer: { missing: "No activity." } }),
+      // B7: a project's wrap-up cites its facts and the open action; with nothing supplied it is NO ANSWER.
+      toolCall("summary", {
+        headline: "Wrap-up",
+        bullets: [
+          { text: "Actuals came in under the revised budget.", citations: ["prj"] },
+          { text: "A second spotter is the open action for load-out.", citations: ["d2"] },
+        ],
+      }),
+      toolCall("summary", { no_answer: { missing: "Nothing to summarize." } }),
     ]);
     const [report] = await runSuite(model, ["summaries"]);
     expect(report?.accuracy).toBe(1);

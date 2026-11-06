@@ -50,6 +50,7 @@ export function SummaryDialog({
   kinds,
   items: given,
   project,
+  use,
   open,
   onOpenChange,
 }: SummaryEntryProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -169,9 +170,26 @@ export function SummaryDialog({
               <Button variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("close")}
               </Button>
-              <Button variant="primary" icon="Copy" onClick={() => void copy()}>
-                {copied ? t("summary.copiedButton") : t("summary.copy")}
-              </Button>
+              {use ? (
+                <>
+                  <Button variant="secondary" icon="Copy" onClick={() => void copy()}>
+                    {copied ? t("summary.copiedButton") : t("summary.copy")}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      use.onUse(text, answer.requestId);
+                      onOpenChange(false);
+                    }}
+                  >
+                    {use.label}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="primary" icon="Copy" onClick={() => void copy()}>
+                  {copied ? t("summary.copiedButton") : t("summary.copy")}
+                </Button>
+              )}
             </>
           ) : (
             <>

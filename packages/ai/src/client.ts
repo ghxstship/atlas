@@ -189,7 +189,7 @@ export interface AuroraPreviewRequest {
   readonly draft_kind?: "run_of_show" | "risk_assessment";
   /** For a drafted list: the running order or project it fills. */
   readonly target?: { readonly collection: string; readonly id: string };
-  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
   readonly subject_collection?: string;
   readonly subject_id?: string;
   readonly items: readonly { readonly collection: string; readonly id: string }[];
@@ -296,7 +296,7 @@ export interface AuroraClient {
     items: readonly AuroraApplyDraftItem[];
   }): Promise<AuroraCall<AuroraAppliedDraft>>;
   summarize(input: {
-    kind: "record_activity" | "project_week" | "gate_readiness";
+    kind: "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
     subject_collection: string;
     subject_id: string;
     items: readonly { collection: string; id: string }[];

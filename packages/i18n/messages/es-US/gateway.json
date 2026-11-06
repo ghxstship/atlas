@@ -2211,10 +2211,27 @@
       "copied": "Enlace copiado.",
       "openInCalendar": "Abrir en mi aplicación de calendario",
       "subscribe": "Suscribirse en una aplicación de calendario",
+      "nameLabel": "Nombre",
+      "nameHelp": "Hasta 80 caracteres. Su aplicación de calendario lo muestra con este nombre.",
+      "contentLabel": "Muestra",
+      "sources": {
+        "shifts": "Turnos",
+        "meetings": "Reuniones",
+        "milestones": "Hitos",
+        "deadlines": "Fechas límite",
+        "cues": "Cues"
+      },
+      "filterSummary": "Muestra {sources}",
+      "edit": "Editar",
+      "editLabel": "Editar el calendario que termina en {hint}",
+      "editTitle": "Editar calendario",
+      "save": "Guardar",
       "errors": {
         "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
         "denied": "Ese calendario no está disponible para usted.",
-        "unexpected": "Algo salió mal. Inténtelo de nuevo."
+        "unexpected": "Algo salió mal. Inténtelo de nuevo.",
+        "calendar_feed_name": "Dé al calendario un nombre de 1 a 80 caracteres que no use ninguno de sus otros calendarios.",
+        "calendar_feed_sources": "Elija al menos una cosa para que el calendario la muestre."
       }
     },
     "surfaces": {

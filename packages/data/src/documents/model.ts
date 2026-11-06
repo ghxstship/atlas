@@ -7,8 +7,8 @@
 
 import type { Database } from "../database.types.ts";
 /**
- * The record documents: the twelve of Section 11.9, then the radio hand-out (R7, ADR 0031 amendment) and the parity
- * kinds (B1: the site plan and the signage build sheet).
+ * The record documents: the twelve of Section 11.9, then the radio hand-out (R7, ADR 0031 amendment), the parity
+ * kinds (B1: the site plan and the signage build sheet) and the wrap-up report (B7, ADR 0146).
  */
 export const DOCUMENT_KINDS = [
   "purchase-order",
@@ -26,6 +26,7 @@ export const DOCUMENT_KINDS = [
   "radio-handout",
   "site-plan",
   "signage-build-sheet",
+  "wrap-up-report",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -57,18 +58,62 @@ export const COMPLIANCE_DOCUMENT_KINDS = [
 
 export type ComplianceDocumentKind = (typeof COMPLIANCE_DOCUMENT_KINDS)[number];
 
+/**
+ * Documents compiled from record documents (B7, ADR 0146 decision 4): a tour or production book's cover and
+ * contents. The cover is a model of its own; the documents after it keep their own kinds.
+ */
+export const COMPILED_DOCUMENT_KINDS = ["document-book"] as const;
+
+export type CompiledDocumentKind = (typeof COMPILED_DOCUMENT_KINDS)[number];
+
+/**
+ * The record documents a book may hold (ADR 0146 decision 4). Purchase orders, invoices, change orders, credential
+ * badges and agreement certificates stay out: their readers are not the show crew a book is printed for.
+ */
+export const BOOK_SECTION_KINDS = [
+  "day-sheet",
+  "call-sheet",
+  "run-of-show",
+  "beo",
+  "inspection-report",
+  "incident-report",
+  "final-cost-report",
+  "wrap-up-report",
+] as const satisfies readonly DocumentKind[];
+
+export type BookSectionKind = (typeof BOOK_SECTION_KINDS)[number];
+
+/** The most documents one batch PDF holds (P5: a print run of credential badges). */
+export const MAX_BATCH = 100;
+
+/** The most documents a book holds, not counting its cover (B7): a batch's worth. */
+export const MAX_BOOK_DOCUMENTS = MAX_BATCH;
+
+export function isBookSectionKind(value: string): value is BookSectionKind {
+  return (BOOK_SECTION_KINDS as readonly string[]).includes(value);
+}
+
+/** Section kinds a Tour Book leaves out: the commercial and wrap-up documents (document_book_kind_sections). */
+export const PRODUCTION_ONLY_SECTIONS: readonly BookSectionKind[] = [
+  "final-cost-report",
+  "wrap-up-report",
+];
+
 /** Section 8.3 classification, least to most sensitive. */
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
 
 /**
  * The classification of each generated document: the highest classification among the registered
  * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
- * and time on Confidential and Restricted PDFs. The record documents print only Internal columns: the site plan and
- * the signage build sheet embed only drawings and artwork classified Public or Internal (B1, ADR 0140 D3); the WH-347
- * prints Restricted pay rates; the OSHA forms print Confidential health data.
+ * and time on Confidential and Restricted PDFs. The record documents and a book's cover print only Internal columns:
+ * the site plan and the signage build sheet embed only drawings and artwork classified Public or Internal (B1, ADR
+ * 0140 D3); the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
  */
 export const DOCUMENT_CLASSIFICATION: Readonly<
-  Record<DocumentKind | PlatformDocumentKind | ComplianceDocumentKind, DataClassification>
+  Record<
+    DocumentKind | PlatformDocumentKind | ComplianceDocumentKind | CompiledDocumentKind,
+    DataClassification
+  >
 > = {
   "purchase-order": "Internal",
   invoice: "Internal",
@@ -85,6 +130,8 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "radio-handout": "Internal",
   "site-plan": "Internal",
   "signage-build-sheet": "Internal",
+  "wrap-up-report": "Internal",
+  "document-book": "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
@@ -200,6 +247,16 @@ export type DocumentBlock =
       readonly footer?: readonly (readonly string[])[];
       /** Shown in place of the table when it has no rows. */
       readonly empty: string;
+    }
+  /**
+   * A book's contents (B7): one entry per document with its title, record key and the book page it starts on, read
+   * as a TOC with a TOCI per entry; the page numbers sit in a fixed-width column, so they never change a line break.
+   */
+  | {
+      readonly kind: "contents";
+      readonly caption: string;
+      readonly entries: readonly DocumentContentsEntry[];
+      readonly empty: string;
     };
 
 /** The design-token color roles a plan overlay is drawn in (site plan shape tones, 5901). */
@@ -218,6 +275,13 @@ export type PlanOverlay =
   /** A text label at a point. */
   | { readonly kind: "label"; readonly x: number; readonly y: number; readonly text: string };
 
+export interface DocumentContentsEntry {
+  readonly title: string;
+  readonly recordKey: string;
+  /** The 1-based book page the document starts on; 0 until the first pass counts the pages. */
+  readonly page: number;
+}
+
 export interface DocumentLogo {
   /** PNG or JPEG bytes. Other formats fall back to the brand name in text. */
   readonly bytes: Uint8Array;
@@ -234,7 +298,8 @@ export interface DocumentWatermark {
 }
 
 export interface DocumentModel {
-  readonly kind: DocumentKind | PlatformDocumentKind | ComplianceDocumentKind;
+  readonly kind:
+    DocumentKind | PlatformDocumentKind | ComplianceDocumentKind | CompiledDocumentKind;
   /** BCP 47 language of every string in the model, for example en-US or es-US. */
   readonly lang: string;
   /** Document title, also the PDF title the viewer shows (for example "Purchase order PRJ-PO-12"). */

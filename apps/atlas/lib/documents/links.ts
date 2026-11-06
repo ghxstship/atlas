@@ -47,5 +47,17 @@ export function atlasRecordPath(
       return `${o}/places/site-plans?peek=${id}`;
     case "signage-build-sheet":
       return `${o}/places/signage?project=${id}`;
+    case "wrap-up-report":
+      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/reports?wrap=1`;
   }
+}
+
+/** The route that answers a book as one PDF (app/[org]/documents/books/[id], B7). */
+export function bookHref(org: string, id: string): string {
+  return `/${encodeURIComponent(org)}/documents/books/${encodeURIComponent(id)}`;
+}
+
+/** Where a book opens in Atlas: the project's Documents tab with the book in view (B7). */
+export function bookPath(org: string, projectKey: string, id: string): string {
+  return `/${encodeURIComponent(org)}/p/${encodeURIComponent(projectKey)}/documents?book=${encodeURIComponent(id)}`;
 }

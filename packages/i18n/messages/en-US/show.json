@@ -134,7 +134,16 @@
     "close": "Close",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
-    "calendarLabel": "{project} day sheet"
+    "calendarLabel": "{project} day sheet",
+    "downloadFor": "Download for…",
+    "audienceKind": "Audience",
+    "forTeam": "A team",
+    "forDepartment": "A department",
+    "team": "Team",
+    "department": "Department",
+    "showDepartment": "Show department",
+    "anyDepartment": "Every show department",
+    "paper": "Paper size"
   },
   "callSheets": {
     "label": "Call sheets",

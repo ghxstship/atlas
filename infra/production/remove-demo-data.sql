@@ -67,8 +67,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 34 seed files: 250 fixed ids, 3 email domain(s), 243 seeded tables.
--- Derived from 33 seed files: 248 fixed ids, 3 email domain(s), 246 seeded tables.
+-- Derived from 33 seed files: 250 fixed ids, 3 email domain(s), 248 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -123,6 +122,12 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000022542'::uuid),
   ('01920000-0000-7000-8000-000000022543'::uuid),
   ('01920000-0000-7000-8000-000000022544'::uuid),
+  ('01920000-0000-7000-8000-0000000b7001'::uuid),
+  ('01920000-0000-7000-8000-0000000b7101'::uuid),
+  ('01920000-0000-7000-8000-0000000b7102'::uuid),
+  ('01920000-0000-7000-8000-0000000b7201'::uuid),
+  ('01920000-0000-7000-8000-0000000b7202'::uuid),
+  ('01920000-0000-7000-8000-0000000b7301'::uuid),
   ('01920000-0000-7000-8000-000000111001'::uuid),
   ('01920000-0000-7000-8000-000000111011'::uuid),
   ('01920000-0000-7000-8000-000000111012'::uuid),
@@ -362,6 +367,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.beos'),
   ('app.budget_lines'),
   ('app.budgets'),
+  ('app.calendar_feeds'),
   ('app.call_sheets'),
   ('app.canon_extension_proposals'),
   ('app.capability_documents'),
@@ -387,6 +393,8 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.custom_object_values'),
   ('app.day_sheets'),
   ('app.dock_slots'),
+  ('app.document_book_sections'),
+  ('app.document_books'),
   ('app.document_versions'),
   ('app.documents'),
   ('app.earning_codes'),
@@ -473,6 +481,8 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.prequalifications'),
   ('app.profile_section_visibility'),
   ('app.project_days'),
+  ('app.project_debrief_items'),
+  ('app.project_debriefs'),
   ('app.project_members'),
   ('app.projects'),
   ('app.purchase_orders'),

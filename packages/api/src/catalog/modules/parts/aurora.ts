@@ -403,7 +403,7 @@ const DraftBody = z
 const SummarizeBody = z
   .object({
     kind: z
-      .enum(["record_activity", "project_week", "gate_readiness"])
+      .enum(["record_activity", "project_week", "gate_readiness", "project_wrap_up"])
       .meta({ description: "What to summarize.", example: "project_week" }),
     subject_collection: z
       .string()
@@ -490,7 +490,7 @@ const PreviewBody = z
     }),
     target: DraftTarget.optional(),
     kind: z
-      .enum(["record_activity", "project_week", "gate_readiness"])
+      .enum(["record_activity", "project_week", "gate_readiness", "project_wrap_up"])
       .optional()
       .meta({ description: "For summaries, what is summarized.", example: "gate_readiness" }),
     subject_collection: z

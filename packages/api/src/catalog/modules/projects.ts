@@ -7,6 +7,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions, removeVerbs } from "../correct.ts";
 import { itemAction } from "../define.ts";
+import { b7ProjectCapabilities, b7ProjectResources } from "./parts/b7.ts";
 import { measurementCapabilities, measurementResources } from "./parts/measurements.ts";
 import { projectsFieldHomes } from "./parts/playbook-field-homes.ts";
 import {
@@ -21,8 +22,12 @@ const EVIDENCE_URI = fields.text(
 );
 
 export const additions = defineAdditions("Projects", {
-  resources: [...projectAuthorityResources, ...measurementResources],
-  capabilities: { ...projectAuthorityCapabilities, ...measurementCapabilities },
+  resources: [...projectAuthorityResources, ...measurementResources, ...b7ProjectResources],
+  capabilities: {
+    ...projectAuthorityCapabilities,
+    ...measurementCapabilities,
+    ...b7ProjectCapabilities,
+  },
   corrections: [
     {
       id: "project-create-key-and-time-zone",

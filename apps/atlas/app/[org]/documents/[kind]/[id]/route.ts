@@ -1,4 +1,5 @@
 import { generateDocument, watermarkText } from "@xos/data/documents/generate";
+import type { LoadOptions } from "@xos/data/documents/sources";
 import {
   DOCUMENT_CLASSIFICATION,
   isDocumentKind,
@@ -8,12 +9,16 @@ import {
 import { isLocale } from "@xos/i18n";
 import { loadMessages } from "@xos/i18n/load";
 import { getLocale } from "next-intl/server";
+import { daySheetAudience } from "@/lib/documents/day-sheet-audience";
 import { atlasRecordPath } from "@/lib/documents/links";
+import { wrapUpLoadOptions } from "@/lib/documents/wrap-up";
 import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { observability } from "@/lib/observability";
 import { unitSystemFor } from "@/lib/workforce/units";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
@@ -23,7 +28,12 @@ import { unitSystemFor } from "@/lib/workforce/units";
  * filter from the query, and print lengths and sizes in the viewer's units (locale.units, B1). Rendered on the server
  * only.
  * A Confidential or Restricted document carries the viewer's email and the time (Section 8.6).
+ * A day sheet prints for one audience (B7, ADR 0146 decision 3): `?team=<uuid>` or `?department=<code>`, and
+ * `&dept=<slug>` keeps only the cues with that show department's call; such a copy always renders version 2.
+ * Both a team and a department, or a malformed value, answer 400; a team of another org answers 404. Other kinds
+ * ignore these parameters. The wrap-up report's sections follow the reader's capabilities (lib/documents/wrap-up).
  */
+
 export async function GET(
   request: Request,
   { params }: RouteContext<"/[org]/documents/[kind]/[id]">,
@@ -33,6 +43,8 @@ export async function GET(
   const ctx = await getOrgContext(org);
   if (!ctx) return new Response(null, { status: 404 });
   const search = new URL(request.url).searchParams;
+  const audience = kind === "day-sheet" ? daySheetAudience(search) : null;
+  if (audience === "bad") return new Response(null, { status: 400 });
   const paperParam = search.get("paper") ?? "letter";
   const paper = isPrintSizeFor(kind, paperParam) ? paperParam : "letter";
   const negotiated = await getLocale();
@@ -47,6 +59,12 @@ export async function GET(
   const watermark = needsWatermark(DOCUMENT_CLASSIFICATION[kind])
     ? watermarkText(messages, locale, ctx.viewer.email ?? ctx.viewer.userId, new Date())
     : undefined;
+  const load: LoadOptions =
+    kind === "wrap-up-report"
+      ? await wrapUpLoadOptions(ctx, ctx.viewer.db, locale, UUID.test(id) ? id : null)
+      : audience
+        ? { audience }
+        : {};
   const result = await generateDocument({
     db: ctx.viewer.db,
     orgId: ctx.org.id,
@@ -58,11 +76,16 @@ export async function GET(
     paper,
     options,
     ...(watermark ? { watermark } : {}),
+    load,
     recordUrl: (record) =>
       new URL(atlasRecordPath(ctx.org.slug, kind, { id, ...record }), site).toString(),
   });
   if (!result.ok) {
     if (result.error.kind === "not-found") return new Response(null, { status: 404 });
+    // Two audiences or an unknown department (app.day_sheet_schedule).
+    if (result.error.kind === "refusal" && result.error.rule === "day_sheet_audience") {
+      return new Response(null, { status: 400 });
+    }
     observability.logger.error("document generation failed", { kind, error: result.error });
     return new Response(null, { status: 500 });
   }
