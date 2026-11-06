@@ -96,28 +96,51 @@ describe("Inside now", () => {
 });
 
 describe("the muster list", () => {
-  it("names people through app.person_names and keeps guests' own names", async () => {
-    const { db } = fakeClient({
+  const base = {
+    person_id: null,
+    full_name: null,
+    guest_name: null,
+    plus_ones: null,
+    zone_id: null,
+    zone_code: null,
+    zone_name: null,
+    credential_number: null,
+    credential_category_id: null,
+    category_code: null,
+    engagement_id: null,
+    party_name: null,
+    door: null,
+  };
+
+  it("reads the view's names and codes, and asks app.person_names only for names it leaves out", async () => {
+    const { db, calls } = fakeClient({
       "from:muster_list": [
         okResponse([
           {
+            ...base,
             person_id: "p1",
-            guest_name: null,
-            plus_ones: null,
             zone_id: "z1",
+            zone_code: "STG",
+            zone_name: "Stage",
+            credential_number: "CR-1001",
             credential_category_id: "c1",
-            engagement_id: null,
+            category_code: "CREW",
+            party_name: "Harbor Audio",
             entered_at: "2027-06-04T20:00:00Z",
             source: "Scan",
-            door: null,
           },
           {
-            person_id: null,
+            ...base,
+            person_id: "p2",
+            full_name: "Ana Ruiz",
+            zone_id: "z1",
+            entered_at: "2027-06-04T20:01:00Z",
+            source: "Clock In",
+          },
+          {
+            ...base,
             guest_name: "Sasha Bell",
             plus_ones: 1,
-            zone_id: null,
-            credential_category_id: null,
-            engagement_id: null,
             entered_at: "2027-06-04T20:05:00Z",
             source: "Guest Check In",
             door: "North Gate",
@@ -127,10 +150,15 @@ describe("the muster list", () => {
       "rpc:person_names": [okResponse([{ person_id: "p1", full_name: "Kai Morgan" }])],
     });
     const result = await listMuster(db, { projectId: "p" });
-    expect(result.ok && result.data.map((r) => [r.name, r.source])).toEqual([
-      ["Kai Morgan", "Scan"],
-      ["Sasha Bell", "Guest Check In"],
+    expect(
+      result.ok &&
+        result.data.map((r) => [r.name, r.source, r.zoneCode, r.categoryCode, r.partyName]),
+    ).toEqual([
+      ["Kai Morgan", "Scan", "STG", "CREW", "Harbor Audio"],
+      ["Ana Ruiz", "Clock In", null, null, null],
+      ["Sasha Bell", "Guest Check In", null, null, null],
     ]);
+    expect(JSON.stringify(calls)).toContain('"p_person_ids":["p1"]');
   });
 
   it("groups by zone in the zones' order, door check-ins last", () => {
@@ -140,8 +168,13 @@ describe("the muster list", () => {
       guestName: null,
       plusOnes: null,
       zoneId,
+      zoneCode: null,
+      zoneName: null,
+      credentialNumber: null,
       credentialCategoryId: null,
+      categoryCode: null,
       engagementId: null,
+      partyName: null,
       enteredAt: "2027-06-04T20:00:00Z",
       source: zoneId ? "Scan" : "Guest Check In",
       door: null,
@@ -157,17 +190,20 @@ describe("the muster list", () => {
     ]);
   });
 
-  it("is offered with the scan log or the time entries of the project", async () => {
+  it("says which sources the viewer may read", async () => {
     const { db } = fakeClient({
-      "rpc:my_capabilities_on_project": [okResponse(["crew.time_entry.read"]), okResponse([])],
+      "rpc:my_capabilities_on_project": [
+        okResponse(["crew.time_entry.read", "advancing.packet.read"]),
+        okResponse([]),
+      ],
     });
     expect(await musterAccess(db, "p")).toEqual({
       ok: true,
-      data: { scans: false, clockIns: true },
+      data: { scans: false, clockIns: true, guests: true, doors: false },
     });
     expect(await musterAccess(db, "p")).toEqual({
       ok: true,
-      data: { scans: false, clockIns: false },
+      data: { scans: false, clockIns: false, guests: false, doors: false },
     });
   });
 });
@@ -191,6 +227,7 @@ describe("guest passes at the door", () => {
             pass_category_name: "VIP Guest",
             table_label: "Table 4",
             host_person_id: "h1",
+            host_name: "Dana Ortiz",
           },
         ]),
       ],
@@ -202,6 +239,7 @@ describe("guest passes at the door", () => {
       passCategoryName: "VIP Guest",
       tableLabel: "Table 4",
       hostPersonId: "h1",
+      hostName: "Dana Ortiz",
     });
     expect(guestByPassCode(list.data, " gp-abcdefghij ")?.entryId).toBe("g1");
     expect(guestByPassCode(list.data, "GP-ZZZZZZZZZZ")).toBeUndefined();

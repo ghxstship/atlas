@@ -492,6 +492,8 @@ export interface DoorGuest {
   readonly passCategoryName: string | null;
   readonly tableLabel: string | null;
   readonly hostPersonId: string | null;
+  /** The host's name, from the door list itself: door staff may not read people. */
+  readonly hostName: string | null;
 }
 
 /** The pass code a door scan carries: the guest pass's XOSGP1:<code>, or the code typed as printed. */
@@ -537,6 +539,7 @@ export async function listDoorGuests(
       passCategoryName: strOrNull(r["pass_category_name"]),
       tableLabel: strOrNull(r["table_label"]),
       hostPersonId: strOrNull(r["host_person_id"]),
+      hostName: strOrNull(r["host_name"]),
     }),
   );
 }
@@ -1003,17 +1006,24 @@ export async function saveWeatherTemplate(
 
 export type MusterSource = "Scan" | "Clock In" | "Guest Check In";
 
-/** One person in a zone now, or a guest checked in at a door in the last 24 hours (app.muster_list). */
+/** One person in a zone now, or a guest checked in within the last 24 hours (app.muster_list). */
 export interface MusterRow {
   /** The person present; null for a guest. */
   readonly personId: string | null;
-  /** The person's or the guest's name. */
+  /** The person's or the guest's name; null when the viewer may not know the person by name. */
   readonly name: string | null;
   readonly guestName: string | null;
+  /** Plus-ones admitted at the door; null for a person, a bulk check-in or a viewer without the door check-ins. */
   readonly plusOnes: number | null;
   readonly zoneId: string | null;
+  readonly zoneCode: string | null;
+  readonly zoneName: string | null;
+  readonly credentialNumber: string | null;
   readonly credentialCategoryId: string | null;
+  readonly categoryCode: string | null;
   readonly engagementId: string | null;
+  /** The supplying account of the engagement, else the engaged person. */
+  readonly partyName: string | null;
   readonly enteredAt: string;
   readonly source: MusterSource;
   readonly door: string | null;
@@ -1021,8 +1031,9 @@ export interface MusterRow {
 
 /**
  * The muster list of a project, optionally one zone, read as the caller: scan rows need the project's scan log, clock-in
- * rows its time entries, guest rows both the guest list and the door check-ins. People's names come from
- * app.person_names, as the scan log's do.
+ * rows its time entries, guest rows the guest list, and their door and plus-ones the door check-ins. The view names
+ * zones, categories and parties itself; a person's name the view leaves out (row level security on people, 0204) comes
+ * from app.person_names, as the scan log's does.
  */
 export async function listMuster(
   db: XosClient,
@@ -1031,33 +1042,38 @@ export async function listMuster(
   let query = untyped(db)
     .from("muster_list")
     .select(
-      "person_id, guest_name, plus_ones, zone_id, credential_category_id, engagement_id, entered_at, source, door",
+      "person_id, full_name, guest_name, plus_ones, zone_id, zone_code, zone_name, credential_number, credential_category_id, category_code, engagement_id, party_name, entered_at, source, door",
     )
     .eq("project_id", input.projectId);
   if (input.zoneId) query = query.eq("zone_id", input.zoneId);
   const result = await rows(query.order("entered_at", { ascending: false }).limit(5000), (r) => ({
     personId: strOrNull(r["person_id"]),
-    name: null as string | null,
+    name: strOrNull(r["full_name"]) ?? strOrNull(r["guest_name"]),
     guestName: strOrNull(r["guest_name"]),
     plusOnes: numOrNull(r["plus_ones"]),
     zoneId: strOrNull(r["zone_id"]),
+    zoneCode: strOrNull(r["zone_code"]),
+    zoneName: strOrNull(r["zone_name"]),
+    credentialNumber: strOrNull(r["credential_number"]),
     credentialCategoryId: strOrNull(r["credential_category_id"]),
+    categoryCode: strOrNull(r["category_code"]),
     engagementId: strOrNull(r["engagement_id"]),
+    partyName: strOrNull(r["party_name"]),
     enteredAt: str(r["entered_at"]),
     source: str(r["source"]) as MusterSource,
     door: strOrNull(r["door"]),
   }));
   if (!result.ok) return result;
-  const names = await personNames(
-    db,
-    result.data.map((r) => r.personId),
-  );
+  const unnamed = result.data
+    .filter((r) => r.personId !== null && r.name === null)
+    .map((r) => r.personId);
+  if (unnamed.length === 0) return result;
+  const names = await personNames(db, unnamed);
   return {
     ok: true,
-    data: result.data.map((r) => ({
-      ...r,
-      name: r.personId ? (names.get(r.personId) ?? null) : r.guestName,
-    })),
+    data: result.data.map((r) =>
+      r.personId !== null && r.name === null ? { ...r, name: names.get(r.personId) ?? null } : r,
+    ),
   };
 }
 
@@ -1083,16 +1099,30 @@ export function musterByZone(
 }
 
 /**
- * Whether the viewer may see a project's muster list: the scan log (credentials.scan_log.read) for scan rows, time
- * entries (crew.time_entry.read) for clock-in rows. With neither the page shows its permission state.
+ * What of a project's muster list the viewer may see, so the page says which sources it leaves out: scans need the
+ * scan log (credentials.scan_log.read), clock-ins the time entries (crew.time_entry.read), guests the guest list
+ * (advancing.packet.read) and their doors and plus-ones the door check-ins (credentials.scan.write). With no scans and
+ * no clock-ins the page shows its permission state.
  */
 export async function musterAccess(
   db: XosClient,
   projectId: string,
-): Promise<Result<{ readonly scans: boolean; readonly clockIns: boolean }>> {
+): Promise<
+  Result<{
+    readonly scans: boolean;
+    readonly clockIns: boolean;
+    readonly guests: boolean;
+    readonly doors: boolean;
+  }>
+> {
   const result = await call<string[] | null>(db, "my_capabilities_on_project", {
     p_project_id: projectId,
-    p_capabilities: ["credentials.scan_log.read", "crew.time_entry.read"],
+    p_capabilities: [
+      "credentials.scan_log.read",
+      "crew.time_entry.read",
+      "advancing.packet.read",
+      "credentials.scan.write",
+    ],
   });
   if (!result.ok) return result;
   const held = new Set(result.data ?? []);
@@ -1101,6 +1131,8 @@ export async function musterAccess(
     data: {
       scans: held.has("credentials.scan_log.read"),
       clockIns: held.has("crew.time_entry.read"),
+      guests: held.has("advancing.packet.read"),
+      doors: held.has("credentials.scan.write"),
     },
   };
 }
