@@ -469,9 +469,13 @@ test("R11: a vendor is reminded, gets an answer back and sees its Hospitality tr
 
     // The vendor answers; the Owner returns it with a reason, and the notice reaches Home.
     const advance = `/work/engagements/${engagement.key}/advance`;
+    const packet = page
+      .locator("section")
+      .filter({ has: page.getByRole("heading", { name: packetTitle }) })
+      .last();
     const answer = async (body: string) => {
       await page.goto(advance);
-      const form = page.getByRole("form", { name: "Hotel" });
+      const form = packet.getByRole("form", { name: "Hotel" });
       await form.getByLabel("Your answer").fill(body);
       await form.getByRole("button", { name: "Send answer" }).click();
       await slow(page.getByText("Answer sent. The organization reviews it next.")).toBeVisible();
@@ -493,13 +497,13 @@ test("R11: a vendor is reminded, gets an answer back and sees its Hospitality tr
     ]);
 
     await page.goto(advance);
-    const hospitality = page
+    const hospitality = packet
       .locator("div")
       .filter({ has: page.getByRole("heading", { name: "Hospitality track" }) })
       .last();
     await slow(hospitality.getByText("Signed off", { exact: true })).toBeVisible();
     await slow(hospitality.getByText(/^Signed off .+/)).toBeVisible();
-    const technical = page
+    const technical = packet
       .locator("div")
       .filter({ has: page.getByRole("heading", { name: "Technical track" }) })
       .last();
