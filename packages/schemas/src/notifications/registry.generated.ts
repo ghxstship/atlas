@@ -315,6 +315,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "quote.accepted",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.quote.accepted.subject",
+      body: "kinds.quote.accepted.body",
+    },
+  },
+  {
     kind: "incident.reported",
     category: "safety",
     emailTemplate: "notification",

@@ -205,6 +205,14 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
         test: supabase/tests/1131_external_party_notifications.test.sql
+  # Quotes (B13: 3024). The sender of a quote version hears when the client signs it.
+  - kind: quote.accepted
+    category: finance
+    emitted_by:
+      - emitter: supabase/migrations/3024_quote_acceptance_and_external_views.sql#private.accept_quote_on_signature
+        test: supabase/tests/3024_quote_acceptance.test.sql
+      - emitter: supabase/migrations/3024_quote_acceptance_and_external_views.sql#private.quote_signer_name
+        test: supabase/tests/3024_quote_acceptance.test.sql
   # Safety (0520, 0800)
   - kind: incident.reported
     category: safety

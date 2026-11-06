@@ -1,4 +1,4 @@
--- 2698_notification_kind_seed.test.sql
+-- 3029_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -106,6 +106,10 @@ select set_eq(
   ('invoice.paid', 'Email', 'finance', 'notification'),
   ('invoice.paid', 'SMS', 'finance', null::text),
   ('invoice.paid', 'Push', 'finance', null::text),
+  ('quote.accepted', 'In App', 'finance', null::text),
+  ('quote.accepted', 'Email', 'finance', 'notification'),
+  ('quote.accepted', 'SMS', 'finance', null::text),
+  ('quote.accepted', 'Push', 'finance', null::text),
   ('incident.reported', 'In App', 'safety', null::text),
   ('incident.reported', 'Email', 'safety', 'notification'),
   ('incident.reported', 'SMS', 'safety', null::text),

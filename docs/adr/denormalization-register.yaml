@@ -518,6 +518,70 @@ restated:
     parent: xpms.elements.xyz
     kind: own
     note: The line's XYZ tag; `private.guard_budget_line` requires its category's tag, and the element is optional.
+  - column: app.budget_version_lines.client_unit_price_minor
+    parent: app.budget_lines.client_unit_price_minor
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.cost_center_id
+    parent: app.budget_lines.cost_center_id
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.element_id
+    parent: app.budget_lines.element_id
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.excluded_from_quote
+    parent: app.budget_lines.excluded_from_quote
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.grade_code
+    parent: app.budget_lines.grade_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.line_number
+    parent: app.budget_lines.line_number
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.line_type
+    parent: app.budget_lines.line_type
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.phase_code
+    parent: app.budget_lines.phase_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.quantity
+    parent: app.budget_lines.quantity
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.tier_code
+    parent: app.budget_lines.tier_code
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.unit_basis
+    parent: app.budget_lines.unit_basis
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.unit_price_minor
+    parent: app.budget_lines.unit_price_minor
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.urid
+    parent: app.budget_lines.urid
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.xyz
+    parent: app.budget_lines.xyz
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_version_lines.xyz_basis
+    parent: app.budget_lines.xyz_basis
+    kind: fact
+    note: "Frozen at capture: the budget version keeps the line as it stood when the snapshot or the quote was taken (ADR 0152)."
+  - column: app.budget_versions.currency_code
+    parent: app.budgets.currency_code
+    kind: fact
+    note: "Frozen at capture: the currency of every amount of the version (ADR 0152)."
   - column: app.calendars.time_zone
     parent: app.projects.time_zone
     kind: own
@@ -786,6 +850,10 @@ restated:
     kind: own
     note: One row per sheet of the workbook; the import's is the sheet it reads.
   - column: app.import_jobs.project_id
+    parent: app.budgets.project_id
+    kind: own
+    note: Destination of a guest list import; a budget line import names its budget instead and leaves project_id NULL (import_jobs_one_destination).
+  - column: app.import_jobs.project_id
     parent: app.run_of_show.project_id
     kind: own
     note: Destination of a guest list import; a cue import names its running order instead and leaves project_id NULL (import_jobs_one_destination).
@@ -896,6 +964,10 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project of the invoice; `private.guard_invoice` requires the optional engagement's.
+  - column: app.labor_cost_postings.role_code
+    parent: app.shifts.role_code
+    kind: fact
+    note: The role the rate was resolved for at approval; the shift's role can change later (ADR 0152).
   - column: app.legal_acceptances.user_id
     parent: app.people.user_id
     kind: fact
@@ -1141,6 +1213,10 @@ restated:
     parent: app.notification_deliveries.message_status
     kind: own
     note: Status of one push ticket; the delivery's covers the whole delivery.
+  - column: app.quote_versions.version_number
+    parent: app.budget_versions.version_number
+    kind: own
+    note: The quote's own version number; the budget version's number counts the captures of its budget.
   - column: app.recognitions.project_id
     parent: app.feed_posts.project_id
     kind: own
