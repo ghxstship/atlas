@@ -6,9 +6,12 @@ import { afterEach, vi } from "vitest";
 const borrowed = createRequire(
   fileURLToPath(new URL("../../../../packages/workforce-native/package.json", import.meta.url)),
 );
-const { JSDOM } = borrowed("jsdom") as typeof import("jsdom");
-const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
-const { window } = dom;
+const { JSDOM } = borrowed("jsdom") as {
+  JSDOM: new (html: string, options: { url: string }) => { window: Window & typeof globalThis };
+};
+const { window } = new JSDOM("<!doctype html><html><body></body></html>", {
+  url: "http://localhost/",
+});
 Object.assign(globalThis, {
   window,
   document: window.document,
