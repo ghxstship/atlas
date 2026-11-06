@@ -147141,12 +147141,12 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "description": "The `id` path segment.",
-              "example": "sponsor_activation"
+              "format": "uuid",
+              "description": "Identifier of the quote.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
             },
             "required": true,
-            "description": "The `id` path segment.",
+            "description": "Identifier of the quote.",
             "name": "id",
             "in": "path"
           },
@@ -147156,6 +147156,7 @@
           "200": {
             "description": "The quote.",
             "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }

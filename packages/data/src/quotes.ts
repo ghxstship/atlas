@@ -175,7 +175,9 @@ export async function getQuote(db: XosClient, quoteId: string): Promise<Result<Q
     rows(
       db
         .from("quote_versions")
-        .select("*")
+        .select(
+          "id, quote_id, version_number, quote_version_state, valid_until, terms, budget_version_id, content_sha256, engagement_document_id, sent_at, sent_by, accepted_at, accepted_by, accepted_name, sent_title, sent_client_name, updated_at",
+        )
         .eq("quote_id", quoteId)
         .is("deleted_at", null)
         .order("version_number", { ascending: false }),
@@ -202,7 +204,9 @@ async function capturedLines(db: XosClient, budgetVersionId: string): Promise<Re
   return rows(
     db
       .from("budget_version_lines")
-      .select("id, line_number, description, quantity, unit_basis, unit_price_minor, client_unit_price_minor")
+      .select(
+        "id, budget_version_id, line_number, description, quantity, unit_basis, unit_price_minor, client_unit_price_minor, excluded_from_quote",
+      )
       .eq("budget_version_id", budgetVersionId)
       .eq("excluded_from_quote", false)
       .order("line_number"),

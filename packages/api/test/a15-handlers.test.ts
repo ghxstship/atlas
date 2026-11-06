@@ -43,6 +43,9 @@ const ME = testContext().personId as string;
 const id = (n: number) => `0192f1e2-7c3a-7b4d-9e8f-${String(n).padStart(12, "0")}`;
 
 const PROJECT = id(1001);
+const QUOTE = id(4801);
+const QUOTE_VERSION = id(4802);
+const QUOTE_CAPTURE = id(4803);
 const BUDGET = id(1101);
 const LINE = id(1201);
 const CONTINGENCY = id(1202);
@@ -122,6 +125,7 @@ function world() {
           unit_price_minor: 4500,
           xyz: "X",
           xyz_basis: "Category",
+          excluded_from_quote: false,
         }),
         tenantRow(CONTINGENCY, ORG, {
           budget_id: BUDGET,
@@ -137,6 +141,55 @@ function world() {
           unit_price_minor: null,
           xyz: "Z",
           xyz_basis: "Declared",
+          excluded_from_quote: true,
+        }),
+      ],
+      quote_statuses: [
+        {
+          quote_id: QUOTE,
+          org_id: ORG,
+          project_id: PROJECT,
+          budget_id: BUDGET,
+          engagement_id: null,
+          quote_key: "NWF26-Q-14",
+          title: "Main stage",
+          client_name: "Coral Group",
+          current_version_id: QUOTE_VERSION,
+          current_version_number: 1,
+          display_state: "Sent",
+          valid_until: "2027-01-01",
+          sent_at: "2026-11-01T00:00:00.000Z",
+          accepted_at: null,
+          currency_code: "USD",
+          client_total_minor: 25000,
+          margin_minor: 5000,
+          has_draft: false,
+        },
+      ],
+      quote_versions: [
+        tenantRow(QUOTE_VERSION, ORG, {
+          quote_id: QUOTE,
+          version_number: 1,
+          quote_version_state: "Sent",
+          valid_until: "2027-01-01",
+          terms: null,
+          budget_version_id: QUOTE_CAPTURE,
+          content_sha256: "a".repeat(64),
+          sent_at: "2026-11-01T00:00:00.000Z",
+          accepted_at: null,
+          accepted_name: null,
+        }),
+      ],
+      budget_version_lines: [
+        tenantRow(id(4901), ORG, {
+          budget_version_id: QUOTE_CAPTURE,
+          line_number: 1,
+          description: "Stage deck rental",
+          quantity: 2,
+          unit_basis: null,
+          unit_price_minor: 10000,
+          client_unit_price_minor: 12500,
+          excluded_from_quote: false,
         }),
       ],
       budget_line_facts: [
@@ -505,7 +558,7 @@ function world() {
     },
     {
       budgets: { is_baseline: false },
-      budget_lines: { line_type: "Cost", quantity: 1 },
+      budget_lines: { line_type: "Cost", quantity: 1, excluded_from_quote: false },
       expenses: { expense_state: "Proposed", submitter_person_id: ME },
       change_orders: {
         change_order_state: "Proposed",
@@ -1122,6 +1175,27 @@ describe("invoices and payments", () => {
     const deliveryOne = await success(http.get(`/report-deliveries/${DELIVERY}`));
     const delivery = (await expectContract(deliveryOne, "reportDeliveries.get")) as Row;
     expect(delivery["delivery_status"]).toBe("Sent");
+  });
+
+  it("reads quotes with versions, client lines and the internal cost (B13)", async () => {
+    const { http } = world();
+    const page = (await expectContract(await success(http.get("/quotes")), "quotes.list")) as {
+      data: Row[];
+    };
+    expect(page.data[0]).toMatchObject({ id: QUOTE, quote_key: "NWF26-Q-14", versions: null });
+    const one = (await expectContract(await success(http.get(`/quotes/${QUOTE}`)), "quotes.get")) as Row;
+    expect(one["cost_total_minor"]).toBe(20000);
+    expect(one["lines"]).toEqual([
+      {
+        line_number: 1,
+        description: "Stage deck rental",
+        quantity: 2,
+        unit_basis: null,
+        unit_price_minor: 12500,
+        amount_minor: 25000,
+      },
+    ]);
+    expect((one["versions"] as Row[])[0]).toMatchObject({ id: QUOTE_VERSION, quote_version_state: "Sent" });
   });
 
   it("lists the 1099-NEC payees of a tax year without full TINs (A38-006)", async () => {

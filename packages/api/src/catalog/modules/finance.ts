@@ -121,6 +121,7 @@ const Quote = defineResource({
   description:
     "A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state.",
   base: "view",
+  key: "id",
   fields: {
     id: fields.ref("quote"),
     quote_key: fields.text("Display key, the project key, -Q- and the number.", "NWF26-Q-14"),

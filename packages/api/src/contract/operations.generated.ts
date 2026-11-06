@@ -6665,6 +6665,26 @@ export interface Components {
     client_total_minor: number | null;
     margin_minor: number | null;
     has_draft: boolean;
+    cost_total_minor: number | null;
+    versions: Array<{
+      id: string;
+      version_number: number;
+      quote_version_state: "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+      valid_until: string;
+      terms: string | null;
+      content_sha256: string | null;
+      sent_at: string | null;
+      accepted_at: string | null;
+      accepted_name: string | null;
+    }> | null;
+    lines: Array<{
+      line_number: number;
+      description: string;
+      quantity: number;
+      unit_basis: string | null;
+      unit_price_minor: number | null;
+      amount_minor: number | null;
+    }> | null;
   };
   QuotePage: { data: Array<Components["Quote"]>; next_cursor: string | null };
   RFQTransitionRequest: { expected_state: string; to_state: string; reason?: string };
