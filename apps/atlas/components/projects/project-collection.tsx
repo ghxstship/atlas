@@ -7,7 +7,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
-import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import type { ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
@@ -20,6 +20,10 @@ import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { isConditionParam } from "@/lib/views/query";
 
 // Views other than the default table, and the peek, load when shown (A24-009).
+// Loaded on demand: most visits to Projects never open it, and the page sits at its route budget.
+const CreateProjectDialog = dynamic(() =>
+  import("./create-project").then((m) => m.CreateProjectDialog),
+);
 const ProjectOtherView = dynamic(() =>
   import("./project-other-views").then((m) => m.ProjectOtherView),
 );
