@@ -1212,13 +1212,14 @@ export interface ZoneCount {
 export async function zoneCountsLive(
   db: XosClient,
   projectId: string,
+  zoneId?: string | null,
 ): Promise<Result<ZoneCount[]>> {
-  const { data, error } = await db
-    .from("zone_counts_live")
-    .select("zone_id, credential_category_id, engagement_id, party_name, inside, last_entry_at")
-    .eq("project_id", projectId);
+  const { data, error } = await db.rpc("zone_count_rows", {
+    p_project_id: projectId,
+    ...(zoneId ? { p_zone_id: zoneId } : {}),
+  });
   if (error) return fail(toDataError(error));
-  const rows = (data ?? []) as {
+  const rows = (data ?? []) as unknown as {
     zone_id: string;
     credential_category_id: string | null;
     engagement_id: string | null;

@@ -162,6 +162,16 @@ select is((select row(full_name, party_name)::text from app.zone_presence where 
   '("Sam Kowalski","Bayside Audio")', 'and an account party, a counterparty organization the reader cannot read');
 select is((select party_name from app.muster_list where person_id = pg_temp.id('sam')), 'Bayside Audio', 'on the muster list too');
 select is((select party_name from app.zone_counts_live where engagement_id = pg_temp.id('eng_vendor_a')), 'Bayside Audio', 'and on the counts');
+-- One answer past the API's row cap: the same rows as the views, and a limit the page can read as more than it shows.
+select is((select jsonb_array_length(app.muster_rows(pg_temp.id('prj_a'))))::int,
+  (select count(*)::int from app.muster_list where project_id = pg_temp.id('prj_a')), 'app.muster_rows answers every row the view reads');
+select is((select jsonb_array_length(app.muster_rows(pg_temp.id('prj_a'), null, 1)))::int, 1, 'at its limit');
+select is((select jsonb_array_length(app.muster_rows(pg_temp.id('prj_a'), pg_temp.id('zone_a'))))::int,
+  (select count(*)::int from app.muster_list where zone_id = pg_temp.id('zone_a')), 'for one zone');
+select is((select sum((c ->> 'inside')::int)::int from jsonb_array_elements(app.zone_count_rows(pg_temp.id('prj_a'))) c),
+  (select sum(inside)::int from app.zone_counts_live where project_id = pg_temp.id('prj_a')), 'app.zone_count_rows sums to the same people');
+select is((select sum((c ->> 'inside')::int)::int from jsonb_array_elements(app.zone_count_rows(pg_temp.id('prj_a'), pg_temp.id('zone_a'))) c),
+  (select sum(inside)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_a')), 'for one zone too');
 select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$, 'a Field reader selects every column without a crash');
 select is((select count(*)::int from app.people where id = pg_temp.id('ivy')), 0, 'though app.people still hides her');
 -- Callers have no usage on the private schema, and a view reaches the helpers without it, as these views do.

@@ -132,7 +132,7 @@ export async function MusterSection({
       timeZone: project.timeZone,
     });
   const groups = musterByZone(
-    rows.data,
+    rows.data.slice(0, MUSTER_LIMIT),
     zoneList.map((z) => z.id),
   );
   const zoneLabel = (id: string | null, row?: MusterRow) => {
@@ -141,7 +141,8 @@ export async function MusterSection({
     if (z) return `${z.code} · ${z.name}`;
     return row?.zoneCode ? `${row.zoneCode} · ${row.zoneName ?? ""}` : id;
   };
-  const cutShort = rows.data.length >= MUSTER_LIMIT;
+  // One more than the limit is read, so the notice shows only when people are really left out.
+  const cutShort = rows.data.length > MUSTER_LIMIT;
   const place = (r: MusterRow) =>
     r.source === "Guest Check In"
       ? r.door

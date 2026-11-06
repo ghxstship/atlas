@@ -166,6 +166,21 @@ select is(private.advance_outstanding(pg_temp.id('rcp_v')), 1, 'a Closing engage
 select is(private.send_advance_reminders(), 2, 'and is still reminded');
 select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
 select is(private.advance_outstanding(pg_temp.id('rcp_v')), 0, 'once Complete, nothing is outstanding');
+-- A recipient added with no engagement picked goes by the party's own engagements on the project.
+select pg_temp.as_user('alice');
+with p as (insert into app.advance_packets (project_id, title, due_at) values (pg_temp.id('prj_a'), 'Unlinked Advance', now() + interval '2 days') returning id)
+insert into world select 'pkt_u', id from p;
+with s as (insert into app.advance_sections (advance_packet_id, position, title) values (pg_temp.id('pkt_u'), 1, 'Arrival') returning id)
+insert into world select 's_u', id from s;
+with r as (insert into app.advance_recipients (advance_packet_id, person_id) values (pg_temp.id('pkt_u'), pg_temp.id('ivy')) returning id)
+insert into world select 'rcp_u', id from r;
+select app.send_advance_packet(pg_temp.id('pkt_u'));
+select pg_temp.as_platform();
+select is(private.advance_outstanding(pg_temp.id('rcp_u')), 1, 'an unlinked recipient with an open engagement has its section outstanding');
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Canceled');
+select is(private.advance_outstanding(pg_temp.id('rcp_u')), 0, 'and nothing once that engagement is Canceled');
+delete from private.advance_reminders_sent where advance_recipient_id = pg_temp.id('rcp_u');
+update app.advance_packets set deleted_at = now() where id = pg_temp.id('pkt_u');
 update app.advance_packets set due_at = now() + interval '1 day 1 minute' where id = pg_temp.id('pkt');
 select is(private.send_advance_reminders(), 0, 'a moved due date reminds nobody');
 update app.advance_packets set due_at = now() - interval '3 days' where id = pg_temp.id('pkt');

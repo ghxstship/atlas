@@ -230,5 +230,20 @@ select ok(exists (select 1 from pg_catalog.pg_publication_tables where pubname =
 select ok(exists (select 1 from private.field_history_subjects where table_name = 'app.advance_recipients'), 'recipients have field history');
 select ok(exists (select 1 from private.field_history_subjects where table_name = 'app.advance_sections'), 'and sections');
 
+-- Openness goes by the party's engagements on the project, linked to the recipient or not.
+select pg_temp.as_platform();
+select ok(private.advance_party_open(pg_temp.id('prj_a'), null, pg_temp.id('quinn'), null), 'a party with no engagement here stays open');
+select ok(private.advance_party_open(pg_temp.id('prj_a'), null, null, null), 'as does a recipient naming no party');
+select ok(private.advance_party_open(pg_temp.id('prj_a'), null, pg_temp.id('ivy'), null), 'an unlinked person with an open engagement is open');
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Canceled');
+select ok(not private.advance_party_open(pg_temp.id('prj_a'), null, pg_temp.id('ivy'), null), 'an unlinked person whose only engagement here is Canceled is closed');
+select ok(not private.advance_party_open(pg_temp.id('prj_a'), null, pg_temp.id('art'), null), 'and one whose only engagement is Complete');
+insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)
+  select e.project_id, e.person_id, e.role_type, e.role_code, e.worker_classification, e.pay_basis, e.arrangement, e.start_date
+  from app.engagements e where e.id = pg_temp.id('eng_art_a');
+select ok(private.advance_party_open(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'), pg_temp.id('art'), null), 'a second open engagement keeps the party open though the linked one is Complete');
+update app.engagements set deleted_at = now() where person_id = pg_temp.id('art') and id <> pg_temp.id('eng_art_a');
+select ok(not private.advance_party_open(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'), pg_temp.id('art'), null), 'a removed engagement counts for nothing');
+
 select * from finish();
 rollback;

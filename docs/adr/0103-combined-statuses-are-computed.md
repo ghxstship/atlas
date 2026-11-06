@@ -112,9 +112,10 @@ Migrations 4690 to 4698 build sections 3 and 4. Where the build differs from the
 - **Computed, nothing is stored.** R11's advance progress (`app.advance_progress`), crew readiness
   (`app.roster_readiness`) and allocation heat (`app.advance_allocation_heat`, over `app.advance_allocation_status`)
   are computed when read (migration 6220), so `docs/adr/denormalization-register.md` gets no row for them.
-- **Closed engagements.** Section 8.7 closes advancing to a party for good once its engagement is Complete or
-  Canceled, so `app.advance_progress` keeps that recipient's rows with `recipient_open` false: nothing it left is
-  overdue or outstanding, and no reminder goes out. Its answers stay readable. Its roster leaves `app.roster_readiness`.
+- **Closed engagements.** Section 8.7 closes advancing to a party for good once its engagements on the project
+  are all Complete, Canceled or removed, whether or not the recipient names one (`private.advance_party_open`), so
+  `app.advance_progress` keeps that recipient's rows with `recipient_open` false: nothing it left is overdue or
+  outstanding, and no reminder goes out. A recipient whose party has no engagement here stays open. Its answers stay readable. Its roster leaves `app.roster_readiness`.
 - **Track states.** A track sign-off is a fact: who signed (`created_by`) and when (`signed_off_at`) in
   `app.advance_track_signoffs`, revoked with a reason and never deleted (migration 6223). The track state (Not
   Started, In Progress, Ready for Sign-off, Signed Off, Reopened) is computed in `app.advance_track_progress` from

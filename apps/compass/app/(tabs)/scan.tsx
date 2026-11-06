@@ -306,7 +306,7 @@ function LiveScan({
       return;
     }
     let live = true;
-    void zoneCountsLive(client as unknown as XosClient, projectId).then((counts) => {
+    void zoneCountsLive(client as unknown as XosClient, projectId, zoneId).then((counts) => {
       if (live) setInside(counts.ok ? (zoneTotals(counts.data).get(zoneId) ?? 0) : null);
     });
     return () => {

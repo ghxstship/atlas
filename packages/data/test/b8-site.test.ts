@@ -20,7 +20,7 @@ import { fakeClient, okResponse } from "./fake-client.ts";
 describe("Inside now", () => {
   it("sums each zone's people and splits them by category and by team, zones by code", async () => {
     const { db, calls } = fakeClient({
-      "from:zone_counts_live": [
+      "rpc:zone_count_rows": [
         okResponse([
           {
             zone_id: "z2",
@@ -87,7 +87,7 @@ describe("Inside now", () => {
   });
 
   it("reads nothing more when nobody is inside", async () => {
-    const { db, calls } = fakeClient({ "from:zone_counts_live": [okResponse([])] });
+    const { db, calls } = fakeClient({ "rpc:zone_count_rows": [okResponse([])] });
     expect(await insideNow(db, { orgId: "o", projectId: "p", venueId: null })).toEqual({
       ok: true,
       data: [],
@@ -158,7 +158,7 @@ describe("the muster list", () => {
 
   it("reads the names and codes from the view, so the export carries the same names", async () => {
     const { db, calls } = fakeClient({
-      "from:muster_list": [
+      "rpc:muster_rows": [
         okResponse([
           {
             ...base,

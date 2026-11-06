@@ -49,7 +49,7 @@ name), and the AI-drafted induction quiz, anti-passback, lightning networks and 
    no name. `private.presence_clock_people` gives time entries' people, ids and not names, for a reader who may not read
    memberships or engagements, so a clock-in never silently drops off the list. Each takes arrays, answers one map, and each view
    calls it once, so the gate runs once per statement: a helper called per row took 33 to 41 seconds at 5,000 rows, past
-   the 8-second statement timeout, and would have replaced an evacuation list with an error. It now takes about 0.25
+   the 8-second statement timeout we assume for `authenticated` (the platform's default, not set in this repository), and would have replaced an evacuation list with an error. It now takes about 0.25
    seconds. A refresh that still fails
    keeps the last list on screen and says so. The views scan none of those tables, as
    ADR 0016 rule 14 asks. `app.zone_counts_live` counts people scanned in;

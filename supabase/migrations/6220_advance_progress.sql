@@ -6,8 +6,8 @@
 --   1. app.advance_progress (security_invoker): one row per live sent packet, live recipient and live section, with
 --      the latest answer and its cell_state (Missing, Awaiting Review, Accepted, Returned, Complete or Not
 --      Applicable) and overdue. A Crew Roster section is Complete from the recipient engagement's roster, never
---      answered; a Guest List section is Not Applicable for a Contractor or Sponsor engagement. A recipient whose linked
---      engagement is Complete or Canceled keeps its row and its answers, with recipient_open false: it can no longer
+--      answered; a Guest List section is Not Applicable for a Contractor or Sponsor engagement. A recipient whose party's
+--      engagements on the project are all Complete or Canceled keeps its row and its answers, with recipient_open false: it can no longer
 --      answer, so nothing it left is overdue or outstanding.
 --   2. app.roster_readiness(project): a person-by-category grid of each live roster entry of an engagement still open,
 --      with states only (On File, Missing, Not Shared, Shared, Submitted, Not Offered, Hidden and the person's answer).
@@ -83,21 +83,25 @@ comment on function private.advance_section_cell(app.advance_section_kind, uuid)
 revoke all on function private.advance_section_cell(app.advance_section_kind, uuid) from public, anon;
 grant execute on function private.advance_section_cell(app.advance_section_kind, uuid) to authenticated, service_role;
 
-create or replace function private.advance_engagement_open(p_engagement_id uuid)
+create or replace function private.advance_party_open(p_project_id uuid, p_engagement_id uuid, p_person_id uuid, p_counterparty_id uuid)
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select p_engagement_id is null or exists (
-    select 1 from app.engagements e
-    where e.id = p_engagement_id and e.deleted_at is null and e.engagement_state not in ('Complete', 'Canceled'));
+  with party as (
+    select e.deleted_at, e.engagement_state from app.engagements e
+    where e.project_id = p_project_id
+      and (e.id = p_engagement_id or e.person_id = p_person_id or e.counterparty_id = p_counterparty_id)
+  )
+  select not exists (select 1 from party)
+    or exists (select 1 from party x where x.deleted_at is null and x.engagement_state not in ('Complete', 'Canceled'));
 $$;
 
-comment on function private.advance_engagement_open(uuid) is 'R11: false when the engagement an advance recipient answers under is Complete, Canceled or removed, since Section 8.7 then closes advancing to its party for good; true while it is open, and for a recipient linked to no engagement. Definer so the answer never depends on the reader''s engagement policies. Takes column values.';
-revoke all on function private.advance_engagement_open(uuid) from public, anon;
-grant execute on function private.advance_engagement_open(uuid) to authenticated, service_role;
+comment on function private.advance_party_open(uuid, uuid, uuid, uuid) is 'R11: whether an advance recipient can still answer, by the party''s engagements on the project, as Section 8.7 decides: linked to one or not, a person or account all of whose engagements here are Complete, Canceled or removed is closed for good, and any open engagement keeps them open. A recipient with no engagement here (a token or venue contact) stays open. Definer so a reader who lacks the engagement''s row still gets the same grid.';
+revoke all on function private.advance_party_open(uuid, uuid, uuid, uuid) from public, anon;
+grant execute on function private.advance_party_open(uuid, uuid, uuid, uuid) to authenticated, service_role;
 
 -- 1. Packets ------------------------------------------------------------------------------------------------------------
 
@@ -122,7 +126,7 @@ cross join lateral (
   select coalesce(private.advance_section_cell(s.section_kind, r.engagement_id),
     case when l.id is null then 'Missing' when l.review_outcome is null then 'Awaiting Review' else l.review_outcome::text end)
     as cell_state,
-    private.advance_engagement_open(r.engagement_id) as recipient_open
+    private.advance_party_open(p.project_id, r.engagement_id, r.person_id, r.counterparty_id) as recipient_open
 ) c
 where p.deleted_at is null and p.sent_at is not null;
 
@@ -143,7 +147,7 @@ call private.describe('app.advance_progress', 'Where every recipient of every se
   'submitted_at', 'When the latest answer was given.',
   'cell_state', 'Missing, Awaiting Review, Accepted, Returned, Complete (a Crew Roster with every entry past review) or Not Applicable (a Guest List for a Contractor or Sponsor).',
   'overdue', 'True when the packet is past due, the section is Missing or Returned, and the recipient can still answer.',
-  'recipient_open', 'False once the engagement the recipient answers under is Complete or Canceled: the party can no longer answer, so what it left is not outstanding.'
+  'recipient_open', 'False once every engagement of the party on the project is Complete, Canceled or removed: the party can no longer answer, so what it left is not outstanding.'
 ]);
 
 revoke all on app.advance_progress from public, anon;

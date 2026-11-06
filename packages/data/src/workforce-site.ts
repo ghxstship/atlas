@@ -1018,7 +1018,7 @@ export interface MusterRow {
   readonly door: string | null;
 }
 
-/** The most rows the muster page reads; at this count the page says the list is cut short and points to the export. */
+/** The most rows the muster page shows; past this count it says the list is cut short and points to the export. */
 export const MUSTER_LIMIT = 5000;
 
 /**
@@ -1030,30 +1030,31 @@ export async function listMuster(
   db: XosClient,
   input: { readonly projectId: string; readonly zoneId?: string | null },
 ): Promise<Result<MusterRow[]>> {
-  let query = db
-    .from("muster_list")
-    .select(
-      "person_id, full_name, guest_name, plus_ones, zone_id, zone_code, zone_name, credential_number, credential_category_id, category_code, engagement_id, party_name, entered_at, source, door",
-    )
-    .eq("project_id", input.projectId);
-  if (input.zoneId) query = query.eq("zone_id", input.zoneId);
-  return rows(query.order("entered_at", { ascending: false }).limit(MUSTER_LIMIT), (r) => ({
-    personId: strOrNull(r["person_id"]),
-    name: strOrNull(r["full_name"]) ?? strOrNull(r["guest_name"]),
-    guestName: strOrNull(r["guest_name"]),
-    plusOnes: numOrNull(r["plus_ones"]),
-    zoneId: strOrNull(r["zone_id"]),
-    zoneCode: strOrNull(r["zone_code"]),
-    zoneName: strOrNull(r["zone_name"]),
-    credentialNumber: strOrNull(r["credential_number"]),
-    credentialCategoryId: strOrNull(r["credential_category_id"]),
-    categoryCode: strOrNull(r["category_code"]),
-    engagementId: strOrNull(r["engagement_id"]),
-    partyName: strOrNull(r["party_name"]),
-    enteredAt: str(r["entered_at"]),
-    source: str(r["source"]) as MusterSource,
-    door: strOrNull(r["door"]),
-  }));
+  const { data, error } = await db.rpc("muster_rows", {
+    p_project_id: input.projectId,
+    p_limit: MUSTER_LIMIT + 1,
+    ...(input.zoneId ? { p_zone_id: input.zoneId } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as Raw[]).map((r) => ({
+      personId: strOrNull(r["person_id"]),
+      name: strOrNull(r["full_name"]) ?? strOrNull(r["guest_name"]),
+      guestName: strOrNull(r["guest_name"]),
+      plusOnes: numOrNull(r["plus_ones"]),
+      zoneId: strOrNull(r["zone_id"]),
+      zoneCode: strOrNull(r["zone_code"]),
+      zoneName: strOrNull(r["zone_name"]),
+      credentialNumber: strOrNull(r["credential_number"]),
+      credentialCategoryId: strOrNull(r["credential_category_id"]),
+      categoryCode: strOrNull(r["category_code"]),
+      engagementId: strOrNull(r["engagement_id"]),
+      partyName: strOrNull(r["party_name"]),
+      enteredAt: str(r["entered_at"]),
+      source: str(r["source"]) as MusterSource,
+      door: strOrNull(r["door"]),
+    })),
+  );
 }
 
 /** Muster rows grouped by zone, in the order of the zones given, then the door check-ins (zone null) last. */

@@ -194,7 +194,7 @@ grant execute on function app.credential_bookings_elsewhere(uuid) to authenticat
 -- app.credentials is what ADR 0016 rule 14 forbids. Here nothing is a view, so the helpers run as the function's owner,
 -- and each row's project must be one the caller holds credentials.credential.read on. private.project_ids_with answers
 -- that once for the statement: private.can_on_project per row, several times a row, would take a 500-badge page past the
--- 8-second statement timeout of `authenticated`.
+-- 8-second statement timeout we assume for `authenticated` (the platform's default).
 create function app.credential_review(p_credential_ids uuid[])
 returns table (
   credential_id uuid,

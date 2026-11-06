@@ -58,8 +58,8 @@ export interface DoorCheckInScreenProps {
 
 /**
  * Compass door check-in: search the guest list and admit a guest with their plus-ones. A guest's pass (B8, XOSGP1:<code>,
- * scanned on the Scan tab or typed here) finds them in the loaded door list and opens their check-in; a pass not on the
- * list or already used says so, and without a loaded list (offline) the door is asked to connect first.
+ * scanned on the Scan tab or typed here) finds them in the door list, searched by its code, and opens their check-in; a
+ * pass not on the list or already used says so, and without a loaded list (offline) the door is asked to connect first.
  */
 export function DoorCheckInScreen({
   status,
@@ -100,9 +100,26 @@ export function DoorCheckInScreen({
     setGuest(found);
     return true;
   };
+  // The list on screen is narrowed by Search and capped, so a typed pass it does not hold is looked up by its code, as a
+  // scanned one is, and answered when that list arrives.
+  const lookup = useRef<{ readonly raw: string; readonly list: readonly DoorGuest[] } | null>(null);
   const checkPass = () => {
+    const code = passCodeFromScan(pass);
+    if (status === "ready" && code && !guestByPassCode(guests, code) && search !== code) {
+      lookup.current = { raw: pass, list: guests };
+      setPassNotice(null);
+      onSearch(code);
+      return;
+    }
     if (openPass(pass)) setPass("");
   };
+  useEffect(() => {
+    const asked = lookup.current;
+    if (!asked || status !== "ready" || guests === asked.list) return;
+    lookup.current = null;
+    if (openPass(asked.raw)) setPass("");
+    // openPass reads the current list and labels; only the list arriving answers.
+  }, [status, guests]);
   // A pass scanned on the Scan tab is answered once, when the list holding it has loaded; an offline door says so and
   // answers on the retry.
   const answered = useRef(false);

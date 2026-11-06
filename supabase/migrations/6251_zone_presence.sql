@@ -32,7 +32,7 @@
 --
 -- They take arrays, answer one jsonb map, and each view calls them once. A muster list is read every 30 seconds and can
 -- hold thousands of rows. A helper called per row runs private.project_ids_with per row, about 8 ms a row, which at 1,000
--- rows passes the 8-second statement timeout of `authenticated` and replaces the list with an error during an
+-- rows passes the 8-second statement timeout we assume for `authenticated` (the platform's default; nothing here sets it) and replaces the list with an error during an
 -- evacuation. The gate is the same gate, evaluated once per statement. A map rather than rows to join, because the planner
 -- cannot estimate these CTEs and nests the join: 5,000 rows against 5,000 is 25 million comparisons, 4 seconds.
 --
@@ -271,6 +271,46 @@ call private.describe('app.muster_list', 'The muster list (Section 4.9, gap G-14
 revoke all on app.muster_list from public, anon;
 grant select on app.muster_list to authenticated, service_role;
 revoke select on app.muster_list from xos_backup;
+
+-- One answer past the row cap ---------------------------------------------------------------------------------------
+
+-- PostgREST caps every answer of rows at 1,000 with no error (config.toml max_rows, ADR 0060), and an evacuation list must
+-- not be cut silently. These answer one jsonb array, read in one statement, so the list is one instant of the site.
+create function app.muster_rows(p_project_id uuid, p_zone_id uuid default null, p_limit integer default 5001)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(to_jsonb(m) order by m.entered_at desc), '[]'::jsonb)
+  from (
+    select l.person_id, l.full_name, l.guest_name, l.plus_ones, l.zone_id, l.zone_code, l.zone_name, l.credential_number,
+      l.credential_category_id, l.category_code, l.engagement_id, l.party_name, l.entered_at, l.source, l.door
+    from app.muster_list l
+    where l.project_id = p_project_id and (p_zone_id is null or l.zone_id = p_zone_id)
+    order by l.entered_at desc
+    limit greatest(least(p_limit, 5001), 1)
+  ) m;
+$$;
+comment on function app.muster_rows(uuid, uuid, integer) is 'The muster list of a project, optionally one zone, as one jsonb array read in one statement: past 1,000 rows it is not cut by the API''s row cap, and it is one instant of the site. Newest entry first, at most 5,001 rows, so the page can tell the list stops at 5,000. As the caller: app.muster_list decides what they read.';
+revoke all on function app.muster_rows(uuid, uuid, integer) from public, anon;
+grant execute on function app.muster_rows(uuid, uuid, integer) to authenticated, service_role;
+
+create function app.zone_count_rows(p_project_id uuid, p_zone_id uuid default null)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(jsonb_build_object('zone_id', c.zone_id, 'credential_category_id', c.credential_category_id,
+      'engagement_id', c.engagement_id, 'party_name', c.party_name, 'inside', c.inside, 'last_entry_at', c.last_entry_at)),
+    '[]'::jsonb)
+  from app.zone_counts_live c
+  where c.project_id = p_project_id and (p_zone_id is null or c.zone_id = p_zone_id);
+$$;
+comment on function app.zone_count_rows(uuid, uuid) is 'The live counts of a project, optionally one zone, as one jsonb array read in one statement: individually engaged crew give about one row each, so the rows must sum to everyone inside past the API''s row cap. As the caller: app.zone_counts_live decides what they read.';
+revoke all on function app.zone_count_rows(uuid, uuid) from public, anon;
+grant execute on function app.zone_count_rows(uuid, uuid) to authenticated, service_role;
 
 -- Columns that show another column, for export classification (2030) --------------------------------------------------
 

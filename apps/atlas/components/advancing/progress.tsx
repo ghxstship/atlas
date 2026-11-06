@@ -124,8 +124,13 @@ export async function AdvancingProgress({
       ? listAllocationHeat(db, project.id)
       : Promise.resolve({ ok: true as const, data: [] as AllocationHeatCell[] }),
   ]);
-  const cells = progress.ok ? progress.data : [];
-  const trackRows = tracks.ok ? tracks.data : [];
+  // Row level security gives a non-reader no rows, not an error, so a failed read is a real failure: the page must not say
+  // nothing is outstanding on a read it never got.
+  if (!progress.ok) throw new Error(`Cannot read advancing progress: ${progress.error.kind}`);
+  if (!tracks.ok) throw new Error(`Cannot read advancing tracks: ${tracks.error.kind}`);
+  if (!heat.ok) throw new Error(`Cannot read the allocation grid: ${heat.error.kind}`);
+  const cells = progress.data;
+  const trackRows = tracks.data;
   const readinessCells = readiness.ok ? readiness.data : [];
 
   // Packets, soonest due first; the filter picks one, else the first.
@@ -338,7 +343,7 @@ export async function AdvancingProgress({
       body = <LinkedHeatmap data={data} />;
     }
   } else {
-    const rows = heat.ok ? heat.data : [];
+    const rows = heat.data;
     const colOf = (c: AllocationHeatCell) => c.offering ?? `${c.kind}`;
     const colLabel = (c: AllocationHeatCell) =>
       c.offering

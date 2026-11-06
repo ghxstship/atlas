@@ -3,7 +3,7 @@
 import { resolveTemplate, type EventType } from "@xos/data/event-types";
 import { offsetBetween, summarizeProjectCopy, PROJECT_COPY_PARTS } from "@xos/data/project-copy";
 import { EVENT_AUDIENCES, EVENT_SCALES } from "@xos/data/setup";
-import { Button, Checkbox, Input, Radio, Select, Skeleton, Tag } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, Radio, Select, Skeleton, Tag } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { ActionState } from "@/lib/projects/actions";
@@ -223,6 +223,11 @@ export function CreateProjectWizard({
   const templateChoice =
     startFrom === "type" && type ? "type" : startFrom === "template" ? "template" : "none";
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
+  const unseenErrors = Object.entries(state.fieldErrors ?? {}).flatMap(([name, key]) => {
+    const holder = stepOfField(name);
+    const seen = staged ? steps.includes(holder) : holder === "basics";
+    return seen ? [] : [key];
+  });
 
   const startFromOptions = [
     ...(type
@@ -246,9 +251,12 @@ export function CreateProjectWizard({
     { value: "blank", label: t("intake.startFrom.blank"), help: t("intake.startFrom.blankHelp") },
   ];
 
+  // Radio is uncontrolled, so it remounts with the event type to show the start that choice just set; the hidden field
+  // below is what the form posts.
   const startFromField = (
     <Radio
-      name="startFrom"
+      key={typeId}
+      name="startFromChoice"
       label={t("intake.startFrom.label")}
       value={startFrom}
       options={startFromOptions}
@@ -505,6 +513,7 @@ export function CreateProjectWizard({
       <input type="hidden" name="org" value={org} />
       {hidden("eventTypeId", type ? type.id : "")}
       {hidden("templateChoice", templateChoice)}
+      {hidden("startFrom", startFrom)}
       {type ? null : (
         <>
           {hidden("eventScale", "")}
@@ -513,6 +522,12 @@ export function CreateProjectWizard({
       )}
       <p className="m-0 text-text-13 text-text-secondary">{t("create.description")}</p>
       <ActionError state={state} />
+      {/* A refusal on a field no step on screen holds still says what is wrong. */}
+      {unseenErrors.map((key) => (
+        <InlineAlert key={key} tone="danger">
+          {t(`errors.${key}`)}
+        </InlineAlert>
+      ))}
       <p className="sr-only" aria-live="polite">
         {announce}
       </p>

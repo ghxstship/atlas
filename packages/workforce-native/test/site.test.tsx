@@ -377,6 +377,66 @@ describe("DoorCheckInScreen", () => {
     expect(screen.getByText("errorSentence passOffline")).toBeTruthy();
   });
 
+  it("looks a typed pass up by its code when the search has narrowed the list (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>([
+      "pass",
+      "checkPass",
+      "search",
+      "passNotListed",
+      "sheetTitle",
+    ]);
+    const onSearch = vi.fn();
+    const guest = {
+      entryId: "e1",
+      name: "Sasha Bell",
+      plusOnes: 0,
+      state: "Approved",
+      checkedInAt: null,
+      passCode: "GP-ABCDEFGHIJ",
+      passCategoryCode: null,
+      passCategoryName: null,
+      tableLabel: null,
+      hostName: null,
+    } as unknown as DoorGuest;
+    const screenAt = (guests: readonly DoorGuest[], search: string) => (
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={guests}
+        search={search}
+        onSearch={onSearch}
+        onCheckIn={async () => ({ ok: true })}
+      />
+    );
+    const view = render(screenAt([], "smith"));
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ABCDEFGHIJ" } });
+    fireEvent.click(screen.getByTestId("door-check-pass"));
+    expect(onSearch).toHaveBeenCalledWith("GP-ABCDEFGHIJ");
+    expect(screen.queryByText("passNotListed")).toBeNull();
+    view.rerender(screenAt([guest], "GP-ABCDEFGHIJ"));
+    expect(screen.queryByText("passNotListed")).toBeNull();
+    expect((screen.getByLabelText("pass") as HTMLInputElement).value).toBe("");
+  });
+
+  it("says a pass is not on the list once the search by its code finds nothing (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["pass", "checkPass", "search", "passNotListed"]);
+    const screenAt = (guests: readonly DoorGuest[], search: string) => (
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={guests}
+        search={search}
+        onSearch={() => undefined}
+        onCheckIn={async () => ({ ok: true })}
+      />
+    );
+    const view = render(screenAt([], "smith"));
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ZZZZZZZZZZ" } });
+    fireEvent.click(screen.getByTestId("door-check-pass"));
+    view.rerender(screenAt([], "GP-ZZZZZZZZZZ"));
+    expect(screen.getByText("passNotListed")).toBeTruthy();
+  });
+
   it("says a pass was already used, with who came in and when (B8)", () => {
     const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
     render(
