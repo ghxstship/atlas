@@ -86,12 +86,18 @@ export async function loadLineTransactionsAction(
   org: string,
   lineId: string,
   access: transactions.LineTransactionAccess,
+  currency: string,
 ): Promise<{ ok: true; transactions: transactions.LineTransactions } | { ok: false }> {
   const ctx = await contextOf(org);
   const id = z.uuid().safeParse(lineId);
   if (!id.success) return { ok: false };
   // The flags only choose which sections to read; row level security still decides every row.
-  const result = await transactions.getBudgetLineTransactions(ctx.viewer.db, id.data, access);
+  const result = await transactions.getBudgetLineTransactions(
+    ctx.viewer.db,
+    id.data,
+    access,
+    currency,
+  );
   return result.ok ? { ok: true, transactions: result.data } : { ok: false };
 }
 

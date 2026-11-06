@@ -39,7 +39,7 @@ export function LineTransactionsDrawer({
   const [pending, start] = useTransition();
   useEffect(() => {
     start(async () => {
-      const result = await loadLineTransactionsAction(org, lineId, access);
+      const result = await loadLineTransactionsAction(org, lineId, access, currency);
       if (result.ok) setData(result.transactions);
       else setFailed(true);
     });

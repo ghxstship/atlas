@@ -106,6 +106,8 @@ export async function getBudgetLineTransactions(
   db: XosClient,
   lineId: string,
   access: LineTransactionAccess,
+  /** The budget's currency: Committed counts order lines in it, and others are counted apart (2810). */
+  currency: string,
 ): Promise<Result<LineTransactions>> {
   const [amounts, expenses, labor, po, invoices] = await Promise.all([
     section(
@@ -211,25 +213,32 @@ export async function getBudgetLineTransactions(
     expenseRows = named.map((e) => e.row);
   }
   const committed = po
-    ? po.data.map((r): LinePoLine => {
-        const price = numOrNull(r["unit_price_minor"]);
-        const order = r["purchase_orders"] as {
-          po_number?: number | null;
-          project?: { project_key?: string | null } | null;
-          vendor?: { counterparty?: { counterparty_name?: string | null } | null } | null;
-        } | null;
-        return {
-          id: str(r["id"]),
-          purchaseOrderId: str(r["purchase_order_id"]),
-          poKey:
-            order?.project?.project_key && order.po_number !== null && order.po_number !== undefined
-              ? `${order.project.project_key}-PO-${order.po_number}`
-              : null,
-          vendor: order?.vendor?.counterparty?.counterparty_name ?? null,
-          description: str(r["description"]),
-          amountMinor: price === null ? null : Math.round(num(r["quantity"]) * price),
-        };
-      })
+    ? po.data
+        .filter(
+          (r) =>
+            (r["purchase_orders"] as { currency_code?: string } | null)?.currency_code === currency,
+        )
+        .map((r): LinePoLine => {
+          const price = numOrNull(r["unit_price_minor"]);
+          const order = r["purchase_orders"] as {
+            po_number?: number | null;
+            project?: { project_key?: string | null } | null;
+            vendor?: { counterparty?: { counterparty_name?: string | null } | null } | null;
+          } | null;
+          return {
+            id: str(r["id"]),
+            purchaseOrderId: str(r["purchase_order_id"]),
+            poKey:
+              order?.project?.project_key &&
+              order.po_number !== null &&
+              order.po_number !== undefined
+                ? `${order.project.project_key}-PO-${order.po_number}`
+                : null,
+            vendor: order?.vendor?.counterparty?.counterparty_name ?? null,
+            description: str(r["description"]),
+            amountMinor: price === null ? null : Math.round(num(r["quantity"]) * price),
+          };
+        })
     : null;
   const vendorInvoices = invoices
     ? invoices.data.map((r): LineVendorInvoice => {
