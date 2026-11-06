@@ -96,6 +96,14 @@ describe("display screen announcements", () => {
     }
   });
 
+  it("reads a next cue to be confirmed as TBC, with no planned time or countdown (6125)", () => {
+    const tbc = cues.map((c) => (c.position === 2 ? { ...c, plannedAt: null, startTbc: true } : c));
+    const html = screen("Backstage", tbc);
+    expect(html).toContain("TBC");
+    expect(html).not.toContain("Planned");
+    expect(html).not.toContain("In");
+  });
+
   it("announces now and next with their headings in Backstage", () => {
     const regions = liveRegions(screen("Backstage"));
     expect(regions.some((r) => r.includes("Now") && r.includes("Doors open"))).toBe(true);
