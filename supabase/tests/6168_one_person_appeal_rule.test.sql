@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(76);
+select plan(94);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -273,7 +273,7 @@ select is((select count(*)::int from private.platform_emails where template = 'm
 
 -- Nobody left in the org to tell.
 alter table app.memberships disable trigger user;
-update app.memberships set valid_to = now() - interval '1 minute' where org_id = pg_temp.id('org_a');
+update app.memberships set valid_from = now() - interval '2 minutes', valid_to = now() - interval '1 minute' where org_id = pg_temp.id('org_a');
 alter table app.memberships enable trigger user;
 select pg_temp.as_op('olga');
 select lives_ok(format($$insert into world select 'removal_i', app.console_decide_listing(%L, 'Removed', 'Terms Violation', 'Acceptable Use Policy 3.2',
@@ -290,11 +290,11 @@ select pg_temp.as_platform();
 
 -- A reporter with no email left, on a report rather than an appeal.
 insert into app.listing_reports (opportunity_id, reporter_person_id, reason, details) values (pg_temp.id('opp_f'), pg_temp.id('rae'), 'Fraud', 'Still asks for a fee.');
-insert into world select 'report_gone', id from app.listing_reports where opportunity_id = pg_temp.id('opp_f') and details = 'Still asks for a fee.';
 select pg_temp.as_op('olga');
 select lives_ok(format($$select app.console_decide_listing(%L, 'No Action', 'No Violation', 'Terms 7.6', 'No fee.', 'Nothing found.')$$, pg_temp.id('opp_f')), 'a decision on a report by someone with no email left');
 select pg_temp.as_platform();
-select is((select rule_code from app.legal_queue_items where source_table = 'listing_report.decided' and source_id = pg_temp.id('report_gone')), 'undelivered_notice',
+select is((select rule_code from app.legal_queue_items where source_table = 'listing_report.decided'
+    and source_id in (select id from app.listing_reports where opportunity_id = pg_temp.id('opp_f'))), 'undelivered_notice',
   'leaves a record that they were not told');
 select is(private.sync_legal_queue_feeds() >= 0, true, 'and the feed for reports keeps its own item for the same record');
 

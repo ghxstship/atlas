@@ -435,12 +435,12 @@ select pg_temp.as_platform();
 -- When the email path fails ------------------------------------------------------------------------------------------------------
 -- A later migration restating the outbox's template check without this template would do exactly this.
 select pg_temp.as_op('olga');
-select lives_ok($$insert into world select 'fail', app.console_add_legal_queue_item('accessibility_report', 'Alert path test', '2026-11-30 10:00')$$, 'an item, five business days');
+select lives_ok($$insert into world select 'fail', app.console_add_legal_queue_item('accessibility_report', 'Alert path test', '2026-11-02 10:00')$$, 'an item, five business days');
 select pg_temp.as_platform();
 delete from private.platform_emails where template = 'legal_clock_alert';
 alter table private.platform_emails drop constraint platform_emails_template;
 alter table private.platform_emails add constraint platform_emails_template check (template <> 'legal_clock_alert');
-select is(private.sweep_legal_queue('2026-12-05 12:00-05'), 1, 'with the email path down the sweep raises nothing by email, and the on-call channel still takes it');
+select is(private.sweep_legal_queue('2026-11-08 12:00-05'), 1, 'with the email path down the sweep raises nothing by email, and the on-call channel still takes it');
 select is((select count(*)::int from private.platform_emails where template = 'legal_clock_alert'), 0, 'no email queued');
 select is((select count(*)::int from private.legal_queue_events where legal_queue_item_id = pg_temp.id('fail') and event_kind = 'Alert Sent'), 0, 'so the item''s log does not say an alert went');
 select is((select array_agg(a.path) from private.legal_queue_alerts a where a.legal_queue_item_id = pg_temp.id('fail')), array['on_call'], 'and only the on-call channel is marked done');
@@ -451,37 +451,37 @@ select is(api_public.legal_queue_heartbeat() ->> 'alert_path_ok', 'false', 'and 
 select pg_temp.as_op('olga');
 select is(app.console_legal_queue() #>> '{delivery,alert_path_failed}', 'true', 'the queue page warns');
 select pg_temp.as_platform();
-select is(private.sweep_legal_queue('2026-12-05 13:00-05'), 0, 'the next hour it fails again, and the on-call channel is not paged twice for one stage');
+select is(private.sweep_legal_queue('2026-11-08 13:00-05'), 0, 'the next hour it fails again, and the on-call channel is not paged twice for one stage');
 select is((select count(*)::int from private.legal_queue_alerts a where a.legal_queue_item_id = pg_temp.id('fail') and a.path = 'on_call'), 1, 'once');
 alter table private.platform_emails drop constraint platform_emails_template;
 alter table private.platform_emails add constraint platform_emails_template
   check (template in ('subprocessor_confirm', 'subprocessor_notice', 'party_invitation', 'legal_clock_alert', 'moderation_notice'));
-select is(private.sweep_legal_queue('2026-12-05 14:00-05'), 1, 'once the path works, the same stage goes out, late rather than never');
+select is(private.sweep_legal_queue('2026-11-08 14:00-05'), 1, 'once the path works, the same stage goes out, late rather than never');
 select is((select count(*)::int from private.platform_emails where template = 'legal_clock_alert' and to_email = 'olga@platform.test'), 1, 'one digest');
 select is((select count(*)::int from private.legal_queue_events where legal_queue_item_id = pg_temp.id('fail') and event_kind = 'Alert Sent'), 1, 'now the log says so');
 select is((select failing_paths from private.legal_queue_health), '{}'::text[], 'the health row clears');
 select is(api_public.legal_queue_heartbeat() ->> 'alert_path_ok', 'true', 'and so does the heartbeat');
-select is(private.sweep_legal_queue('2026-12-05 15:00-05'), 0, 'and it does not repeat');
+select is(private.sweep_legal_queue('2026-11-08 15:00-05'), 0, 'and it does not repeat');
 
 -- One bad recipient leaves the operator their digest.
 delete from private.platform_emails where template = 'legal_clock_alert';
 alter table private.platform_emails add constraint test_refuse_backup check (to_email <> 'backup@example.test');
-select is(private.sweep_legal_queue('2026-12-08 12:00-05'), 1, 'a backup contact who cannot be written to');
+select is(private.sweep_legal_queue('2026-11-10 12:00-05'), 1, 'a backup contact who cannot be written to');
 select is((select count(*)::int from private.platform_emails where template = 'legal_clock_alert' and to_email = 'olga@platform.test'), 1, 'does not cost the operator the digest');
 select is((select failing_paths from private.legal_queue_health), array['backup'], 'and is reported by name');
 select is((select count(*)::int from private.legal_queue_alerts a where a.legal_queue_item_id = pg_temp.id('fail') and a.path = 'backup'), 0, 'with its stage left to try again');
 alter table private.platform_emails drop constraint test_refuse_backup;
-select is(private.sweep_legal_queue('2026-12-08 13:00-05'), 1, 'and when it works the backup contact gets it');
+select is(private.sweep_legal_queue('2026-11-10 13:00-05'), 1, 'and when it works the backup contact gets it');
 select is((select count(*)::int from private.platform_emails where template = 'legal_clock_alert' and to_email = 'backup@example.test'), 1, 'one digest, and no second one to the operator');
 select is((select count(*)::int from private.platform_emails where template = 'legal_clock_alert' and to_email = 'olga@platform.test'), 1, 'whose stage stands');
 
 -- A government request's line names no matter in any email.
 select pg_temp.as_op('olga');
-select lives_ok($$insert into world select 'gov_alert', app.console_add_legal_queue_item('government_request', 'Subpoena for alert test', '2026-12-08 10:00', null, null, null, null, '2026-12-20 17:00')$$, 'a government request');
+select lives_ok($$insert into world select 'gov_alert', app.console_add_legal_queue_item('government_request', 'Subpoena for alert test', '2026-11-02 10:00', null, null, null, null, '2026-11-20 17:00')$$, 'a government request');
 select lives_ok(format($$select app.console_transition_legal_queue_item(%L, 'Received', 'Withdrawn', 'Test over.')$$, pg_temp.id('fail')), 'the earlier item closes');
 select pg_temp.as_platform();
 delete from private.platform_emails where template = 'legal_clock_alert';
-select cmp_ok(private.sweep_legal_queue('2026-12-19 12:00-05'), '>=', 1, 'its alert');
+select cmp_ok(private.sweep_legal_queue('2026-11-19 12:00-05'), '>=', 1, 'its alert');
 select is((select items -> 'items' -> 0 ->> 'reference' from (select args as items from private.platform_emails where template = 'legal_clock_alert' and to_email = 'olga@platform.test' limit 1) x),
   (select reference from pg_temp.item('gov_alert')), 'reaches the operator by reference');
 select ok((select bool_and(args::text !~ 'matter|Government|Subpoena') from private.platform_emails where template = 'legal_clock_alert'), 'without saying what it is');
