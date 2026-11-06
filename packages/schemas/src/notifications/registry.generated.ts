@@ -819,6 +819,18 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "vendor_intake.submitted",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.vendor_intake.submitted.subject",
+      body: "kinds.vendor_intake.submitted.body",
+    },
+  },
+  {
     kind: "onboarding.item_expiring",
     category: "expiry_reminders",
     emailTemplate: "notification",

@@ -346,6 +346,12 @@
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "Nueva solicitud de alta: {title}",
+        "body": "{requesterName} envió una solicitud por {title} para {projectName}. Revísala en la pestaña Contrataciones del proyecto."
+      }
     }
   },
   "notification": {

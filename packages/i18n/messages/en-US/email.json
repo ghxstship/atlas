@@ -346,6 +346,12 @@
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
       }
+    },
+    "vendor_intake": {
+      "submitted": {
+        "subject": "New intake request: {title}",
+        "body": "{requesterName} sent a request through {title} for {projectName}. Review it on the project's Engagements tab."
+      }
     }
   },
   "notification": {
