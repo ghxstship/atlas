@@ -1,11 +1,11 @@
--- 5851_schedule_backlog_and_undated_copies.sql
--- P8 (RRR-222; parity gap G-36; ADR 0022 block 5850 to 5859; ADR 0111 amended 2026-10-28). The schedule's unscheduled
+-- 6121_schedule_backlog_and_undated_copies.sql
+-- P8 (RRR-222; parity gap G-36; ADR 0022 block 6120 to 6129; ADR 0111 amended 2026-10-28). The schedule's unscheduled
 -- backlog and copies without dates (Section 11.11, S11.11-01; Section 4.9, S4.9-01).
 --
 --   * app.place_record(record, day) gives an undated record its first dates on a day of its project's calendar, the
 --     placement a drag from the Unscheduled list onto the timeline makes: a Milestone is due at 17:00, any other kind
 --     runs from 09:00 to 17:00. It is not a move (app.reschedule_record refuses undated records); its successors are
---     pushed by whole days until their dependencies hold, through 5850's planner, as a move pushes them. A dependency
+--     pushed by whole days until their dependencies hold, through 6120's planner, as a move pushes them. A dependency
 --     on a predecessor that the placement breaks is allowed, as ADR 0111 allows broken dependencies. Complete and
 --     Canceled records stay unscheduled.
 --   * app.apply_template gains p_without_dates: the project still takes the start date, and every templated record is

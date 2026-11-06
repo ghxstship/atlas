@@ -11,7 +11,7 @@ import { holidayPresetAction } from "@/components/settings/contributions/a134-ac
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
- * "Add US federal holidays for [year]" on a holiday calendar (P8, 5854): the eleven holidays of
+ * "Add US federal holidays for [year]" on a holiday calendar (P8, 6124): the eleven holidays of
  * 5 U.S.C. 6103 on their observed days, each paying 8 hours, named in the viewer's language. Days
  * the calendar already holds are skipped, and the result says how many were added and how many it
  * already held. The form says that each added holiday pays 8 hours and that payroll needs a holiday

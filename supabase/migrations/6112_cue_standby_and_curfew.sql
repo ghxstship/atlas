@@ -1,4 +1,4 @@
--- 5792_cue_standby_and_curfew.sql
+-- 6112_cue_standby_and_curfew.sql
 -- P2 Run of show and show calling (RRR-216, ADR 0131 decisions 2 and 5; gap G-75). The showcaller puts the next cue on
 -- standby before calling it, and the console weighs the projected end against a hard stop.
 --

@@ -1,9 +1,9 @@
--- 5852_bulk_shift_cues.sql
--- P8 (RRR-222; parity gap G-35; ADR 0022 block 5850 to 5859). Bulk edit (Section 11.7, S11.7-04 and S11.7-05; ADR 0044)
+-- 6122_bulk_shift_cues.sql
+-- P8 (RRR-222; parity gap G-35; ADR 0022 block 6120 to 6129). Bulk edit (Section 11.7, S11.7-04 and S11.7-05; ADR 0044)
 -- carries record windows and cue times:
 --
 --   * private.bulk_records_row, restated from 1451 (its only definition), also edits starts_at and ends_at. An undo of
---     a shift or a placement (5850, 5851) sends its inverse rows ({set: the old dates, expect: the new}) through
+--     a shift or a placement (6120, 6121) sends its inverse rows ({set: the old dates, expect: the new}) through
 --     app.bulk_update_records, so compare-and-set (bulk_stale) refuses an undo after someone else's change. A change of
 --     any date from Scheduled onward is logged as a replan with the reason, by 1451's rule, and a window that is locked
 --     into a baseline keeps its start and end, as app.reschedule_record keeps it (3260).
@@ -106,7 +106,7 @@ begin
 end;
 $$;
 
-comment on function private.bulk_records_row(uuid, jsonb, jsonb, text) is 'One record of a bulk change: state through app.transition_record, owner, accountable party, start, end and due times and phase. Needs work.record.write on the record as its policy does; a date change from Scheduled onward is logged as a replan with the reason, and a Timeline window locked into a baseline keeps its start and end (reschedule_locked). The undo of a shift or a placement (5850, 5851) comes through here.';
+comment on function private.bulk_records_row(uuid, jsonb, jsonb, text) is 'One record of a bulk change: state through app.transition_record, owner, accountable party, start, end and due times and phase. Needs work.record.write on the record as its policy does; a date change from Scheduled onward is logged as a replan with the reason, and a Timeline window locked into a baseline keeps its start and end (reschedule_locked). The undo of a shift or a placement (6120, 6121) comes through here.';
 revoke all on function private.bulk_records_row(uuid, jsonb, jsonb, text) from public, anon, authenticated;
 
 comment on function app.bulk_update_records(jsonb, boolean, text) is 'Changes records in bulk in one transaction (Section 11.7): rows as [{id, set, expect}] with state, owner, accountable party, start, end or due time, or phase. All or nothing; answers changed and unchanged counts, each refused row with its rule, and the inverse rows for undo. p_preview checks without changing anything.';

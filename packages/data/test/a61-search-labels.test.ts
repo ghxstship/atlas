@@ -95,7 +95,7 @@ describe("labelActivity (A59-030)", () => {
     ]);
   });
 
-  it("names a row moved to Trash from Trash itself, so a hidden line keeps its generic noun (5121)", async () => {
+  it("names a row moved to Trash from Trash itself, so a hidden line keeps its generic noun (6101)", async () => {
     const { db, calls } = fakeClient({
       "from:trash_items": [okResponse([{ subject_id: "l1", title: "Sell-out bonus." }])],
     });

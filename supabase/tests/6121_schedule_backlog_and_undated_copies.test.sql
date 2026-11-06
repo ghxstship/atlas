@@ -1,4 +1,4 @@
--- pgTAP: the schedule's unscheduled backlog and copies without dates (5851, P8). app.place_record placing an undated
+-- pgTAP: the schedule's unscheduled backlog and copies without dates (6121, P8). app.place_record placing an undated
 -- record on a project-local day (09:00 to 17:00, a Milestone due at 17:00), pushing successors by whole days, writing
 -- nothing in preview and exactly the preview on commit, its undo through app.bulk_update_records, and refusing dated,
 -- complete and canceled records and callers without schedule.timeline.write; app.apply_template leaving records undated

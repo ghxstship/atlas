@@ -78,7 +78,7 @@ frozen to additive changes, and nothing outside Atlas needs them yet.
 
 ## Amendment (2026-10-28, P8): the worked-holiday multiplier and the US federal preset
 
-P8 (RRR-222, migration 5854, parity gap G-117) amends decision 4. Work on a holiday earns no premium unless the
+P8 (RRR-222, migration 6124, parity gap G-117) amends decision 4. Work on a holiday earns no premium unless the
 governing calendar sets `worked_holiday_multiplier` (1 to 3; null by default). That is an org pay policy, set per
 calendar by holders of org.payroll.write, not jurisdictional overtime, so it does not reopen ADR 0033 decision 54:
 no state holiday rule is applied, and break and meal rules stay deferred. On a holiday of that calendar with a

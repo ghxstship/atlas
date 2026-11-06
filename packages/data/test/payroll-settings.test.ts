@@ -285,7 +285,7 @@ describe("time off day counts", () => {
   });
 });
 
-describe("holiday presets and the worked-holiday multiplier (P8, 5854)", () => {
+describe("holiday presets and the worked-holiday multiplier (P8, 6124)", () => {
   it("adds a preset's holidays with names by code, and says how many of the eleven were added", async () => {
     const { db, calls } = fakeClient({
       "rpc:add_holiday_preset": [

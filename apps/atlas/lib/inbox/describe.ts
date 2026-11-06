@@ -63,7 +63,7 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "content_report.overdue": ["subject"],
   "content_report.decided": ["subject", "action", "statement"],
   "content.removed": ["subject", "ruleReference", "statement"],
-  // P8 (5853): the project and the days an availability poll asks about.
+  // P8 (6123): the project and the days an availability poll asks about.
   "availability.requested": ["projectName", "dayCount", "firstDay", "lastDay"],
 };
 

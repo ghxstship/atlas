@@ -43,7 +43,7 @@ Two things differ from the first four tables. Some changes apply only to some ro
 ### 5. Deleting a Draft work order can be undone
 
 - Delete draft still moves the work order to Trash (a soft delete; the database refuses it for any other state), now only while the row is live. The delete goes on the session's undo stack: the shell shows its 8-second Undo toast, Undo or Cmd or Ctrl+Z restores the work order through `app.restore_trash_item`, as the Trash page does, and redo deletes it again.
-- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (2131). A118's 5122 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
+- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (2131). A118's 6102 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
 
 ### 6. The Projects page stays in its route budget
 
@@ -54,5 +54,5 @@ Two things differ from the first four tables. Some changes apply only to some ro
 ## Consequences
 
 - No API operation changes: the bulk RPCs are Atlas paths, as in ADR 0044.
-- A118's versioned bulk saves (5120) apply to these resources unchanged once both land; these pages do not send row versions yet, so a stale row is refused by the values it expected, as before.
+- A118's versioned bulk saves (6100) apply to these resources unchanged once both land; these pages do not send row versions yet, so a stale row is refused by the values it expected, as before.
 - Purchase orders and vendors (A120), the Show, Places and Logistics collections (A121), Gateway (A122), and the list, board and calendar views (A115) are outside this decision.

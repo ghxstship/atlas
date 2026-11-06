@@ -1,4 +1,4 @@
--- pgTAP: migrations 5790 to 5794 (P2, RRR-216, ADR 0131), run of show and show calling. Start times to be confirmed
+-- pgTAP: migrations 6110 to 6114 (P2, RRR-216, ADR 0131), run of show and show calling. Start times to be confirmed
 -- (columns, the normalizer, the external views, Up Next and the calendar feed), standby (app.standby_cue and the cue
 -- guard), moving a cue in one step (app.move_cue), nudging the plan (app.shift_cue_plan) and saving department calls
 -- (app.save_cue_calls). Trash membership of the tables touched is unchanged.
@@ -312,7 +312,7 @@ select pg_temp.as_platform();
 -- Trash and catalogs ---------------------------------------------------------------------------------------------------------------
 select is((select description from app.capabilities where code = 'show.cue.call'),
   'Call cues live during a show: go, standby and nudging the remaining planned times.',
-  'show.cue.call says it covers standby and nudging the plan (5793)');
+  'show.cue.call says it covers standby and nudging the plan (6113)');
 select is(pg_temp.trash_set(), '', 'the Trash membership of cues, cue calls, running orders and records is unchanged (ADR 0110)');
 
 select * from finish();

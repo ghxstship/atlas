@@ -1,4 +1,4 @@
--- pgTAP: availability polls (5853, P8, ADR 0063). A planner (crew.shift.write) asks members and an engaged freelancer for
+-- pgTAP: availability polls (6123, P8, ADR 0063). A planner (crew.shift.write) asks members and an engaged freelancer for
 -- their availability; outsiders, past days and days inside the notice period are refused, and each recipient is notified
 -- (availability.requested). Recipients answer day by day as blocks on their calendar kept for the org, on project-local
 -- day bounds whatever their calendar's zone; re-answering replaces, a locked day comes back unwritten, a closed poll and a

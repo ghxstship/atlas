@@ -125,7 +125,7 @@ export async function getActivityEntry(
  * Stagehand · Load-in" instead of "clocked in on a time entry". A shift, or a time entry on a shift,
  * takes its record's key and title (and opens it); a credential reads as its number and holder; an
  * engagement as its party; an approval as its reference; a domain as its host name; a row moved to Trash
- * (5121) as its Trash title. Lookups run under the reader's row level security, so an entry keeps its
+ * (6101) as its Trash title. Lookups run under the reader's row level security, so an entry keeps its
  * generic noun when its subject is hidden: a line's event carries none of the line, since the feed
  * reaches people without finance read.
  * A failed lookup never fails the feed.
@@ -267,7 +267,7 @@ export async function labelActivity(
     if (record) return { ...e, recordKey: record.key, recordTitle: record.title };
     const role = shift ? shiftLabels.get(shift) : undefined;
     if (role) return { ...e, subjectLabel: role.label, subjectAt: role.at };
-    // A record moved to Trash and since restored still reads as the title its event carries (5121).
+    // A record moved to Trash and since restored still reads as the title its event carries (6101).
     const label =
       labels.get(e.subjectId) ??
       (table(e) === "org_domains" ? text(e.data["hostname"]) : null) ??
@@ -284,7 +284,7 @@ export interface RestoreTarget {
 }
 
 /**
- * The entries that offer Restore (Section 11.7, migration 5121): each `.trashed` entry whose row is still in Trash
+ * The entries that offer Restore (Section 11.7, migration 6101): each `.trashed` entry whose row is still in Trash
  * (app.trash_items, read under the reader's row level security, so a row they cannot see offers nothing), keyed by
  * the entry's id. When a row went to Trash more than once, only its newest entry offers it. A failed lookup offers
  * nothing and never fails the feed.

@@ -33,7 +33,7 @@ import { getTranslate, type Translate } from "@/lib/shell/translate";
 /**
  * Crew scheduling actions (A132, migrations 3250 and 3251, ADR 0063): plan shifts from a template, put a ranked
  * member on a shift from the schedule's drag list, keep the org's shift templates (Settings, Scheduling), state
- * one's own availability (Me, Work details), and ask for and answer availability polls (P8, 5853). Each resolves the viewer's org context again (404 when it is gone) and
+ * one's own availability (Me, Work details), and ask for and answer availability polls (P8, 6123). Each resolves the viewer's org context again (404 when it is gone) and
  * writes as the viewer, so row level security, the RPCs and the notice lock decide.
  */
 
@@ -266,7 +266,7 @@ export async function removeAvailabilityAction(_: State, form: FormData): Promis
   return { ok: true };
 }
 
-// Availability polls (P8, 5853) ------------------------------------------------------------------------------
+// Availability polls (P8, 6123) ------------------------------------------------------------------------------
 
 export type PollActionResult =
   | { readonly ok: true; readonly id: string }

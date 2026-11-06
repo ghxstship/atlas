@@ -1,10 +1,10 @@
--- 5850_reschedule_minutes.sql
--- P8 (RRR-222; parity gap G-35; ADR 0022 block 5850 to 5859; ADR 0111 amended 2026-10-28). Minute offsets and Shift
+-- 6120_reschedule_minutes.sql
+-- P8 (RRR-222; parity gap G-35; ADR 0022 block 6120 to 6129; ADR 0111 amended 2026-10-28). Minute offsets and Shift
 -- time across records (Section 11.11, S11.11-01; Section 11.7, S11.7-04).
 --
 --   * The push rounds and the locked refusal of 3260's app.reschedule_record move into one planner,
 --     private.plan_reschedule(unit), and its commit branch into private.commit_reschedule(reason), so the record move,
---     the multi-record shift and the backlog placement (5851) push successors the same way. The planner works on the
+--     the multi-record shift and the backlog placement (6121) push successors the same way. The planner works on the
 --     transaction's pg_temp.reschedule_rows, which now carries each row's project and time zone, the minute parts of
 --     its move and whether it moved. Pushes join a predecessor and a successor only within one project.
 --   * app.reschedule_record gains p_start_minutes and p_end_minutes (at most 14 days either way). A target moves by
@@ -93,7 +93,7 @@ begin
 
   -- Successors, round by round: each round pushes every successor of a moved record by what its tightest dependency
   -- needs beyond the gap it had before the change, measured on the project's wall clock, in whole days or whole
-  -- minutes. A predecessor with no old dates (a record placed from the backlog, 5851) had a gap of zero. The graph is
+  -- minutes. A predecessor with no old dates (a record placed from the backlog, 6121) had a gap of zero. The graph is
   -- acyclic, so the rounds end within one round per record; past that the schedule is circular.
   v_limit := (select count(*) from pg_temp.reschedule_rows) + 1;
   loop

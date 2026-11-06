@@ -1,4 +1,4 @@
--- pgTAP: minute offsets and Shift time (5850, P8). app.reschedule_record moving by minutes and pushing successors by
+-- pgTAP: minute offsets and Shift time (6120, P8). app.reschedule_record moving by minutes and pushing successors by
 -- whole minutes of the project's wall clock (across a daylight saving change too), whole-day changes pushing by days as
 -- 3260 does, one-date resizes and oversized offsets refused; app.shift_records moving a selection rigidly, pushing
 -- successors outside it only by what they need, leaving undated and canceled records out, refusing empty, oversized and

@@ -4,8 +4,8 @@
 - Date: 2026-10-28
 - Decider: Owner, through the competitor parity audit approved on 2026-10-28 (package P2, RRR-216; gaps G-40, G-74,
   G-75, G-77 and G-78)
-- Migrations: `5790_start_tbc.sql`, `5791_calendar_feed_tbc.sql`, `5792_cue_standby_and_curfew.sql`,
-  `5793_cue_move_and_nudge.sql`, `5794_cue_calls_save.sql`
+- Migrations: `6110_start_tbc.sql`, `6111_calendar_feed_tbc.sql`, `6112_cue_standby_and_curfew.sql`,
+  `6113_cue_move_and_nudge.sql`, `6114_cue_calls_save.sql`
 - Amends: ADR 0040 item 5 (a TBC start is TENTATIVE)
 - Cites: ADR 0103 (computed statuses), ADR 0068 (denormalization register), ADR 0110 (Trash), ADR 0031 (document
   template versions)
@@ -46,7 +46,7 @@ the call. Atlas took the current cue by position and Compass by the latest call,
    - The showcaller may nudge: `app.shift_cue_plan` accepts `show.cue.call` as well as `show.run_of_show.write`. The
      registry's description of `show.cue.call` now says so ("Call cues live during a show: go, standby and nudging
      the remaining planned times"). The generator rewrites `0203_capability_seed.sql` for a fresh database, and
-     `5793` updates the description where 0203 already ran, so no database drifts.
+     `6113` updates the description where 0203 already ran, so no database drifts.
    - `app.save_cue_calls(cue, calls)` saves a cue's department calls in one transaction: a text value upserts the
      department's live call, NULL or blank soft-deletes it, departments left out are untouched, and a key that is not
      an `app.cue_call_kind` label is refused (`cue_call_kind`). The departments are read from the generated enum
@@ -93,4 +93,4 @@ the call. Atlas took the current cue by position and Compass by the latest call,
 - The Live Activity and the home screen widgets show a TBC next cue as text with no countdown and never skip ahead to a
   later cue; showing its TBC label beside a running shift on the lock screen needs a Swift change, left for later.
 - Later packages that redefine `private.guard_cue`, `api_public.calendar_feed`, `api_external.cues`,
-  `api_external.records` or `api_external.engagement_up_next` start from the definitions in 5790 to 5792.
+  `api_external.records` or `api_external.engagement_up_next` start from the definitions in 6110 to 6112.

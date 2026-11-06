@@ -1,4 +1,4 @@
--- pgTAP: bulk edit of record windows and cue times (5852, P8). Records take starts_at and ends_at in bulk, log a replan
+-- pgTAP: bulk edit of record windows and cue times (6122, P8). Records take starts_at and ends_at in bulk, log a replan
 -- from Scheduled onward, keep a window locked into a baseline, and undo a shift through their inverse rows with
 -- compare-and-set; cues shift by minutes in one transaction, a called cue refuses the whole change, a preview changes
 -- nothing, the inverse rows restore the times, the audit trail records each change, and readers, other orgs and anon

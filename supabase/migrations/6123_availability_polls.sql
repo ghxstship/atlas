@@ -1,5 +1,5 @@
--- 5853_availability_polls.sql
--- P8 (RRR-222; parity gap G-124; ADR 0022 block 5850 to 5859; ADR 0063 amended 2026-10-28). Availability polls
+-- 6123_availability_polls.sql
+-- P8 (RRR-222; parity gap G-124; ADR 0022 block 6120 to 6129; ADR 0063 amended 2026-10-28). Availability polls
 -- (Section 4.5.6 item 25, S4.5.6-25; Section 4.2 Crew, S4.2-07): a planner asks members and engaged freelancers for
 -- their availability on chosen days of a project, and each recipient answers day by day.
 --

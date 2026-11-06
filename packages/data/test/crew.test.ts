@@ -244,7 +244,7 @@ describe("shifts", () => {
     });
     expect(result.ok && result.data[0]?.member?.name).toBe("Fern Field");
     expect(result.ok && result.data[1]?.member).toBeNull();
-    // The version a bulk change is sent against (migration 5120).
+    // The version a bulk change is sent against (migration 6100).
     expect(result.ok && result.data[0]?.updatedAt).toBe("2027-05-02T00:00:00.000Z");
     expect(calls[0]?.steps).toContainEqual(["in", ["shift_state", ["Published"]]]);
     expect((await listShifts(db, { orgId: "o1" })).ok).toBe(false);

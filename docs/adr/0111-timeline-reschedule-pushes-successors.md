@@ -68,7 +68,7 @@ Apply calls commit mode, so what is applied is what the function previewed.
 
 ## Amendment (2026-10-28, P8): minutes, several records and the Unscheduled list
 
-P8 (RRR-222, migrations 5850 to 5852, parity gaps G-35 and G-36) extends three decisions without reopening them.
+P8 (RRR-222, migrations 6120 to 6122, parity gaps G-35 and G-36) extends three decisions without reopening them.
 
 - **Decision 1.** The push rounds and the locked refusal now live in one planner, `private.plan_reschedule(unit)`, with
   the commit in `private.commit_reschedule(reason)`, so every caller pushes successors the same way. Besides
@@ -76,7 +76,7 @@ P8 (RRR-222, migrations 5850 to 5852, parity gaps G-35 and G-36) extends three d
   minutes under the same per-project advisory locks (`'reschedule:' || project_id`, taken in project order), and
   pushes their successors outside the selection project by project. A move set of more than 500 rows is refused
   (`shift_too_large`), so its undo always fits in one call of `app.bulk_update_records`, which carries the start and
-  end dates since 5852.
+  end dates since 6122.
 - **Decision 2.** Moves may carry minute offsets (`p_start_minutes`, `p_end_minutes`, at most 14 days either way),
   added after the days on the project's wall clock (`private.add_local_minutes`), the clock gaps are measured on. A
   change with any minute part pushes successors by whole minutes; a whole-day change keeps the day pushes above,

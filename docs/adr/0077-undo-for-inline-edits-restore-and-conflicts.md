@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A118 (RRR-163), trace rows S11.7-01, S11.7-02 and S11.7-10
-- Migrations: 5120 to 5122
+- Migrations: 6100 to 6102
 
 ## Context
 
@@ -22,9 +22,9 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 ### 2. Saves carry the version they edited, and a conflict carries both values
 
-- The rule is one for the bulk RPCs (5120) and for direct saves (`packages/data/src/versioned.ts`): a save carries the row's `updated_at` as the person loaded it and the values they started from. A matching version commits. A version that moved on is a conflict only for a field both people changed; someone else's change to another field merges. A version with nothing else expected refuses any later change.
+- The rule is one for the bulk RPCs (6100) and for direct saves (`packages/data/src/versioned.ts`): a save carries the row's `updated_at` as the person loaded it and the values they started from. A matching version commits. A version that moved on is a conflict only for a field both people changed; someone else's change to another field merges. A version with nothing else expected refuses any later change.
 - A bulk row may put `updated_at` in `expect`, never in `set`. A stale row's refusal (`bulk_stale`) carries `current`: the row's values now for the fields it set or expected, and its version, read only after the row function's own capability checks passed. Atlas reads it; the API v1 bulk operations leave it out of their answer, because the frozen `BulkEditRefusal` describes only `id`, `rule` and `message`. A later additive OpenAPI change can document it for API callers.
-- Times compare by meaning (`private.bulk_same_value`, `sameFieldValue`), so a time read through the API never conflicts with the same instant in the row. In the database the instant test is A106's `private.bulk_same_instant` (2062, ADR 0044): 5120 restates `bulk_check_expect` from 2062's definition, so a date alone or a timestamp without an offset is never compared as an instant.
+- Times compare by meaning (`private.bulk_same_value`, `sameFieldValue`), so a time read through the API never conflicts with the same instant in the row. In the database the instant test is A106's `private.bulk_same_instant` (2062, ADR 0044): 6100 restates `bulk_check_expect` from 2062's definition, so a date alone or a timestamp without an offset is never compared as an instant.
 - Record properties and kind attributes keep their direct writes under row level security; the version check is compare-and-set on `updated_at`, retried when other saves land between the check and the write. A write that matches no row while the row reads back at the version it was sent against was refused by the row's update policy, not by a later save, and comes back not-found rather than as a conflict that would be offered and sent again. Alternative: route the record form through `app.bulk_update_records`. Rejected, because the bulk row function invents a replan reason ("Changed in bulk.") for date changes and writes a bulk audit event for one edit.
 
 ### 3. The mine-or-theirs dialog is shared
@@ -35,8 +35,8 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 ### 4. Line deletes restore through Trash, and moving to Trash reaches Activity
 
-- Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (5121), so a line added after the delete never blocks the restore.
-- `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now walks only the tables whose `deleted_at` the caller may update (5122): a table granting UPDATE on `deleted_at` alone (project shares, applications, API keys) is walked as before, and a table the caller may not update at all is skipped.
+- Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (6101), so a line added after the delete never blocks the restore.
+- `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now walks only the tables whose `deleted_at` the caller may update (6102): a table granting UPDATE on `deleted_at` alone (project shares, applications, API keys) is walked as before, and a table the caller may not update at all is skipped.
 - `record.trashed`, `invoice_line.trashed`, `settlement_line.trashed` and `budget_line.trashed` are emitted when a row moves to Trash, with its project, so the Activity feed shows the deletion to the people who may read the project. Those include people without finance read, so a line's event carries none of the line's content: the feed names the line from `app.trash_items`, read under the reader's row level security, or as "an invoice line" when they cannot read it. A record's event carries its title, as `record.created` does. Activity offers Restore on the newest such entry of a row still listed in `app.trash_items`, until its `purge_after`, through `app.restore_trash_item`, as the Trash page does.
 
 ## Consequences

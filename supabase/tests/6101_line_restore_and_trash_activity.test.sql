@@ -1,4 +1,4 @@
--- pgTAP: 5121, deletes that undo (A118, RRR-163, Section 11.7). Invoice, settlement and budget lines are soft
+-- pgTAP: 6101, deletes that undo (A118, RRR-163, Section 11.7). Invoice, settlement and budget lines are soft
 -- deleted into Trash and restore through app.restore_trash_item; a restored line keeps its number when it is free
 -- and moves to the end when a later line took it. Moving a record or a line to Trash emits its .trashed event with
 -- the project, which the Activity feed shows to the people who may read the project, and only the move to Trash
@@ -90,7 +90,7 @@ select pg_temp.as_user('xavier');
 select throws_ok($$select app.restore_trash_item('invoice_lines', (select id from world where key = 'il3'))$$, '42501', null,
   'nor can another org');
 
--- 5122: a child table that grants UPDATE on deleted_at alone (as project_shares, applications and api_keys do) is
+-- 6102: a child table that grants UPDATE on deleted_at alone (as project_shares, applications and api_keys do) is
 -- walked, so its rows deleted with the line come back with it.
 select pg_temp.as_platform();
 create table app.a118_line_notes (

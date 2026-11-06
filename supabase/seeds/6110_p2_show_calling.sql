@@ -1,4 +1,4 @@
--- 5790_p2_show_calling.sql
+-- 6110_p2_show_calling.sql
 -- P2 Run of show and show calling (RRR-216, ADR 0131). Demo data for the showcaller console on the Opening Night running
 -- order (0108): a curfew, House Lights Up as a time to be confirmed, and Audio, Lighting and Stage calls on cues 3 and 4.
 -- Cues 1 and 2 stay as 0108 left them, so the Maestro flow and journey 15 read what they always read. Idempotent.

@@ -30,7 +30,7 @@ Availability calendars existed (0740) for Gateway people only: a person's own ca
 
 ## Amendment (2026-10-28, P8): availability polls
 
-P8 (RRR-222, migration 5853, parity gap G-124) adds a consequence. A planner (crew.shift.write on the project) asks
+P8 (RRR-222, migration 6123, parity gap G-124) adds a consequence. A planner (crew.shift.write on the project) asks
 members and engaged freelancers for their availability on 1 to 31 project-local days (`app.send_availability_poll`,
 which notifies each recipient, `availability.requested`). Answers are availability blocks on the recipient's calendar
 kept for the org, one full project-local day each, tagged with the poll (`availability_blocks.availability_poll_id`,

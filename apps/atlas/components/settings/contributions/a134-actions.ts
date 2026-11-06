@@ -136,7 +136,7 @@ export async function timeOffPolicyAction(
 }
 
 /**
- * The worked-holiday multiplier of a calendar (P8, 5854): blank is none, else 1 to 3 in steps of a hundredth.
+ * The worked-holiday multiplier of a calendar (P8, 6124): blank is none, else 1 to 3 in steps of a hundredth.
  * Undefined when it does not read, so the form says the value is invalid.
  */
 function multiplier(form: FormData): number | null | undefined {
@@ -234,7 +234,7 @@ export async function holidayAction(
 }
 
 /**
- * Adds the US federal holidays of a year to a calendar (P8, 5854), named in the viewer's language from the catalog.
+ * Adds the US federal holidays of a year to a calendar (P8, 6124), named in the viewer's language from the catalog.
  * The outcome's value is "added:total", so the form says how many were added and how many it already held.
  */
 export async function holidayPresetAction(

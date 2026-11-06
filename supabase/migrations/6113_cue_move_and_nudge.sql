@@ -1,4 +1,4 @@
--- 5793_cue_move_and_nudge.sql
+-- 6113_cue_move_and_nudge.sql
 -- P2 Run of show and show calling (RRR-216, ADR 0131 decision 3; gaps G-78 and G-75). Reordering and nudging a running
 -- order are one transaction each, so a follower never sees a half-moved list.
 --

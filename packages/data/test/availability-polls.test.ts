@@ -11,7 +11,7 @@ import {
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 /**
- * Availability polls (P8, migration 5853): sending, answering, the planners' results, the recipient's requests,
+ * Availability polls (P8, migration 6123): sending, answering, the planners' results, the recipient's requests,
  * the project's polls and the people a poll can ask. The database decides every rule; these read its answers.
  */
 

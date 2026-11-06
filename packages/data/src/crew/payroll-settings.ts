@@ -155,7 +155,7 @@ export interface HolidayCalendar {
   /** Applies across the org (to work in its subdivision when it names one). */
   readonly appliesToOrg: boolean;
   /**
-   * Work on one of its holidays pays this multiple of the rate, 1 to 3 (P8, 5854): an org pay policy,
+   * Work on one of its holidays pays this multiple of the rate, 1 to 3 (P8, 6124): an org pay policy,
    * not jurisdictional overtime. Null pays no premium.
    */
   readonly workedHolidayMultiplier: number | null;
@@ -336,7 +336,7 @@ export async function addHoliday(
   return ok({ id: data.id });
 }
 
-/** The holiday presets app.add_holiday_preset knows (P8, 5854), with the codes of their holidays. */
+/** The holiday presets app.add_holiday_preset knows (P8, 6124), with the codes of their holidays. */
 export const HOLIDAY_PRESETS = {
   us_federal: [
     "new_years_day",

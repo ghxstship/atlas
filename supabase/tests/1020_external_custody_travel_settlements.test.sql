@@ -138,7 +138,7 @@ select has_column('api_external', 'cues', 'project_id', 'cues carry the project 
 select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
   where table_schema = 'api_external' and table_name = 'cues'),
   array['id', 'run_of_show_id', 'position', 'label', 'planned_at', 'duration', 'called_at', 'is_my_set', 'project_id', 'start_tbc'],
-  'project_id is appended, then start_tbc (5790); earlier columns keep their order');
+  'project_id is appended, then start_tbc (6110); earlier columns keep their order');
 
 -- Opportunity coordinates ------------------------------------------------------------------------------------------------------------------------
 update app.venues set location = extensions.st_setsrid(extensions.st_makepoint(-80.1918, 25.7617), 4326)::extensions.geography where id = pg_temp.id('venue_a');

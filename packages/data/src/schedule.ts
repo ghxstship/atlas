@@ -373,7 +373,7 @@ function toMove(r: MoveRow): RescheduleMove {
 
 /**
  * Moves or resizes a record by whole days and then whole minutes, and pushes the successors its
- * dependencies need moved (app.reschedule_record, migrations 3260 and 5850, ADR 0111): by whole days
+ * dependencies need moved (app.reschedule_record, migrations 3260 and 6120, ADR 0111): by whole days
  * when the change has no minute part, else by whole minutes. Without `commit` it only previews: the
  * same rows, nothing written. Cycles, locked records and impossible windows come back as refusals.
  */
@@ -409,7 +409,7 @@ export interface ShiftMove extends RescheduleMove {
 
 /**
  * Shifts up to 500 records by the same minutes and pushes their successors outside the selection
- * (app.shift_records, migration 5850). The selected records move rigidly together; undated and
+ * (app.shift_records, migration 6120). The selected records move rigidly together; undated and
  * Canceled ones stay where they are and are not returned. Without `commit` it only previews.
  */
 export async function shiftRecords(
@@ -432,7 +432,7 @@ export async function shiftRecords(
 }
 
 /**
- * Places an undated record on a day of its project's calendar (app.place_record, migration 5851):
+ * Places an undated record on a day of its project's calendar (app.place_record, migration 6121):
  * a Milestone is due at 17:00, any other kind runs 09:00 to 17:00, and its successors are pushed by
  * whole days. Without `commit` it only previews. A dated record is refused (place_dated).
  */

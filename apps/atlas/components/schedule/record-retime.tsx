@@ -11,7 +11,7 @@ import { ActionErrorAlert, useCopy } from "@/components/work/action-ui";
 import { bulkUpdateAction } from "@/lib/bulk/actions";
 import { rescheduleRecordAction } from "./actions";
 
-/** At most fourteen days either way, as app.reschedule_record allows (5850). */
+/** At most fourteen days either way, as app.reschedule_record allows (6120). */
 const LIMIT = 20_160;
 
 /** Signed hours and minutes, "+1:30", "-0:15" or "45", in minutes; null when it does not read. */

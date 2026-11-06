@@ -5,7 +5,7 @@ import type { Json } from "../database.types.ts";
 import { fail, ok, toDataError, type Result } from "../result.ts";
 
 /**
- * Availability polls (P8, migration 5853, ADR 0063): a planner (crew.shift.write on the project)
+ * Availability polls (P8, migration 6123, ADR 0063): a planner (crew.shift.write on the project)
  * asks members and engaged freelancers for their availability on chosen days, and each recipient
  * answers day by day. Answers are availability blocks on the recipient's calendar kept for the org,
  * tagged with the poll, so app.rank_shift_candidates reads them like any other period. Row level

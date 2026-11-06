@@ -1,4 +1,4 @@
--- pgTAP: the US federal holiday preset and the worked-holiday multiplier (5854, P8, ADR 0112). The preset adds the eleven
+-- pgTAP: the US federal holiday preset and the worked-holiday multiplier (6124, P8, ADR 0112). The preset adds the eleven
 -- 5 U.S.C. 6103 holidays on their observed days, 8 paid hours each, once, with the names given, refusing other presets,
 -- years and names and callers without org.payroll.write. A payroll run pays work on a holiday of the governing calendar at
 -- its multiplier (regular minutes on the holiday code, overtime at the greater of the two multipliers), pays nothing extra

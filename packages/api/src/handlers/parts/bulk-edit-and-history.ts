@@ -16,7 +16,7 @@ interface BulkBody {
 
 /**
  * Previews or applies a bulk change; the answer is the RPC's, field for field, except that a stale row's refusal
- * leaves out `current` (migration 5120), which the frozen BulkEditRefusal does not describe (ADR 0077).
+ * leaves out `current` (migration 6100), which the frozen BulkEditRefusal does not describe (ADR 0077).
  */
 export async function bulkEdit(
   context: RequestContext,

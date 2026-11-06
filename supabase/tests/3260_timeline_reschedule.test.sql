@@ -3,7 +3,7 @@
 -- change kept), nothing pulled earlier, preview equal to commit and writing nothing, cycles, locked windows, canceled
 -- records, bad windows, one-date resizes and undated records refused, the latest baseline window returned, one-date records pushed
 -- by the instants they hold, a schedule whose chains split and rejoin previewed quickly, and capability, cross-tenant
--- and anon denial. P8 (5850) adds trailing minute offsets and two trailing columns; the assertions are A133's.
+-- and anon denial. P8 (6120) adds trailing minute offsets and two trailing columns; the assertions are A133's.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;

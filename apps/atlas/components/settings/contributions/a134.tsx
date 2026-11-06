@@ -360,7 +360,7 @@ function CalendarFields({
         label={t(`${P}.holidays.appliesToOrg`)}
         defaultChecked={calendar?.appliesToOrg ?? false}
       />
-      {/* P8 (5854): an org pay policy for work on this calendar's holidays; blank pays no premium. */}
+      {/* P8 (6124): an org pay policy for work on this calendar's holidays; blank pays no premium. */}
       <Input
         id={`${idPrefix}-worked`}
         name="workedHolidayMultiplier"

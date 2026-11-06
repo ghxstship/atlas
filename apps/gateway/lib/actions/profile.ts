@@ -245,7 +245,7 @@ export async function removeAvailabilityAction(blockId: string): Promise<ActionR
 }
 
 /**
- * Answers an availability poll an org sent (P8, 5853): one field per day, named `day:YYYY-MM-DD`, each Available,
+ * Answers an availability poll an org sent (P8, 6123): one field per day, named `day:YYYY-MM-DD`, each Available,
  * Tentative or Unavailable, or left blank. The answers go on the person's calendar kept for that org; a day the org's
  * notice lock already holds comes back unwritten, and a closed poll is refused.
  */

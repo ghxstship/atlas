@@ -152,7 +152,7 @@ describe("saves against the version the person edited (A118)", () => {
   });
 });
 
-describe("stale bulk rows carry the row's values (5120)", () => {
+describe("stale bulk rows carry the row's values (6100)", () => {
   it("reads current from a stale refusal", () => {
     const outcome = toBulkOutcome({
       committed: false,
@@ -171,7 +171,7 @@ describe("stale bulk rows carry the row's values (5120)", () => {
   });
 });
 
-describe("Restore on activity entries (5121)", () => {
+describe("Restore on activity entries (6101)", () => {
   const entry = (id: string, type: string, subjectId: string): ActivityEntry => ({
     id,
     at: "2027-06-01T12:00:00Z",
