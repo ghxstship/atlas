@@ -197,32 +197,32 @@ select ok((select consent_id is not null and cleared_at is null from app.sensiti
 
 -- A value from before consent was recorded: hidden from everyone but the person, and a re-save starts nothing over.
 insert into app.roster_travel_requests (roster_entry_id, inbound_airport_code, meal_preference)
-values (pg_temp.self_entry('eng_vendor_a'), 'MIA', 'Kosher');
-select ok((select awaiting_since is not null and consent_id is null from app.sensitive_field_records where person_id = pg_temp.id('sam') and field_code = 'meal_preference'),
+values (pg_temp.id('e_mo'), 'MIA', 'Kosher');
+select ok((select awaiting_since is not null and consent_id is null from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'),
   'a meal preference with no grant waits');
 update app.sensitive_field_records set awaiting_since = now() - interval '10 days', awaiting_notified_at = now() - interval '9 days'
-where person_id = pg_temp.id('sam') and field_code = 'meal_preference';
-select pg_temp.as_user('sam');
-select is((app.roster_project_facts(pg_temp.self_entry('eng_vendor_a')) -> 'travel' ->> 'meal_preference'), 'Kosher', 'he still reads it');
+where person_id = pg_temp.id('mo') and field_code = 'meal_preference';
+select pg_temp.as_user('mo');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' ->> 'meal_preference'), 'Kosher', 'she still reads it');
 select is((select meal_preferences from app.my_sensitive_states() where category = 'Dietary and Allergies' and waiting), array['Kosher'],
-  'Work Details knows he holds only a meal preference, and that it waits');
-select lives_ok(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Kosher')$$, pg_temp.self_entry('eng_vendor_a')),
-  'he changes his dates and leaves it as it is');
-select throws_like(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Halal')$$, pg_temp.self_entry('eng_vendor_a')),
+  'Work Details knows she holds only a meal preference, and that it waits');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Kosher')$$, pg_temp.id('e_mo')),
+  'she changes her dates and leaves it as it is');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Halal')$$, pg_temp.id('e_mo')),
   'sensitive_consent_required:%', 'but cannot change it');
 select pg_temp.as_platform();
 select ok((select awaiting_since < now() - interval '9 days' and awaiting_notified_at < now() - interval '8 days' and consent_id is null
-  from app.sensitive_field_records where person_id = pg_temp.id('sam') and field_code = 'meal_preference'), 'saving the rest of the form ends no wait');
+  from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'), 'saving the rest of the form ends no wait');
 select pg_temp.as_user('alice');
-select is((app.roster_project_facts(pg_temp.self_entry('eng_vendor_a')) -> 'travel' -> 'meal_preference'), 'null'::jsonb, 'with no grant it reads as absent, even to the Owner');
-select is((app.roster_project_facts(pg_temp.self_entry('eng_vendor_a')) -> 'travel' ->> 'meal_preference_masked'), 'false', 'and is not even marked locked');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' -> 'meal_preference'), 'null'::jsonb, 'with no grant it reads as absent, even to the Owner');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' ->> 'meal_preference_masked'), 'false', 'and is not even marked locked');
 select pg_temp.as_platform();
-update app.sensitive_field_records set awaiting_notified_at = now() - interval '31 days' where person_id = pg_temp.id('sam') and field_code = 'meal_preference';
+update app.sensitive_field_records set awaiting_notified_at = now() - interval '31 days' where person_id = pg_temp.id('mo') and field_code = 'meal_preference';
 select private.run_sensitive_data_job();
-select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.self_entry('eng_vendor_a') and t.deleted_at is null), 'and it is cleared when the 30 days are up');
-select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('sam') and field_code = 'meal_preference'), 'the field record says so');
+select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'and it is cleared when the 30 days are up');
+select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'), 'the field record says so');
 select pg_temp.as_platform();
-update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.self_entry('eng_vendor_a');
+update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.id('e_mo');
 
 -- Any way a value leaves, the field record follows.
 select pg_temp.as_user('kai');

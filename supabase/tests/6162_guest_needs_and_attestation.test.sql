@@ -88,6 +88,9 @@ select lives_ok($$select app.clear_guest_care_needs(pg_temp.id('guest_a'))$$, 'a
 select pg_temp.as_platform();
 select pg_temp.new_user('rae', 'rae@freelance.test', 'Rae Solano');
 select pg_temp.new_user('tam', 'tam@freelance.test', 'Tam Okafor');
+select pg_temp.join_org('alice', 'org_a', 'rae', 'member');
+select pg_temp.join_org('alice', 'org_a', 'tam', 'member');
+select pg_temp.as_platform();
 create function pg_temp.told(p_who text) returns integer
 language sql as $$
   select count(*)::int from app.notifications n where n.recipient_person_id = pg_temp.id(p_who) and n.kind = 'account.sensitive_data_attested'
@@ -147,6 +150,8 @@ select is((select count(*)::int from app.guest_care_needs where guest_list_entry
 
 -- An account opened later -------------------------------------------------------------------------------------------------
 select pg_temp.new_user('lee', 'lee@freelance.test', 'Lee Quiroga');
+select pg_temp.join_org('alice', 'org_a', 'lee', 'member');
+select pg_temp.as_platform();
 update auth.users set email_confirmed_at = null where id = (select user_id from app.people where id = pg_temp.id('lee'));
 select pg_temp.as_user('carol');
 with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Lee Quiroga') returning id)

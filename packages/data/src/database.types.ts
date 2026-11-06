@@ -73851,7 +73851,7 @@ export type Database = {
         }[];
       };
       my_sensitive_states: {
-        Args: Record<PropertyKey, never>;
+        Args: { p_account_id?: string };
         Returns: {
           category: Database["app"]["Enums"]["sensitive_data_category"];
           held: boolean;

@@ -64928,7 +64928,7 @@
           "type": "app.seat_preference"
         },
         {
-          "comment": "Meal preference for the flight, as the person writes it.",
+          "comment": "Meal preference for the flight, as the person writes it. Dietary data: Restricted (data.restricted.read.medical, ADR 0164), never directly selectable. It stands on the person's consent or the company's attestation. The person reads their own through app.roster_project_facts, a holder on the project reads it there or in the travel party, each read logged, and everyone else sees it locked. The company that rosters the person never reads it, even what it entered.",
           "name": "meal_preference",
           "nullable": true,
           "references": null,
@@ -67355,7 +67355,7 @@
           "type": "timestamp with time zone"
         },
         {
-          "comment": "Client IP address at capture, as evidence. Set by the database.",
+          "comment": "Client IP address at capture, as evidence: passed by the platform server, or read from the request when absent. Only the database writes it.",
           "name": "captured_ip",
           "nullable": true,
           "references": null,
