@@ -57,7 +57,8 @@ export async function confirmActionLinkAction(
     comment: parsed.data.reason?.trim() || null,
   });
   if (!result.ok) return { outcome: outcomeFor(result.error) };
-  revalidatePath("/home");
+  // No revalidation: it would re-render this page in the same response, where the spent link says only that it
+  // was already handled, and the form holding the confirmation leaves. Home is a dynamic page and reads fresh.
   return { done: parsed.data.action };
 }
 

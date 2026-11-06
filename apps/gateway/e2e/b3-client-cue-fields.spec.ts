@@ -6,6 +6,7 @@ import {
   ROLE_PEOPLE,
   roleEngagement,
   suffix,
+  transition,
 } from "./role-fixtures";
 import { DEMO, expectAccessible, signIn, sql } from "./support";
 
@@ -35,6 +36,8 @@ test("the client sees the Client cue field and never a crew-only one", async ({ 
     account: ROLE_ACCOUNTS.client,
     roleType: "Client",
   });
+  // The client's show opens once the engagement is Active.
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Proposal signed.");
   const id = suffix();
   const shared = await cueField(`client_note_${id.toLowerCase()}`, `Client note ${id}`, 900);
   const crewOnly = await cueField(`crew_note_${id.toLowerCase()}`, `Crew note ${id}`, 901);

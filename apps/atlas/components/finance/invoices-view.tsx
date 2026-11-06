@@ -222,13 +222,15 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
             )}
           </p>
           {tieOutRow?.residual_minor ? (
-            <InlineAlert tone="warning" data-testid="invoice-residual">
-              {t("finance.invoices.residual", {
-                printed: c.money(tieOutRow.printed_total_minor, peek.currency),
-                computed: c.money(tieOutRow.computed_total_minor, peek.currency),
-                residual: c.money(tieOutRow.residual_minor, peek.currency),
-              })}
-            </InlineAlert>
+            <div data-testid="invoice-residual">
+              <InlineAlert tone="warning">
+                {t("finance.invoices.residual", {
+                  printed: c.money(tieOutRow.printed_total_minor, peek.currency),
+                  computed: c.money(tieOutRow.computed_total_minor, peek.currency),
+                  residual: c.money(tieOutRow.residual_minor, peek.currency),
+                })}
+              </InlineAlert>
+            </div>
           ) : null}
           <Section id="invoice-lines" title={t("finance.invoices.lines")}>
             {lines.ok && lines.data.length > 0 ? (

@@ -461,6 +461,7 @@ test("advancing progress", async ({ page, browser }) => {
   // An accepted section takes no new answer (R9), so Power moves onto the signed-off track, which reopens it; answering
   // Power and having it returned leaves the track reopened.
   await page.goto(packetUrl);
+  await settle(page);
   await page.getByRole("button", { name: "Edit Power" }).click();
   await page.getByLabel("Track", { exact: true }).selectOption({ label: "Hospitality" });
   await page
@@ -468,6 +469,7 @@ test("advancing progress", async ({ page, browser }) => {
     .filter({ has: page.getByLabel("Track", { exact: true }) })
     .getByRole("button", { name: "Save", exact: true })
     .click();
+  await expect(page.getByLabel("Track", { exact: true })).toHaveCount(0);
   await owner.goto(`${progress}&pane=tracks`);
   await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
   const secondAnswer = `Two 63 A feeds ${stamp}.`;

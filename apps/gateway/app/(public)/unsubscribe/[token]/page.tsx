@@ -16,6 +16,6 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function GuestUnsubscribePage({ params }: PageProps<"/unsubscribe/[token]">) {
   const { token } = await params;
-  if (!PARAM_TYPES.token.test(token)) notFound();
+  if (!PARAM_TYPES["guest-email-token"].test(token)) notFound();
   return <GuestUnsubscribeForm token={token} />;
 }
