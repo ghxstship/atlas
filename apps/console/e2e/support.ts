@@ -209,3 +209,47 @@ export async function reportedListing(): Promise<{ id: string; title: string }> 
   );
   return { id, title };
 }
+
+/** A released rating of the demo crew person, by the demo org, that the person disputes (ADR 0156). */
+export async function disputedRating(): Promise<{ id: string; comment: string; details: string }> {
+  const tag = uniqueId().slice(-4).toUpperCase();
+  const comment = `Late to the rigging call ${tag}.`;
+  const details = `The call sheet shows I was on time ${tag}.`;
+  const [engagement] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+       start_date, end_date)
+     values ($1, $2, 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', '2027-02-10', '2027-02-12')
+     returning id`,
+    [DEMO.project, DEMO.crew],
+    DEMO.owner,
+  );
+  const engagementId = engagement?.id as string;
+  for (const [from, to] of [
+    ["Onboarding", "Active"],
+    ["Active", "Closing"],
+    ["Closing", "Complete"],
+  ] as const) {
+    await sql(
+      `select private.transition_lifecycle('engagement', 'app.engagements', 'engagement_state', 'app.engagement_state_transitions',
+         'engagement_id', $1::uuid, $2, $3, 'Console journey.')`,
+      [engagementId, from, to],
+      DEMO.owner,
+    );
+  }
+  const [rating] = await sql<{ id: string }>(
+    `insert into app.ratings (engagement_id, rater_side, score, comment) values ($1, 'Organization', 2, $2) returning id`,
+    [engagementId, comment],
+    DEMO.owner,
+  );
+  await sql(
+    `insert into app.ratings (engagement_id, rater_side, score) values ($1, 'Party', 4)`,
+    [engagementId],
+    DEMO.crew,
+  );
+  const [dispute] = await sql<{ id: string }>(
+    `select app.file_rating_dispute($1, 'False Statement', $2) as id`,
+    [rating?.id, details],
+    DEMO.crew,
+  );
+  return { id: dispute?.id as string, comment, details };
+}

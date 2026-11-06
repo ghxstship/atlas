@@ -297,6 +297,7 @@ create trigger t40_guard_rating_sharing_consent before insert or update on app.r
 -- Only the RPC below writes these rows, so the record always carries its notice and stamps.
 revoke insert, update on app.rating_sharing_consents from authenticated;
 call private.install_audit_trail('app.rating_sharing_consents');
+call private.install_default_retention('app.rating_sharing_consents');
 
 create or replace function app.set_rating_sharing(
   p_opt_in boolean,

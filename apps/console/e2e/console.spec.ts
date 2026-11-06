@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   DEMO,
+  disputedRating,
   expectAccessibleInBothThemes,
   newAccount,
   newOperator,
@@ -190,4 +191,36 @@ test("Trust and Safety removes a reported listing with a statement of reasons", 
   );
   expect(decision).toMatchObject({ action: "Removed", ground: "Terms Violation", operator: email });
   expect(decision?.notified).toBeGreaterThan(0);
+});
+
+// ADR 0156: a rated person's dispute reaches an operator, who sees what was said but not the score, and removes the rating
+// only on a named ground.
+test("Trust and Safety upholds a rating dispute without seeing the score", async ({ page }) => {
+  const dispute = await disputedRating();
+  const email = await newOperator("Trust and Safety", "Theo Disputes");
+  await signInOperator(page, email, "/rating-disputes");
+  const queue = page.getByTestId("rating-dispute-queue");
+  await expect(queue.getByRole("row").first()).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+  await page.goto(`/rating-disputes/${dispute.id}`);
+  await expect(page.getByText(dispute.details, { exact: true })).toBeVisible();
+  await expect(page.getByText(dispute.comment, { exact: true })).toBeVisible();
+  await expect(page.getByText(/\b2 (of|out of) 5\b/)).toHaveCount(0);
+
+  const form = page.getByTestId("decide-rating-dispute");
+  await form.getByLabel("Outcome", { exact: true }).selectOption("Upheld");
+  await form.getByLabel("Ground for upholding", { exact: true }).selectOption("False Statement");
+  await form
+    .getByLabel("Reasons sent to the person and the organization", { exact: true })
+    .fill("The call sheet shows the person arrived on time, so the statement is false.");
+  await form.getByRole("button", { name: "Record the decision" }).click();
+  await expect(form.getByText("Decision recorded and sent.")).toBeVisible();
+
+  const [row] = await sql<{ state: string; ground: string; removed: boolean; score: number }>(
+    `select d.dispute_state::text as state, d.decision_ground::text as ground, r.score,
+       r.id in (select private.removed_rating_ids()) as removed
+       from app.rating_disputes d join app.ratings r on r.id = d.rating_id where d.id = $1`,
+    [dispute.id],
+  );
+  expect(row).toEqual({ state: "Upheld", ground: "False Statement", score: 2, removed: true });
 });

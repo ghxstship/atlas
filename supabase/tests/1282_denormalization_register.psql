@@ -513,6 +513,7 @@ insert into register_tenant_exceptions values
   ('app.product_events', 'platform'),
   ('app.product_funnel_alerts', 'platform'),
   ('app.profile_section_visibility', 'person-owned'),
+  ('app.rating_sharing_consents', 'person-owned'),
   ('app.shortcut_bindings', 'person-owned'),
   ('app.subscription_state_transition_rules', 'platform'),
   ('app.supplier_diversity_certifications', 'person-owned'),

@@ -580,6 +580,7 @@ ADR 0002 puts `org_id` and the audit columns on every tenant table. The identity
 | `app.product_events`                      | platform     | Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).                            |
 | `app.product_funnel_alerts`               | platform     | Regression alerts of the workflow funnels for the platform team, naming a workflow and counts, never an org (A146, migration 3340). |
 | `app.profile_section_visibility`          | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                                      |
+| `app.rating_sharing_consents`             | person-owned | A person's own opt-in to show their ratings, keyed by person_id, for no one org (ADR 0156, migration 6145).                         |
 | `app.shortcut_bindings`                   | person-owned | Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).                                   |
 | `app.subscription_state_transition_rules` | platform     | Allowed subscription state transitions, the same for every org.                                                                     |
 | `app.supplier_diversity_certifications`   | person-owned | Owned by a person or an external account and read only by the owner (A89, migration 1464).                                          |
