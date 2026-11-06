@@ -108,7 +108,7 @@ select ok((select reason like '%through a signing link.' from app.engagement_doc
 select pg_temp.as_user('cleo');
 select is((select accepted_email from api_external.quote_versions where id = pg_temp.id('q1v1')), 'cleo@coral-group.test',
   'the view reads the email the link went to from the used token');
-select ok(pg_temp.id('doc1') not in (select private.my_profile_engagement_document_ids()), 'an accepted quote is off the Compass Profile');
+select ok(not exists (select 1 from api_external.my_profile_documents d where d.id = pg_temp.id('doc1')), 'an accepted quote is off the Compass Profile');
 select pg_temp.as_user('carol');
 select is((select accepted_email from app.quote_acceptance(pg_temp.id('q1v1'))), 'cleo@coral-group.test',
   'app.quote_acceptance gives a budget reader the same email');

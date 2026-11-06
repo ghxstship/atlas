@@ -29,19 +29,19 @@ end $$;
 grant execute on function pg_temp.line(text, int, bigint, bigint) to public;
 
 create function pg_temp.committed(p_line text, p_price bigint) returns void language plpgsql as $$
-declare v_po uuid;
+declare v_po uuid; v_number bigint := (select coalesce(max(po_number), 9000) + 1 from app.purchase_orders);
 begin
-  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD') returning id into v_po;
-  insert into app.po_lines (purchase_order_id, line_number, description, budget_line_id, quantity, unit_price_minor)
-  values (v_po, 1, 'Committed line.', pg_temp.id(p_line), 1, p_price);
-  update app.purchase_orders set po_state = 'Approved' where id = v_po;
+  insert into app.purchase_orders (org_id, project_id, po_number, vendor_id, currency_code, po_state)
+  values (pg_temp.id('org_a'), pg_temp.id('prj_a'), v_number, pg_temp.id('ven'), 'USD', 'Approved') returning id into v_po;
+  insert into app.po_lines (org_id, purchase_order_id, line_number, description, budget_line_id, quantity, unit_price_minor)
+  values (pg_temp.id('org_a'), v_po, 1, 'Committed line.', pg_temp.id(p_line), 1, p_price);
 end $$;
 grant execute on function pg_temp.committed(text, bigint) to public;
 
 create function pg_temp.spent(p_line text, p_amount bigint) returns void language plpgsql as $$
 begin
-  insert into app.expenses (project_id, membership_id, budget_line_id, amount_minor, currency_code, description, expense_state)
-  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), pg_temp.id(p_line), p_amount, 'USD', 'Spend.', 'Approved');
+  insert into app.expenses (org_id, budget_line_id, amount_minor, currency_code, description, incurred_on, expense_state)
+  values (pg_temp.id('org_a'), pg_temp.id(p_line), p_amount, 'USD', 'Spend.', '2027-06-01', 'Approved');
 end $$;
 grant execute on function pg_temp.spent(text, bigint) to public;
 

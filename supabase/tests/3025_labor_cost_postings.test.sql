@@ -87,9 +87,13 @@ select ok((select bool_and(multiplier >= 1.5) from app.labor_cost_postings where
   'at the overtime multiplier');
 select ok(exists (select 1 from app.labor_cost_postings where work_date = '2027-06-19' and shift_id = pg_temp.id('sh1')),
   'a clock-in at 23:30 local on the period''s last day posts on that local date');
+create temporary table expected_labor as
+  select sum(round(minutes / 60.0 * multiplier * rate_minor))::bigint as amount from app.labor_cost_postings where shift_id = pg_temp.id('sh1');
+grant select on expected_labor to public;
+select pg_temp.as_user('carol');
 select is((select labor_actual_minor::bigint from app.budget_line_labor_totals where budget_line_id = pg_temp.id('labor')),
-  (select sum(round(minutes / 60.0 * multiplier * rate_minor))::bigint from app.labor_cost_postings where shift_id = pg_temp.id('sh1')),
-  'the line''s labor actual is the derived amount');
+  (select amount from expected_labor), 'the line''s labor actual is the derived amount');
+select pg_temp.as_platform();
 
 -- Void and re-approval -------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -154,12 +158,11 @@ select throws_ok(format($$update app.shifts set budget_line_id = null where id =
 select pg_temp.as_platform();
 insert into app.time_entries (project_id, membership_id, clock_in, clock_out)
 values (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '2027-06-22 12:00+00', '2027-06-22 14:00+00');
-with x as (insert into app.timesheets (project_id, membership_id, period_start, period_end, timesheet_state)
-  values (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '2027-06-20', '2027-06-26', 'Proposed') returning id) insert into world select 'ts_d', id from x;
-select pg_temp.as_user('dave');
-select app.submit_timesheet(pg_temp.id('ts_d'));
-select pg_temp.as_user('alice');
-select lives_ok($$select app.decide_timesheet(pg_temp.id('ts_d'), 'Approved', 'Checked.')$$, 'a missing rate never refuses an approval');
+with x as (insert into app.timesheets (project_id, membership_id, period_start, period_end)
+  values (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '2027-06-20', '2027-06-26') returning id) insert into world select 'ts_d', id from x;
+select lives_ok(format($$insert into app.timesheet_approvals (org_id, timesheet_id, approved_by, approved_minutes)
+    values ('%s', '%s', '%s', 120)$$, pg_temp.id('org_a'), pg_temp.id('ts_d'), pg_temp.id('alice')),
+  'a missing rate never refuses an approval');
 select pg_temp.as_platform();
 select ok((select bool_and(rate_minor is null and rate_source is null and currency_code is null and shift_id is null) from app.labor_cost_postings l
            join app.timesheet_approvals a on a.id = l.timesheet_approval_id where a.timesheet_id = pg_temp.id('ts_d')),

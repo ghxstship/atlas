@@ -71,11 +71,11 @@ insert into world select 'batch', app.request_import_commit(pg_temp.id('job'));
 select pg_temp.as_platform();
 alter table app.budget_lines disable trigger t90_stamp_audit_columns;
 with x as (insert into app.budget_lines (budget_id, line_number, description, urid, line_type, quantity, unit_price_minor, xyz, xyz_basis, created_at, updated_at)
-  values (pg_temp.id('bud'), 2, 'Imported.', '5000.04.02', 'Cost', 1, null, 'X', 'Category', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp1', id from x;
+  values (pg_temp.id('bud'), 2, 'Imported.', '5000.04.02', 'Cost', 1, null, 'X', 'Declared', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp1', id from x;
 with x as (insert into app.budget_lines (budget_id, line_number, description, urid, line_type, quantity, unit_price_minor, xyz, xyz_basis, created_at, updated_at)
-  values (pg_temp.id('bud'), 3, 'Imported, then staffed.', '5000.51.02', 'Labor', 1, 100, 'X', 'Category', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp2', id from x;
+  values (pg_temp.id('bud'), 3, 'Imported, then staffed.', '5000.51.02', 'Labor', 1, 100, 'X', 'Declared', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp2', id from x;
 with x as (insert into app.budget_lines (budget_id, line_number, description, urid, line_type, quantity, unit_price_minor, xyz, xyz_basis, created_at, updated_at)
-  values (pg_temp.id('bud'), 4, 'Imported, then captured.', '5000.04.02', 'Cost', 1, 100, 'X', 'Category', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp3', id from x;
+  values (pg_temp.id('bud'), 4, 'Imported, then captured.', '5000.04.02', 'Cost', 1, 100, 'X', 'Declared', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp3', id from x;
 alter table app.budget_lines enable trigger t90_stamp_audit_columns;
 select app.commit_import_write(pg_temp.id('r_new'), pg_temp.id('batch'), pg_temp.id('imp1'), 'Created');
 select app.commit_import_write(pg_temp.id('r_kept'), pg_temp.id('batch'), pg_temp.id('imp2'), 'Created');
@@ -113,7 +113,7 @@ insert into world select 'batch2', app.request_import_commit(pg_temp.id('job2'))
 select pg_temp.as_platform();
 alter table app.budget_lines disable trigger t90_stamp_audit_columns;
 with x as (insert into app.budget_lines (budget_id, line_number, description, urid, line_type, quantity, unit_price_minor, xyz, xyz_basis, created_at, updated_at)
-  values (pg_temp.id('bud'), 5, 'Second import.', '5000.04.02', 'Cost', 1, 100, 'X', 'Category', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp4', id from x;
+  values (pg_temp.id('bud'), 5, 'Second import.', '5000.04.02', 'Cost', 1, 100, 'X', 'Declared', now() - interval '2 hours', now() - interval '2 hours') returning id) insert into world select 'imp4', id from x;
 alter table app.budget_lines enable trigger t90_stamp_audit_columns;
 select app.commit_import_write(pg_temp.id('r2'), pg_temp.id('batch2'), pg_temp.id('imp4'), 'Created');
 select app.finish_import_batch(pg_temp.id('batch2'));

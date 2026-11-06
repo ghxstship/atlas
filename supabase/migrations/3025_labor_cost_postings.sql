@@ -570,7 +570,7 @@ left join app.organizations o on o.id = c.organization_id
 where s.project_id in (select private.project_ids_with('crew.timesheet.read'))
 group by s.org_id, s.project_id, s.team_kind, s.team_counterparty_id, o.name, s.currency_code;
 
-call private.describe('app.labor_posting_team_totals', 'Approved crew time per project, team and currency (S7.4-07): own team, each agency by name and engaged individuals side by side, for readers who hold crew.timesheet.read on the project: hours beside a line's Actual would give a rate to a reader who holds only finance.budget.read. Cost by team shows only with data.restricted.read.payroll, as the Labor report masks payroll run amounts; amounts are never summed across currencies.', array[
+call private.describe('app.labor_posting_team_totals', 'Approved crew time per project, team and currency (S7.4-07): own team, each agency by name and engaged individuals side by side, for readers who hold crew.timesheet.read on the project: hours beside a line''s Actual would give a rate to a reader who holds only finance.budget.read. Cost by team shows only with data.restricted.read.payroll, as the Labor report masks payroll run amounts; amounts are never summed across currencies.', array[
   'org_id', 'Org.', 'project_id', 'Project.', 'team_kind', 'Own Team, Agency or Engaged.',
   'team_counterparty_id', 'The agency, for Agency rows.', 'team_name', 'The agency''s name.',
   'currency_code', 'Currency of the rates summed; NULL for the unpriced minutes.', 'minutes', 'Minutes posted.',

@@ -142,6 +142,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       advance_sections: {
@@ -335,6 +342,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "asset_custody_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "asset_custody_roster_entry_id_fkey";
             columns: ["roster_entry_id"];
             isOneToOne: false;
@@ -491,6 +505,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       client_approvals: {
@@ -558,6 +579,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -642,6 +670,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "clock_punches_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "clock_punches_roster_entry_id_fkey";
             columns: ["roster_entry_id"];
             isOneToOne: false;
@@ -704,6 +739,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "credentials_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
@@ -761,6 +803,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       day_sheets: {
@@ -779,6 +828,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "day_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -857,6 +913,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "shipments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       dock_slots: {
@@ -910,6 +973,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
           {
             foreignKeyName: "dock_slots_shipment_id_fkey";
@@ -1100,6 +1170,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       engagement_threads: {
@@ -1175,6 +1252,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       engagements: {
@@ -1222,6 +1306,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -1275,6 +1366,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -1415,6 +1513,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       lodging: {
@@ -1437,6 +1542,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accommodation_blocks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -1711,6 +1823,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       my_profile_certifications: {
@@ -1894,6 +2013,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       my_roster_entries: {
@@ -1951,6 +2077,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -2490,6 +2623,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "per_diems_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "per_diems_roster_entry_id_fkey";
             columns: ["roster_entry_id"];
             isOneToOne: false;
@@ -2635,6 +2775,80 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+        ];
+      };
+      quote_version_lines: {
+        Row: {
+          amount_minor: number | null;
+          description: string | null;
+          id: string | null;
+          line_number: number | null;
+          quantity: number | null;
+          quote_version_id: string | null;
+          unit_basis: string | null;
+          unit_price_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      quote_versions: {
+        Row: {
+          accepted_at: string | null;
+          accepted_email: string | null;
+          accepted_name: string | null;
+          brand_accent_hex: string | null;
+          brand_logo_path: string | null;
+          client_name: string | null;
+          content_sha256: string | null;
+          currency_code: string | null;
+          engagement_document_id: string | null;
+          id: string | null;
+          legal_entity_name: string | null;
+          org_id: string | null;
+          org_name: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          project_time_zone: string | null;
+          quote_id: string | null;
+          quote_key: string | null;
+          quote_version_state: Database["app"]["Enums"]["quote_version_state"] | null;
+          sent_at: string | null;
+          terms: string | null;
+          title: string | null;
+          total_minor: number | null;
+          valid_until: string | null;
+          version_number: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "quote_versions_engagement_document_id_fkey";
+            columns: ["engagement_document_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_engagement_document_id_fkey";
+            columns: ["engagement_document_id"];
+            isOneToOne: false;
+            referencedRelation: "my_token_documents";
+            referencedColumns: ["engagement_document_id"];
+          },
+          {
+            foreignKeyName: "quote_versions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
         ];
       };
       radio_channels: {
@@ -2667,6 +2881,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "radio_channels_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -2756,6 +2977,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -2886,6 +3114,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "riders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       run_of_show: {
@@ -2904,6 +3139,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -3033,6 +3275,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "settlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       shared_reports: {
@@ -3085,6 +3334,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_reports_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -3142,6 +3398,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
           {
             foreignKeyName: "shifts_roster_entry_id_fkey";
@@ -3213,6 +3476,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
         ];
       };
       sponsor_entitlements: {
@@ -3242,6 +3512,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -3278,6 +3555,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
           {
             foreignKeyName: "submittals_purchase_order_id_fkey";
@@ -3422,6 +3706,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "time_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "time_entries_roster_entry_id_fkey";
             columns: ["roster_entry_id"];
             isOneToOne: false;
@@ -3510,6 +3801,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
+          },
+          {
             foreignKeyName: "timesheets_roster_entry_id_fkey";
             columns: ["roster_entry_id"];
             isOneToOne: false;
@@ -3592,6 +3890,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["project_id"];
           },
         ];
       };
@@ -11033,16 +11338,20 @@ export type Database = {
       budget_lines: {
         Row: {
           budget_id: string;
+          client_unit_price_minor: number | null;
           cost_center_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
           description: string;
           element_id: string | null;
+          etc_minor: number | null;
+          excluded_from_quote: boolean;
           grade_code: string | null;
           id: string;
           line_number: number;
           line_type: Database["app"]["Enums"]["budget_line_type"];
+          markup_bp: number | null;
           org_id: string;
           phase_code: string | null;
           quantity: number;
@@ -11058,16 +11367,20 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           budget_id: string;
+          client_unit_price_minor?: number | null;
           cost_center_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
           description: string;
           element_id?: string | null;
+          etc_minor?: number | null;
+          excluded_from_quote?: boolean;
           grade_code?: string | null;
           id?: string;
           line_number: number;
           line_type?: Database["app"]["Enums"]["budget_line_type"];
+          markup_bp?: number | null;
           org_id: string;
           phase_code?: string | null;
           quantity?: number;
@@ -11082,16 +11395,20 @@ export type Database = {
         };
         Update: {
           budget_id?: string;
+          client_unit_price_minor?: number | null;
           cost_center_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
           description?: string;
           element_id?: string | null;
+          etc_minor?: number | null;
+          excluded_from_quote?: boolean;
           grade_code?: string | null;
           id?: string;
           line_number?: number;
           line_type?: Database["app"]["Enums"]["budget_line_type"];
+          markup_bp?: number | null;
           org_id?: string;
           phase_code?: string | null;
           quantity?: number;
@@ -11109,6 +11426,13 @@ export type Database = {
             foreignKeyName: "budget_lines_budget_id_fkey";
             columns: ["budget_id"];
             isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
             referencedRelation: "budget_line_commitments";
             referencedColumns: ["budget_id"];
           },
@@ -11117,6 +11441,27 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
             referencedColumns: ["budget_id"];
           },
           {
@@ -11145,6 +11490,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["budget_id"];
           },
           {
@@ -11177,11 +11529,358 @@ export type Database = {
           },
         ];
       };
+      budget_version_lines: {
+        Row: {
+          budget_line_id: string;
+          budget_version_id: string;
+          client_unit_price_minor: number | null;
+          cost_center_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          effective_markup_bp: number | null;
+          element_id: string | null;
+          excluded_from_quote: boolean;
+          grade_code: string | null;
+          id: string;
+          line_number: number;
+          line_type: Database["app"]["Enums"]["budget_line_type"];
+          org_id: string;
+          phase_code: string | null;
+          quantity: number;
+          tier_code: string | null;
+          unit_basis: string | null;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        ComputedFields: never;
+        Insert: {
+          budget_line_id: string;
+          budget_version_id: string;
+          client_unit_price_minor?: number | null;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          effective_markup_bp?: number | null;
+          element_id?: string | null;
+          excluded_from_quote: boolean;
+          grade_code?: string | null;
+          id?: string;
+          line_number: number;
+          line_type: Database["app"]["Enums"]["budget_line_type"];
+          org_id: string;
+          phase_code?: string | null;
+          quantity: number;
+          tier_code?: string | null;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid: string;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Update: {
+          budget_line_id?: string;
+          budget_version_id?: string;
+          client_unit_price_minor?: number | null;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          effective_markup_bp?: number | null;
+          element_id?: string | null;
+          excluded_from_quote?: boolean;
+          grade_code?: string | null;
+          id?: string;
+          line_number?: number;
+          line_type?: Database["app"]["Enums"]["budget_line_type"];
+          org_id?: string;
+          phase_code?: string | null;
+          quantity?: number;
+          tier_code?: string | null;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string;
+          xyz?: string;
+          xyz_basis?: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_version_id_fkey";
+            columns: ["budget_version_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_version_totals";
+            referencedColumns: ["budget_version_id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_budget_version_id_fkey";
+            columns: ["budget_version_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_cost_center_id_fkey";
+            columns: ["cost_center_id"];
+            isOneToOne: false;
+            referencedRelation: "cost_centers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_version_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_versions: {
+        Row: {
+          budget_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          purpose: Database["app"]["Enums"]["budget_version_purpose"];
+          updated_at: string;
+          updated_by: string | null;
+          version_number: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          budget_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          purpose: Database["app"]["Enums"]["budget_version_purpose"];
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number: number;
+        };
+        Update: {
+          budget_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          purpose?: Database["app"]["Enums"]["budget_version_purpose"];
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_versions_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budget_versions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_versions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       budgets: {
         Row: {
           created_at: string;
           created_by: string | null;
           currency_code: string;
+          default_markup_bp: number | null;
           deleted_at: string | null;
           id: string;
           is_baseline: boolean;
@@ -11196,6 +11895,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           currency_code: string;
+          default_markup_bp?: number | null;
           deleted_at?: string | null;
           id?: string;
           is_baseline?: boolean;
@@ -11209,6 +11909,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           currency_code?: string;
+          default_markup_bp?: number | null;
           deleted_at?: string | null;
           id?: string;
           is_baseline?: boolean;
@@ -12660,6 +13361,27 @@ export type Database = {
             foreignKeyName: "change_order_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -12668,6 +13390,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -12867,6 +13596,13 @@ export type Database = {
             foreignKeyName: "change_orders_budget_id_fkey";
             columns: ["budget_id"];
             isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
             referencedRelation: "budget_line_commitments";
             referencedColumns: ["budget_id"];
           },
@@ -12875,6 +13611,27 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
             referencedColumns: ["budget_id"];
           },
           {
@@ -12903,6 +13660,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["budget_id"];
           },
           {
@@ -14309,6 +15073,27 @@ export type Database = {
             foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
             columns: ["from_budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -14317,6 +15102,13 @@ export type Database = {
             columns: ["from_budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -14351,6 +15143,27 @@ export type Database = {
             foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
             columns: ["to_budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -14359,6 +15172,13 @@ export type Database = {
             columns: ["to_budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -19709,6 +20529,27 @@ export type Database = {
             foreignKeyName: "expenses_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -19717,6 +20558,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -23609,6 +24457,7 @@ export type Database = {
       };
       import_jobs: {
         Row: {
+          budget_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -23632,6 +24481,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          budget_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -23654,6 +24504,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          budget_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -23676,6 +24527,83 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
           {
             foreignKeyName: "import_jobs_created_by_fkey";
             columns: ["created_by"];
@@ -26992,6 +27920,27 @@ export type Database = {
             foreignKeyName: "invoice_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -27000,6 +27949,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -28141,6 +29097,110 @@ export type Database = {
           },
           {
             foreignKeyName: "labor_agreements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      labor_cost_postings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          id: string;
+          minutes: number;
+          multiplier: number;
+          org_id: string;
+          rate_minor: number | null;
+          rate_source: Database["app"]["Enums"]["labor_rate_source"] | null;
+          role_code: string | null;
+          segment: Database["app"]["Enums"]["labor_segment"];
+          shift_id: string | null;
+          timesheet_approval_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          work_date: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          minutes: number;
+          multiplier: number;
+          org_id: string;
+          rate_minor?: number | null;
+          rate_source?: Database["app"]["Enums"]["labor_rate_source"] | null;
+          role_code?: string | null;
+          segment: Database["app"]["Enums"]["labor_segment"];
+          shift_id?: string | null;
+          timesheet_approval_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          work_date: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          minutes?: number;
+          multiplier?: number;
+          org_id?: string;
+          rate_minor?: number | null;
+          rate_source?: Database["app"]["Enums"]["labor_rate_source"] | null;
+          role_code?: string | null;
+          segment?: Database["app"]["Enums"]["labor_segment"];
+          shift_id?: string | null;
+          timesheet_approval_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          work_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "labor_cost_postings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "labor_cost_postings_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "labor_cost_postings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "labor_cost_postings_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "labor_cost_postings_timesheet_approval_id_fkey";
+            columns: ["timesheet_approval_id"];
+            isOneToOne: false;
+            referencedRelation: "timesheet_approvals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "labor_cost_postings_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -37432,6 +38492,27 @@ export type Database = {
             foreignKeyName: "po_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -37440,6 +38521,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -40028,6 +41116,402 @@ export type Database = {
           },
           {
             foreignKeyName: "push_tickets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      quote_version_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["quote_version_state"] | null;
+          id: string;
+          org_id: string;
+          quote_version_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["quote_version_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["quote_version_state"] | null;
+          id?: string;
+          org_id: string;
+          quote_version_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["quote_version_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["quote_version_state"] | null;
+          id?: string;
+          org_id?: string;
+          quote_version_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["quote_version_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_version_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_version_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_version_state_transitions_quote_version_id_fkey";
+            columns: ["quote_version_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_statuses";
+            referencedColumns: ["current_version_id"];
+          },
+          {
+            foreignKeyName: "quote_version_state_transitions_quote_version_id_fkey";
+            columns: ["quote_version_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_version_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      quote_versions: {
+        Row: {
+          accepted_at: string | null;
+          accepted_by: string | null;
+          accepted_name: string | null;
+          budget_version_id: string | null;
+          content_sha256: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_document_id: string | null;
+          id: string;
+          org_id: string;
+          quote_id: string;
+          quote_version_state: Database["app"]["Enums"]["quote_version_state"];
+          sent_at: string | null;
+          sent_by: string | null;
+          sent_client_name: string | null;
+          sent_title: string | null;
+          terms: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_until: string;
+          version_number: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          accepted_name?: string | null;
+          budget_version_id?: string | null;
+          content_sha256?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_document_id?: string | null;
+          id?: string;
+          org_id: string;
+          quote_id: string;
+          quote_version_state?: Database["app"]["Enums"]["quote_version_state"];
+          sent_at?: string | null;
+          sent_by?: string | null;
+          sent_client_name?: string | null;
+          sent_title?: string | null;
+          terms?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_until: string;
+          version_number: number;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          accepted_name?: string | null;
+          budget_version_id?: string | null;
+          content_sha256?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_document_id?: string | null;
+          id?: string;
+          org_id?: string;
+          quote_id?: string;
+          quote_version_state?: Database["app"]["Enums"]["quote_version_state"];
+          sent_at?: string | null;
+          sent_by?: string | null;
+          sent_client_name?: string | null;
+          sent_title?: string | null;
+          terms?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_until?: string;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_versions_accepted_by_fkey";
+            columns: ["accepted_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_budget_version_id_fkey";
+            columns: ["budget_version_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_version_totals";
+            referencedColumns: ["budget_version_id"];
+          },
+          {
+            foreignKeyName: "quote_versions_budget_version_id_fkey";
+            columns: ["budget_version_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_engagement_document_id_fkey";
+            columns: ["engagement_document_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_statuses";
+            referencedColumns: ["quote_id"];
+          },
+          {
+            foreignKeyName: "quote_versions_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_sent_by_fkey";
+            columns: ["sent_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_versions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      quotes: {
+        Row: {
+          budget_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string | null;
+          id: string;
+          org_id: string;
+          quote_number: number;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          budget_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          org_id: string;
+          quote_number: number;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          budget_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          org_id?: string;
+          quote_number?: number;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -45595,6 +47079,27 @@ export type Database = {
             foreignKeyName: "requisitions_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -45603,6 +47108,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -50312,6 +51824,7 @@ export type Database = {
       };
       shifts: {
         Row: {
+          budget_line_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -50334,6 +51847,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          budget_line_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -50355,6 +51869,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          budget_line_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -50376,6 +51891,69 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "shifts_created_by_fkey";
             columns: ["created_by"];
@@ -61207,6 +62785,61 @@ export type Database = {
         };
         Relationships: [];
       };
+      budget_forecast_totals: {
+        Row: {
+          actual_minor: number | null;
+          budget_id: string | null;
+          committed_minor: number | null;
+          currency_code: string | null;
+          current_budget_minor: number | null;
+          efc_minor: number | null;
+          etc_minor: number | null;
+          forward_exposure_minor: number | null;
+          is_withheld: boolean | null;
+          project_id: string | null;
+          remaining_commitment_minor: number | null;
+          unallocated_change_minor: number | null;
+          variance_at_completion_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       budget_line_amounts: {
         Row: {
           account_code: string | null;
@@ -61215,37 +62848,24 @@ export type Database = {
           budget_line_id: string | null;
           drawn_in_minor: number | null;
           drawn_out_minor: number | null;
+          expense_actual_minor: number | null;
           extended_minor: number | null;
           is_unpriced: boolean | null;
+          labor_actual_minor: number | null;
+          labor_other_currency_count: number | null;
+          labor_unpriced_minutes: number | null;
           line_type: Database["app"]["Enums"]["budget_line_type"] | null;
           urid: string | null;
         };
         ComputedFields: never;
-        Insert: {
-          account_code?: never;
-          actual_minor?: never;
-          budget_id?: string | null;
-          budget_line_id?: string | null;
-          drawn_in_minor?: never;
-          drawn_out_minor?: never;
-          extended_minor?: never;
-          is_unpriced?: never;
-          line_type?: Database["app"]["Enums"]["budget_line_type"] | null;
-          urid?: string | null;
-        };
-        Update: {
-          account_code?: never;
-          actual_minor?: never;
-          budget_id?: string | null;
-          budget_line_id?: string | null;
-          drawn_in_minor?: never;
-          drawn_out_minor?: never;
-          extended_minor?: never;
-          is_unpriced?: never;
-          line_type?: Database["app"]["Enums"]["budget_line_type"] | null;
-          urid?: string | null;
-        };
         Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
           {
             foreignKeyName: "budget_lines_budget_id_fkey";
             columns: ["budget_id"];
@@ -61258,6 +62878,27 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
             referencedColumns: ["budget_id"];
           },
           {
@@ -61286,6 +62927,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["budget_id"];
           },
         ];
@@ -61375,6 +63023,254 @@ export type Database = {
             referencedRelation: "cost_centers";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_line_forecasts: {
+        Row: {
+          actual_minor: number | null;
+          budget_id: string | null;
+          budget_line_id: string | null;
+          committed_minor: number | null;
+          currency_code: string | null;
+          current_budget_minor: number | null;
+          efc_minor: number | null;
+          etc_minor: number | null;
+          etc_source: string | null;
+          forward_exposure_minor: number | null;
+          is_withheld: boolean | null;
+          project_id: string | null;
+          remaining_commitment_minor: number | null;
+          variance_at_completion_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_line_labor_totals: {
+        Row: {
+          budget_id: string | null;
+          budget_line_id: string | null;
+          labor_actual_minor: number | null;
+          labor_other_currency_count: number | null;
+          labor_unpriced_minutes: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      budget_line_prices: {
+        Row: {
+          budget_id: string | null;
+          budget_line_id: string | null;
+          client_extended_minor: number | null;
+          client_price_source: string | null;
+          client_unit_price_minor: number | null;
+          cost_extended_minor: number | null;
+          currency_code: string | null;
+          effective_markup_bp: number | null;
+          excluded_from_quote: boolean | null;
+          margin_minor: number | null;
+          markup_source: string | null;
+          project_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_price_totals: {
+        Row: {
+          budget_id: string | null;
+          client_priced_total_minor: number | null;
+          client_total_minor: number | null;
+          client_unpriced_count: number | null;
+          currency_code: string | null;
+          included_line_count: number | null;
+          margin_minor: number | null;
+          project_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
           {
             foreignKeyName: "budgets_currency_code_fkey";
             columns: ["currency_code"];
@@ -61515,6 +63411,107 @@ export type Database = {
           },
         ];
       };
+      budget_version_totals: {
+        Row: {
+          budget_id: string | null;
+          budget_version_id: string | null;
+          client_total_minor: number | null;
+          client_unpriced_count: number | null;
+          currency_code: string | null;
+          line_count: number | null;
+          margin_minor: number | null;
+          priced_total_minor: number | null;
+          total_minor: number | null;
+          unpriced_count: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_versions_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+        ];
+      };
       change_order_line_facts: {
         Row: {
           account_code: string | null;
@@ -61564,6 +63561,27 @@ export type Database = {
             foreignKeyName: "change_order_lines_budget_line_id_fkey";
             columns: ["budget_line_id"];
             isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_prices";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
             referencedRelation: "budget_lines";
             referencedColumns: ["id"];
           },
@@ -61573,6 +63591,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
           },
           {
             foreignKeyName: "change_orders_budget_id_fkey";
@@ -61586,6 +63618,27 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
             referencedColumns: ["budget_id"];
           },
           {
@@ -61614,6 +63667,13 @@ export type Database = {
             columns: ["budget_id"];
             isOneToOne: false;
             referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
             referencedColumns: ["budget_id"];
           },
           {
@@ -62904,6 +64964,91 @@ export type Database = {
           },
         ];
       };
+      labor_budget_lines: {
+        Row: {
+          budget_id: string | null;
+          budget_name: string | null;
+          description: string | null;
+          id: string | null;
+          line_number: number | null;
+          project_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      labor_cost_posting_details: {
+        Row: {
+          amount_minor: number | null;
+          budget_line_id: string | null;
+          currency_code: string | null;
+          is_masked: boolean | null;
+          is_unpriced: boolean | null;
+          minutes: number | null;
+          multiplier: number | null;
+          org_id: string | null;
+          person_id: string | null;
+          person_name: string | null;
+          posting_id: string | null;
+          project_id: string | null;
+          rate_minor: number | null;
+          rate_source: Database["app"]["Enums"]["labor_rate_source"] | null;
+          role_code: string | null;
+          segment: Database["app"]["Enums"]["labor_segment"] | null;
+          shift_id: string | null;
+          team_counterparty_id: string | null;
+          team_kind: Database["app"]["Enums"]["labor_team_kind"] | null;
+          team_name: string | null;
+          timesheet_id: string | null;
+          work_date: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      labor_posting_team_totals: {
+        Row: {
+          amount_minor: number | null;
+          currency_code: string | null;
+          is_masked: boolean | null;
+          minutes: number | null;
+          org_id: string | null;
+          project_id: string | null;
+          team_counterparty_id: string | null;
+          team_kind: Database["app"]["Enums"]["labor_team_kind"] | null;
+          team_name: string | null;
+          unpriced_minutes: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       lifecycle_transition_rules: {
         Row: {
           from_state: string | null;
@@ -64181,6 +66326,171 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      quote_statuses: {
+        Row: {
+          accepted_at: string | null;
+          budget_id: string | null;
+          client_name: string | null;
+          client_total_minor: number | null;
+          currency_code: string | null;
+          current_version_id: string | null;
+          current_version_number: number | null;
+          display_state: string | null;
+          engagement_id: string | null;
+          has_draft: boolean | null;
+          margin_minor: number | null;
+          org_id: string | null;
+          project_id: string | null;
+          quote_id: string | null;
+          quote_key: string | null;
+          sent_at: string | null;
+          title: string | null;
+          valid_until: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_forecast_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_forecasts";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_labor_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_price_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_revised_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "quotes_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
@@ -66523,6 +68833,17 @@ export type Database = {
         };
         Returns: string;
       };
+      create_quote: {
+        Args: {
+          p_budget_id: string;
+          p_engagement_id?: string;
+          p_terms?: string;
+          p_title: string;
+          p_valid_until?: string;
+        };
+        Returns: string;
+      };
+      create_quote_version: { Args: { p_quote_id: string }; Returns: string };
       create_service_account: {
         Args: { p_expires_at?: string; p_name: string; p_org_id: string; p_role_id: string };
         Returns: string;
@@ -66689,6 +69010,10 @@ export type Database = {
       decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
+      decline_quote_version: {
+        Args: { p_quote_version_id: string; p_reason: string };
+        Returns: undefined;
+      };
       delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
@@ -67152,6 +69477,7 @@ export type Database = {
       };
       import_detected_sheet: {
         Args: {
+          p_budget_id?: string;
           p_project_id?: string;
           p_run_of_show_id?: string;
           p_sheet_id: string;
@@ -68017,6 +70343,12 @@ export type Database = {
       queue_subprocessor_notice: {
         Args: { p_effective_on: string; p_list_version: string; p_summary: string };
         Returns: number;
+      };
+      quote_acceptance: {
+        Args: { p_quote_version_id: string };
+        Returns: {
+          accepted_email: string;
+        }[];
       };
       radio_handout: {
         Args: { p_project_id: string };
@@ -69089,6 +71421,7 @@ export type Database = {
       };
       save_roster_shift: {
         Args: {
+          p_budget_line_id?: string;
           p_ends_at: string;
           p_engagement_id: string;
           p_membership_id: string;
@@ -69297,6 +71630,13 @@ export type Database = {
           p_starts_on: string;
         };
         Returns: string;
+      };
+      send_quote_version: {
+        Args: { p_quote_version_id: string; p_reason: string };
+        Returns: {
+          content_sha256: string;
+          engagement_document_id: string;
+        }[];
       };
       set_account_notification_defaults: {
         Args: { p_account_id: string; p_defaults: Json };
@@ -69548,6 +71888,7 @@ export type Database = {
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
       sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
       sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
+      snapshot_budget: { Args: { p_budget_id: string; p_label: string }; Returns: string };
       split_allocation: { Args: { p_allocation_id: string; p_parts: Json }; Returns: string[] };
       split_engaged_allocation: {
         Args: { p_parts: Json; p_pool_allocation_id: string };
@@ -70258,6 +72599,10 @@ export type Database = {
         Returns: boolean;
       };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      withdraw_quote_version: {
+        Args: { p_quote_version_id: string; p_reason: string };
+        Returns: undefined;
+      };
       withdraw_roster_entry: {
         Args: { p_reason: string; p_roster_entry_id: string };
         Returns: undefined;
@@ -70360,6 +72705,7 @@ export type Database = {
       billing_interval: "Monthly" | "Annual";
       brand_radius_scale: "Compact" | "Default" | "Rounded";
       budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
+      budget_version_purpose: "Snapshot" | "Quote";
       calendar_conflict_policy: "XOS Wins" | "Provider Wins" | "Latest Wins";
       calendar_sync_kind: "Meeting" | "Event" | "Shift";
       canon_extension_level: "Discipline" | "Category";
@@ -70443,7 +72789,8 @@ export type Database = {
         | "Lien Waiver"
         | "Settlement"
         | "Proof of Performance"
-        | "Content Consent";
+        | "Content Consent"
+        | "Quote";
       engagement_document_state:
         "Proposed" | "Sent" | "Signed" | "Executed" | "Expired" | "Superseded" | "Canceled";
       engagement_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
@@ -70539,6 +72886,9 @@ export type Database = {
       job_status: "Queued" | "Running" | "Succeeded" | "Failed" | "Canceled";
       join_request_state: "Pending" | "Approved" | "Declined" | "Withdrawn";
       journal_state: "Proposed" | "Posted" | "Canceled";
+      labor_rate_source: "Pay Rate" | "Engagement Rate" | "Rate Card";
+      labor_segment: "Regular" | "Overtime" | "Double Time";
+      labor_team_kind: "Own Team" | "Agency" | "Engaged";
       language_proficiency: "Basic" | "Conversational" | "Fluent" | "Native";
       listing_report_reason:
         | "Illegal Content"
@@ -70675,6 +73025,7 @@ export type Database = {
       punch_kind: "In" | "Break Start" | "Break End" | "Out";
       punch_source: "Mobile" | "Kiosk" | "Supervisor";
       purge_method: "Delete" | "Drop Partition" | "Account Lifecycle";
+      quote_version_state: "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
       rate_type: "Hourly" | "Day" | "Flat" | "Milestone" | "Bid";
       rate_unit: "Hour" | "Day" | "Week" | "Project";
       rating_side: "Organization" | "Party";
@@ -76962,6 +79313,7 @@ export const Constants = {
       billing_interval: ["Monthly", "Annual"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
+      budget_version_purpose: ["Snapshot", "Quote"],
       calendar_conflict_policy: ["XOS Wins", "Provider Wins", "Latest Wins"],
       calendar_sync_kind: ["Meeting", "Event", "Shift"],
       canon_extension_level: ["Discipline", "Category"],
@@ -77057,6 +79409,7 @@ export const Constants = {
         "Settlement",
         "Proof of Performance",
         "Content Consent",
+        "Quote",
       ],
       engagement_document_state: [
         "Proposed",
@@ -77169,6 +79522,9 @@ export const Constants = {
       job_status: ["Queued", "Running", "Succeeded", "Failed", "Canceled"],
       join_request_state: ["Pending", "Approved", "Declined", "Withdrawn"],
       journal_state: ["Proposed", "Posted", "Canceled"],
+      labor_rate_source: ["Pay Rate", "Engagement Rate", "Rate Card"],
+      labor_segment: ["Regular", "Overtime", "Double Time"],
+      labor_team_kind: ["Own Team", "Agency", "Engaged"],
       language_proficiency: ["Basic", "Conversational", "Fluent", "Native"],
       listing_report_reason: [
         "Illegal Content",
@@ -77331,6 +79687,7 @@ export const Constants = {
       punch_kind: ["In", "Break Start", "Break End", "Out"],
       punch_source: ["Mobile", "Kiosk", "Supervisor"],
       purge_method: ["Delete", "Drop Partition", "Account Lifecycle"],
+      quote_version_state: ["Draft", "Sent", "Accepted", "Declined", "Withdrawn", "Superseded"],
       rate_type: ["Hourly", "Day", "Flat", "Milestone", "Bid"],
       rate_unit: ["Hour", "Day", "Week", "Project"],
       rating_side: ["Organization", "Party"],
