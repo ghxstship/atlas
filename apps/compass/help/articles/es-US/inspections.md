@@ -12,7 +12,7 @@ order: 1
 2. Marca cada punto como **Pasa** o **Falla**. Una falla necesita qué está mal y una foto; luego **Guardar falla**.
 3. **Enviar inspección** cuando revisaste todos los puntos.
 
-Cuando fallan puntos críticos, Compass te indica que detengas el uso hasta que se corrijan. Sin conexión, la inspección se guarda y se sube después.
+Cuando fallan puntos críticos, saca el elemento de uso, avisa a tu supervisor y nombra la unidad en la inspección. XOS no bloquea la unidad ni le da seguimiento. Sin conexión, la inspección se guarda y se sube después.
 
 ## Firmar la aprobación
 

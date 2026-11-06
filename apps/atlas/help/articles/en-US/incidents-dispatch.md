@@ -10,9 +10,15 @@ order: 32
 
 Anyone on site can report an incident from Compass, even offline, with photos and their location. It is filed once when the device reconnects. A critical incident cannot be closed without a sign-off.
 
+XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with a title that starts with Near miss. Filter Incidents by that severity to find them later.
+
 ## Dispatch board
 
 The dispatch board shows open incidents by state and on the map. Assign responders, move incidents through their states and follow them to close. The table view lists every incident for the keyboard and screen readers.
+
+## Crisis alerts
+
+Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, email and push, and the alert shows how many were told. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.
 
 ## Emergency codes and radio channels
 

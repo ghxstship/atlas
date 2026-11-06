@@ -81,6 +81,16 @@
         "body": "{actorName} reported {title}. Open it to see the details and response."
       }
     },
+    "crisis_alert": {
+      "issued": {
+        "subject": "Crisis alert at {project}: {title}",
+        "body": "{message} Announced by {actorName}. XOS does not alert emergency services. In an emergency, call your local emergency number."
+      },
+      "ended": {
+        "subject": "All clear at {project}: {title}",
+        "body": "{actorName} gave the all-clear for {title} at {project}."
+      }
+    },
     "account": {
       "security_changed": {
         "subject": "Your account security changed",
@@ -187,8 +197,8 @@
     },
     "occupancy": {
       "threshold": {
-        "subject": "{title} is at {percent}% of its permitted load",
-        "body": "{title} has {count} people inside, {percent}% of the permitted load of {permitted_load}."
+        "subject": "{title} is at {percent}% of its occupant load",
+        "body": "{title} has {count} people inside, {percent}% of its occupant load of {permitted_load}."
       }
     },
     "weather": {

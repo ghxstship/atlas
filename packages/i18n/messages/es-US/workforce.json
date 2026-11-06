@@ -618,7 +618,7 @@
     "noSpace": "Sin espacio",
     "spaceOption": "{name} ({area} pies², capacidad {capacity})",
     "factor": "Factor de carga de ocupantes",
-    "factorHelp": "De las métricas de capacidad de la Biblia: el área del espacio dividida entre este factor da el aforo permitido.",
+    "factorHelp": "De las métricas de capacidad de la Biblia: el área del espacio dividida entre este factor da un aforo calculado, no un aforo permitido.",
     "noFactor": "Sin factor de carga",
     "factorOption": "{item}: {feet} pies² por persona",
     "permit": "Aforo permitido por un permiso",
@@ -630,7 +630,7 @@
       "Permit": "Permiso"
     },
     "inside": "Adentro",
-    "load": "Aforo permitido",
+    "load": "Aforo",
     "percent": "Porcentaje",
     "ratio": "{count} de {load} ({percent} %)",
     "counting": "Contando",
@@ -1102,10 +1102,20 @@
       "add": "Sumar {n}",
       "remove": "Restar {n}",
       "count": "{count} de {permitted}",
-      "percent": "{percent} por ciento del aforo permitido",
-      "level80": "80 por ciento del aforo permitido. Reduce el ingreso.",
-      "level90": "90 por ciento del aforo permitido. Detén el ingreso y llama a tu supervisor.",
-      "level100": "Aforo permitido alcanzado. Detén el ingreso ahora."
+      "percent": "{percent} por ciento del {load}",
+      "level80": "80 por ciento del {load}. Reduce la entrada.",
+      "level90": "90 por ciento del {load}. Detén la entrada y llama a tu supervisor.",
+      "level100": "En el {load}. Detén la entrada ahora.",
+      "loadName": {
+        "Permit": "aforo permitido",
+        "OccupantLoadFactor": "aforo calculado",
+        "SpaceCapacity": "aforo del espacio"
+      },
+      "basis": {
+        "Permit": "Aforo fijado por un permiso.",
+        "OccupantLoadFactor": "Aforo calculado: el área del espacio dividida entre su factor de carga de ocupantes. Ningún permiso lo fijó.",
+        "SpaceCapacity": "Aforo según la capacidad indicada del espacio. Ningún permiso lo fijó."
+      }
     },
     "weather": {
       "title": "Clima",

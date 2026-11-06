@@ -49,7 +49,14 @@ describe("occupancyLevel", () => {
 describe("OccupancyCounterScreen", () => {
   it("counts in and out at a door and shows the alert level", async () => {
     const onCount = vi.fn(ok);
-    const ol = labels<OccupancyCounterScreenLabels>(["add", "remove", "count", "percent", "level"]);
+    const ol = labels<OccupancyCounterScreenLabels>([
+      "add",
+      "remove",
+      "count",
+      "percent",
+      "level",
+      "basis",
+    ]);
     const { container, rerender } = render(
       <OccupancyCounterScreen
         status="ready"
@@ -62,7 +69,9 @@ describe("OccupancyCounterScreen", () => {
         onCount={onCount}
       />,
     );
-    expect(screen.getByText("level(80)")).toBeTruthy();
+    // The banner and the counter name the load for its basis: only a permit makes it a permitted load.
+    expect(screen.getByText("level(80,Space Capacity)")).toBeTruthy();
+    expect(screen.getByText("basis(Space Capacity)")).toBeTruthy();
     expect(screen.getByText("count(250,300)")).toBeTruthy();
     expect(screen.getByText("closed")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("door"), { target: { value: " Gate A " } });

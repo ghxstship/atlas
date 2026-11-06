@@ -926,7 +926,30 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
-            c: [{ t: "text", v: "Offline, the report is saved and sends when you reconnect." }],
+            c: [
+              {
+                t: "text",
+                v: "In an emergency, call your local emergency number first. XOS does not alert emergency services.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Offline, the report is saved but not sent until you reconnect. If it is an emergency, call your local emergency number now.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start the description with Near miss, so it can be found later.",
+              },
+            ],
           },
           { t: "h2", v: "Dispatch" },
           {
@@ -978,7 +1001,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "When critical items fail, Compass tells you to stop use until they are fixed. Offline, the inspection is saved and uploads later.",
+                v: "When critical items fail, take the item out of use, tell your supervisor, and name the unit in the inspection. XOS does not block or track the unit itself. Offline, the inspection is saved and uploads later.",
               },
             ],
           },
@@ -3094,7 +3117,7 @@ export const COMPASS_HELP: HelpContent = {
       {
         slug: "workforce-occupancy",
         title: "Occupancy",
-        summary: "Counting people in and out at each door against the permitted load.",
+        summary: "Counting people in and out at each door against the counter's load.",
         kind: "workflow",
         nodes: ["workforce.occupancy"],
         order: 1,
@@ -3104,7 +3127,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Each counter shows the count against the permitted load. Add or remove people at your door as they come and go.",
+                v: "Each counter shows the count against its load, and says where that load comes from. It is a permitted load only when a permit set it; a load from the space's area and a load factor is a calculated load. Add or remove people at your door as they come and go.",
               },
             ],
           },
@@ -3113,7 +3136,7 @@ export const COMPASS_HELP: HelpContent = {
             items: [
               [{ t: "text", v: "At 80 percent, slow entry." }],
               [{ t: "text", v: "At 90 percent, hold entry and call your supervisor." }],
-              [{ t: "text", v: "At the permitted load, stop entry now." }],
+              [{ t: "text", v: "At the load, stop entry now." }],
             ],
           },
           { t: "p", c: [{ t: "text", v: "Counters are set up in Atlas. Counts work offline." }] },
@@ -4245,7 +4268,30 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
-            c: [{ t: "text", v: "Sin conexión, el reporte se guarda y se envía al reconectar." }],
+            c: [
+              {
+                t: "text",
+                v: "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Sin conexión, el reporte se guarda, pero no se envía hasta que reconectes. Si es una emergencia, llama ahora a tu número local de emergencias.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza la descripción con Casi accidente, para encontrarlo después.",
+              },
+            ],
           },
           { t: "h2", v: "Despachar" },
           {
@@ -4298,7 +4344,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Cuando fallan puntos críticos, Compass te indica que detengas el uso hasta que se corrijan. Sin conexión, la inspección se guarda y se sube después.",
+                v: "Cuando fallan puntos críticos, saca el elemento de uso, avisa a tu supervisor y nombra la unidad en la inspección. XOS no bloquea la unidad ni le da seguimiento. Sin conexión, la inspección se guarda y se sube después.",
               },
             ],
           },
@@ -6514,7 +6560,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "workforce-occupancy",
         title: "Aforo",
         summary:
-          "Cómo contar a las personas que entran y salen en cada puerta frente al aforo permitido.",
+          "Cómo contar a las personas que entran y salen en cada puerta frente al aforo del contador.",
         kind: "workflow",
         nodes: ["workforce.occupancy"],
         order: 1,
@@ -6524,7 +6570,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Cada contador muestra el conteo frente al aforo permitido. Suma o resta personas en tu puerta a medida que entran y salen.",
+                v: "Cada contador muestra el conteo frente a su aforo y dice de dónde viene. Es aforo permitido solo cuando lo fijó un permiso; el que sale del área del espacio y un factor de carga es un aforo calculado. Suma o resta personas en tu puerta a medida que entran y salen.",
               },
             ],
           },
@@ -6533,7 +6579,7 @@ export const COMPASS_HELP: HelpContent = {
             items: [
               [{ t: "text", v: "Al 80 por ciento, reduce el ingreso." }],
               [{ t: "text", v: "Al 90 por ciento, detén el ingreso y llama a tu supervisor." }],
-              [{ t: "text", v: "Con el aforo permitido alcanzado, detén el ingreso ahora." }],
+              [{ t: "text", v: "Con el aforo alcanzado, detén el ingreso ahora." }],
             ],
           },
           {

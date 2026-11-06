@@ -135,6 +135,7 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
               <TextField
                 testID="fail-note"
                 label={t("compass.inspections.failNote")}
+                help={t("compass.inspections.failNoteHelp")}
                 value={note}
                 onChangeText={setNote}
                 multiline

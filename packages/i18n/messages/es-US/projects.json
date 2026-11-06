@@ -272,6 +272,7 @@
     "advisory": "Consultivo",
     "met": "Evidencia certificada",
     "gap": "Sin evidencia",
+    "nearMissHelp": "XOS no tiene un tipo de casi accidente. Registra un casi accidente como incidente en Level 5 - Advisory, con un título que empiece con Casi accidente, para encontrarlo después en Seguridad, Incidentes.",
     "evidence": "Evidencia",
     "noEvidence": "Aún no hay evidencia.",
     "rank": "Rango de aserción {rank}",

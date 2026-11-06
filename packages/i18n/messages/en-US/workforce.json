@@ -618,7 +618,7 @@
     "noSpace": "No space",
     "spaceOption": "{name} ({area} sq ft, capacity {capacity})",
     "factor": "Occupant load factor",
-    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives the permitted load.",
+    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives a calculated load, not a permitted one.",
     "noFactor": "No load factor",
     "factorOption": "{item}: {feet} sq ft per person",
     "permit": "Permitted load from a permit",
@@ -630,7 +630,7 @@
       "Permit": "Permit"
     },
     "inside": "Inside",
-    "load": "Permitted load",
+    "load": "Occupant load",
     "percent": "Percent",
     "ratio": "{count} of {load} ({percent}%)",
     "counting": "Counting",
@@ -1102,10 +1102,20 @@
       "add": "Add {n}",
       "remove": "Remove {n}",
       "count": "{count} of {permitted}",
-      "percent": "{percent} percent of the permitted load",
-      "level80": "80 percent of the permitted load. Slow entry.",
-      "level90": "90 percent of the permitted load. Hold entry and call your supervisor.",
-      "level100": "At the permitted load. Stop entry now."
+      "percent": "{percent} percent of the {load}",
+      "level80": "80 percent of the {load}. Slow entry.",
+      "level90": "90 percent of the {load}. Hold entry and call your supervisor.",
+      "level100": "At the {load}. Stop entry now.",
+      "loadName": {
+        "Permit": "permitted load",
+        "OccupantLoadFactor": "calculated load",
+        "SpaceCapacity": "space capacity"
+      },
+      "basis": {
+        "Permit": "Load set by a permit.",
+        "OccupantLoadFactor": "Calculated load: the space's area divided by its occupant load factor. No permit set it.",
+        "SpaceCapacity": "Load from the space's stated capacity. No permit set it."
+      }
     },
     "weather": {
       "title": "Weather",

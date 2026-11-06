@@ -42,12 +42,17 @@ function Incidents(): ReactElement {
         />
       }
     >
+      <InlineAlert
+        testID="incident-emergency"
+        tone="danger"
+        message={t("compass.incidents.emergencyFirst")}
+      />
       <ProjectPicker />
       <SyncBanner />
       {filed ? (
         <InlineAlert
           testID="incident-filed"
-          tone="success"
+          tone={filed === "sent" ? "success" : "warning"}
           message={t(filed === "sent" ? "compass.incidents.sent" : "compass.incidents.queued")}
         />
       ) : null}
