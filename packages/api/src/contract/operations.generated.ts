@@ -3630,6 +3630,62 @@ export interface Components {
     points?: Record<string, number>;
     show_if?: { key: string; equals: string | number | boolean };
   };
+  FormLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    form_template_id: string;
+    project_id: string | null;
+    note: string | null;
+    token_hint: string;
+    expires_at: string;
+    daily_cap: number;
+    max_responses: number | null;
+    one_per_email: boolean;
+    failed_attempts: number;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  FormLinkPage: { data: Array<Components["FormLink"]>; next_cursor: string | null };
+  FormLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  FormLinkRequest: {
+    form_template_id: string;
+    expires_at: string;
+    project_id?: string;
+    daily_cap?: number;
+    max_responses?: number;
+    one_per_email?: boolean;
+    note?: string;
+  };
+  FormLinkResponse: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    form_link_id: string;
+    form_template_id: string;
+    form_template_version_id: string;
+    project_id: string | null;
+    record_id: string | null;
+    respondent_name: string;
+    respondent_email: string;
+    answers: Record<string, unknown>;
+    score: number | null;
+    max_score: number | null;
+    passed: boolean | null;
+    submission_state: "Submitted" | "Approved" | "Rejected" | "Recorded";
+    decided_by_membership_id: string | null;
+    decision_note: string | null;
+  };
+  FormLinkResponseDecision: { approve: boolean; note?: string };
+  FormLinkResponsePage: { data: Array<Components["FormLinkResponse"]>; next_cursor: string | null };
+  FormLinkToken: { form_link_id: string; token: string; access_code: string; expires_at: string };
   FormSubmission: {
     id: string;
     org_id: string;
@@ -5805,6 +5861,31 @@ export interface Components {
     parent_org_id?: string | null;
     organization_type?: string;
   };
+  OutsideAccessRow: {
+    project_id: string;
+    source:
+      | "Live view link"
+      | "Display link"
+      | "File link"
+      | "Advance link"
+      | "Signing link"
+      | "Roster invitation"
+      | "Pack recipient"
+      | "Intake link"
+      | "Form link"
+      | "Engagement";
+    source_id: string;
+    label: string;
+    recipient_email: string | null;
+    token_hint: string | null;
+    link_state: string;
+    expires_at: string | null;
+    open_count: number | null;
+    last_opened_at: string | null;
+    created_at: string;
+    created_by: string | null;
+  };
+  OutsideAccessRowPage: { data: Array<Components["OutsideAccessRow"]>; next_cursor: string | null };
   OvertimeRule: {
     jurisdiction_id: Components["JurisdictionId"];
     source: string;
@@ -8712,6 +8793,130 @@ export interface Components {
     counterparty_id?: string;
     due_on?: string | null;
   };
+  StakeholderPack: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    project_id: string;
+    name: string;
+    message: string | null;
+    note: string | null;
+    expires_at: string;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  StakeholderPackChange: {
+    name: string;
+    expires_at: string;
+    message: string | null;
+    note: string | null;
+  };
+  StakeholderPackEvent: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    stakeholder_pack_id: string;
+    recipient_id: string;
+    item_id: string | null;
+    action: "Sent" | "Opened" | "Viewed" | "Downloaded" | "Signed" | "Unsubscribed";
+    signer_name: string | null;
+    occurred_at: string;
+  };
+  StakeholderPackEventPage: {
+    data: Array<Components["StakeholderPackEvent"]>;
+    next_cursor: string | null;
+  };
+  StakeholderPackItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    stakeholder_pack_id: string;
+    item_kind: "Live Link" | "File";
+    live_link_id: string | null;
+    attachment_id: string | null;
+    title: string;
+    position: number;
+    requires_acknowledgement: boolean;
+  };
+  StakeholderPackItemPage: {
+    data: Array<Components["StakeholderPackItem"]>;
+    next_cursor: string | null;
+  };
+  StakeholderPackItemRemoved: { id: string };
+  StakeholderPackItemRequest: {
+    stakeholder_pack_id: string;
+    live_link_id?: string;
+    attachment_id?: string;
+    title: string;
+    requires_acknowledgement?: boolean;
+  };
+  StakeholderPackPage: { data: Array<Components["StakeholderPack"]>; next_cursor: string | null };
+  StakeholderPackRecipient: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    stakeholder_pack_id: string;
+    full_name: string;
+    email: string;
+    counterparty_id: string | null;
+    label: string | null;
+    failed_attempts: number;
+    unsubscribed_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  StakeholderPackRecipientCode: { recipient_id: string; access_code: string };
+  StakeholderPackRecipientCodeReset: { access_code: string };
+  StakeholderPackRecipientPage: {
+    data: Array<Components["StakeholderPackRecipient"]>;
+    next_cursor: string | null;
+  };
+  StakeholderPackRecipientRequest: {
+    stakeholder_pack_id: string;
+    full_name: string;
+    email: string;
+    counterparty_id?: string;
+    label?: string;
+  };
+  StakeholderPackRequest: {
+    project_id: string;
+    name: string;
+    expires_at: string;
+    message?: string;
+    note?: string;
+  };
+  StakeholderPackSchedule: {
+    id: string;
+    stakeholder_pack_id: string;
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday: number | null;
+    month_day: number | null;
+    time_zone: string;
+    next_run_at: string;
+    paused_at: string | null;
+  };
+  StakeholderPackScheduleRequest: {
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday?: number;
+    month_day?: number;
+    time_zone?: string;
+  };
+  StakeholderPackSendRequest: { stakeholder_pack_id: string; recipient_ids?: Array<string> };
+  StakeholderPackSent: { queued: number };
   StdCode: string;
   StdDocument: {
     record_id: Components["StdCode"];
@@ -9804,6 +10009,96 @@ export interface Components {
     default_currency_code?: string | null;
     default_account_code?: Components["GlAccountCode"] | null;
     default_cost_center_id?: string | null;
+  };
+  VendorIntakeApproval: { reason?: string };
+  VendorIntakeDecline: { reason: string };
+  VendorIntakeLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    role_type: "Vendor" | "Contractor";
+    role_code: string;
+    worker_classification: string;
+    pay_basis: string | null;
+    arrangement: string | null;
+    counterparty_type: string | null;
+    start_date: string;
+    end_date: string | null;
+    agreement_document_id: string | null;
+    agreement_version_id: string | null;
+    title: string;
+    instructions: string | null;
+    note: string | null;
+    collect_tax_form: boolean;
+    collect_payout: boolean;
+    collect_invoice: boolean;
+    token_hint: string;
+    expires_at: string;
+    max_requests: number;
+    failed_attempts: number;
+    rotated_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  VendorIntakeLinkPage: { data: Array<Components["VendorIntakeLink"]>; next_cursor: string | null };
+  VendorIntakeLinkRegenerated: { token: string; access_code: string; expires_at: string };
+  VendorIntakeLinkRequest: {
+    project_id: string;
+    title: string;
+    role_type: "Vendor" | "Contractor";
+    role_code: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    start_date: string;
+    expires_at: string;
+    end_date?: string;
+    counterparty_type?: string;
+    agreement_document_id?: string;
+    instructions?: string;
+    note?: string;
+    collect_tax_form?: boolean;
+    collect_payout?: boolean;
+    collect_invoice?: boolean;
+    max_requests?: number;
+  };
+  VendorIntakeLinkToken: {
+    vendor_intake_link_id: string;
+    token: string;
+    access_code: string;
+    expires_at: string;
+  };
+  VendorIntakeRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    vendor_intake_link_id: string;
+    project_id: string;
+    requested_by: string;
+    account_id: string | null;
+    tax_form_id: string | null;
+    payout_account_id: string | null;
+    signer_name: string | null;
+    signed_at: string | null;
+    signed_version_id: string | null;
+    invoice_draft: Record<string, unknown> | null;
+    request_state: "Pending" | "Approved" | "Declined" | "Withdrawn";
+    decided_by: string | null;
+    decided_at: string | null;
+    decision_reason: string | null;
+    engagement_id: string | null;
+    invoice_id: string | null;
+  };
+  VendorIntakeRequestPage: {
+    data: Array<Components["VendorIntakeRequest"]>;
+    next_cursor: string | null;
   };
   VendorPage: { data: Array<Components["Vendor"]>; next_cursor: string | null };
   VendorProduct: {
@@ -26548,6 +26843,375 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["LiveLink"] };
   };
+  "stakeholderPacks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-packs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["StakeholderPackPage"] };
+  };
+  "stakeholderPacks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-packs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["StakeholderPack"] };
+  };
+  "stakeholderPacks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-packs/create";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["StakeholderPackRequest"];
+    responses: { 201: Components["StakeholderPack"] };
+  };
+  "stakeholderPacks.update": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-packs/{id}/update";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["StakeholderPackChange"];
+    responses: { 200: Components["StakeholderPack"] };
+  };
+  "stakeholderPacks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-packs/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["StakeholderPack"] };
+  };
+  "stakeholderPacks.setSchedule": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-packs/{id}/schedule";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["StakeholderPackScheduleRequest"];
+    responses: { 200: Components["StakeholderPackSchedule"] };
+  };
+  "stakeholderPacks.clearSchedule": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-packs/{id}/schedule/clear";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["StakeholderPack"] };
+  };
+  "stakeholderPackItems.list": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-pack-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["StakeholderPackItemPage"] };
+  };
+  "stakeholderPackItems.add": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-items/add";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["StakeholderPackItemRequest"];
+    responses: { 201: Components["StakeholderPackItem"] };
+  };
+  "stakeholderPackItems.remove": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-items/{id}/remove";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["StakeholderPackItemRemoved"] };
+  };
+  "stakeholderPackRecipients.list": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-pack-recipients";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["StakeholderPackRecipientPage"] };
+  };
+  "stakeholderPackRecipients.get": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-pack-recipients/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["StakeholderPackRecipient"] };
+  };
+  "stakeholderPackRecipients.add": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-recipients/add";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["StakeholderPackRecipientRequest"];
+    responses: { 201: Components["StakeholderPackRecipientCode"] };
+  };
+  "stakeholderPackRecipients.resetCode": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-recipients/{id}/reset-code";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["StakeholderPackRecipientCodeReset"] };
+  };
+  "stakeholderPackRecipients.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-recipients/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["StakeholderPackRecipient"] };
+  };
+  "stakeholderPackRecipients.send": {
+    module: "Platform";
+    method: "post";
+    path: "/stakeholder-pack-recipients/send";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["StakeholderPackSendRequest"];
+    responses: { 200: Components["StakeholderPackSent"] };
+  };
+  "stakeholderPackEvents.list": {
+    module: "Platform";
+    method: "get";
+    path: "/stakeholder-pack-events";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["StakeholderPackEventPage"] };
+  };
+  "vendorIntakeLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/vendor-intake-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["VendorIntakeLinkPage"] };
+  };
+  "vendorIntakeLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/vendor-intake-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["VendorIntakeLink"] };
+  };
+  "vendorIntakeLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/vendor-intake-links/create";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["VendorIntakeLinkRequest"];
+    responses: { 201: Components["VendorIntakeLinkToken"] };
+  };
+  "vendorIntakeLinks.regenerate": {
+    module: "Platform";
+    method: "post";
+    path: "/vendor-intake-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["VendorIntakeLinkRegenerated"] };
+  };
+  "vendorIntakeLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/vendor-intake-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["VendorIntakeLink"] };
+  };
+  "vendorIntakeRequests.list": {
+    module: "Platform";
+    method: "get";
+    path: "/vendor-intake-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["VendorIntakeRequestPage"] };
+  };
+  "vendorIntakeRequests.get": {
+    module: "Platform";
+    method: "get";
+    path: "/vendor-intake-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["VendorIntakeRequest"] };
+  };
+  "vendorIntakeRequests.approve": {
+    module: "Platform";
+    method: "post";
+    path: "/vendor-intake-requests/{id}/approve";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["VendorIntakeApproval"];
+    responses: { 200: Components["VendorIntakeRequest"] };
+  };
+  "vendorIntakeRequests.decline": {
+    module: "Platform";
+    method: "post";
+    path: "/vendor-intake-requests/{id}/decline";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["VendorIntakeDecline"];
+    responses: { 200: Components["VendorIntakeRequest"] };
+  };
+  "formLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/form-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FormLinkPage"] };
+  };
+  "formLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/form-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["FormLink"] };
+  };
+  "formLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/form-links/create";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["FormLinkRequest"];
+    responses: { 201: Components["FormLinkToken"] };
+  };
+  "formLinks.regenerate": {
+    module: "Platform";
+    method: "post";
+    path: "/form-links/{id}/regenerate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["FormLinkRegenerated"] };
+  };
+  "formLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/form-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["FormLink"] };
+  };
+  "formLinkResponses.list": {
+    module: "Platform";
+    method: "get";
+    path: "/form-link-responses";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FormLinkResponsePage"] };
+  };
+  "formLinkResponses.get": {
+    module: "Platform";
+    method: "get";
+    path: "/form-link-responses/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["FormLinkResponse"] };
+  };
+  "formLinkResponses.decide": {
+    module: "Platform";
+    method: "post";
+    path: "/form-link-responses/{id}/decide";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["FormLinkResponseDecision"];
+    responses: { 200: Components["FormLinkResponse"] };
+  };
+  "outsideAccess.list": {
+    module: "Platform";
+    method: "get";
+    path: "/outside-access";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OutsideAccessRowPage"] };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -29952,6 +30616,41 @@ export interface ModuleOperations {
     | "liveLinks.createDisplay"
     | "liveLinks.regenerate"
     | "liveLinks.revoke"
+    | "stakeholderPacks.list"
+    | "stakeholderPacks.get"
+    | "stakeholderPacks.create"
+    | "stakeholderPacks.update"
+    | "stakeholderPacks.revoke"
+    | "stakeholderPacks.setSchedule"
+    | "stakeholderPacks.clearSchedule"
+    | "stakeholderPackItems.list"
+    | "stakeholderPackItems.add"
+    | "stakeholderPackItems.remove"
+    | "stakeholderPackRecipients.list"
+    | "stakeholderPackRecipients.get"
+    | "stakeholderPackRecipients.add"
+    | "stakeholderPackRecipients.resetCode"
+    | "stakeholderPackRecipients.revoke"
+    | "stakeholderPackRecipients.send"
+    | "stakeholderPackEvents.list"
+    | "vendorIntakeLinks.list"
+    | "vendorIntakeLinks.get"
+    | "vendorIntakeLinks.create"
+    | "vendorIntakeLinks.regenerate"
+    | "vendorIntakeLinks.revoke"
+    | "vendorIntakeRequests.list"
+    | "vendorIntakeRequests.get"
+    | "vendorIntakeRequests.approve"
+    | "vendorIntakeRequests.decline"
+    | "formLinks.list"
+    | "formLinks.get"
+    | "formLinks.create"
+    | "formLinks.regenerate"
+    | "formLinks.revoke"
+    | "formLinkResponses.list"
+    | "formLinkResponses.get"
+    | "formLinkResponses.decide"
+    | "outsideAccess.list"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"
