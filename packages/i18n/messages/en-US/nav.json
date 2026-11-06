@@ -48,8 +48,7 @@
         "riders": "Riders",
         "reconciliation": "Reconciliation",
         "crew": "Crew Roster",
-        "allocations": "Allocations",
-        "progress": "Progress"
+        "allocations": "Allocations"
       },
       "places": {
         "venues": "Venues",
@@ -278,9 +277,7 @@
       "legal": "Legal",
       "advanceForm": "Advance Form",
       "agreementSigning": "Agreement Signing",
-      "calendarFeed": "Calendar Feed",
-      "vendorIntake": "Vendor Intake",
-      "publicForm": "Public Form"
+      "calendarFeed": "Calendar Feed"
     },
     "partner": {
       "clientOrgs": "Client Orgs",
@@ -454,7 +451,7 @@
       "engagements": "Engagements",
       "applications": "Applications",
       "engagement": "Engagement",
-      "quoteRequests": "Quote requests"
+      "quoteRequests": "Quote Requests"
     },
     "money": {
       "overview": "Overview",

@@ -36,6 +36,9 @@ vi.mock("@xos/data/home", async (importOriginal) => ({
   listMyOverdueRecords: data.overdue,
   listMyRecordsBetween: data.due,
 }));
+vi.mock("@xos/data/anchor", () => ({
+  getRecordAnchorPinned: async () => ({ ok: true, data: false }),
+}));
 vi.mock("@xos/data/activity", () => ({
   listActivity: data.activity,
   labelActivity: async (_db: unknown, entries: unknown[]) => entries,

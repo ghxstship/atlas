@@ -52,7 +52,7 @@ describe("signedInRoutes", () => {
     expect(crew?.email).toBe("crew@example.com");
     expect(crew?.paths).toContain("/home");
     expect(vendor?.paths.length).toBeGreaterThan(0);
-    expect(vendor?.paths.every((p) => p.startsWith("/work/engagements/"))).toBe(true);
+    expect(vendor?.paths.every((p) => p.startsWith("/work/"))).toBe(true);
   });
 });
 

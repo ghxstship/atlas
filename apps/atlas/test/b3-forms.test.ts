@@ -15,7 +15,7 @@ const show = (file: string) => join(here, "..", "components", "show", file);
 const FORMS = [
   "cue-form-tabs.tsx",
   "show-channel-panel.tsx",
-  "segment-library.tsx",
+  "segment-peek.tsx",
   "showcaller-link-dialog.tsx",
   "showcaller-portal.tsx",
 ];

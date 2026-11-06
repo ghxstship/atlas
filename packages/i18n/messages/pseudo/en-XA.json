@@ -1,602 +1,609 @@
 {
   "ui": {
     "access": {
-      "allowed": "[{cat} îñ {zone}: àllöwéd ·········]",
-      "credential": "[Çrédéñtîàl ···]",
-      "denied": "[{cat} îñ {zone}: déñîéd ·········]"
+      "allowed": "[{cat} îñ {zone}: àļļöŵéð ······]",
+      "credential": "[Çŕéðéñţîàļ ····]",
+      "denied": "[{cat} îñ {zone}: ðéñîéð ·····]"
     },
     "action": {
-      "cancel": "[Çàñçél ··]",
-      "clear": "[Çléàr ·]",
-      "close": "[Çlösé ·]",
-      "copyLink": "[Çöpý Lîñk ···]",
-      "dismiss": "[Dîsmîss ··]",
-      "done": "[Döñé ·]",
-      "download": "[Döwñlöàd ···]",
-      "later": "[Làtér ·]",
-      "reset": "[Rését ·]",
-      "retry": "[Rétrý ·]",
-      "save": "[Sàvé ·]",
-      "saved": "[Sàvéd ·]",
-      "send": "[Séñd ·]",
-      "snooze": "[Sñöözé ··]",
-      "start": "[Stàrt ·]",
-      "undo": "[Ûñdö ·]",
-      "view": "[Vîéw ·]"
+      "cancel": "[Çàñçéļ ···]",
+      "clear": "[Çļéàŕ ··]",
+      "close": "[Çļöšé ··]",
+      "copyLink": "[Çöþý Ļîñķ ····]",
+      "dismiss": "[Ðîšɱîšš ···]",
+      "done": "[Ðöñé ··]",
+      "download": "[Ðöŵñļöàð ····]",
+      "later": "[Ļàţéŕ ··]",
+      "reset": "[Ŕéšéţ ··]",
+      "retry": "[Ŕéţŕý ··]",
+      "save": "[Šàṽé ··]",
+      "saved": "[Šàṽéð ··]",
+      "send": "[Šéñð ··]",
+      "snooze": "[Šñööžé ···]",
+      "start": "[Šţàŕţ ··]",
+      "undo": "[Ûñðö ··]",
+      "view": "[Ṽîéŵ ··]"
     },
     "apply": {
-      "available": "[Î'm àvàîlàblé öñ évérý lîstéd dàté ·············]",
-      "draftSaved": "[Dràft sàvéd ····]",
-      "shared": "[Whàt {org} wîll séé ·······]",
-      "submit": "[Sûbmît Àpplîçàtîöñ ·······]",
-      "title": "[Àpplý: {role} ·····]"
+      "available": "[Î'ɱ àṽàîļàƀļé öñ éṽéŕý ļîšţéð ðàţé ··············]",
+      "draftSaved": "[Ðŕàƒţ šàṽéð ·····]",
+      "shared": "[Ŵĥàţ {org} ŵîļļ šéé ······]",
+      "submit": "[Šûƀɱîţ Àþþļîçàţîöñ ········]",
+      "title": "[Àþþļý: {role} ···]"
     },
     "assertion": {
-      "aria": "[{label}, ràñk {rank} öf 4 ·········]"
+      "aria": "[{label}, ŕàñķ {rank} öƒ 4 ·····]"
     },
     "availability": {
-      "available": "[Àvàîlàblé ···]",
-      "booked": "[Böökéd ··]"
+      "available": "[Àṽàîļàƀļé ····]",
+      "booked": "[Ɓööķéð ···]"
     },
     "avatar": {
-      "more": "[{n} möré ···]",
+      "more": "[{n} ɱöŕé ··]",
       "overflow": "[+{n} ·]"
     },
     "badge": {
-      "brightness": "[Ràîsé brîghtñéss ······]",
-      "label": "[Çrédéñtîàl för {name} ········]",
-      "qr": "[Çrédéñtîàl çödé {key} ········]",
-      "valid": "[Vàlîd {from} tö {to} ·······]",
-      "wallet": "[Àdd tö Wàllét ·····]",
-      "zones": "[Zöñés ·]"
+      "brightness": "[Ŕàîšé ƀŕîĝĥţñéšš ·······]",
+      "label": "[Çŕéðéñţîàļ ƒöŕ {name} ······]",
+      "qr": "[Çŕéðéñţîàļ çöðé {key} ·······]",
+      "valid": "[Ṽàļîð {from} ţö {to} ····]",
+      "wallet": "[Àðð ţö Ŵàļļéţ ······]",
+      "zones": "[Žöñéš ··]"
     },
     "bid": {
-      "extended": "[Éxtéñdéd ···]",
-      "item": "[Îtém ·]",
-      "line": "[Lîñé ·]",
-      "lines": "[Bîd lîñés ···]",
-      "qty": "[Qtý ·]",
-      "sealed": "[Séàléd bîd ···]",
-      "sealedBody": "[Bîds stàý séàléd ûñtîl {deadline}. Ñö bîddér séés àñöthér bîd. ························]",
-      "total": "[Bîd Tötàl ···]",
-      "unit": "[Ûñît ·]",
-      "unitPrice": "[Ûñît Prîçé ···]"
+      "extended": "[Éẋţéñðéð ····]",
+      "item": "[Îţéɱ ··]",
+      "line": "[Ļîñé ··]",
+      "lines": "[Ɓîð ļîñéš ····]",
+      "qty": "[Ǫţý ··]",
+      "sealed": "[Šéàļéð ƀîð ····]",
+      "sealedBody": "[Ɓîðš šţàý šéàļéð ûñţîļ {deadline}. Ñö ƀîððéŕ šééš àñöţĥéŕ ƀîð. ·····················]",
+      "total": "[Ɓîð Ţöţàļ ····]",
+      "unit": "[Ûñîţ ··]",
+      "unitPrice": "[Ûñîţ Þŕîçé ····]"
     },
     "board": {
-      "add": "[Ñéw Réçörd ···]",
-      "dropped": "[{title} dröppéd îñ {column}. ··········]",
-      "moved": "[{title} mövéd tö {column}. ·········]",
-      "picked": "[{title} pîçkéd ûp îñ {column}. Àrröw kéýs mövé ît, Spàçé dröps ît, Ésçàpé çàñçéls. ·····························]",
-      "returned": "[{title} rétûrñéd tö {column}. ··········]"
+      "add": "[Ñéŵ Ŕéçöŕð ····]",
+      "dropped": "[{title} ðŕöþþéð îñ {column}. ······]",
+      "moved": "[{title} ɱöṽéð ţö {column}. ·····]",
+      "picked": "[{title} þîçķéð ûþ îñ {column}. Àŕŕöŵ ķéýš ɱöṽé îţ, Šþàçé ðŕöþš îţ, Éšçàþé çàñçéļš. ···························]",
+      "returned": "[{title} ŕéţûŕñéð ţö {column}. ······]"
     },
     "brand": {
-      "size": "[{width} x {height} ······]"
+      "size": "[{width} ẋ {height} ··]"
     },
     "budget": {
-      "amount": "[Àmöûñt ··]",
-      "costCenter": "[Çöst Çéñtér ····]",
-      "gl": "[GL Àççöûñt ···]",
-      "grade": "[Gràdé ·]",
-      "line": "[Lîñé ·]",
-      "qty": "[Qtý ·]",
-      "rate": "[Ràté ·]",
-      "unmapped": "[Ûñmàppéd Àççöûñt ······]",
-      "urid": "[ÛRÎD ·]"
+      "amount": "[Àɱöûñţ ···]",
+      "costCenter": "[Çöšţ Çéñţéŕ ·····]",
+      "gl": "[ĜĻ Àççöûñţ ····]",
+      "grade": "[Ĝŕàðé ··]",
+      "line": "[Ļîñé ··]",
+      "qty": "[Ǫţý ··]",
+      "rate": "[Ŕàţé ··]",
+      "unmapped": "[Ûñɱàþþéð Àççöûñţ ·······]",
+      "urid": "[ÛŔÎÐ ··]"
     },
     "bulk": {
-      "clear": "[Çléàr séléçtîöñ ·····]",
-      "label": "[Bûlk àçtîöñs ····]",
-      "selected": "[{n} séléçtéd ····]",
-      "itemSelected": "[Šéļéçţéð ··]"
+      "clear": "[Çļéàŕ šéļéçţîöñ ······]",
+      "label": "[Ɓûļķ àçţîöñš ·····]",
+      "selected": "[{n} šéļéçţéð ····]",
+      "itemSelected": "[Šéļéçţéð ····]"
     },
     "calendar": {
-      "agenda": "[Àgéñdà ··]",
-      "day": "[Dàý ·]",
-      "month": "[Möñth ·]",
-      "more": "[+{n} möré ···]",
-      "range": "[Ràñgé ·]",
-      "week": "[Wéék ·]",
-      "dayTypes": "[Dàý týpés ···]"
+      "agenda": "[Àĝéñðà ···]",
+      "day": "[Ðàý ··]",
+      "month": "[Ṁöñţĥ ··]",
+      "more": "[+{n} ɱöŕé ···]",
+      "range": "[Ŕàñĝé ··]",
+      "week": "[Ŵééķ ··]",
+      "dayTypes": "[Ðàý ţýþéš ····]"
     },
     "camera": {
-      "viewfinder": "[Çàmérà vîéwfîñdér ······]"
+      "viewfinder": "[Çàɱéŕà ṽîéŵƒîñðéŕ ·······]"
     },
     "chart": {
-      "chart": "[Çhàrt ·]",
-      "legend": "[Légéñd ··]",
-      "noValue": "[Ñö vàlûé ···]",
-      "other": "[Ötĥér ·]",
-      "point": "[{series}, {category}: {value} ··········]",
-      "table": "[Tàblé ·]",
-      "tableHint": "[Swîtçh tö Tàblé för évérý vàlûé. ············]",
-      "view": "[Vîéw ·]"
+      "chart": "[Çĥàŕţ ··]",
+      "legend": "[Ļéĝéñð ···]",
+      "noValue": "[Ñö ṽàļûé ····]",
+      "other": "[Öţĥéŕ ··]",
+      "point": "[{series}, {category}: {value} ··]",
+      "table": "[Ţàƀļé ··]",
+      "tableHint": "[Šŵîţçĥ ţö Ţàƀļé ƒöŕ éṽéŕý ṽàļûé. ·············]",
+      "view": "[Ṽîéŵ ··]"
     },
     "chip": {
-      "remove": "[Rémövé {label} ·····]"
+      "remove": "[Ŕéɱöṽé {label} ···]"
     },
     "clock": {
-      "break": "[Bréàk ·]",
-      "endBreak": "[Éñð Bréàk ··]",
-      "out": "[Çlöçk Öût ···]"
+      "break": "[Ɓŕéàķ ··]",
+      "endBreak": "[Éñð Ɓŕéàķ ····]",
+      "out": "[Çļöçķ Öûţ ····]"
     },
     "color": {
-      "blocked": "[Thîs çölör çàñ't bé sàvéd ûñtîl évérý çhéçk pàssés. ····················]",
-      "hex": "[{label} héx vàlûé ······]",
-      "invalid": "[Éñtér à héx çölör sûçh às #4F57D9. ·············]"
+      "blocked": "[Ţĥîš çöļöŕ çàñ'ţ ƀé šàṽéð ûñţîļ éṽéŕý çĥéçķ þàššéš. ·····················]",
+      "hex": "[{label} ĥéẋ ṽàļûé ····]",
+      "invalid": "[Éñţéŕ à ĥéẋ çöļöŕ šûçĥ àš #4Ƒ57Ð9. ··············]"
     },
     "command": {
-      "label": "[Çömmàñd méñû ····]",
-      "results": "[Résûlts ··]"
+      "label": "[Çöɱɱàñð ɱéñû ·····]",
+      "results": "[Ŕéšûļţš ···]"
     },
     "conflict": {
-      "keep": "[Kéép Séléçtéd ·····]",
-      "server": "[Sàvéd öñ Sérvér ·····]",
-      "title": "[Résölvé Çöñflîçt ······]",
-      "yours": "[Ýöûrs ·]"
+      "keep": "[Ķééþ Šéļéçţéð ······]",
+      "server": "[Šàṽéð öñ Šéŕṽéŕ ······]",
+      "title": "[Ŕéšöļṽé Çöñƒļîçţ ·······]",
+      "yours": "[Ýöûŕš ··]"
     },
     "contact": {
-      "call": "[Çàll {name} ····]",
-      "message": "[Méssàgé {name} ·····]"
+      "call": "[Çàļļ {name} ··]",
+      "message": "[Ṁéššàĝé {name} ····]"
     },
     "contrast": {
-      "fail": "[Fàîls ÀÀ ···]",
-      "pass": "[Pàssés ÀÀ ···]",
+      "fail": "[Ƒàîļš ÀÀ ····]",
+      "pass": "[Þàššéš ÀÀ ····]",
       "ratio": "[{r}:1 ·]"
     },
     "count": {
-      "of": "[{n} öf {total} ·····]",
-      "step": "[Stép {n} öf {total} ·······]"
+      "of": "[{n} öƒ {total} ··]",
+      "step": "[Šţéþ {n} öƒ {total} ····]"
     },
     "date": {
-      "choose": "[Çhöösé dàté ····]",
-      "chooseRange": "[Çhöösé dàtés ····]",
-      "days": "[{n} dàýs ···]",
-      "nextMonth": "[Ñéxt möñth ···]",
-      "pick": "[Pîçk à dàté ····]",
-      "prevMonth": "[Prévîöûs möñth ·····]",
-      "rangeTo": "[tö ·]",
-      "rangeValue": "[{start} tö {end} ······]"
+      "choose": "[Çĥööšé ðàţé ·····]",
+      "chooseRange": "[Çĥööšé ðàţéš ·····]",
+      "days": "[{n} ðàýš ··]",
+      "nextMonth": "[Ñéẋţ ɱöñţĥ ····]",
+      "pick": "[Þîçķ à ðàţé ·····]",
+      "prevMonth": "[Þŕéṽîöûš ɱöñţĥ ······]",
+      "rangeTo": "[ţö ·]",
+      "rangeValue": "[{start} ţö {end} ··]"
     },
     "daysheet": {
-      "contacts": "[Çöñtàçts ···]",
-      "now": "[Ñöw ·]",
-      "dayTypes": "[Dàý týpés ···]"
+      "contacts": "[Çöñţàçţš ····]",
+      "now": "[Ñöŵ ··]",
+      "dayTypes": "[Ðàý ţýþéš ····]"
     },
     "diff": {
-      "after": "[Àftér ·]",
-      "before": "[Béföré ··]",
-      "field": "[Fîéld ·]"
+      "after": "[Àƒţéŕ ··]",
+      "before": "[Ɓéƒöŕé ···]",
+      "field": "[Ƒîéļð ··]"
     },
     "ecode": {
-      "authorities": "[Löçàl àûthörîtîés ······]",
+      "authorities": "[Ļöçàļ àûţĥöŕîţîéš ·······]",
       "role": {
-        "bombSquad": "[Bömb Sqûàd ···]",
-        "ems": "[ÉMS ·]",
-        "federal": "[Fédéràl ··]",
-        "fire": "[Fîré ·]",
-        "lawEnforcement": "[Làw Éñförçéméñt ·····]"
+        "bombSquad": "[Ɓöɱƀ Šǫûàð ····]",
+        "ems": "[ÉṀŠ ··]",
+        "federal": "[Ƒéðéŕàļ ···]",
+        "fire": "[Ƒîŕé ··]",
+        "lawEnforcement": "[Ļàŵ Éñƒöŕçéɱéñţ ······]"
       },
       "service": {
-        "bombSquad": "[thé löçàl bömb sqûàd ·······]",
-        "ems": "[émérgéñçý médîçàl sérvîçés ··········]",
-        "federal": "[fédéràl àûthörîtîés ·······]",
-        "fire": "[thé löçàl fîré dépàrtméñt ·········]",
-        "lawEnforcement": "[löçàl làw éñförçéméñt ········]"
+        "bombSquad": "[ţĥé ļöçàļ ƀöɱƀ šǫûàð ········]",
+        "ems": "[éɱéŕĝéñçý ɱéðîçàļ šéŕṽîçéš ···········]",
+        "federal": "[ƒéðéŕàļ àûţĥöŕîţîéš ········]",
+        "fire": "[ţĥé ļöçàļ ƒîŕé ðéþàŕţɱéñţ ··········]",
+        "lawEnforcement": "[ļöçàļ ļàŵ éñƒöŕçéɱéñţ ·········]"
       }
     },
     "engagement": {
-      "stages": "[Éñgàgéméñt stàgés ······]"
+      "stages": "[Éñĝàĝéɱéñţ šţàĝéš ·······]"
     },
     "feedback": {
-      "failed": "[Ýöûr féédbàçk dîd ñöt séñd. Trý àgàîñ. ···············]",
-      "hint": "[Désçrîbé whàt ýöû éxpéçtéd àñd whàt ýöû sàw. ·················]",
-      "privacy": "[Öñlý whàt ýöû çhöösé héré îs séñt. Ñöthîñg élsé îs çàptûréd. ·······················]",
-      "question": "[Whàt hàppéñéd? ·····]",
-      "screenshot": "[Àttàçh à sçrééñshöt öf thîs pàgé ············]",
-      "thanks": "[Thàñks. Thé plàtförm téàm wîll réàd thîs. ················]",
-      "title": "[Séñd Féédbàçk ·····]"
+      "failed": "[Ýöûŕ ƒééðƀàçķ ðîð ñöţ šéñð. Ţŕý àĝàîñ. ················]",
+      "hint": "[Ðéšçŕîƀé ŵĥàţ ýöû éẋþéçţéð àñð ŵĥàţ ýöû šàŵ. ··················]",
+      "privacy": "[Öñļý ŵĥàţ ýöû çĥööšé ĥéŕé îš šéñţ. Ñöţĥîñĝ éļšé îš çàþţûŕéð. ························]",
+      "question": "[Ŵĥàţ ĥàþþéñéð? ······]",
+      "screenshot": "[Àţţàçĥ à šçŕééñšĥöţ öƒ ţĥîš þàĝé ·············]",
+      "thanks": "[Ţĥàñķš. Ţĥé þļàţƒöŕɱ ţéàɱ ŵîļļ ŕéàð ţĥîš. ·················]",
+      "title": "[Šéñð Ƒééðƀàçķ ······]"
     },
     "file": {
-      "drop": "[Dröp fîlés ···]",
-      "kb": "[{n} KB ··]",
-      "orBrowse": "[ör bröwsé ···]",
-      "page": "[Pàgé {n} ···]",
-      "previewArea": "[Prévîéw öf {name} ·····]",
-      "zoomIn": "[Zööm îñ ··]",
-      "zoomOut": "[Zööm öût ···]"
+      "drop": "[Ðŕöþ ƒîļéš ····]",
+      "kb": "[{n} ĶƁ ··]",
+      "orBrowse": "[öŕ ƀŕöŵšé ····]",
+      "page": "[Þàĝé {n} ··]",
+      "previewArea": "[Þŕéṽîéŵ öƒ {name} ·····]",
+      "zoomIn": "[Žööɱ îñ ···]",
+      "zoomOut": "[Žööɱ öûţ ····]"
     },
     "filter": {
-      "add": "[Àdd Fîltér ···]",
-      "label": "[Fîltérs ··]",
-      "remove": "[Rémövé fîltér {field} ········]"
+      "add": "[Àðð Ƒîļţéŕ ····]",
+      "label": "[Ƒîļţéŕš ···]",
+      "remove": "[Ŕéɱöṽé ƒîļţéŕ {field} ······]"
     },
     "fmt": {
-      "multiplier": "[{n}x ·]"
+      "multiplier": "[{n}ẋ ·]"
     },
     "form": {
-      "moreFields": "[Möré fîélds ···]"
+      "moreFields": "[Ṁöŕé ƒîéļðš ·····]"
     },
     "gate": {
-      "allMet": "[Àll blöçkîñg çrîtérîà mét. ··········]",
-      "blocking": "[Blöçkîñg ···]",
-      "criteriaMet": "[Çrîtérîà mét ····]",
-      "metCount": "[{met} öf {total} mét ·······]",
-      "openMany": "[{n} blöçkîñg çrîtérîà öpéñ. ··········]",
-      "openOne": "[{n} blöçkîñg çrîtérîöñ öpéñ. ···········]",
-      "readiness": "[Gàté réàdîñéss ·····]"
+      "allMet": "[Àļļ ƀļöçķîñĝ çŕîţéŕîà ɱéţ. ···········]",
+      "blocking": "[Ɓļöçķîñĝ ····]",
+      "criteriaMet": "[Çŕîţéŕîà ɱéţ ·····]",
+      "metCount": "[{met} öƒ {total} ɱéţ ····]",
+      "openMany": "[{n} ƀļöçķîñĝ çŕîţéŕîà öþéñ. ··········]",
+      "openOne": "[{n} ƀļöçķîñĝ çŕîţéŕîöñ öþéñ. ··········]",
+      "readiness": "[Ĝàţé ŕéàðîñéšš ······]"
     },
     "grid": {
-      "derived": "[Dérîvéd fröm çàñöñ. Édît thé söûrçé réçörd tö çhàñgé ît. ······················]",
-      "hint": "[Àrröw kéýs mövé, Éñtér édîts, Délété çléàrs tö Ûñprîçéd, pàsté fröm Éxçél fîlls thé ràñgé. ···································]",
-      "row": "[Röw ·]",
-      "newRow": "[Ñéw röw ··]",
-      "hintAppend": "[Àrröw kéýs àñd Tàb mövé, Éñtér édîts àñd mövés döwñ, àñd týpîñg îñ thé làst röw àdds à röw. Pàsté fröm à spréàdshéét fîlls thé ràñgé. ···············································]",
-      "cellError": "[Röw {row}, {column}: {message} ··········]"
+      "derived": "[Ðéŕîṽéð ƒŕöɱ çàñöñ. Éðîţ ţĥé šöûŕçé ŕéçöŕð ţö çĥàñĝé îţ. ·······················]",
+      "hint": "[Àŕŕöŵ ķéýš ɱöṽé, Éñţéŕ éðîţš, Ðéļéţé çļéàŕš ţö Ûñþŕîçéð, þàšţé ƒŕöɱ Éẋçéļ ƒîļļš ţĥé ŕàñĝé. ····································]",
+      "row": "[Ŕöŵ ··]",
+      "newRow": "[Ñéŵ ŕöŵ ···]",
+      "hintAppend": "[Àŕŕöŵ ķéýš àñð Ţàƀ ɱöṽé, Éñţéŕ éðîţš àñð ɱöṽéš ðöŵñ, àñð ţýþîñĝ îñ ţĥé ļàšţ ŕöŵ àððš à ŕöŵ. Þàšţé ƒŕöɱ à šþŕéàðšĥééţ ƒîļļš ţĥé ŕàñĝé. ······················································]",
+      "cellError": "[Ŕöŵ {row}, {column}: {message} ····]",
+      "newRowMark": "[+ ·]"
     },
     "help": {
-      "ask": "[Àsk à qûéstîöñ àböût thîs pàgé ···········]",
-      "assistant": "[Àssîstàñt ···]",
-      "contact": "[Çöñtàçt Sûppört ·····]",
-      "forThisPage": "[För thîs pàgé ·····]",
-      "learnMore": "[Léàrñ möré ···]",
-      "search": "[Séàrçh hélp ····]",
-      "shortcuts": "[Shörtçûts ···]",
-      "title": "[Hélp ·]",
-      "whatsNew": "[Whàt's Ñéw ···]"
+      "ask": "[Àšķ à ǫûéšţîöñ àƀöûţ ţĥîš þàĝé ············]",
+      "assistant": "[Àššîšţàñţ ····]",
+      "contact": "[Çöñţàçţ Šûþþöŕţ ······]",
+      "forThisPage": "[Ƒöŕ ţĥîš þàĝé ······]",
+      "learnMore": "[Ļéàŕñ ɱöŕé ····]",
+      "search": "[Šéàŕçĥ ĥéļþ ·····]",
+      "shortcuts": "[Šĥöŕţçûţš ····]",
+      "title": "[Ĥéļþ ··]",
+      "whatsNew": "[Ŵĥàţ'š Ñéŵ ····]"
     },
     "inbox": {
-      "fyi": "[För Ýöûr Îñförmàtîöñ ·······]",
-      "label": "[Îñböx ·]",
-      "needsYou": "[Ñééds Ýöû ···]"
+      "fyi": "[Ƒöŕ Ýöûŕ Îñƒöŕɱàţîöñ ········]",
+      "label": "[Îñƀöẋ ··]",
+      "needsYou": "[Ñééðš Ýöû ····]"
     },
     "incident": {
-      "help": "[Çrîtîçàl týpés ûsé höld tö çöñfîrm. Répörts qûéûé öfflîñé àñd séñd whéñ ýöû réçöññéçt. ··································]",
-      "title": "[Répört Îñçîdéñt ·····]"
+      "help": "[Çŕîţîçàļ ţýþéš ûšé ĥöļð ţö çöñƒîŕɱ. Ŕéþöŕţš ǫûéûé öƒƒļîñé àñð šéñð ŵĥéñ ýöû ŕéçöññéçţ. ···································]",
+      "title": "[Ŕéþöŕţ Îñçîðéñţ ······]"
     },
     "inspection": {
-      "addPhoto": "[Àdd Phötö ···]",
-      "fail": "[Fàîl ·]",
-      "pass": "[Pàss ·]",
-      "whatFailed": "[Whàt fàîléd? ····]"
+      "addPhoto": "[Àðð Þĥöţö ····]",
+      "fail": "[Ƒàîļ ··]",
+      "pass": "[Þàšš ··]",
+      "whatFailed": "[Ŵĥàţ ƒàîļéð? ·····]"
     },
     "key": {
       "enter": "[↵ ·]",
-      "esc": "[Ésç ·]",
-      "space": "[Spàçé ·]"
+      "esc": "[Éšç ··]",
+      "space": "[Šþàçé ··]"
     },
     "link": {
-      "newTab": "[Öpéñs îñ à ñéw tàb ·······]"
+      "newTab": "[Öþéñš îñ à ñéŵ ţàƀ ········]"
     },
     "list": {
-      "noMatch": "[Ñö màtçh. Trý àñöthér wörd. ··········]"
+      "noMatch": "[Ñö ɱàţçĥ. Ţŕý àñöţĥéŕ ŵöŕð. ···········]"
     },
     "live": {
-      "label": "[Lîvé Àçtîvîtý ·····]"
+      "label": "[Ļîṽé Àçţîṽîţý ······]"
     },
     "matrix": {
-      "cell": "[{row}, {col}: {n} réçörds ·········]",
-      "empty": "[{row}, {col}: ñöñé ·······]"
+      "cell": "[{row}, {col}: {n} ŕéçöŕðš ·····]",
+      "empty": "[{row}, {col}: ñöñé ····]"
     },
     "menu": {
-      "actions": "[Àçtîöñs ··]",
-      "more": "[Möré Àçtîöñs ····]"
+      "actions": "[Àçţîöñš ···]",
+      "more": "[Ṁöŕé Àçţîöñš ·····]"
     },
     "money": {
-      "blankHelp": "[Blàñk méàñs ûñprîçéd. Éñtér 0 öñlý för à çöñfîrméd zérö. ······················]",
-      "rateOnRequest": "[Ràté öñ Réqûést ·····]",
-      "unpriced": "[Ûñprîçéd ···]"
+      "blankHelp": "[Ɓļàñķ ɱéàñš ûñþŕîçéð. Éñţéŕ 0 öñļý ƒöŕ à çöñƒîŕɱéð žéŕö. ·······················]",
+      "rateOnRequest": "[Ŕàţé öñ Ŕéǫûéšţ ······]",
+      "unpriced": "[Ûñþŕîçéð ····]"
     },
     "nav": {
-      "account": "[Àççöûñt méñû för {name} ·········]",
-      "breadcrumb": "[Bréàdçrûmb ···]",
-      "main": "[Màîñ ·]",
-      "next": "[Ñéxt ·]",
-      "pagination": "[Pàgîñàtîöñ ···]",
-      "previous": "[Prévîöûs ···]"
+      "account": "[Àççöûñţ ɱéñû ƒöŕ {name} ·······]",
+      "breadcrumb": "[Ɓŕéàðçŕûɱƀ ····]",
+      "main": "[Ṁàîñ ··]",
+      "next": "[Ñéẋţ ··]",
+      "pagination": "[Þàĝîñàţîöñ ····]",
+      "previous": "[Þŕéṽîöûš ····]"
     },
     "number": {
-      "decrease": "[Déçréàsé ···]",
-      "increase": "[Îñçréàsé ···]"
+      "decrease": "[Ðéçŕéàšé ····]",
+      "increase": "[Îñçŕéàšé ····]"
     },
     "offline": {
-      "queued": "[{n} qûéûéd ···]"
+      "queued": "[{n} ǫûéûéð ···]"
     },
     "opp": {
-      "apply": "[Àpplý ·]",
-      "missing": "[Mîssîñg: {list} ·····]",
-      "qualified": "[Ýöû méét évérý réqûîréméñt ··········]",
-      "search": "[Séàrçh öppörtûñîtîés ·······]"
+      "apply": "[Àþþļý ··]",
+      "missing": "[Ṁîššîñĝ: {list} ····]",
+      "qualified": "[Ýöû ɱééţ éṽéŕý ŕéǫûîŕéɱéñţ ···········]",
+      "search": "[Šéàŕçĥ öþþöŕţûñîţîéš ········]"
     },
     "org": {
-      "marketplace": "[Bröwsé Màrkétplàçé ·······]",
-      "vacant": "[Vàçàñt ··]",
-      "verified": "[Vérîfîéd örgàñîzàtîöñ ········]"
+      "marketplace": "[Ɓŕöŵšé Ṁàŕķéţþļàçé ········]",
+      "vacant": "[Ṽàçàñţ ···]",
+      "verified": "[Ṽéŕîƒîéð öŕĝàñîžàţîöñ ·········]"
     },
     "packet": {
-      "expired": "[Éxpîréd ··]",
-      "minutes": "[{n} mîñ ··]",
-      "minutesLeft": "[Àböût {n} mîñ léft ·······]",
-      "required": "[Réqûîréd ···]",
-      "review": "[Îñ Révîéw ···]",
-      "title": "[Öñböàrdîñg Pàçkét ······]",
-      "todo": "[Tö Dö ·]",
-      "verified": "[Vérîfîéd ···]",
-      "verifiedCount": "[{n} öf {total} vérîfîéd ·········]"
+      "expired": "[Éẋþîŕéð ···]",
+      "minutes": "[{n} ɱîñ ··]",
+      "minutesLeft": "[Àƀöûţ {n} ɱîñ ļéƒţ ······]",
+      "required": "[Ŕéǫûîŕéð ····]",
+      "review": "[Îñ Ŕéṽîéŵ ····]",
+      "title": "[Öñƀöàŕðîñĝ Þàçķéţ ·······]",
+      "todo": "[Ţö Ðö ··]",
+      "verified": "[Ṽéŕîƒîéð ····]",
+      "verifiedCount": "[{n} öƒ {total} ṽéŕîƒîéð ······]"
     },
     "panel": {
-      "resize": "[Résîzé pàñél ····]"
+      "resize": "[Ŕéšîžé þàñéļ ·····]"
     },
     "pay": {
-      "approved": "[Àpprövéd ···]",
-      "expected": "[Éxpéçtéd {date} ·····]",
-      "label": "[Pàýméñt för {key} ······]",
-      "paid": "[Pàîd ·]",
-      "scheduled": "[Sçhédûléd ···]",
-      "submitted": "[Sûbmîttéd ···]"
+      "approved": "[Àþþŕöṽéð ····]",
+      "expected": "[Éẋþéçţéð {date} ····]",
+      "label": "[Þàýɱéñţ ƒöŕ {key} ·····]",
+      "paid": "[Þàîð ··]",
+      "scheduled": "[Šçĥéðûļéð ····]",
+      "submitted": "[Šûƀɱîţţéð ····]"
     },
     "payout": {
-      "account": "[Àççöûñt Ñûmbér ·····]",
-      "accountHelp": "[Éñçrýptéd öñ éñtrý. Öñlý thé làst föûr dîgîts àré shöwñ àftér sàvîñg. ···························]",
-      "checking": "[Çhéçkîñg ···]",
+      "account": "[Àççöûñţ Ñûɱƀéŕ ······]",
+      "accountHelp": "[Éñçŕýþţéð öñ éñţŕý. Öñļý ţĥé ļàšţ ƒöûŕ ðîĝîţš àŕé šĥöŵñ àƒţéŕ šàṽîñĝ. ····························]",
+      "checking": "[Çĥéçķîñĝ ····]",
       "masked": "[•••• {last4} ··]",
-      "routing": "[Röûtîñg Ñûmbér ·····]",
-      "routingHint": "[9 dîgîts ···]",
-      "save": "[Sàvé Séçûrélý ·····]",
-      "savings": "[Sàvîñgs ··]",
-      "title": "[Pàýöût Détàîls ·····]",
-      "type": "[Àççöûñt Týpé ····]"
+      "routing": "[Ŕöûţîñĝ Ñûɱƀéŕ ······]",
+      "routingHint": "[9 ðîĝîţš ····]",
+      "save": "[Šàṽé Šéçûŕéļý ······]",
+      "savings": "[Šàṽîñĝš ···]",
+      "title": "[Þàýöûţ Ðéţàîļš ······]",
+      "type": "[Àççöûñţ Ţýþé ·····]"
     },
     "peek": {
-      "openFull": "[Öpéñ fûll pàgé ·····]"
+      "openFull": "[Öþéñ ƒûļļ þàĝé ······]"
     },
     "phase": {
-      "gate": "[Gàté {n} ···]",
-      "gateName": "[Gàté {n} · {name} ······]"
+      "gate": "[Ĝàţé {n} ··]",
+      "gateName": "[Ĝàţé {n} · {name} ····]"
     },
     "photo": {
-      "annotate": "[Àññötàté ···]",
-      "n": "[Phötö {n} ···]",
-      "take": "[Tàké phötö ···]"
+      "annotate": "[Àññöţàţé ····]",
+      "n": "[Þĥöţö {n} ···]",
+      "take": "[Ţàķé þĥöţö ····]"
     },
     "presence": {
-      "editing": "[{n} édîtîñg ····]",
-      "namesEditing": "[{names}, édîtîñg ñöw ·······]",
-      "namesViewing": "[{names}, vîéwîñg ñöw ·······]",
-      "viewing": "[{n} vîéwîñg ····]"
+      "editing": "[{n} éðîţîñĝ ····]",
+      "namesEditing": "[{names}, éðîţîñĝ ñöŵ ······]",
+      "namesViewing": "[{names}, ṽîéŵîñĝ ñöŵ ······]",
+      "viewing": "[{n} ṽîéŵîñĝ ····]"
     },
     "profile": {
-      "complete": "[{n}% çömplété ·····]",
-      "title": "[Pröfîlé ··]"
+      "complete": "[{n}% çöɱþļéţé ····]",
+      "title": "[Þŕöƒîļé ···]"
     },
     "progress": {
       "percent": "[{n}% ·]"
     },
     "provenance": {
-      "rank": "[Prövéñàñçé ràñk {rank} ········]",
-      "source": "[Söûrçé ··]"
+      "rank": "[Þŕöṽéñàñçé ŕàñķ {rank} ·······]",
+      "source": "[Šöûŕçé ···]"
     },
     "quickAdd": {
-      "label": "[Qûîçk àdd ···]"
+      "label": "[Ǫûîçķ àðð ····]"
     },
     "radio": {
-      "assignment": "[Àssîgñméñt ···]",
-      "channel": "[Çhàññél ··]",
-      "notes": "[Ñötés ·]",
-      "zone": "[Zöñé ·]"
+      "assignment": "[Àššîĝñɱéñţ ····]",
+      "channel": "[Çĥàññéļ ···]",
+      "notes": "[Ñöţéš ··]",
+      "zone": "[Žöñé ··]"
     },
     "rating": {
-      "comment": "[Pûblîç çömméñt ·····]",
-      "label": "[Ràtîñg ··]",
-      "release": "[Böth ràtîñgs àré réléàséd tögéthér öñçé böth àré îñ, ör àftér 14 dàýs. ···························]",
-      "star": "[{n} stàr ···]",
-      "stars": "[{n} stàrs ···]",
-      "submit": "[Sûbmît Ràtîñg ·····]",
-      "title": "[Ràté {name} ····]"
+      "comment": "[Þûƀļîç çöɱɱéñţ ······]",
+      "label": "[Ŕàţîñĝ ···]",
+      "release": "[Ɓöţĥ ŕàţîñĝš àŕé ŕéļéàšéð ţöĝéţĥéŕ öñçé ƀöţĥ àŕé îñ, öŕ àƒţéŕ 14 ðàýš. ····························]",
+      "star": "[{n} šţàŕ ··]",
+      "stars": "[{n} šţàŕš ···]",
+      "submit": "[Šûƀɱîţ Ŕàţîñĝ ······]",
+      "title": "[Ŕàţé {name} ··]"
     },
     "recon": {
-      "capability": "[Véñûé Çàpàbîlîtý ······]",
-      "notDeclared": "[Ñöt déçlàréd ····]",
-      "requirement": "[Réqûîréméñt ····]",
-      "result": "[Résûlt ··]"
+      "capability": "[Ṽéñûé Çàþàƀîļîţý ·······]",
+      "notDeclared": "[Ñöţ ðéçļàŕéð ·····]",
+      "requirement": "[Ŕéǫûîŕéɱéñţ ·····]",
+      "result": "[Ŕéšûļţ ···]"
     },
     "record": {
-      "untitled": "[Ûñtîtléd ···]"
+      "untitled": "[Ûñţîţļéð ····]"
     },
     "region": {
-      "title": "[Ţĥîš šéçţîöñ ðîð ñöţ ļöàð ·········]",
-      "body": "[Ţĥé ŕéšţ öƒ ţĥé þàĝé šţîļļ ŵöŕķš. Ŕéţŕý ţö ļöàð ţĥîš šéçţîöñ àĝàîñ. ··························]"
+      "title": "[Ţĥîš šéçţîöñ ðîð ñöţ ļöàð ··········]",
+      "body": "[Ţĥé ŕéšţ öƒ ţĥé þàĝé šţîļļ ŵöŕķš. Ŕéţŕý ţö ļöàð ţĥîš šéçţîöñ àĝàîñ. ···························]"
     },
     "resource": {
-      "doubleBooked": "[Döûblé-böökéd ·····]",
-      "person": "[Pérsöñ ··]"
+      "doubleBooked": "[Ðöûƀļé-ƀööķéð ······]",
+      "person": "[Þéŕšöñ ···]"
     },
     "result": {
-      "gap": "[Gàp ·]",
-      "met": "[Mét ·]",
-      "unknown": "[Ûñkñöwñ ··]"
+      "gap": "[Ĝàþ ··]",
+      "met": "[Ṁéţ ··]",
+      "unknown": "[Ûñķñöŵñ ···]"
     },
     "ros": {
-      "go": "[Gö ·]",
-      "label": "[Rûñ öf shöw ····]",
-      "live": "[Lîvé ·]",
-      "nextIn": "[Ñéxt çûé îñ ····]",
-      "standby": "[Šţàñðƀý ··]",
-      "skipped": "[Šķîþþéð ··]"
+      "go": "[Ĝö ·]",
+      "label": "[Ŕûñ öƒ šĥöŵ ·····]",
+      "live": "[Ļîṽé ··]",
+      "nextIn": "[Ñéẋţ çûé îñ ·····]",
+      "standby": "[Šţàñðƀý ···]",
+      "skipped": "[Šķîþþéð ···]"
     },
     "rte": {
-      "bold": "[Böld ·]",
-      "bullets": "[Bûllétéd lîst ·····]",
-      "checklist": "[Çhéçklîst ···]",
-      "divider": "[Dîvîdér ··]",
-      "heading": "[Héàdîñg ··]",
-      "hint": "[Týpé / för blöçks, @ tö méñtîöñ, # tö lîñk à réçörd. ····················]",
-      "italic": "[Îtàlîç ··]",
-      "link": "[Lîñk ·]",
-      "mention": "[Méñtîöñ ··]",
+      "bold": "[Ɓöļð ··]",
+      "bullets": "[Ɓûļļéţéð ļîšţ ······]",
+      "checklist": "[Çĥéçķļîšţ ····]",
+      "divider": "[Ðîṽîðéŕ ···]",
+      "heading": "[Ĥéàðîñĝ ···]",
+      "hint": "[Ţýþé / ƒöŕ ƀļöçķš, @ ţö ɱéñţîöñ, # ţö ļîñķ à ŕéçöŕð. ·····················]",
+      "italic": "[Îţàļîç ···]",
+      "link": "[Ļîñķ ··]",
+      "mention": "[Ṁéñţîöñ ···]",
       "menu": {
-        "mention": "[Péöplé tö méñtîöñ ······]",
-        "record": "[Réçörds tö lîñk ······]",
-        "slash": "[Blöçks tö îñsért ······]"
+        "mention": "[Þéöþļé ţö ɱéñţîöñ ·······]",
+        "record": "[Ŕéçöŕðš ţö ļîñķ ······]",
+        "slash": "[Ɓļöçķš ţö îñšéŕţ ·······]"
       },
-      "noMatches": "[Ñö màtçhés. Kéép týpîñg, ör préss Ésçàpé tö çlösé. ····················]",
-      "quote": "[Qûöté ··]",
-      "table": "[Tàblé ·]",
-      "toolbar": "[Förmàttîñg ···]"
+      "noMatches": "[Ñö ɱàţçĥéš. Ķééþ ţýþîñĝ, öŕ þŕéšš Éšçàþé ţö çļöšé. ····················]",
+      "quote": "[Ǫûöţé ··]",
+      "table": "[Ţàƀļé ··]",
+      "toolbar": "[Ƒöŕɱàţţîñĝ ····]"
     },
     "scan": {
-      "asset": "[Àssét ·]",
-      "credential": "[Çrédéñtîàl ···]",
-      "mode": "[Sçàñ mödé ···]",
-      "nfc": "[Réàd ÑFÇ ···]",
-      "receiving": "[Réçéîvîñg ···]",
-      "torch": "[Törçh ·]"
+      "asset": "[Àššéţ ··]",
+      "credential": "[Çŕéðéñţîàļ ····]",
+      "mode": "[Šçàñ ɱöðé ····]",
+      "nfc": "[Ŕéàð ÑƑÇ ····]",
+      "receiving": "[Ŕéçéîṽîñĝ ····]",
+      "torch": "[Ţöŕçĥ ··]"
     },
     "scroll": {
-      "region": "[Sçröllàblé çöñtéñt ·······]"
+      "region": "[Šçŕöļļàƀļé çöñţéñţ ········]"
     },
     "shell": {
-      "menu": "[Öpéñ ñàvîgàtîöñ ·····]"
+      "menu": "[Öþéñ ñàṽîĝàţîöñ ······]"
     },
     "shortcutEditor": {
-      "action": "[Àçtîöñ ··]",
-      "change": "[Çhàñgé ··]",
-      "edit": "[Édît ·]",
-      "press": "[Préss Kéýs ···]",
-      "shortcut": "[Shörtçût ···]",
-      "none": "[Ñöt sét ··]"
+      "action": "[Àçţîöñ ···]",
+      "change": "[Çĥàñĝé ···]",
+      "edit": "[Éðîţ ··]",
+      "press": "[Þŕéšš Ķéýš ····]",
+      "shortcut": "[Šĥöŕţçûţ ····]",
+      "none": "[Ñöţ šéţ ···]"
     },
     "shortcuts": {
-      "title": "[Kéýböàrd Shörtçûts ·······]"
+      "title": "[Ķéýƀöàŕð Šĥöŕţçûţš ········]"
     },
     "signature": {
-      "area": "[Sîgñàtûré àréà. Dràw wîth à fîñgér, stýlûs ör möûsé. ····················]"
+      "area": "[Šîĝñàţûŕé àŕéà. Ðŕàŵ ŵîţĥ à ƒîñĝéŕ, šţýļûš öŕ ɱöûšé. ·····················]"
     },
     "slate": {
-      "filled": "[Pösîtîöñs fîlléd ······]",
-      "include": "[Îñçlûdé {name} ·····]",
-      "positions": "[{n} öf {total} pösîtîöñs ·········]",
-      "submit": "[Sûbmît Slàté ····]",
-      "title": "[Stàff Slàté ····]"
+      "filled": "[Þöšîţîöñš ƒîļļéð ·······]",
+      "include": "[Îñçļûðé {name} ····]",
+      "positions": "[{n} öƒ {total} þöšîţîöñš ······]",
+      "submit": "[Šûƀɱîţ Šļàţé ·····]",
+      "title": "[Šţàƒƒ Šļàţé ·····]"
     },
     "slider": {
-      "value": "[{value} {unit} ·····]"
+      "value": "[{value} {unit} ·]"
     },
     "stale": {
-      "basis": "[évîdéñçé dàté ·····]",
-      "current": "[Çûrréñt ··]",
-      "degraded": "[Dégràdéd Öñé Stép ······]",
-      "expired": "[Éxpîréd ··]",
-      "modeled": "[Mödéléd ··]",
-      "months": "[{n} mö ··]",
-      "title": "[{n} möñths sîñçé {basis} ·········]"
+      "basis": "[éṽîðéñçé ðàţé ······]",
+      "current": "[Çûŕŕéñţ ···]",
+      "degraded": "[Ðéĝŕàðéð Öñé Šţéþ ·······]",
+      "expired": "[Éẋþîŕéð ···]",
+      "modeled": "[Ṁöðéļéð ···]",
+      "months": "[{n} ɱö ··]",
+      "title": "[{n} ɱöñţĥš šîñçé {basis} ······]"
     },
     "stat": {
-      "trend": "[Tréñd för {label} ······]"
+      "trend": "[Ţŕéñð ƒöŕ {label} ····]"
     },
     "tabbar": {
-      "badge": "[{n} ñéw ··]"
+      "badge": "[{n} ñéŵ ··]"
     },
     "table": {
-      "resizeColumn": "[Résîzé çölûmñ {column} ········]",
+      "resizeColumn": "[Ŕéšîžé çöļûɱñ {column} ······]",
       "row": "[Ŕöŵ {n} ··]",
-      "total": "[Tötàl ·]",
+      "total": "[Ţöţàļ ··]",
       "selectAll": "[Šéļéçţ àļļ ŕöŵš ······]",
       "selectRow": "[Šéļéçţ {row} ···]"
     },
     "timeline": {
-      "critical": "[çrîtîçàl pàth ·····]",
-      "dependsOn": "[Dépéñds öñ ···]",
-      "end": "[Éñd ·]",
-      "key": "[Kéý ·]",
-      "milestone": "[mîléstöñé ···]",
-      "record": "[Réçörd ··]",
-      "start": "[Stàrt ·]",
-      "state": "[Stàté ·]",
-      "scroll": "[{label}, dàýs ·····]",
-      "bar": "[{key} {title}, {start} tö {end} ···········]",
-      "controls": "[Résçhédûlé {label} ······]",
-      "locked": "[löçkéd ··]",
-      "moveHint": "[Àrröw kéýs mövé thé bàr à dàý. Shîft wîth àñ àrröw kéý mövés îts éñd. Éñtér àpplîés thé çhàñgé, Ésçàpé çàñçéls ît. ········································]",
+      "bar": "[{key} {title}, {start} ţö {end} ···]",
+      "controls": "[Ŕéšçĥéðûļé {label} ·····]",
+      "critical": "[çŕîţîçàļ þàţĥ ······]",
+      "dependsOn": "[Ðéþéñðš öñ ····]",
+      "end": "[Éñð ··]",
+      "key": "[Ķéý ··]",
+      "locked": "[ļöçķéð ···]",
+      "milestone": "[ɱîļéšţöñé ····]",
+      "moveHint": "[Àŕŕöŵ ķéýš ɱöṽé ţĥé ƀàŕ à ðàý. Šĥîƒţ ŵîţĥ àñ àŕŕöŵ ķéý ɱöṽéš îţš éñð. Éñţéŕ àþþļîéš ţĥé çĥàñĝé, Éšçàþé çàñçéļš îţ. ··············································]",
       "preview": {
-        "applied": "[{key} résçhédûléd. ······]",
-        "apply": "[Àpplý ··]",
-        "cancel": "[Càñçél ··]",
-        "canceled": "[Chàñgé çàñçéléd. ······]",
-        "change": "[{key} mövés tö {start} thröûgh {end}. ·············]",
-        "checking": "[Chéçkîñg évérý dépéñdéñçý béföré thé çhàñgé çàñ bé àpplîéd. ·····················]",
-        "criticalChanges": "[Thé çrîtîçàl pàth çhàñgés. ·········]",
-        "criticalSame": "[Thé çrîtîçàl pàth stàýs thé sàmé. ············]",
-        "cycle": "[Thé dépéñdéñçîés àré çîrçûlàr, sö thîs çhàñgé çàññöt bé màdé. ·····················]",
-        "finishEarlierMany": "[Thé làst fîñîsh mövés {count} dàýs éàrlîér. ···············]",
-        "finishEarlierOne": "[Thé làst fîñîsh mövés 1 dàý éàrlîér. ·············]",
-        "finishLaterMany": "[Thé làst fîñîsh mövés {count} dàýs làtér. ··············]",
-        "finishLaterOne": "[Thé làst fîñîsh mövés 1 dàý làtér. ············]",
-        "label": "[Résçhédûlé prévîéw ······]",
-        "locked": "[{keys} çàññöt mövé: löçkéd. ·········]",
-        "movesMany": "[{count} sûççéssörs mövé: {keys}. ···········]",
-        "movesNone": "[Nö öthér réçörd mövés. ········]",
-        "movesOne": "[1 sûççéssör mövés: {keys}. ·········]"
+        "applied": "[{key} ŕéšçĥéðûļéð. ······]",
+        "apply": "[Àþþļý ··]",
+        "cancel": "[Çàñçéļ ···]",
+        "canceled": "[Çĥàñĝé çàñçéļéð. ·······]",
+        "change": "[{key} ɱöṽéš ţö {start} ţĥŕöûĝĥ {end}. ········]",
+        "checking": "[Çĥéçķîñĝ éṽéŕý ðéþéñðéñçý ƀéƒöŕé ţĥé çĥàñĝé çàñ ƀé àþþļîéð. ························]",
+        "criticalChanges": "[Ţĥé çŕîţîçàļ þàţĥ çĥàñĝéš. ···········]",
+        "criticalSame": "[Ţĥé çŕîţîçàļ þàţĥ šţàýš ţĥé šàɱé. ··············]",
+        "cycle": "[Ţĥé ðéþéñðéñçîéš àŕé çîŕçûļàŕ, šö ţĥîš çĥàñĝé çàññöţ ƀé ɱàðé. ·························]",
+        "finishEarlierMany": "[Ţĥé ļàšţ ƒîñîšĥ ɱöṽéš {count} ðàýš éàŕļîéŕ. ···············]",
+        "finishEarlierOne": "[Ţĥé ļàšţ ƒîñîšĥ ɱöṽéš 1 ðàý éàŕļîéŕ. ···············]",
+        "finishLaterMany": "[Ţĥé ļàšţ ƒîñîšĥ ɱöṽéš {count} ðàýš ļàţéŕ. ··············]",
+        "finishLaterOne": "[Ţĥé ļàšţ ƒîñîšĥ ɱöṽéš 1 ðàý ļàţéŕ. ··············]",
+        "label": "[Ŕéšçĥéðûļé þŕéṽîéŵ ········]",
+        "locked": "[{keys} çàññöţ ɱöṽé: ļöçķéð. ·········]",
+        "movesMany": "[{count} šûççéššöŕš ɱöṽé: {keys}. ········]",
+        "movesNone": "[Ñö öţĥéŕ ŕéçöŕð ɱöṽéš. ·········]",
+        "movesOne": "[1 šûççéššöŕ ɱöṽéš: {keys}. ········]"
       },
-      "dayTypes": "[Dàý týpés ···]",
-      "dayWithTypes": "[{day} ({types}) ·····]",
-      "segment": "[{label} {start} tö {end} ········]",
-      "offset": "[Öffsét ··]",
-      "offsetOn": "[Öñ thé àñçhör dàý ······]",
-      "offsetBefore": "[{n} dàýs béföré thé àñçhör ·········]",
-      "offsetAfter": "[{n} dàýs àftér thé àñçhör ·········]",
-      "offsetBeforeOne": "[1 dàý béföré thé àñçhör ········]",
-      "offsetAfterOne": "[1 dàý àftér thé àñçhör ········]"
+      "record": "[Ŕéçöŕð ···]",
+      "scroll": "[{label}, ðàýš ···]",
+      "start": "[Šţàŕţ ··]",
+      "state": "[Šţàţé ··]",
+      "dayTypes": "[Ðàý ţýþéš ····]",
+      "dayWithTypes": "[{day} ({types}) ··]",
+      "segment": "[{label} {start} ţö {end} ··]",
+      "offset": "[Öƒƒšéţ ···]",
+      "offsetOn": "[Öñ ţĥé àñçĥöŕ ðàý ·······]",
+      "offsetBefore": "[{n} ðàýš ƀéƒöŕé ţĥé àñçĥöŕ ··········]",
+      "offsetAfter": "[{n} ðàýš àƒţéŕ ţĥé àñçĥöŕ ·········]",
+      "offsetBeforeOne": "[1 ðàý ƀéƒöŕé ţĥé àñçĥöŕ ··········]",
+      "offsetAfterOne": "[1 ðàý àƒţéŕ ţĥé àñçĥöŕ ·········]"
     },
     "tooltip": {
-      "withShortcut": "[{label} ({shortcut}) ·······]"
+      "withShortcut": "[{label} ({shortcut}) ··]"
     },
     "update": {
-      "action": "[Ûpdàté ··]",
-      "title": "[Ûpdàté Réqûîréd ·····]"
+      "action": "[Ûþðàţé ···]",
+      "title": "[Ûþðàţé Ŕéǫûîŕéð ······]"
     },
     "upnext": {
-      "bring": "[Brîñg ·]",
-      "calendar": "[Àdd tö Çàléñdàr ·····]",
-      "call": "[Çàll tîmé ···]",
-      "contact": "[Çöñtàçt ··]",
-      "directions": "[Dîréçtîöñs ···]",
-      "label": "[Ûp Ñéxt ··]",
-      "parking": "[Pàrkîñg ··]",
-      "when": "[Whéñ ·]",
-      "where": "[Whéré ·]"
+      "bring": "[Ɓŕîñĝ ··]",
+      "calendar": "[Àðð ţö Çàļéñðàŕ ······]",
+      "call": "[Çàļļ ţîɱé ····]",
+      "contact": "[Çöñţàçţ ···]",
+      "directions": "[Ðîŕéçţîöñš ····]",
+      "label": "[Ûþ Ñéẋţ ···]",
+      "parking": "[Þàŕķîñĝ ···]",
+      "when": "[Ŵĥéñ ··]",
+      "where": "[Ŵĥéŕé ··]"
     },
     "view": {
-      "cards": "[Çàrds ·]",
-      "label": "[Vîéw ·]",
-      "map": "[Màp ·]"
+      "cards": "[Çàŕðš ··]",
+      "label": "[Ṽîéŵ ··]",
+      "map": "[Ṁàþ ··]"
     },
     "visibility": {
-      "application": "[Öñ Àpplý ···]",
-      "private": "[Prîvàté ··]",
-      "public": "[Pûblîç ··]"
+      "application": "[Öñ Àþþļý ····]",
+      "private": "[Þŕîṽàţé ···]",
+      "public": "[Þûƀļîç ···]"
     },
     "whatsNew": {
-      "changelog": "[Çhàñgélög ···]",
-      "title": "[Whàt's Ñéw ···]"
+      "changelog": "[Çĥàñĝéļöĝ ····]",
+      "title": "[Ŵĥàţ'š Ñéŵ ····]"
     },
     "widget": {
-      "label": "[Hömé sçrééñ wîdgét ·······]",
-      "nextShift": "[Ñéxt shîft ···]"
+      "label": "[Ĥöɱé šçŕééñ ŵîðĝéţ ········]",
+      "nextShift": "[Ñéẋţ šĥîƒţ ····]"
     },
     "recordList": {
       "columns": {
-        "select": "[Šéļéçţ ·]",
-        "state": "[Stàté ··]",
-        "key": "[Kéý ··]",
-        "title": "[Réçörd ···]",
-        "labels": "[Làbéls ···]",
-        "next": "[Ñéxt dàté ····]",
-        "owner": "[Öwñér ··]",
-        "action": "[Àçtîöñ ···]"
+        "select": "[Šéļéçţ ···]",
+        "state": "[Šţàţé ··]",
+        "key": "[Ķéý ··]",
+        "title": "[Ŕéçöŕð ···]",
+        "labels": "[Ļàƀéļš ···]",
+        "next": "[Ñéẋţ ðàţé ····]",
+        "owner": "[Öŵñéŕ ··]",
+        "action": "[Àçţîöñ ···]"
       }
     },
     "heatmap": {
-      "cell": "[{row}, {column}: {value} ········]"
+      "cell": "[{row}, {column}: {value} ··]",
+      "stateCell": "[{row}, {col}: {state} ··]",
+      "detail": "[{row}, {col}: {state}. {detail} ···]",
+      "none": "[{row}, {col}: ñöţ àšķéð ······]",
+      "select": "[Šéļéçţ {row} ···]",
+      "legend": "[Ŵĥàţ éàçĥ šţàţé ɱéàñš ·········]",
+      "noneMark": "[- ·]"
     },
     "recordStates": {
       "proposed": "[Þŕöþöšéð ····]",

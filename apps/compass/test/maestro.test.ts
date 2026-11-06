@@ -67,6 +67,8 @@ const DYNAMIC = [
   "gate-arrived-",
   "gate-release-",
   "gate-check-in-",
+  // A feed's source choices: one per calendar source.
+  "settings-feeds-source-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

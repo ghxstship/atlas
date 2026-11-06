@@ -486,7 +486,11 @@ describe("Platform: public forms", () => {
   it("answers the token and code only on create and regenerate", async () => {
     const { http } = world();
     const res11 = await success(
-      http.post("/form-links/create", { form_template_id: TEMPLATE, expires_at: WHEN }),
+      http.post("/form-links/create", {
+        form_template_id: TEMPLATE,
+        expires_at: WHEN,
+        project_id: PROJECT,
+      }),
     );
     const made = (await expectContract(res11, "formLinks.create")) as Row;
     expect(made["token"]).toMatch(/^xfrm_/);

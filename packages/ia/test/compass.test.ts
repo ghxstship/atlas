@@ -17,6 +17,7 @@ const BASE_MORE = [
   "Incidents",
   "Inspections",
   "Logistics",
+  "Gate",
   "Show",
   // B5: Drives, the person's ground transport drives by project day.
   "Drives",

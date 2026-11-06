@@ -136,7 +136,7 @@ describe("atlas sitemap", () => {
       "Time Off",
       "Per Diems",
     ]);
-    expect(pages("finance")).toHaveLength(11); // with Year-End (A43, A38-006)
+    expect(pages("finance")).toHaveLength(12); // with Quotes (B13) and Year-End (A43, A38-006)
     expect(pages("safety")).toHaveLength(7);
     expect(pages("opportunities")).toHaveLength(9);
     expect(pages("canon")).toHaveLength(10);

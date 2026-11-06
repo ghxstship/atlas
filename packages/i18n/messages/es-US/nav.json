@@ -48,8 +48,7 @@
         "riders": "Riders",
         "reconciliation": "Conciliación",
         "crew": "Lista del equipo",
-        "allocations": "Asignaciones",
-        "progress": "Progreso"
+        "allocations": "Asignaciones"
       },
       "places": {
         "venues": "Recintos",
@@ -278,9 +277,7 @@
       "legal": "Legal",
       "advanceForm": "Formulario de coordinación previa",
       "agreementSigning": "Firma de acuerdo",
-      "calendarFeed": "Suscripción de calendario",
-      "vendorIntake": "Alta de Proveedor",
-      "publicForm": "Formulario Público"
+      "calendarFeed": "Suscripción de calendario"
     },
     "partner": {
       "clientOrgs": "Organizaciones cliente",

@@ -152,6 +152,7 @@ describe("documents", () => {
   it("lists documents and finds those awaiting signature", async () => {
     const { db, calls } = gatewayClient({
       "from:api_external.engagement_documents": [okResponse([doc]), okResponse([])],
+      "from:api_external.engagement_document_texts": [okResponse([]), okResponse([])],
     });
     const one = await listEngagementDocuments(db, ID);
     expect(one.ok && awaitingSignature(one.data).map((d) => d.id)).toEqual(["d1"]);
@@ -175,6 +176,7 @@ describe("documents", () => {
   it("returns document read errors", async () => {
     const { db } = gatewayClient({
       "from:api_external.engagement_documents": [errorResponse("08000", "down")],
+      "from:api_external.engagement_document_texts": [okResponse([])],
     });
     expect((await listEngagementDocuments(db)).ok).toBe(false);
   });
