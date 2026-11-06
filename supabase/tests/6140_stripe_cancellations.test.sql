@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(79);
+select plan(103);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -230,6 +230,59 @@ select ok(not app.note_stripe_charge('sub_H4rb', 'in_Zero', 0, 'usd', 'subscript
 select ok(not app.note_stripe_charge('sub_Oth3r', 'in_Oth3r', 100, 'usd', 'subscription_cycle', now()), 'nor for a subscription nobody asked to stop');
 select pg_temp.as_platform();
 select ok((select detail like '%1,490.00 USD%in_Late1%' from private.billing_alerts where dedupe_key = 'charged_after_cancel:in_Late1'), 'naming the amount and invoice to refund');
+
+-- A renewal paid while End plan waits on Stripe. The customer has been told they will not be charged again, so it is a refund
+-- whether Stripe has accepted the cancel yet or not.
+select pg_temp.as_service();
+select app.sync_subscription_from_stripe(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'team', 'Annual', 'active', now() + interval '1 day', false);
+select pg_temp.as_platform();
+select private.queue_stripe_cancellation(pg_temp.id('org_c'), 'sub_Renew', 'cus_T1d3', false, 'At Period End', 'Plan Ended', null);
+select pg_temp.as_service();
+select ok(not app.note_stripe_charge('sub_Renew', 'in_Before', 149000, 'usd', 'subscription_cycle', now() - interval '1 hour'), 'a renewal paid before the request does not count');
+select ok(not app.note_stripe_charge('sub_Renew', 'in_Seats', 5000, 'usd', 'subscription_update', now() + interval '1 hour'), 'nor does a change the Owner made, which is not a renewal');
+select ok(app.note_stripe_charge('sub_Renew', 'in_Queued', 149000, 'usd', 'subscription_cycle', now() + interval '1 hour'), 'a renewal paid while the cancel is still queued raises an alert');
+select is(app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', false, 10) where stripe_subscription_id = 'sub_Renew'), true, 'active')::text,
+  'Accepted', 'Stripe then accepts the cancel');
+select pg_temp.as_platform();
+select ok(exists (select 1 from private.billing_alerts where dedupe_key = 'charged_after_cancel:in_Queued' and resolved_at is null), 'and the alert stays open for the refund');
+select pg_temp.as_service();
+select ok(app.note_stripe_charge('sub_Renew', 'in_Accepted', 149000, 'usd', 'subscription_cycle', now() + interval '2 hours'), 'a renewal paid after Stripe accepted it raises one too');
+select pg_temp.as_platform();
+update private.stripe_cancellations set cancellation_state = 'Withdrawn' where stripe_subscription_id = 'sub_Renew';
+select pg_temp.as_service();
+select ok(not app.note_stripe_charge('sub_Renew', 'in_Kept', 149000, 'usd', 'subscription_cycle', now() + interval '3 hours'), 'and none once the customer kept the plan');
+
+-- A delayed older event never revives a plan that ended at period end ---------------------------------------------------------
+select pg_temp.as_platform();
+select private.queue_stripe_cancellation(pg_temp.id('org_c'), 'sub_Renew', 'cus_T1d3', false, 'At Period End', 'Plan Ended', null);
+select pg_temp.as_service();
+select app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', false, 10) where stripe_subscription_id = 'sub_Renew'), true, 'active');
+select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'canceled', false, now() + interval '4 hours'), 'proceed', 'the plan ends in Stripe');
+select app.sync_subscription_from_stripe(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'team', 'Annual', 'canceled', now() + interval '4 hours', false, 0, false, null, now() + interval '4 hours');
+select pg_temp.as_platform();
+select is((select plan_code from app.subscriptions where org_id = pg_temp.id('org_c') and subscription_state <> 'canceled' and deleted_at is null), 'access', 'and the sync moves the org to Access');
+select pg_temp.as_service();
+select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'active', false, now() + interval '3 hours'), 'stale', 'a retried event from before the end is stale');
+select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'active', false, now() + interval '4 hours'), 'stale', 'and so is one from the same moment');
+select pg_temp.as_platform();
+select is((select count(*)::integer from private.billing_alerts where stripe_subscription_id = 'sub_Renew' and alert_kind = 'active_after_cancel'), 0, 'with no alert, since Stripe said nothing new');
+select is((select plan_code from app.subscriptions where org_id = pg_temp.id('org_c') and subscription_state <> 'canceled' and deleted_at is null), 'access', 'and the org stays on Access');
+select pg_temp.as_service();
+select is(app.reconcile_stripe_subscription(pg_temp.id('org_c'), 'cus_T1d3', 'sub_Renew', 'active', false, now() + interval '5 hours'), 'queued', 'Stripe calling it live after the end is a problem, not a sync');
+select pg_temp.as_platform();
+select is(pg_temp.cancel_state('sub_Renew', 'Immediately'), 'Queued', 'so its cancel is queued');
+select ok(exists (select 1 from private.billing_alerts where alert_kind = 'active_after_cancel' and stripe_subscription_id = 'sub_Renew' and resolved_at is null), 'and it raises an alert');
+
+-- A cancel between reconciliation and the sync ---------------------------------------------------------------------------------
+-- Northwind was canceled above. An event reconciliation let through just before that reaches the sync now.
+select pg_temp.as_service();
+select is(app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rth', 'sub_Race', 'team', 'Monthly', 'active', now() + interval '20 days', false)::text, 'canceled',
+  'the sync refuses a live subscription on an org that is ending');
+select pg_temp.as_platform();
+select is((select count(*)::integer from app.subscriptions where org_id = pg_temp.id('org_a') and subscription_state <> 'canceled'), 0, 'no subscription comes back');
+select is((select count(*)::integer from app.stripe_subscription_links where stripe_subscription_id = 'sub_Race'), 0, 'and no link is made');
+select is(pg_temp.cancel_state('sub_Race', 'Immediately'), 'Queued', 'its cancel is queued');
+select ok(exists (select 1 from private.billing_alerts where alert_kind = 'active_after_cancel' and stripe_subscription_id = 'sub_Race' and resolved_at is null), 'with an alert');
 
 select * from finish();
 rollback;

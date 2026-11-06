@@ -131,6 +131,8 @@ describe("pausing", () => {
       { ...monthly, items: { data: [{ price: { recurring: { interval: "year" } } }] } },
       "pause_annual",
     ],
+    [{ ...monthly, cancel_at_period_end: true }, "pause_plan_ending"],
+    [{ ...monthly, cancel_at: Date.parse("2026-12-01T00:00:00Z") / 1000 }, "pause_plan_ending"],
   ])("refuses %o as %s without changing Stripe", async (subscription, rule) => {
     const s = stripe(subscription);
     const db = store();
@@ -154,6 +156,17 @@ describe("pausing", () => {
 });
 
 describe("resuming", () => {
+  it("refuses a started pause on a plan that is ending, since a new period would charge", async () => {
+    const s = stripe({ ...monthly, cancel_at_period_end: true });
+    const error = await resumeSubscription(s.client, store().store, {
+      orgId: "org-1",
+      livemode: false,
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PauseRefusedError);
+    expect((error as PauseRefusedError).rule).toBe("pause_plan_ending");
+    expect(s.calls.map((c) => c.method)).toEqual(["retrieve"]);
+  });
+
   it("before the pause starts only clears pause_collection", async () => {
     const s = stripe({ ...monthly, pause_collection: { behavior: "void" } });
     const db = store({ started: false });

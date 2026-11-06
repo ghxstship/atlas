@@ -39,6 +39,14 @@ export type StripeCancelOutcome =
   | { readonly accepted: true; readonly stripeStatus: string }
   | { readonly accepted: false; readonly error: string };
 
+/**
+ * Stripe's two terminal statuses, as app.reconcile_stripe_subscription reads them: a subscription in either can never charge
+ * again, and Stripe refuses a cancel of it.
+ */
+export function stripeStatusEnded(status: string): boolean {
+  return status === "canceled" || status === "incomplete_expired";
+}
+
 /** The idempotency key of one try at one cancel. */
 export function stripeCancelIdempotencyKey(job: StripeCancelJob): string {
   return `xos-stripe-cancel:${job.cancellationId}:${String(job.attempt)}`;
@@ -82,7 +90,7 @@ export async function sendStripeCancel(
     if (errorField(error, "type") === "StripeInvalidRequestError") {
       try {
         const current = await stripe.subscriptions.retrieve(job.stripeSubscriptionId);
-        if (current.status === "canceled") return { accepted: true, stripeStatus: "canceled" };
+        if (stripeStatusEnded(current.status)) return { accepted: true, stripeStatus: current.status };
       } catch (again) {
         if (errorField(again, "code") === "resource_missing") {
           return { accepted: true, stripeStatus: "missing" };

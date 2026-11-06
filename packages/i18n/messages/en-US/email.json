@@ -148,7 +148,7 @@
       },
       "renewal_reminder": {
         "subject": "Your {plan} plan renews on {renewsOn, date, long}",
-        "body": "Your annual {plan} plan renews automatically for another year on {renewsOn, date, long}, and your payment method is charged {price}, plus tax. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it."
+        "body": "Your annual {plan} plan renews automatically for another year on {renewsOn, date, long}, and your payment method is charged {price, select, none {the plan's annual price, which the billing portal shows} other {{price}}}, plus tax. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it."
       },
       "cancellation_confirmed": {
         "subject": "Your subscription is canceled",

@@ -101,7 +101,7 @@ test("the agreement is recorded, and ending a plan stops the renewal with one bu
   await expect(page.getByText(/not refunded unless the law requires it/).first()).toBeVisible();
   await page.getByRole("button", { name: "End plan", exact: true }).click();
   const notice = page.getByTestId("stripe-cancellation");
-  await expect(notice.getByText("This plan is ending")).toBeVisible();
+  await expect(notice.getByText("This plan is ending", { exact: true })).toBeVisible();
   expect(stripe.subscriptions.get(subscription.id)?.cancel_at_period_end).toBe(true);
   await expect(page.getByRole("button", { name: "End plan", exact: true })).toHaveCount(0);
   await expect.poll(() => noticesOf(slug)).toContain("billing.plan_ending");

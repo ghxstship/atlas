@@ -5,7 +5,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   BillingNotConfiguredError,
   NotSelfServeError,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   StripeSignatureError,
   addonForLookupKey,
@@ -70,7 +70,8 @@ function fakeStripe(prices: Record<string, string>) {
           return {
             data: [
               { id: "bpc_default", metadata: {} },
-              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } },
+              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly } },
+              { id: "bpc_year", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
             ],
           };
         },
@@ -402,8 +403,9 @@ describe("checkout", () => {
 
   it("finds the portal configuration stripe:setup created and opens the portal with it", async () => {
     const { client, calls } = fakeStripe({});
-    const configuration = await findPortalConfiguration(client);
+    const configuration = await findPortalConfiguration(client, "Monthly");
     expect(configuration).toBe("bpc_xos");
+    expect(await findPortalConfiguration(client, "Annual")).toBe("bpc_year");
     await createPortalSession(client, "cus_1", "https://a.test/billing", configuration);
     expect(calls.at(-1)?.params).toEqual({
       customer: "cus_1",

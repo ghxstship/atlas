@@ -1190,7 +1190,7 @@
       "redirecting": "Opening Stripe…",
       "portal": {
         "title": "Billing portal",
-        "body": "Change the plan or the payment method and download invoices in the Stripe billing portal.",
+        "body": "Change the plan or the payment method and download invoices in the Stripe billing portal. Moving between monthly and annual billing is not done there: end this plan, then choose the new term here when it ends, so you see and agree to the new renewal terms first.",
         "bodyEnded": "Download past invoices and update billing details in the Stripe billing portal.",
         "period": "Billed {term, select, Annual {yearly} other {monthly}}. The current period ends on {date}.",
         "open": "Open the billing portal"
@@ -1241,7 +1241,7 @@
       },
       "foundingOffer": "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
       "pricesInUsd": "Prices in US dollars before tax.",
-      "checkoutTerms": "It renews automatically until you end it. We emailed you the terms, and you can end the plan on this page at any time.",
+      "checkoutTerms": "It renews automatically until you end it. We are emailing you the terms, and you can end the plan on this page at any time.",
       "renewal": {
         "title": "Review the {plan} plan",
         "statementMonthly": "{plan} renews automatically every month at {price} {currency} a month, plus tax, until you cancel. Your first charge of {price} {currency} is on {date}, and your payment method is then charged each month on that day. A promotion code changes the price only for the period it states, and we can change the price at a renewal only after giving you 30 days of notice. To cancel, choose End plan in Settings, Billing and Plan at any time. The next renewal stops and the plan runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it.",

@@ -15,7 +15,7 @@ import {
   resumeSubscription,
   startPlanCheckout,
 } from "@xos/platform/billing";
-import { requestPlanEnd } from "@xos/data/billing";
+import { getBillingAccount, requestPlanEnd } from "@xos/data/billing";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
@@ -153,10 +153,13 @@ export async function openBillingPortalAction(
   if (!billingConfigured(billing)) return refused("billing_not_open");
   try {
     const stripe = await createStripeClient(billing);
+    const livemode = billingLivemode(billing);
+    const account = await getBillingAccount(ctx.viewer.db, ctx.org.id, livemode);
     const url = await openBillingPortal(stripe, checkoutAccountStore(ctx.viewer.db), {
       orgId: ctx.org.id,
-      livemode: billingLivemode(billing),
+      livemode,
       returnUrl: billingPage(ctx.org.slug),
+      term: account.ok ? account.data.interval : null,
     });
     return done(undefined, url);
   } catch (error) {

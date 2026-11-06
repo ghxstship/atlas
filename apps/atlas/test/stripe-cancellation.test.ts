@@ -127,6 +127,10 @@ describe("stripeHasStopped", () => {
   it("is what Stripe says, and any doubt is false", async () => {
     stripe.retrieve.mockResolvedValueOnce({ status: "canceled" });
     expect(await stripeHasStopped("sub_1", "Immediately")).toBe(true);
+    stripe.retrieve.mockResolvedValueOnce({ status: "incomplete_expired" });
+    expect(await stripeHasStopped("sub_1", "Immediately")).toBe(true);
+    stripe.retrieve.mockResolvedValueOnce({ status: "incomplete_expired", cancel_at: null });
+    expect(await stripeHasStopped("sub_1", "At Period End")).toBe(true);
     stripe.retrieve.mockResolvedValueOnce({ status: "active" });
     expect(await stripeHasStopped("sub_1", "Immediately")).toBe(false);
     stripe.retrieve.mockResolvedValueOnce({ cancel_at_period_end: true, cancel_at: 1 });

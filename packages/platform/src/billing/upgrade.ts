@@ -179,17 +179,24 @@ export async function startPlanCheckout(
 
 /**
  * Opens the Stripe customer portal for the org's customer after the database's checks (step-up), with
- * the portal configuration `stripe:setup` created when it exists. Returns the portal URL.
+ * the portal configuration `stripe:setup` created for the plan's term when it exists, so the portal cannot change the
+ * term. With no term on record there is no paid plan to switch, or its first event has not arrived, and the monthly one
+ * still cannot move anyone onto an annual plan. Returns the portal URL.
  */
 export async function openBillingPortal(
   stripe: StripeClient,
   store: CheckoutAccountStore,
-  request: { readonly orgId: string; readonly livemode: boolean; readonly returnUrl: string },
+  request: {
+    readonly orgId: string;
+    readonly livemode: boolean;
+    readonly returnUrl: string;
+    readonly term: "Monthly" | "Annual" | null;
+  },
 ): Promise<string> {
   const customer = await store.portalCustomer({
     orgId: request.orgId,
     livemode: request.livemode,
   });
-  const configuration = await findPortalConfiguration(stripe);
+  const configuration = await findPortalConfiguration(stripe, request.term ?? "Monthly");
   return createPortalSession(stripe, customer, request.returnUrl, configuration);
 }

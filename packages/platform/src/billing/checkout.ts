@@ -262,18 +262,26 @@ export async function setExtraSeats(
 }
 
 /**
- * Metadata that marks the customer portal configuration `stripe:setup` creates from plans.yaml
- * (stripe-setup.ts), so Atlas opens the portal with it rather than the account's default.
+ * Metadata that marks the customer portal configurations `stripe:setup` creates from plans.yaml
+ * (stripe-setup.ts), so Atlas opens the portal with one rather than the account's default. There is one per term and each
+ * lists only that term's prices: changing the renewal term goes through the review step, where the Owner sees and agrees
+ * to the new terms and XOS records it (ADR 0161), never through a page XOS keeps no record of.
  */
-export const PORTAL_CONFIGURATION_KEY = "xos_billing_portal_v1";
+export const PORTAL_CONFIGURATION_KEYS = {
+  Monthly: "xos_billing_portal_monthly_v1",
+  Annual: "xos_billing_portal_annual_v1",
+} as const;
 
-/** The id of the portal configuration `stripe:setup` created, or undefined when it has not run. */
-export async function findPortalConfiguration(stripe: StripeClient): Promise<string | undefined> {
+/** The id of the term's portal configuration `stripe:setup` created, or undefined when it has not run. */
+export async function findPortalConfiguration(
+  stripe: StripeClient,
+  term: keyof typeof PORTAL_CONFIGURATION_KEYS,
+): Promise<string | undefined> {
   const configurations = await stripe.billingPortal.configurations.list({
     active: true,
     limit: 100,
   });
-  return configurations.data.find((c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEY)
+  return configurations.data.find((c) => c.metadata?.["xos_portal"] === PORTAL_CONFIGURATION_KEYS[term])
     ?.id;
 }
 

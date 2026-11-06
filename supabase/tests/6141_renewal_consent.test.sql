@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(38);
+select plan(41);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -123,6 +123,14 @@ select is((select message_args ->> 'price' from app.notifications where kind = '
 select is((select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_a')), 0, 'never a monthly plan');
 select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'and once per term');
 select ok(exists (select 1 from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb' and amount_text = '1,490.00 USD'), 'with proof of notice');
+-- Neither Stripe nor the price book gives an amount: the message words that case instead of quoting a blank.
+delete from private.billing_renewal_reminders where stripe_subscription_id = 'sub_Eur0';
+select pg_temp.as_service();
+select app.note_stripe_subscription_terms('sub_Eur0', null, null, 'nok', now() + interval '1 minute');
+select pg_temp.as_platform();
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 1, 'a currency outside the price book is still reminded');
+select ok(exists (select 1 from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_c') and message_args ->> 'price' = 'none'), 'with the wording for no known amount');
+select is((select amount_text from private.billing_renewal_reminders where stripe_subscription_id = 'sub_Eur0'), null, 'and the proof of notice quotes none');
 delete from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb';
 select pg_temp.as_service();
 select app.note_stripe_subscription_terms('sub_H4rb', now() + interval '200 days', null, null, now() + interval '1 minute');

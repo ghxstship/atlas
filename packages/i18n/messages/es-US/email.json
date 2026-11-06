@@ -148,7 +148,7 @@
       },
       "renewal_reminder": {
         "subject": "Tu plan {plan} se renueva el {renewsOn, date, long}",
-        "body": "Tu plan anual {plan} se renueva automáticamente por otro año el {renewsOn, date, long}, y se cargarán {price}, más impuestos, a tu método de pago. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
+        "body": "Tu plan anual {plan} se renueva automáticamente por otro año el {renewsOn, date, long}, y se cargará {price, select, none {el precio anual del plan, que aparece en el portal de facturación} other {{price}}}, más impuestos, a tu método de pago. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
       },
       "cancellation_confirmed": {
         "subject": "Tu suscripción está cancelada",

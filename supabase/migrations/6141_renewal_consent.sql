@@ -311,7 +311,8 @@ begin
     returning id into v_id;
     perform private.notify_billing_contacts(v_due.org_id, 'billing.renewal_reminder', 'private.billing_renewal_reminders', v_id, jsonb_build_object(
       'plan', initcap(v_due.plan_code),
-      'price', coalesce(v_amount, ''),
+      -- No amount from Stripe or the price book: the message then points to the billing portal. It never reads as a blank.
+      'price', coalesce(v_amount, 'none'),
       'renewsOn', private.org_day_mark(v_due.org_id, private.org_date(v_due.org_id, v_due.current_period_end))));
     v_count := v_count + 1;
   end loop;

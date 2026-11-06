@@ -1190,7 +1190,7 @@
       "redirecting": "Abriendo Stripe…",
       "portal": {
         "title": "Portal de facturación",
-        "body": "Cambia el plan o el método de pago y descarga facturas en el portal de facturación de Stripe.",
+        "body": "Cambia el plan o el método de pago y descarga facturas en el portal de facturación de Stripe. El cambio entre facturación mensual y anual no se hace allí: termina este plan y elige el nuevo plazo aquí cuando termine, para que veas y aceptes primero las nuevas condiciones de renovación.",
         "bodyEnded": "Descarga facturas anteriores y actualiza los datos de facturación en el portal de facturación de Stripe.",
         "period": "Facturación {term, select, Annual {anual} other {mensual}}. El periodo actual termina el {date}.",
         "open": "Abrir el portal de facturación"
@@ -1241,7 +1241,7 @@
       },
       "foundingOffer": "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
       "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos.",
-      "checkoutTerms": "Se renueva automáticamente hasta que lo termines. Te enviamos las condiciones por correo y puedes terminar el plan en esta página en cualquier momento.",
+      "checkoutTerms": "Se renueva automáticamente hasta que lo termines. Te estamos enviando las condiciones por correo y puedes terminar el plan en esta página en cualquier momento.",
       "renewal": {
         "title": "Revisa el plan {plan}",
         "statementMonthly": "{plan} se renueva automáticamente cada mes por {price} {currency} al mes, más impuestos, hasta que lo canceles. Tu primer cargo de {price} {currency} es el {date}, y luego se cobra a tu método de pago cada mes ese mismo día. Un código promocional cambia el precio solo durante el período que indica, y solo podemos cambiar el precio en una renovación después de avisarte con 30 días de antelación. Para cancelar, elige Terminar plan en Configuración, Facturación y plan en cualquier momento. La próxima renovación se detiene y el plan sigue activo hasta el final del período que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija.",

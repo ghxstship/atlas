@@ -163,6 +163,12 @@ describe("sendStripeCancel", () => {
     ).resolves.toEqual({ accepted: true, stripeStatus: "canceled" });
     await expect(
       sendStripeCancel(
+        fakeStripe({ update: refused, retrieve: () => ({ status: "incomplete_expired" }) }).client,
+        { cancellationId: "c1", stripeSubscriptionId: "sub_1", mode: "At Period End", attempt: 1 },
+      ),
+    ).resolves.toEqual({ accepted: true, stripeStatus: "incomplete_expired" });
+    await expect(
+      sendStripeCancel(
         fakeStripe({ update: refused, retrieve: () => ({ status: "active" }) }).client,
         AT_END,
       ),

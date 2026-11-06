@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import type { PlanRegistry, PriceBookCurrency } from "@xos/schemas/plans";
 import { PRICE_BOOK_CURRENCIES } from "@xos/schemas/plans";
-import { PORTAL_CONFIGURATION_KEY } from "./checkout.ts";
+import { PORTAL_CONFIGURATION_KEYS } from "./checkout.ts";
 
 /**
  * Creates the Stripe catalogue of packages/schemas/plans.yaml (ADR 0035): one product per self-serve
@@ -70,8 +70,9 @@ export interface PromotionCodeSpec {
 }
 
 /**
- * The customer portal configuration: payment methods, invoices and billing details, cancellation at
- * the end of the paid period, and switching between the self-serve plans and terms, prorated.
+ * A customer portal configuration: payment methods, invoices and billing details, cancellation at
+ * the end of the paid period, and switching between the self-serve plans at one term, prorated. There is one per term:
+ * the term itself changes only through the review step, where the Owner sees and agrees to the new terms (ADR 0161).
  */
 export interface PortalSpec {
   readonly name: string;
@@ -88,7 +89,7 @@ export interface StripeCatalog {
   readonly prices: readonly PriceSpec[];
   readonly coupons: readonly CouponSpec[];
   readonly promotionCodes: readonly PromotionCodeSpec[];
-  readonly portal: PortalSpec;
+  readonly portals: readonly PortalSpec[];
 }
 
 /** Display names of plans and add-ons on Stripe invoices and Checkout (English, as Stripe shows them). */
@@ -223,9 +224,9 @@ export function stripeCatalog(registry: PlanRegistry): StripeCatalog {
       metadata: { xos_offer: offer.code },
     });
   }
-  const portal: PortalSpec = {
-    name: "XOS plans",
-    metadata: { xos_portal: PORTAL_CONFIGURATION_KEY },
+  const portalFor = (name: string, term: keyof typeof PORTAL_CONFIGURATION_KEYS): PortalSpec => ({
+    name,
+    metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS[term] },
     products: selfServe.flatMap((plan) =>
       plan.stripe === null
         ? []
@@ -233,14 +234,16 @@ export function stripeCatalog(registry: PlanRegistry): StripeCatalog {
             {
               productId: plan.stripe.productLookupKey,
               priceLookupKeys: [
-                plan.stripe.monthlyPriceLookupKey,
-                plan.stripe.annualPriceLookupKey,
+                term === "Monthly"
+                  ? plan.stripe.monthlyPriceLookupKey
+                  : plan.stripe.annualPriceLookupKey,
               ],
             },
           ],
     ),
-  };
-  return { products, prices, coupons, promotionCodes, portal };
+  });
+  const portals = [portalFor("XOS monthly plans", "Monthly"), portalFor("XOS annual plans", "Annual")];
+  return { products, prices, coupons, promotionCodes, portals };
 }
 
 type PortalFeatures = Stripe.BillingPortal.ConfigurationCreateParams.Features;
@@ -454,11 +457,10 @@ export async function syncStripeCatalog(
       }
     }
   }
-  const portals = await client.billingPortal.configurations.list({ active: true, limit: 100 });
-  const portal =
-    portals.data.find(
-      (c) => c.metadata?.["xos_portal"] === catalog.portal.metadata["xos_portal"],
-    ) ?? null;
+  const existingPortals = await client.billingPortal.configurations.list({
+    active: true,
+    limit: 100,
+  });
   if (differences.length > 0) throw new CatalogDriftError(differences);
 
   for (const spec of catalog.products) {
@@ -567,39 +569,39 @@ export async function syncStripeCatalog(
     });
   }
 
-  // The customer portal switches between the plan prices, so it is set once they all exist.
-  const features = portalFeatures(catalog.portal, priceIds);
-  const portalKey = catalog.portal.metadata["xos_portal"] ?? "";
-  if (portal === null) {
-    if (!dryRun) {
-      await client.billingPortal.configurations.create({
-        name: catalog.portal.name,
-        features,
-        metadata: { ...catalog.portal.metadata },
+  // The customer portals switch between the plan prices, so they are set once those all exist.
+  for (const spec of catalog.portals) {
+    const features = portalFeatures(spec, priceIds);
+    const portalKey = spec.metadata["xos_portal"] ?? "";
+    const portal = existingPortals.data.find((c) => c.metadata?.["xos_portal"] === portalKey) ?? null;
+    if (portal === null) {
+      if (!dryRun) {
+        await client.billingPortal.configurations.create({
+          name: spec.name,
+          features,
+          metadata: { ...spec.metadata },
+        });
+      }
+      items.push({
+        kind: "portal_configuration",
+        key: portalKey,
+        action: dryRun ? "would create" : "created",
+      });
+    } else if (portal.name === spec.name && portalShape(portal.features) === portalShape(features)) {
+      items.push({ kind: "portal_configuration", key: portalKey, action: "unchanged" });
+    } else {
+      if (!dryRun) {
+        await client.billingPortal.configurations.update(portal.id, {
+          name: spec.name,
+          features,
+        });
+      }
+      items.push({
+        kind: "portal_configuration",
+        key: portalKey,
+        action: dryRun ? "would update" : "updated",
       });
     }
-    items.push({
-      kind: "portal_configuration",
-      key: portalKey,
-      action: dryRun ? "would create" : "created",
-    });
-  } else if (
-    portal.name === catalog.portal.name &&
-    portalShape(portal.features) === portalShape(features)
-  ) {
-    items.push({ kind: "portal_configuration", key: portalKey, action: "unchanged" });
-  } else {
-    if (!dryRun) {
-      await client.billingPortal.configurations.update(portal.id, {
-        name: catalog.portal.name,
-        features,
-      });
-    }
-    items.push({
-      kind: "portal_configuration",
-      key: portalKey,
-      action: dryRun ? "would update" : "updated",
-    });
   }
   return { items };
 }

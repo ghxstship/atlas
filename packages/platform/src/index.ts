@@ -23,7 +23,7 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
@@ -56,6 +56,7 @@ export { stripeCancellationStore } from "./billing/cancel-store.ts";
 export {
   runStripeCancellations,
   sendStripeCancel,
+  stripeStatusEnded,
   type BillingAlert,
   type BillingAlertSink,
   type StripeCancelJob,

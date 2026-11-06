@@ -3,7 +3,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   CheckoutCompletedError,
   NotSelfServeError,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   expireCheckoutSession,
   lookupKeyFor,
   openBillingPortal,
@@ -97,7 +97,10 @@ function fakeStripe(
           data:
             options.portalConfigured === false
               ? []
-              : [{ id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } }],
+              : [
+                  { id: "bpc_monthly", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly } },
+                  { id: "bpc_annual", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
+                ],
         }),
       },
     },
@@ -402,7 +405,7 @@ describe("expireCheckoutSession", () => {
 });
 
 describe("openBillingPortal", () => {
-  it("opens the portal on the org's customer with the configuration stripe:setup created", async () => {
+  it("opens the portal on the org's customer with the configuration of the plan's term", async () => {
     const stripe = fakeStripe();
     const url = await openBillingPortal(
       stripe.client,
@@ -411,6 +414,7 @@ describe("openBillingPortal", () => {
         orgId: "org-1",
         livemode: false,
         returnUrl: "https://atlas.test/northwind/settings/billing-and-plan",
+        term: "Annual",
       },
     );
     expect(url).toBe("https://billing.stripe.test/p/1");
@@ -419,9 +423,20 @@ describe("openBillingPortal", () => {
       params: {
         customer: "cus_N1na",
         return_url: "https://atlas.test/northwind/settings/billing-and-plan",
-        configuration: "bpc_xos",
+        configuration: "bpc_annual",
       },
     });
+  });
+
+  it("uses the monthly configuration with no term on record, which cannot move anyone onto an annual plan", async () => {
+    const stripe = fakeStripe();
+    await openBillingPortal(stripe.client, accountStore({ customerId: "cus_N1na" }).store, {
+      orgId: "org-1",
+      livemode: false,
+      returnUrl: "https://atlas.test/b",
+      term: null,
+    });
+    expect(stripe.calls.at(-1)?.params).toMatchObject({ configuration: "bpc_monthly" });
   });
 
   it("falls back to the account's default portal before stripe:setup has run", async () => {
@@ -430,6 +445,7 @@ describe("openBillingPortal", () => {
       orgId: "org-1",
       livemode: false,
       returnUrl: "https://atlas.test/b",
+      term: "Monthly",
     });
     expect(stripe.calls.at(-1)?.params).toEqual({
       customer: "cus_N1na",

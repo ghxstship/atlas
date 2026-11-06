@@ -23,7 +23,7 @@ export {
   type BillingInterval,
 } from "./plans.ts";
 export {
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   createPortalSession,
   findPortalConfiguration,
@@ -50,6 +50,7 @@ export {
 export {
   runStripeCancellations,
   sendStripeCancel,
+  stripeStatusEnded,
   STRIPE_WORKER_BUDGET_MS,
   STRIPE_WORKER_LIMITS,
   stripeCancelIdempotencyKey,

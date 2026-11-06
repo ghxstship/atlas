@@ -837,6 +837,7 @@ declare
   v_reason text;
   v_row private.stripe_cancellations;
   v_id uuid;
+  v_ended_at timestamptz;
 begin
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('billing:' || p_org_id::text, 0));
   v_exists := exists (select 1 from app.organizations o where o.id = p_org_id and o.deleted_at is null);
@@ -857,12 +858,20 @@ begin
     return case when v_exists and v_reason is distinct from 'canceled' and v_reason is distinct from 'deletion' then 'proceed' else 'ended' end;
   end if;
 
+  -- Stripe does not order its events and retries a failed delivery for days: a live event from before the end says nothing
+  -- new. It must not reach the sync, which would put the paid plan on the org's Access subscription and tie it to a
+  -- subscription Stripe will never send another event about. Both times are Stripe's own, so this needs no margin.
+  select l.stripe_ended_at into v_ended_at from app.stripe_subscription_links l where l.stripe_subscription_id = p_stripe_subscription_id;
+  if v_ended_at is not null and v_event <= v_ended_at then
+    return 'stale';
+  end if;
+
   select c.* into v_row from private.stripe_cancellations c
   where c.stripe_subscription_id = p_stripe_subscription_id and c.cancel_mode = 'Immediately' and c.cancellation_state in ('Queued', 'Accepted')
   order by c.created_at desc limit 1;
 
-  -- An org that is live and a subscription XOS never asked to stop: the ordinary sync.
-  if v_exists and v_reason is distinct from 'canceled' and v_reason is distinct from 'deletion' and v_row.id is null then
+  -- An org that is live and a subscription XOS never asked to stop and Stripe never called ended: the ordinary sync.
+  if v_exists and v_reason is distinct from 'canceled' and v_reason is distinct from 'deletion' and v_row.id is null and v_ended_at is null then
     return 'proceed';
   end if;
 
@@ -884,13 +893,13 @@ begin
       format('Stripe said %s is %s, but org %s has been deleted. Its cancel was queued. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   elsif v_row.id is null or v_row.cancellation_state = 'Accepted' then
     perform private.raise_billing_alert('active_after_cancel', 'active_after_cancel:' || p_stripe_subscription_id, p_org_id, p_stripe_subscription_id,
-      format('Stripe said %s is %s after org %s was canceled or its cancel accepted. Its cancel was queued again. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
+      format('Stripe said %s is %s after it ended, or after org %s was canceled or its cancel accepted. Its cancel was queued again. Check in Stripe that the customer was not charged, then close this alert.', p_stripe_subscription_id, p_stripe_status, p_org_id));
   end if;
   return 'queued';
 end;
 $$;
 
-comment on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) is 'Stripe webhook API (service role), before the subscription sync. A subscription that ended settles its cancels and returns proceed for a live org, so the sync moves it to Access, or ended for one that is ending or gone. One that ended with nothing asked of XOS is recorded as Ended In Stripe, with no notice to the customer. A live subscription returns proceed for a live org XOS never asked to stop. On a purged org, an org being canceled or deleted, or a subscription whose immediate cancel was accepted more than 10 minutes before the event, it queues the cancel, raises an alert and returns queued, so no subscription is created again. An event from before that acceptance returns stale.';
+comment on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) is 'Stripe webhook API (service role), before the subscription sync. A subscription that ended settles its cancels and returns proceed for a live org, so the sync moves it to Access, or ended for one that is ending or gone. One that ended with nothing asked of XOS is recorded as Ended In Stripe, with no notice to the customer. A live subscription returns proceed for a live org XOS never asked to stop. On a purged org, an org being canceled or deleted, a subscription whose immediate cancel was accepted more than 10 minutes before the event, or one Stripe called ended before the event, it queues the cancel, raises an alert and returns queued, so no subscription is created again. An event from before that acceptance, or not newer than the end Stripe reported, returns stale.';
 revoke all on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) from public, anon, authenticated;
 grant execute on function app.reconcile_stripe_subscription(uuid, text, text, text, boolean, timestamptz) to service_role;
 
@@ -964,7 +973,9 @@ begin
   select c.* into v_row from private.stripe_cancellations c
   where c.stripe_subscription_id = p_stripe_subscription_id and c.cancellation_state in ('Queued', 'Accepted')
     and c.requested_at < p_paid_at
-    and (c.cancel_mode = 'Immediately' or (coalesce(p_billing_reason, '') = 'subscription_cycle' and c.accepted_at < p_paid_at))
+    -- A cancel at period end counts once it was asked for, not once Stripe accepted it: from that moment the customer has been
+    -- told they will not be charged again, and a renewal paid while Stripe was unreachable is exactly the charge to refund.
+    and (c.cancel_mode = 'Immediately' or coalesce(p_billing_reason, '') = 'subscription_cycle')
   order by c.cancel_mode, c.created_at desc limit 1;
   if v_row.id is null then
     return false;
@@ -976,9 +987,276 @@ begin
 end;
 $$;
 
-comment on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) is 'Stripe webhook API (service role): a paid invoice on a subscription XOS was asked to stop raises a charged_after_cancel alert, so the owner refunds it. An immediate cancel counts any charge after the request; a cancel at period end counts only a renewal after Stripe accepted it. Returns whether it raised one.';
+comment on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) is 'Stripe webhook API (service role): a paid invoice on a subscription XOS was asked to stop raises a charged_after_cancel alert, so the owner refunds it. An immediate cancel counts any charge after the request; a cancel at period end counts a renewal paid after the request, whether Stripe has accepted it yet or not. Returns whether it raised one.';
 revoke all on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) from public, anon, authenticated;
 grant execute on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) to service_role;
+
+-- Redefined from 6051 (its latest definition) with one check, so a cancel between reconciliation and the sync cannot bring a
+-- subscription back on an org that is ending.
+create or replace function app.sync_subscription_from_stripe(
+  p_org_id uuid,
+  p_stripe_customer_id text,
+  p_stripe_subscription_id text,
+  p_plan_code text,
+  p_billing_interval app.billing_interval,
+  p_stripe_status text,
+  p_current_period_end timestamptz,
+  p_livemode boolean,
+  p_extra_seats integer default 0,
+  p_pause_collection boolean default false,
+  p_pause_resumes_at timestamptz default null,
+  p_event_created_at timestamptz default null
+)
+returns app.subscription_state
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_sub app.subscriptions;
+  v_link app.stripe_subscription_links;
+  v_target app.subscription_state := private.stripe_status_state(p_stripe_status);
+  v_event timestamptz := coalesce(p_event_created_at, now());
+  v_paused boolean := p_stripe_status = 'paused' or coalesce(p_pause_collection, false);
+  v_pause app.subscription_pauses;
+  v_stale boolean;
+  v_starts timestamptz;
+  v_resumes timestamptz;
+  v_id uuid;
+begin
+  if not exists (select 1 from app.organizations o where o.id = p_org_id and o.deleted_at is null) then
+    perform private.refuse('billing_org_unknown', 'The Stripe subscription names no live org.');
+  end if;
+  if not exists (select 1 from app.plans p where p.code = p_plan_code) then
+    perform private.refuse('plan_unknown', format('%s is not a plan.', p_plan_code));
+  end if;
+  if coalesce(p_extra_seats, 0) < 0 or coalesce(p_extra_seats, 0) > 10000 then
+    perform private.refuse('extra_seats_range', 'Extra seats run from 0 to 10,000.');
+  end if;
+  if coalesce(p_extra_seats, 0) > 0
+     and not exists (select 1 from private.plan_extra_seat_prices x where x.plan_code = p_plan_code) then
+    perform private.refuse('extra_seats_not_sold', format('The %s plan sells no extra seats.', p_plan_code));
+  end if;
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('billing:' || p_org_id::text, 0));
+  select * into v_link from app.stripe_subscription_links l where l.stripe_subscription_id = p_stripe_subscription_id and l.deleted_at is null;
+  if v_link.id is not null and v_link.org_id <> p_org_id then
+    perform private.refuse('billing_org_mismatch', 'The Stripe subscription belongs to another org.');
+  end if;
+  select * into v_sub from app.subscriptions s
+  where s.org_id = p_org_id and s.subscription_state <> 'canceled' and s.deleted_at is null for update;
+
+  -- Reconciliation ran in its own transaction, so the org may have started ending since. Canceling or deleting it takes this
+  -- same row, so past that lock a live event either sees the org ending here, or commits first and the org's own trigger sees
+  -- its link. A live subscription on an org that is ending never comes back: it is queued for cancel, with an alert.
+  if v_target is distinct from 'canceled' and private.org_read_only_reason(p_org_id) in ('canceled', 'deletion') then
+    perform app.reconcile_stripe_subscription(p_org_id, p_stripe_customer_id, p_stripe_subscription_id, p_stripe_status, p_livemode, p_event_created_at);
+    return 'canceled';
+  end if;
+
+  -- The pause (6051), for the org's current Stripe subscription. Stripe does not order its events: one older than the
+  -- open pause, or than the last pause that ended, changes no pause.
+  if v_link.id is not null and v_sub.id is not null and v_link.subscription_id = v_sub.id then
+    select p.* into v_pause from app.subscription_pauses p
+    where p.org_id = p_org_id and p.ended_at is null and p.deleted_at is null for update;
+    v_stale := (v_pause.id is not null and v_event < v_pause.created_at)
+      or exists (select 1 from app.subscription_pauses p
+                 where p.org_id = p_org_id and p.deleted_at is null and p.ended_at > v_event);
+    if v_target = 'canceled' then
+      if v_pause.id is not null then
+        update app.subscription_pauses set ended_at = now(), end_reason = 'Canceled', last_event_at = v_event
+        where id = v_pause.id;
+      end if;
+    elsif not v_stale and v_paused and v_pause.id is null then
+      v_starts := case when p_stripe_status = 'paused' then now()
+                       else greatest(now(), coalesce(p_current_period_end, v_link.current_period_end, now())) end;
+      v_resumes := p_pause_resumes_at + interval '1 hour';
+      insert into app.subscription_pauses (stripe_subscription_link_id, source, starts_at, resumes_at, last_event_at)
+      values (v_link.id, 'Stripe', v_starts, case when v_resumes > v_starts then v_resumes end, v_event)
+      returning id into v_id;
+    elsif not v_stale and v_paused then
+      update app.subscription_pauses
+      set last_event_at = greatest(coalesce(last_event_at, v_event), v_event),
+          resumes_at = case when source = 'Stripe'
+                            then case when p_pause_resumes_at + interval '1 hour' > starts_at then p_pause_resumes_at + interval '1 hour' end
+                            else resumes_at end
+      where id = v_pause.id;
+    elsif not v_stale and v_pause.id is not null then
+      -- Stripe clears pause_collection at its own resumes_at, an hour before the XOS resume.
+      if v_pause.source = 'Owner' and v_pause.resumes_at <= now() + interval '2 hours' then
+        update app.subscription_pauses set ended_at = now(), end_reason = 'Resumed on schedule', last_event_at = v_event
+        where id = v_pause.id;
+        perform private.notify_billing_owners(p_org_id, 'billing.resumed', v_pause.id, '{}'::jsonb);
+      else
+        update app.subscription_pauses set ended_at = now(), end_reason = 'Resumed in Stripe', last_event_at = v_event
+        where id = v_pause.id;
+      end if;
+    end if;
+  end if;
+
+  if v_target is null then
+    return v_sub.subscription_state;
+  end if;
+  if v_target = 'canceled' then
+    if v_sub.id is not null and (v_link.id is null or v_link.subscription_id = v_sub.id) then
+      perform private.transition_subscription(v_sub.id, v_sub.subscription_state, 'canceled', 'Stripe subscription ended.');
+      perform private.create_subscription(p_org_id, 'access');
+    end if;
+    update app.stripe_subscription_links set current_period_end = p_current_period_end where id = v_link.id;
+    return 'canceled';
+  end if;
+  if v_sub.id is null then
+    perform private.create_subscription(p_org_id, p_plan_code);
+    select * into v_sub from app.subscriptions s where s.org_id = p_org_id and s.subscription_state <> 'canceled' and s.deleted_at is null;
+  end if;
+  if v_sub.plan_code <> p_plan_code or v_sub.extra_seats <> coalesce(p_extra_seats, 0) then
+    update app.subscriptions set plan_code = p_plan_code, extra_seats = coalesce(p_extra_seats, 0) where id = v_sub.id;
+  end if;
+  if v_sub.subscription_state <> v_target then
+    perform private.transition_subscription(v_sub.id, v_sub.subscription_state, v_target,
+      format('Stripe subscription is %s.', p_stripe_status));
+  end if;
+  if v_link.id is null then
+    insert into app.stripe_subscription_links (subscription_id, stripe_customer_id, stripe_subscription_id, billing_interval, livemode, current_period_end)
+    values (v_sub.id, p_stripe_customer_id, p_stripe_subscription_id, p_billing_interval, p_livemode, p_current_period_end);
+  else
+    update app.stripe_subscription_links
+    set subscription_id = v_sub.id, billing_interval = p_billing_interval, current_period_end = p_current_period_end
+    where id = v_link.id;
+  end if;
+  return v_target;
+end;
+$$;
+
+comment on function app.sync_subscription_from_stripe(uuid, text, text, text, app.billing_interval, text, timestamptz, boolean, integer, boolean, timestamptz, timestamptz) is 'Billing API (service role): applies a Stripe subscription to the org''s subscription. Sets the plan the server module resolved from the price lookup key and the extra seats from the quantity of the plan''s extra-seat price (ADR 0035), moves the state through the transition engine (active, past_due or canceled), links the Stripe ids, and on cancellation returns the org to the Access plan without deleting data (Section 14.7). Mirrors the subscription pause (6051, ADR 0155 D4): pause_collection or a paused status with no open pause opens a Stripe-source pause (from the paid period end, or now for a paused status, until Stripe''s resumes_at plus one hour, or open-ended); neither ends an open pause, as Resumed on schedule (with billing.resumed) when an Owner pause is within two hours of its resume, else Resumed in Stripe; cancellation ends it as Canceled. p_event_created_at is the Stripe event''s created time: an event older than the open pause, or than the last pause that ended, changes no pause. Serialized per org. A live subscription on an org being canceled or deleted changes nothing: it goes to app.reconcile_stripe_subscription, which queues its cancel and raises an alert (6140, ADR 0161), and the function returns canceled.';
+revoke all on function app.sync_subscription_from_stripe(uuid, text, text, text, app.billing_interval, text, timestamptz, boolean, integer, boolean, timestamptz, timestamptz) from public, anon, authenticated;
+grant execute on function app.sync_subscription_from_stripe(uuid, text, text, text, app.billing_interval, text, timestamptz, boolean, integer, boolean, timestamptz, timestamptz) to service_role;
+
+-- A plan that is ending does not pause or resume ------------------------------------------------------------------------
+
+create or replace function private.stripe_plan_end_open(p_subscription text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from private.stripe_cancellations c
+    where c.stripe_subscription_id = p_subscription and c.cancel_mode = 'At Period End' and c.cancellation_state in ('Queued', 'Accepted'));
+$$;
+
+comment on function private.stripe_plan_end_open(text) is 'True when the end of this Stripe subscription at period end was asked for and not withdrawn, whether Stripe has accepted it yet or not.';
+revoke all on function private.stripe_plan_end_open(text) from public, anon, authenticated;
+
+-- Redefined from 6051 (its latest definition).
+create or replace function private.assert_subscription_pause(
+  p_org_id uuid,
+  p_months integer,
+  p_livemode boolean,
+  p_open_allowed uuid default null
+)
+returns app.stripe_subscription_links
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_org app.organizations;
+  v_sub app.subscriptions;
+  v_link app.stripe_subscription_links;
+  v_open app.subscription_pauses;
+begin
+  if not private.has_capability(p_org_id, 'org.billing.manage') then
+    raise exception using errcode = '42501', message = 'org.billing.manage is required';
+  end if;
+  select * into v_org from app.organizations o where o.id = p_org_id and o.deleted_at is null;
+  if v_org.id is null then
+    perform private.refuse('billing_org_unknown', 'The organization does not exist.');
+  end if;
+  if private.is_sandbox_org(p_org_id) then
+    perform private.refuse('sandbox_not_billable', 'A sandbox is never billed.');
+  end if;
+  if v_org.parent_org_id is not null then
+    perform private.refuse('billing_through_partner', 'Your partner bills this organization. Ask the partner about a pause.');
+  end if;
+  if private.org_read_only(p_org_id) then
+    perform private.refuse('org_read_only', 'A read-only organization cannot pause. Settle what made it read-only first.');
+  end if;
+  if not private.paid_through_stripe(p_org_id, coalesce(p_livemode, false)) then
+    perform private.refuse('pause_not_paid', 'Only a plan paid through Stripe can pause.');
+  end if;
+  select * into v_sub from app.subscriptions s
+  where s.org_id = p_org_id and s.subscription_state <> 'canceled' and s.deleted_at is null;
+  if v_sub.subscription_state = 'trialing' then
+    perform private.refuse('pause_trial', 'A trial cannot pause. Pause once the plan is paid.');
+  end if;
+  if v_sub.subscription_state is distinct from 'active' then
+    perform private.refuse('pause_past_due', 'A payment is overdue, so billing cannot pause. Update the payment method first.');
+  end if;
+  select * into v_link from app.stripe_subscription_links l
+  where l.subscription_id = v_sub.id and l.livemode = coalesce(p_livemode, false) and l.deleted_at is null
+  order by l.created_at desc limit 1;
+  if v_link.billing_interval is distinct from 'Monthly' then
+    perform private.refuse('pause_annual', 'An annual plan is paid for the year and cannot pause.');
+  end if;
+  if private.stripe_plan_end_open(v_link.stripe_subscription_id) then
+    perform private.refuse('pause_plan_ending', 'This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.');
+  end if;
+  select * into v_open from app.subscription_pauses p where p.org_id = p_org_id and p.ended_at is null and p.deleted_at is null;
+  if v_open.id is not null and v_open.id is distinct from p_open_allowed then
+    perform private.refuse('pause_open', 'This organization already has a pause. Resume it or cancel it first.');
+  end if;
+  if p_months is null or p_months not between 1 and 6 then
+    perform private.refuse('pause_months_range', 'A pause lasts 1 to 6 whole months.');
+  end if;
+  if v_link.current_period_end is null or v_link.current_period_end <= now() then
+    perform private.refuse('pause_period_unknown', 'Stripe has not reported the end of the paid period yet. Try again in a minute.');
+  end if;
+  perform private.require_second_factor('change billing');
+  return v_link;
+end;
+$$;
+
+comment on function private.assert_subscription_pause(uuid, integer, boolean, uuid) is 'The checks before a pause, in order (ADR 0155 D4): org.billing.manage (42501 otherwise); a live org (billing_org_unknown), not a sandbox (sandbox_not_billable), not billed by its partner (billing_through_partner) and not read-only (org_read_only); a plan paid through Stripe in that mode (pause_not_paid); not a trial (pause_trial) and not past due (pause_past_due); a monthly plan (pause_annual) that is not ending (pause_plan_ending); no open pause other than p_open_allowed (pause_open); 1 to 6 months (pause_months_range); a paid period end in the future (pause_period_unknown); and last a second factor in the last 15 minutes (step_up_required). A Stripe trial cannot be seen here; Atlas checks it in Stripe. Returns the Stripe subscription link.';
+revoke all on function private.assert_subscription_pause(uuid, integer, boolean, uuid) from public, anon, authenticated;
+
+-- Redefined from 6051 (its latest definition).
+create or replace function app.begin_subscription_resume(p_org_id uuid, p_livemode boolean)
+returns table (stripe_subscription_id text, started boolean)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_pause app.subscription_pauses;
+  v_stripe text;
+begin
+  if not private.has_capability(p_org_id, 'org.billing.manage') then
+    raise exception using errcode = '42501', message = 'org.billing.manage is required';
+  end if;
+  select p.* into v_pause from app.subscription_pauses p
+  where p.org_id = p_org_id and p.ended_at is null and p.deleted_at is null;
+  select l.stripe_subscription_id into v_stripe from app.stripe_subscription_links l
+  where l.id = v_pause.stripe_subscription_link_id and l.livemode = coalesce(p_livemode, false);
+  if v_pause.id is null or v_stripe is null then
+    perform private.refuse('pause_none', 'This organization has no pause to resume.');
+  end if;
+  -- Resuming a pause that has started starts a new period and charges for it at once. The Owner has been told this plan will
+  -- not charge again. A pause that has not started only comes off, which charges nothing.
+  if v_pause.starts_at <= now() and private.stripe_plan_end_open(v_stripe) then
+    perform private.refuse('pause_plan_ending', 'This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.');
+  end if;
+  perform private.assert_subscription_resume(p_org_id, p_livemode);
+  return query select v_stripe, v_pause.starts_at <= now();
+end;
+$$;
+
+comment on function app.begin_subscription_resume(uuid, boolean) is 'Atlas, before it asks Stripe to resume: the caller holds org.billing.manage (42501 otherwise), the org has an open pause in that mode (pause_none), a pause that has started is on a plan that is not ending (pause_plan_ending), and last a second factor in the last 15 minutes. Works while the org is read-only. Returns the Stripe subscription and whether the pause has started: before it, resuming only removes the pause; after it, Stripe starts a new billing period now.';
+revoke all on function app.begin_subscription_resume(uuid, boolean) from public, anon;
+grant execute on function app.begin_subscription_resume(uuid, boolean) to authenticated;
 
 -- What is already out there --------------------------------------------------------------------------------------------
 
