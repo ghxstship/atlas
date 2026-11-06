@@ -682,6 +682,10 @@
       "incident": {
         "reported": "Incident reported"
       },
+      "crisis_alert": {
+        "issued": "Crisis alert",
+        "ended": "Crisis alert all-clear"
+      },
       "invoice": {
         "approved": "Invoice approved",
         "submitted": "Invoice submitted",
