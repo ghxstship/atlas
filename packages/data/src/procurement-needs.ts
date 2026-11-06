@@ -26,6 +26,7 @@ export interface ProcurementNeed {
   readonly key: string;
   readonly projectId: string;
   readonly projectKey: string;
+  readonly timeZone: string;
   readonly description: string;
   readonly quantity: number;
   readonly unitBasis: string | null;
@@ -50,6 +51,7 @@ function toNeed(row: NeedStatusRow): ProcurementNeed {
     key: `${row.project_key ?? ""}-NEED-${row.need_number ?? 0}`,
     projectId: row.project_id ?? "",
     projectKey: row.project_key ?? "",
+    timeZone: row.time_zone ?? "UTC",
     description: row.description ?? "",
     quantity: row.quantity ?? 0,
     unitBasis: row.unit_basis,

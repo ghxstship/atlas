@@ -373,7 +373,7 @@ async function RfqRecord({
           <EntityForm
             id={`rfq-line-${rfq.id}`}
             action={addRfqLineAction}
-            hidden={{ org: ctx.org.slug, rfqId: rfq.id }}
+            hidden={{ org: ctx.org.slug, rfqId: rfq.id, projectId: rfq.projectId }}
             refusals={REFUSALS}
             submitLabel={t("rfqs.addLine")}
             fields={[

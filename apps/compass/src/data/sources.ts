@@ -387,7 +387,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id,reference_code",
     projectColumn: "project_id",
   },
   // The external More screens (Section 4.5.7 role table, A92), each for the role types whose menu lists it. Parents

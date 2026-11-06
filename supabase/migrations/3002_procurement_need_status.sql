@@ -67,14 +67,14 @@ revoke all on function private.need_effective_during(uuid) from public, anon;
 grant execute on function private.need_effective_during(uuid) to authenticated, service_role;
 
 create view app.procurement_need_status with (security_invoker = true) as
-select x.need_id, x.org_id, x.project_id, x.project_key, x.need_number, x.description, x.quantity, x.unit_basis, x.asset_class_id,
+select x.need_id, x.org_id, x.project_id, x.project_key, x.time_zone, x.need_number, x.description, x.quantity, x.unit_basis, x.asset_class_id,
   x.element_id, x.note, x.created_at, x.requested_quantity, x.effective_during, x.drafted_quantity, x.ordered_quantity, x.received_quantity,
   case when x.ordered_quantity = 0 then 'Needs Ordered'
        when x.ordered_quantity < x.quantity then 'Short'
        when x.ordered_quantity = x.quantity then 'On Order'
        else 'Excess' end as need_status
 from (
-  select n.id as need_id, n.org_id, n.project_id, p.project_key, n.need_number, n.description, n.quantity, n.unit_basis, n.asset_class_id,
+  select n.id as need_id, n.org_id, n.project_id, p.project_key, p.time_zone, n.need_number, n.description, n.quantity, n.unit_basis, n.asset_class_id,
     n.element_id, n.note, n.created_at,
     private.need_requested_quantity(n.id) as requested_quantity,
     private.need_effective_during(n.id) as effective_during,
@@ -104,6 +104,7 @@ call private.describe('app.procurement_need_status', 'Each live need with what w
   'org_id', 'Org.',
   'project_id', 'Project.',
   'project_key', 'Project key, for the display key.',
+  'time_zone', 'Time zone of the project, for typing and reading the window.',
   'need_number', 'The need''s number in the project.',
   'description', 'What is needed.',
   'quantity', 'How much the event will get.',

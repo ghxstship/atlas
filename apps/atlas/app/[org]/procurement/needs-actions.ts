@@ -17,12 +17,13 @@ import { searchAssetElements } from "@xos/data/assets";
 import { ACQUISITION_KINDS, type AcquisitionKind } from "@xos/data/procurement";
 import { randomUUID } from "node:crypto";
 import { getOrgContext } from "@/lib/shell/context";
+import type { XosClient } from "@xos/data";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
+import { localToInstant } from "@/lib/operations/time";
 import {
   all,
   decimal,
   FieldErrors,
-  isoInstant,
   requiredText,
   text,
   uuid,
@@ -37,12 +38,25 @@ import {
 
 const MODULE = "procurement";
 
-function needInput(form: FormData, errors: FieldErrors): NeedInput | null {
+/** The time zone of a project, read as the caller; what a person types is local to it. */
+async function projectZone(db: XosClient, projectId: string | null): Promise<string> {
+  if (projectId === null) return "UTC";
+  const { data } = await db.from("projects").select("time_zone").eq("id", projectId).maybeSingle();
+  return data?.time_zone ?? "UTC";
+}
+
+function localOrInvalid(form: FormData, name: string, zone: string): string | null | undefined {
+  const value = text(form, name);
+  if (value === null) return null;
+  return localToInstant(value, zone) ?? undefined;
+}
+
+function needInput(form: FormData, errors: FieldErrors, zone: string): NeedInput | null {
   const description = errors.need("description", requiredText(form, "description", 500));
   const quantity = decimal(form, "quantity");
   if (quantity === undefined || quantity === null || quantity <= 0) errors.add("quantity", "number");
-  const from = isoInstant(form, "neededFrom");
-  const to = isoInstant(form, "neededTo");
+  const from = localOrInvalid(form, "neededFrom", zone);
+  const to = localOrInvalid(form, "neededTo", zone);
   if (from === undefined) errors.add("neededFrom", "date");
   if (to === undefined) errors.add("neededTo", "date");
   if (from && to && to <= from) errors.add("neededTo", "date");
@@ -65,7 +79,7 @@ export async function createNeedAction(_: ActionState, form: FormData): Promise<
   const ctx = await actionContext(form);
   const errors = new FieldErrors();
   const projectId = errors.need("projectId", uuid(form, "projectId"));
-  const input = needInput(form, errors);
+  const input = needInput(form, errors, await projectZone(ctx.viewer.db, projectId));
   if (errors.any || !projectId || !input) return errors.state;
   return finish(await createProcurementNeed(ctx.viewer.db, projectId, input), ctx, MODULE);
 }
@@ -75,7 +89,7 @@ export async function updateNeedAction(_: ActionState, form: FormData): Promise<
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   const errors = new FieldErrors();
-  const input = needInput(form, errors);
+  const input = needInput(form, errors, await projectZone(ctx.viewer.db, uuid(form, "projectId")));
   if (errors.any || !input) return errors.state;
   return finish(await updateProcurementNeed(ctx.viewer.db, id, input), ctx, MODULE);
 }
@@ -154,8 +168,9 @@ export async function addRfqLineAction(_: ActionState, form: FormData): Promise<
   const kind = (ACQUISITION_KINDS as readonly string[]).includes(kindText)
     ? (kindText as AcquisitionKind)
     : "Purchase";
-  const from = isoInstant(form, "hireFrom");
-  const to = isoInstant(form, "hireTo");
+  const zone = await projectZone(ctx.viewer.db, uuid(form, "projectId"));
+  const from = localOrInvalid(form, "hireFrom", zone);
+  const to = localOrInvalid(form, "hireTo", zone);
   if (kind === "Rental" && (!from || !to || to <= from)) errors.add(from ? "hireTo" : "hireFrom", "date");
   if (errors.any || !description || typeof quantity !== "number") return errors.state;
   return finish(

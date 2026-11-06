@@ -1,4 +1,5 @@
 import { listAssetClasses } from "@xos/data/assets";
+import { instantToLocal } from "@xos/data/logistics";
 import { listProjectOptions, listPurchaseOrders, listPoLines } from "@xos/data/procurement";
 import {
   getNeedLinks,
@@ -166,13 +167,13 @@ export async function NeedsSection({
       kind: "datetime",
       name: "neededFrom",
       label: t("needs.neededFrom"),
-      defaultValue: n?.neededFrom ? n.neededFrom.slice(0, 16) : "",
+      defaultValue: n?.neededFrom ? instantToLocal(n.neededFrom, n.timeZone) : "",
     },
     {
       kind: "datetime",
       name: "neededTo",
       label: t("needs.neededTo"),
-      defaultValue: n?.neededTo ? n.neededTo.slice(0, 16) : "",
+      defaultValue: n?.neededTo ? instantToLocal(n.neededTo, n.timeZone) : "",
     },
     {
       kind: "textarea",
@@ -553,7 +554,7 @@ async function NeedPeek({
               <EntityForm
                 id={`need-edit-${need.id}`}
                 action={updateNeedAction}
-                hidden={{ org: ctx.org.slug, id: need.id }}
+                hidden={{ org: ctx.org.slug, id: need.id, projectId: need.projectId }}
                 refusals={REFUSALS}
                 submitLabel={t("needs.save")}
                 fields={fields}
