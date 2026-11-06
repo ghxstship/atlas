@@ -618,6 +618,7 @@ begin
       'status', 'ok',
       'meta', jsonb_build_object(
         'project_name', p.name,
+        'time_zone', coalesce(nullif(btrim(p.time_zone), ''), private.org_setting_text(v_link.org_id, 'locale.time_zone'), 'UTC'),
         'org_name', o.name,
         'brand_name', coalesce(b.display_name, o.name),
         'brand_logo_light_path', b.logo_light_path,
@@ -647,7 +648,7 @@ begin
 end;
 $$;
 
-comment on function api_public.vendor_intake(text, text, text) is 'Reads a vendor intake link with its grant (ADR 0141; Section 7.5 invariant 8). Refuses as private.vendor_intake_reader does. Answers JSON: meta (the org''s name, the brand''s Public columns, the project''s name and the link''s expiry), the title and instructions, role type and canon role title, dates, what the intake collects, whether the link is full, and the agreement''s title and pinned version number (never its body). Never the note or the rate.';
+comment on function api_public.vendor_intake(text, text, text) is 'Reads a vendor intake link with its grant (ADR 0141; Section 7.5 invariant 8). Refuses as private.vendor_intake_reader does. Answers JSON: meta (the org''s name, the brand''s Public columns, the project''s name and zone and the link''s expiry), the title and instructions, role type and canon role title, dates, what the intake collects, whether the link is full, and the agreement''s title and pinned version number (never its body). Never the note or the rate.';
 revoke all on function api_public.vendor_intake(text, text, text) from public;
 grant execute on function api_public.vendor_intake(text, text, text) to anon, authenticated, service_role;
 

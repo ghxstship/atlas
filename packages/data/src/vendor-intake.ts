@@ -354,6 +354,8 @@ export async function openIntake(
 export interface PublicIntake {
   readonly refused: false;
   readonly projectName: string;
+  /** The project's zone: dates default and show in it. */
+  readonly timeZone: string;
   readonly orgName: string;
   readonly brandName: string;
   readonly brandAccentHex: string | null;
@@ -394,6 +396,7 @@ export async function readIntake(
   return ok({
     refused: false,
     projectName: str(m["project_name"]),
+    timeZone: str(m["time_zone"]) || "UTC",
     orgName: str(m["org_name"]),
     brandName: str(m["brand_name"]),
     brandAccentHex: strOrNull(m["brand_accent_hex"]),

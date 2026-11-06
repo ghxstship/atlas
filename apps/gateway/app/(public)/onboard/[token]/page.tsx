@@ -126,7 +126,10 @@ export default async function VendorIntakePage({
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">
           {t("gatewayOnboarding.intake.expires", {
-            date: format.dateTime(new Date(link.expiresAt), { dateStyle: "medium" }),
+            date: format.dateTime(new Date(link.expiresAt), {
+              dateStyle: "medium",
+              timeZone: link.timeZone,
+            }),
           })}
         </p>
       </header>

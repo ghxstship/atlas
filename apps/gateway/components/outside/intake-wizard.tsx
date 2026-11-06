@@ -83,7 +83,6 @@ export function IntakeWizard({
   const [header, setHeader] = useState<Omit<IntakeInvoiceDraft, "lines"> | null>(null);
   const [lines, setLines] = useState<readonly Line[]>([]);
   const [sent, setSent] = useState(false);
-  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   useEffect(() => {
     if (link.roleType === "Vendor" && accountId === null) return;
@@ -371,7 +370,7 @@ export function IntakeWizard({
         <InvoiceStep
           header={header}
           lines={lines}
-          today={todayIn(zone)}
+          today={todayIn(link.timeZone)}
           onHeader={setHeader}
           onLines={setLines}
           onBack={back}
