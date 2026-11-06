@@ -80,7 +80,8 @@ export function GuestNeedsDialog({
                 {needsT("clear")}
               </Button>
             ) : null}
-            <Button variant="primary" type="submit" form={needsForm} loading={pending}>
+            {/* Its own key: reusing Continue's element would turn that click into this submit. */}
+            <Button key="save" variant="primary" type="submit" form={needsForm} loading={pending}>
               {needsT("save")}
             </Button>
           </>
@@ -95,6 +96,7 @@ export function GuestNeedsDialog({
               </Button>
             ) : null}
             <Button
+              key="continue"
               variant="primary"
               type="button"
               disabled={!authority || !notice}
