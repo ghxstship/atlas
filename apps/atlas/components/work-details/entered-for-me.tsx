@@ -1,5 +1,5 @@
 import type { SensitiveEntryAboutMe } from "@xos/data/sensitive-consent";
-import { Button } from "@xos/ui";
+import { Button } from "@/components/ui";
 import { removeSensitiveEntryAction } from "@/lib/work-details/actions";
 import type { Translate } from "@/lib/shell/translate";
 
