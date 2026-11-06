@@ -358,13 +358,6 @@ describe("the source of drafted answers", () => {
   });
 });
 
-const OPERATIONS: Readonly<Record<string, string>> = {
-  "rpc:apply_itinerary_lines": "aurora.applyItinerary",
-  "rpc:apply_contract_intake": "aurora.applyContractIntake",
-  "rpc:apply_invoice_line_suggestions": "aurora.applyInvoiceLines",
-  "rpc:record_drafted_advance_answer": "aurora.applyAdvanceAnswer",
-};
-
 describe("apply and preview meter nothing", () => {
   it.each([
     [
@@ -398,9 +391,40 @@ describe("apply and preview meter nothing", () => {
     const { api, calls, model } = app({ [rpc]: [ok(data)] });
     const response = await api.request(path, post(body));
     expect(response.status, await response.clone().text()).toBe(200);
-    await expectContract(response, OPERATIONS[rpc] as string);
     expect(calls.map((c) => c.target)).toEqual([rpc]);
     expect(model.requests).toHaveLength(0);
+  });
+
+  it("answers each apply in its documented shape", async () => {
+    const { api } = app({
+      "rpc:apply_itinerary_lines": [ok({ written: [], duplicates_checked: 0 })],
+      "rpc:apply_contract_intake": [ok({ engagements: [], riders: 0 })],
+      "rpc:apply_invoice_line_suggestions": [ok({ written: [] })],
+      "rpc:record_drafted_advance_answer": [ok(id(4))],
+    });
+    const lines = await api.request(
+      "/aurora/apply-itinerary",
+      post({ project_id: PROJECT, items: [{ suggestion_id: id(1), values: {} }] }),
+    );
+    await expectContract(lines, "aurora.applyItinerary");
+    const bookings = await api.request(
+      "/aurora/apply-contract-intake",
+      post({
+        project_id: PROJECT,
+        items: [{ suggestion_ids: [id(1)], party: { counterparty_id: id(2) } }],
+      }),
+    );
+    await expectContract(bookings, "aurora.applyContractIntake");
+    const invoice = await api.request(
+      "/aurora/apply-invoice-lines",
+      post({ invoice_id: id(3), items: [{ suggestion_id: id(1), values: {} }] }),
+    );
+    await expectContract(invoice, "aurora.applyInvoiceLines");
+    const answer = await api.request(
+      "/aurora/apply-advance-answer",
+      post({ suggestion_id: id(1) }),
+    );
+    await expectContract(answer, "aurora.applyAdvanceAnswer");
   });
 
   it("names a refusal's rule", async () => {

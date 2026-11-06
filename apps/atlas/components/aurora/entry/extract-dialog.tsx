@@ -29,7 +29,6 @@ type Media = (typeof MEDIA)[number];
 /** Each kind's header operation and line operation, as the extraction proposes them. */
 const LINE_OPERATION = "rfqResponseLines.create";
 
-
 interface Line {
   readonly id: string;
   readonly include: boolean;

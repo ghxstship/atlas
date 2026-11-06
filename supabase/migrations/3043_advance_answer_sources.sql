@@ -328,7 +328,10 @@ begin
   loop
     if v_person is distinct from v_me then
       perform private.notify(v_packet.org_id, v_person, 'advance_answer.recorded', 'advance_submissions', v_submission, v_packet.project_id,
-        jsonb_build_object('sectionTitle', v_section.title, 'projectName', v_project_name));
+        jsonb_build_object('sectionTitle', v_section.title, 'projectName', v_project_name)
+          || case when v_recipient.engagement_id is not null
+               then jsonb_build_object('gatewayPath', replace(private.roster_crew_path(v_recipient.engagement_id), '/crew', '/advance'))
+               else '{}'::jsonb end);
     end if;
   end loop;
 

@@ -169,7 +169,10 @@ export const FLAT_FEE = "Flat Fee";
  * The fee a contract review prefills: the printed fee only on a Flat Fee row. On any other basis the
  * total is shown and not carried, because it would become a rate per day or per unit.
  */
-export function prefilledFee(payBasis: string | null, printedFeeMinor: number | null): number | null {
+export function prefilledFee(
+  payBasis: string | null,
+  printedFeeMinor: number | null,
+): number | null {
   return payBasis === FLAT_FEE ? printedFeeMinor : null;
 }
 
