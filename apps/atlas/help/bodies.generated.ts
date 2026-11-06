@@ -94,7 +94,7 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
-      { t: "h2", v: "Draft advance answers with Aurora" },
+      { t: "h2", v: "Draft answers from a reply" },
       {
         t: "p",
         c: [
@@ -102,10 +102,10 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "When a party answers by email or sends a tour book or rider, a reviewer can choose ",
           },
-          { t: "strong", v: "Draft advance answers" },
+          { t: "strong", v: "Draft Answers from a Reply" },
           {
             t: "text",
-            v: " on a recipient of a sent packet, or on a verified message in the project inbox. Aurora drafts at most one answer per open section from that source, with the words it read, and lists the sections the source does not answer. A time, quantity, item or person the source does not show is left out. Each answer you accept is recorded on the party's behalf: you become its submitter, so someone else reviews it, and the party sees that your org recorded it. To change it, return it.",
+            v: " on a recipient of a sent packet. Aurora reads one source, verified mail in the project inbox or a file you choose, into proposed answers for the recipient's open sections, with the words it read and who sent the mail. It never drafts a guest list, a file, a crew roster or a per-person section. Each answer you accept is recorded for the recipient: someone else reviews it, the recipient is told, and they can ask you to return it.",
           },
         ],
       },
@@ -113,11 +113,11 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
-          { t: "text", v: "On a project's Engagements tab, " },
-          { t: "strong", v: "Import contracts and riders" },
+          { t: "text", v: "On the engagements list, " },
+          { t: "strong", v: "Read Contracts and Riders" },
           {
             t: "text",
-            v: " reads booking contracts and riders, sorts them by act and books each act you keep as an Artist engagement at Onboarding, with its riders. You choose each act's party and the terms for the batch; the fee is read only for someone who may see pay rates.",
+            v: " reads contracts and riders, groups them by act and adds each booking you keep as an Artist engagement at Onboarding. You choose the party and the terms; Aurora creates no person, account or counterparty. A fee is read only for people allowed to read pay. A fee printed as a total fills in only on a flat fee, because an engagement's rate is per unit, and a contract's file is kept Restricted.",
           },
         ],
       },
@@ -444,20 +444,28 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
-      { t: "h2", v: "Read invoice lines with Aurora" },
+      { t: "h2", v: "Review an invoice's lines from the document" },
       {
         t: "p",
         c: [
-          { t: "text", v: "On a Proposed payable invoice, " },
-          { t: "strong", v: "Read lines from a document" },
           {
             t: "text",
-            v: " reads the vendor's lines and printed totals. Choose each line's budget line yourself; earlier lines of the same vendor are shown as hints, with a badge when the price differs by 10% or more. The tie-out compares the lines with the printed total on every edit, rounding as the invoice does. When they differ, check ",
+            v: "When Aurora fills an invoice from a document, its lines wait on the saved invoice. ",
+          },
+          { t: "strong", v: "Review Lines from the Document" },
+          {
+            t: "text",
+            v: " shows them with the live difference from the printed total and what the vendor last billed. You choose each budget line: ",
+          },
+          { t: "strong", v: "Use This Budget Line" },
+          {
+            t: "text",
+            v: " fills it only when you click. When the lines and the total differ, check ",
           },
           { t: "strong", v: "I checked the difference" },
           {
             t: "text",
-            v: " before you add the lines. A receipt read with Aurora shows its items and the same tie-out, read-only.",
+            v: " before you add them. A residual then shows on the invoice as a warning, and it blocks neither approval nor posting.",
           },
         ],
       },
@@ -803,18 +811,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
-      { t: "h2", v: "Import itineraries with Aurora" },
+      { t: "h2", v: "Read itineraries with Aurora" },
       {
         t: "p",
         c: [
           { t: "text", v: "On a Travel fulfillment, " },
-          { t: "strong", v: "Import itineraries with Aurora" },
+          { t: "strong", v: "Read Itineraries" },
           {
             t: "text",
-            v: " reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. A row the traveler already has as a segment, with the same flight or service and departure, is marked Already booked and left out; ",
+            v: " reads up to 25 confirmations. Each file is one Aurora request from this month's allowance. You choose who each passenger is, and you confirm each zone, because Aurora infers zones from the airport or city. A year the confirmation does not print is the next time that date comes, and it says so. A line matching a segment already booked starts unchecked. Lines you leave stay open for 7 days, so you can come back to them.",
           },
-          { t: "strong", v: "Add segments" },
-          { t: "text", v: " adds the rows you keep in one step." },
         ],
       },
     ],
@@ -2470,18 +2476,18 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
-      { t: "h2", v: "Redactar respuestas del avance con Aurora" },
+      { t: "h2", v: "Redactar respuestas desde una respuesta recibida" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cuando una parte responde por correo o envía un tour book o un rider, quien revisa puede elegir ",
+            v: "Cuando una parte responde por correo o envía un libro de gira o un rider, quien revisa puede elegir ",
           },
-          { t: "strong", v: "Redactar respuestas del avance" },
+          { t: "strong", v: "Redactar respuestas desde una respuesta recibida" },
           {
             t: "text",
-            v: " en un destinatario de un paquete enviado, o en un mensaje verificado del buzón del proyecto. Aurora redacta como máximo una respuesta por sección abierta a partir de esa fuente, con las palabras que leyó, y enumera las secciones que la fuente no responde. Se omite una hora, cantidad, artículo o persona que la fuente no muestra. Cada respuesta que acepta se registra en nombre de la parte: usted queda como quien la envió, así que la revisa otra persona, y la parte ve que su organización la registró. Para cambiarla, devuélvala.",
+            v: " en un destinatario de un paquete enviado. Aurora lee una fuente, correo verificado de la bandeja del proyecto o un archivo que elijas, y propone respuestas para las secciones abiertas del destinatario, con las palabras que leyó y quién envió el correo. Nunca redacta una lista de invitados, un archivo, un equipo ni una sección por persona. Cada respuesta que aceptes se registra para el destinatario: otra persona la revisa, se le avisa al destinatario y puede pedirte que la devuelvas.",
           },
         ],
       },
@@ -2489,11 +2495,11 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
-          { t: "text", v: "En la pestaña Contrataciones de un proyecto, " },
-          { t: "strong", v: "Importar contratos y riders" },
+          { t: "text", v: "En la lista de contrataciones, " },
+          { t: "strong", v: "Leer contratos y riders" },
           {
             t: "text",
-            v: " lee contratos de actuación y riders, los agrupa por acto y contrata cada acto que conserva como una contratación de artista en Incorporación, con sus riders. Usted elige la parte de cada acto y las condiciones del lote; el honorario solo se lee para alguien que puede ver tarifas de pago.",
+            v: " lee contratos y riders, los agrupa por acto y agrega cada contratación que conserves como una contratación de artista en incorporación. Tú eliges la parte y las condiciones; Aurora no crea personas, cuentas ni contrapartes. Un honorario solo se lee para quienes pueden ver pagos. Un honorario impreso como total solo se completa en una tarifa fija, porque la tarifa de una contratación es por unidad, y el archivo de un contrato queda como Restringido.",
           },
         ],
       },
@@ -2826,20 +2832,28 @@ export const HELP_BODIES: HelpBodies = {
           ],
         ],
       },
-      { t: "h2", v: "Leer líneas de factura con Aurora" },
+      { t: "h2", v: "Revisar las líneas de una factura desde el documento" },
       {
         t: "p",
         c: [
-          { t: "text", v: "En una factura por pagar en estado Propuesta, " },
-          { t: "strong", v: "Leer líneas de un documento" },
           {
             t: "text",
-            v: " lee las líneas y los totales impresos del proveedor. Elija usted la partida presupuestaria de cada línea; las líneas anteriores del mismo proveedor se muestran como pistas, con una insignia cuando el precio difiere un 10 % o más. La conciliación compara las líneas con el total impreso en cada edición, redondeando como la factura. Si difieren, marque ",
+            v: "Cuando Aurora completa una factura desde un documento, sus líneas esperan en la factura guardada. ",
+          },
+          { t: "strong", v: "Revisar líneas del documento" },
+          {
+            t: "text",
+            v: " las muestra con la diferencia con el total impreso y lo que el proveedor cobró antes. Tú eliges cada línea de presupuesto: ",
+          },
+          { t: "strong", v: "Usar esta línea de presupuesto" },
+          {
+            t: "text",
+            v: " la completa solo cuando haces clic. Cuando las líneas y el total difieren, marca ",
           },
           { t: "strong", v: "Revisé la diferencia" },
           {
             t: "text",
-            v: " antes de agregar las líneas. Un recibo leído con Aurora muestra sus artículos y la misma conciliación, solo para lectura.",
+            v: " antes de agregarlas. La diferencia aparece después en la factura como una advertencia y no bloquea la aprobación ni el asiento.",
           },
         ],
       },
@@ -3200,18 +3214,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
-      { t: "h2", v: "Importar itinerarios con Aurora" },
+      { t: "h2", v: "Leer itinerarios con Aurora" },
       {
         t: "p",
         c: [
-          { t: "text", v: "En un servicio de viaje, " },
-          { t: "strong", v: "Importar itinerarios con Aurora" },
+          { t: "text", v: "En un cumplimiento de viaje, " },
+          { t: "strong", v: "Leer itinerarios" },
           {
             t: "text",
-            v: " lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. Una fila que el viajero ya tiene como tramo, con el mismo vuelo o servicio y la misma salida, se marca como Ya reservado y queda fuera; ",
+            v: " lee hasta 25 confirmaciones. Cada archivo es una solicitud de Aurora de la asignación de este mes. Tú eliges quién es cada pasajero y confirmas cada zona, porque Aurora deduce las zonas del aeropuerto o la ciudad. Un año que la confirmación no imprime es la próxima vez que llega esa fecha, y lo indica. Una línea igual a un tramo ya reservado empieza sin marcar. Las líneas que dejes siguen abiertas 7 días, para que puedas volver a ellas.",
           },
-          { t: "strong", v: "Agregar tramos" },
-          { t: "text", v: " agrega en un solo paso las filas que conserva." },
         ],
       },
     ],

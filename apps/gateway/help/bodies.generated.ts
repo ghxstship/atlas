@@ -492,11 +492,9 @@ export const HELP_BODIES: HelpBodies = {
             v: "When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says ",
           },
           { t: "strong", v: "Recorded by" },
-          { t: "text", v: " the organization, and " },
-          { t: "strong", v: "from an email to the project" },
           {
             t: "text",
-            v: " when it was read from mail. To change it, ask the organization to return it, then answer again.",
+            v: " the organization, and you are told when it happens. If it needs changing, ask them to return it, then answer again.",
           },
         ],
       },
@@ -4111,20 +4109,13 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
-      { t: "h2", v: "Respuestas que registró la organización" },
+      { t: "h2", v: "Respuestas que registró tu organización" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Cuando responde por correo o envía un tour book, la organización puede registrar su respuesta a partir de lo que envió. Esa respuesta dice ",
-          },
-          { t: "strong", v: "Registrada por" },
-          { t: "text", v: " la organización, y " },
-          { t: "strong", v: "a partir de un correo al proyecto" },
-          {
-            t: "text",
-            v: " cuando se leyó de un correo. Para cambiarla, pida a la organización que la devuelva y vuelva a responder.",
+            v: "Cuando respondes por correo o envías un libro de gira, la organización puede registrar tu respuesta a partir de lo que enviaste. Esa respuesta indica quién la registró, y se te avisa cuando ocurre. Si necesita cambios, pídele que la devuelva y responde de nuevo.",
           },
         ],
       },

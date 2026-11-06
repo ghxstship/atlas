@@ -160,9 +160,9 @@ create temp table ticket as select * from app.begin_attachment_upload('app.engag
 grant select on ticket to public;
 select lives_ok($$update app.attachments set classification = 'Restricted' where id = (select attachment_id from ticket)$$, 'a reader raises the contract''s file to Restricted');
 select pg_temp.as_platform();
-update app.attachment_versions set scan_status = 'Clean', uploaded_at = now() where id = (select version_id from ticket);
+update app.attachment_versions set scan_status = 'Clean', uploaded_at = now() where id = (select attachment_version_id from ticket);
 select pg_temp.as_user('carol');
-select throws_like($$select app.record_file_download((select version_id from ticket))$$, '%download_restricted%', 'a download without data.export.restricted is refused');
+select throws_like($$select app.record_file_download((select attachment_version_id from ticket))$$, '%download_restricted%', 'a download without data.export.restricted is refused');
 
 select * from finish();
 rollback;

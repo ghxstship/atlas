@@ -361,7 +361,6 @@ import {
   ReportScheduleRecipientsResource,
   ReportDeliveriesResource,
   AuroraResource,
-  AuroraIntakesResource,
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
@@ -1258,8 +1257,6 @@ export class XosClient extends XosClientCore {
   readonly reportDeliveries: ReportDeliveriesResource = new ReportDeliveriesResource(this);
   /** Settings: operations on `aurora`. */
   readonly aurora: AuroraResource = new AuroraResource(this);
-  /** Settings: operations on `auroraIntakes`. */
-  readonly auroraIntakes: AuroraIntakesResource = new AuroraIntakesResource(this);
   /** Settings: operations on `aiSuggestions`. */
   readonly aiSuggestions: AiSuggestionsResource = new AiSuggestionsResource(this);
   /** Settings: operations on `aiRequests`. */

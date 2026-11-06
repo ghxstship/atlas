@@ -1231,42 +1231,54 @@ export interface Components {
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
   AuroraAppliedAdvanceAnswer: { submission_id: string };
-  AuroraAppliedContracts: {
-    applied: Array<{ suggestion_id: string; id: string }>;
-    engagements: number;
+  AuroraAppliedContractIntake: {
+    engagements: Array<{
+      suggestion_ids: Array<string>;
+      engagement_id: string;
+      created: boolean;
+      documents: Array<{
+        suggestion_id: string;
+        engagement_document_id: string | null;
+        document_type: "Contract" | "Rider";
+      }>;
+    }>;
     riders: number;
-    rider_lines: number;
-    rejected: number;
   };
   AuroraAppliedDraft: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
-  AuroraAppliedIntake: { written: Array<{ suggestion_id: string; id: string }>; rejected: number };
-  AuroraApplyAdvanceAnswerRequest: {
-    suggestion_id: string;
-    values?: Record<string, unknown>;
-    source: { inbound_message_id?: string; file_name?: string };
+  AuroraAppliedInvoiceLines: { written: Array<{ suggestion_id: string; id: string }> };
+  AuroraAppliedItinerary: {
+    written: Array<{ suggestion_id: string; id: string }>;
+    duplicates_checked: number;
   };
-  AuroraApplyContractsRequest: {
-    groups: Array<{
-      act_name: string;
-      engagement: {
-        mode: "new" | "existing";
-        engagement_id?: string;
-        contract_suggestion_id?: string;
-        values?: Record<string, unknown>;
-      };
-      riders?: Array<{
-        header_suggestion_id: string;
-        title?: string;
-        line_suggestion_ids?: Array<string>;
-        line_values?: Record<string, Record<string, unknown>>;
-      }>;
+  AuroraApplyAdvanceAnswerRequest: { suggestion_id: string; values?: Record<string, unknown> };
+  AuroraApplyContractIntakeRequest: {
+    project_id: string;
+    items: Array<{
+      suggestion_ids: Array<string>;
+      party: { person_id?: string; counterparty_id?: string };
+      engagement_id?: string;
+      role_code?: string;
+      worker_classification?: string;
+      pay_basis?: string;
+      arrangement?: string;
+      start_date?: string;
+      end_date?: string | null;
+      agreed_rate_minor?: number | null;
+      currency_code?: string | null;
+      create_riders?: boolean;
     }>;
   };
   AuroraApplyDraftRequest: {
     request_id: string;
     items: Array<{ suggestion_id: string; values?: Record<string, unknown> }>;
   };
-  AuroraApplyItinerariesRequest: {
+  AuroraApplyInvoiceLinesRequest: {
+    invoice_id: string;
+    items: Array<{ suggestion_id: string; values: Record<string, unknown> }>;
+  };
+  AuroraApplyItineraryRequest: {
+    project_id: string;
+    fulfillment_id?: string | null;
     items: Array<{ suggestion_id: string; values: Record<string, unknown> }>;
   };
   AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
@@ -1275,14 +1287,14 @@ export interface Components {
     description: string | null;
     candidates: Array<{ element_id: string; name: string; urid: string }>;
   };
-  AuroraCheckItinerariesRequest: {
-    segments: Array<{
-      person_id: string;
-      service_identifier?: string | null;
-      departs_at?: string | null;
-    }>;
+  AuroraDraftAdvanceAnswersRequest: {
+    advance_recipient_id: string;
+    inbound_message_id?: string;
+    media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64?: string;
+    file_name?: string;
+    verbiage?: Array<{ term: string; preferred: string }>;
   };
-  AuroraClosedIntake: { rejected: number };
   AuroraDraftRequest: {
     kind:
       | "sop"
@@ -1292,25 +1304,14 @@ export interface Components {
       | "change_order_description"
       | "run_of_show"
       | "risk_assessment"
-      | "advance_answers"
       | "event_plan"
       | "event_brief"
       | "approval_pack"
       | "waste_plan";
     instructions: string;
     target?: { collection: string; id: string };
-    source?: Components["AuroraDraftSource"];
-    outline?: Array<string>;
     context?: Array<{ collection: string; id: string }>;
     verbiage?: Array<{ term: string; preferred: string }>;
-  };
-  AuroraDraftSource: {
-    inbound_message_id?: string;
-    document?: {
-      media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-      content_base64: string;
-      file_name: string;
-    };
   };
   AuroraExtractRequest: {
     kind:
@@ -1320,16 +1321,12 @@ export interface Components {
       | "receipt"
       | "quote"
       | "itinerary"
-      | "contract"
-      | "intake_rider"
-      | "invoice_lines";
+      | "contract";
     document_id?: string | null;
-    intake_batch_id?: string;
-    invoice_id?: string;
-    inbound_message_id?: string;
-    media_type?: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
-    content_base64?: string;
-    file_name?: string;
+    project_id?: string;
+    media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64: string;
+    file_name: string;
   };
   AuroraFilterRequest: {
     sentence: string;
@@ -1343,44 +1340,47 @@ export interface Components {
       ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
     }>;
   };
-  AuroraIntake: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_id: string;
-    intake_kind: Components["AuroraIntakeKind"];
-    fulfillment_id: string | null;
-    file_count: number;
-    closed_at: string | null;
-    requests: Array<{
-      id: string;
-      outcome: Components["AiRequestOutcome"];
-      failure_code: string | null;
-      created_at: string;
+  AuroraIntakeKind: "itinerary" | "contract";
+  AuroraIntakeOptions: {
+    fee_visible: boolean;
+    can_write_riders: boolean;
+    travelers: Array<{
+      person_id: string;
+      engagement_id: string | null;
+      display_name: string;
+      source: "Member" | "Engagement" | "Roster";
     }>;
-    suggestions: Array<Components["AuroraIntakeSuggestion"]>;
+    segments: Array<{ person_id: string; service_identifier: string | null; departs_at: string }>;
+    parties: Array<{
+      kind: "counterparty" | "person";
+      id: string;
+      name: string;
+      engagement_ids: Array<string>;
+    }>;
+    rate_cards: Array<{
+      role_code: string;
+      role_name: string;
+      worker_classification: string;
+      worker_classification_label: string;
+      pay_basis: string;
+      arrangement: string;
+    }>;
   };
-  AuroraIntakeKind: "Itineraries" | "Contracts and Riders";
-  AuroraIntakeSuggestion: {
-    id: string;
-    request_id: string;
-    operation_id: string;
-    target_id: string | null;
-    summary: string;
-    suggestion_state: Components["AiSuggestionState"];
-    expires_at: string;
-    applied_id: string | null;
-    proposed_fields: Array<Components["AiSuggestionField"]>;
-  };
-  AuroraItineraryCheck: { booked: Array<number> };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
   };
+  AuroraOpenProposal: {
+    id: string;
+    request_id: string;
+    operation_id: string;
+    target_id: string | null;
+    summary: string;
+    expires_at: string;
+    proposed_fields: Array<Components["AiSuggestionField"]>;
+  };
+  AuroraOpenProposals: { data: Array<Components["AuroraOpenProposal"]> };
   AuroraPreview: {
     records: Array<Components["AuroraPreviewRecord"]>;
     vocabulary_terms: number;
@@ -1399,13 +1399,14 @@ export interface Components {
     draft_kind?:
       | "run_of_show"
       | "risk_assessment"
-      | "advance_answers"
       | "event_plan"
       | "event_brief"
       | "approval_pack"
-      | "waste_plan";
+      | "waste_plan"
+      | "advance_answers";
     target?: { collection: string; id: string };
-    source?: Components["AuroraDraftSource"];
+    advance_recipient_id?: string;
+    inbound_message_id?: string;
     kind?: "record_activity" | "project_week" | "gate_readiness";
     subject_collection?: string;
     subject_id?: string;
@@ -1421,12 +1422,6 @@ export interface Components {
     failure_code: string | null;
     answer?: unknown;
     suggestions: Array<Components["AuroraProposal"]>;
-  };
-  AuroraStartIntakeRequest: {
-    project_id: string;
-    kind: Components["AuroraIntakeKind"];
-    file_count: number;
-    fulfillment_id?: string;
   };
   AuroraStatus: {
     enabled_features: Array<Components["AiFeature"]>;
@@ -4713,6 +4708,7 @@ export interface Components {
     invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     total: Components["MoneyTotal"];
     counterparty_id: string | null;
+    printed_total_minor: number | null;
     payee_person_id: string | null;
     engagement_id: string | null;
   };
@@ -4741,6 +4737,7 @@ export interface Components {
     due_on?: string | null;
     currency_code: string;
     counterparty_id?: string | null;
+    printed_total_minor?: number | null;
     engagement_id?: string | null;
   };
   InvoiceLine: {
@@ -4769,6 +4766,20 @@ export interface Components {
     tax_rate_id?: string | null;
     urid?: Components["UridAtAnyGrain"] | null;
   };
+  InvoiceLineHistory: {
+    data: Array<{
+      description_index: number;
+      description: string;
+      quantity: number;
+      unit_price_minor: number | null;
+      currency_code: string;
+      invoice_number: string | null;
+      issued_on: string | null;
+      budget_line_id: string | null;
+      budget_line_name: string | null;
+    }>;
+  };
+  InvoiceLineHistoryRequest: { descriptions: Array<string> };
   InvoiceLinePage: { data: Array<Components["InvoiceLine"]>; next_cursor: string | null };
   InvoiceLineUpdate: {
     description?: string;
@@ -4800,6 +4811,12 @@ export interface Components {
   InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
   InvoicePaymentRequest: { paid_on: string; amount_minor?: number | null; reference?: string };
+  InvoiceTieOut: {
+    invoice_id: string;
+    printed_total_minor: number | null;
+    computed_total_minor: number | null;
+    residual_minor: number | null;
+  };
   InvoiceTransitionRequest: {
     expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
@@ -4811,6 +4828,7 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code?: string;
+    printed_total_minor?: number | null;
   };
   ItemId: string | null;
   JoinRequest: {
@@ -15676,6 +15694,24 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
   };
+  "invoices.tieOut": {
+    module: "Finance";
+    method: "get";
+    path: "/invoices/{id}/tie-out";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["InvoiceTieOut"] };
+  };
+  "invoices.lineHistory": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/{id}/line-history";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoiceLineHistoryRequest"];
+    responses: { 200: Components["InvoiceLineHistory"] };
+  };
   "invoiceLines.list": {
     module: "Finance";
     method: "get";
@@ -25423,6 +25459,72 @@ export interface Operations {
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.intakeOptions": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/intake-options";
+    params: Record<string, never>;
+    query: { kind: Components["AuroraIntakeKind"]; project_id: string };
+    body: undefined;
+    responses: { 200: Components["AuroraIntakeOptions"] };
+  };
+  "aurora.openProposals": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/open-proposals";
+    params: Record<string, never>;
+    query: {
+      project_id: string;
+      operation_id: "travelSegments.create" | "engagements.createFromContract";
+    };
+    body: undefined;
+    responses: { 200: Components["AuroraOpenProposals"] };
+  };
+  "aurora.invoiceLineProposals": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/invoice-line-proposals";
+    params: Record<string, never>;
+    query: { invoice_id: string };
+    body: undefined;
+    responses: { 200: Components["AuroraOpenProposals"] };
+  };
+  "aurora.applyItinerary": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-itinerary";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyItineraryRequest"];
+    responses: { 200: Components["AuroraAppliedItinerary"] };
+  };
+  "aurora.applyContractIntake": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-contract-intake";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyContractIntakeRequest"];
+    responses: { 200: Components["AuroraAppliedContractIntake"] };
+  };
+  "aurora.applyInvoiceLines": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/apply-invoice-lines";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraApplyInvoiceLinesRequest"];
+    responses: { 200: Components["AuroraAppliedInvoiceLines"] };
+  };
+  "aurora.draftAdvanceAnswers": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/draft-advance-answers";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraDraftAdvanceAnswersRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
   "aurora.applyAdvanceAnswer": {
     module: "Settings";
     method: "post";
@@ -25440,60 +25542,6 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AuroraPreviewRequest"];
     responses: { 200: Components["AuroraPreview"] };
-  };
-  "auroraIntakes.get": {
-    module: "Settings";
-    method: "get";
-    path: "/aurora/intakes/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["AuroraIntake"] };
-  };
-  "auroraIntakes.start": {
-    module: "Settings";
-    method: "post";
-    path: "/aurora/intakes";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["AuroraStartIntakeRequest"];
-    responses: { 200: Components["AuroraIntake"] };
-  };
-  "auroraIntakes.close": {
-    module: "Settings";
-    method: "post";
-    path: "/aurora/intakes/{id}/close";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["AuroraClosedIntake"] };
-  };
-  "auroraIntakes.applyItineraries": {
-    module: "Settings";
-    method: "post";
-    path: "/aurora/intakes/{id}/apply-itineraries";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AuroraApplyItinerariesRequest"];
-    responses: { 200: Components["AuroraAppliedIntake"] };
-  };
-  "auroraIntakes.checkItineraries": {
-    module: "Settings";
-    method: "post";
-    path: "/aurora/intakes/{id}/check-itineraries";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AuroraCheckItinerariesRequest"];
-    responses: { 200: Components["AuroraItineraryCheck"] };
-  };
-  "auroraIntakes.applyContracts": {
-    module: "Settings";
-    method: "post";
-    path: "/aurora/intakes/{id}/apply-contracts";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AuroraApplyContractsRequest"];
-    responses: { 200: Components["AuroraAppliedContracts"] };
   };
   "aiSuggestions.list": {
     module: "Settings";
@@ -29165,6 +29213,8 @@ export interface ModuleOperations {
     | "invoices.bulkPreview"
     | "invoices.bulkUpdate"
     | "invoices.fieldHistory"
+    | "invoices.tieOut"
+    | "invoices.lineHistory"
     | "invoiceLines.list"
     | "invoiceLines.create"
     | "invoiceLines.get"
@@ -29689,14 +29739,15 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.intakeOptions"
+    | "aurora.openProposals"
+    | "aurora.invoiceLineProposals"
+    | "aurora.applyItinerary"
+    | "aurora.applyContractIntake"
+    | "aurora.applyInvoiceLines"
+    | "aurora.draftAdvanceAnswers"
     | "aurora.applyAdvanceAnswer"
     | "aurora.preview"
-    | "auroraIntakes.get"
-    | "auroraIntakes.start"
-    | "auroraIntakes.close"
-    | "auroraIntakes.applyItineraries"
-    | "auroraIntakes.checkItineraries"
-    | "auroraIntakes.applyContracts"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"

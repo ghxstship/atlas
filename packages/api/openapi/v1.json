@@ -19474,6 +19474,12 @@
             "description": "Identifier of the counterparty billed or billing; null for an individual payee.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "printed_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "The total the document printed, in minor units.",
+            "example": 125000
+          },
           "payee_person_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -19503,6 +19509,7 @@
           "invoice_state",
           "total",
           "counterparty_id",
+          "printed_total_minor",
           "payee_person_id",
           "engagement_id"
         ],
@@ -19553,6 +19560,12 @@
             "description": "Identifier of the counterparty billed or billing; null for an individual payee.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "printed_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "The total the document printed, in minor units.",
+            "example": 125000
+          },
           "engagement_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -19595,6 +19608,12 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "printed_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "The total the document printed, in minor units.",
+            "example": 125000
           }
         },
         "description": "Fields accepted when updating a Invoice. Omitted fields are unchanged."
@@ -19758,6 +19777,133 @@
         },
         "required": ["rows"],
         "description": "A bulk change of invoices."
+      },
+      "InvoiceTieOut": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the invoice.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "printed_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "The total the document printed.",
+            "example": 125000
+          },
+          "computed_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Subtotal plus tax of the lines; null while unpriced.",
+            "example": 125000
+          },
+          "residual_minor": {
+            "type": ["integer", "null"],
+            "minimum": -9007199254740991,
+            "description": "Printed total minus computed total.",
+            "example": 0
+          }
+        },
+        "required": ["invoice_id", "printed_total_minor", "computed_total_minor", "residual_minor"],
+        "description": "An invoice's printed total against its lines."
+      },
+      "InvoiceLineHistory": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description_index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Position in the request, from 1.",
+                  "example": 1
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "description": "The prior line's description.",
+                  "example": "Stage labor"
+                },
+                "quantity": { "type": "number", "description": "Prior quantity.", "example": 2 },
+                "unit_price_minor": {
+                  "type": ["integer", "null"],
+                  "minimum": 0,
+                  "description": "Prior unit price in minor units.",
+                  "example": 75000
+                },
+                "currency_code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 3,
+                  "description": "Currency of the prior invoice.",
+                  "example": "USD"
+                },
+                "invoice_number": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "description": "Prior invoice number.",
+                  "example": "INV-104"
+                },
+                "issued_on": {
+                  "type": ["string", "null"],
+                  "format": "date",
+                  "description": "Prior issue date.",
+                  "example": "2026-10-08"
+                },
+                "budget_line_id": {
+                  "type": ["string", "null"],
+                  "format": "uuid",
+                  "description": "Identifier of the budget line, only on the same project.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "budget_line_name": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "description": "Budget line, only on the same project.",
+                  "example": "Labor"
+                }
+              },
+              "required": [
+                "description_index",
+                "description",
+                "quantity",
+                "unit_price_minor",
+                "currency_code",
+                "invoice_number",
+                "issued_on",
+                "budget_line_id",
+                "budget_line_name"
+              ]
+            },
+            "description": "Up to three prior lines per description.",
+            "example": []
+          }
+        },
+        "required": ["data"],
+        "description": "What the same counterparty billed before."
+      },
+      "InvoiceLineHistoryRequest": {
+        "type": "object",
+        "properties": {
+          "descriptions": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 500 },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Line descriptions to look up.",
+            "example": ["Stage labor"]
+          }
+        },
+        "required": ["descriptions"],
+        "description": "Descriptions to look up."
       },
       "InvoiceLinePage": {
         "type": "object",
@@ -54114,9 +54260,7 @@
               "receipt",
               "quote",
               "itinerary",
-              "contract",
-              "intake_rider",
-              "invoice_lines"
+              "contract"
             ],
             "description": "What the document is.",
             "example": "insurance_certificate"
@@ -54127,22 +54271,10 @@
             "description": "Identifier of the stored document read, when the file is one.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "intake_batch_id": {
+          "project_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the intake batch the file is read into (auroraIntakes.start); the request's subject.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "invoice_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the Proposed payable invoice whose lines are read, required for invoice_lines; the subject, ahead of document_id.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "inbound_message_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the DKIM-verified project inbox message read instead of a file, for an itinerary; exactly one of this and content_base64.",
+            "description": "Identifier of the project the document is read for, required for an itinerary or a contract: the request's subject, checked before any model call.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "media_type": {
@@ -54155,7 +54287,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 14000000,
-            "description": "The document content in base64, read by the caller from storage. Exactly one of this and inbound_message_id; with it, media_type and file_name are required.",
+            "description": "The document content in base64, read by the caller from storage.",
             "example": "JVBERi0xLjcK"
           },
           "file_name": {
@@ -54166,7 +54298,7 @@
             "example": "coi-atlantic.pdf"
           }
         },
-        "required": ["kind"],
+        "required": ["kind", "media_type", "content_base64", "file_name"],
         "description": "A document to extract into proposed fields."
       },
       "AuroraDraftRequest": {
@@ -54182,7 +54314,6 @@
               "change_order_description",
               "run_of_show",
               "risk_assessment",
-              "advance_answers",
               "event_plan",
               "event_brief",
               "approval_pack",
@@ -54215,17 +54346,8 @@
               }
             },
             "required": ["collection", "id"],
-            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.",
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). An event plan, brief, approval pack or waste plan names its Document record (records). Required for those kinds.",
             "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
-          },
-          "source": { "$ref": "#/components/schemas/AuroraDraftSource" },
-          "outline": {
-            "type": "array",
-            "items": { "type": "string", "minLength": 1, "maxLength": 120 },
-            "minItems": 1,
-            "maxItems": 12,
-            "description": "For a governance kind, its outline headings in the caller's locale, in order; the English outline when absent.",
-            "example": ["Waste Streams", "Bins and Placement"]
           },
           "context": {
             "type": "array",
@@ -54260,51 +54382,6 @@
         },
         "required": ["kind", "instructions"],
         "description": "Instructions for a draft."
-      },
-      "AuroraDraftSource": {
-        "type": "object",
-        "properties": {
-          "inbound_message_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the DKIM-verified, live message of the project inbox of the recipient's packet.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "document": {
-            "type": "object",
-            "properties": {
-              "media_type": {
-                "type": "string",
-                "enum": ["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"],
-                "description": "Media type of the content.",
-                "example": "application/pdf"
-              },
-              "content_base64": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 14000000,
-                "description": "The document content in base64.",
-                "example": "JVBERi0xLjcK"
-              },
-              "file_name": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 300,
-                "description": "File name shown in the log and the answer's provenance.",
-                "example": "tour-book.pdf"
-              }
-            },
-            "required": ["media_type", "content_base64", "file_name"],
-            "description": "A document the party sent: a tour book, a rider or a reply.",
-            "example": {
-              "media_type": "text/plain",
-              "content_base64": "TG9hZCBpbiAwNzowMA==",
-              "file_name": "tour-book.txt"
-            }
-          }
-        },
-        "description": "What advance answers are drafted from: exactly one of a project inbox message and a document. A message that is not a verified Project Inbox message of the packet's project the caller can read refuses aurora_draft_source_invalid before any model call.",
-        "example": { "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
       },
       "AuroraAppliedDraft": {
         "type": "object",
@@ -54516,6 +54593,711 @@
         "required": ["code", "description", "candidates"],
         "description": "An unknown scanned code to bind."
       },
+      "AuroraIntakeOptions": {
+        "type": "object",
+        "properties": {
+          "fee_visible": {
+            "type": "boolean",
+            "description": "A contract: whether the caller reads pay, so a fee is read and shown.",
+            "example": false
+          },
+          "can_write_riders": {
+            "type": "boolean",
+            "description": "A contract: whether the caller may add riders.",
+            "example": true
+          },
+          "travelers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the person.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "engagement_id": {
+                  "type": ["string", "null"],
+                  "format": "uuid",
+                  "description": "Identifier of the their engagement on the project.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "display_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Display name.",
+                  "example": "Dana Kim"
+                },
+                "source": {
+                  "type": "string",
+                  "enum": ["Member", "Engagement", "Roster"],
+                  "description": "How they stand on the project.",
+                  "example": "Member"
+                }
+              },
+              "required": ["person_id", "engagement_id", "display_name", "source"]
+            },
+            "description": "An itinerary: who the passengers may be. Names only.",
+            "example": []
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the traveler.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "service_identifier": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "description": "Flight or service number.",
+                  "example": "GA 100"
+                },
+                "departs_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Departure.",
+                  "example": "2026-10-08T14:30:00Z"
+                }
+              },
+              "required": ["person_id", "service_identifier", "departs_at"]
+            },
+            "description": "An itinerary: the project's live segments.",
+            "example": []
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["counterparty", "person"],
+                  "description": "Whether the party is a counterparty or a person.",
+                  "example": "counterparty"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the counterparty or person.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Name.",
+                  "example": "Northwind Touring"
+                },
+                "engagement_ids": {
+                  "type": "array",
+                  "items": { "type": "string", "format": "uuid" },
+                  "description": "The party's live Artist engagements on the project.",
+                  "example": []
+                }
+              },
+              "required": ["kind", "id", "name", "engagement_ids"]
+            },
+            "description": "A contract: who a booking may be with.",
+            "example": []
+          },
+          "rate_cards": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role_code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "description": "Canon role.",
+                  "example": "2000.50.02"
+                },
+                "role_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "description": "Job title.",
+                  "example": "Artist Relations Coordinator"
+                },
+                "worker_classification": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Classification code.",
+                  "example": "INDEPENDENT_CONTRACTOR"
+                },
+                "worker_classification_label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "description": "Classification.",
+                  "example": "Independent Contractor"
+                },
+                "pay_basis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Pay basis.",
+                  "example": "Day Rate"
+                },
+                "arrangement": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Arrangement.",
+                  "example": "Per Engagement"
+                }
+              },
+              "required": [
+                "role_code",
+                "role_name",
+                "worker_classification",
+                "worker_classification_label",
+                "pay_basis",
+                "arrangement"
+              ]
+            },
+            "description": "A contract: the non-employee rate card rows on offer.",
+            "example": []
+          }
+        },
+        "required": [
+          "fee_visible",
+          "can_write_riders",
+          "travelers",
+          "segments",
+          "parties",
+          "rate_cards"
+        ],
+        "description": "What an intake review offers."
+      },
+      "AuroraIntakeKind": {
+        "type": "string",
+        "enum": ["itinerary", "contract"],
+        "description": "What an intake reads into a project.",
+        "example": "itinerary"
+      },
+      "AuroraOpenProposals": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuroraOpenProposal" },
+            "description": "Open proposals, oldest first.",
+            "example": []
+          }
+        },
+        "required": ["data"],
+        "description": "The caller's open proposals of an intake."
+      },
+      "AuroraOpenProposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the suggestion.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the request that proposed it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Operation that applies it.",
+            "example": "travelSegments.create"
+          },
+          "target_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record it updates.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What will change.",
+            "example": "Add segment 1 from the itinerary."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "After this time it can no longer be applied.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "proposed_fields": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiSuggestionField" },
+            "description": "Proposed fields; row level security leaves out a fee the caller may not read.",
+            "example": []
+          }
+        },
+        "required": [
+          "id",
+          "request_id",
+          "operation_id",
+          "target_id",
+          "summary",
+          "expires_at",
+          "proposed_fields"
+        ],
+        "description": "An open proposal of the caller's."
+      },
+      "AiSuggestionField": {
+        "type": "object",
+        "properties": {
+          "field_path": {
+            "type": "string",
+            "description": "API field the value is for.",
+            "example": "expires_on"
+          },
+          "proposed_value": {
+            "description": "Proposed value as JSON; null when the field is NO_ANSWER.",
+            "example": "2027-03-31"
+          },
+          "confidence": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence from 0 to 1; null when the field is NO_ANSWER.",
+            "example": 0.91
+          },
+          "refusal": {
+            "type": ["string", "null"],
+            "enum": ["NO_ANSWER", null],
+            "description": "NO_ANSWER when the source does not support a value.",
+            "example": null
+          },
+          "missing": {
+            "type": ["string", "null"],
+            "description": "What the source lacks, when the field is NO_ANSWER.",
+            "example": null
+          },
+          "source_excerpt": {
+            "type": ["string", "null"],
+            "description": "The passage the value was read from, redacted.",
+            "example": "Policy expiration 03/31/2027"
+          },
+          "provenance": {
+            "type": "string",
+            "enum": ["agent"],
+            "description": "Every AI-proposed value carries provenance agent (rank 40, Section 3.8).",
+            "example": "agent"
+          }
+        },
+        "required": [
+          "field_path",
+          "confidence",
+          "refusal",
+          "missing",
+          "source_excerpt",
+          "provenance"
+        ],
+        "description": "One proposed field of an AI suggestion."
+      },
+      "AuroraAppliedItinerary": {
+        "type": "object",
+        "properties": {
+          "written": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion applied.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the row written.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                }
+              },
+              "required": ["suggestion_id", "id"]
+            },
+            "description": "Each kept line with its segment.",
+            "example": []
+          },
+          "duplicates_checked": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Lines checked against live segments.",
+            "example": 4
+          }
+        },
+        "required": ["written", "duplicates_checked"],
+        "description": "What adding itinerary lines wrote."
+      },
+      "AuroraApplyItineraryRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the segments are added to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "fulfillment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Travel fulfillment of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the travel segment suggestion kept.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "The person's values, overriding the proposal key by key: person_id (required), engagement_id, travel_mode, operator_name, service_identifier, confirmation_identifier, departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_at, arrives_time_zone, price_minor and currency_code.",
+                  "example": { "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+                }
+              },
+              "required": ["suggestion_id", "values"]
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "The lines kept, at most 100.",
+            "example": []
+          }
+        },
+        "required": ["project_id", "items"],
+        "description": "Itinerary lines to add."
+      },
+      "AuroraAppliedContractIntake": {
+        "type": "object",
+        "properties": {
+          "engagements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_ids": {
+                  "type": "array",
+                  "items": { "type": "string", "format": "uuid" },
+                  "description": "The group.",
+                  "example": []
+                },
+                "engagement_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the engagement booked or attached to.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "created": {
+                  "type": "boolean",
+                  "description": "A new engagement.",
+                  "example": true
+                },
+                "documents": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "suggestion_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Identifier of the document.",
+                        "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      },
+                      "engagement_document_id": {
+                        "type": ["string", "null"],
+                        "format": "uuid",
+                        "description": "Identifier of the engagement document, for its file.",
+                        "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      },
+                      "document_type": {
+                        "type": "string",
+                        "enum": ["Contract", "Rider"],
+                        "description": "What the document is.",
+                        "example": "Contract"
+                      }
+                    },
+                    "required": ["suggestion_id", "engagement_document_id", "document_type"]
+                  },
+                  "description": "Each document with the row its file attaches to.",
+                  "example": []
+                }
+              },
+              "required": ["suggestion_ids", "engagement_id", "created", "documents"]
+            },
+            "description": "One entry per group.",
+            "example": []
+          },
+          "riders": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Riders added.",
+            "example": 1
+          }
+        },
+        "required": ["engagements", "riders"],
+        "description": "What a contract review wrote."
+      },
+      "AuroraApplyContractIntakeRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the bookings are on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_ids": {
+                  "type": "array",
+                  "items": { "type": "string", "format": "uuid" },
+                  "minItems": 1,
+                  "maxItems": 25,
+                  "description": "The group's documents.",
+                  "example": []
+                },
+                "party": {
+                  "type": "object",
+                  "properties": {
+                    "person_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Identifier of the person booked.",
+                      "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    },
+                    "counterparty_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Identifier of the counterparty booked.",
+                      "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  },
+                  "description": "Exactly one of a person on the project or a counterparty of the org.",
+                  "example": { "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+                },
+                "engagement_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the live engagement of the party to attach to.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "role_code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "description": "Canon role.",
+                  "example": "2000.50.02"
+                },
+                "worker_classification": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Classification code.",
+                  "example": "INDEPENDENT_CONTRACTOR"
+                },
+                "pay_basis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Pay basis.",
+                  "example": "Day Rate"
+                },
+                "arrangement": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "description": "Arrangement.",
+                  "example": "Per Engagement"
+                },
+                "start_date": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "First date of the engagement.",
+                  "example": "2026-10-08"
+                },
+                "end_date": {
+                  "type": ["string", "null"],
+                  "format": "date",
+                  "description": "Last date of the engagement.",
+                  "example": "2026-10-08"
+                },
+                "agreed_rate_minor": {
+                  "type": ["integer", "null"],
+                  "minimum": 0,
+                  "description": "Rate per pay basis unit, in minor units; needs pay access.",
+                  "example": 150000
+                },
+                "currency_code": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 3,
+                  "description": "ISO 4217 currency of the rate.",
+                  "example": "USD"
+                },
+                "create_riders": {
+                  "type": "boolean",
+                  "description": "Add each Rider document as a rider; needs advancing.rider.write.",
+                  "example": true
+                }
+              },
+              "required": ["suggestion_ids", "party"]
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "One group per booking, at most 50.",
+            "example": []
+          }
+        },
+        "required": ["project_id", "items"],
+        "description": "Bookings to add from contracts."
+      },
+      "AuroraAppliedInvoiceLines": {
+        "type": "object",
+        "properties": {
+          "written": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the suggestion applied.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the row written.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                }
+              },
+              "required": ["suggestion_id", "id"]
+            },
+            "description": "Each kept line with its row.",
+            "example": []
+          }
+        },
+        "required": ["written"],
+        "description": "What adding invoice lines wrote."
+      },
+      "AuroraApplyInvoiceLinesRequest": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the invoice the lines are added to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggestion_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier of the invoice line suggestion kept.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "The person's values: description, quantity, unit_price_minor, budget_line_id.",
+                  "example": { "quantity": 2 }
+                }
+              },
+              "required": ["suggestion_id", "values"]
+            },
+            "minItems": 1,
+            "maxItems": 40,
+            "description": "The lines kept, at most 40.",
+            "example": []
+          }
+        },
+        "required": ["invoice_id", "items"],
+        "description": "Invoice lines to add."
+      },
+      "AuroraDraftAdvanceAnswersRequest": {
+        "type": "object",
+        "properties": {
+          "advance_recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient of a sent packet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "inbound_message_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Verified or Filed project inbox message.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": ["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"],
+            "description": "Media type of the content.",
+            "example": "application/pdf"
+          },
+          "content_base64": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 14000000,
+            "description": "A file the person chose, in base64.",
+            "example": "JVBERi0xLjcK"
+          },
+          "file_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "File name, shown as the answer's source.",
+            "example": "tour-book.pdf"
+          },
+          "verbiage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": { "type": "string", "minLength": 1, "maxLength": 100 },
+                "preferred": { "type": "string", "minLength": 1, "maxLength": 200 }
+              },
+              "required": ["term", "preferred"]
+            },
+            "maxItems": 200,
+            "default": [],
+            "description": "The org's verbiage library entries to apply.",
+            "example": [{ "term": "loading dock", "preferred": "Dock" }]
+          }
+        },
+        "required": ["advance_recipient_id"],
+        "description": "One source for a recipient's open sections: inbound_message_id, or media_type, content_base64 and file_name."
+      },
       "AuroraAppliedAdvanceAnswer": {
         "type": "object",
         "properties": {
@@ -54527,7 +55309,7 @@
           }
         },
         "required": ["submission_id"],
-        "description": "The advance answer a drafted answer recorded."
+        "description": "The answer recorded."
       },
       "AuroraApplyAdvanceAnswerRequest": {
         "type": "object",
@@ -54535,38 +55317,18 @@
           "suggestion_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the drafted advance answer accepted.",
+            "description": "Identifier of the drafted answer accepted.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "values": {
             "type": "object",
             "additionalProperties": {},
-            "description": "The person's changes: body, lines (R9's line shape) or note.",
-            "example": { "body": "Two trucks at 07:00." }
-          },
-          "source": {
-            "type": "object",
-            "properties": {
-              "inbound_message_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "Identifier of the project inbox message the draft was read from.",
-                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
-              "file_name": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 300,
-                "description": "File the draft was read from.",
-                "example": "tour-book.pdf"
-              }
-            },
-            "description": "The draft's source, checked again: exactly one of a message and a file name.",
-            "example": { "file_name": "tour-book.pdf" }
+            "description": "Corrections to text, note or lines.",
+            "example": { "text": "Two trucks at 07:00." }
           }
         },
-        "required": ["suggestion_id", "source"],
-        "description": "A drafted advance answer to record on the party's behalf."
+        "required": ["suggestion_id"],
+        "description": "A drafted answer to record."
       },
       "AuroraPreview": {
         "type": "object",
@@ -54648,13 +55410,13 @@
             "enum": [
               "run_of_show",
               "risk_assessment",
-              "advance_answers",
               "event_plan",
               "event_brief",
               "approval_pack",
-              "waste_plan"
+              "waste_plan",
+              "advance_answers"
             ],
-            "description": "For a drafted list, advance answers or a governance draft, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
+            "description": "For a drafted list, a governance draft or advance answers, what is drafted: the preview then reads exactly what the draft reads, the list's own records included.",
             "example": "run_of_show"
           },
           "target": {
@@ -54674,10 +55436,21 @@
               }
             },
             "required": ["collection", "id"],
-            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). Advance answers name the recipient (advance-recipients); an event plan, brief, approval pack or waste plan names its project (projects). Required for those kinds.",
+            "description": "The list a run of show or risk assessment fills: a running order (run-of-show) or a project (projects). An event plan, brief, approval pack or waste plan names its Document record (records). Required for those kinds.",
             "example": { "collection": "run-of-show", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           },
-          "source": { "$ref": "#/components/schemas/AuroraDraftSource" },
+          "advance_recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient whose open sections are previewed, for advance_answers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "inbound_message_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project inbox message previewed, for advance_answers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "kind": {
             "type": "string",
             "enum": ["record_activity", "project_week", "gate_readiness"],
@@ -54713,577 +55486,6 @@
         },
         "required": ["feature", "items"],
         "description": "A drafting or summary request to preview before it is sent."
-      },
-      "AuroraIntake": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the aurora intake.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "org_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "created_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who created the row.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who last updated the row.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "project_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "intake_kind": { "$ref": "#/components/schemas/AuroraIntakeKind" },
-          "fulfillment_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the Travel fulfillment the segments are filed under.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "file_count": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Files the batch reads.",
-            "example": 3
-          },
-          "closed_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the batch was applied or closed.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "requests": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the request.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "outcome": { "$ref": "#/components/schemas/AiRequestOutcome" },
-                "failure_code": {
-                  "type": ["string", "null"],
-                  "minLength": 1,
-                  "maxLength": 64,
-                  "description": "Why it failed.",
-                  "example": "model_error"
-                },
-                "created_at": {
-                  "type": "string",
-                  "format": "date-time",
-                  "description": "When the file was read.",
-                  "example": "2026-10-08T14:30:00Z"
-                }
-              },
-              "required": ["id", "outcome", "failure_code", "created_at"]
-            },
-            "description": "One request per file read, oldest first.",
-            "example": []
-          },
-          "suggestions": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/AuroraIntakeSuggestion" },
-            "description": "Proposed suggestions, oldest first.",
-            "example": []
-          }
-        },
-        "required": [
-          "id",
-          "org_id",
-          "created_at",
-          "created_by",
-          "updated_at",
-          "updated_by",
-          "project_id",
-          "intake_kind",
-          "fulfillment_id",
-          "file_count",
-          "closed_at",
-          "requests",
-          "suggestions"
-        ],
-        "description": "An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry."
-      },
-      "AuroraIntakeKind": {
-        "type": "string",
-        "enum": ["Itineraries", "Contracts and Riders"],
-        "description": "What an intake batch reads: Itineraries or Contracts and Riders.",
-        "example": "Itineraries"
-      },
-      "AiRequestOutcome": {
-        "type": "string",
-        "enum": ["Pending", "Answered", "No Answer", "Failed"],
-        "description": "How a model call ended. No Answer is the silence rule (Section 3.7).",
-        "example": "Answered"
-      },
-      "AuroraIntakeSuggestion": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the suggestion.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "request_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the request that proposed it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "operation_id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "description": "Operation that applies it.",
-            "example": "auroraIntakes.applyItineraries"
-          },
-          "target_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record it updates.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "summary": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000,
-            "description": "What will change.",
-            "example": "Add segment 1: MIA to ORD."
-          },
-          "suggestion_state": { "$ref": "#/components/schemas/AiSuggestionState" },
-          "expires_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "After this time it can no longer be applied.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "applied_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record written, once Applied.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "proposed_fields": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/AiSuggestionField" },
-            "description": "Proposed fields in order; a Restricted field is left out for anyone who may not read it.",
-            "example": []
-          }
-        },
-        "required": [
-          "id",
-          "request_id",
-          "operation_id",
-          "target_id",
-          "summary",
-          "suggestion_state",
-          "expires_at",
-          "applied_id",
-          "proposed_fields"
-        ],
-        "description": "A Proposed suggestion of an intake batch."
-      },
-      "AiSuggestionState": {
-        "type": "string",
-        "enum": ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
-        "description": "Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.",
-        "example": "Proposed"
-      },
-      "AiSuggestionField": {
-        "type": "object",
-        "properties": {
-          "field_path": {
-            "type": "string",
-            "description": "API field the value is for.",
-            "example": "expires_on"
-          },
-          "proposed_value": {
-            "description": "Proposed value as JSON; null when the field is NO_ANSWER.",
-            "example": "2027-03-31"
-          },
-          "confidence": {
-            "type": ["number", "null"],
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Confidence from 0 to 1; null when the field is NO_ANSWER.",
-            "example": 0.91
-          },
-          "refusal": {
-            "type": ["string", "null"],
-            "enum": ["NO_ANSWER", null],
-            "description": "NO_ANSWER when the source does not support a value.",
-            "example": null
-          },
-          "missing": {
-            "type": ["string", "null"],
-            "description": "What the source lacks, when the field is NO_ANSWER.",
-            "example": null
-          },
-          "source_excerpt": {
-            "type": ["string", "null"],
-            "description": "The passage the value was read from, redacted.",
-            "example": "Policy expiration 03/31/2027"
-          },
-          "provenance": {
-            "type": "string",
-            "enum": ["agent"],
-            "description": "Every AI-proposed value carries provenance agent (rank 40, Section 3.8).",
-            "example": "agent"
-          }
-        },
-        "required": [
-          "field_path",
-          "confidence",
-          "refusal",
-          "missing",
-          "source_excerpt",
-          "provenance"
-        ],
-        "description": "One proposed field of an AI suggestion."
-      },
-      "AuroraStartIntakeRequest": {
-        "type": "object",
-        "properties": {
-          "project_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project the files are read for.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "kind": { "$ref": "#/components/schemas/AuroraIntakeKind" },
-          "file_count": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 25,
-            "description": "Files the batch reads, 1 to 25: one metered request each, checked against this month's allowance first.",
-            "example": 3
-          },
-          "fulfillment_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the Travel fulfillment of the project the segments are filed under, for Itineraries.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
-        },
-        "required": ["project_id", "kind", "file_count"],
-        "description": "An intake batch to open."
-      },
-      "AuroraClosedIntake": {
-        "type": "object",
-        "properties": {
-          "rejected": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Suggestions rejected.",
-            "example": 4
-          }
-        },
-        "required": ["rejected"],
-        "description": "What closing an intake rejected."
-      },
-      "AuroraAppliedIntake": {
-        "type": "object",
-        "properties": {
-          "written": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "suggestion_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the suggestion applied.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the row written.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                }
-              },
-              "required": ["suggestion_id", "id"]
-            },
-            "description": "Each kept suggestion with the row it wrote.",
-            "example": []
-          },
-          "rejected": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Suggestions of the batch left out and rejected.",
-            "example": 2
-          }
-        },
-        "required": ["written", "rejected"],
-        "description": "What an applied intake wrote."
-      },
-      "AuroraApplyItinerariesRequest": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "suggestion_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the segment suggestion kept.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "values": {
-                  "type": "object",
-                  "additionalProperties": {},
-                  "description": "The person's values, overriding the proposed fields key by key: person_id (required), engagement_id, fulfillment_id, departs_at and arrives_at (instants), the zones, places, operator, service and confirmation, travel_mode, price_minor and currency_code.",
-                  "example": {
-                    "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                    "departs_at": "2027-06-01T12:15:00Z"
-                  }
-                }
-              },
-              "required": ["suggestion_id", "values"]
-            },
-            "minItems": 1,
-            "maxItems": 1500,
-            "description": "The kept segments: 25 files of at most 60.",
-            "example": []
-          }
-        },
-        "required": ["items"],
-        "description": "The segments of an itinerary intake to add."
-      },
-      "AuroraItineraryCheck": {
-        "type": "object",
-        "properties": {
-          "booked": {
-            "type": "array",
-            "items": { "type": "integer", "minimum": 1 },
-            "description": "Positions, from 1, of the rows the traveler already has as a live segment of the org with the same service and departure.",
-            "example": [2]
-          }
-        },
-        "required": ["booked"],
-        "description": "Which preview rows are already booked."
-      },
-      "AuroraCheckItinerariesRequest": {
-        "type": "object",
-        "properties": {
-          "segments": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "person_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the traveler the person picked.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "service_identifier": {
-                  "type": ["string", "null"],
-                  "minLength": 1,
-                  "maxLength": 40,
-                  "description": "Flight or service number of the row.",
-                  "example": "GA 100"
-                },
-                "departs_at": {
-                  "type": ["string", "null"],
-                  "format": "date-time",
-                  "description": "Departure of the row.",
-                  "example": "2026-10-08T14:30:00Z"
-                }
-              },
-              "required": ["person_id"]
-            },
-            "maxItems": 1500,
-            "description": "The preview's rows, in order.",
-            "example": []
-          }
-        },
-        "required": ["segments"],
-        "description": "Preview rows of an itinerary intake to check against the traveler's segments."
-      },
-      "AuroraAppliedContracts": {
-        "type": "object",
-        "properties": {
-          "applied": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "suggestion_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the suggestion applied.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier of the engagement, rider or rider line written.",
-                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                }
-              },
-              "required": ["suggestion_id", "id"]
-            },
-            "description": "Each kept suggestion with what it wrote.",
-            "example": []
-          },
-          "engagements": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Artist engagements booked.",
-            "example": 2
-          },
-          "riders": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Riders written.",
-            "example": 3
-          },
-          "rider_lines": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Rider lines written.",
-            "example": 12
-          },
-          "rejected": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Suggestions of the batch left out and rejected.",
-            "example": 1
-          }
-        },
-        "required": ["applied", "engagements", "riders", "rider_lines", "rejected"],
-        "description": "What an applied contract intake wrote."
-      },
-      "AuroraApplyContractsRequest": {
-        "type": "object",
-        "properties": {
-          "groups": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "act_name": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200,
-                  "description": "The act, as grouped.",
-                  "example": "The Midnight Owls"
-                },
-                "engagement": {
-                  "type": "object",
-                  "properties": {
-                    "mode": {
-                      "type": "string",
-                      "enum": ["new", "existing"],
-                      "description": "Book a new Artist engagement, or attach riders to a live one.",
-                      "example": "new"
-                    },
-                    "engagement_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Identifier of the live Artist engagement of the project, for existing.",
-                      "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                    },
-                    "contract_suggestion_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Identifier of the contract suggestion whose dates, fee and currency are kept.",
-                      "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                    },
-                    "values": {
-                      "type": "object",
-                      "additionalProperties": {},
-                      "description": "The person's party and terms: person_id and/or counterparty_id, role_code, worker_classification, pay_basis, arrangement, and any start_date, end_date, agreed_rate_minor or currency_code to change.",
-                      "example": {
-                        "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                        "role_code": "2000.50.02"
-                      }
-                    }
-                  },
-                  "required": ["mode"]
-                },
-                "riders": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "header_suggestion_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Identifier of the rider suggestion kept.",
-                        "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                      },
-                      "title": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200,
-                        "description": "The rider's title, when changed.",
-                        "example": "Technical Rider"
-                      },
-                      "line_suggestion_ids": {
-                        "type": "array",
-                        "items": { "type": "string", "format": "uuid" },
-                        "maxItems": 100,
-                        "description": "Rider lines kept.",
-                        "example": []
-                      },
-                      "line_values": {
-                        "type": "object",
-                        "additionalProperties": { "type": "object", "additionalProperties": {} },
-                        "description": "Changed description or quantity by line suggestion id.",
-                        "example": {}
-                      }
-                    },
-                    "required": ["header_suggestion_id"]
-                  },
-                  "maxItems": 25,
-                  "description": "The act's riders.",
-                  "example": []
-                }
-              },
-              "required": ["act_name", "engagement"]
-            },
-            "minItems": 1,
-            "maxItems": 25,
-            "description": "The acts to book, at most 25.",
-            "example": []
-          }
-        },
-        "required": ["groups"],
-        "description": "The acts of a contract intake to book."
       },
       "AiSuggestionPage": {
         "type": "object",
@@ -55414,6 +55616,12 @@
           "proposed_fields"
         ],
         "description": "A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm."
+      },
+      "AiSuggestionState": {
+        "type": "string",
+        "enum": ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
+        "description": "Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.",
+        "example": "Proposed"
       },
       "AiSuggestionConfirmRequest": {
         "type": "object",
@@ -55614,6 +55822,12 @@
           "completed_at"
         ],
         "description": "One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it."
+      },
+      "AiRequestOutcome": {
+        "type": "string",
+        "enum": ["Pending", "Answered", "No Answer", "Failed"],
+        "description": "How a model call ended. No Answer is the silence rule (Section 3.7).",
+        "example": "Answered"
       },
       "AiUsagePage": {
         "type": "object",
@@ -97828,6 +98042,7 @@
                       "invoice_state": "Proposed",
                       "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                       "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "printed_total_minor": 125000,
                       "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
@@ -97864,6 +98079,7 @@
                 "due_on": "2026-10-08",
                 "currency_code": "USD",
                 "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "printed_total_minor": 125000,
                 "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/InvoiceCreate" }
@@ -97897,6 +98113,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -97963,6 +98180,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -98008,7 +98226,8 @@
                 "invoice_number": "INV-2026-0042",
                 "issued_on": "2026-10-08",
                 "due_on": "2026-10-08",
-                "currency_code": "USD"
+                "currency_code": "USD",
+                "printed_total_minor": 125000
               },
               "schema": { "$ref": "#/components/schemas/InvoiceUpdate" }
             }
@@ -98041,6 +98260,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -98122,6 +98342,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -98189,6 +98410,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -98269,6 +98491,7 @@
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
                   "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
@@ -98489,6 +98712,114 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoices/{id}/tie-out": {
+      "get": {
+        "operationId": "invoices.tieOut",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.invoice.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "summary": "Read an invoice's tie-out",
+        "description": "The total the document printed against the invoice's lines, with the residual: computed, never stored, and it blocks neither approval nor posting (B15). A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "printed_total_minor": 125000,
+                  "computed_total_minor": 125000,
+                  "residual_minor": 0
+                },
+                "schema": { "$ref": "#/components/schemas/InvoiceTieOut" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoices/{id}/line-history": {
+      "post": {
+        "operationId": "invoices.lineHistory",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.invoice.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "summary": "Read a vendor's line history",
+        "description": "For each description, up to three prior lines the same counterparty billed in the same direction, with the budget line only when on the same project. Row level security decides what it reads. Calls no model, and the history is never sent to one (B15). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "descriptions": ["Stage labor"] },
+              "schema": { "$ref": "#/components/schemas/InvoiceLineHistoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": [] },
+                "schema": { "$ref": "#/components/schemas/InvoiceLineHistory" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -150040,7 +150371,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Extract a document",
-        "description": "Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. B15: an itinerary, contract or intake rider read into an intake batch (intake_batch_id), whose suggestions are applied together; the lines of a Proposed payable invoice (invoice_lines with invoice_id, aurora_invoice_not_proposed otherwise); a receipt's items. The answer adds the tie-out against printed totals, the vendor's line history, the itinerary checks and traveler or party candidates. Every refusal comes before any model call and is not metered. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Reads a rider, insurance certificate, invoice, receipt, quote, itinerary or contract into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. An itinerary or contract needs `project_id` and the write capability on that project, checked before any model call or metering; a fee is read only for a caller who reads pay. A tool call cut off at the token limit stores nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -150049,9 +150380,7 @@
               "example": {
                 "kind": "insurance_certificate",
                 "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "intake_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "media_type": "application/pdf",
                 "content_base64": "JVBERi0xLjcK",
                 "file_name": "coi-atlantic.pdf"
@@ -150109,7 +150438,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Draft text",
-        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. B15: advance answers for a recipient of a sent packet (`target` advance-recipients) from one `source`, each answer a suggestion for `aurora.applyAdvanceAnswer`, the sections the source does not answer listed; and an event plan, event brief, approval pack or waste plan from a project's own records (`target` projects), held to its outline. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. A run of show or risk assessment is drafted into the empty list `target` names: refused with aurora_draft_list_not_empty before any model call when the list has entries, it returns checked lines with their suggestion ids, for `aurora.applyDraft`. An event plan, event brief, approval pack or waste plan names its Document record of the matching subtype as `target` and needs work.record.write on its project, before any model call or metering; the draft is returned for the record's editor. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -150122,8 +150451,6 @@
                   "collection": "run-of-show",
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
-                "source": { "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
-                "outline": ["Waste Streams", "Bins and Placement"],
                 "context": [
                   { "collection": "venues", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
                 ],
@@ -150428,6 +150755,364 @@
         }
       }
     },
+    "/aurora/intake-options": {
+      "get": {
+        "operationId": "aurora.intakeOptions",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Read what an intake review offers",
+        "description": "An itinerary's traveler candidates, names only, or a contract's parties and non-employee rate card rows, with whether the caller reads pay and may add riders. Needs the intake's write capability on the project. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": { "$ref": "#/components/schemas/AuroraIntakeKind" },
+            "required": true,
+            "description": "What an intake reads into a project.",
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project of the intake.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project of the intake.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "fee_visible": false,
+                  "can_write_riders": true,
+                  "travelers": [],
+                  "segments": [],
+                  "parties": [],
+                  "rate_cards": []
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraIntakeOptions" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/open-proposals": {
+      "get": {
+        "operationId": "aurora.openProposals",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Resume an intake review",
+        "description": "The caller's open proposals of a project's intake, with their fields, so a reload resumes the review until they expire at 7 days. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project of the intake.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project of the intake.",
+            "name": "project_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["travelSegments.create", "engagements.createFromContract"],
+              "description": "The kind of open proposal to resume.",
+              "example": "travelSegments.create"
+            },
+            "required": true,
+            "description": "The kind of open proposal to resume.",
+            "name": "operation_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": [] },
+                "schema": { "$ref": "#/components/schemas/AuroraOpenProposals" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/invoice-line-proposals": {
+      "get": {
+        "operationId": "aurora.invoiceLineProposals",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Read an invoice's open line proposals",
+        "description": "The caller's open line suggestions of an invoice: those whose extraction's header suggestion was saved as this invoice. Calls no model and meters nothing. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice.",
+            "name": "invoice_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": [] },
+                "schema": { "$ref": "#/components/schemas/AuroraOpenProposals" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/apply-itinerary": {
+      "post": {
+        "operationId": "aurora.applyItinerary",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Add itinerary lines",
+        "description": "Adds kept itinerary lines as travel segments in one transaction, with the person's traveler and values. A person with no standing on the project refuses aurora_itinerary_traveler; a live segment of the same person, service and departure refuses aurora_itinerary_duplicate. Each refusal names its line and writes nothing. Untouched suggestions stay open. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": []
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraApplyItineraryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "written": [], "duplicates_checked": 4 },
+                "schema": { "$ref": "#/components/schemas/AuroraAppliedItinerary" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/apply-contract-intake": {
+      "post": {
+        "operationId": "aurora.applyContractIntake",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Add bookings from contracts",
+        "description": "Books each kept group in one transaction: a new Artist engagement at Onboarding with the person's terms, or the documents attached to the party's live engagement. Contract documents become Agreement rows, rider documents become riders only with advancing.rider.write. A fee without pay access refuses aurora_fee_restricted. Each refusal names its line and writes nothing. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", "items": [] },
+              "schema": { "$ref": "#/components/schemas/AuroraApplyContractIntakeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "engagements": [], "riders": 1 },
+                "schema": { "$ref": "#/components/schemas/AuroraAppliedContractIntake" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/apply-invoice-lines": {
+      "post": {
+        "operationId": "aurora.applyInvoiceLines",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Add invoice lines",
+        "description": "Adds kept lines to the invoice their extraction was saved as, as the caller, numbered after the existing lines. Lines of another invoice refuse aurora_invoice_lines_foreign, a currency mismatch aurora_invoice_currency, and a non-Proposed invoice invoice_locked. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", "items": [] },
+              "schema": { "$ref": "#/components/schemas/AuroraApplyInvoiceLinesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "written": [] },
+                "schema": { "$ref": "#/components/schemas/AuroraAppliedInvoiceLines" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/draft-advance-answers": {
+      "post": {
+        "operationId": "aurora.draftAdvanceAnswers",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Draft advance answers from a reply",
+        "description": "Reads one source, Verified or Filed project inbox mail or a file the person chose, into proposed answers for a recipient's open sections, one suggestion per answer. Needs advancing.submission.review on the packet's project; Item Request and Credential Request sections also need advancing.packet.write. Unverified mail refuses aurora_advance_source_unverified, a blank body aurora_advance_source_empty and a recipient with no open section aurora_advance_no_open_sections, all before metering. Guest List, File, Crew Roster and per-person sections are never drafted, and the model never receives the roster, a profile or a project fact. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "media_type": "application/pdf",
+                "content_base64": "JVBERi0xLjcK",
+                "file_name": "tour-book.pdf",
+                "verbiage": [{ "term": "loading dock", "preferred": "Dock" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraDraftAdvanceAnswersRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/aurora/apply-advance-answer": {
       "post": {
         "operationId": "aurora.applyAdvanceAnswer",
@@ -150436,7 +151121,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Record a drafted advance answer",
-        "description": "Records one advance answer Aurora drafted, on the recipient's behalf, through the single writer of advance answers (B15, ADR 0154): the caller holds advancing.submission.review on the packet's project and asked for the draft. The source is checked again. The caller becomes the answer's submitter, so someone else reviews it, and Gateway labels it as recorded by the org. An open answer refuses advance_answer_pending. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Records one accepted answer through the single writer of advance answers, with its source, and tells the recipient side. The accepter is the answer's submitter, so a second person reviews it. An open answer refuses advance_answer_pending. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -150444,8 +151129,7 @@
             "application/json": {
               "example": {
                 "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "values": { "body": "Two trucks at 07:00." },
-                "source": { "file_name": "tour-book.pdf" }
+                "values": { "text": "Two trucks at 07:00." }
               },
               "schema": { "$ref": "#/components/schemas/AuroraApplyAdvanceAnswerRequest" }
             }
@@ -150495,7 +151179,8 @@
                   "collection": "run-of-show",
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
-                "source": { "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "inbound_message_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "kind": "gate_readiness",
                 "subject_collection": "projects",
                 "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -150526,353 +151211,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes/{id}": {
-      "get": {
-        "operationId": "auroraIntakes.get",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Get an Aurora intake",
-        "description": "An Aurora intake batch (B15): the files it reads, its requests and its Proposed suggestions, read with the caller's permissions, so a preview reloads within the seven-day expiry. Returns one Aurora intake with its `ETag`. A Aurora intake the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the aurora intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the aurora intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The Aurora intake.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "intake_kind": "Itineraries",
-                  "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "file_count": 3,
-                  "closed_at": "2026-10-08T14:30:00Z",
-                  "requests": [],
-                  "suggestions": []
-                },
-                "schema": { "$ref": "#/components/schemas/AuroraIntake" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes": {
-      "post": {
-        "operationId": "auroraIntakes.start",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Start an intake",
-        "description": "Opens an intake batch for up to 25 itineraries or contracts and riders (B15). Itineraries need hospitality.fulfillment.write on the project; contracts and riders need opportunities.engagement.write and advancing.rider.write. The plan, the extraction switch and this month's remaining allowance are checked for every file first (XR001 plan_limit_exceeded). Each file is then read with aurora.extract and the batch's intake_batch_id, one metered request each. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "kind": "Itineraries",
-                "file_count": 3,
-                "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
-              "schema": { "$ref": "#/components/schemas/AuroraStartIntakeRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "intake_kind": "Itineraries",
-                  "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "file_count": 3,
-                  "closed_at": "2026-10-08T14:30:00Z",
-                  "requests": [],
-                  "suggestions": []
-                },
-                "schema": { "$ref": "#/components/schemas/AuroraIntake" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes/{id}/close": {
-      "post": {
-        "operationId": "auroraIntakes.close",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Close an intake",
-        "description": "Closes the caller's intake batch, rejecting its Proposed suggestions. A closed batch reads no more files. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the aurora intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the aurora intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": { "rejected": 4 },
-                "schema": { "$ref": "#/components/schemas/AuroraClosedIntake" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes/{id}/apply-itineraries": {
-      "post": {
-        "operationId": "auroraIntakes.applyItineraries",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Add an intake's travel segments",
-        "description": "Adds the kept segments of an itinerary intake in one transaction under its Travel fulfillment, with the person's traveler, times and values. A segment repeating a live one of the same person refuses itinerary_duplicate and nothing is written. The other suggestions are rejected and the batch is closed. Calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the aurora intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the aurora intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": { "items": [] },
-              "schema": { "$ref": "#/components/schemas/AuroraApplyItinerariesRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": { "written": [], "rejected": 2 },
-                "schema": { "$ref": "#/components/schemas/AuroraAppliedIntake" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes/{id}/check-itineraries": {
-      "post": {
-        "operationId": "auroraIntakes.checkItineraries",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Check an intake's segments",
-        "description": "Says which preview rows of the caller's itinerary intake the traveler already has as a live segment of the org with the same service and departure, so the preview leaves them out: the rows applying would refuse as itinerary_duplicate. Rows without a traveler, service or departure are never booked. Returns positions only. Writes nothing, calls no model and meters nothing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the aurora intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the aurora intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": { "segments": [] },
-              "schema": { "$ref": "#/components/schemas/AuroraCheckItinerariesRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": { "booked": [2] },
-                "schema": { "$ref": "#/components/schemas/AuroraItineraryCheck" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/aurora/intakes/{id}/apply-contracts": {
-      "post": {
-        "operationId": "auroraIntakes.applyContracts",
-        "tags": ["Settings"],
-        "x-xos-table": "app.ai_intake_batches",
-        "x-xos-capability": "home.dashboard.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
-        "summary": "Book an intake's acts",
-        "description": "Books the kept acts of a contract intake in one transaction (ADR 0154): an Artist engagement at Onboarding per new act with the person's party, role and terms and the contract's dates, fee and currency, and each act's riders and lines. A fee from a caller who may not read pay rates refuses intake_fee_restricted; an act without a party refuses intake_group_party; the engagement plan limit refuses XR001. Any refusal writes nothing. The other suggestions are rejected and the batch is closed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the aurora intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the aurora intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": { "groups": [] },
-              "schema": { "$ref": "#/components/schemas/AuroraApplyContractsRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "applied": [],
-                  "engagements": 2,
-                  "riders": 3,
-                  "rider_lines": 12,
-                  "rejected": 1
-                },
-                "schema": { "$ref": "#/components/schemas/AuroraAppliedContracts" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }

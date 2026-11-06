@@ -46,7 +46,7 @@ Customer data, including prompts and outputs, is never used to train any model, 
 - **Nothing happens without you.** AI features never write, send or approve anything without an explicit confirmation step that shows exactly what will change.
 - **Extraction is reviewed.** Extracted fields show a confidence score and are recorded with provenance `agent`. A person confirms before anything is written.
 - **No guessing.** When your data does not support an answer, the assistant returns NO ANSWER and says what is missing. It never guesses a price, date or quantity.
-- **No automated decisions about people.** AI features do not decide whom to engage, rank applicants for selection, set pay or classify workers. Those decisions stay with people in your organization.
+- **No automated decisions about people.** AI features do not decide whom to engage, rank applicants for selection, set pay or classify workers. Those decisions stay with people in your organization. In contract intake, you choose every booking and fee.
 
 ## 7. Transparency Labels
 
