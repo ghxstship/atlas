@@ -10,7 +10,7 @@ import { CrewCodeForm, CrewShiftList, type CrewShiftRow } from "@/components/tok
 import { BrandMark } from "@/components/ui";
 import { CODE_COOKIE, forgetCrewCodeAction } from "@/lib/actions/crew-shifts";
 import { inBrandScope } from "@/lib/brand/brand";
-import { enumLabelKey } from "@/lib/shell/translate";
+import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { getRequestFacts } from "@/lib/shell/context";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CrewShiftsPage({ params }: PageProps<"/shifts/[token]">) {
   const { token } = await params;
   if (!PARAM_TYPES.token.test(token)) notFound();
-  const t = await getTranslations();
+  const t = await getTranslate();
   const saved = (await cookies()).get(CODE_COOKIE)?.value ?? "";
   const heading = (
     <h1 className="m-0 text-heading-20 font-semibold">{t("gateway.tokens.crewShifts.title")}</h1>

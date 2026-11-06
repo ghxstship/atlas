@@ -76,9 +76,9 @@ export default async function RegistrationPage({ params }: PageProps<"/join/[org
         {intro}
         <div className="flex flex-wrap items-center gap-12">
           <p role="status" className="m-0 text-text-14">
-            {t(`state.${existing.state}`)}
+            {t(existing.state === "Approved" ? "state.Approved" : "state.Submitted")}
           </p>
-          <Tag tone={existing.state === "Approved" ? "success" : "neutral"}>{t(`states.${existing.state}`)}</Tag>
+          <Tag tone={existing.state === "Approved" ? "success" : "neutral"}>{t(existing.state === "Approved" ? "states.Approved" : "states.Submitted")}</Tag>
         </div>
         <div>
           <ActionButton action={withdrawRegistrationAction.bind(null, existing.id, path)} label={t("withdraw")} variant="secondary" />

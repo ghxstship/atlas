@@ -10,11 +10,15 @@ import {
   type CrewAccessState,
 } from "@/lib/actions/crew-shifts";
 
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const INITIAL: CrewAccessState = {};
 
 function Problem({ state }: { state: CrewAccessState }) {
-  const t = useTranslations("gateway.tokens");
-  const outcomes = useTranslations("gateway.outcomes");
+  const t = useTranslations("gateway.tokens") as unknown as Translate;
+  const outcomes = useTranslations("gateway.outcomes") as unknown as Translate;
   if (state.refusal) return <InlineAlert tone="danger">{t(`refusals.${state.refusal}`)}</InlineAlert>;
   if (state.outcome) return <InlineAlert tone="danger">{outcomes(state.outcome)}</InlineAlert>;
   return null;

@@ -9,13 +9,17 @@ import { saveAgreementTemplateAction } from "@/app/[org]/opportunities/agreement
 import { useKeepInput } from "@/components/collection-kit/keep-input";
 import type { OpportunityActionState } from "@/lib/opportunities/action-state";
 
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const INITIAL: OpportunityActionState = {};
 const KINDS = ["Agreement", "Statement of Work", "Non-Disclosure Agreement"] as const;
 
 /** An agreement template: name, kind, language, title and body, with a merge field picker and the same check the database runs. */
 export function AgreementTemplateForm({ org, template }: { org: string; template?: AgreementTemplate }) {
-  const t = useTranslations("opportunities.agreementTemplates");
-  const errors = useTranslations("opportunities.errors");
+  const t = useTranslations("opportunities.agreementTemplates") as unknown as Translate;
+  const errors = useTranslations("opportunities.errors") as unknown as Translate;
   const [state, formAction, pending] = useActionState(saveAgreementTemplateAction, INITIAL);
   const keep = useKeepInput(state, formAction, (done) => Boolean(done.ok));
   const [body, setBody] = useState(template?.bodyTemplate ?? "");
@@ -36,14 +40,14 @@ export function AgreementTemplateForm({ org, template }: { org: string; template
       <Select
         name="kind"
         label={t("kind")}
-        defaultValue={template?.kind ?? "Agreement"}
+        value={template?.kind ?? "Agreement"}
         options={KINDS.map((k) => ({ value: k, label: t(`kinds.${k.replace(/[^A-Za-z]/g, "")}`) }))}
       />
       <Select
         name="locale"
         label={t("language")}
         help={t("languageHelp")}
-        defaultValue={template?.locale ?? "en-US"}
+        value={template?.locale ?? "en-US"}
         options={[
           { value: "en-US", label: t("languages.enUS") },
           { value: "es-US", label: t("languages.esUS") },

@@ -250,7 +250,8 @@
       "Signed": "Signed",
       "Superseded": "Superseded",
       "Expired": "Expired",
-      "Canceled": "Canceled"
+      "Canceled": "Canceled",
+      "Executed": "Executed"
     }
   },
   "deletionCertificate": {
@@ -485,27 +486,11 @@
     }
   },
   "engagementDocument": {
-    "title": "Generated agreement",
-    "signature": "Signature",
-    "kind": "Document type",
-    "signedName": "Name as signed",
-    "signedAt": "Signed",
-    "hash": "SHA-256 of the signed text",
-    "statement": "The signer typed their name to sign the exact text below. XOS stored the SHA-256 hash of that text at signing; any change to the text changes the hash.",
     "text": "Agreement text",
     "kinds": {
       "Agreement": "Agreement",
       "StatementofWork": "Statement of work",
       "NonDisclosureAgreement": "Non-disclosure agreement"
-    },
-    "states": {
-      "Proposed": "Proposed",
-      "Sent": "Sent",
-      "Signed": "Signed",
-      "Executed": "Executed",
-      "Expired": "Expired",
-      "Superseded": "Superseded",
-      "Canceled": "Canceled"
     }
   }
 }

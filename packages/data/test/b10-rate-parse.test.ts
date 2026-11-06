@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRate, rateTypeOf } from "../src/import-parse.ts";
+import { parseRate, rateTypeOf } from "../src/import-rate.ts";
 
 const EXPONENTS: Readonly<Record<string, number>> = { USD: 2, EUR: 2, CHF: 2, JPY: 0, MXN: 2 };
 const exponentOf = (code: string) => EXPONENTS[code];

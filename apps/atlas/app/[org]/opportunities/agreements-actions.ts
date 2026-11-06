@@ -4,6 +4,7 @@ import type { DataError } from "@xos/data";
 import * as repo from "@xos/data/engagement-document-batches";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import type { Locale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { errorState, type OpportunityActionState } from "@/lib/opportunities/action-state";
@@ -153,7 +154,10 @@ async function mergedRows(ctx: OrgContext, input: z.infer<typeof generateSchema>
   if (!templates.ok) return templates;
   const template = templates.data.find((x) => x.id === input.templateId);
   if (!template) return { ok: false as const, error: { kind: "not-found" as const } };
-  const labels = await getTranslations({ locale: template.locale, namespace: "opportunities.payBases" });
+  const labels = (await getTranslations({
+    locale: template.locale as Locale,
+    namespace: "opportunities.payBases",
+  })) as unknown as ((key: string) => string) & { has: (key: string) => boolean };
   return repo.previewBatch(ctx.viewer.db, {
     projectId: input.projectId,
     template,

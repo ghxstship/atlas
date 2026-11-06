@@ -347,7 +347,7 @@ async function PoolRecord({
                   key: "status",
                   label: t("pools.invitations.status"),
                   cell: (i: PoolInvitation) => (
-                    <Tag tone={i.status === "Pending" ? "info" : i.status === "Claimed" ? "success" : "neutral"}>
+                    <Tag tone={i.status === "Pending" ? "accent" : i.status === "Claimed" ? "success" : "neutral"}>
                       {t(`pools.invitations.statuses.${enumKey(i.status)}`)}
                     </Tag>
                   ),

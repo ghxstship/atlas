@@ -14,10 +14,10 @@ import {
   type OnboardingItem,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
-import { DocumentActions } from "@/components/documents/document-actions";
 import { RegionError, Section } from "@/components/page/page";
 import { DocumentTextPanel } from "./document-text";
 import {
+  ButtonLink,
   Card,
   EngagementTimeline,
   InlineAlert,

@@ -6,6 +6,10 @@ import { useActionState, useRef, useState, type FormEvent } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import { submitRegistrationAction, type RegistrationState } from "@/lib/actions/registration";
 
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const INITIAL: RegistrationState = {};
 /** At most seven visible fields a step; the work phone comes first and takes one on the first step. */
 const PER_STEP = 7;
@@ -39,8 +43,8 @@ export function RegistrationForm({
   phone: string;
 }) {
   const t = useTranslations("gateway.registration");
-  const refusals = useTranslations("gateway.tokens.refusals");
-  const outcomes = useTranslations("gateway.outcomes");
+  const refusals = useTranslations("gateway.tokens.refusals") as unknown as Translate;
+  const outcomes = useTranslations("gateway.outcomes") as unknown as Translate;
   const [state, formAction, pending] = useActionState(submitRegistrationAction, INITIAL);
   const [step, setStep] = useState(0);
   const [sections, setSections] = useState<string[]>([]);

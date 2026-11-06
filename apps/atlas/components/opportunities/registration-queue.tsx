@@ -9,6 +9,10 @@ import { useKeepInput } from "@/components/collection-kit/keep-input";
 import type { OpportunityActionState } from "@/lib/opportunities/action-state";
 
 type State = OpportunityActionState & { readonly decisions?: readonly DecisionResult[] };
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const INITIAL: State = {};
 
 /**
@@ -16,8 +20,8 @@ const INITIAL: State = {};
  * leave the list after the refresh and a confirmation inside it would never be seen.
  */
 export function RegistrationQueue({ org, rows }: { org: string; rows: readonly RegistrationRow[] }) {
-  const t = useTranslations("opportunities.registrations");
-  const refusals = useTranslations("opportunities.errors.refusal");
+  const t = useTranslations("opportunities.registrations") as unknown as Translate;
+  const refusals = useTranslations("opportunities.errors.refusal") as unknown as Translate;
   const format = useFormatter();
   const [state, formAction, pending] = useActionState(decideRegistrationsAction, INITIAL);
   const keep = useKeepInput(state, formAction, (done) => Boolean(done.ok));

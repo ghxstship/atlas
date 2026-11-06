@@ -15,6 +15,10 @@ import {
 } from "@/app/[org]/crew/access-links/actions";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
 
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const VALIDITY_DAYS = ["1", "3", "7", "14", "30"];
 const INITIAL: IssueState = {};
 
@@ -140,7 +144,7 @@ export function CrewAccessIssue({
   closeHref: string;
 }) {
   const t = useTranslations("crew.crewAccess.issue");
-  const refusals = useTranslations("crew.crewAccess.refusals");
+  const refusals = useTranslations("crew.crewAccess.refusals") as unknown as Translate;
   const [state, formAction, pending] = useActionState(issueCrewAccessLinksAction, INITIAL);
   const keep = useKeepInput(state, formAction, () => false);
   const [project, setProject] = useState(initialProject ?? projects[0]?.id ?? "");
@@ -195,10 +199,13 @@ export function CrewAccessIssue({
       <Select
         name="validFor"
         label={t("validFor")}
-        defaultValue="7"
+        value="7"
         options={VALIDITY_DAYS.map((d) => ({ value: d, label: t("validDays", { days: Number(d) }) }))}
       />
-      <Checkbox name="includeCode" value="true" label={t("includeCode")} help={t("includeCodeHelp")} />
+      <div className="flex flex-col gap-4">
+        <Checkbox name="includeCode" value="true" label={t("includeCode")} />
+        <p className="m-0 text-text-12 text-text-secondary">{t("includeCodeHelp")}</p>
+      </div>
       <div className="flex flex-wrap items-center gap-8">
         <Button type="submit" variant="primary" disabled={pending || picked.length === 0} aria-busy={pending}>
           {t("submit")}

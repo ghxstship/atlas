@@ -11,11 +11,13 @@ import {
   type DocumentTextState,
 } from "@/lib/actions/engagement";
 
+type Translate = (key: string) => string;
+
 const INITIAL: DocumentTextState = {};
 
 function Problem({ state }: { state: DocumentTextState }) {
-  const refusals = useTranslations("gateway.tokens.refusals");
-  const outcomes = useTranslations("gateway.outcomes");
+  const refusals = useTranslations("gateway.tokens.refusals") as unknown as Translate;
+  const outcomes = useTranslations("gateway.outcomes") as unknown as Translate;
   if (state.refusal) return <InlineAlert tone="danger">{refusals(state.refusal)}</InlineAlert>;
   if (state.outcome) return <InlineAlert tone="danger">{outcomes(state.outcome)}</InlineAlert>;
   return null;

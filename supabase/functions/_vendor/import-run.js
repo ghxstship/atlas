@@ -188,14 +188,14 @@ var FIELD_SYNONYMS = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
-  email: ["mail", "emailaddress", "correo", "correoelectronico"],
-  pool_name: ["pool", "crewlist", "list", "grupo", "lista"],
-  invitee_name: ["name", "fullname", "freelancer", "person", "nombre", "nombrecompleto"],
-  work_phone: ["phone", "mobile", "cell", "telephone", "workphone", "telefono", "celular", "movil"],
-  role: ["jobtitle", "position", "title", "puesto", "rol", "cargo"],
-  rate: ["dayrate", "hourlyrate", "standingrate", "pay", "tarifa", "tarifadiaria", "pago"],
-  rate_currency: ["currency", "currencycode", "moneda"],
-  rate_type: ["basis", "ratebasis", "paybasis", "tipodetarifa"],
+  email: ["mail", "emailaddress", "correo"],
+  pool_name: ["pool", "crewlist", "lista"],
+  invitee_name: ["name", "fullname", "nombre"],
+  work_phone: ["phone", "mobile", "cell", "telefono", "celular"],
+  role: ["jobtitle", "position", "puesto", "rol"],
+  rate: ["dayrate", "hourlyrate", "tarifa"],
+  rate_currency: ["currency", "moneda"],
+  rate_type: ["basis", "paybasis"],
 };
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
 function similarField(header, fields) {
@@ -335,145 +335,6 @@ function proposeTarget(sheet, targets, playbookSheets, playbookColumns) {
     targetCode: best?.code ?? null,
     fromPlaybook: false,
   };
-}
-var SEPARATORS = {
-  "comma-dot": {
-    group: ",",
-    decimal: ".",
-  },
-  "dot-comma": {
-    group: ".",
-    decimal: ",",
-  },
-  "space-comma": {
-    group: " ",
-    decimal: ",",
-  },
-  "apostrophe-dot": {
-    group: "'",
-    decimal: ".",
-  },
-};
-var SYMBOLS = {
-  US$: ["USD"],
-  MX$: ["MXN"],
-  CA$: ["CAD"],
-  A$: ["AUD"],
-  "€": ["EUR"],
-  "£": ["GBP"],
-  $: ["USD", "MXN", "CAD", "AUD"],
-  "¥": ["JPY", "CNY"],
-};
-var SUFFIXES = [
-  [/(?:\/\s*(?:hr|hrs|hour|hora)|\bper\s+hour|\bpor\s+hora)\s*$/i, "Hourly"],
-  [/(?:\/\s*(?:day|d[ií]a)|\bper\s+day|\bpor\s+d[ií]a)\s*$/i, "Day"],
-  [/\b(?:flat|fijo)\s*$/i, "Flat"],
-];
-var MAX_MINOR = 0xe8d4a51000;
-/**
- * Reads a rate cell in the import's number format: an amount with an optional currency (an ISO code or one of $, US$,
- * MX$, CA$, A$, €, £, ¥, before or after it) and an optional rate type suffix in English or Spanish. A bare $ or ¥ is
- * the org's base currency when that currency uses the symbol, else the rate says rate_currency_required. Without a
- * currency in the cell, `columnCurrency` then `baseCurrency` answer. Fraction digits never exceed the currency's
- * exponent, a negative amount is refused, and the amount stays at or under 10^12 minor units.
- */
-function parseRate(input, numberFormat, exponentOf, baseCurrency, columnCurrency = null) {
-  let text = input
-    .replace(/[\u00a0\u202f]/g, " ")
-    .replace(/\u2019/g, "'")
-    .trim();
-  let basis = null;
-  for (const [pattern, value] of SUFFIXES)
-    if (pattern.test(text)) {
-      basis = value;
-      text = text.replace(pattern, "").trim();
-      break;
-    }
-  let currency = null;
-  const code = /(?:^|\s)([A-Za-z]{3})$|^([A-Za-z]{3})(?:\s|(?=[\d-]))/.exec(text);
-  if (code) {
-    currency = (code[1] ?? code[2] ?? "").toUpperCase();
-    text = text.replace(code[0], " ").trim();
-  } else
-    for (const symbol of ["US$", "MX$", "CA$", "A$", "€", "£", "$", "¥"])
-      if (text.startsWith(symbol) || text.endsWith(symbol)) {
-        const known = SYMBOLS[symbol] ?? [];
-        text = (
-          text.startsWith(symbol) ? text.slice(symbol.length) : text.slice(0, -symbol.length)
-        ).trim();
-        if (known.length === 1) currency = known[0] ?? null;
-        else if (baseCurrency && known.includes(baseCurrency)) currency = baseCurrency;
-        else
-          return {
-            ok: false,
-            issue: "rate_currency_required",
-          };
-        break;
-      }
-  currency ??= columnCurrency?.trim().toUpperCase() || baseCurrency;
-  if (!currency)
-    return {
-      ok: false,
-      issue: "rate_currency_required",
-    };
-  const exponent = exponentOf(currency);
-  if (exponent === null || exponent === void 0)
-    return {
-      ok: false,
-      issue: "invalid_rate",
-    };
-  const { group, decimal } = SEPARATORS[numberFormat];
-  if (text.startsWith("-") || text === "")
-    return {
-      ok: false,
-      issue: "invalid_rate",
-    };
-  const shape = new RegExp(
-    `^(\\d{1,3}(?:${group === "." ? "\\." : group}\\d{3})+|\\d+)(?:${decimal === "." ? "\\." : decimal}(\\d+))?$`,
-  ).exec(text);
-  if (!shape)
-    return {
-      ok: false,
-      issue: "invalid_rate",
-    };
-  const whole = (shape[1] ?? "").split(group).join("");
-  const fraction = shape[2] ?? "";
-  if (fraction.length > exponent)
-    return {
-      ok: false,
-      issue: "invalid_rate",
-    };
-  const minor = Number(whole) * 10 ** exponent + Number(fraction.padEnd(exponent, "0") || "0");
-  if (!Number.isSafeInteger(minor) || minor > MAX_MINOR)
-    return {
-      ok: false,
-      issue: "invalid_rate",
-    };
-  return {
-    ok: true,
-    minor,
-    currency,
-    basis,
-  };
-}
-var RATE_TYPE_WORDS = {
-  hourly: "Hourly",
-  hour: "Hourly",
-  hr: "Hourly",
-  hora: "Hourly",
-  "por hora": "Hourly",
-  day: "Day",
-  daily: "Day",
-  dia: "Day",
-  día: "Day",
-  "por dia": "Day",
-  "por día": "Day",
-  flat: "Flat",
-  fijo: "Flat",
-};
-/** The rate type a rate_type cell names, in English or Spanish, or null. */
-function rateTypeOf(cell) {
-  return RATE_TYPE_WORDS[cell.trim().toLowerCase()] ?? null;
 }
 //#endregion
 //#region ../data/src/import-sheets.ts
@@ -619,32 +480,17 @@ async function readGoogleSheet(fetchImpl, token, link) {
 //#endregion
 //#region ../data/src/import-worker.ts
 /**
- * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
- * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
- *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
- *     the import Mapped for the person to confirm
- *   * validate: checks every row against the target (required fields, canon values, references by name),
- *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
- *     to the fuzzy match (0.85, merge review), and marks the import Validated
- *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
- *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
- *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
- *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
- * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
- * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
- * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
- * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
- * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
- * database queues detection on the Clean verdict, and every step checks again before reading.
- * When validation or a commit finishes, the person who started or committed the import is sent import.finished
- * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
- * Cues and guest list entries (P3, 2800 to 2802) import into the running order or project the import names: every
- * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
- * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview.
- * Pool invitations (B10, 2996) invite an address into a Talent pool and never write a person or a profile: the strong key
- * is the email inside the row's pool, a pending match is updated with no new email, an expired match is reissued, and a
- * decided Merged review skips the row. The phone library loads only when a phone column is mapped.
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's report.run worker:
+ *   * detect: records a spreadsheet's sheets and columns with suggestions (a saved profile, the Playbook column map, header
+ *     similarity), and marks the import Mapped for the person to confirm
+ *   * validate: checks every row against the target, records row states and per-cell issues, matches strong keys exactly,
+ *     sends name plus address to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened, recorded with the batch id
+ *   * fetch (A83): saves a Google Sheets link to the imports bucket through the org's Drive connection, to be scanned
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed. A spreadsheet is parsed
+ * only once its virus scan is Clean (owner decision 10, migration 1240). A finished step sends import.finished (A104, 2051).
+ * Cues and guest list entries (P3, 2800 to 2802) stay inside the running order or project the import names, and a row that
+ * repeats an earlier row is Invalid. Pool invitations (B10) load import-pool-target.ts, only for that target.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
@@ -715,7 +561,6 @@ var UnreadableUploadError = class extends Error {
 };
 var INTEGER = /^-?\d+$/;
 var CURRENCY = /^[A-Z]{3}$/;
-var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isTimeZone(zone) {
   try {
@@ -868,58 +713,16 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       break;
     }
     case "pool_invitations": {
-      const pools = destination.pools;
-      const email = text("email").trim().toLowerCase();
-      if (email) {
-        if (EMAIL.test(email) && email.length <= 320) values["email"] = email;
-        else
-          issues.push({
-            columnIndex: columnOf("email"),
-            issue: "invalid_email",
-          });
-      }
-      const poolName = text("pool_name").trim();
-      if (poolName) {
-        const pool = await lookups.talentPoolIdByName(orgId, poolName);
-        if (pool) values["talent_pool_id"] = pool;
-        else
-          issues.push({
-            columnIndex: columnOf("pool_name"),
-            issue: "unknown_pool",
-          });
-      } else if (pools?.talentPoolId) values["talent_pool_id"] = pools.talentPoolId;
-      else
-        issues.push({
-          columnIndex: columnOf("pool_name"),
-          issue: "pool_required",
-        });
-      const name = text("invitee_name").trim();
-      if (name.length > 200)
-        issues.push({
-          columnIndex: columnOf("invitee_name"),
-          issue: "too_long",
-        });
-      else if (name) values["invitee_name"] = name;
-      const note = text("note").trim();
-      if (note.length > 1e3)
-        issues.push({
-          columnIndex: columnOf("note"),
-          issue: "too_long",
-        });
-      else if (note) values["note"] = note;
-      const phone = text("work_phone").trim();
-      if (phone) {
-        const { regionFromLocale, toE164 } = await import("./chunks/i18n-formats-phone.js");
-        const e164 = toE164(phone, pools?.language ? regionFromLocale(pools.language) : null);
-        if (e164) values["work_phone"] = e164;
-        else
-          issues.push({
-            columnIndex: columnOf("work_phone"),
-            issue: "invalid_phone",
-          });
-      }
-      await set("role", (v) => lookups.roleCode(v), "unknown_role", "role_code");
-      checkPoolRate(raw, columnOf, pools, values, issues);
+      const { checkPoolInvitationRow } = await import("./chunks/data-import-pool-target.js");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
       break;
     }
     default:
@@ -961,61 +764,7 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         : null,
   };
 }
-/** A row's standing rate from the rate, rate_currency and rate_type cells, through the import's number format. */
-function checkPoolRate(raw, columnOf, pools, values, issues) {
-  const rate = raw["rate"]?.value.trim() ?? "";
-  if (!rate) return;
-  const column = columnOf("rate");
-  if (!pools?.canWriteRates) {
-    issues.push({
-      columnIndex: column,
-      issue: "rate_not_permitted",
-    });
-    return;
-  }
-  const parsed = parseRate(
-    rate,
-    pools.numberFormat,
-    (code) => pools.exponents.get(code),
-    pools.baseCurrency,
-    raw["rate_currency"]?.value ?? null,
-  );
-  if (!parsed.ok) {
-    issues.push({
-      columnIndex: column,
-      issue: parsed.issue,
-    });
-    return;
-  }
-  const cell = raw["rate_type"]?.value.trim() ?? "";
-  const named = cell ? rateTypeOf(cell) : null;
-  if (cell && named === null) {
-    issues.push({
-      columnIndex: columnOf("rate_type"),
-      issue: "rate_type_required",
-    });
-    return;
-  }
-  if (parsed.basis && named && parsed.basis !== named) {
-    issues.push({
-      columnIndex: column,
-      issue: "rate_type_conflict",
-    });
-    return;
-  }
-  const basis = parsed.basis ?? named;
-  if (basis === null) {
-    issues.push({
-      columnIndex: column,
-      issue: "rate_type_required",
-    });
-    return;
-  }
-  values["rate_minor"] = parsed.minor;
-  values["currency_code"] = parsed.currency;
-  values["rate_type"] = basis;
-}
-/** Targets matched through app.import_strong_key_match, by the keys of their checked values (P3, B10). */
+/** Targets matched through app.import_strong_key_match (P3, B10). */
 var DESTINATION_TARGETS = /* @__PURE__ */ new Set([
   "cues",
   "guest_list_entries",
@@ -1073,7 +822,7 @@ var DUPLICATE_COLUMN_FIELD = {
 };
 /**
  * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
- * position, or its label and time without one; a guest's name and show; a pool invitation's email and pool. Run over the whole sheet, in validation and
+ * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
  * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
  */
 function markInFileDuplicates(targetCode, columns, checked) {
@@ -1361,13 +1110,16 @@ async function commit(store, batchId, options) {
       continue;
     }
     try {
-      if (job.targetCode === "pool_invitations" && valid.mergeInto) {
-        await store.skipRow(valid.id, "Already invited or in a pool: merged in review.");
-        continue;
-      }
       const target = valid.mergeInto?.id ?? valid.matchedId;
       if (job.targetCode === "pool_invitations" && target) {
-        await updatePoolInvitation(store, batchId, valid.id, target, checked.values);
+        const { commitPoolMatch } = await import("./chunks/data-import-pool-target.js");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
         continue;
       }
       if (target) {
@@ -1403,41 +1155,6 @@ async function commit(store, batchId, options) {
   await store.finishBatch(batchId);
   return notifyFinished(store, job, batchId, options);
 }
-/**
- * A pool invitation row that matched a pending invitation: its fields are updated with no new email, and an expired one
- * is reissued, which queues the email. The rate is set only when the invitation has none: the update's before image is
- * readable by every pool writer, so a rate that is already there never reaches it, and the row result says so.
- */
-async function updatePoolInvitation(store, batchId, rowId, target, values) {
-  const existing = await store.lookups.poolInvitation(target);
-  if (existing === null) throw new ImportWriteError("The invitation to update no longer exists.");
-  const {
-    rate_minor: rate,
-    rate_type: basis,
-    currency_code: currency,
-    ...rest
-  } = updateChanges("pool_invitations", values);
-  const changes = { ...rest };
-  const keptRate = existing.hasRate && rate !== void 0;
-  if (!existing.hasRate && rate !== void 0) {
-    changes["rate_minor"] = rate;
-    changes["rate_type"] = basis;
-    changes["currency_code"] = currency;
-  }
-  if (new Date(existing.expiresAt).getTime() <= Date.now())
-    changes["expires_at"] = new Date(Date.now() + POOL_INVITATION_DAYS * 864e5).toISOString();
-  const before = await store.lookups.update("pool_invitations", target, changes);
-  await store.commitWrite({
-    rowId,
-    batchId,
-    targetId: target,
-    action: "Updated",
-    before,
-  });
-  if (keptRate) await store.noteRow(rowId, "pool_rate_kept");
-}
-/** How long a reissued pool invitation stays open: the default of app.invite_to_talent_pool. */
-var POOL_INVITATION_DAYS = 30;
 /**
  * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
  * a guest keeps its project, name and show, so a merge never moves a guest to another night.
@@ -1573,6 +1290,17 @@ function supabaseImportStore(client) {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId, values) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./chunks/data-import-pool-target.js")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   return {
     lookups: {
       async counterpartyTypeExists(type) {
@@ -1793,72 +1521,10 @@ function supabaseImportStore(client) {
           ] === "string"
         );
       },
-      async talentPoolIdByName(orgId, name) {
-        const { data, error } = await app
-          .from("talent_pools")
-          .select("id, name")
-          .eq("org_id", orgId)
-          .eq("pool_kind", "Talent")
-          .is("deleted_at", null);
-        if (error) throw new Error(`talent_pools: ${error.message}`);
-        return onlyMatch(data ?? [], name, "name");
-      },
-      async roleCode(codeOrTitle) {
-        const wanted = codeOrTitle.trim();
-        const byCode = await one(
-          canon.from("role").select("role_code").eq("role_code", wanted).limit(1),
-          "role",
-        );
-        if (byCode) return text(byCode, "role_code");
-        const { data, error } = await canon
-          .from("role")
-          .select("role_code, job_title")
-          .ilike("job_title", wanted.replace(/[%_\\]/g, "\\$&"));
-        if (error) throw new Error(`role: ${error.message}`);
-        const rows = data ?? [];
-        return rows.length === 1 ? text(rows[0], "role_code") : null;
-      },
-      async poolInvitationContext(job) {
-        const [can, defaults, currencies] = await Promise.all([
-          call("import_job_can_write_rates", { p_import_job_id: job.id }),
-          call("import_job_org_defaults", { p_import_job_id: job.id }),
-          app.from("currencies").select("currency_code, minor_unit_exponent"),
-        ]);
-        if (currencies.error) throw new Error(`currencies: ${currencies.error.message}`);
-        const org = (defaults ?? [])[0];
-        return {
-          talentPoolId: job.talentPoolId ?? null,
-          numberFormat: job.numberFormat ?? "comma-dot",
-          canWriteRates: can === true,
-          language: typeof org?.["language"] === "string" ? org["language"] : null,
-          baseCurrency: typeof org?.["base_currency"] === "string" ? org["base_currency"] : null,
-          exponents: new Map(
-            (currencies.data ?? []).map((c) => [
-              text(c, "currency_code").trim(),
-              Number(c["minor_unit_exponent"]),
-            ]),
-          ),
-        };
-      },
-      async poolInvitation(id) {
-        const row = await one(
-          app
-            .from("talent_pool_invitations")
-            .select("expires_at, rate_minor")
-            .eq("id", id)
-            .is("claimed_at", null)
-            .is("declined_at", null)
-            .is("revoked_at", null)
-            .is("deleted_at", null),
-          "talent_pool_invitations",
-        );
-        return row
-          ? {
-              expiresAt: text(row, "expires_at"),
-              hasRate: row["rate_minor"] !== null,
-            }
-          : null;
-      },
+      talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+      roleCode: async (v) => (await poolStore()).roleCode(v),
+      poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+      poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -2217,24 +1883,12 @@ function supabaseImportStore(client) {
         "import_row_results",
       );
     },
-    async skipRow(rowId, reason) {
-      await exec(
-        app
-          .from("import_row_results")
-          .update({
-            row_state: "Skipped",
-            reason,
-          })
-          .eq("id", rowId),
-        "import_row_results",
-      );
-    },
-    async noteRow(rowId, reason) {
-      await exec(
-        app.from("import_row_results").update({ reason }).eq("id", rowId),
-        "import_row_results",
-      );
-    },
+    skipRow: (rowId, reason) =>
+      setRow(rowId, {
+        row_state: "Skipped",
+        reason,
+      }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
     },

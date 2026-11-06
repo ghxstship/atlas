@@ -155,7 +155,7 @@ describe("validating a pool invitation row (B10)", () => {
 function world(csv: string, existing: Parameters<typeof lookups>[1] = {}, merges: Readonly<Record<number, string>> = {}) {
   const writes: Row[] = [];
   const rows: { id: string; rowNumber: number; state: string; reason: string | null; match: string | null; written?: Row }[] = [];
-  const job: ImportJobRecord = {
+  const job: { -readonly [K in keyof ImportJobRecord]: ImportJobRecord[K] } = {
     id: "j1",
     orgId: "org",
     targetCode: "pool_invitations",

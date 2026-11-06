@@ -134,7 +134,7 @@ function PoolInvitationFields({
         name="numberFormat"
         label={t("imports.numberFormat.label")}
         help={t("imports.numberFormat.help")}
-        defaultValue="comma-dot"
+        value="comma-dot"
         options={NUMBER_FORMATS.map((f) => ({ value: f, label: t(`imports.numberFormat.${f}`) }))}
       />
       <Select

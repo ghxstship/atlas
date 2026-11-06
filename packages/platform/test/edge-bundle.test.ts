@@ -118,10 +118,12 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "search-embed": 24,
   // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
   // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
-  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom.
-  "sms-webhook": 152,
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. B10 (2999): the
+  // crew registration and agreement kinds in both locales took it to 152.9 KB on 2026-11-06, with 1 KB of headroom.
+  "sms-webhook": 154,
   "stripe-webhook": 84,
-  "subprocessor-notices": 115,
+  // B10: the party invitation of kind pool, with its copy in both locales, took it to 115.6 KB on 2026-11-06.
+  "subprocessor-notices": 117,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
   "wallet-pass": 120,

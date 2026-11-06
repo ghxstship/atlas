@@ -3,7 +3,8 @@
 import type { Result } from "@xos/data";
 import * as repo from "@xos/data/opportunities";
 import { orgBaseCurrency } from "@xos/data/home";
-import { parseRate, NUMBER_FORMATS } from "@xos/data/import-parse";
+import { NUMBER_FORMATS } from "@xos/data/import-parse";
+import { parseRate } from "@xos/data/import-rate";
 import { applyQuestionTemplate } from "@xos/data/opportunity-templates";
 import * as invitations from "@xos/data/pool-invitations";
 import { regionFromLocale, toE164 } from "@xos/i18n/phone";

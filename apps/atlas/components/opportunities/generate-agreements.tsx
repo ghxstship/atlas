@@ -12,6 +12,10 @@ import {
 } from "@/app/[org]/opportunities/agreements-actions";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
 
+type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
+  has: (key: string) => boolean;
+};
+
 const INITIAL: PreviewState = {};
 
 /**
@@ -34,9 +38,11 @@ export function GenerateAgreements({
   people: readonly BatchPerson[];
   canReadRates: boolean;
 }) {
-  const t = useTranslations("opportunities.agreementBatches");
-  const fieldNames = useTranslations("opportunities.agreementTemplates.fieldNames");
-  const refusals = useTranslations("opportunities.errors.refusal");
+  const t = useTranslations("opportunities.agreementBatches") as unknown as Translate;
+  const fieldNames = useTranslations(
+    "opportunities.agreementTemplates.fieldNames",
+  ) as unknown as Translate;
+  const refusals = useTranslations("opportunities.errors.refusal") as unknown as Translate;
   const [preview, previewAction, previewing] = useActionState(previewAgreementBatchAction, INITIAL);
   const [created, createAction, creating] = useActionState(createAgreementBatchAction, INITIAL);
   const [sent, sendAction, sending] = useActionState(sendGeneratedBatchAction, INITIAL);

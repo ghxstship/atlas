@@ -853,17 +853,17 @@ export const TEMPLATES: TemplateRegistry = {
         blocks: [
           {
             kind: "fields",
-            caption: t("engagementDocument.signature"),
+            caption: t("agreementCertificate.signature"),
             fields: [
-              field(t("engagementDocument.kind"), t(`engagementDocument.kinds.${keyOf(document.kind)}`)),
+              field(t("agreementCertificate.kind"), t(`engagementDocument.kinds.${keyOf(document.kind)}`)),
               field(t("common.project"), project ? projectLabel(project) : t("common.none")),
-              field(t("common.state"), t(`engagementDocument.states.${keyOf(document.state)}`)),
-              field(t("engagementDocument.signedName"), document.signedName ?? t("common.none")),
-              field(t("engagementDocument.signedAt"), f.dateTime(document.signedAt)),
-              field(t("engagementDocument.hash"), document.sha256 ?? t("common.none")),
+              field(t("common.state"), t(`agreementCertificate.states.${keyOf(document.state)}`)),
+              field(t("agreementCertificate.signedName"), document.signedName ?? t("common.none")),
+              field(t("agreementCertificate.signedAt"), f.dateTime(document.signedAt)),
+              field(t("agreementCertificate.hash"), document.sha256 ?? t("common.none")),
             ],
           },
-          { kind: "paragraph", text: t("engagementDocument.statement") },
+          { kind: "paragraph", text: t("agreementCertificate.statement") },
           { kind: "heading", text: t("engagementDocument.text") },
           ...document.body
             .split(/\n{2,}/)
