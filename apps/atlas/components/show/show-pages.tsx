@@ -23,7 +23,6 @@ import {
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
 import { getFormatter } from "next-intl/server";
-import { formatCustomFieldValue } from "@/components/custom-fields/format";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
@@ -36,13 +35,15 @@ import {
   type RecordMeta,
   type SearchParams,
 } from "@/components/work/load";
+import { people } from "@/lib/custom-fields/server";
 import { engagementOptions } from "@/lib/people/project-people";
+import { cueFieldChips, type CueFieldChip } from "@/lib/show/cue-field-chips";
 import type { OrgContext } from "@/lib/shell/context";
 import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
-import { CreateRunDialog, RunBody, RunCollection, RunPeek, type CueFieldChip } from "./runs";
+import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { DisplayScreensAction } from "./display-screens-action";
@@ -89,55 +90,43 @@ const UUID = /^[0-9a-f-]{36}$/;
 
 /**
  * The Crew-audience custom values of a running order's cues, as chips (B3, ADR 0142). Crew is presentation only:
- * the values are the ones the viewer's own access reads; a choice keeps its color.
+ * the values are the ones the viewer's own access reads; a choice keeps its color and a person shows by name. Also says
+ * whether the org has any live cue field, in any audience: a Client-only field must still be fillable in the editor.
  */
 async function crewChips(
   ctx: OrgContext,
   cues: readonly Cue[],
   timeZone: string,
-): Promise<Record<string, CueFieldChip[]>> {
+): Promise<{ chips: Record<string, CueFieldChip[]>; hasCueFields: boolean }> {
   const db = ctx.viewer.db;
   const [definitions, audiences] = await Promise.all([
     listCustomFieldDefinitions(db, ctx.org.id, "app.cues"),
     listCueFieldAudiences(db, ctx.org.id),
   ]);
-  if (!definitions.ok || !audiences.ok) return {};
+  const hasCueFields = definitions.ok && definitions.data.length > 0;
+  if (!definitions.ok || !audiences.ok) return { chips: {}, hasCueFields };
   const crew = definitions.data.filter((f) => audiences.data.get(f.id)?.includes("Crew"));
-  if (crew.length === 0 || cues.length === 0) return {};
-  const values = await listCustomFieldValues(
-    db,
-    crew,
-    cues.map((c) => c.id),
-  );
-  if (!values.ok) return {};
+  if (crew.length === 0 || cues.length === 0) return { chips: {}, hasCueFields };
+  const [values, members] = await Promise.all([
+    listCustomFieldValues(
+      db,
+      crew,
+      cues.map((c) => c.id),
+    ),
+    crew.some((f) => f.dataType === "Person") ? people(ctx) : Promise.resolve([]),
+  ]);
+  if (!values.ok) return { chips: {}, hasCueFields };
   const t = await getTranslate();
   const format = await getFormatter();
-  const context = {
+  const chips = cueFieldChips(crew, values.data, {
     format,
     yes: t("platform.customFields.yes"),
     no: t("platform.customFields.no"),
     someone: t("platform.customFields.someone"),
-    people: {},
+    people: Object.fromEntries(members.map((p) => [p.id, p.name])),
     timeZone,
-  };
-  const out: Record<string, CueFieldChip[]> = {};
-  for (const [cueId, byKey] of values.data) {
-    out[cueId] = crew.flatMap((field) => {
-      const value = byKey[field.key];
-      if (!value) return [];
-      const choice =
-        value.type === "Choice" ? field.choices.find((c) => c.id === value.choiceId) : undefined;
-      return [
-        {
-          key: field.key,
-          label: field.label,
-          text: formatCustomFieldValue(field, value, context),
-          colorKey: (choice?.colorKey ?? null) as SegmentColor | null,
-        },
-      ];
-    });
-  }
-  return out;
+  });
+  return { chips, hasCueFields };
 }
 
 /** Show > Run of show, and the project Show tab. */
@@ -182,7 +171,7 @@ export async function RunsPage({
     ]);
     if (run.ok) {
       const cueList = must(cues, "cues");
-      const chips = await crewChips(ctx, cueList, run.data.timeZone);
+      const { chips, hasCueFields } = await crewChips(ctx, cueList, run.data.timeZone);
       const live = param(search, "live") === "1";
       const canEdit = caps.has("show.run_of_show.write");
       // Set for: the run's project's Artist engagements (R1), only where the viewer edits cues.
@@ -211,6 +200,7 @@ export async function RunsPage({
             })}
             segmentColors={colors.ok ? Object.fromEntries(colors.data) : {}}
             fieldChips={chips}
+            hasCueFields={hasCueFields}
             // The show channel sits beside the running cue for every member following live mode.
             channelProjectId={live ? run.data.projectId : null}
           >
@@ -227,7 +217,12 @@ export async function RunsPage({
                   {canEdit && caps.has("show.cue.call") ? (
                     <ShowcallerLinksAction
                       org={ctx.org.slug}
-                      run={{ id: run.data.id, name: run.data.name, showDate: run.data.showDate }}
+                      run={{
+                        id: run.data.id,
+                        name: run.data.name,
+                        showDate: run.data.showDate,
+                        timeZone: run.data.timeZone,
+                      }}
                     />
                   ) : null}
                 </span>

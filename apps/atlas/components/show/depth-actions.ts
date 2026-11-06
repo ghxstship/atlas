@@ -17,7 +17,13 @@ import {
   type PublishResult,
   type SegmentCopy,
 } from "@xos/data/segment-library";
-import { CUE_CALL_KINDS, isSegmentColor, setSegmentColor, type SegmentColor } from "@xos/data/show";
+import {
+  CUE_CALL_KINDS,
+  getRunOfShow,
+  isSegmentColor,
+  setSegmentColor,
+  type SegmentColor,
+} from "@xos/data/show";
 import {
   joinShowChannel,
   openShowChannel,
@@ -359,10 +365,17 @@ export async function createShowcallerLinkAction(
     })
     .safeParse(input);
   if (!parsed.success) return invalid("callerName");
+  // A chosen day ends in the project's zone, read here and never taken from the client.
+  let expiresAt: string | null = null;
+  if (parsed.data.expiresOn !== "") {
+    const run = await getRunOfShow(ctx.viewer.db, parsed.data.runId);
+    if (!run.ok) return failed(run.error);
+    expiresAt = showcallerExpiryFor(parsed.data.expiresOn, run.data.timeZone);
+  }
   const result = await createShowcallerLink(ctx.viewer.db, {
     runOfShowId: parsed.data.runId,
     callerName: parsed.data.callerName,
-    expiresAt: parsed.data.expiresOn === "" ? null : showcallerExpiryFor(parsed.data.expiresOn),
+    expiresAt,
     note: parsed.data.note === "" ? null : parsed.data.note,
   });
   if (!result.ok) return failed(result.error);

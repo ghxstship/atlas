@@ -514,7 +514,26 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "caller_name": "Quien llama el show",
+      "token_hint": "El token termina en",
+      "expires_at": "Vence",
+      "failed_attempts": "Intentos de firma fallidos",
+      "open_count": "Veces abierto",
+      "last_opened_at": "Última apertura",
+      "rotated_at": "Regenerado",
+      "show_channel": "Canal del show",
+      "script": "Guion hablado",
+      "segment": "Segmento",
+      "color_key": "Color",
+      "position": "Posición",
+      "duration": "Duración",
+      "call_kind": "Departamento",
+      "instruction": "Instrucción",
+      "library_version": "Versión de la biblioteca",
+      "audience": "Audiencia",
+      "start_tbc": "Hora por confirmar",
+      "standby_at": "En espera desde"
     }
   },
   "liveLink": {

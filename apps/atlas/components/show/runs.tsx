@@ -10,6 +10,7 @@ import {
   type CueEngagement,
   type CueProgress,
   type RunOfShow,
+  segmentKey,
   type SegmentColor,
 } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
@@ -46,6 +47,7 @@ import {
   withQuery,
 } from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
+import type { CueFieldChip } from "@/lib/show/cue-field-chips";
 import {
   addCueAction,
   createRunAction,
@@ -56,32 +58,19 @@ import {
   unlinkCueAction,
   updateRunAction,
 } from "./actions";
+import { ShowChannelPanel } from "./show-channel-panel";
 import { showChannelComposerId } from "./show-channel-ids";
+import { ShowcallerConsole } from "./showcaller-console";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 
-// The showcaller console and the inline cue editor load when opened, so the route keeps its weight.
-const ShowcallerConsole = dynamic(() =>
-  import("./showcaller-console").then((m) => m.ShowcallerConsole),
-);
+// The cue editor and the two dialogs mount only after a click, so they load when opened and the route keeps its weight.
 const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
 const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
-// B3 (ADR 0142): the show channel beside the running cue and the segment insert dialog load when used.
-const ShowChannelPanel = dynamic(() =>
-  import("./show-channel-panel").then((m) => m.ShowChannelPanel),
-);
 const InsertSegmentDialog = dynamic(() =>
   import("./segment-insert-dialog").then((m) => m.InsertSegmentDialog),
 );
-
-/** A cue's custom field chip in the running order: a Crew-audience field and its value (ADR 0142). */
-export interface CueFieldChip {
-  readonly key: string;
-  readonly label: string;
-  readonly text: string;
-  readonly colorKey: SegmentColor | null;
-}
 
 /** A segment's name, with its color as the Tag's swatch when the running order gives it one. */
 function SegmentMark({ segment, color }: { segment: string; color: SegmentColor | null }) {
@@ -107,9 +96,9 @@ function FieldChips({ chips }: { chips: readonly CueFieldChip[] | undefined }) {
   );
 }
 
-/** The segment's key as the database matches it: case and outer spaces ignored. */
+/** The cue's segment as the database matches it. */
 function segmentOf(cue: Cue | undefined): string {
-  return (cue?.segment ?? "").trim().toLowerCase();
+  return segmentKey(cue?.segment ?? null);
 }
 
 /**
@@ -641,6 +630,7 @@ export function RunBody({
   importHref = null,
   segmentColors = {},
   fieldChips = {},
+  hasCueFields = false,
   channelProjectId = null,
   children,
 }: {
@@ -665,6 +655,8 @@ export function RunBody({
   segmentColors?: Readonly<Record<string, SegmentColor>>;
   /** Crew-audience custom values by cue id, as chips (ADR 0142). */
   fieldChips?: Readonly<Record<string, readonly CueFieldChip[]>>;
+  /** Whether the org has any live cue field, in any audience, so the cue editor shows its Fields tab. */
+  hasCueFields?: boolean;
   /** The project whose show channel sits beside the running cue in live mode; null hides the panel. */
   channelProjectId?: string | null;
   children?: ReactNode;
@@ -689,6 +681,8 @@ export function RunBody({
   const [editing, setEditing] = useState<string | null>(null);
   const [moving, setMoving] = useState<Cue | null>(null);
   const [inserting, setInserting] = useState(false);
+  // While a cue is edited the peek shows only the list and the editor: a dialog is one screen of at most seven fields.
+  const editingCue = editing !== null;
   const colorOf = (cue: Cue | undefined): SegmentColor | null =>
     segmentColors[segmentOf(cue)] ?? null;
   const calledText = (c: Cue) =>
@@ -807,7 +801,7 @@ export function RunBody({
     // scope region: the show keys answer only in the console, which hands show.chat (M) to the channel's message box,
     // so a key pressed on the channel (Space on its buttons, J in its messages) never calls or stands by a cue.
     return (
-      <div className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+      <div className="grid gap-24 lg:grid-cols-[minmax(0,1fr)_var(--layout-property-column)]">
         {running}
         <ShowChannelPanel org={org} projectId={channelProjectId} />
       </div>
@@ -872,7 +866,9 @@ export function RunBody({
           />
         ) : null}
         <ActionErrorAlert error={cueAction.error} />
-        {cues.length > 0 ? <DepartmentFilter runId={runOfShow.id} department={department} /> : null}
+        {cues.length > 0 && !editingCue ? (
+          <DepartmentFilter runId={runOfShow.id} department={department} />
+        ) : null}
         {cues.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">
             {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
@@ -894,7 +890,8 @@ export function RunBody({
                       run={runOfShow}
                       cue={c}
                       calls={own}
-                      segmentColor={colorOf(c)}
+                      segmentColors={segmentColors}
+                      hasCueFields={hasCueFields}
                       onClose={() => setEditing(null)}
                     />
                   </li>
@@ -949,7 +946,7 @@ export function RunBody({
                     <CallLines calls={own} department={department} />
                   </span>
                   <span className="flex items-center gap-4">
-                    {canEdit ? (
+                    {canEdit && !editingCue ? (
                       <SetFor
                         org={org}
                         cue={c}
@@ -1012,7 +1009,7 @@ export function RunBody({
           />
         ) : null}
         {rowMenu.menu}
-        {canEdit ? (
+        {canEdit && !editingCue ? (
           <form
             className="flex flex-wrap items-end gap-8"
             onSubmit={(e) => {
@@ -1073,7 +1070,7 @@ export function RunBody({
         ) : null}
       </section>
 
-      {canEdit ? (
+      {canEdit && !editingCue ? (
         <form
           aria-label={t("runs.rename")}
           className="flex flex-wrap items-end gap-8"
@@ -1148,7 +1145,7 @@ export function RunBody({
           ) : null}
         </form>
       ) : null}
-      {children}
+      {editingCue ? null : children}
     </div>
   );
 }

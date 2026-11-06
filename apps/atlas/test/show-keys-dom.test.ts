@@ -42,6 +42,11 @@ vi.mock("@/components/show/depth-actions", () => ({
   joinShowChannelAction: panel.join,
   sendShowChannelMessageAction: panel.send,
 }));
+const portal = vi.hoisted(() => ({
+  write: vi.fn(async () => ({ ok: true as const })),
+}));
+vi.mock("@/lib/showcaller/actions", () => ({ portalWriteAction: portal.write }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => undefined }) }));
 // The console's own server actions; every test gives it a transport instead.
 vi.mock("@/components/show/actions", () => ({
   callCueAction: vi.fn(),
@@ -85,6 +90,7 @@ Element.prototype.getClientRects = function getClientRects() {
 const { ShowcallerConsole } = await import("@/components/show/showcaller-console");
 const { ShowChannelPanel } = await import("@/components/show/show-channel-panel");
 const { showChannelComposerId } = await import("@/components/show/show-channel-ids");
+const { ShowcallerPortal } = await import("@/components/show/showcaller-portal");
 const { ShellKeysContext } = await import("@/components/shell/shell-keys-context");
 const { installShellKeys } = await import("@/components/shell/key-dispatch");
 const { buildShellKeys } = await import("@/lib/shell/shell-keys");
@@ -373,5 +379,93 @@ describe("the show channel panel", () => {
     act(() => state.live?.());
     await screen.findByText("Lights to half on my go");
     expect(panel.load).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the portal's cue editor", () => {
+  const cueRow = {
+    position: 1,
+    segment: null,
+    segmentColor: null,
+    plannedAt: null,
+    startTbc: false,
+    durationSeconds: null,
+    calledAt: null,
+    calledViaLink: false,
+    setTime: false,
+    standbyAt: null,
+    description: null,
+    script: null,
+    updatedAt: "2027-03-13T18:00:00Z",
+    calls: [],
+    fields: [],
+  };
+  const portalRun = {
+    refused: false as const,
+    channel: null,
+    serverNow: "2027-03-13T18:00:00Z",
+    meta: {
+      projectName: "Summer Headline Weekend",
+      timeZone: "America/New_York",
+      brandName: "Northwind Live",
+      brandLogoLightPath: null,
+      brandLogoDarkPath: null,
+      brandAccentHex: null,
+      suppressPoweredBy: false,
+      callerName: "Sam Okafor",
+      expiresAt: "2027-03-14T18:00:00Z",
+      grantExpiresAt: "2027-03-14T18:00:00Z",
+      name: "Opening Night Running Order",
+      showDate: "2027-03-13",
+      stage: null,
+      curfewAt: null,
+    },
+    cues: [
+      { ...cueRow, id: "cue-1", label: "House to Half" },
+      { ...cueRow, id: "cue-2", position: 2, label: "Walk-in Music Out" },
+    ],
+  };
+  const renderPortal = () =>
+    render(
+      h(NextIntlClientProvider, {
+        locale: "en-US",
+        messages: getMessages("en-US"),
+        timeZone: "America/New_York",
+        children: h(
+          ShellKeysContext.Provider,
+          { value: keys },
+          h(ShowcallerPortal, { token: "xscl_token", run: portalRun }),
+        ),
+      }),
+    );
+
+  it("keeps Space on a cue tab from the console: it calls no cue", async () => {
+    const user = userEvent.setup();
+    renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    const tab = screen.getByRole("tab", { name: "Calls" });
+    act(() => tab.focus());
+    await user.keyboard(" sj");
+    expect(portal.write).not.toHaveBeenCalled();
+  });
+
+  it("keeps letters typed in its fields from the console", async () => {
+    const user = userEvent.setup();
+    renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    const box = document.getElementById("portal-label-cue-1") as HTMLInputElement;
+    await user.click(box);
+    await user.keyboard(" sj");
+    expect(box.value).toBe("House to Half sj");
+    expect(portal.write).not.toHaveBeenCalled();
+  });
+
+  it("offers one Save, under the tabs, on every tab that saves the cue", async () => {
+    const user = userEvent.setup();
+    renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    expect(screen.getAllByRole("button", { name: "Save" })).toHaveLength(1);
+    await user.click(screen.getByRole("tab", { name: "Words" }));
+    expect(screen.getAllByRole("button", { name: "Save" })).toHaveLength(1);
   });
 });

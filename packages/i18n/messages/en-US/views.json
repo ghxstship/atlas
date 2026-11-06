@@ -514,7 +514,26 @@
       "reserved_quantity": "Held",
       "issued_quantity": "Issued",
       "returned_quantity": "Returned",
-      "decline_reason": "Decline reason"
+      "decline_reason": "Decline reason",
+      "caller_name": "Showcaller",
+      "token_hint": "Token ends in",
+      "expires_at": "Expires",
+      "failed_attempts": "Failed signing attempts",
+      "open_count": "Times opened",
+      "last_opened_at": "Last opened",
+      "rotated_at": "Regenerated",
+      "show_channel": "Show channel",
+      "script": "Script",
+      "segment": "Segment",
+      "color_key": "Color",
+      "position": "Position",
+      "duration": "Length",
+      "call_kind": "Department",
+      "instruction": "Instruction",
+      "library_version": "Library version",
+      "audience": "Audience",
+      "start_tbc": "Time to be confirmed",
+      "standby_at": "On standby at"
     }
   },
   "liveLink": {

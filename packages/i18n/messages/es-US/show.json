@@ -96,6 +96,12 @@
     "calledViaLink": "Llamado {time} por {name} con un enlace de llamado del show",
     "fieldValue": "{label}: {value}"
   },
+  "cueTabs": {
+    "cue": "Cue",
+    "words": "Palabras",
+    "calls": "Llamadas",
+    "fields": "Campos"
+  },
   "live": {
     "title": "En vivo",
     "start": "Ejecutar en vivo",
@@ -288,7 +294,7 @@
     "empty": "Aún no hay segmentos en la biblioteca. Guarde un bloque que usa en muchos shows e insértelo en cualquier guion.",
     "emptyReadOnly": "Aún no hay segmentos en la biblioteca. Quienes editan guiones los agregan aquí.",
     "openRuns": "Abrir el guion del show",
-    "noCues": "Este segmento aún no tiene cues. Agregue el primero abajo.",
+    "noCues": "Este segmento aún no tiene cues. Use Agregar cue para escribir el primero.",
     "addCue": "Agregar cue",
     "version": "Versión {version}",
     "cueCount": "{count, plural, one {# cue} other {# cues}}",
@@ -327,7 +333,13 @@
       "Called": "Tiene cues llamados",
       "Linked": "Tiene horarios de artistas",
       "NoInstance": "No está en este show"
-    }
+    },
+    "editSegment": "Editar segmento",
+    "publishOpen": "Publicar en shows",
+    "publishRuns": "Órdenes de show",
+    "publishMore": "{count, plural, one {# orden de show más está desactualizada} other {# órdenes de show más están desactualizadas}}. Publique estas {limit} primero y luego vuelva a abrir esto.",
+    "publishOverLimit": "Elija como máximo {limit} órdenes de show en una publicación.",
+    "copiesTitle": "Copias en órdenes de show"
   },
   "showChannel": {
     "title": "Canal del show",

@@ -18,7 +18,12 @@ export function ShowcallerLinksAction({
   run,
 }: {
   org: string;
-  run: { readonly id: string; readonly name: string; readonly showDate: string };
+  run: {
+    readonly id: string;
+    readonly name: string;
+    readonly showDate: string;
+    readonly timeZone: string;
+  };
 }) {
   const t = useTranslations("show.showcallerLinks");
   const [open, setOpen] = useState(false);

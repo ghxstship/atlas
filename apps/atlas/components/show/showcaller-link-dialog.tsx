@@ -4,8 +4,8 @@ import { MAX_SHOWCALLER_LINK_DAYS, type ShowcallerLink } from "@xos/data/showcal
 import { Button, Dialog, InlineAlert, Input } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
-import { CreatedLiveLink, dayFromToday } from "@/components/live/live-link-list";
-import { expiresBeforeShow } from "@/lib/showcaller/expiry";
+import { CreatedLiveLink } from "@/components/live/live-link-list";
+import { expiresBeforeShow, showcallerDayFromToday } from "@/lib/showcaller/expiry";
 import {
   createShowcallerLinkAction,
   loadShowcallerLinksAction,
@@ -92,7 +92,7 @@ function LinkRow({
             <Button
               type="button"
               size="sm"
-              variant={confirm === "revoke" ? "danger" : "primary"}
+              variant={confirm === "revoke" ? "danger" : "secondary"}
               loading={pending}
               onClick={act}
             >
@@ -123,7 +123,12 @@ export function ShowcallerLinkDialog({
   onClose,
 }: {
   org: string;
-  run: { readonly id: string; readonly name: string; readonly showDate: string };
+  run: {
+    readonly id: string;
+    readonly name: string;
+    readonly showDate: string;
+    readonly timeZone: string;
+  };
   onClose: () => void;
 }) {
   const t = useTranslations("show.showcallerLinks") as unknown as Translate;
@@ -132,7 +137,9 @@ export function ShowcallerLinkDialog({
   const [links, setLinks] = useState<readonly ShowcallerLink[] | null>(null);
   const [created, setCreated] = useState<CreatedShowcallerLinkView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [callerName, setCallerName] = useState("");
   const [expiresOn, setExpiresOn] = useState("");
+  const [note, setNote] = useState("");
   const [pending, start] = useTransition();
 
   const refresh = useCallback(() => {
@@ -142,6 +149,26 @@ export function ShowcallerLinkDialog({
     });
   }, [org, run.id]);
   useEffect(refresh, [refresh]);
+
+  // A refusal keeps what was typed; a new link clears the form for the next one.
+  const create = () => {
+    setError(null);
+    start(async () => {
+      const result = await createShowcallerLinkAction(org, {
+        runId: run.id,
+        callerName,
+        expiresOn,
+        note,
+      });
+      if (result.ok) {
+        setCreated(result.data);
+        setCallerName("");
+        setExpiresOn("");
+        setNote("");
+        refresh();
+      } else setError(result.error.key);
+    });
+  };
 
   return (
     <Dialog
@@ -160,22 +187,10 @@ export function ShowcallerLinkDialog({
         <form
           className="flex flex-col gap-8"
           noValidate
+          action={create}
           onSubmit={(event) => {
             event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            setError(null);
-            start(async () => {
-              const result = await createShowcallerLinkAction(org, {
-                runId: run.id,
-                callerName: String(form.get("callerName") ?? ""),
-                expiresOn,
-                note: String(form.get("note") ?? ""),
-              });
-              if (result.ok) {
-                setCreated(result.data);
-                refresh();
-              } else setError(result.error.key);
-            });
+            create();
           }}
         >
           <Input
@@ -185,14 +200,16 @@ export function ShowcallerLinkDialog({
             help={t("callerNameHelp")}
             maxLength={120}
             required
+            value={callerName}
+            onChange={(e) => setCallerName(e.target.value)}
           />
           <Input
             id={`${id}-expires`}
             name="expiresOn"
             type="date"
             label={t("expiresOn")}
-            min={dayFromToday(1)}
-            max={dayFromToday(MAX_SHOWCALLER_LINK_DAYS)}
+            min={showcallerDayFromToday(1, run.timeZone)}
+            max={showcallerDayFromToday(MAX_SHOWCALLER_LINK_DAYS, run.timeZone)}
             help={t("expiresHelp")}
             value={expiresOn}
             onChange={(e) => setExpiresOn(e.target.value)}
@@ -206,9 +223,11 @@ export function ShowcallerLinkDialog({
             label={t("note")}
             help={t("noteHelp")}
             maxLength={200}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
           <div>
-            <Button type="submit" size="sm" loading={pending}>
+            <Button type="submit" size="sm" variant="primary" loading={pending}>
               {t("submit")}
             </Button>
           </div>

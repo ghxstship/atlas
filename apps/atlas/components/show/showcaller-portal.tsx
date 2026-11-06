@@ -23,6 +23,7 @@ import type { ActionResult } from "@/components/work/action-result";
 import { fromLocalInput, toLocalInput } from "@/components/work/format";
 import { portalWriteAction } from "@/lib/showcaller/actions";
 import { clockChannelName } from "@/lib/showcaller/clock-channel";
+import { CueFormTabs } from "./cue-form-tabs";
 import { ShowcallerConsole, type ShowcallerTransport } from "./showcaller-console";
 import { defaultShowKeys } from "./show-keys";
 
@@ -170,9 +171,11 @@ function PortalCueEditor({
       onClose();
     });
   return (
-    <form
+    <div
+      role="group"
       aria-label={show("cues.editing", { label: cue.label })}
       className="flex w-full flex-col gap-8 py-6"
+      // Keys typed in the editor or on its tabs stay here, so they never reach the console.
       onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === "Escape") {
@@ -180,91 +183,96 @@ function PortalCueEditor({
           onClose();
         }
       }}
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
     >
-      <div className="flex flex-wrap items-end gap-8">
-        <Input
-          id={`portal-label-${cue.id}`}
-          label={show("cues.label")}
-          maxLength={200}
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-        <Input
-          id={`portal-time-${cue.id}`}
-          type="time"
-          label={show("cues.planned")}
-          value={planned}
-          onChange={(e) => setPlanned(e.target.value)}
-        />
-        <Checkbox
-          label={show("cues.tbc")}
-          checked={planned !== "" && tbc}
-          disabled={planned === ""}
-          onChange={(e) => setTbc(e.target.checked)}
-        />
-        <Input
-          id={`portal-duration-${cue.id}`}
-          type="number"
-          min={0}
-          max={86400}
-          width={120}
-          label={show("cues.duration")}
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-        />
-        <Input
-          id={`portal-segment-${cue.id}`}
-          label={show("cues.segment")}
-          maxLength={200}
-          value={segment}
-          onChange={(e) => setSegment(e.target.value)}
-        />
-      </div>
-      <Textarea
-        id={`portal-description-${cue.id}`}
-        label={show("cues.description")}
-        rows={2}
-        maxLength={2000}
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+      <CueFormTabs
+        label={show("cues.editing", { label: cue.label })}
+        saving={pending}
+        canSave={label.trim() !== ""}
+        saveLabel={show("cues.save")}
+        cancelLabel={show("cues.cancel")}
+        onCancel={onClose}
+        submit={submit}
+        cue={
+          <div className="flex flex-wrap items-end gap-8">
+            <Input
+              id={`portal-label-${cue.id}`}
+              label={show("cues.label")}
+              maxLength={200}
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
+            <Input
+              id={`portal-time-${cue.id}`}
+              type="time"
+              label={show("cues.planned")}
+              value={planned}
+              onChange={(e) => setPlanned(e.target.value)}
+            />
+            <Checkbox
+              label={show("cues.tbc")}
+              checked={planned !== "" && tbc}
+              disabled={planned === ""}
+              onChange={(e) => setTbc(e.target.checked)}
+            />
+            <Input
+              id={`portal-duration-${cue.id}`}
+              type="number"
+              min={0}
+              max={86400}
+              width={120}
+              label={show("cues.duration")}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            />
+            <Input
+              id={`portal-segment-${cue.id}`}
+              label={show("cues.segment")}
+              maxLength={200}
+              value={segment}
+              onChange={(e) => setSegment(e.target.value)}
+            />
+          </div>
+        }
+        words={
+          <>
+            <Textarea
+              id={`portal-description-${cue.id}`}
+              label={show("cues.description")}
+              rows={2}
+              maxLength={2000}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <Textarea
+              id={`portal-script-${cue.id}`}
+              label={show("cues.script")}
+              rows={4}
+              maxLength={20000}
+              value={script}
+              onChange={(e) => setScript(e.target.value)}
+            />
+          </>
+        }
+        calls={
+          <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
+            {CUE_CALL_KINDS.map((k) => (
+              <Textarea
+                key={k}
+                id={`portal-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
+                label={show("cues.callFor", {
+                  department: show(`cues.departments.${CUE_CALL_SLUGS[k]}`),
+                })}
+                rows={2}
+                maxLength={2000}
+                value={calls[k]}
+                onChange={(e) => setCalls((v) => ({ ...v, [k]: e.target.value }))}
+              />
+            ))}
+          </div>
+        }
       />
-      <Textarea
-        id={`portal-script-${cue.id}`}
-        label={show("cues.script")}
-        rows={4}
-        maxLength={20000}
-        value={script}
-        onChange={(e) => setScript(e.target.value)}
-      />
-      <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
-        {CUE_CALL_KINDS.map((k) => (
-          <Textarea
-            key={k}
-            id={`portal-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
-            label={show("cues.callFor", {
-              department: show(`cues.departments.${CUE_CALL_SLUGS[k]}`),
-            })}
-            rows={2}
-            maxLength={2000}
-            value={calls[k]}
-            onChange={(e) => setCalls((v) => ({ ...v, [k]: e.target.value }))}
-          />
-        ))}
-      </div>
-      <div className="flex gap-8">
-        <Button type="submit" variant="primary" loading={pending} disabled={label.trim() === ""}>
-          {show("cues.save")}
-        </Button>
-        <Button variant="ghost" onClick={onClose}>
-          {show("cues.cancel")}
-        </Button>
-      </div>
       <p className="m-0 text-text-12 text-text-secondary">{t("editNote")}</p>
-    </form>
+    </div>
   );
 }
 
@@ -353,6 +361,14 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
     }),
     [],
   );
+  const addCue = () => {
+    const label = adding.trim();
+    if (label === "") return;
+    start(async () => {
+      if (await write({ op: "save", cueId: null, fields: { label }, expectedUpdatedAt: null }))
+        setAdding("");
+    });
+  };
   const lastCalled = run.cues.reduce((last, c, i) => (c.calledAt ? i : last), -1);
   const grantEnds = Date.parse(meta.grantExpiresAt);
   const time = (iso: string) =>
@@ -545,16 +561,10 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
         <form
           className="flex flex-wrap items-end gap-8"
           onKeyDown={(e) => e.stopPropagation()}
+          action={addCue}
           onSubmit={(e) => {
             e.preventDefault();
-            const label = adding.trim();
-            if (label === "") return;
-            start(async () => {
-              if (
-                await write({ op: "save", cueId: null, fields: { label }, expectedUpdatedAt: null })
-              )
-                setAdding("");
-            });
+            addCue();
           }}
         >
           <Input

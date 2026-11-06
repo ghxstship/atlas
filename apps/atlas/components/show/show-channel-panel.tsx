@@ -59,6 +59,18 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
     CHAT_PACING,
   );
 
+  const send = () => {
+    const body = draft.trim();
+    if (body === "" || !conversationId) return;
+    action.run(
+      () => sendShowChannelMessageAction(org, conversationId, body),
+      () => {
+        setDraft("");
+        reload();
+      },
+    );
+  };
+
   const headingId = `show-channel-${projectId}`;
   const status = view?.status;
   return (
@@ -81,7 +93,7 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
         status.canOpen ? (
           <div>
             <Button
-              variant="primary"
+              variant="secondary"
               loading={action.pending}
               onClick={() => action.run(() => openShowChannelAction(org, projectId), reload)}
             >
@@ -129,17 +141,10 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
           )}
           <form
             className="flex flex-col gap-8"
+            action={send}
             onSubmit={(e) => {
               e.preventDefault();
-              const body = draft.trim();
-              if (body === "") return;
-              action.run(
-                () => sendShowChannelMessageAction(org, conversationId, body),
-                () => {
-                  setDraft("");
-                  reload();
-                },
-              );
+              send();
             }}
           >
             <Textarea

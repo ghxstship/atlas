@@ -347,7 +347,6 @@ export function ShowcallerConsole({
       <div className="flex flex-wrap items-end gap-8">
         {/* Journey 15: the standby cue, else the next cue, whatever is selected. */}
         <Button
-          variant="primary"
           loading={action.pending}
           disabled={!upcoming}
           onClick={() => {

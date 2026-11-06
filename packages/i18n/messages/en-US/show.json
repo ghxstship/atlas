@@ -96,6 +96,12 @@
     "calledViaLink": "Called {time} by {name} through a showcaller link",
     "fieldValue": "{label}: {value}"
   },
+  "cueTabs": {
+    "cue": "Cue",
+    "words": "Words",
+    "calls": "Calls",
+    "fields": "Fields"
+  },
   "live": {
     "title": "Live",
     "start": "Run live",
@@ -288,7 +294,7 @@
     "empty": "No library segments yet. Save a block you run in many shows and insert it into any running order.",
     "emptyReadOnly": "No library segments yet. People who edit running orders add them here.",
     "openRuns": "Open the run of show",
-    "noCues": "This segment has no cues yet. Add the first one below.",
+    "noCues": "This segment has no cues yet. Use Add cue to write the first one.",
     "addCue": "Add cue",
     "version": "Version {version}",
     "cueCount": "{count, plural, one {# cue} other {# cues}}",
@@ -327,7 +333,13 @@
       "Called": "Has called cues",
       "Linked": "Has set times",
       "NoInstance": "Not in this show"
-    }
+    },
+    "editSegment": "Edit segment",
+    "publishOpen": "Publish to shows",
+    "publishRuns": "Running orders",
+    "publishMore": "{count, plural, one {# more running order is} other {# more running orders are}} out of date. Publish these {limit} first, then open this again.",
+    "publishOverLimit": "Choose at most {limit} running orders in one publish.",
+    "copiesTitle": "Copies in running orders"
   },
   "showChannel": {
     "title": "Show channel",
