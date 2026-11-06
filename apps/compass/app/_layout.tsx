@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { activeBrand, brandColors } from "../src/domain/brand";
+import { formatCalendarDay } from "../src/domain/dates";
 import { useTranslation } from "react-i18next";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -59,7 +60,7 @@ function Gatekeeper(): ReactElement {
     retryStartup,
     upcomingLegal,
   } = useCompass();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [deleting, setDeleting] = useState(false);
   // A legal change still in its notice period: the person may review it now or hide the prompt until the next launch.
   const [reviewingLegal, setReviewingLegal] = useState(false);
@@ -192,7 +193,7 @@ function Gatekeeper(): ReactElement {
               legalNotice: {
                 message: t("compass.legalGate.upcoming", {
                   document: t(`compass.legalGate.documentNames.${legalChange.documentSlug}`),
-                  date: legalChange.effectiveOn,
+                  date: formatCalendarDay(legalChange.effectiveOn, i18n.language),
                 }),
                 onReview: () => setReviewingLegal(true),
                 onHide: () => setLegalPromptHidden(true),

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import type { LegalStanding } from "@xos/data/consent";
 import type { LegalReacceptance } from "@xos/data/legal-reacceptance";
 import { getMessages } from "@xos/i18n";
@@ -277,5 +277,48 @@ describe("the documents and the words", () => {
     expect(ai["provider"]).toMatch(/third-party AI provider/);
     expect(ai["sent"]).toMatch(/questions/);
     expect(ai["sent"]).toMatch(/receipt photos/);
+  });
+});
+
+describe("where the questions sit", () => {
+  const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+
+  it("asks before the identity is read or anything downloads, after the second factor", () => {
+    const provider = read("src/runtime/CompassProvider.tsx");
+    const factor = provider.indexOf("if (held(gate)) return null;");
+    const asked = provider.indexOf("const legal = await readGate(", factor);
+    const identity = provider.indexOf("return resolveIdentity(client", factor);
+    expect(factor).toBeGreaterThan(0);
+    expect(asked).toBeGreaterThan(factor);
+    expect(identity).toBeGreaterThan(asked);
+  });
+
+  it("shows the questions in place of the app", () => {
+    const layout = read("app/_layout.tsx");
+    const gate = layout.indexOf('phase.kind === "legal-required"');
+    const app = layout.indexOf("<NotificationActions />");
+    expect(gate).toBeGreaterThan(0);
+    expect(app).toBeGreaterThan(gate);
+    expect(layout).toContain('phase.kind === "legal-connection"');
+  });
+
+  it("lets only the screens that ask reach the AI provider", () => {
+    const users: string[] = [];
+    const walk = (dir: URL) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const next = new URL(`${entry.name}${entry.isDirectory() ? "/" : ""}`, dir);
+        if (entry.isDirectory()) walk(next);
+        else if (/\.tsx?$/.test(entry.name)) {
+          const text = readFileSync(next, "utf8");
+          if (/from "[^"]*runtime\/aurora"/.test(text)) {
+            users.push(next.pathname.replace(/^.*\/apps\/compass\//, ""));
+          }
+        }
+      }
+    };
+    walk(new URL("../app/", import.meta.url));
+    walk(new URL("../src/", import.meta.url));
+    expect(users.sort()).toEqual(["app/expenses.tsx", "app/more/aurora.tsx"]);
+    for (const screen of users) expect(read(screen)).toContain("<AiDisclosure");
   });
 });

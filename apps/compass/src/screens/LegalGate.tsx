@@ -6,6 +6,7 @@ import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { revokeAppleBeforeDeletion } from "../domain/appleSignIn";
+import { formatCalendarDay } from "../domain/dates";
 import { acceptancesOf, heldReason, type HeldReason, type LegalNeeds } from "../domain/legalGate";
 import {
   accountSignsInWithApple,
@@ -259,9 +260,7 @@ export function LegalGate({
           testID={`legal-gate-change-${change.documentSlug}`}
           title={t(`compass.legalGate.documentNames.${change.documentSlug}`)}
           meta={t("compass.legalGate.documents.effective", {
-            date: new Date(`${change.effectiveOn}T00:00:00Z`).toLocaleDateString(i18n.language, {
-              timeZone: "UTC",
-            }),
+            date: formatCalendarDay(change.effectiveOn, i18n.language),
           })}
         >
           <Text>{change.summary}</Text>
