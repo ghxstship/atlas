@@ -5,7 +5,7 @@ import { LoadError } from "@/components/projects/load-error";
 import { PageHeader, TemplateCollection } from "@/components/projects/ui";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
-import { ActivityFeed, type ActivityView } from "./activity-feed";
+import { ActivityFeedViews, type ActivityView } from "./activity-feed-views";
 
 type Search = Readonly<Record<string, string | string[] | undefined>>;
 
@@ -55,7 +55,7 @@ export async function ActivityPage({
     : (nodeHref("projects", params) ?? "");
   return (
     <TemplateCollection header={<PageHeader title={t("title")} />}>
-      <ActivityFeed
+      <ActivityFeedViews
         label={project ? t("projectLabel", { key: project.key }) : t("label")}
         entries={await labelActivity(ctx.viewer.db, page.data.entries)}
         views={views}
