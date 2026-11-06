@@ -58,6 +58,7 @@ export const KNOWN_RULES = [
   // B8 gate scans and accreditation checks (2970 to 2973).
   "credential_training_incomplete",
   "credential_duplicate",
+  "credential_requirement_course_state",
   "scan_not_denied",
   "scan_override_revoked",
   "scan_override_stale",

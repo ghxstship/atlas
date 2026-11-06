@@ -36,7 +36,7 @@ Someone who can issue credentials on the project, and who is not the badge holde
 
 ## Inside now
 
-The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It updates every 30 seconds. Use Pause updates to stop it.
+The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It counts people scanned in, not the venue's load: the permitted-load alerts come from the occupancy counters. It updates every 30 seconds. Use Pause updates to stop it.
 
 ## Required before issue
 

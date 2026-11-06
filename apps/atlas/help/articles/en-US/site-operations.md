@@ -20,7 +20,7 @@ For a venue with a location in the US, turn on the official feed. Every 10 minut
 
 ### Weather hold and all-clear
 
-A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is refused if it reaches the server more than 10 minutes later.
+A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is still sent however late it arrives, and says when it was called; an all-clear that reaches the server more than 10 minutes after it was given is not sent, so give it again.
 
 ## Guest check-in
 
@@ -34,4 +34,4 @@ Log each item someone hands in, with its category. Describe it well enough to ch
 
 ## Muster list
 
-The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in at doors in the last 24 hours. Rows are grouped by zone with the count of each. Filter by project and zone, print it with the headings on every page, or export it. It shows only the people you may see: someone whose newer scan you cannot see may show in the last zone you can. It needs the scan log or the time entries of the project.
+The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in in the last 24 hours, at a door or in bulk. Rows are grouped by zone with the count of each, as a table or a list. Filter by project and zone, print it with the headings on every page, or export it as CSV, .xlsx or PDF. It reads itself again every 30 seconds; Pause updates stops it. It shows only the people you may see, and says which sources it leaves out: entry scans need the scan log, clock-ins the time entries, guests the guest list, and their doors and plus-ones guest check-in. Someone whose newer scan you cannot see may show in the last zone you can.

@@ -189,9 +189,12 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     headline: "Severe Thunderstorm Warning until 9:45 PM EDT",
     ends_at: "2027-06-04T01:45:00Z",
   },
+  // A hold queued offline that reached the server late says when it was called (review correction C19).
   "weather.hold": {
     message: "Lightning within 8 miles: stop work and shelter.",
     hazard: "Lightning",
+    called_at: "2027-06-04T01:20:00Z",
+    late: "yes",
   },
   "weather.all_clear": { message: "All clear: resume work.", hazard: "Lightning" },
   "guest.arrived": {

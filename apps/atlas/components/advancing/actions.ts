@@ -50,6 +50,11 @@ export interface AdvancingState {
   readonly ok?: boolean;
   readonly error?: string;
   readonly fieldErrors?: Readonly<Record<string, string>>;
+  /**
+   * What a refused badge issue lacked (B8): the unmet requirements' titles and the live duplicate's number, which the
+   * Issue dialog names beside the refusal.
+   */
+  readonly detail?: { readonly missing: readonly string[]; readonly duplicates: readonly string[] };
   /** The id of a row the action created, for navigation to it. */
   readonly id?: string;
   /** A link issued once: shown to the issuer, never stored in clear. */

@@ -1,5 +1,4 @@
 import { doorTotals, listDoorGuests, type DoorGuest } from "@xos/data/workforce-site";
-import { personNames } from "@xos/data/person-names";
 import { getFormatter } from "next-intl/server";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import {
@@ -87,10 +86,6 @@ export async function GuestCheckInSection({
     }).toString(),
   };
   const totals = doorTotals(guests.data);
-  const hosts = await personNames(
-    ctx.viewer.db,
-    guests.data.map((g) => g.hostPersonId),
-  );
   const passType = (g: DoorGuest) =>
     g.passCategoryName ? `${g.passCategoryCode ?? ""} · ${g.passCategoryName}` : null;
   const selected = state.peek ? guests.data.find((g) => g.entryId === state.peek) : undefined;
@@ -111,7 +106,7 @@ export async function GuestCheckInSection({
           : []),
         ...(selected.tableLabel ? [{ label: t("guests.table"), value: selected.tableLabel }] : []),
         ...(selected.hostPersonId
-          ? [{ label: t("guests.host"), value: hosts.get(selected.hostPersonId) ?? t("someone") }]
+          ? [{ label: t("guests.host"), value: selected.hostName ?? t("someone") }]
           : []),
         ...(selected.passCode ? [{ label: t("guests.passCode"), value: selected.passCode }] : []),
         {
@@ -177,7 +172,7 @@ export async function GuestCheckInSection({
       note: g.note,
       passType: passType(g),
       table: g.tableLabel,
-      host: g.hostPersonId ? (hosts.get(g.hostPersonId) ?? t("someone")) : null,
+      host: g.hostPersonId ? (g.hostName ?? t("someone")) : null,
     },
   }));
   return (

@@ -330,7 +330,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It updates every 30 seconds. Use Pause updates to stop it.",
+            v: "The scan log shows, for the chosen project, how many people each zone holds now: those scanned In in the last 24 hours who have not scanned Out, split by category and by team. It counts people scanned in, not the venue's load: the permitted-load alerts come from the occupancy counters. It updates every 30 seconds. Use Pause updates to stop it.",
           },
         ],
       },
@@ -2232,7 +2232,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is refused if it reaches the server more than 10 minutes later.",
+            v: "A dispatcher can call a weather hold. The message comes from your hold text, with the hazard, and you can change it before you send it. It reaches the people in the alert roles, the dispatchers and everyone inside the project's zones at once. Call hold leads while an alert is at Restrict or Evacuate or a Severe or Extreme warning is active. Give the all-clear when it is over; it reaches the same people as they are then. Set the hold and all-clear texts under the thresholds. A hold called in Compass while offline is still sent however late it arrives, and says when it was called; an all-clear that reaches the server more than 10 minutes after it was given is not sent, so give it again.",
           },
         ],
       },
@@ -2271,7 +2271,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in at doors in the last 24 hours. Rows are grouped by zone with the count of each. Filter by project and zone, print it with the headings on every page, or export it. It shows only the people you may see: someone whose newer scan you cannot see may show in the last zone you can. It needs the scan log or the time entries of the project.",
+            v: "The muster list shows everyone placed in a zone now, by an entry scan or a clock-in inside a zone's geofence, and the guests checked in in the last 24 hours, at a door or in bulk. Rows are grouped by zone with the count of each, as a table or a list. Filter by project and zone, print it with the headings on every page, or export it as CSV, .xlsx or PDF. It reads itself again every 30 seconds; Pause updates stops it. It shows only the people you may see, and says which sources it leaves out: entry scans need the scan log, clock-ins the time entries, guests the guest list, and their doors and plus-ones guest check-in. Someone whose newer scan you cannot see may show in the last zone you can.",
           },
         ],
       },
@@ -2777,7 +2777,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.",
+            v: "El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Cuenta personas que entraron con escaneo, no la carga del recinto: las alertas de aforo permitido vienen de los contadores de ocupación. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.",
           },
         ],
       },
@@ -4651,7 +4651,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. Suspender por clima es la acción principal mientras un aviso está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se rechaza si llega al servidor más de 10 minutos después.",
+            v: "Un despachador puede suspender por clima. El mensaje viene de su texto de suspensión, con el peligro, y puede cambiarlo antes de enviarlo. Llega a la vez a las personas de los roles de alerta, a los despachadores y a todos los que están dentro de las zonas del proyecto. Suspender por clima es la acción principal mientras un aviso está en Restringir o Evacuar o hay un aviso Grave o Extremo vigente. Dé el fin de la suspensión cuando pase; llega a las mismas personas en ese momento. Configure los textos de suspensión y de fin debajo de los umbrales. Una suspensión hecha en Compass sin conexión se envía aunque llegue tarde, e indica cuándo se declaró; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que dé el fin de nuevo.",
           },
         ],
       },
@@ -4690,7 +4690,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "La lista de evacuación muestra a todos los que están ahora en una zona, por un escaneo de entrada o un fichaje dentro de la geocerca de una zona, y a los invitados que entraron por las puertas en las últimas 24 horas. Las filas se agrupan por zona con el total de cada una. Filtre por proyecto y zona, imprímala con los encabezados en cada página o expórtela. Solo muestra a las personas que usted puede ver: alguien cuyo escaneo más reciente no puede ver puede aparecer en la última zona que sí puede ver. Requiere el registro de escaneos o los registros de horas del proyecto.",
+            v: "La lista de evacuación muestra a todos los que están ahora en una zona, por un escaneo de entrada o un fichaje dentro de la geocerca de una zona, y a los invitados registrados en las últimas 24 horas, en una puerta o en bloque. Las filas se agrupan por zona con el total de cada una, en tabla o en lista. Filtre por proyecto y zona, imprímala con los encabezados en cada página o expórtela en CSV, .xlsx o PDF. Se vuelve a leer cada 30 segundos; Pausar actualizaciones lo detiene. Solo muestra a las personas que usted puede ver, e indica qué fuentes deja fuera: los escaneos de entrada requieren el registro de escaneos, los fichajes los registros de horas, los invitados la lista de invitados, y su puerta y acompañantes el registro de invitados. Alguien cuyo escaneo más reciente no puede ver puede aparecer en la última zona que sí puede ver.",
           },
         ],
       },

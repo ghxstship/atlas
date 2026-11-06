@@ -36,7 +36,7 @@ Quien puede emitir credenciales en el proyecto, y no es el titular de la credenc
 
 ## Dentro ahora
 
-El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.
+El registro de escaneos muestra, para el proyecto elegido, cuántas personas hay ahora en cada zona: las que escanearon la entrada en las últimas 24 horas y no escanearon la salida, por categoría y por equipo. Cuenta personas que entraron con escaneo, no la carga del recinto: las alertas de aforo permitido vienen de los contadores de ocupación. Se actualiza cada 30 segundos. Use Pausar actualizaciones para detenerlo.
 
 ## Requisitos antes de emitir
 

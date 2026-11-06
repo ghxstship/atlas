@@ -73,6 +73,8 @@ export function IssueChecks({
         return t("training_expires_first", { title: c.title ?? "" });
       case "other_badge_on_project":
         return t("other_badge_on_project", { title: c.title ?? "" });
+      case "duplicate":
+        return t("duplicate", { number: c.title ?? "" });
       case "booked_elsewhere":
         return t("booked_elsewhere", { project: c.projectKey ?? t("anotherProduction") });
       default:
