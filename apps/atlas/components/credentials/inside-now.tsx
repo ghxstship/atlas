@@ -12,8 +12,8 @@ const REFRESH_MS = 30_000;
 /**
  * The scan log's Inside now section (B8, gap G-145, app.zone_counts_live): each zone of the project with the people
  * scanned into it now, by code and name, its total, and a disclosure with the split by category and by team. It
- * reads the counts again every 30 seconds, shows when it last did, and can be paused. Loaded with next/dynamic from
- * the scan log page, so no other page carries its code.
+ * reads the counts again every 30 seconds, shows when it last did, and can be paused. Imported only by the scan log
+ * section (scan-log-section.tsx), so no other page carries its code, and its controls answer the first click.
  */
 export function InsideNow({
   org,

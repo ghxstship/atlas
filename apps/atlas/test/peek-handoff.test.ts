@@ -37,7 +37,7 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
     "assets.units.notFound in the peek and on the full page",
   // Credentials and incidents show RecordMissing (credentials.common.recordMissing) with Back to list.
   "components/credentials/sections.tsx#CategoriesSection": "CategoryRecord shows RecordMissing",
-  "components/credentials/sections.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
+  "components/credentials/issued-section.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
   "components/incidents/sections.tsx#DispatchBoardSection": "IncidentRecord shows RecordMissing",
   "components/incidents/sections.tsx#EmergencyCodesSection": "CodeRecord shows RecordMissing",
   "components/incidents/sections.tsx#IncidentsSection": "IncidentRecord shows RecordMissing",

@@ -11,7 +11,7 @@ import { loadIssueChecks } from "@/lib/credentials/actions";
 /**
  * The issue form's checks (B8, app.credential_issue_check): read again whenever the category, the holder or the window
  * changes. A blocking item (training missing, a duplicate badge) names what to do with a link, and keeps Issue
- * disabled while it holds; the rest are warnings. Loaded with next/dynamic from the Issued page's form, so no other
+ * disabled while it holds; the rest are warnings. Imported only by the Issued section (issued-section.tsx), so no other
  * page carries its code.
  */
 export function IssueChecks({

@@ -1,4 +1,4 @@
-import { IssuedSection } from "@/components/credentials/sections";
+import { IssuedSection } from "@/components/credentials/issued-section";
 import { loadModulePage } from "@/lib/operations/context";
 
 /** Issued credentials (Section 4.2, invariant 21): issue, change the window, revoke, and see the badge and recent scans. */
