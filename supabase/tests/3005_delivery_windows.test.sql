@@ -64,7 +64,7 @@ select throws_like(format($$update app.dock_slots set delivery_window_id = %L wh
 select throws_like(format($$update app.dock_slots set delivery_window_id = null where id = %L$$, pg_temp.id('b1')), 'delivery_booking_direct:%', 'nor detaches');
 select throws_like(format($$update app.dock_slots set zone_id = %L where id = %L$$, pg_temp.id('gate_b'), pg_temp.id('b1')), 'delivery_booking_outside_window:%', 'a booking moved off its gate refuses');
 select throws_like(format($$update app.dock_slots set ends_at = ends_at + interval '4 hours' where id = %L$$, pg_temp.id('b1')), 'delivery_booking_outside_window:%', 'and one moved off its window');
-select throws_like(format($$select app.bulk_update_dock_slots(array[%L]::uuid[], jsonb_build_object('zone_id', %L), 'Move.')$$, pg_temp.id('b1'), pg_temp.id('gate_b')), 'delivery_booking_outside_window:%', 'including through the bulk edit');
+select throws_like(format($$select app.bulk_update_dock_slots(jsonb_build_array(jsonb_build_object('id', %L::uuid, 'set', jsonb_build_object('zone_id', %L::uuid))), false, 'Move.')$$, pg_temp.id('b1'), pg_temp.id('gate_b')), 'delivery_booking_outside_window:%', 'including through the bulk edit');
 
 -- The reference code.
 select matches((select reference_code from app.dock_slots where id = pg_temp.id('b1')), '^[23456789A-HJ-NP-Z]{6}$', 'a booking gets a code of the format');
