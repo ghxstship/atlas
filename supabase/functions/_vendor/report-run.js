@@ -43,6 +43,13 @@ function packExpiryText(expiresAt, locale, timeZone) {
   }).format(new Date(expiresAt));
 }
 /** The email of one delivery. It carries a sign-in link, never a code and never a file. */
+/** One line of the HTML part: escaped, with the pack's own links clickable rather than left to the mail client. */
+function linked(line, ...urls) {
+  return urls.reduce((html, url) => {
+    const safe = escapeHtml(url);
+    return html.replaceAll(safe, `<a href="${safe}">${safe}</a>`);
+  }, escapeHtml(line));
+}
 function packEmail(link, copy, env) {
   const facts = link.email;
   const url = `${env.appUrl}${packPath(link.token)}`;
@@ -73,8 +80,8 @@ function packEmail(link, copy, env) {
     subject: copy.subject(words),
     text: [...paragraphs, ...footer].join("\n\n"),
     html: [
-      ...paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`),
-      ...footer.map((p) => `<p><small>${escapeHtml(p)}</small></p>`),
+      ...paragraphs.map((p) => `<p>${linked(p, url, stopUrl)}</p>`),
+      ...footer.map((p) => `<p><small>${linked(p, url, stopUrl)}</small></p>`),
     ].join(""),
     headers: {
       "List-Unsubscribe": `<${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}>`,
