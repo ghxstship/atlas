@@ -532,7 +532,7 @@ begin
     if v_rule.subject = 'Equipment' and v_rule.asset_class_id is not null and not exists (
       select 1 from app.asset_classes c where c.id = v_rule.asset_class_id and c.offering is not null) then
       perform private.refuse('approval_rule_class_no_offering',
-        format('%s names a class no offering provides, so it would gate nothing. Requests come only for Radios and Carts.', v_rule.name));
+        format('%s names a class no offering provides, so it would never apply. Requests come only for Radios and Carts.', v_rule.name));
     end if;
     for v_step in
       select s.id, s.name from app.approval_rule_steps s
@@ -550,7 +550,7 @@ begin
 end;
 $$;
 
-comment on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) is 'Activates or retires an approval rule with compare-and-set (projects.settings.write on its project or org.approval_policies.write, P9). Activation needs at least one step (approval_rule_no_steps), and every engagement step must name someone with an XOS account (approval_step_no_approver). Equipment rules gate radio and cart requests from advances (2863), so one filtered to a class with no offering is refused (approval_rule_class_no_offering): it would gate nothing. A second Active rule of the same project, subject and filter is refused by approval_rules_one_active. Returns the ledger entry id.';
+comment on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) is 'Activates or retires an approval rule with compare-and-set (projects.settings.write on its project or org.approval_policies.write, P9). Activation needs at least one step (approval_rule_no_steps), and every engagement step must name someone with an XOS account (approval_step_no_approver). Equipment rules gate radio and cart requests from advances (2863), so one filtered to a class with no offering is refused (approval_rule_class_no_offering): it would never apply. A second Active rule of the same project, subject and filter is refused by approval_rules_one_active. Returns the ledger entry id.';
 revoke all on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) from public, anon;
 grant execute on function app.transition_approval_rule(uuid, app.approval_policy_state, app.approval_policy_state, text) to authenticated, service_role;
 

@@ -78,7 +78,7 @@ var refusals = {
   approval_rule_filter_project:
     "The filter must belong to this project's org, and a credential category to this project.",
   approval_rule_class_no_offering:
-    "Requests come only for Radios and Carts, so a rule on this class would gate nothing. Choose one of those classes.",
+    "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
   approval_rule_pending:
     "This request waits on its approval rule. Approve it once every step is approved.",
   approval_step_engagement:

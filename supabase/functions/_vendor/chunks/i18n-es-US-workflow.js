@@ -81,7 +81,7 @@ var refusals = {
   approval_rule_filter_project:
     "El filtro debe pertenecer a la organización de este proyecto, y una categoría de credencial a este proyecto.",
   approval_rule_class_no_offering:
-    "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase no retendría nada. Elija una de esas clases.",
+    "Las solicitudes solo llegan para radios y carritos, así que una regla sobre esta clase nunca se aplicaría. Elija una de esas clases.",
   approval_rule_pending:
     "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
   approval_step_engagement:
