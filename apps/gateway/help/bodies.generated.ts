@@ -3112,7 +3112,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Ratings" },
-            { t: "text", v: ": ratings from completed engagements, with any reply." },
+            {
+              t: "text",
+              v: ": ratings organizations gave you after completed engagements, with any reply. Only you and the organization that gave a rating can read it, unless you turn on ",
+            },
+            { t: "strong", v: "Show all my ratings on my profile" },
+            { t: "text", v: " in Profile Privacy. " },
+            { t: "strong", v: "Dispute this rating" },
+            {
+              t: "text",
+              v: " if it is about the wrong person, false, abusive or shows personal data.",
+            },
           ],
           [
             { t: "strong", v: "Representation" },
@@ -7222,7 +7232,17 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Calificaciones" },
-            { t: "text", v: ": las de contrataciones completadas, con su respuesta si la hay." },
+            {
+              t: "text",
+              v: ": las que te dieron las organizaciones tras contrataciones completadas, con su respuesta si la hay. Solo tú y la organización que dio una calificación pueden leerla, salvo que actives ",
+            },
+            { t: "strong", v: "Mostrar todas mis calificaciones en mi perfil" },
+            { t: "text", v: " en Privacidad del perfil. Usa " },
+            { t: "strong", v: "Impugnar esta calificación" },
+            {
+              t: "text",
+              v: " si se refiere a otra persona, es falsa, ofensiva o muestra datos personales.",
+            },
           ],
           [
             { t: "strong", v: "Representación" },

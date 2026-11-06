@@ -1831,7 +1831,7 @@
     "ratings": {
       "title": "Calificaciones",
       "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican.",
-      "who": "Solo tú y la organización que dio una calificación pueden leerla.",
+      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
       "whoAction": "Elige si quieres mostrarlas en tu perfil.",
       "dispute": {
         "open": "Impugnar esta calificación",

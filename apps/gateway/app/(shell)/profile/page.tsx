@@ -418,11 +418,13 @@ export default async function ProfilePage() {
                   ) : (
                     <ReplyForm ratingId={r.id} />
                   )}
-                  <RatingDisputeStanding
-                    t={t}
-                    ratingId={r.id}
-                    dispute={disputeByRating.get(r.id)}
-                  />
+                  {r.ofIndividual ? (
+                    <RatingDisputeStanding
+                      t={t}
+                      ratingId={r.id}
+                      dispute={disputeByRating.get(r.id)}
+                    />
+                  ) : null}
                 </div>
               ),
             }))}

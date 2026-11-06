@@ -1,5 +1,6 @@
 import {
   APP_ENUMS,
+  getRatingSharing,
   listAccountMembers,
   listMyAccounts,
   listPayoutAccounts,

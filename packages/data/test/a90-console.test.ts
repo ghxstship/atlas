@@ -52,6 +52,11 @@ import {
   type SystemBanner,
 } from "../src/system-banners.ts";
 import { moduleClient, stepsOf } from "./module-client.ts";
+import {
+  decideRatingDispute,
+  getRatingDisputeDetail,
+  getRatingDisputeQueue,
+} from "../src/console.ts";
 
 const ok = (data: unknown) => ({ data, error: null });
 const refused = (rule: string) => ({
@@ -433,6 +438,79 @@ describe("operator console: support sessions", () => {
     expect((await openSupportArea(db, "s1", "Members")).ok).toBe(false);
     expect(await endSupportSession(db, "s1")).toEqual({ ok: true, data: "s1" });
     expect(parseSupportView({}).data.area).toBe("Overview");
+  });
+});
+
+describe("operator console: rating disputes", () => {
+  it("reads the queue and one dispute, and decides it, with no score in sight", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:console_rating_dispute_queue": [
+        ok([
+          {
+            dispute_id: "d1",
+            org_id: "o1",
+            org_name: "Northwind",
+            disputant_name: "Ivy",
+            dispute_ground: "False Statement",
+            dispute_state: "Open",
+            org_answered: false,
+            filed_at: "2026-11-06T12:00:00Z",
+            decided_at: null,
+          },
+        ]),
+      ],
+      "rpc:console_rating_dispute_detail": [
+        ok({
+          id: "d1",
+          state: "Open",
+          ground: "False Statement",
+          details: "I was on time.",
+          filed_at: "2026-11-06T12:00:00Z",
+          disputant_name: "Ivy",
+          org_name: "Northwind",
+          project_name: "Summer",
+          comment: "Late twice.",
+          submitted_at: "2026-11-01T12:00:00Z",
+          reply: null,
+          org_response: null,
+          org_responded_at: null,
+          decision_ground: null,
+          decision_statement: null,
+          decided_at: null,
+          decided_by_name: null,
+          decidable_by_me: true,
+        }),
+      ],
+      "rpc:console_decide_rating_dispute": [
+        ok(null),
+        refused("rating_dispute_transition_not_allowed"),
+      ],
+    });
+    const queue = await getRatingDisputeQueue(db);
+    expect(queue.ok && queue.data[0]).toMatchObject({ disputeId: "d1", orgAnswered: false });
+    expect(calls[0]?.steps).toContainEqual(["args", [{ p_open: true }]]);
+    const detail = await getRatingDisputeDetail(db, "d1");
+    expect(detail.ok && detail.data).toMatchObject({ comment: "Late twice.", decidableByMe: true });
+    expect(detail.ok && "score" in detail.data).toBe(false);
+    const input = {
+      disputeId: "d1",
+      outcome: "Upheld",
+      ground: "False Statement",
+      statement: "The call sheets show otherwise.",
+    } as const;
+    expect((await decideRatingDispute(db, input)).ok).toBe(true);
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_dispute_id: "d1",
+          p_outcome: "Upheld",
+          p_ground: "False Statement",
+          p_statement: "The call sheets show otherwise.",
+        },
+      ],
+    ]);
+    expect((await decideRatingDispute(db, input)).ok).toBe(false);
   });
 });
 

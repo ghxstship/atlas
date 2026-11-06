@@ -202,7 +202,7 @@ export function DecideRatingDisputeForm({ disputeId }: { disputeId: string }) {
           id={`dispute-${disputeId}-ground`}
           name="ground"
           label={t("ratingDisputes.decisionGround")}
-          defaultValue={grounds[0]}
+          value={grounds[0] ?? "Wrong Person"}
           options={grounds.map((g) => ({ value: g, label: t(`ratingDisputeGrounds.${g}`) }))}
         />
       ) : null}

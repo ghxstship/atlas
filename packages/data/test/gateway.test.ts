@@ -685,11 +685,16 @@ describe("ratings", () => {
     expect(await getRatingSharing(db)).toEqual({ ok: true, data: false });
     expect(await setRatingSharing(db, true)).toEqual({ ok: true, data: true });
     expect(await setRatingSharing(db, false)).toEqual({ ok: true, data: false });
-    expect(calls.at(-2)?.args).toEqual({
-      p_opt_in: true,
-      p_notice_version: RATING_SHARING_NOTICE_VERSION,
-      p_source: "Web",
-    });
+    expect(calls.at(-2)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_opt_in: true,
+          p_notice_version: RATING_SHARING_NOTICE_VERSION,
+          p_source: "Web",
+        },
+      ],
+    ]);
   });
 
   it("files and lists the person's own rating disputes", async () => {
@@ -710,7 +715,10 @@ describe("ratings", () => {
         ]),
         errorResponse("08000", "down"),
       ],
-      "rpc:file_rating_dispute": [okResponse("d1"), errorResponse("XR001", "rating_dispute_exists: x")],
+      "rpc:file_rating_dispute": [
+        okResponse("d1"),
+        errorResponse("XR001", "rating_dispute_exists: x"),
+      ],
     });
     const list = await listMyRatingDisputes(db, "me");
     expect(list.ok && list.data[0]).toMatchObject({ ratingId: "r1", state: "Open" });
@@ -718,11 +726,16 @@ describe("ratings", () => {
     expect((await listMyRatingDisputes(db, "me")).ok).toBe(false);
     const input = { ratingId: "r1", ground: "Other", details: " Not me. " } as const;
     expect(await fileRatingDispute(db, input)).toEqual({ ok: true, data: "d1" });
-    expect(calls.at(-1)?.args).toEqual({
-      p_rating_id: "r1",
-      p_ground: "Other",
-      p_details: "Not me.",
-    });
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_rating_id: "r1",
+          p_ground: "Other",
+          p_details: "Not me.",
+        },
+      ],
+    ]);
     expect((await fileRatingDispute(db, input)).ok).toBe(false);
   });
 

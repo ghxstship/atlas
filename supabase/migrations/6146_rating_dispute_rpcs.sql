@@ -37,8 +37,9 @@ declare
 begin
   select * into v_rating from app.ratings r where r.id = p_rating_id and r.deleted_at is null for share;
   select * into v_engagement from app.engagements e where e.id = v_rating.engagement_id;
-  -- Only the named person: an account that supplied them does not dispute for them, and a company's rating stays as it is.
+  -- Only the rated individual: an account that supplied them does not dispute for them, and a company's rating stays as it is.
   if v_rating.id is null or v_rating.rater_side <> 'Organization' or v_engagement.person_id is distinct from v_me
+     or not private.rating_is_of_individual(v_engagement.role_type, v_engagement.person_id, v_engagement.counterparty_id)
      or not private.rating_released(v_rating.engagement_id) then
     raise exception using errcode = '42501', message = 'rating not found';
   end if;

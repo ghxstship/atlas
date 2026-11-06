@@ -826,6 +826,16 @@ export const purgeMethod = ["Delete", "Drop Partition", "Account Lifecycle"] as 
 export const rateType = ["Hourly", "Day", "Flat", "Milestone", "Bid"] as const;
 /** app.rate_unit */
 export const rateUnit = ["Hour", "Day", "Week", "Project"] as const;
+/** app.rating_dispute_ground */
+export const ratingDisputeGround = [
+  "Wrong Person",
+  "False Statement",
+  "Abusive Content",
+  "Personal Data",
+  "Other",
+] as const;
+/** app.rating_dispute_state */
+export const ratingDisputeState = ["Open", "Upheld", "Not Upheld"] as const;
 /** app.rating_side */
 export const ratingSide = ["Organization", "Party"] as const;
 /** app.reconciliation_result */

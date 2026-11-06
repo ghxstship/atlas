@@ -787,6 +787,50 @@ describe("opportunities repository: engagements", () => {
 });
 
 describe("opportunities repository: ratings, requirements, pools and settings", () => {
+  it("lists the org's rating disputes, open first, and answers one", async () => {
+    const dispute = {
+      id: "d1",
+      rating_id: "rt",
+      dispute_ground: "False Statement",
+      details: "I was on time.",
+      filed_at: "2026-11-06T12:00:00Z",
+      org_response: null,
+      decision_statement: null,
+      decided_at: null,
+    };
+    const { db, calls } = fakeClient({
+      "from:rating_disputes": [
+        okResponse([
+          { ...dispute, id: "d2", dispute_state: "Upheld" },
+          { ...dispute, dispute_state: "Open" },
+        ]),
+        errorResponse("08000", "down"),
+      ],
+      "rpc:respond_to_rating_dispute": [
+        okResponse(null),
+        errorResponse("XR001", "rating_dispute_answered: x"),
+      ],
+    });
+    const list = await repo.listRatingDisputes(db, "org");
+    expect(list.ok && list.data.map((d) => d.id)).toEqual(["d1", "d2"]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "org"]]);
+    expect((await repo.listRatingDisputes(db, "org")).ok).toBe(false);
+    expect(await repo.respondToRatingDispute(db, "d1", "The call sheet says 07:00.")).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(calls.at(-1)?.steps).toContainEqual([
+      "args",
+      [
+        {
+          p_dispute_id: "d1",
+          p_response: "The call sheet says 07:00.",
+        },
+      ],
+    ]);
+    expect((await repo.respondToRatingDispute(db, "d1", "Again.")).ok).toBe(false);
+  });
+
   it("lists ratings with replies, rates and replies", async () => {
     const { db } = client({
       "from:ratings": [

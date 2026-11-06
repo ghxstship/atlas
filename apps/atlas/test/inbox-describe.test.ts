@@ -274,6 +274,13 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     outcome: "Upheld",
     statement: "The fee request breaks the marketplace rules.",
   },
+  // Rating disputes (ADR 0156, 6146).
+  "rating_dispute.filed": { ground: "False Statement", project: "Summer Series" },
+  "rating_dispute.decided": {
+    outcome: "Upheld",
+    statement: "The call sheets show the person was on time.",
+    project: "Summer Series",
+  },
 };
 
 function kindsOf(tree: Tree, prefix = ""): string[] {

@@ -901,6 +901,8 @@ export interface Rating {
   readonly ratedOrganizationId: string | null;
   readonly raterOrganizationId: string | null;
   readonly raterOrganizationName: string | null;
+  /** An org's rating of an individual, not of a company they are the contact for; only these can be disputed. */
+  readonly ofIndividual: boolean;
   readonly reply: string | null;
   readonly repliedAt: string | null;
 }
@@ -916,7 +918,7 @@ export async function listRatingsAbout(
   let query = external(db)
     .from("ratings")
     .select(
-      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, rater_organization_name, reply, replied_at",
+      "id, rater_side, score, comment, submitted_at, rated_person_id, rated_organization_id, rater_organization_id, rater_organization_name, is_of_individual, reply, replied_at",
     );
   query =
     "personId" in subject
@@ -935,6 +937,7 @@ export async function listRatingsAbout(
       ratedOrganizationId: row.rated_organization_id,
       raterOrganizationId: row.rater_organization_id,
       raterOrganizationName: row.rater_organization_name,
+      ofIndividual: row.is_of_individual === true,
       reply: row.reply,
       repliedAt: row.replied_at,
     })),

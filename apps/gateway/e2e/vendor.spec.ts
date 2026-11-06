@@ -50,7 +50,7 @@ test("a vendor rates a completed engagement and replies to the org's rating", as
   await expect(rating).toBeVisible();
   await expect(rating.getByText("4 of 5")).toBeVisible();
   await expectAccessible(page);
-  await rating.getByRole("textbox", { name: "Public reply" }).fill(reply);
+  await rating.getByRole("textbox", { name: "Your reply" }).fill(reply);
   await rating.getByRole("button", { name: "Reply" }).click();
   await expect(rating.getByText("Reply posted.")).toBeVisible();
   await reloadSettled(page);

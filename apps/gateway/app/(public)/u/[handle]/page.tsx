@@ -32,14 +32,16 @@ async function ratingsFor(
     ]);
     return {
       ratings: own.ok
-        ? own.data.map((r) => ({
-            id: r.id,
-            score: r.score,
-            comment: r.comment,
-            submittedAt: r.submittedAt,
-            reply: r.reply,
-            disputed: false,
-          }))
+        ? own.data
+            .filter((r) => r.ofIndividual)
+            .map((r) => ({
+              id: r.id,
+              score: r.score,
+              comment: r.comment,
+              submittedAt: r.submittedAt,
+              reply: r.reply,
+              disputed: false,
+            }))
         : [],
       shared: sharing.ok && sharing.data,
     };

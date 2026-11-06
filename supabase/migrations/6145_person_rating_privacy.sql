@@ -1,10 +1,12 @@
 -- 6145_person_rating_privacy.sql
 -- RRR-248, ADR 0156. A rating an org gives a named person may be a consumer report once another org can read it on a
 -- platform used for hiring (15 U.S.C. 1681a), so an org's rating of a person stays with the org that gave it:
+--   * private.rating_is_of_individual says when an org's rating is of a person: the engagement names a person and either
+--     has no engaged account or is for crew, staff, a contractor or an artist. A vendor, client, sponsor or agency engaged
+--     through an account is a company, whoever its named contact is, and its ratings read as before.
 --   * private.my_rated_engagement_ids and private.internal_rating_engagement_ids say who reads an org's rating of the
---     party. When the engagement names a person the readers are that person and members of the org that gave it, not
---     a partner org on a shared project and not the account that supplied the person. When it names only a company
---     nothing changes.
+--     party. For an individual the readers are that person and members of the org that gave it, not a partner org on a
+--     shared project and not an account that supplied the person.
 --   * app.ratings, app.rating_replies and api_external.ratings apply that rule. The view returned every released
 --     rating to anyone signed in; now it returns a person's rating only to those readers, with no opt-in path, so no
 --     list, sort, filter or score across orgs can be built from it.
@@ -103,6 +105,26 @@ comment on function private.removed_rating_ids() is 'Ratings removed because a d
 revoke all on function private.removed_rating_ids() from public, anon;
 grant execute on function private.removed_rating_ids() to authenticated, service_role;
 
+-- Who a rating is about ----------------------------------------------------------------------------------------------
+
+create or replace function private.rating_is_of_individual(
+  p_role_type app.external_role_type,
+  p_person_id uuid,
+  p_counterparty_id uuid
+)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select p_person_id is not null
+    and (p_counterparty_id is null or p_role_type in ('Contractor', 'Crew', 'Staff', 'Artist'));
+$$;
+
+comment on function private.rating_is_of_individual(app.external_role_type, uuid, uuid) is 'True when an org''s rating on an engagement with these values is of an individual person: it names a person, with no engaged account, or for work a person does themselves. A vendor, client, sponsor or agency engaged through an account is a company even when the engagement names its contact (ADR 0156).';
+revoke all on function private.rating_is_of_individual(app.external_role_type, uuid, uuid) from public, anon;
+grant execute on function private.rating_is_of_individual(app.external_role_type, uuid, uuid) to authenticated, service_role;
+
 -- Who reads an org's rating of the party -----------------------------------------------------------------------------
 
 create or replace function private.my_rated_engagement_ids()
@@ -116,11 +138,11 @@ as $$
   left join app.counterparties c on c.id = e.counterparty_id
   where e.deleted_at is null
     and (e.person_id = private.current_person_id()
-      or (e.person_id is null
+      or (not private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id)
         and c.organization_id in (select private.my_account_ids(array['Account Owner', 'Account Admin']::app.account_role[]))));
 $$;
 
-comment on function private.my_rated_engagement_ids() is 'Engagements whose rating by the org is about the signed-in person or their company: the engaged person when the engagement names one, otherwise an Account Owner or Admin of the engaged account. An account that supplied a named person does not read that person''s ratings (ADR 0156).';
+comment on function private.my_rated_engagement_ids() is 'Engagements whose rating by the org is about the signed-in person or their company: the engaged person, and for a company an Account Owner or Admin of the engaged account. An account that supplied an individual does not read that person''s ratings (ADR 0156).';
 revoke all on function private.my_rated_engagement_ids() from public, anon;
 grant execute on function private.my_rated_engagement_ids() to authenticated, service_role;
 
@@ -133,10 +155,11 @@ set search_path = ''
 as $$
   select e.id from app.engagements e
   where e.project_id in (select private.project_ids_with('opportunities.engagement.read'))
-    and (e.person_id is null or e.org_id in (select private.my_org_ids()));
+    and (not private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id)
+      or e.org_id in (select private.my_org_ids()));
 $$;
 
-comment on function private.internal_rating_engagement_ids() is 'Engagements whose rating by the org the signed-in member reads as the org: those they read internally, and when the engagement names a person only as a member of the org that gave the rating. A partner on a shared project or a holder of a record grant from another org does not qualify (ADR 0156).';
+comment on function private.internal_rating_engagement_ids() is 'Engagements whose rating by the org the signed-in member reads as the org: those they read internally, and for an individual only as a member of the org that gave the rating. A partner on a shared project or a holder of a record grant from another org does not qualify (ADR 0156).';
 revoke all on function private.internal_rating_engagement_ids() from public, anon;
 grant execute on function private.internal_rating_engagement_ids() to authenticated, service_role;
 
@@ -210,11 +233,14 @@ comment on function private.guard_rating_reply() is 'Replies: only by the rated 
 
 create or replace view api_external.ratings as
 select rt.id, rt.rater_side, rt.score, rt.comment, rt.submitted_at,
-  case when rt.rater_side = 'Organization' then e.person_id end as rated_person_id,
+  case when rt.rater_side = 'Organization'
+    and (e.person_id = private.current_person_id()
+      or rt.engagement_id in (select private.internal_rating_engagement_ids())) then e.person_id end as rated_person_id,
   case when rt.rater_side = 'Organization' then c.organization_id else e.org_id end as rated_organization_id,
   case when rt.rater_side = 'Organization' then e.org_id else c.organization_id end as rater_organization_id,
   rr.body as reply, rr.created_at as replied_at,
-  rater.name as rater_organization_name
+  rater.name as rater_organization_name,
+  rt.rater_side = 'Organization' and private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id) as is_of_individual
 from app.ratings rt
 join app.engagements e on e.id = rt.engagement_id
 left join app.counterparties c on c.id = e.counterparty_id
@@ -222,16 +248,17 @@ left join app.rating_replies rr on rr.rating_id = rt.id and rr.deleted_at is nul
 left join app.organizations rater on rater.id = case when rt.rater_side = 'Organization' then e.org_id else c.organization_id end
 where rt.deleted_at is null and private.rating_released(rt.engagement_id) and private.current_person_id() is not null
   and rt.id not in (select private.removed_rating_ids())
-  and (rt.rater_side = 'Party' or e.person_id is null
+  and (rt.rater_side = 'Party' or not private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id)
     or rt.engagement_id in (select private.my_rated_engagement_ids())
     or rt.engagement_id in (select private.internal_rating_engagement_ids()));
 
-call private.describe('api_external.ratings', 'Released two-sided ratings and their replies (Section 4.4.3). A rating of a company or a party''s rating of an org reads for anyone signed in. An org''s rating of a named person reads only for that person and members of the org that gave it, opt-in or not (ADR 0156). Internal ratings and org notes never appear.', array[
+call private.describe('api_external.ratings', 'Released two-sided ratings and their replies (Section 4.4.3). A rating of a company or vendor, or a party''s rating of an org, reads for anyone signed in, without naming the company''s contact. An org''s rating of an individual reads only for that person and members of the org that gave it, opt-in or not (ADR 0156). Internal ratings and org notes never appear.', array[
   'id', 'Rating.', 'rater_side', 'Organization or Party.', 'score', 'Score 1 to 5.', 'comment', 'Comment.',
-  'submitted_at', 'When given.', 'rated_person_id', 'Person rated, for an org''s rating of a person.',
+  'submitted_at', 'When given.', 'rated_person_id', 'Person the engagement names, for an org''s rating; only for that person and the org.',
   'rated_organization_id', 'Organization rated: the engaged account, or the org for a party''s rating.',
   'rater_organization_id', 'Organization that rated: the org, or the engaged account.', 'reply', 'Reply of the rated side.',
-  'replied_at', 'When replied.', 'rater_organization_name', 'Name of the organization that rated.']);
+  'replied_at', 'When replied.', 'rater_organization_name', 'Name of the organization that rated.',
+  'is_of_individual', 'True for an org''s rating of an individual, which that person may dispute.']);
 
 revoke all on api_external.ratings from public, anon;
 grant select on api_external.ratings to authenticated, service_role;
@@ -402,6 +429,7 @@ as $$
     exists (select 1 from app.rating_disputes d where d.rating_id = r.id and d.dispute_state = 'Open' and d.deleted_at is null)
   from private.person_profile_by_handle(p_handle) p
   join app.engagements e on e.person_id = p.person_id and e.deleted_at is null
+    and private.rating_is_of_individual(e.role_type, e.person_id, e.counterparty_id)
   join app.ratings r on r.engagement_id = e.id and r.rater_side = 'Organization' and r.deleted_at is null
   left join app.rating_replies rr on rr.rating_id = r.id and rr.deleted_at is null
   where p.id is not null
@@ -421,7 +449,7 @@ grant execute on function api_public.person_profile_shared_ratings(text) to auth
 
 -- What the table says about itself -----------------------------------------------------------------------------------
 
-comment on table app.ratings is 'Two-sided ratings of a completed engagement (Section 4.4.3): the org rates the party and the party rates the org. Both are released together once both are in or 14 days after the engagement completed. An org''s rating of a named person reads only inside that org and for that person (ADR 0156); a rating of a company and a party''s rating of an org read for anyone signed in. Ratings are never edited, withdrawn or suppressed by the org or the rated side (Section 14.9); gateway.ratings_enabled only decides whether the org''s members are prompted to rate and never hides or removes a rating (ADR 0038). Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score. Internal org notes and internal ratings live elsewhere and never appear here.';
+comment on table app.ratings is 'Two-sided ratings of a completed engagement (Section 4.4.3): the org rates the party and the party rates the org. Both are released together once both are in or 14 days after the engagement completed. An org''s rating of an individual reads only inside that org and for that person (ADR 0156); a rating of a company or vendor and a party''s rating of an org read for anyone signed in. Ratings are never edited, withdrawn or suppressed by the org or the rated side (Section 14.9); gateway.ratings_enabled only decides whether the org''s members are prompted to rate and never hides or removes a rating (ADR 0038). Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score. Internal org notes and internal ratings live elsewhere and never appear here.';
 comment on column app.ratings.comment is 'Comment on the rating. Who reads it depends on who was rated, never on what it says (ADR 0156).';
 comment on table app.rating_replies is 'The rated side''s one reply to a released rating (Section 4.4.3). It is read wherever the rating is.';
 

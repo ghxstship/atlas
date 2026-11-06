@@ -2941,9 +2941,11 @@ export type Database = {
         Row: {
           comment: string | null;
           id: string | null;
+          is_of_individual: boolean | null;
           rated_organization_id: string | null;
           rated_person_id: string | null;
           rater_organization_id: string | null;
+          rater_organization_name: string | null;
           rater_side: Database["app"]["Enums"]["rating_side"] | null;
           replied_at: string | null;
           reply: string | null;
@@ -43142,6 +43144,198 @@ export type Database = {
           },
         ];
       };
+      rating_dispute_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id: string;
+          org_id: string;
+          rating_dispute_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id?: string;
+          org_id: string;
+          rating_dispute_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id?: string;
+          org_id?: string;
+          rating_dispute_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_dispute_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_rating_dispute_id_fkey";
+            columns: ["rating_dispute_id"];
+            isOneToOne: false;
+            referencedRelation: "rating_disputes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rating_disputes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_ground: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement: string | null;
+          deleted_at: string | null;
+          details: string;
+          disputant_person_id: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at: string;
+          id: string;
+          org_id: string;
+          org_responded_at: string | null;
+          org_responded_by: string | null;
+          org_response: string | null;
+          rating_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement?: string | null;
+          deleted_at?: string | null;
+          details: string;
+          disputant_person_id: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at?: string;
+          id?: string;
+          org_id: string;
+          org_responded_at?: string | null;
+          org_responded_by?: string | null;
+          org_response?: string | null;
+          rating_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement?: string | null;
+          deleted_at?: string | null;
+          details?: string;
+          disputant_person_id?: string;
+          dispute_ground?: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at?: string;
+          id?: string;
+          org_id?: string;
+          org_responded_at?: string | null;
+          org_responded_by?: string | null;
+          org_response?: string | null;
+          rating_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_disputes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_disputant_person_id_fkey";
+            columns: ["disputant_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_org_responded_by_fkey";
+            columns: ["org_responded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_rating_id_fkey";
+            columns: ["rating_id"];
+            isOneToOne: false;
+            referencedRelation: "ratings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       rating_replies: {
         Row: {
           body: string;
@@ -43211,6 +43405,74 @@ export type Database = {
           },
           {
             foreignKeyName: "rating_replies_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rating_sharing_consents: {
+        Row: {
+          captured_at: string;
+          captured_ip: unknown;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          notice_version: string;
+          person_id: string;
+          source: Database["app"]["Enums"]["consent_source"];
+          updated_at: string;
+          updated_by: string | null;
+          withdrawn_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          captured_at?: string;
+          captured_ip?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          notice_version: string;
+          person_id: string;
+          source: Database["app"]["Enums"]["consent_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          captured_at?: string;
+          captured_ip?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          notice_version?: string;
+          person_id?: string;
+          source?: Database["app"]["Enums"]["consent_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_sharing_consents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_sharing_consents_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_sharing_consents_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -71927,6 +72189,15 @@ export type Database = {
         };
         Returns: string;
       };
+      console_decide_rating_dispute: {
+        Args: {
+          p_dispute_id: string;
+          p_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          p_outcome: Database["app"]["Enums"]["rating_dispute_state"];
+          p_statement: string;
+        };
+        Returns: undefined;
+      };
       console_end_banner: { Args: { p_banner_id: string }; Returns: string };
       console_end_plan_override: {
         Args: { p_override_id: string; p_reason: string };
@@ -71990,6 +72261,21 @@ export type Database = {
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
+      console_rating_dispute_detail: { Args: { p_dispute_id: string }; Returns: Json };
+      console_rating_dispute_queue: {
+        Args: { p_open?: boolean };
+        Returns: {
+          decided_at: string;
+          disputant_name: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_id: string;
+          dispute_state: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at: string;
+          org_answered: boolean;
+          org_id: string;
+          org_name: string;
+        }[];
+      };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
@@ -72820,6 +73106,14 @@ export type Database = {
       };
       file_moderation_appeal: {
         Args: { p_grounds: string; p_moderation_action_id: string };
+        Returns: string;
+      };
+      file_rating_dispute: {
+        Args: {
+          p_details: string;
+          p_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          p_rating_id: string;
+        };
         Returns: string;
       };
       find_chat_connection: {
@@ -75005,6 +75299,10 @@ export type Database = {
         };
         Returns: string;
       };
+      respond_to_rating_dispute: {
+        Args: { p_dispute_id: string; p_response: string };
+        Returns: undefined;
+      };
       respond_to_settlement: {
         Args: { p_accept: boolean; p_reason: string; p_settlement_id: string };
         Returns: string;
@@ -75517,6 +75815,14 @@ export type Database = {
           p_value_text?: string;
         };
         Returns: string;
+      };
+      set_rating_sharing: {
+        Args: {
+          p_notice_version?: string;
+          p_opt_in: boolean;
+          p_source?: Database["app"]["Enums"]["consent_source"];
+        };
+        Returns: boolean;
       };
       set_roster_lock: {
         Args: { p_engagement_id: string; p_locks_at: string };
@@ -76980,6 +77286,9 @@ export type Database = {
       purge_method: "Delete" | "Drop Partition" | "Account Lifecycle";
       rate_type: "Hourly" | "Day" | "Flat" | "Milestone" | "Bid";
       rate_unit: "Hour" | "Day" | "Week" | "Project";
+      rating_dispute_ground:
+        "Wrong Person" | "False Statement" | "Abusive Content" | "Personal Data" | "Other";
+      rating_dispute_state: "Open" | "Upheld" | "Not Upheld";
       rating_side: "Organization" | "Party";
       reconciliation_result: "Met" | "Gap" | "Unknown";
       report_aggregate: "None" | "Count" | "Sum" | "Average" | "Minimum" | "Maximum";
@@ -83700,6 +84009,14 @@ export const Constants = {
       purge_method: ["Delete", "Drop Partition", "Account Lifecycle"],
       rate_type: ["Hourly", "Day", "Flat", "Milestone", "Bid"],
       rate_unit: ["Hour", "Day", "Week", "Project"],
+      rating_dispute_ground: [
+        "Wrong Person",
+        "False Statement",
+        "Abusive Content",
+        "Personal Data",
+        "Other",
+      ],
+      rating_dispute_state: ["Open", "Upheld", "Not Upheld"],
       rating_side: ["Organization", "Party"],
       reconciliation_result: ["Met", "Gap", "Unknown"],
       report_aggregate: ["None", "Count", "Sum", "Average", "Minimum", "Maximum"],

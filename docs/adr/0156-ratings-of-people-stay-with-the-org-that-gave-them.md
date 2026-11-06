@@ -16,16 +16,17 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 
 ### 1. Who reads a rating
 
-| Rating | Who reads it |
-| --- | --- |
-| An org's rating of a named person (the engagement has `person_id`) | Members of the org that gave it, and that person |
-| An org's rating of a company (no `person_id`) | As before: anyone signed in |
-| A party's rating of an org | As before: anyone signed in |
+| Rating                                 | Who reads it                                                                       |
+| -------------------------------------- | ---------------------------------------------------------------------------------- |
+| An org's rating of an individual       | Members of the org that gave it, and that person                                   |
+| An org's rating of a company or vendor | As before: anyone signed in. The row no longer names the company's contact to them |
+| A party's rating of an org             | As before: anyone signed in                                                        |
 
-- A rating on a vendor engagement that names a supplied person is a rating of that person. The account that supplied them does not read it or answer it. A rating of the vendor belongs on an engagement that names no person.
-- A partner on a shared project, or the holder of a record grant from another org, may read the engagement but not the rating of the person.
-- The rule is in row level security on `app.ratings` and `app.rating_replies`, and in the row filter of `api_external.ratings`. API v1 reads `app.ratings` under that security, so no v1 field, filter or list reaches another org's rating of a person. No v1 operation changed.
-- An account with one member and a named company is treated as a company: the database has no marker for a sole proprietor. Section 4 of this ADR lists this as a residual risk.
+- A rating is of an individual when the engagement names a person and either has no engaged account or is for crew, staff, a contractor or an artist (`private.rating_is_of_individual`). An engagement from a company's accepted bid names the applicant as well as the account, so naming a person cannot be the test alone: a vendor, client, sponsor or agency engaged through an account is a company, whoever its named contact is.
+- Crew, staff, a contractor or an artist supplied through an account are individuals. That account does not read their rating or answer it.
+- A partner on a shared project, or the holder of a record grant from another org, may read the engagement but not the rating of an individual.
+- The rule is in row level security on `app.ratings` and `app.rating_replies`, and in the row filter of `api_external.ratings`. API v1 reads `app.ratings` under that security, so no v1 field, filter or list reaches another org's rating of an individual. No v1 operation changed.
+- A one-person vendor is treated as a company: the database has no marker for a sole proprietor, and a vendor's rating comment can name a person. The Consequences list both as residual risks.
 
 ### 2. The opt-in
 
@@ -44,7 +45,7 @@ The question was whether a hiring, recruitment, crew assignment or eligibility s
 ### 4. Seeing and disputing
 
 - The rated person reads every released rating of them, with which org gave it, on Gateway's profile page.
-- `app.file_rating_dispute` is the route: one dispute per rating, once released, by the named person only. The org that gave the rating may answer once (`app.respond_to_rating_dispute`). A platform operator with `moderation.decide` decides with a statement of reasons in the console (`/moderation/rating-disputes`); the person and the org are told, naming the platform and not the operator. The `rating_dispute` lifecycle is Open to Upheld or Not Upheld.
+- `app.file_rating_dispute` is the route: one dispute per rating, once released, by the rated individual only. The org that gave the rating may answer once (`app.respond_to_rating_dispute`). A platform operator with `moderation.decide` decides with a statement of reasons in the console (`/moderation/rating-disputes`); the person and the org are told, naming the platform and not the operator. The `rating_dispute` lifecycle is Open to Upheld or Not Upheld.
 - Upheld takes the rating out of every read. The rating row is not edited and stays as evidence.
 - An operator may uphold only for a named ground: the wrong person, a false statement, abusive content or personal data. The person may file with Other, but a dispute is not upheld on it. The queue and the detail never show the score.
 - Filing does not hide the rating. A shared rating shows a Disputed tag while the dispute is open.
@@ -55,7 +56,7 @@ ADR 0038 stands: ratings are always on, `gateway.ratings_enabled` controls promp
 
 The FTC rule (16 CFR 465.7) reaches a business that controls a review website and suppresses reviews based on their rating or negative sentiment while representing that what is shown is all or most of the reviews. Limiting who reads a rating by relationship is a different thing:
 
-- **The rule is content-neutral.** It looks at who is asking and which engagement the rating came from. No path reads the score or the comment. A five-star rating of a person and a one-star rating of a person are restricted in exactly the same way. pgTAP proves a low score reads for the same people as a high one.
+- **The rule is content-neutral.** It looks at who is asking and which engagement the rating came from. No path reads the score or the comment. A five-star rating of a person and a one-star rating of a person are restricted in exactly the same way, and so are a person's and a company's whatever they say. pgTAP proves a low score reads for the same people as a high one.
 - **Nothing is represented as complete that is not.** There is no public list of a person's ratings that omits the negative ones. A shared list is all of them, says so, and the person cannot pick.
 - **Nobody can suppress a negative rating.** The org cannot, the rated person cannot pick (all or none), and filing a dispute hides nothing. Removal follows an operator's decision on grounds the rule itself recognizes, applied whatever the score, and the operator does not see the score.
 - **Company ratings keep their reach,** so a negative rating of a company still reads for everyone it did before.
@@ -64,26 +65,28 @@ Whether Part 465 applies to ratings between organizations and workers at all is 
 
 ## Other personal review data checked
 
-| Data | Finding | Action |
-| --- | --- | --- |
-| `app.person_references` | The person lists them and controls the section's visibility. They are not assembled by the platform from another org. A statement can be read by a hirer, if the person publishes it | None. Listed for legal review |
-| `app.person_certifications` verified by an org | A fact and who verified it, in a section the person controls | None. Listed for legal review |
-| `api_public.person_profile_organizations` | Names orgs a person worked with, in a section the person controls. No opinion | None |
-| Pool standing, Do Not Engage, `rehire_eligible` | Internal to the org by policy, and never in `api_external` | None |
-| `app.vendor_scorecards` | Org-scoped through `vendors.vendor.read`, about vendors | None |
-| Application review and interview notes | Org-scoped | None |
-| Training and form scores | Org-scoped | None |
+| Data                                            | Finding                                                                                                                                                                              | Action                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| `app.person_references`                         | The person lists them and controls the section's visibility. They are not assembled by the platform from another org. A statement can be read by a hirer, if the person publishes it | None. Listed for legal review |
+| `app.person_certifications` verified by an org  | A fact and who verified it, in a section the person controls                                                                                                                         | None. Listed for legal review |
+| `api_public.person_profile_organizations`       | Names orgs a person worked with, in a section the person controls. No opinion                                                                                                        | None                          |
+| Pool standing, Do Not Engage, `rehire_eligible` | Internal to the org by policy, and never in `api_external`                                                                                                                           | None                          |
+| `app.vendor_scorecards`                         | Org-scoped through `vendors.vendor.read`, about vendors                                                                                                                              | None                          |
+| Application review and interview notes          | Org-scoped                                                                                                                                                                           | None                          |
+| Training and form scores                        | Org-scoped                                                                                                                                                                           | None                          |
 
 ## Consequences
 
-- `rated_person_id` stays on the view, additively, and `rater_organization_name` joins it; the rows changed, not the shape.
+- `rated_person_id` stays on the view, additively, and `rater_organization_name` joins it; the rows changed, not the shape. On a company's rating, `rated_person_id` now reads only for the named contact and the org.
 - A new capability that decides hiring must join `private.hiring_capability_codes()`. Nothing adds it automatically, so its code review is the control.
-- A one-person company is still a company here. If a marker for a sole proprietor is added later, those ratings should follow Section 1.
+- A one-person vendor engaged through an account is still a company here. If a marker for a sole proprietor is added later, those ratings should follow Section 1.
+- A company's rating is free text and can name a person. The contact it names may not dispute it through this route; the Acceptable Use Policy's report routes remain, and a later change could extend the route.
 - A hirer who holds no hiring capability in XOS, or who reads a screenshot a person's friend took, is out of reach. The Acceptable Use Policy's bar on screening with ratings is the remaining control, and it is not a cure.
 - A rating dispute has no appeal to a second operator. With one operator, that review could not be kept.
 
 ## Alternatives considered
 
+- **Treating any engagement that names a person as an individual.** Simpler, and stricter, but nearly every vendor engagement names its applicant, so it would have made vendor ratings private, which the owner ruled out.
 - **FCRA-compliant handling** (permissible purpose certification, adverse action notices, accuracy procedures). This accepts CRA status for a feature nothing depends on. Rejected.
 - **A disclaimer or terms-only restriction.** Research says it does not cure the fact pattern, and it could mislead. Rejected, though the use restriction stays as a second line.
 - **Opt-in shown on hiring surfaces.** A consumer's instruction may supply a permissible purpose, but it does not remove the report from the statute. Rejected.

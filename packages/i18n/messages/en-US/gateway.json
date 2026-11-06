@@ -1831,7 +1831,7 @@
     "ratings": {
       "title": "Ratings",
       "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate.",
-      "who": "Only you and the organization that gave a rating can read it.",
+      "who": "Only you and the organization that gave it can read a rating of you. A rating of a company you are the contact for can be read by anyone signed in.",
       "whoAction": "Choose whether to show them on your profile.",
       "dispute": {
         "open": "Dispute this rating",

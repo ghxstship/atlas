@@ -44,7 +44,7 @@ export function RatingDisputeForm({ ratingId }: { ratingId: string }) {
           id={`dispute-ground-${ratingId}`}
           name="ground"
           label={t("gateway.profile.ratings.dispute.ground")}
-          defaultValue={enums.ratingDisputeGround[0]}
+          value={enums.ratingDisputeGround[0]}
           options={enums.ratingDisputeGround.map((g) => ({
             value: g,
             label: t(enumLabelKey("ratingDisputeGround", g)),
@@ -59,7 +59,13 @@ export function RatingDisputeForm({ ratingId }: { ratingId: string }) {
           label={t("gateway.profile.ratings.dispute.details")}
         />
         <div>
-          <Button type="submit" size="sm" variant="secondary" disabled={pending} aria-busy={pending}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={pending}
+            aria-busy={pending}
+          >
             {t("gateway.profile.ratings.dispute.submit")}
           </Button>
         </div>
