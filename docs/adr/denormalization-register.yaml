@@ -332,6 +332,9 @@ json:
   - column: private.account_security_events.detail
     kind: audit-diff
     note: Facts of a security event in the person's own log (migration 1560).
+  - column: private.crisis_alert_sends.message_args
+    kind: provider-payload
+    note: The same display arguments as app.notifications.message_args, held for seconds until the worker sends them (migration 6070).
   - column: private.platform_emails.args
     kind: provider-payload
     note: Template arguments for the email provider, cleared once sent (migration 1382).

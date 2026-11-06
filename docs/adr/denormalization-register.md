@@ -70,6 +70,7 @@ ADR 0002 allows JSON columns only for rich text documents, audit diffs and provi
 | `app.time_entry_audit.old_values`               | audit-diff       | Clock times before a change.                                                                                                                                 |
 | `private.account_deletions.result`              | audit-diff       | What an account deletion erased and kept, as returned to the person (migration 1112).                                                                        |
 | `private.account_security_events.detail`        | audit-diff       | Facts of a security event in the person's own log (migration 1560).                                                                                          |
+| `private.crisis_alert_sends.message_args`       | provider-payload | The same display arguments as app.notifications.message_args, held for seconds until the worker sends them (migration 6070).                                 |
 | `private.platform_emails.args`                  | provider-payload | Template arguments for the email provider, cleared once sent (migration 1382).                                                                               |
 
 ## Array columns
