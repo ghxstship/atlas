@@ -58,6 +58,13 @@ export async function newLine(
 }
 
 export async function removeBudget(budgetId: string): Promise<void> {
+  // A Labor line that live shifts post to cannot be deleted (budget_line_labor_linked).
+  await localSql(
+    `update app.shifts set deleted_at = now()
+      where deleted_at is null
+        and budget_line_id in (select id from app.budget_lines where budget_id = $1)`,
+    [budgetId],
+  );
   await localSql(`update app.budget_lines set deleted_at = now() where budget_id = $1`, [budgetId]);
   await localSql(`alter table app.budgets disable trigger t41_guard_budget_sent_quote`);
   await localSql(`update app.budgets set deleted_at = now() where id = $1`, [budgetId]);

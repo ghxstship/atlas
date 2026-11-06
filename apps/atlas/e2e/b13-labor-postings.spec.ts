@@ -89,3 +89,85 @@ test("approved time reaches Actual and the Labor report", async ({ page }) => {
     await removeBudget(budgetId);
   }
 });
+
+test("a member's shift takes its Budget line from the form and the bulk bar", async ({ page }) => {
+  const id = uniqueId();
+  const budgetId = await newBudget(`Shift lines ${id}`);
+  const first = await newLine(budgetId, 1, "Riggers", 2000, "Labor");
+  const second = await newLine(budgetId, 2, "Carpenters", 2000, "Labor");
+  const [member] = await localSql<{ id: string }>(
+    `select m.id from app.memberships m join auth.users u on u.id = (select p.user_id from app.people p where p.id = m.person_id)
+     where m.org_id = $1 and u.email = 'field@example.com'`,
+    [DEMO_ORG_ID],
+  );
+  // A week far past anything the seed plans, so the list holds this one shift of the person.
+  const date = `${2040 + Math.floor(Math.random() * 40)}-06-06`;
+  const list = `/${DEMO_ORG}/crew/shifts?project=NWS&view=table&week=${date}`;
+  const linked = (line: string) =>
+    localSql<{ id: string }>(
+      `select id from app.shifts where budget_line_id = $1 and deleted_at is null and membership_id = $2`,
+      [line, member?.id],
+    );
+  try {
+    await signInAs(page, "owner@example.com", DEMO_ORG);
+
+    // Created with a line: createShift writes it.
+    await page.goto(`${list}&create=1`);
+    const create = page.getByRole("dialog", { name: "New shift" });
+    await expect(create).toBeVisible();
+    await settle(page);
+    await create.getByLabel("Person", { exact: true }).selectOption(member?.id as string);
+    await create.getByLabel(/^Starts/).fill(`${date}T09:00`);
+    await create.getByLabel(/^Ends/).fill(`${date}T11:00`);
+    await create.getByLabel("Budget line", { exact: true }).selectOption(first);
+    await create.getByRole("button", { name: "New shift" }).click();
+    await expect(create).toBeHidden();
+    const [shift] = await linked(first);
+    expect(shift?.id).toBeTruthy();
+
+    // Edited to another line: updateShift writes it, and the form opens on the line the shift holds.
+    await page.goto(`${list}&edit=${shift?.id}`);
+    const edit = page.getByRole("dialog", { name: "Edit shift" });
+    await expect(edit.getByLabel("Budget line", { exact: true })).toHaveValue(first);
+    await settle(page);
+    await edit.getByLabel("Budget line", { exact: true }).selectOption(second);
+    await edit.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(edit).toBeHidden();
+    await expect.poll(async () => (await linked(second)).map((r) => r.id)).toEqual([shift?.id]);
+
+    // Editing something else keeps the line.
+    await page.goto(`${list}&edit=${shift?.id}`);
+    await expect(edit.getByLabel("Budget line", { exact: true })).toHaveValue(second);
+    await settle(page);
+    await edit.getByLabel(/^Ends/).fill(`${date}T12:00`);
+    await edit.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(edit).toBeHidden();
+    await expect.poll(async () => (await linked(second)).map((r) => r.id)).toEqual([shift?.id]);
+
+    // The bulk bar of one project's shifts moves it back.
+    await page.goto(list);
+    await settle(page);
+    const row = page.getByRole("grid").getByRole("row").nth(1);
+    await expect(async () => {
+      await row.getByRole("checkbox").click();
+      await expect(page.getByRole("status").filter({ hasText: "1 selected" })).toBeAttached({
+        timeout: 3_000,
+      });
+    }).toPass();
+    await page
+      .getByRole("toolbar", { name: "Bulk actions" })
+      .getByRole("button", { name: "Change Budget line" })
+      .click();
+    const bulk = page.getByRole("dialog", { name: /Change Budget line on 1 row/ });
+    // The bulk dialog's values are encoded, so its choice is by label.
+    await bulk
+      .getByLabel("New Budget line")
+      .selectOption({ label: `NWS · Shift lines ${id} · 1 Riggers` });
+    await bulk.getByRole("button", { name: "Preview" }).click();
+    await bulk.getByRole("button", { name: /^Apply to 1 row/ }).click();
+    await expect(page.getByText(/^Changed 1 row/).first()).toBeVisible();
+    await expect.poll(async () => (await linked(first)).map((r) => r.id)).toEqual([shift?.id]);
+  } finally {
+    await removeBudget(budgetId);
+  }
+});
