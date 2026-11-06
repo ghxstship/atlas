@@ -42,7 +42,9 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     // The client column set shows the marked-up price.
     await page.goto(`/${DEMO_ORG}/finance/budgets?budget=${budgetId}&columns=client`);
     const grid = page.getByRole("grid");
-    await expect(grid.getByRole("gridcell", { name: "$125.00", exact: true })).toBeVisible();
+    await expect(
+      grid.getByRole("gridcell", { name: "$125.00", exact: true }).first(),
+    ).toBeVisible();
 
     // New quote.
     await page.goto(`/${DEMO_ORG}/finance/quotes?project=NWS`);

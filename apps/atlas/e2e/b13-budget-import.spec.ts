@@ -1,5 +1,5 @@
 import { expect as baseExpect, test } from "./engine-test";
-import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
+import { leaveStep, DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
 import { localSql, newBudget, newLine, removeBudget } from "./b13-support";
 import { uniqueId } from "./support";
 
@@ -35,13 +35,13 @@ test("budget lines import from a spreadsheet with a preview", async ({ page }) =
     await page.waitForURL(/\?import=/);
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-    await page.getByRole("button", { name: "Confirm the mapping" }).click();
+    await leaveStep(page, "Confirm the mapping", "Map the columns");
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Dry run" }));
     const dry = page.getByRole("region", { name: "Dry run" });
     await expect(dry.getByText("New records").locator("..")).toContainText("1");
     await expect(dry.getByText("Updates").locator("..")).toContainText("1");
-    await page.getByRole("button", { name: "Commit the import" }).click();
+    await leaveStep(page, "Commit the import", "Dry run");
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
 

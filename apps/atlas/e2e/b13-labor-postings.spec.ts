@@ -48,9 +48,21 @@ test("approved time reaches Actual and the Labor report", async ({ page }) => {
       [DEMO_ORG_ID, DEMO_PROJECT, membership, shift?.id, `${monday} 14:00+00`],
     );
     const [sheet] = await localSql<{ id: string }>(
-      `insert into app.timesheets (org_id, project_id, membership_id, period_start, period_end, timesheet_state)
-       values ($1, $2, $3, $4::date - 3, $4::date + 3, 'Submitted') returning id`,
+      `insert into app.timesheets (org_id, project_id, membership_id, period_start, period_end)
+       values ($1, $2, $3, $4::date - 3, $4::date + 3) returning id`,
       [DEMO_ORG_ID, DEMO_PROJECT, membership, monday],
+    );
+    // Submitted as its worker, through the lifecycle, since a timesheet starts Proposed.
+    const [worker] = await localSql<{ user_id: string }>(
+      `select pe.user_id from app.memberships m join app.people pe on pe.id = m.person_id where m.id = $1`,
+      [membership],
+    );
+    await localSql(
+      `begin;
+       select set_config('request.jwt.claims', '{"sub":"${worker?.user_id}","role":"authenticated"}', true);
+       set local role authenticated;
+       select app.submit_timesheet('${sheet?.id}');
+       commit;`,
     );
     const [owner] = await localSql<{ id: string }>(
       `select id from app.people where user_id = (select id from auth.users where email = 'owner@example.com')`,

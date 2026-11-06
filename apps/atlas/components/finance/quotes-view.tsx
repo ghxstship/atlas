@@ -13,8 +13,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { declineQuoteAction, withdrawQuoteAction } from "@/app/[org]/finance/quote-actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Figures, Section, SimpleTable } from "./figures";
-import { FormSheet, QuoteForm } from "./lazy";
-import { InlineActionButton } from "./kit-inline-action-button";
+import { FormSheet, InlineActionButton, QuoteForm } from "./lazy";
 import { type Row } from "./kit.types";
 import {
   DeleteDraftButton,

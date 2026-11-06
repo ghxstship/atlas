@@ -461,10 +461,11 @@ as $$
   select coalesce(array_agg(c order by c), '{}')
   from unnest(p_capabilities) c
   where (c like 'credentials.%' or c like 'safety.%' or c like 'data.restricted.%' or c like 'advancing.%'
-         or c in ('finance.budget.read', 'projects.gate.read', 'crew.shift.read'))
+         or c in ('finance.budget.read', 'projects.gate.read', 'crew.shift.read', 'crew.timesheet.read',
+           'finance.expense.read', 'finance.invoice.read', 'procurement.po.read'))
     and private.can_on_project(p_project_id, c);
 $$;
-comment on function app.my_capabilities_on_project(uuid, text[]) is 'Which of the named credentials, safety and restricted-data capabilities, and crew.shift.read, the signed-in person may use on a project. Only shapes which controls the apps show and which merge fields a generated document can fill; row level security and the RPCs still decide every write.';
+comment on function app.my_capabilities_on_project(uuid, text[]) is 'Which of the named credentials, safety, advancing and restricted-data capabilities, and the budget, gate, shift, timesheet, expense, invoice and purchase order reads, the signed-in person may use on a project. Only shapes which controls the apps show and which merge fields a generated document can fill; row level security and the RPCs still decide every write.';
 revoke all on function app.my_capabilities_on_project(uuid, text[]) from public, anon;
 grant execute on function app.my_capabilities_on_project(uuid, text[]) to authenticated, service_role;
 

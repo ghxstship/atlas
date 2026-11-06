@@ -1,7 +1,7 @@
 import pg from "pg";
 import { writeWorkbook } from "@xos/data/import-worker";
 import { act, ORG, signIn } from "./a16-support";
-import { reloadUntil, runImportWorker } from "./a36-support";
+import { leaveStep, reloadUntil, runImportWorker } from "./a36-support";
 import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import { uniqueId } from "./support";
 
@@ -208,12 +208,12 @@ test("needs and order lines import through the wizard, and the batch undoes", as
     await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
   };
   const toDryRun = async () => {
-    await page.getByRole("button", { name: "Confirm the mapping" }).click();
+    await leaveStep(page, "Confirm the mapping", "Map the columns");
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Dry run" }));
   };
   const commit = async () => {
-    await page.getByRole("button", { name: "Commit the import" }).click();
+    await leaveStep(page, "Commit the import", "Dry run");
     await runImportWorker();
     await reloadUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
   };
@@ -229,8 +229,8 @@ test("needs and order lines import through the wizard, and the batch undoes", as
       ["Description,Quantity", `${truss},4`, `${motor},2`, `${truss.toUpperCase()},9`].join("\n"),
     ),
   });
-  await expect(page.getByLabel("Column Description")).toHaveValue("description");
-  await expect(page.getByLabel("Column Quantity")).toHaveValue("quantity");
+  await expect(page.getByLabel("Column Description").first()).toHaveValue("description");
+  await expect(page.getByLabel("Column Quantity").first()).toHaveValue("quantity");
   await toDryRun();
   await expect(counts().getByText("New records").locator("..")).toContainText("2");
   await commit();

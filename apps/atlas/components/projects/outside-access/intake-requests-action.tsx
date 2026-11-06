@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@xos/ui";
-import type { Route } from "next";
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -54,12 +52,6 @@ export function IntakeRequestsAction({
           {access("newIntake")}
         </Button>
       ) : null}
-      <NextLink
-        className="text-label-13 text-accent-text underline"
-        href={`/${refs.org}/p/${refs.projectKey}/settings#outside-access` as Route}
-      >
-        {access("title")}
-      </NextLink>
       {open === "requests" && requests ? (
         <requests.IntakeRequestsDialog refs={refs} onClose={() => setOpen(null)} />
       ) : null}

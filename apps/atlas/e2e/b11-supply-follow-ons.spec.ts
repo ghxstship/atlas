@@ -79,7 +79,7 @@ test("a maintenance plan comes due, and Complete moves its next due date", async
     });
   }).toPass();
   await page.getByLabel("Applies to", { exact: true }).click();
-  await page.getByRole("option").first().click();
+  await page.getByRole("listbox").getByRole("option").first().click();
   await page.getByLabel("What is to be done", { exact: true }).fill(`Inspect ${suffix}`);
   await page.getByRole("button", { name: "Add plan", exact: true }).last().click();
   await expect(page.getByText(new RegExp(`Inspect ${suffix}`)).first()).toBeVisible();

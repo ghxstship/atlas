@@ -1,6 +1,8 @@
 "use client";
 
 import { Button, Dialog, InlineAlert, Textarea } from "@xos/ui";
+import type { Route } from "next";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useCallback, useEffect, useState } from "react";
@@ -108,6 +110,7 @@ export function IntakeRequestsDialog({
     void listIntakeRequestsAction(refs).then((r) => (r.ok ? setRows(r.data) : setError(r.error)));
   }, [refs]);
   useEffect(reload, [reload]);
+  const access = useTranslations("projects.outsideAccess");
   const groups = ["Pending", "Approved", "Declined"] as const;
   return (
     <Dialog
@@ -124,6 +127,12 @@ export function IntakeRequestsDialog({
       }
     >
       <div className="flex flex-col gap-16">
+        <NextLink
+          className="text-label-13 text-accent-text underline"
+          href={`/${refs.org}/p/${refs.projectKey}/settings#outside-access` as Route}
+        >
+          {access("title")}
+        </NextLink>
         {error ? <InlineAlert tone="danger">{t("loadError")}</InlineAlert> : null}
         {rows === null ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("loading")}</p>

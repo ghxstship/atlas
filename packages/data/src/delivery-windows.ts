@@ -59,7 +59,7 @@ interface WindowRow {
 }
 
 const WINDOW_COLUMNS =
-  "id, project_id, zone_id, starts_at, ends_at, vehicle_limit, is_open, project:projects(project_key, time_zone), zone:zones(name), bookings:dock_slots!dock_slots_delivery_window_id_fkey(id, reference_code, engagement_id, vehicle_identifier, checked_in_at, deleted_at, engagement:engagements(counterparty:counterparties(organization:organizations(name))))";
+  "id, project_id, zone_id, starts_at, ends_at, vehicle_limit, is_open, project:projects(project_key, time_zone), zone:zones(name), bookings:dock_slots!dock_slots_delivery_window_id_fkey(id, reference_code, engagement_id, vehicle_identifier, checked_in_at, deleted_at, engagement:engagements(counterparty:counterparties(organization:organizations!counterparties_organization_id_fkey(name))))";
 
 function toWindow(row: WindowRow): DeliveryWindow {
   return {

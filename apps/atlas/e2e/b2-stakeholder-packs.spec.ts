@@ -225,6 +225,7 @@ test("a pack's public pages answer no-store and a wrong token never opens", asyn
   const token = `xpkl_${"1".repeat(64)}`;
   const open = await guest.request.post(`/share/pack/${token}/open`, {
     form: { accessCode: "000000" },
+    headers: { Origin: process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:3006" },
     maxRedirects: 0,
   });
   expect(open.status()).toBe(303);

@@ -909,13 +909,13 @@
     "usesRate": "Uses the rate",
     "unknownFields": "These are not merge fields: {fields}.",
     "kinds": {
-      "Agreement": "Agreement",
-      "StatementofWork": "Statement of work",
-      "NonDisclosureAgreement": "Non-disclosure agreement"
+      "agreement": "Agreement",
+      "statementOfWork": "Statement of work",
+      "nonDisclosureAgreement": "Non-disclosure agreement"
     },
     "languages": {
-      "enUS": "English (US)",
-      "esUS": "Spanish (US)"
+      "enUs": "English (US)",
+      "esUs": "Spanish (US)"
     },
     "fieldNames": {
       "party_name": "Person's name",

@@ -127,7 +127,6 @@ export async function displayLink(person: string, project: string, name: string)
   const [order] = await sql<{ id: string }>(
     `insert into app.run_of_show (project_id, name, show_date) values ($1::uuid, $2, current_date + 10) returning id`,
     [project, name],
-    person,
   );
   const [link] = await sql<{ live_link_id: string }>(
     `select d.live_link_id from app.create_display_link($1::uuid, now() + interval '30 days') d`,

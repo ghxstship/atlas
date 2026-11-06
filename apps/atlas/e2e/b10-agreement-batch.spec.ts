@@ -102,6 +102,7 @@ test("an agreement batch: template, preview, create, send, and the masked reader
     await page.getByRole("option", { name: person }).click();
   }
   await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
   await generate.getByRole("button", { name: "Preview" }).click();
   await expect(page.getByRole("heading", { name: "Preview for 3 people" })).toBeVisible();
 

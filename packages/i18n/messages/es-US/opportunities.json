@@ -909,13 +909,13 @@
     "usesRate": "Usa la tarifa",
     "unknownFields": "Estos no son campos de combinación: {fields}.",
     "kinds": {
-      "Agreement": "Acuerdo",
-      "StatementofWork": "Declaración de trabajo",
-      "NonDisclosureAgreement": "Acuerdo de confidencialidad"
+      "agreement": "Acuerdo",
+      "statementOfWork": "Declaración de trabajo",
+      "nonDisclosureAgreement": "Acuerdo de confidencialidad"
     },
     "languages": {
-      "enUS": "Inglés (EE. UU.)",
-      "esUS": "Español (EE. UU.)"
+      "enUs": "Inglés (EE. UU.)",
+      "esUs": "Español (EE. UU.)"
     },
     "fieldNames": {
       "party_name": "Nombre de la persona",

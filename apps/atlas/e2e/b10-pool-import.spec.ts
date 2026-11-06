@@ -47,7 +47,7 @@ test("a freelancer list: map, review, merge, commit, and the invitations appear"
 
   await runImportWorker();
   await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-  await expect(page.getByLabel("Column Email")).toHaveValue("email");
+  await expect(page.getByLabel("Column Email").first()).toHaveValue("email");
   await page.getByRole("button", { name: "Confirm the mapping" }).click();
   await expect(page.getByText("Checking every row")).toBeVisible();
 

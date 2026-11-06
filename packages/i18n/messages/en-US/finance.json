@@ -58,7 +58,10 @@
     "viewLabel": "View",
     "lineRemoved": "Removed {description}.",
     "lineUndo": "Someone changed this line after you removed it; reload to see the change.",
-    "editUndo": "Someone changed this line after your edit; reload to see the change."
+    "editUndo": "Someone changed this line after your edit; reload to see the change.",
+    "yes": "Yes",
+    "no": "No",
+    "delete": "Delete"
   },
   "views": {
     "table": "Table",
