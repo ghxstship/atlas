@@ -20,7 +20,7 @@ var settings = {
   },
   quoteChaseEnabled: {
     label: "Recordar cotizaciones a los proveedores",
-    help: "Si está activado, a los proveedores invitados a una solicitud emitida que no han respondido se les recuerda automáticamente. Las solicitudes abiertas al momento del lanzamiento no se recuerdan.",
+    help: "Si está activado, a los proveedores invitados a una solicitud emitida que no han respondido se les recuerda automáticamente.",
   },
   quoteChaseInterval: {
     label: "Horas entre recordatorios de cotización",

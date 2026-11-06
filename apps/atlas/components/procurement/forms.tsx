@@ -63,9 +63,12 @@ export function ResponseForm({
   const [count, setCount] = useState(Math.max(2, requested.length));
   const [readings, setReadings] = useState(0);
   useDone(state);
-  useEffect(() => {
+  // A recorded response resets the form, so the next one starts from the request lines again.
+  const [seen, setSeen] = useState(state);
+  if (seen !== state) {
+    setSeen(state);
     if (state.ok) setReadings(0);
-  }, [state]);
+  }
   const err = (name: string) =>
     state.fieldErrors?.[name] ? k(`validation.${state.fieldErrors[name]}`) : "";
   return (

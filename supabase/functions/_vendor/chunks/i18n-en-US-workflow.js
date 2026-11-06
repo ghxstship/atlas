@@ -20,7 +20,7 @@ var settings = {
   },
   quoteChaseEnabled: {
     label: "Remind vendors about quotes",
-    help: "When on, vendors invited to an issued RFQ who have not answered are reminded automatically. RFQs already open at release are not chased.",
+    help: "When on, vendors invited to an issued RFQ who have not answered are reminded automatically.",
   },
   quoteChaseInterval: {
     label: "Hours between quote reminders",

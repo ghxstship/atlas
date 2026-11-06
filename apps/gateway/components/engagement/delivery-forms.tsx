@@ -89,10 +89,13 @@ export function DeliveryBookingActions({
     changeDeliveryPlateAction,
     {},
   );
+  const [seen, setSeen] = useState(state);
+  if (seen !== state) {
+    setSeen(state);
+    if (state.done) setEditing(false);
+  }
   useEffect(() => {
-    if (!state.done) return;
-    setEditing(false);
-    router.refresh();
+    if (state.done) router.refresh();
   }, [state, router]);
   return (
     <div className="flex flex-col gap-8">

@@ -965,6 +965,7 @@ export type Database = {
           reference_code: string | null;
           shipment_id: string | null;
           starts_at: string | null;
+          time_zone: string | null;
           tracking_identifier: string | null;
           vehicle_identifier: string | null;
           zone_code: string | null;
@@ -65281,6 +65282,7 @@ export type Database = {
           need_id: string | null;
           need_number: number | null;
           need_status: string | null;
+          needed_during: unknown;
           note: string | null;
           ordered_quantity: number | null;
           org_id: string | null;
@@ -67124,6 +67126,7 @@ export type Database = {
           project_id: string;
           project_key: string;
           short_quantity: number;
+          time_zone: string;
           unit_basis: string;
           window_from: string;
           window_to: string;
@@ -69753,6 +69756,7 @@ export type Database = {
         };
         Returns: string;
       };
+      procurement_time_zone: { Args: { p_project_id: string }; Returns: string };
       produce_payroll_export: {
         Args: { p_payroll_run_id: string; p_provider?: string };
         Returns: {

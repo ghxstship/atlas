@@ -23,7 +23,6 @@ const PROJECT = "01920000-0000-7000-8000-000000001001";
 const PROJECT_KEY = "NWS";
 const ORG_ID = "01920000-0000-7000-8000-000000000001";
 const OWNER = "01920000-0000-7000-8000-000000000101";
-const ADMIN = "01920000-0000-7000-8000-000000000102";
 
 /** SQL against the local stack only, as the given person. */
 async function localSql<T extends pg.QueryResultRow>(
@@ -74,18 +73,35 @@ async function shortOfFive(className: string): Promise<void> {
   );
 }
 
+/** Approves the step an order's approval waits on, as the signed-in approver, from Approvals. */
+async function decideStep(page: Page, poNumber: string, step: string) {
+  await page.goto(`/${ORG}/approvals`);
+  const heading = page.getByRole("heading", { name: `Purchase order ${poNumber}`, exact: true });
+  const item = page.getByRole("listitem").filter({ has: heading });
+  await expect(item.getByText(step).first()).toBeVisible();
+  await settle(page);
+  await item.getByRole("button", { name: "Approve step" }).click();
+  await expect(item.getByRole("button", { name: "Approve step" })).toHaveCount(0);
+}
+
 async function openNeeds(page: Page) {
   await page.goto(`/${ORG}/p/${PROJECT_KEY}/procurement?section=needs`);
   await settle(page);
 }
 
-test("journey: a shortage becomes a sub-hire RFQ, then a rental order line", async ({ page }) => {
+test("journey: a shortage becomes a sub-hire RFQ, then a rental order line", async ({
+  page,
+  browser,
+}) => {
   const className = `Crowd Barrier ${uniqueId()}`;
   await shortOfFive(className);
   await signIn(page, "producer@example.com");
 
   await openNeeds(page);
-  const short = page.locator("#needs-short").getByRole("listitem").filter({ hasText: className });
+  const shortSection = page.locator("section", {
+    has: page.getByRole("heading", { name: "Short against own stock", exact: true }),
+  });
+  const short = shortSection.getByRole("listitem").filter({ hasText: className });
   await expect(short).toContainText("short 5");
   await expect(async () => {
     await short.getByRole("button", { name: "Request sub-hire", exact: true }).click();
@@ -141,17 +157,33 @@ test("journey: a shortage becomes a sub-hire RFQ, then a rental order line", asy
   expect(line?.hire_period).not.toBeNull();
   expect(line?.procurement_need_id).not.toBeNull();
   await openNeeds(page);
-  await expect(
-    page.locator("#needs-short").getByRole("listitem").filter({ hasText: className }),
-  ).toHaveCount(0);
+  await expect(short).toHaveCount(0);
   await expect(page.getByText(className, { exact: true }).first()).toBeVisible();
 
-  // Approved by someone other than the buyer, the order counts as ordered.
-  await localSql(
-    `select app.approve_purchase_order($1, 'Within limit.')`,
+  // The demo tenant's approval policy (seed 1030) routes every order through Finance review and Owner sign-off before
+  // someone other than the buyer approves it under spend authority. Approved, the order counts as ordered.
+  const [order] = await localSql<{ po_number: number }>(
+    `select po_number from app.purchase_orders where id = $1`,
     [line?.purchase_order_id],
-    ADMIN,
+    OWNER,
   );
+  const poNumber = String(order?.po_number ?? "");
+  await page.goto(`/${ORG}/approvals`);
+  const submit = page.getByRole("form", { name: "Submit a document for approval" });
+  const document = `Purchase order: ${PROJECT_KEY} PO ${poNumber} (${PROJECT_KEY})`;
+  await submit.getByLabel("Document").selectOption({ label: document });
+  await submit.getByRole("button", { name: "Submit for approval" }).click();
+  await expect(page.getByRole("option", { name: document })).toHaveCount(0);
+  const admin = await (await browser.newContext()).newPage();
+  await signIn(admin, "admin@example.com");
+  await decideStep(admin, poNumber, "Finance review");
+  const owner = await (await browser.newContext()).newPage();
+  await signIn(owner, "owner@example.com");
+  await decideStep(owner, poNumber, "Owner sign-off");
+  await admin.goto(`/${ORG}/procurement/purchase-orders?peek=${line?.purchase_order_id}&full=1`);
+  await act(admin, admin.locator("header"), "Approve", "Within budget and spend authority.");
+  await expect(admin.getByText("Approved", { exact: true }).first()).toBeVisible();
+
   await page.goto(`/${ORG}/p/${PROJECT_KEY}/procurement?section=needs&view=table`);
   await settle(page);
   await expect(
@@ -226,7 +258,7 @@ test("needs and order lines import through the wizard, and the batch undoes", as
     `insert into app.purchase_orders (project_id, vendor_id, currency_code)
      select $1, v.id, 'USD' from app.vendors v
      join app.counterparties c on c.id = v.counterparty_id
-     where c.counterparty_name = 'Demo Staging Supply' and v.org_id = $2 limit 1 returning id`,
+     where app.counterparty_name(c) = 'Demo Staging Supply' and v.org_id = $2 limit 1 returning id`,
     [PROJECT, ORG_ID],
     OWNER,
   );
@@ -237,7 +269,7 @@ test("needs and order lines import through the wizard, and the batch undoes", as
         name: "Lines",
         rows: [
           ["Line number", "Description", "Quantity"],
-          [1, `Unmatched cable ${id}`, 3],
+          ["1", `Unmatched cable ${id}`, "3"],
         ],
       },
     ],
