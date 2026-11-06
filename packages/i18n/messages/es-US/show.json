@@ -383,6 +383,7 @@
     "openWindow": "Abrir en una ventana nueva",
     "fullscreen": "Pantalla completa",
     "exitFullscreen": "Salir de pantalla completa",
-    "localTime": "Hora local"
+    "localTime": "Hora local",
+    "tbc": "Por confirmar"
   }
 }

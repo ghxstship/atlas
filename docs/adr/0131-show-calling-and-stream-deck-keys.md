@@ -92,5 +92,8 @@ the call. Atlas took the current cue by position and Compass by the latest call,
   production at 00:00Z, so a show dated before that day keeps version 1 there.
 - The Live Activity and the home screen widgets show a TBC next cue as text with no countdown and never skip ahead to a
   later cue; showing its TBC label beside a running shift on the lock screen needs a Swift change, left for later.
+- Public live links and display screens (ADR 0130) read TBC too (6125): a cue to be confirmed sends `start_tbc` and no
+  planned time, so a screen has nothing to read as firm or count down to, and a schedule record sends `start_tbc` beside
+  the estimate that places it on a day.
 - Later packages that redefine `private.guard_cue`, `api_public.calendar_feed`, `api_external.cues`,
   `api_external.records` or `api_external.engagement_up_next` start from the definitions in 6110 to 6112.

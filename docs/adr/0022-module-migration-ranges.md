@@ -157,7 +157,7 @@ Merge train 7 carries B16, B1, B5 and B6, which merge after train 6 (to 5869) an
 
 ## Amendment (2026-11-06): merge train 8 moves above train 7 and RRR-244
 
-Merge train 8 carries A118, P2, P8, A144 and A145. Production's migrations stop at 5869, and train 7 and RRR-244 take numbers to 6060, so the train's blocks move above them, keeping A118 before P2 before P8: A118's 2120 to 2122 are now 6100 to 6102, P2's 2790 to 2794 and its seed 2790 are 6110 to 6114 and 6110, and P8's 2850 to 2854 are 6120 to 6124 with its notification kind seed 2859 at 6129. 6059 stays as history with train 7's kinds; 6129 adds P8's availability.requested and carries them. A144 and A145 add no migrations.
+Merge train 8 carries A118, P2, P8, A144 and A145. Production's migrations stop at 5869, and train 7 and RRR-244 take numbers to 6060, so the train's blocks move above them, keeping A118 before P2 before P8: A118's 2120 to 2122 are now 6100 to 6102, P2's 2790 to 2794 and its seed 2790 are 6110 to 6114 and 6110, and P8's 2850 to 2854 are 6120 to 6124 with its notification kind seed 2859 at 6129. 6125 is the train's own: public live links and display screens read a time to be confirmed as TBC, restating api_public.live_view and api_public.live_display from 3781. 6059 stays as history with train 7's kinds; 6129 adds P8's availability.requested and carries them. A144 and A145 add no migrations.
 
 P2's change to the applied seed 0203 is not carried: 6113 widens the wording of show.cue.call on the database, and capabilities.yaml keeps 0203's wording so the seed still matches its generator.
 

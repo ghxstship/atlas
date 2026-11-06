@@ -383,6 +383,7 @@
     "openWindow": "Open in new window",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "localTime": "Local time"
+    "localTime": "Local time",
+    "tbc": "TBC"
   }
 }

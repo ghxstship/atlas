@@ -377,6 +377,7 @@
       "live_link_view_removed": "What this link showed was removed. Ask the sender for a new link.",
       "live_link_view_unsupported": "This view changed and can no longer be shown on a public link. Ask the sender.",
       "live_link_reclassified": "This information can no longer be shared on a public link. Ask the sender."
-    }
+    },
+    "tbc": "TBC"
   }
 }
