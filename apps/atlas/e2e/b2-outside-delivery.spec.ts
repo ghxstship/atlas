@@ -3,11 +3,12 @@ import { expect, test } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /**
- * B2 outside delivery (RRR-226, ADR 0141; gap G-30): the parts that do not need the local Edge runtime. An RFC 8058 POST
- * with no Origin is refused by the Atlas proxy, which is why one-click goes through the email-unsubscribe function
- * (covered by vitest and pgTAP); a browser POST to the confirm route has an Origin and passes. The scheduled email runs
- * through the worker in this process with fake addresses, the code report-run runs. The POST to the function itself needs
- * edge-runtime on the stack, so without it the same call goes straight to app.unsubscribe_pack_by_token.
+ * B2 outside delivery (RRR-226, ADR 0141; gap G-30). An RFC 8058 POST with no Origin is refused by the Atlas proxy, which
+ * is why one-click goes through the email-unsubscribe function; a browser POST to the confirm route has an Origin and
+ * passes. The scheduled email runs through the worker in this process with fake addresses, the code report-run runs. The
+ * POST to the function needs edge-runtime on the stack, as CI's has: a stack without it says so in the test's annotations
+ * and takes the same call straight to app.unsubscribe_pack_by_token, so only a function that is not being served at all
+ * is excused. Any answer from the function itself must be its own.
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
@@ -51,7 +52,7 @@ test("a scheduled send emails a link with one-click headers and a footer, and st
   await dialog.getByRole("button", { name: "Delivery", exact: true }).click();
   await dialog.getByLabel("Schedule", { exact: true }).selectOption("Daily");
   await dialog.getByRole("button", { name: "Save schedule" }).click();
-  await expect(dialog.getByRole("button", { name: "Save schedule" })).toBeEnabled();
+  await expect(dialog.getByRole("status").filter({ hasText: "Schedule saved." })).toBeVisible();
   await dialog.getByRole("button", { name: "Close" }).first().click();
 
   // The slot comes due, the scheduler runs, the worker sends.
@@ -89,16 +90,31 @@ test("a scheduled send emails a link with one-click headers and a footer, and st
   );
   expect(mail.headers["List-Unsubscribe-Post"]?.[0]).toBe("List-Unsubscribe=One-Click");
 
-  // One-click, a POST with no Origin to the function; the function needs edge-runtime on the stack.
+  // One-click, a POST with no Origin to the function. Kong answers 502 to 504 only when no Edge runtime stands behind it.
+  const oneClickUrl = (token: string) => `${url}/functions/v1/email-unsubscribe?token=${token}`;
   const oneClick = await page.request
-    .post(`${url}/functions/v1/email-unsubscribe?token=${unsubscribeToken}`, {
-      headers: { Origin: "" },
-    })
+    .post(oneClickUrl(unsubscribeToken), { headers: { Origin: "" } })
     .catch(() => null);
-  if (oneClick?.status() !== 204) {
+  const status = oneClick?.status() ?? null;
+  if (status === null || (status >= 502 && status <= 504)) {
+    test.info().annotations.push({
+      type: "not run",
+      description: `email-unsubscribe is not being served on this stack (${status ?? "no connection"}), so the POST with no Origin was not exercised. Vitest and pgTAP cover it.`,
+    });
     expect((await app.rpc("unsubscribe_pack_by_token", { p_token: unsubscribeToken })).data).toBe(
       true,
     );
+  } else {
+    expect(status).toBe(204);
+    // Repeating it changes nothing, and a token nobody holds is the function's own 404.
+    const again = await page.request.post(oneClickUrl(unsubscribeToken), {
+      headers: { Origin: "" },
+    });
+    expect(again.status()).toBe(204);
+    const unknown = await page.request.post(oneClickUrl(`xpku_${"0".repeat(64)}`), {
+      headers: { Origin: "" },
+    });
+    expect(unknown.status()).toBe(404);
   }
   const after = await app
     .from("stakeholder_pack_recipients")
