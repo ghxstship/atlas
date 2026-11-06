@@ -6,6 +6,7 @@ import {
   type PackEmailCopy,
 } from "@xos/data/stakeholder-packs";
 import { expect, type APIRequestContext } from "@playwright/test";
+import pg from "pg";
 
 /**
  * Shared steps for the B2 journeys (RRR-226, ADR 0141). One pass of the pack.deliver worker runs here with the service
@@ -26,6 +27,114 @@ export function localStack(): { client: SupabaseClient; inbox: string; url: stri
     inbox,
     url,
   };
+}
+
+const DATABASE_URL =
+  process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+
+/**
+ * One statement against the local stack. With `person`, it runs as that person under the authenticated role, the way
+ * Atlas reaches the database, so row level security and the RPCs' own checks apply; without, as postgres.
+ */
+export async function sql<T extends Record<string, unknown>>(
+  text: string,
+  params: unknown[] = [],
+  person?: string,
+): Promise<T[]> {
+  if (!/@(127\.0\.0\.1|localhost):/.test(DATABASE_URL)) throw new Error("Local stack only.");
+  const client = new pg.Client({ connectionString: DATABASE_URL });
+  await client.connect();
+  try {
+    await client.query("begin");
+    if (person) {
+      await client.query("select set_config('request.jwt.claims', $1, true)", [
+        JSON.stringify({ sub: person, role: "authenticated" }),
+      ]);
+      await client.query("set local role authenticated");
+    }
+    const result = await client.query(text, params);
+    await client.query("commit");
+    return result.rows as T[];
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    await client.end();
+  }
+}
+
+/** The person of an account, by email. */
+export async function personOf(email: string): Promise<string> {
+  const [row] = await sql<{ id: string }>(
+    `select p.id from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+    [email],
+  );
+  return row?.id as string;
+}
+
+/** A project's id, by its org's slug and its key. */
+export async function projectOf(slug: string, key: string): Promise<string> {
+  const [row] = await sql<{ id: string }>(
+    `select p.id from app.projects p join app.organizations o on o.id = p.org_id
+      where o.slug = $1 and p.project_key = $2`,
+    [slug, key],
+  );
+  return row?.id as string;
+}
+
+/** A stored, scanned file on a subject, classified as asked; answers the attachment's id. */
+export async function storedFile(input: {
+  readonly person: string;
+  readonly subjectTable: string;
+  readonly subjectId: string;
+  readonly name: string;
+  readonly classification?: "Public" | "Internal" | "Confidential";
+}): Promise<string> {
+  const bytes = Buffer.from("%PDF-1.4\n% a journey file\n%%EOF\n");
+  const [upload] = await sql<{ attachment_version_id: string; object_name: string }>(
+    `select u.attachment_version_id, u.object_name
+       from app.begin_attachment_upload($1, $2::uuid, $3, 'application/pdf', $4) u`,
+    [input.subjectTable, input.subjectId, input.name, bytes.length],
+    input.person,
+  );
+  const stored = await localStack()
+    .client.storage.from("attachments")
+    .upload(upload?.object_name as string, bytes, { contentType: "application/pdf" });
+  expect(stored.error).toBeNull();
+  await sql(
+    `select app.complete_attachment_upload($1::uuid, $2)`,
+    [upload?.attachment_version_id, "ab".repeat(32)],
+    input.person,
+  );
+  await sql(`select app.record_attachment_scan($1::uuid, true)`, [upload?.attachment_version_id]);
+  const [attachment] = await sql<{ id: string }>(
+    `select attachment_id as id from app.attachment_versions where id = $1::uuid`,
+    [upload?.attachment_version_id],
+  );
+  const id = attachment?.id as string;
+  if (input.classification) {
+    await sql(
+      `update app.attachments set classification = $1::app.data_classification where id = $2::uuid`,
+      [input.classification, id],
+      input.person,
+    );
+  }
+  return id;
+}
+
+/** A display link on a new running order of the project, as the person. */
+export async function displayLink(person: string, project: string, name: string): Promise<string> {
+  const [order] = await sql<{ id: string }>(
+    `insert into app.run_of_show (project_id, name, show_date) values ($1::uuid, $2, current_date + 10) returning id`,
+    [project, name],
+    person,
+  );
+  const [link] = await sql<{ live_link_id: string }>(
+    `select d.live_link_id from app.create_display_link($1::uuid, now() + interval '30 days') d`,
+    [order?.id],
+    person,
+  );
+  return link?.live_link_id as string;
 }
 
 const fill = (template: string, values: Readonly<Record<string, string>>) =>
