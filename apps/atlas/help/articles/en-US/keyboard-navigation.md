@@ -119,6 +119,35 @@ Focus a card and press **Space** to pick it up, the arrow keys to carry it to an
 
 While you call a show live, **J** and **K** move the standby, **S** puts the selected cue on standby, **T** jumps to a cue, **[** and **]** nudge the remaining plan by a minute and **D** changes the department. **Space** on the cue list calls the cue. A Stream Deck sends **F13** to **F20** (Go, Standby, Previous, Next, Nudge later, Nudge earlier, Jump and Department); set each key to a **Hotkey** action.
 
+The show channel beside the running cue answers **M**, which moves to its message box.
+
+<!-- shortcuts atlas show -->
+
+- **Space**: Call the selected cue
+- **J**: Move the standby to the next cue
+- **K**: Move the standby to the previous cue
+- **S**: Put the selected cue on standby
+- **T**: Jump to a cue
+- **]**: Nudge the remaining plan one minute later
+- **[**: Nudge the remaining plan one minute earlier
+- **D**: Show the next department's calls
+- **M**: Focus the show channel message box
+
+<!-- /shortcuts -->
+
+<!-- shortcuts atlas show-deck -->
+
+- **F13**: Call the selected cue
+- **F14**: Put the selected cue on standby
+- **F15**: Move the standby to the previous cue
+- **F16**: Move the standby to the next cue
+- **F17**: Nudge the remaining plan one minute later
+- **F18**: Nudge the remaining plan one minute earlier
+- **F19**: Jump to a cue
+- **F20**: Show the next department's calls
+
+<!-- /shortcuts -->
+
 ## Make the keys your own
 
 In **Me, Keyboard shortcuts**, choose **Change** next to a shortcut and press the new keys; for a sequence, press a letter and then a second key. Atlas refuses keys another shortcut already uses and keys that belong to your browser, your computer or a screen reader. **Reset** brings back the default. Turn off **Keyboard shortcuts** there to stop every character-key shortcut without **Mod**, **Ctrl** or **Alt**; function keys **F13** to **F20** keep working, since they type no character.

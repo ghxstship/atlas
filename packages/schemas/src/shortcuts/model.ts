@@ -107,8 +107,15 @@ export function effectiveBindings(
  */
 const LIST_SCOPE = "list";
 
-/** The showcaller console's scope: its region holds no such list and answers J and K itself (ADR 0131). */
-const SHOW_SCOPE = "show";
+/**
+ * Scopes whose region never holds a design system list, so their keys may repeat a list's. The show
+ * scope is the showcaller console (ADR 0131): its keys are answered by the console's own handler on
+ * its region, whose cues are a plain list without list keys, and live mode marks no show region for
+ * the shell (B3, ADR 0142), so the show channel and any list beside the console keep their own keys.
+ * A list's J and K therefore move the list and the console's J and K move the standby, never both
+ * (apps/atlas/test/show-keys-dom.test.ts). A design system list inside the console would break this.
+ */
+const LISTLESS_SCOPES: ReadonlySet<string> = new Set(["show"]);
 
 /**
  * Whether two scopes can both be active at once: the same scope, either one global, or either one
@@ -116,7 +123,7 @@ const SHOW_SCOPE = "show";
  */
 export function scopesMeet(a: string, b: string): boolean {
   if (a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE) return true;
-  return (a === LIST_SCOPE && b !== SHOW_SCOPE) || (b === LIST_SCOPE && a !== SHOW_SCOPE);
+  return (a === LIST_SCOPE && !LISTLESS_SCOPES.has(b)) || (b === LIST_SCOPE && !LISTLESS_SCOPES.has(a));
 }
 
 /**

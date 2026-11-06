@@ -1,6 +1,12 @@
 import { addCalendarDays, instantOfLocalIn, startOfDayIn } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
-import type { CustomDataType, CustomField } from "./governance.ts";
+import type { Database } from "./database.types.ts";
+import {
+  liveChoices,
+  type CustomDataType,
+  type CustomField,
+  type DefinitionRow,
+} from "./governance.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -36,6 +42,8 @@ export const CUSTOM_FIELD_TABLES = [
   "app.budget_lines",
   "app.spaces",
   "app.signs",
+  // Cues of a running order (6240, ADR 0142): their fields carry audiences (cueFieldAudiences).
+  "app.cues",
 ] as const;
 
 export type CustomFieldTable = (typeof CUSTOM_FIELD_TABLES)[number];
@@ -76,9 +84,9 @@ export interface CustomFieldParseContext {
 }
 
 const SELECT_DEFINITIONS =
-  "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, deleted_at)";
+  "id, target_table, field_key, label, data_type, required, filterable, sort_order, custom_field_choices(id, choice_key, label, sort_order, color_key, deleted_at)";
 
-/** The org's live custom fields on one table, in form order, with their live choices. */
+/** The org's live custom fields on one table, in form order, with their live choices and colors. */
 export async function listCustomFieldDefinitions(
   db: XosClient,
   orgId: string,
@@ -94,7 +102,7 @@ export async function listCustomFieldDefinitions(
     .order("label");
   if (error) return fail(toDataError(error));
   return ok(
-    data.map((r) => ({
+    ((data ?? []) as unknown as DefinitionRow[]).map((r) => ({
       id: r.id,
       targetTable: r.target_table,
       key: r.field_key,
@@ -103,12 +111,51 @@ export async function listCustomFieldDefinitions(
       required: r.required,
       filterable: r.filterable,
       sortOrder: r.sort_order,
-      choices: (r.custom_field_choices ?? [])
-        .filter((c) => c.deleted_at === null)
-        .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
-        .map((c) => ({ id: c.id, key: c.choice_key, label: c.label })),
+      choices: liveChoices(r.custom_field_choices),
     })),
   );
+}
+
+// Cue field audiences (app.cue_field_audiences, 6240) --------------------------------------------------------
+
+/** Who a cue field is for (ADR 0142). The list itself is in cue-field-audiences.ts, which client code never imports. */
+export type CueFieldAudience = Database["app"]["Enums"]["cue_field_audience"];
+
+/**
+ * Makes a cue field's audiences exactly `audiences`: adds the missing ones and removes the rest (soft delete).
+ * The database refuses Showcaller or Client on a Person, Money or Email field (cue_field_audience_type).
+ */
+export async function setCueFieldAudiences(
+  db: XosClient,
+  definitionId: string,
+  audiences: readonly CueFieldAudience[],
+): Promise<Result<null>> {
+  const current = await db
+    .from("cue_field_audiences")
+    .select("id, audience")
+    .eq("custom_field_definition_id", definitionId)
+    .is("deleted_at", null);
+  if (current.error) return fail(toDataError(current.error));
+  const rows = (current.data ?? []) as { id: string; audience: CueFieldAudience }[];
+  const gone = rows.filter((r) => !audiences.includes(r.audience)).map((r) => r.id);
+  const added = audiences.filter((a) => !rows.some((r) => r.audience === a));
+  if (gone.length > 0) {
+    const { error } = await db
+      .from("cue_field_audiences")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", gone);
+    if (error) return fail(toDataError(error));
+  }
+  if (added.length > 0) {
+    const { error } = await db
+      .from("cue_field_audiences")
+      // The database stamps org_id from the field.
+      .insert(
+        added.map((audience) => ({ custom_field_definition_id: definitionId, audience })) as never,
+      );
+    if (error) return fail(toDataError(error));
+  }
+  return ok(null);
 }
 
 // Typed columns ------------------------------------------------------------------------------------------------

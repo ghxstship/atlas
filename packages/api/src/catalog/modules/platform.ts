@@ -18,6 +18,10 @@ import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./par
 import { a79Capabilities, a79Resources } from "./parts/a79.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
 import { liveLinkCapabilities, liveLinkResources } from "./parts/live-links.ts";
+import {
+  cueFieldAudienceCapabilities,
+  cueFieldAudienceResources,
+} from "./parts/segment-library.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import { b7Actions, b7PlatformCapabilities } from "./parts/b7.ts";
 import {
@@ -72,6 +76,7 @@ export const additions = defineAdditions("Platform", {
     ...a79Resources,
     ...shareLinkResources,
     ...liveLinkResources,
+    ...cueFieldAudienceResources,
     // B7's configure and configuration join a84's new personCalendarFeeds resource.
     ...a84Resources.map((spec) =>
       spec.op === "personCalendarFeeds"
@@ -95,6 +100,7 @@ export const additions = defineAdditions("Platform", {
     ...a79Capabilities,
     ...shareLinkCapabilities,
     ...liveLinkCapabilities,
+    ...cueFieldAudienceCapabilities,
     ...a84Capabilities,
     ...automationCapabilities,
     calendarFeeds: {

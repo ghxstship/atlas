@@ -82,6 +82,24 @@ describe("Drawer and SidePeek", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("opens wide for a two-column body, within the viewport", () => {
+    render(
+      <>
+        <Drawer title="Narrow">Content</Drawer>
+        <Drawer title="Wide" wide>
+          Content
+        </Drawer>
+      </>,
+    );
+    expect(screen.getByText("Narrow").closest("[role=dialog]")?.className).toContain(
+      "w-(--ui-drawer)",
+    );
+    const wide = screen.getByText("Wide").closest("[role=dialog]");
+    expect(wide?.className).toContain("w-(--layout-peek-max)");
+    expect(wide?.className).toContain("max-w-full");
+    expect(wide?.className).not.toContain("w-(--ui-drawer)");
+  });
+
   it("shows the record anatomy, resizes from the keyboard and keeps the page usable", async () => {
     const onOpenFull = vi.fn();
     const onStateClick = vi.fn();

@@ -61,7 +61,8 @@ const currencies = cache(async (ctx: OrgContext): Promise<CustomFieldCurrency[]>
   return result.ok ? result.data.map((c) => ({ code: c.code, exponent: c.minorUnits })) : [];
 });
 
-const people = cache(async (ctx: OrgContext): Promise<CustomFieldPerson[]> => {
+/** The org's members for Person fields, once per request; a Person value is always an org member (2110). */
+export const people = cache(async (ctx: OrgContext): Promise<CustomFieldPerson[]> => {
   const result = await listPeopleRefs(ctx.viewer.db, ctx.org.id);
   return result.ok
     ? result.data.map((p) => ({ id: p.personId, name: p.name ?? p.personId.slice(0, 8) }))

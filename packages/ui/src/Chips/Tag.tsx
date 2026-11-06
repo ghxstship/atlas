@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
-import { type TagProps } from "./Chips.types.ts";
+import { type TagProps, type TagSwatch } from "./Chips.types.ts";
 
 const TAG_DOT: Record<NonNullable<TagProps["tone"]>, string> = {
   neutral: cx("bg-text-tertiary"),
@@ -10,8 +10,22 @@ const TAG_DOT: Record<NonNullable<TagProps["tone"]>, string> = {
   danger: cx("bg-danger"),
 };
 
-/** A status word with a colored dot; the word carries the meaning. */
-export function Tag({ tone = "neutral", children }: TagProps): ReactElement {
+const TAG_SWATCH: Record<TagSwatch, string> = {
+  "cat-1": cx("bg-viz-cat-1"),
+  "cat-2": cx("bg-viz-cat-2"),
+  "cat-3": cx("bg-viz-cat-3"),
+  "cat-4": cx("bg-viz-cat-4"),
+  "cat-5": cx("bg-viz-cat-5"),
+  "cat-6": cx("bg-viz-cat-6"),
+  "cat-7": cx("bg-viz-cat-7"),
+};
+
+/**
+ * A status word with a colored dot; the word carries the meaning. A swatch colors the dot with a themed
+ * categorical token (light, dark and sunlight) for a user-defined choice; in forced colors the dot takes the text
+ * color and the tag keeps its border.
+ */
+export function Tag({ tone = "neutral", swatch, children }: TagProps): ReactElement {
   return (
     <span
       className={cx(
@@ -21,7 +35,11 @@ export function Tag({ tone = "neutral", children }: TagProps): ReactElement {
     >
       <span
         aria-hidden="true"
-        className={cx("size-(--ui-dot) rounded-full flex-none", TAG_DOT[tone])}
+        data-swatch={swatch}
+        className={cx(
+          "size-(--ui-dot) rounded-full flex-none",
+          swatch ? cx(TAG_SWATCH[swatch], "forced-colors:bg-[CanvasText]") : TAG_DOT[tone],
+        )}
       />
       {children}
     </span>

@@ -1,5 +1,7 @@
 import { draftedListIsEmpty } from "@xos/data/ai";
 import { listAttachments } from "@xos/data/attachments";
+import { listCueFieldAudiences } from "@xos/data/cue-field-audiences";
+import { listCustomFieldDefinitions, listCustomFieldValues } from "@xos/data/custom-fields";
 import { listThreads } from "@xos/data/comments";
 import {
   cueCallKindOf,
@@ -12,6 +14,8 @@ import {
   listCues,
   listDaySheets,
   listRunsOfShow,
+  listSegmentColors,
+  type Cue,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
@@ -19,7 +23,7 @@ import { ButtonLink } from "@/components/ui";
 import { getNode } from "@xos/ia";
 import { listMembers } from "@xos/data/identity";
 import { listProjectLocalContacts } from "@xos/data/local-contacts";
-import { getLocale } from "next-intl/server";
+import { getFormatter, getLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 import { shownContacts } from "@/components/local-contacts/shown";
@@ -35,7 +39,9 @@ import {
   type RecordMeta,
   type SearchParams,
 } from "@/components/work/load";
+import { people } from "@/lib/custom-fields/server";
 import { engagementOptions } from "@/lib/people/project-people";
+import { cueFieldChips, type CueFieldChip } from "@/lib/show/cue-field-chips";
 import type { OrgContext } from "@/lib/shell/context";
 import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -53,6 +59,7 @@ import { CUE_CALL_KINDS, CUE_CALL_SLUGS } from "@xos/data/cue-calls";
 import { departmentsInUse, getDepartmentsInUse } from "@xos/data/org-setup";
 import { listDepartments } from "@xos/data/projects";
 import { listTeams } from "@xos/data/views";
+import { ShowcallerLinksAction } from "./showcaller-links-action";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -117,6 +124,47 @@ async function monthFor(ctx: OrgContext, search: SearchParams) {
 
 const UUID = /^[0-9a-f-]{36}$/;
 
+/**
+ * The Crew-audience custom values of a running order's cues, as chips (B3, ADR 0142). Crew is presentation only:
+ * the values are the ones the viewer's own access reads; a choice keeps its color and a person shows by name. Also says
+ * whether the org has any live cue field, in any audience: a Client-only field must still be fillable in the editor.
+ */
+async function crewChips(
+  ctx: OrgContext,
+  cues: readonly Cue[],
+  timeZone: string,
+): Promise<{ chips: Record<string, CueFieldChip[]>; hasCueFields: boolean }> {
+  const db = ctx.viewer.db;
+  const [definitions, audiences] = await Promise.all([
+    listCustomFieldDefinitions(db, ctx.org.id, "app.cues"),
+    listCueFieldAudiences(db, ctx.org.id),
+  ]);
+  const hasCueFields = definitions.ok && definitions.data.length > 0;
+  if (!definitions.ok || !audiences.ok) return { chips: {}, hasCueFields };
+  const crew = definitions.data.filter((f) => audiences.data.get(f.id)?.includes("Crew"));
+  if (crew.length === 0 || cues.length === 0) return { chips: {}, hasCueFields };
+  const [values, members] = await Promise.all([
+    listCustomFieldValues(
+      db,
+      crew,
+      cues.map((c) => c.id),
+    ),
+    crew.some((f) => f.dataType === "Person") ? people(ctx) : Promise.resolve([]),
+  ]);
+  if (!values.ok) return { chips: {}, hasCueFields };
+  const t = await getTranslate();
+  const format = await getFormatter();
+  const chips = cueFieldChips(crew, values.data, {
+    format,
+    yes: t("platform.customFields.yes"),
+    no: t("platform.customFields.no"),
+    someone: t("platform.customFields.someone"),
+    people: Object.fromEntries(members.map((p) => [p.id, p.name])),
+    timeZone,
+  });
+  return { chips, hasCueFields };
+}
+
 /** Show > Run of show, and the project Show tab. */
 export async function RunsPage({
   ctx,
@@ -150,14 +198,17 @@ export async function RunsPage({
   let peek: ReactNode = null;
   const peekId = param(search, "peek");
   if (peekId && UUID.test(peekId)) {
-    const [run, cues, setTimes, cueCalls] = await Promise.all([
+    const [run, cues, setTimes, cueCalls, colors] = await Promise.all([
       getRunOfShow(db, peekId),
       listCues(db, peekId),
       listCueEngagements(db, peekId),
       listCueCalls(db, peekId),
+      listSegmentColors(db, peekId),
     ]);
     if (run.ok) {
       const cueList = must(cues, "cues");
+      const { chips, hasCueFields } = await crewChips(ctx, cueList, run.data.timeZone);
+      const live = param(search, "live") === "1";
       const canEdit = caps.has("show.run_of_show.write");
       // Aurora drafts only into an empty running order the viewer may write to (P6); the database
       // answers both, counting cues the viewer cannot see.
@@ -172,7 +223,7 @@ export async function RunsPage({
             .map((e) => ({ value: e.engagementId, label: e.personName ?? e.accountName ?? "" }))
         : [];
       peek = (
-        <RunPeek title={`${run.data.projectKey} · ${run.data.name}`}>
+        <RunPeek title={`${run.data.projectKey} · ${run.data.name}`} wide={live}>
           <RunBody
             org={ctx.org.slug}
             run={run.data}
@@ -190,6 +241,11 @@ export async function RunsPage({
             })}
             calls={must(cueCalls, "cue calls")}
             department={cueCallKindOf(param(search, "dept"))}
+            segmentColors={colors.ok ? Object.fromEntries(colors.data) : {}}
+            fieldChips={chips}
+            hasCueFields={hasCueFields}
+            // The show channel sits beside the running cue for every member following live mode.
+            channelProjectId={live ? run.data.projectId : null}
           >
             {param(search, "live") === "1" ? null : (
               <>
@@ -199,6 +255,17 @@ export async function RunsPage({
                     <DisplayScreensAction
                       org={ctx.org.slug}
                       run={{ id: run.data.id, name: run.data.name }}
+                    />
+                  ) : null}
+                  {canEdit && caps.has("show.cue.call") ? (
+                    <ShowcallerLinksAction
+                      org={ctx.org.slug}
+                      run={{
+                        id: run.data.id,
+                        name: run.data.name,
+                        showDate: run.data.showDate,
+                        timeZone: run.data.timeZone,
+                      }}
                     />
                   ) : null}
                 </span>

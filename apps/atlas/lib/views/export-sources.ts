@@ -1258,6 +1258,10 @@ export const NOT_EXPORTED: Readonly<Record<string, string>> = {
     "Hours are worked out from shifts and estimates as the page is read; nothing is stored to export.",
   "schedule/clashes":
     "Clashes are worked out as the page is read and shown only to someone who reads both sides; nothing is stored to export.",
+  // B3 (ADR 0142): a library segment is a template of cues, not a record of the show; the running orders that copy
+  // it export with show/run_of_show and its PDF.
+  "show/segments":
+    "Library segments are templates copied into running orders; the running orders export instead.",
 };
 
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {

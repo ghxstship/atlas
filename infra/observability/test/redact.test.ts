@@ -100,6 +100,9 @@ describe("redactString", () => {
       "xscr",
       "xlgr",
       "xlch",
+      "xscl",
+      "xcgr",
+      "xcch",
     ]) {
       expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
       expect(redactString(`${prefix.toUpperCase()}_${hex.toUpperCase()}`), prefix).toBe("[token]");
@@ -136,6 +139,21 @@ describe("redactString", () => {
       "Set-Cookie: xos_link_grant=[token]; HttpOnly",
     );
     expect(redactString(`realtime join xlink:xlch_${hex}`)).toBe("realtime join xlink:[token]");
+    // B3 (ADR 0142): showcaller links, their open handler and clock, device grants and channel keys.
+    expect(redactUrl(`/share/showcaller/xscl_${hex}`)).toBe("/share/showcaller/[token]");
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/open?reason=showcaller_link_access_code`)).toBe(
+      "/share/showcaller/[token]/open",
+    );
+    expect(redactUrl(`/share/showcaller/xscl_${hex}/clock`)).toBe(
+      "/share/showcaller/[token]/clock",
+    );
+    expect(redactString("POST /share/showcaller/MISTYPED-token 303")).toBe(
+      "POST /share/showcaller/[token] 303",
+    );
+    expect(redactString(`Set-Cookie: xos_showcaller_grant=xcgr_${hex}; HttpOnly`)).toBe(
+      "Set-Cookie: xos_showcaller_grant=[token]; HttpOnly",
+    );
+    expect(redactString(`realtime join xcall:xcch_${hex}`)).toBe("realtime join xcall:[token]");
     expect(redactString("/share/")).toBe("/share/");
     expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
     expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(
