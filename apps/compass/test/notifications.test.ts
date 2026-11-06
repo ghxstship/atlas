@@ -210,7 +210,7 @@ describe("the in-app Inbox opens notifications the same way", () => {
       project: "Summer Series",
       message: "Clear the north lawn.",
     });
-    const { message: _message, ...cleared } = args;
+    const cleared = { title: args.title, project: args.project };
     expect(crisisAlertNotice(row({ kind: "crisis_alert.ended", args: cleared }))).toEqual({
       ended: true,
       code: "Code Red",
