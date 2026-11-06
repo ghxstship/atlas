@@ -429,6 +429,42 @@ export type Database = {
           },
         ];
       };
+      break_types: {
+        Row: {
+          id: string | null;
+          is_default: boolean | null;
+          name: string | null;
+          org_id: string | null;
+          paid: boolean | null;
+          planned_minutes: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string | null;
+          is_default?: boolean | null;
+          name?: string | null;
+          org_id?: string | null;
+          paid?: boolean | null;
+          planned_minutes?: number | null;
+        };
+        Update: {
+          id?: string | null;
+          is_default?: boolean | null;
+          name?: string | null;
+          org_id?: string | null;
+          paid?: boolean | null;
+          planned_minutes?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "break_types_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
       change_order_lines: {
         Row: {
           amount_minor: number | null;
@@ -543,6 +579,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "position_records";
             referencedColumns: ["id"];
           },
           {
@@ -827,6 +870,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_deliverables_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "position_records";
             referencedColumns: ["id"];
           },
           {
@@ -2563,6 +2613,29 @@ export type Database = {
           },
         ];
       };
+      position_records: {
+        Row: {
+          due_at: string | null;
+          id: string | null;
+          position_title: string | null;
+          project_id: string | null;
+          project_position_id: string | null;
+          record_kind: string | null;
+          record_state: string | null;
+          starts_at: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       projects: {
         Row: {
           id: string | null;
@@ -3091,12 +3164,15 @@ export type Database = {
         Row: {
           ends_at: string | null;
           engagement_id: string | null;
+          has_no_show: boolean | null;
           holder_name: string | null;
           id: string | null;
           is_agency_slot: boolean | null;
           job_title: string | null;
+          position_title: string | null;
           project_id: string | null;
           project_name: string | null;
+          project_position_id: string | null;
           role_code: string | null;
           roster_entry_id: string | null;
           scope_node_id: string | null;
@@ -3141,6 +3217,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_project_position_id_fkey";
+            columns: ["project_position_id"];
+            isOneToOne: false;
+            referencedRelation: "position_records";
+            referencedColumns: ["project_position_id"];
           },
           {
             foreignKeyName: "shifts_roster_entry_id_fkey";
@@ -10898,6 +10981,71 @@ export type Database = {
           },
         ];
       };
+      break_types: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          is_default: boolean;
+          name: string;
+          org_id: string;
+          paid: boolean;
+          planned_minutes: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name: string;
+          org_id: string;
+          paid?: boolean;
+          planned_minutes?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          org_id?: string;
+          paid?: boolean;
+          planned_minutes?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "break_types_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "break_types_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "break_types_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       budget_lines: {
         Row: {
           budget_id: string;
@@ -13150,6 +13298,7 @@ export type Database = {
       clock_punches: {
         Row: {
           accuracy_m: number | null;
+          break_type_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -13181,6 +13330,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           accuracy_m?: number | null;
+          break_type_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -13211,6 +13361,7 @@ export type Database = {
         };
         Update: {
           accuracy_m?: number | null;
+          break_type_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -13240,6 +13391,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "clock_punches_break_type_id_fkey";
+            columns: ["break_type_id"];
+            isOneToOne: false;
+            referencedRelation: "break_types";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "clock_punches_created_by_fkey";
             columns: ["created_by"];
@@ -13351,6 +13509,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
           },
           {
             foreignKeyName: "clock_punches_shift_id_fkey";
@@ -38761,6 +38926,157 @@ export type Database = {
           },
         ];
       };
+      project_positions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string | null;
+          filled_at: string | null;
+          id: string;
+          membership_id: string | null;
+          org_id: string;
+          project_id: string;
+          role_code: string | null;
+          roster_entry_id: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          filled_at?: string | null;
+          id?: string;
+          membership_id?: string | null;
+          org_id: string;
+          project_id: string;
+          role_code?: string | null;
+          roster_entry_id?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          filled_at?: string | null;
+          id?: string;
+          membership_id?: string | null;
+          org_id?: string;
+          project_id?: string;
+          role_code?: string | null;
+          roster_entry_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_positions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "project_positions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "project_positions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "project_positions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_positions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_positions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_positions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_positions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       project_share_scope_nodes: {
         Row: {
           created_at: string;
@@ -40103,6 +40419,13 @@ export type Database = {
             foreignKeyName: "rating_replies_rating_id_fkey";
             columns: ["rating_id"];
             isOneToOne: false;
+            referencedRelation: "crew_ratings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_replies_rating_id_fkey";
+            columns: ["rating_id"];
+            isOneToOne: false;
             referencedRelation: "ratings";
             referencedColumns: ["id"];
           },
@@ -40514,6 +40837,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "recognitions_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
           },
           {
             foreignKeyName: "recognitions_shift_id_fkey";
@@ -42709,6 +43039,103 @@ export type Database = {
           },
           {
             foreignKeyName: "record_permit_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_position_assignments: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_position_id: string;
+          record_id: string;
+          resolved_assignment_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_position_id: string;
+          record_id: string;
+          resolved_assignment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_position_id?: string;
+          record_id?: string;
+          resolved_assignment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_position_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_project_position_id_fkey";
+            columns: ["project_position_id"];
+            isOneToOne: false;
+            referencedRelation: "project_positions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_resolved_assignment_id_fkey";
+            columns: ["resolved_assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "record_assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_position_assignments_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -49714,11 +50141,268 @@ export type Database = {
             foreignKeyName: "shift_claims_shift_id_fkey";
             columns: ["shift_id"];
             isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
             referencedRelation: "shifts";
             referencedColumns: ["id"];
           },
           {
             foreignKeyName: "shift_claims_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shift_no_shows: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          recorded_at: string;
+          replacement_shift_id: string | null;
+          shift_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          recorded_at?: string;
+          replacement_shift_id?: string | null;
+          shift_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string;
+          recorded_at?: string;
+          replacement_shift_id?: string | null;
+          shift_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_no_shows_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_replacement_shift_id_fkey";
+            columns: ["replacement_shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_replacement_shift_id_fkey";
+            columns: ["replacement_shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_no_shows_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shift_responses: {
+        Row: {
+          answer: Database["app"]["Enums"]["shift_answer"];
+          answered_at: string | null;
+          ask_kind: Database["app"]["Enums"]["shift_ask_kind"];
+          asked_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          project_id: string;
+          reason: string | null;
+          shift_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          answer?: Database["app"]["Enums"]["shift_answer"];
+          answered_at?: string | null;
+          ask_kind: Database["app"]["Enums"]["shift_ask_kind"];
+          asked_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          project_id: string;
+          reason?: string | null;
+          shift_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          answer?: Database["app"]["Enums"]["shift_answer"];
+          answered_at?: string | null;
+          ask_kind?: Database["app"]["Enums"]["shift_ask_kind"];
+          asked_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          project_id?: string;
+          reason?: string | null;
+          shift_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_responses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_responses_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_responses_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_responses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_responses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_responses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_responses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_responses_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
+          },
+          {
+            foreignKeyName: "shift_responses_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_responses_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -49786,6 +50470,13 @@ export type Database = {
             foreignKeyName: "shift_state_transitions_shift_id_fkey";
             columns: ["shift_id"];
             isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
+          },
+          {
+            foreignKeyName: "shift_state_transitions_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
             referencedRelation: "shifts";
             referencedColumns: ["id"];
           },
@@ -49807,6 +50498,7 @@ export type Database = {
           org_id: string;
           project_id: string;
           proposed_membership_id: string;
+          reason: string | null;
           requested_by_membership_id: string;
           shift_id: string;
           swap_state: Database["app"]["Enums"]["swap_state"];
@@ -49822,6 +50514,7 @@ export type Database = {
           org_id: string;
           project_id: string;
           proposed_membership_id: string;
+          reason?: string | null;
           requested_by_membership_id: string;
           shift_id: string;
           swap_state?: Database["app"]["Enums"]["swap_state"];
@@ -49836,6 +50529,7 @@ export type Database = {
           org_id?: string;
           project_id?: string;
           proposed_membership_id?: string;
+          reason?: string | null;
           requested_by_membership_id?: string;
           shift_id?: string;
           swap_state?: Database["app"]["Enums"]["swap_state"];
@@ -49898,6 +50592,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
           },
           {
             foreignKeyName: "shift_swaps_shift_id_fkey";
@@ -49997,6 +50698,7 @@ export type Database = {
           membership_id: string | null;
           org_id: string;
           project_id: string;
+          project_position_id: string | null;
           record_id: string | null;
           role_code: string | null;
           roster_entry_id: string | null;
@@ -50019,6 +50721,7 @@ export type Database = {
           membership_id?: string | null;
           org_id: string;
           project_id: string;
+          project_position_id?: string | null;
           record_id?: string | null;
           role_code?: string | null;
           roster_entry_id?: string | null;
@@ -50040,6 +50743,7 @@ export type Database = {
           membership_id?: string | null;
           org_id?: string;
           project_id?: string;
+          project_position_id?: string | null;
           record_id?: string | null;
           role_code?: string | null;
           roster_entry_id?: string | null;
@@ -50127,6 +50831,13 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_project_position_id_fkey";
+            columns: ["project_position_id"];
+            isOneToOne: false;
+            referencedRelation: "project_positions";
             referencedColumns: ["id"];
           },
           {
@@ -55088,6 +55799,7 @@ export type Database = {
           membership_id: string | null;
           needs_review: boolean;
           org_id: string;
+          paid_break_minutes: number;
           project_id: string;
           roster_entry_id: string | null;
           shift_id: string | null;
@@ -55110,6 +55822,7 @@ export type Database = {
           membership_id?: string | null;
           needs_review?: boolean;
           org_id: string;
+          paid_break_minutes?: number;
           project_id: string;
           roster_entry_id?: string | null;
           shift_id?: string | null;
@@ -55131,6 +55844,7 @@ export type Database = {
           membership_id?: string | null;
           needs_review?: boolean;
           org_id?: string;
+          paid_break_minutes?: number;
           project_id?: string;
           roster_entry_id?: string | null;
           shift_id?: string | null;
@@ -55236,6 +55950,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "roster_entry_people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_shift_hours";
+            referencedColumns: ["shift_id"];
           },
           {
             foreignKeyName: "time_entries_shift_id_fkey";
@@ -61342,6 +62063,175 @@ export type Database = {
         };
         Relationships: [];
       };
+      crew_ratings: {
+        Row: {
+          id: string | null;
+          org_id: string | null;
+          party_name: string | null;
+          project_id: string | null;
+          role_type: string | null;
+          score: number | null;
+          submitted_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      crew_removals: {
+        Row: {
+          engagement_party: string | null;
+          from_state: string | null;
+          id: string | null;
+          org_id: string | null;
+          person_name: string | null;
+          project_id: string | null;
+          reason: string | null;
+          removed_at: string | null;
+          removed_by_name: string | null;
+          role_code: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagement_roster_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      crew_responses: {
+        Row: {
+          answer: string | null;
+          answered_at: string | null;
+          asked_at: string | null;
+          id: string | null;
+          kind: string | null;
+          org_id: string | null;
+          person_name: string | null;
+          project_id: string | null;
+          role_code: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      crew_shift_hours: {
+        Row: {
+          actual_hours: number | null;
+          no_show: boolean | null;
+          org_id: string | null;
+          project_id: string | null;
+          role_code: string | null;
+          scheduled_hours: number | null;
+          shift_id: string | null;
+          starts_at: string | null;
+          variance_hours: number | null;
+          worker_kind: string | null;
+          worker_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "shifts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       currencies: {
         Row: {
           currency_code: string | null;
@@ -66170,6 +67060,25 @@ export type Database = {
           webhook_endpoint_id: string;
         }[];
       };
+      crew_shortages: {
+        Args: { p_from: string; p_org_id: string; p_to: string };
+        Returns: {
+          asked_at: string;
+          detail: string;
+          ends_at: string;
+          kind: string;
+          party_name: string;
+          person_name: string;
+          po_line_id: string;
+          project_id: string;
+          project_name: string;
+          quantity: number;
+          role_code: string;
+          shift_id: string;
+          starts_at: string;
+          time_zone: string;
+        }[];
+      };
       decide_allocation: {
         Args: {
           p_allocation_id: string;
@@ -66563,6 +67472,10 @@ export type Database = {
         Args: { p_grounds: string; p_moderation_action_id: string };
         Returns: string;
       };
+      fill_position: {
+        Args: { p_membership_id?: string; p_position_id: string; p_roster_entry_id?: string };
+        Returns: Json;
+      };
       find_chat_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
         Returns: string;
@@ -66857,6 +67770,15 @@ export type Database = {
       mark_dispatch_arrived: { Args: { p_dispatch_assignment_id: string }; Returns: string };
       mark_export_expired: { Args: { p_export_job_id: string }; Returns: undefined };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
+      mark_shift_no_show: {
+        Args: {
+          p_no_show_id: string;
+          p_open_replacement?: boolean;
+          p_reason: string;
+          p_shift_id: string;
+        };
+        Returns: string;
+      };
       mark_thread_read: {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
         Returns: string;
@@ -68014,6 +68936,7 @@ export type Database = {
       record_punch: {
         Args: {
           p_accuracy_m?: number;
+          p_break_type_id?: string;
           p_device_time: string;
           p_engagement_id?: string;
           p_geofence_id?: string;
@@ -68031,6 +68954,7 @@ export type Database = {
         };
         Returns: {
           accuracy_m: number | null;
+          break_type_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -68492,6 +69416,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      respond_shift_reconfirmation: {
+        Args: { p_coming: boolean; p_reason?: string; p_shift_id: string };
+        Returns: string;
+      };
       respond_sponsor_asset: {
         Args: {
           p_expected: Database["app"]["Enums"]["review_state"];
@@ -68904,6 +69832,7 @@ export type Database = {
         Args: { p_automation_id: string; p_enabled: boolean };
         Returns: undefined;
       };
+      set_default_break_type: { Args: { p_id: string }; Returns: string };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
@@ -69120,6 +70049,16 @@ export type Database = {
         }[];
       };
       shared_work_details: { Args: { p_engagement_id: string }; Returns: Json };
+      shift_policy_warnings: {
+        Args: { p_person_ids: string[]; p_shift_id: string };
+        Returns: {
+          code: string;
+          limit_minutes: number;
+          minutes: number;
+          other_shift_id: string;
+          person_id: string;
+        }[];
+      };
       shipment_display_key: {
         Args: {
           p_row: Omit<
@@ -69760,6 +70699,7 @@ export type Database = {
         Args: { p_app: string; p_comment?: string; p_token: string };
         Returns: string;
       };
+      vacate_position: { Args: { p_position_id: string; p_reason: string }; Returns: Json };
       venue_latitude: {
         Args: {
           p_venue: Omit<
@@ -69859,6 +70799,7 @@ export type Database = {
         Returns: undefined;
       };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
+      withdraw_shift_no_show: { Args: { p_no_show_id: string; p_reason: string }; Returns: string };
       work_order_display_key: {
         Args: {
           p_work_order: Omit<
@@ -70313,6 +71254,8 @@ export type Database = {
       settlement_line_kind:
         "Guarantee" | "Bonus" | "Split" | "Expense" | "Deduction" | "Withholding";
       settlement_state: "Proposed" | "Submitted" | "Accepted" | "Disputed" | "Paid" | "Canceled";
+      shift_answer: "Waiting" | "Accepted" | "Declined" | "No Answer" | "Withdrawn";
+      shift_ask_kind: "Offer" | "Reconfirmation";
       shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
@@ -76974,6 +77917,8 @@ export const Constants = {
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
       settlement_line_kind: ["Guarantee", "Bonus", "Split", "Expense", "Deduction", "Withholding"],
       settlement_state: ["Proposed", "Submitted", "Accepted", "Disputed", "Paid", "Canceled"],
+      shift_answer: ["Waiting", "Accepted", "Declined", "No Answer", "Withdrawn"],
+      shift_ask_kind: ["Offer", "Reconfirmation"],
       shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],

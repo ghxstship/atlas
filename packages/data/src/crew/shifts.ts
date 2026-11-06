@@ -41,6 +41,10 @@ export interface Shift {
   readonly state: ShiftState;
   readonly recordId: string | null;
   readonly scopeNodeId: string | null;
+  /** The project position the shift is held for (B9); null otherwise. */
+  readonly projectPositionId?: string | null;
+  /** That position's title, when the caller reads it. */
+  readonly positionTitle?: string | null;
   readonly createdAt: string;
 }
 
@@ -58,13 +62,13 @@ export interface ShiftFilter {
   readonly from?: string;
   /** Shifts that start before this instant. */
   readonly to?: string;
-  /** Only open shifts (no member, engagement or roster entry on them). */
+  /** Only open shifts (no member, engagement or roster entry on them, held for no project position). */
   readonly open?: boolean;
   readonly states?: readonly ShiftState[];
   readonly limit?: number;
 }
 
-const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id`;
+const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id, project_position_id, position:project_positions!shifts_project_position_id_fkey(title)`;
 
 interface ShiftRow {
   id: string;
@@ -87,6 +91,8 @@ interface ShiftRow {
   engagement_id: string | null;
   engagement: EngagementRow | null;
   roster_entry_id?: string | null;
+  project_position_id?: string | null;
+  position?: { title: string } | null;
 }
 
 function toShift(row: ShiftRow): Shift {
@@ -112,6 +118,8 @@ function toShift(row: ShiftRow): Shift {
     state: row.shift_state,
     recordId: row.record_id,
     scopeNodeId: row.scope_node_id,
+    projectPositionId: row.project_position_id ?? null,
+    positionTitle: row.position?.title ?? null,
     createdAt: row.created_at,
   };
 }
@@ -169,7 +177,11 @@ export async function listShifts(db: XosClient, filter: ShiftFilter): Promise<Re
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
   if (filter.membershipId) query = query.eq("membership_id", filter.membershipId);
   if (filter.open)
-    query = query.is("membership_id", null).is("engagement_id", null).is("roster_entry_id", null);
+    query = query
+      .is("membership_id", null)
+      .is("engagement_id", null)
+      .is("roster_entry_id", null)
+      .is("project_position_id", null);
   if (filter.from) query = query.gt("ends_at", filter.from);
   if (filter.to) query = query.lt("starts_at", filter.to);
   if (filter.states && filter.states.length > 0)

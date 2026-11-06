@@ -2,7 +2,8 @@
  * Crew repository (Section 4.2 Crew), imported as `@xos/data/crew`: shifts, swaps, time entries,
  * timesheets, rate cards, the pay rate ledger, pay periods, payroll runs and exports, time off, per diems,
  * scheduling (shift templates, availability and the candidates ranked for a shift), agency staff on shifts (R12),
- * and the earning codes, time off policies and holiday calendars of Payroll and Time Off settings.
+ * the earning codes, time off policies and holiday calendars of Payroll and Time Off settings, and B9's coverage, project
+ * positions, scheduling warnings and break types.
  * Atlas (A13) and Compass (A17) share these functions; row level security decides every row.
  */
 export * from "./crew/shared.ts";
@@ -17,3 +18,7 @@ export * from "./crew/per-diems.ts";
 export * from "./crew/scheduling.ts";
 export * from "./crew/agency.ts";
 export * from "./crew/payroll-settings.ts";
+export * from "./crew/coverage.ts";
+export * from "./crew/positions.ts";
+export * from "./crew/policy.ts";
+export * from "./crew/break-types.ts";
