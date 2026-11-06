@@ -10,7 +10,7 @@ order: 32
 
 Cualquier persona en el sitio puede informar un incidente desde Compass, incluso sin conexión, con fotos y su ubicación. Se registra una sola vez cuando el dispositivo se reconecta. Un incidente crítico no se puede cerrar sin una aprobación.
 
-XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con un título que empiece con Casi accidente. Filtre Incidentes por esa severidad para encontrarlos después.
+XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.
 
 ## Tablero de despacho
 

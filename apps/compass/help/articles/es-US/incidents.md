@@ -18,7 +18,7 @@ En una emergencia, llama primero a tu número local de emergencias. XOS no avisa
 
 Sin conexión, el reporte se guarda, pero no se envía hasta que reconectes. Si es una emergencia, llama ahora a tu número local de emergencias.
 
-Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza la descripción con Casi accidente, para encontrarlo después.
+Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.
 
 ## Despachar
 

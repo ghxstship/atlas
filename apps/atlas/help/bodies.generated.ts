@@ -514,7 +514,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with a title that starts with Near miss. Filter Incidents by that severity to find them.",
+            v: "Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.",
           },
         ],
       },
@@ -1067,7 +1067,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with a title that starts with Near miss. Filter Incidents by that severity to find them later.",
+            v: "XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with What happened starting with the words Near miss. Filter Incidents by that severity to find them later.",
           },
         ],
       },
@@ -3359,7 +3359,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con un título que empiece con Casi accidente. Filtre Incidentes por esa severidad para encontrarlos.",
+            v: "La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.",
           },
         ],
       },
@@ -3922,7 +3922,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con un título que empiece con Casi accidente. Filtre Incidentes por esa severidad para encontrarlos después.",
+            v: "XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.",
           },
         ],
       },

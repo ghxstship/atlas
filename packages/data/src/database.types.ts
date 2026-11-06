@@ -16783,8 +16783,10 @@ export type Database = {
           issued_at: string;
           message: string;
           org_id: string;
+          people_not_sent: number | null;
           people_told: number | null;
           people_told_on_site: number | null;
+          people_waiting: number | null;
           project_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -16800,8 +16802,10 @@ export type Database = {
           issued_at?: string;
           message: string;
           org_id: string;
+          people_not_sent?: number | null;
           people_told?: number | null;
           people_told_on_site?: number | null;
+          people_waiting?: number | null;
           project_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -16816,8 +16820,10 @@ export type Database = {
           issued_at?: string;
           message?: string;
           org_id?: string;
+          people_not_sent?: number | null;
           people_told?: number | null;
           people_told_on_site?: number | null;
+          people_waiting?: number | null;
           project_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -76439,8 +76445,11 @@ export type Database = {
           engagement_id: string;
           item_name: string;
           onboarding_item_id: string;
+          review_passed: boolean;
+          scan_status: string;
           storage_uri: string;
           submitted_at: string;
+          total_count: number;
           vendor_id: string;
           vendor_name: string;
         }[];

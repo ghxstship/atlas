@@ -10,7 +10,7 @@ order: 32
 
 Anyone on site can report an incident from Compass, even offline, with photos and their location. It is filed once when the device reconnects. A critical incident cannot be closed without a sign-off.
 
-XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with a title that starts with Near miss. Filter Incidents by that severity to find them later.
+XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with What happened starting with the words Near miss. Filter Incidents by that severity to find them later.
 
 ## Dispatch board
 

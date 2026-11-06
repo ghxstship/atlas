@@ -26,7 +26,7 @@ La compuerta 8 contiene la **Medición**: registre las cifras de residuos, energ
 
 ## Casi accidentes en la compuerta 7
 
-La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con un título que empiece con Casi accidente. Filtre Incidentes por esa severidad para encontrarlos.
+La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.
 
 ## Definiciones
 

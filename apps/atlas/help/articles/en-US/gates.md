@@ -26,7 +26,7 @@ Gate 8 holds the **Measurement**: record waste, energy, water, transport, attend
 
 ## Near misses at gate 7
 
-Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with a title that starts with Near miss. Filter Incidents by that severity to find them.
+Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.
 
 ## Definitions
 

@@ -18,7 +18,7 @@ In an emergency, call your local emergency number first. XOS does not alert emer
 
 Offline, the report is saved but not sent until you reconnect. If it is an emergency, call your local emergency number now.
 
-For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start the description with Near miss, so it can be found later.
+For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start What happened with the words Near miss, so it can be found later.
 
 ## Dispatch
 

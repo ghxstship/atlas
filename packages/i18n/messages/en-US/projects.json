@@ -272,7 +272,7 @@
     "advisory": "Advisory",
     "met": "Evidence attested",
     "gap": "No evidence",
-    "nearMissHelp": "XOS has no near-miss type. Log a near miss as an incident at Level 5 - Advisory, with a title that starts with Near miss, so it can be found later under Safety, Incidents.",
+    "nearMissHelp": "XOS has no near-miss type. Log a near miss as an incident at Level 5 - Advisory, with What happened starting with the words Near miss, so it can be found later under Safety, Incidents.",
     "evidence": "Evidence",
     "noEvidence": "No evidence yet.",
     "rank": "Assertion rank {rank}",

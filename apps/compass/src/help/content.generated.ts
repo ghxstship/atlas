@@ -947,7 +947,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start the description with Near miss, so it can be found later.",
+                v: "For a near miss, something that could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start What happened with the words Near miss, so it can be found later.",
               },
             ],
           },
@@ -4289,7 +4289,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza la descripción con Casi accidente, para encontrarlo después.",
+                v: "Para un casi accidente, algo que pudo lastimar a alguien o causar daños pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
               },
             ],
           },
