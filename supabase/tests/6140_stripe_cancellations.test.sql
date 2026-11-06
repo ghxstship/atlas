@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(70);
+select plan(75);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$

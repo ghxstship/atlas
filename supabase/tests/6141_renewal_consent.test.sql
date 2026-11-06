@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(31);
+select plan(29);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -73,24 +73,24 @@ select is((select count(*)::integer from app.notifications where kind = 'billing
 
 -- Before an annual renewal -------------------------------------------------------------------------------------------------
 select pg_temp.as_service();
-select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb', 'sub_H4rb', 'team', 'Annual', 'active', now() + interval '29 days', false);
-select app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rth', 'sub_N0rth', 'team', 'Monthly', 'active', now() + interval '29 days', false);
+select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb', 'sub_H4rb', 'team', 'Annual', 'active', now() + interval '200 days', false);
+select app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rth', 'sub_N0rth', 'team', 'Monthly', 'active', now() + interval '200 days', false);
+select app.sync_subscription_from_stripe(pg_temp.id('org_p'), 'cus_Blu3', 'sub_Blu3', 'team', 'Annual', 'active', now() + interval '20 days', false);
 select app.note_stripe_subscription_terms('sub_H4rb', null, 149000, 'usd', now());
 select pg_temp.as_platform();
-select is(private.run_billing_renewal_reminders(now()), 0, 'a subscription bought within the month has its purchase confirmation');
-select is(private.run_billing_renewal_reminders(now() + interval '31 days' - interval '29 days' * 0), 0, 'and nothing past its renewal date is reminded');
-update app.stripe_subscription_links set created_at = now() - interval '335 days' where stripe_subscription_id in ('sub_H4rb', 'sub_N0rth');
-select is(private.run_billing_renewal_reminders(now()), 1, 'only the annual plan is reminded, 30 days ahead');
+select is(private.run_billing_renewal_reminders(now()), 0, 'a subscription bought within the month has its purchase confirmation, and one a long way off waits');
+select is(private.run_billing_renewal_reminders(now() + interval '169 days'), 0, 'more than 30 days before a renewal nothing is sent');
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 1, 'only the annual plan is reminded, 30 days ahead');
 select results_eq($$select message_args ->> 'plan', message_args ->> 'price', (message_args ->> 'renewsOn') is not null from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_b') limit 1$$,
   $$values ('Team'::text, '1,490.00 USD'::text, true)$$, 'with the plan, the amount Stripe charges and the date');
 select is((select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_a')), 0, 'never a monthly plan');
-select is(private.run_billing_renewal_reminders(now()), 0, 'and once per term');
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'and once per term');
 select ok(exists (select 1 from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb' and amount_text = '1,490.00 USD'), 'with proof of notice');
 delete from private.billing_renewal_reminders;
 select pg_temp.as_service();
-select app.note_stripe_subscription_terms('sub_H4rb', now() + interval '29 days', null, null, now() + interval '1 minute');
+select app.note_stripe_subscription_terms('sub_H4rb', now() + interval '200 days', null, null, now() + interval '1 minute');
 select pg_temp.as_platform();
-select is(private.run_billing_renewal_reminders(now()), 0, 'a plan already ending gets no reminder');
+select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'a plan already ending gets no reminder');
 
 -- Retention -----------------------------------------------------------------------------------------------------------
 select is(private.run_billing_evidence_retention(now() + interval '6 years'), 0, 'evidence is kept for 7 years');

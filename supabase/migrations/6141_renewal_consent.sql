@@ -78,7 +78,7 @@ set search_path = ''
 as $$
 begin
   if tg_op = 'DELETE' then
-    if old.created_at > now() - interval '7 years' then
+    if coalesce(current_setting('xos.billing_evidence_sweep', true), '') <> 'on' then
       perform private.refuse('renewal_consent_immutable', 'A renewal consent is evidence and cannot be deleted.');
     end if;
     return old;
@@ -91,7 +91,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_billing_renewal_consent() is 'Keeps a renewal consent as it was written: only its Checkout session and confirmation time can be set, and a deleted account clears the person''s id. private.run_billing_evidence_retention deletes it after 7 years.';
+comment on function private.guard_billing_renewal_consent() is 'Keeps a renewal consent as it was written: only its Checkout session and confirmation time can be set, and a deleted account clears the person''s id. Only private.run_billing_evidence_retention deletes it, after 7 years.';
 revoke all on function private.guard_billing_renewal_consent() from public, anon, authenticated;
 
 create trigger t10_guard_consent before update or delete on private.billing_renewal_consents
@@ -325,9 +325,11 @@ begin
   delete from private.billing_alerts a where a.raised_at < v_cutoff and a.resolved_at is not null;
   get diagnostics v_rows = row_count;
   v_total := v_total + v_rows;
+  perform set_config('xos.billing_evidence_sweep', 'on', true);
   delete from private.billing_renewal_consents c where c.created_at < v_cutoff;
   get diagnostics v_rows = row_count;
   v_total := v_total + v_rows;
+  perform set_config('xos.billing_evidence_sweep', 'off', true);
   delete from private.billing_renewal_reminders r where r.sent_at < v_cutoff;
   get diagnostics v_rows = row_count;
   return v_total + v_rows;
