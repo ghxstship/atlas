@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert } from "@xos/ui";
+import { Button, InlineAlert, MultiSelect } from "@xos/ui";
 import type { DecisionResult, RegistrationRow } from "@xos/data/registration";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
@@ -17,7 +17,8 @@ const INITIAL: State = {};
 
 /**
  * The registrations queue: bulk Approve or Decline, with each row's outcome on the page itself, because a decided row can
- * leave the list after the refresh and a confirmation inside it would never be seen.
+ * leave the list after the refresh and a confirmation inside it would never be seen. People are chosen in one picker: a
+ * checkbox per row would count as a field per row, and a form has at most seven.
  */
 export function RegistrationQueue({
   org,
@@ -31,14 +32,10 @@ export function RegistrationQueue({
   const format = useFormatter();
   const [state, formAction, pending] = useActionState(decideRegistrationsAction, INITIAL);
   const keep = useKeepInput(state, formAction, (done) => Boolean(done.ok));
-  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
-  const toggle = (id: string, on: boolean) =>
-    setPicked((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(id);
-      else next.delete(id);
-      return next;
-    });
+  const [picked, setPicked] = useState<readonly string[]>([]);
+  const submitted = rows.filter((r) => r.state === "Submitted");
+  // Someone decided here or elsewhere leaves the picker with the refresh.
+  const chosen = picked.filter((id) => submitted.some((r) => r.id === id));
   const decisions = state.decisions ?? [];
   const nameOf = (id: string) => rows.find((r) => r.id === id)?.personName ?? t("unnamed");
   return (
@@ -70,17 +67,7 @@ export function RegistrationQueue({
             className="flex flex-col gap-4 rounded-card border border-border-subtle p-12 text-text-13"
           >
             <div className="flex flex-wrap items-center justify-between gap-8">
-              {r.state === "Submitted" ? (
-                <Checkbox
-                  name="ids"
-                  value={r.id}
-                  checked={picked.has(r.id)}
-                  label={r.personName ?? t("unnamed")}
-                  onChange={(e) => toggle(r.id, e.target.checked)}
-                />
-              ) : (
-                <span className="font-medium">{r.personName ?? t("unnamed")}</span>
-              )}
+              <span className="font-medium">{r.personName ?? t("unnamed")}</span>
               <span className="text-text-12 text-text-secondary">
                 {t("line", {
                   page: r.pageTitle ?? "",
@@ -107,26 +94,42 @@ export function RegistrationQueue({
           </li>
         ))}
       </ul>
-      {rows.some((r) => r.state === "Submitted") ? (
-        <div className="flex flex-wrap gap-8">
-          <Button
-            type="submit"
-            name="approve"
-            value="true"
-            variant="secondary"
-            disabled={pending || picked.size === 0}
-          >
-            {t("approve", { count: picked.size })}
-          </Button>
-          <Button
-            type="submit"
-            name="approve"
-            value="false"
-            variant="secondary"
-            disabled={pending || picked.size === 0}
-          >
-            {t("decline", { count: picked.size })}
-          </Button>
+      {submitted.length > 0 ? (
+        <div className="flex max-w-layout-form flex-col gap-8">
+          {chosen.map((id) => (
+            <input key={id} type="hidden" name="ids" value={id} />
+          ))}
+          <MultiSelect
+            key={submitted.map((r) => r.id).join()}
+            label={t("pick")}
+            help={t("pickHelp")}
+            value={[...chosen]}
+            options={submitted.map((r) => ({
+              value: r.id,
+              label: `${r.personName ?? t("unnamed")} · ${r.pageTitle ?? ""}`,
+            }))}
+            onChange={setPicked}
+          />
+          <div className="flex flex-wrap gap-8">
+            <Button
+              type="submit"
+              name="approve"
+              value="true"
+              variant="secondary"
+              disabled={pending || chosen.length === 0}
+            >
+              {t("approve", { count: chosen.length })}
+            </Button>
+            <Button
+              type="submit"
+              name="approve"
+              value="false"
+              variant="secondary"
+              disabled={pending || chosen.length === 0}
+            >
+              {t("decline", { count: chosen.length })}
+            </Button>
+          </div>
         </div>
       ) : null}
     </form>

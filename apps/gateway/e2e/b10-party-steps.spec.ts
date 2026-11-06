@@ -39,7 +39,19 @@ test("the crew person signs one agreement and declines another; Atlas countersig
   browser,
 }) => {
   const tag = uniqueId().slice(-6);
-  await batch(tag, `Sign me ${tag}`, "You work the show days.", null);
+  // An Automatic Electronic Signature item for the signed document: countersigning passes it with no reviewer.
+  const [requirement] = await sql<{ id: string }>(
+    `insert into app.onboarding_requirements (org_id, name, item_kind, verification_method, is_blocking)
+     values ($1, $2, 'Electronic Signature', 'Automatic', false) returning id`,
+    [DEMO.org, `Crew Agreement Signed ${tag}`],
+    DEMO.owner,
+  );
+  await sql(
+    `insert into app.onboarding_items (engagement_id, onboarding_requirement_id) values ($1, $2)`,
+    [DEMO.crewEngagement, requirement?.id],
+    DEMO.owner,
+  );
+  await batch(tag, `Sign me ${tag}`, "You work the show days.", requirement?.id as string);
   await batch(tag, `Decline me ${tag}`, "A different arrangement.", null);
 
   await signIn(page, "crew@example.com", `/work/engagements/${DEMO.crewEngagementKey}/documents`);
@@ -64,6 +76,16 @@ test("the crew person signs one agreement and declines another; Atlas countersig
   await row.getByRole("button", { name: "Countersign signed" }).click();
   await expect(row.getByText(/Executed: 1/)).toBeVisible();
 
+  // The Automatic item passed with no reviewer.
+  const [passed] = await sql<{ outcome: string; verified_by: string | null }>(
+    `select v.outcome::text as outcome, v.verified_by from app.onboarding_verifications v
+       join app.onboarding_items i on i.id = v.onboarding_item_id
+      where i.engagement_id = $1 and i.onboarding_requirement_id = $2 order by v.verified_at desc limit 1`,
+    [DEMO.crewEngagement, requirement?.id],
+  );
+  expect(passed?.outcome).toBe("Passed");
+  expect(passed?.verified_by).toBeNull();
+
   await page.reload();
   const download = await Promise.all([
     page.waitForEvent("download"),
@@ -86,7 +108,20 @@ test("a pool invitation is accepted on Home and the person is named in Atlas", a
     [DEMO.org, `Invited ${tag}`],
     DEMO.owner,
   );
-  await sql(`select app.invite_to_talent_pool($1, 'crew@example.com')`, [pool?.id], DEMO.owner);
+  // The org invites through the Pools page; the email goes out as party_invitation, with no pool named.
+  const { context: org, page: pools } = await atlasAs(browser, "owner@example.com");
+  await pools.goto(`/${ORG}/opportunities/pools?pool=${pool?.id}`);
+  const invite = pools.getByRole("form", { name: "Invite by email" });
+  await invite.getByLabel("Email", { exact: true }).fill("crew@example.com");
+  await invite.getByRole("button", { name: "Send invitation" }).click();
+  await expect(pools.locator("#pool-invitations").getByText("crew@example.com")).toBeVisible();
+  const [queued] = await sql<{ args: Record<string, unknown> }>(
+    `select e.args from private.platform_emails e where e.template = 'party_invitation' and lower(e.to_email) = 'crew@example.com'
+     order by e.created_at desc limit 1`,
+  );
+  expect(queued?.args["kind"]).toBe("pool");
+  expect(JSON.stringify(queued?.args)).not.toContain(`Invited ${tag}`);
+  await org.close();
 
   await signIn(page, "crew@example.com");
   const item = page.getByRole("listitem").filter({ hasText: "invites you to join its crew list" });

@@ -869,7 +869,9 @@
       "Approved": "Approved",
       "Declined": "Declined",
       "Withdrawn": "Withdrawn"
-    }
+    },
+    "pick": "People to decide",
+    "pickHelp": "Choose who to approve or decline. Each person's answers are listed above."
   },
   "agreementTemplates": {
     "title": "Agreement templates",
@@ -962,6 +964,7 @@
       "Expired": "Expired",
       "Superseded": "Superseded",
       "Canceled": "Canceled"
-    }
+    },
+    "textMasked": "This text holds a rate you cannot read."
   }
 }

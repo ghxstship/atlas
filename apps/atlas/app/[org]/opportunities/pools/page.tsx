@@ -7,9 +7,9 @@ import {
 import {
   listPoolInvitations,
   listPoolMemberRates,
-  numberFormatOfLocale,
   type PoolInvitation,
 } from "@xos/data/pool-invitations";
+import { readOrgLanguage } from "@xos/data/settings";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -208,11 +208,12 @@ async function PoolRecord({
 }) {
   const { ctx, t, locale } = page;
   const talent = pool.kind === "Talent";
-  const [members, parties, rates, invitations] = await Promise.all([
+  const [members, parties, rates, invitations, orgLanguage] = await Promise.all([
     listPoolMembers(ctx.viewer.db, pool.id),
     canWrite ? knownParties(ctx) : Promise.resolve([]),
     listPoolMemberRates(ctx.viewer.db, pool.id),
     canWrite && talent ? listPoolInvitations(ctx.viewer.db, pool.id) : Promise.resolve(null),
+    readOrgLanguage(ctx.viewer.db, ctx.org.id),
   ]);
   const rows = must(members, "pool members");
   const rateOf = new Map(must(rates, "pool member rates").map((r) => [r.memberId, r]));
@@ -223,7 +224,6 @@ async function PoolRecord({
         poolId: pool.id,
       })
     : null;
-  const rateFormat = numberFormatOfLocale(locale);
   const rateText = (r: {
     rateMinor: number | null;
     currency: string | null;
@@ -259,56 +259,59 @@ async function PoolRecord({
       <Section id="pool-members" title={t("pools.members", { count: rows.length })}>
         {rows.length === 0 ? <Muted>{t("pools.noMembers")}</Muted> : null}
         <ul className="m-0 flex list-none flex-col gap-8 p-0">
-          {rows.map((m) => (
-            <li
-              key={m.id}
-              className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-8">
-                <span className="font-medium">{m.name ?? t("pools.unnamed")}</span>
-                <Tag
-                  tone={
-                    m.standing === "Do Not Engage"
-                      ? "danger"
-                      : m.standing === "Preferred"
-                        ? "success"
-                        : "neutral"
-                  }
-                >
-                  {t(`standings.${enumKey(m.standing)}`)}
-                </Tag>
-              </div>
-              {rateOf.get(m.id) ? (
-                <p className="m-0 text-text-secondary">
-                  {t("pools.invitations.memberRate", { rate: rateText(rateOf.get(m.id)!) })}
-                </p>
-              ) : null}
-              {m.standing === "Do Not Engage" ? (
-                <p className="m-0 text-text-secondary">
-                  {t("pools.dneDetail", { reason: m.reason ?? "", date: m.reviewOn ?? "" })}
-                </p>
-              ) : null}
-              {canWrite ? (
-                <div className="flex flex-wrap items-end gap-12">
-                  <ActionForm
-                    action={setStandingAction}
-                    hidden={{ org: ctx.org.slug, memberId: m.id }}
-                    inline
-                    fields={standingFields(page, m)}
-                    submitLabel={t("pools.setStanding")}
-                  />
-                  <ActionForm
-                    action={removePoolMemberAction}
-                    hidden={{ org: ctx.org.slug, memberId: m.id }}
-                    fields={[]}
-                    inline
-                    submitLabel={t("remove")}
-                    variant="danger"
-                  />
+          {rows.map((m) => {
+            const memberRate = rateOf.get(m.id);
+            return (
+              <li
+                key={m.id}
+                className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-8">
+                  <span className="font-medium">{m.name ?? t("pools.unnamed")}</span>
+                  <Tag
+                    tone={
+                      m.standing === "Do Not Engage"
+                        ? "danger"
+                        : m.standing === "Preferred"
+                          ? "success"
+                          : "neutral"
+                    }
+                  >
+                    {t(`standings.${enumKey(m.standing)}`)}
+                  </Tag>
                 </div>
-              ) : null}
-            </li>
-          ))}
+                {memberRate ? (
+                  <p className="m-0 text-text-secondary">
+                    {t("pools.invitations.memberRate", { rate: rateText(memberRate) })}
+                  </p>
+                ) : null}
+                {m.standing === "Do Not Engage" ? (
+                  <p className="m-0 text-text-secondary">
+                    {t("pools.dneDetail", { reason: m.reason ?? "", date: m.reviewOn ?? "" })}
+                  </p>
+                ) : null}
+                {canWrite ? (
+                  <div className="flex flex-wrap items-end gap-12">
+                    <ActionForm
+                      action={setStandingAction}
+                      hidden={{ org: ctx.org.slug, memberId: m.id }}
+                      inline
+                      fields={standingFields(page, m)}
+                      submitLabel={t("pools.setStanding")}
+                    />
+                    <ActionForm
+                      action={removePoolMemberAction}
+                      hidden={{ org: ctx.org.slug, memberId: m.id }}
+                      fields={[]}
+                      inline
+                      submitLabel={t("remove")}
+                      variant="danger"
+                    />
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       </Section>
       {canWrite && talent ? (
@@ -412,7 +415,7 @@ async function PoolRecord({
           ) : null}
           <ActionForm
             action={invitePoolMemberAction}
-            hidden={{ org: ctx.org.slug, poolId: pool.id, numberFormat: rateFormat }}
+            hidden={{ org: ctx.org.slug, poolId: pool.id }}
             title={t("pools.invitations.invite")}
             fields={[
               { name: "email", label: t("fields.email"), kind: "email", required: true },
@@ -439,9 +442,9 @@ async function PoolRecord({
                 label: t("pools.invitations.rate"),
                 kind: "text",
                 help: t("pools.invitations.rateHelp", {
-                  example: new Intl.NumberFormat(locale, { minimumFractionDigits: 2 }).format(
-                    1234.5,
-                  ),
+                  example: new Intl.NumberFormat(orgLanguage ?? "en-US", {
+                    minimumFractionDigits: 2,
+                  }).format(1234.5),
                 }),
               },
               {

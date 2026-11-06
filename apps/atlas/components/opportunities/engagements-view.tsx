@@ -570,7 +570,9 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                   />
                 ) : null}
                 {texted.has(d.id) ? (
-                  texted.get(d.id) ? null : (
+                  texted.get(d.id) ? (
+                    <Muted>{t("agreementBatches.textMasked")}</Muted>
+                  ) : (
                     <DocumentActions org={ctx.org.slug} kind="engagement-document" id={d.id} />
                   )
                 ) : null}

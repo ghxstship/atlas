@@ -1727,7 +1727,8 @@
       "document_text_hash": "The text changed since you opened it. Read it again, then sign.",
       "document_decline_reason": "Say why you decline, in up to 450 characters.",
       "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
-      "document_text_signed": "This text was already signed."
+      "document_text_signed": "This text was already signed.",
+      "org_read_only": "This organization is read-only right now, so nothing can change. Message the organization."
     },
     "crewShifts": {
       "title": "My shifts",

@@ -135,7 +135,7 @@ export async function commitPoolMatch(input: {
   // A decided Merged review means the person is already invited or in a pool, and the candidate may be a pool member, so
   // nothing is written. Kept Separate never gets here: it has no target and creates a new invitation.
   if (valid.mergeInto) {
-    await store.skipRow(rowId, "Already invited or in a pool: merged in review.");
+    await store.skipRow(rowId, "pool_merged_in_review");
     return;
   }
   const target = valid.matchedId as string;

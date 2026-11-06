@@ -158,7 +158,9 @@ create or replace function app.submit_crew_registration(
   p_page_slug text,
   p_answers jsonb,
   p_age_confirmed boolean,
-  p_profile_share_id uuid default null
+  p_profile_share_id uuid default null,
+  p_share_sections app.profile_section[] default null,
+  p_work_phone text default null
 )
 returns uuid
 language plpgsql
@@ -171,6 +173,8 @@ declare
   v_org app.organizations;
   v_page app.registration_pages;
   v_share app.profile_shares;
+  v_share_id uuid := p_profile_share_id;
+  v_phone text := nullif(btrim(coalesce(p_work_phone, '')), '');
   v_answer record;
   v_id uuid;
 begin
@@ -226,8 +230,24 @@ begin
       perform private.refuse('profile_share_not_yours', 'Share your profile with this organization, then register.');
     end if;
   end if;
+  if v_phone is not null and v_phone !~ '^\+[1-9][0-9]{6,14}$' then
+    perform private.refuse('registration_phone', 'Enter the work phone with its country code.');
+  end if;
+  -- The phone and the share belong to the registration: a refusal above leaves neither, and every step below commits with
+  -- it. A share adds to the person's own live share for this org, so registering again never piles up shares.
+  if coalesce(cardinality(p_share_sections), 0) > 0 then
+    if v_share_id is null then
+      select s.id into v_share_id from app.profile_shares s
+      where s.org_id = v_org.id and s.person_id = v_me and s.revoked_at is null and s.deleted_at is null
+      order by s.created_at desc limit 1;
+    end if;
+    v_share_id := app.share_profile_sections(v_org.id, v_share_id, p_share_sections);
+  end if;
+  if v_phone is not null then
+    perform app.set_personal_setting('workforce.work_phone', null, v_phone);
+  end if;
   insert into app.crew_registrations (registration_page_id, person_id, confirmed_minimum_age, profile_share_id)
-  values (v_page.id, v_me, v_page.minimum_age, p_profile_share_id)
+  values (v_page.id, v_me, v_page.minimum_age, v_share_id)
   returning id into v_id;
   for v_answer in
     select (a ->> 'question_id')::uuid as question_id, btrim(a ->> 'answer') as answer
@@ -245,7 +265,7 @@ begin
 end;
 $$;
 
-comment on function app.submit_crew_registration(text, text, jsonb, boolean, uuid) is 'The signed-in person registers on an Open registration page by org slug and page slug, with answers [{question_id, answer}], the page''s age confirmation and an optional profile share of their own for the org. Refusals: registration_page_closed (also for a dead pool, a read-only org and a person the org flagged Do Not Engage), registration_rate_limited (10 a person an hour), registration_age_unconfirmed (no 16+ confirmation, or a page minimum above 16 without p_age_confirmed), registration_answer_unknown, registration_answer_length, registration_answer_required, registration_duplicate, profile_share_not_yours. Returns the registration id.';
+comment on function app.submit_crew_registration(text, text, jsonb, boolean, uuid, app.profile_section[], text) is 'The signed-in person registers on an Open registration page by org slug and page slug, with answers [{question_id, answer}], the page''s age confirmation, an optional profile share of their own for the org, optional sections to share and an optional E.164 work phone. The sections and the phone are written in the same transaction, so a refused registration shares nothing and saves nothing. Refusals: registration_page_closed (also for a dead pool, a read-only org and a person the org flagged Do Not Engage), registration_rate_limited (10 a person an hour), registration_age_unconfirmed (no 16+ confirmation, or a page minimum above 16 without p_age_confirmed), registration_answer_unknown, registration_answer_length, registration_answer_required, registration_duplicate, profile_share_not_yours, registration_phone. Returns the registration id.';
 
 create or replace function app.withdraw_crew_registration(p_registration_id uuid)
 returns uuid
@@ -502,11 +522,11 @@ grant select on api_external.my_crew_registrations to authenticated, service_rol
 
 -- Privileges ----------------------------------------------------------------------------------------------------------------
 
-revoke all on function app.submit_crew_registration(text, text, jsonb, boolean, uuid) from public, anon;
+revoke all on function app.submit_crew_registration(text, text, jsonb, boolean, uuid, app.profile_section[], text) from public, anon;
 revoke all on function app.withdraw_crew_registration(uuid) from public, anon;
 revoke all on function app.decide_crew_registrations(uuid[], boolean, text) from public, anon;
 revoke all on function app.invite_to_registration_page(uuid, boolean) from public, anon;
-grant execute on function app.submit_crew_registration(text, text, jsonb, boolean, uuid) to authenticated, service_role;
+grant execute on function app.submit_crew_registration(text, text, jsonb, boolean, uuid, app.profile_section[], text) to authenticated, service_role;
 grant execute on function app.withdraw_crew_registration(uuid) to authenticated, service_role;
 grant execute on function app.decide_crew_registrations(uuid[], boolean, text) to authenticated, service_role;
 grant execute on function app.invite_to_registration_page(uuid, boolean) to authenticated, service_role;

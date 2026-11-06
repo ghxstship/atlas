@@ -394,6 +394,7 @@ declare
   v_document uuid;
   v_hint text;
   v_results jsonb := '[]'::jsonb;
+  v_created integer := 0;
 begin
   perform private.require_person();
   select * into v_project from app.projects p where p.id = p_project_id and p.deleted_at is null;
@@ -414,28 +415,55 @@ begin
       and r.item_kind = 'Electronic Signature') then
     perform private.refuse('document_batch_requirement', 'Choose a live Electronic Signature requirement of the organization.');
   end if;
-  insert into app.engagement_document_batches (project_id, engagement_document_template_id, onboarding_requirement_id)
-  values (v_project.id, v_template.id, p_onboarding_requirement_id)
-  returning * into v_batch;
-  for v_entry in select e from jsonb_array_elements(p_documents) e loop
-    begin
-      v_document := private.create_engagement_document_entry(v_batch, v_template, v_entry);
-      v_results := v_results || jsonb_build_array(jsonb_build_object('engagement_id', v_entry ->> 'engagement_id',
-        'engagement_document_id', v_document, 'outcome', 'created', 'code', null));
-    exception when sqlstate 'XR001' then
-      get stacked diagnostics v_hint = pg_exception_hint;
-      v_results := v_results || jsonb_build_array(jsonb_build_object('engagement_id', v_entry ->> 'engagement_id',
-        'engagement_document_id', null, 'outcome', 'refused', 'code', coalesce(nullif(v_hint, ''), 'refused')));
-    end;
-  end loop;
+  -- A batch that creates nothing leaves no row: a batch fixes its template's wording (2993), so a call whose every entry is
+  -- refused must not fix it. The raise below undoes the batch and leaves the per-row results.
+  begin
+    insert into app.engagement_document_batches (project_id, engagement_document_template_id, onboarding_requirement_id)
+    values (v_project.id, v_template.id, p_onboarding_requirement_id)
+    returning * into v_batch;
+    for v_entry in select e from jsonb_array_elements(p_documents) e loop
+      begin
+        v_document := private.create_engagement_document_entry(v_batch, v_template, v_entry);
+        v_created := v_created + 1;
+        v_results := v_results || jsonb_build_array(jsonb_build_object('engagement_id', v_entry ->> 'engagement_id',
+          'engagement_document_id', v_document, 'outcome', 'created', 'code', null));
+      exception when sqlstate 'XR001' then
+        get stacked diagnostics v_hint = pg_exception_hint;
+        v_results := v_results || jsonb_build_array(jsonb_build_object('engagement_id', v_entry ->> 'engagement_id',
+          'engagement_document_id', null, 'outcome', 'refused', 'code', coalesce(nullif(v_hint, ''), 'refused')));
+      end;
+    end loop;
+    if v_created = 0 then
+      raise exception using errcode = 'XRB10', message = 'no document was created';
+    end if;
+  exception when sqlstate 'XRB10' then
+    return jsonb_build_object('batch_id', null, 'results', v_results);
+  end;
   perform private.emit_event(v_batch.org_id, 'engagement_document_batch.created', 'engagement_document_batches', v_batch.id,
-    v_batch.project_id, jsonb_build_object('template_id', v_template.id,
-      'created', (select count(*) from jsonb_array_elements(v_results) r where r ->> 'outcome' = 'created')));
+    v_batch.project_id, jsonb_build_object('template_id', v_template.id, 'created', v_created));
   return jsonb_build_object('batch_id', v_batch.id, 'results', v_results);
 end;
 $$;
 
-comment on function app.create_engagement_document_batch(uuid, uuid, jsonb, uuid) is 'Generates engagement documents from a template on a project (B10): p_documents is [{engagement_id, title, body}], 1 to 500 entries (document_batch_size), merged by the data layer as the caller. Needs opportunities.engagement.write on the project (42501), a template the caller reads (document_template_not_found) and, when named, a live Electronic Signature requirement of the org (document_batch_requirement). Each entry runs in its own subtransaction and creates a Proposed document with its text, or is refused with its code. Returns {batch_id, results: [{engagement_id, engagement_document_id, outcome created or refused, code}]}.';
+comment on function app.create_engagement_document_batch(uuid, uuid, jsonb, uuid) is 'Generates engagement documents from a template on a project (B10): p_documents is [{engagement_id, title, body}], 1 to 500 entries (document_batch_size), merged by the data layer as the caller. Needs opportunities.engagement.write on the project (42501), a template the caller reads (document_template_not_found) and, when named, a live Electronic Signature requirement of the org (document_batch_requirement). Each entry runs in its own subtransaction and creates a Proposed document with its text, or is refused with its code. A call that creates nothing leaves no batch, so batch_id is NULL and the template stays editable. Returns {batch_id, results: [{engagement_id, engagement_document_id, outcome created or refused, code}]}.';
+
+-- The merge reads the project's shifts as the caller, so it asks first whether the caller may: a caller who cannot would read
+-- zero shifts, and a legal text would say so. Recreated from 0470 with that one capability added.
+create or replace function app.my_capabilities_on_project(p_project_id uuid, p_capabilities text[])
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(c order by c), '{}')
+  from unnest(p_capabilities) c
+  where (c like 'credentials.%' or c like 'safety.%' or c like 'data.restricted.%' or c = 'crew.shift.read')
+    and private.can_on_project(p_project_id, c);
+$$;
+comment on function app.my_capabilities_on_project(uuid, text[]) is 'Which of the named credentials, safety and restricted-data capabilities, and crew.shift.read, the signed-in person may use on a project. Only shapes which controls the apps show and which merge fields a generated document can fill; row level security and the RPCs still decide every write.';
+revoke all on function app.my_capabilities_on_project(uuid, text[]) from public, anon;
+grant execute on function app.my_capabilities_on_project(uuid, text[]) to authenticated, service_role;
 
 -- Sending and countersigning -----------------------------------------------------------------------------------------
 

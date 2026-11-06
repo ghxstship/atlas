@@ -1,7 +1,6 @@
 "use server";
 
 import { submitRegistration, withdrawRegistration } from "@xos/data/gateway";
-import { setPersonalSetting } from "@xos/data/settings";
 import { regionFromLocale, toE164 } from "@xos/i18n/phone";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
@@ -11,7 +10,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * Registering on a crew registration page (B10, G-129, ADR 0149 decision 3). The person registers from their own account;
- * the work phone saves to their own settings and any profile share is theirs. The database decides every refusal.
+ * the work phone goes to their own settings and any profile share is theirs. The database decides every refusal and writes
+ * all of it in one transaction, so a refused registration neither shares a profile nor saves a phone.
  */
 
 export interface RegistrationState {
@@ -32,6 +32,10 @@ const SECTIONS = [
   "links",
 ] as const;
 
+function isSection(value: string): value is (typeof SECTIONS)[number] {
+  return (SECTIONS as readonly string[]).includes(value);
+}
+
 export async function submitRegistrationAction(
   _: RegistrationState,
   form: FormData,
@@ -40,7 +44,6 @@ export async function submitRegistrationAction(
     .object({
       orgSlug: z.string().min(1).max(100),
       pageSlug: z.string().min(1).max(80),
-      orgId: z.uuid(),
       phone: z.string().trim().max(40),
       ageConfirmed: z.string().default(""),
       sections: z.string().default(""),
@@ -48,42 +51,30 @@ export async function submitRegistrationAction(
     .safeParse({
       orgSlug: form.get("orgSlug"),
       pageSlug: form.get("pageSlug"),
-      orgId: form.get("orgId"),
       phone: form.get("phone") ?? "",
       ageConfirmed: form.get("ageConfirmed") ?? "",
       sections: form.get("sections") ?? "",
     });
   if (!parsed.success) return { outcome: "invalid", at: Date.now() };
   const v = parsed.data;
-  const db = await createServerSupabase();
+  let workPhone: string | null = null;
   if (v.phone) {
-    const phone = toE164(v.phone, regionFromLocale(await getLocale()));
-    if (!phone) return { refusal: "registration_phone", at: Date.now() };
-    const saved = await setPersonalSetting(db, { key: "workforce.work_phone", value: phone });
-    if (!saved.ok) return { outcome: outcomeFor(saved.error), at: Date.now() };
-  }
-  const sections = v.sections.split(",").filter((s) => (SECTIONS as readonly string[]).includes(s));
-  let shareId: string | null = null;
-  if (sections.length > 0) {
-    const shared = await db.rpc("share_profile_sections", {
-      p_org_id: v.orgId,
-      p_profile_share_id: null as unknown as string,
-      p_sections: sections as never,
-    });
-    if (shared.error) return { outcome: "unexpected", at: Date.now() };
-    shareId = shared.data as string;
+    workPhone = toE164(v.phone, regionFromLocale(await getLocale()));
+    if (!workPhone) return { refusal: "registration_phone", at: Date.now() };
   }
   const answers = [...form.entries()].flatMap(([key, value]) =>
     key.startsWith("answer:") && typeof value === "string" && value.trim() !== ""
       ? [{ questionId: key.slice("answer:".length), answer: value.trim() }]
       : [],
   );
+  const db = await createServerSupabase();
   const result = await submitRegistration(db, {
     orgSlug: v.orgSlug,
     pageSlug: v.pageSlug,
     answers,
     ageConfirmed: v.ageConfirmed === "true",
-    profileShareId: shareId,
+    shareSections: v.sections.split(",").filter(isSection),
+    workPhone,
   });
   if (!result.ok) {
     return result.error.kind === "refusal"

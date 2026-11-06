@@ -128,7 +128,9 @@
     "import_destination_unexpected": "This kind of import goes into the whole organization; it names no running order or project.",
     "import_destination_unknown": "That running order or project no longer exists.",
     "import_target_outside_destination": "A row would have landed outside the running order or project this import names, so it was not written.",
-    "import_paste_empty": "Paste a header row and at least one row below it."
+    "import_paste_empty": "Paste a header row and at least one row below it.",
+    "import_pool_unexpected": "Only a pool invitation import names a pool.",
+    "import_pool_unknown": "That pool no longer exists. Choose a live Talent pool of the organization."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -493,7 +495,11 @@
       "rate_currency_required": "add the currency: a code, or a symbol your base currency uses",
       "rate_type_required": "say how it is paid: per hour, per day or flat",
       "rate_type_conflict": "the rate and its type disagree",
-      "rate_not_permitted": "setting a rate needs the payroll capability"
+      "rate_not_permitted": "setting a rate needs the payroll capability",
+      "pool_merged_in_review": "skipped: already invited or in a pool, merged in review",
+      "pool_invitation_declined": "skipped: this address declined an invitation to this list in the last 12 months",
+      "pool_invitation_daily_limit": "refused: the organization reached its 2,000 invitation emails for the day, so import this row tomorrow",
+      "pool_rate_kept": "updated, with the rate left as it was: the rate in this file was not applied"
     },
     "commit": {
       "title": "Commit",

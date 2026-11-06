@@ -847,6 +847,7 @@
       "crew_access_validity": "A crew access link works for 1 hour to 30 days.",
       "org_read_only": "This organization is read-only, so it cannot issue crew access links.",
       "generic": "The links were refused by rule {rule}. Fix what it names and try again."
-    }
+    },
+    "revokeFailed": "This link could not be revoked and still works. Reload and try again."
   }
 }

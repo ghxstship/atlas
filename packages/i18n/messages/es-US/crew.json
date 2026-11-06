@@ -847,6 +847,7 @@
       "crew_access_validity": "Un enlace de acceso funciona de 1 hora a 30 días.",
       "org_read_only": "Esta organización es de solo lectura, así que no puede emitir enlaces de acceso.",
       "generic": "Los enlaces se rechazaron por la regla {rule}. Corrige lo que indica e inténtalo de nuevo."
-    }
+    },
+    "revokeFailed": "No se pudo revocar este enlace y sigue funcionando. Vuelve a cargar e inténtalo de nuevo."
   }
 }

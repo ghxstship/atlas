@@ -113,7 +113,6 @@ export default async function RegistrationPage({
     <>
       {intro}
       <RegistrationForm
-        orgId={page.orgId}
         orgSlug={orgSlug}
         pageSlug={pageSlug}
         minimumAge={page.minimumAge}

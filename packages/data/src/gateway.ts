@@ -1082,6 +1082,10 @@ export async function submitRegistration(
     readonly answers: readonly { questionId: string; answer: string }[];
     readonly ageConfirmed: boolean;
     readonly profileShareId?: string | null;
+    /** Profile sections to share with the org; written with the registration, so a refusal shares nothing. */
+    readonly shareSections?: readonly Database["app"]["Enums"]["profile_section"][];
+    /** The E.164 work phone to save; written with the registration, so a refusal saves nothing. */
+    readonly workPhone?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await db.rpc("submit_crew_registration", {
@@ -1090,6 +1094,8 @@ export async function submitRegistration(
     p_answers: input.answers.map((a) => ({ question_id: a.questionId, answer: a.answer })),
     p_age_confirmed: input.ageConfirmed,
     ...(input.profileShareId ? { p_profile_share_id: input.profileShareId } : {}),
+    ...(input.shareSections?.length ? { p_share_sections: [...input.shareSections] } : {}),
+    ...(input.workPhone ? { p_work_phone: input.workPhone } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data as string });

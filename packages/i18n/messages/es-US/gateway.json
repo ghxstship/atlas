@@ -1727,7 +1727,8 @@
       "document_text_hash": "El texto cambió desde que lo abriste. Léelo de nuevo y luego firma.",
       "document_decline_reason": "Di por qué rechazas, en un máximo de 450 caracteres.",
       "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
-      "document_text_signed": "Este texto ya se firmó."
+      "document_text_signed": "Este texto ya se firmó.",
+      "org_read_only": "Esta organización está en modo de solo lectura, así que nada puede cambiar. Escribe a la organización."
     },
     "crewShifts": {
       "title": "Mis turnos",

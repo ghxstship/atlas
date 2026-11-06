@@ -128,7 +128,9 @@
     "import_destination_unexpected": "Este tipo de importación va a toda la organización; no nombra una escaleta ni un proyecto.",
     "import_destination_unknown": "Esa escaleta o ese proyecto ya no existe.",
     "import_target_outside_destination": "Una fila habría quedado fuera de la escaleta o del proyecto que nombra esta importación, así que no se escribió.",
-    "import_paste_empty": "Pegue una fila de encabezados y al menos una fila debajo."
+    "import_paste_empty": "Pegue una fila de encabezados y al menos una fila debajo.",
+    "import_pool_unexpected": "Solo una importación de invitaciones a una lista nombra una lista.",
+    "import_pool_unknown": "Esa lista ya no existe. Elige una lista de talento activa de la organización."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -493,7 +495,11 @@
       "rate_currency_required": "agrega la moneda: un código o un símbolo que use tu moneda base",
       "rate_type_required": "di cómo se paga: por hora, por día o fijo",
       "rate_type_conflict": "la tarifa y su tipo no coinciden",
-      "rate_not_permitted": "fijar una tarifa requiere la capacidad de nómina"
+      "rate_not_permitted": "fijar una tarifa requiere la capacidad de nómina",
+      "pool_merged_in_review": "omitida: ya tiene invitación o está en una lista; se combinó en la revisión",
+      "pool_invitation_declined": "omitida: esta dirección rechazó una invitación a esta lista en los últimos 12 meses",
+      "pool_invitation_daily_limit": "rechazada: la organización alcanzó sus 2,000 correos de invitación del día; importa esta fila mañana",
+      "pool_rate_kept": "actualizada, con la tarifa sin cambios: no se aplicó la tarifa de este archivo"
     },
     "commit": {
       "title": "Confirmar",

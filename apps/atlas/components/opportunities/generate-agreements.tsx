@@ -52,9 +52,18 @@ export function GenerateAgreements({
   const [picked, setPicked] = useState<string[]>([]);
   const chosen = templates.find((x) => x.id === template);
   const rateBlocked = chosen?.usesRate === true && !canReadRates;
-  const rows = created.rows ?? preview.rows ?? [];
-  const problem = created.error ?? preview.error;
-  const rule = created.rule ?? preview.rule;
+  // A preview made after a create starts over: its rows replace the created ones, and Create is offered again.
+  const latest = (created.at ?? 0) > (preview.at ?? 0) ? created : preview;
+  const rows = latest.rows ?? [];
+  const batchId = latest === created ? created.batchId : undefined;
+  const results = latest === created ? created.created : undefined;
+  const sentNow = batchId !== undefined && sent.batchId === batchId ? sent.sent : undefined;
+  const problemText = (state: PreviewState) =>
+    state.error === "refusal"
+      ? refusals.has(state.rule ?? "")
+        ? refusals(state.rule ?? "")
+        : refusals("generic", { rule: state.rule ?? "" })
+      : t(`errors.${state.error}`);
   const names = picked.join(",");
   return (
     <div className="flex flex-col gap-12">
@@ -98,15 +107,7 @@ export function GenerateAgreements({
         {rateBlocked ? (
           <InlineAlert tone="warning">{refusals("document_merge_rate_restricted")}</InlineAlert>
         ) : null}
-        {problem ? (
-          <InlineAlert tone="danger">
-            {problem === "refusal"
-              ? refusals.has(rule ?? "")
-                ? refusals(rule ?? "")
-                : refusals("generic", { rule: rule ?? "" })
-              : t(`errors.${problem}`)}
-          </InlineAlert>
-        ) : null}
+        {latest.error ? <InlineAlert tone="danger">{problemText(latest)}</InlineAlert> : null}
         <div>
           <Button
             type="submit"
@@ -125,7 +126,7 @@ export function GenerateAgreements({
           </h3>
           <ul className="m-0 flex list-none flex-col gap-8 p-0">
             {rows.map((r) => {
-              const result = created.created?.find((c) => c.engagementId === r.engagementId);
+              const result = results?.find((c) => c.engagementId === r.engagementId);
               return (
                 <li
                   key={r.engagementId}
@@ -171,7 +172,7 @@ export function GenerateAgreements({
               );
             })}
           </ul>
-          {!created.batchId ? (
+          {!batchId ? (
             <form action={createAction}>
               <input type="hidden" name="org" value={org} />
               <input type="hidden" name="projectId" value={projectId} />
@@ -190,18 +191,21 @@ export function GenerateAgreements({
           ) : (
             <form action={sendAction}>
               <input type="hidden" name="org" value={org} />
-              <input type="hidden" name="batchId" value={created.batchId} />
+              <input type="hidden" name="batchId" value={batchId} />
               <Button
                 type="submit"
                 variant="secondary"
-                disabled={sending || sent.sent !== undefined}
+                disabled={sending || sentNow !== undefined}
                 aria-busy={sending}
               >
                 {t("send")}
               </Button>
-              {sent.sent !== undefined ? (
+              {sent.error && sent.batchId === batchId ? (
+                <InlineAlert tone="danger">{problemText(sent)}</InlineAlert>
+              ) : null}
+              {sentNow !== undefined ? (
                 <p role="status" className="m-0 mt-8 text-text-13">
-                  {t("sentDone", { count: sent.sent })}
+                  {t("sentDone", { count: sentNow })}
                 </p>
               ) : null}
             </form>

@@ -354,12 +354,15 @@ describe("committing pool invitations (B10)", () => {
     await w.validateAndCommit();
     expect(w.writes).toEqual([]);
     expect(w.rows[0]?.state).toBe("Skipped");
+    // A code, so the wizard says it in the reader's language.
+    expect(w.rows[0]?.reason).toBe("pool_merged_in_review");
   });
 
   it("skips someone who declined, and refuses a row past the daily cap, without failing the job", async () => {
     const w = world(CSV(["said-no@x.test,,,,,,,,", "capped@x.test,,,,,,,,"]));
     await w.validateAndCommit();
     expect(w.rows.map((r) => r.state)).toEqual(["Skipped", "Refused"]);
-    expect(w.rows[1]?.reason).toContain("pool_invitation_daily_limit");
+    expect(w.rows[0]?.reason).toBe("pool_invitation_declined");
+    expect(w.rows[1]?.reason).toBe("pool_invitation_daily_limit");
   });
 });

@@ -95,6 +95,21 @@ select is(pg_temp.code(pg_temp.bv('main'), 'eng_ivy_a'), 'document_merge_unresol
 select is(pg_temp.code(pg_temp.bv('main'), 'eng_art_a'), 'document_batch_no_item', 'an engagement with no item for the requirement is refused');
 insert into b values ('dup', app.create_engagement_document_batch(pg_temp.id('prj_a'), pg_temp.id('tmpl_plain'), jsonb_build_array(pg_temp.entry('eng_liam'))));
 select is(pg_temp.code(pg_temp.bv('dup'), 'eng_liam'), 'document_batch_duplicate', 'a second live document from the template is refused');
+select is(pg_temp.bv('dup') ->> 'batch_id', null, 'a call whose every entry is refused has no batch');
+
+-- A call that creates nothing does not fix a template's wording.
+with t as (insert into app.engagement_document_templates (org_id, name, document_kind, title_template, body_template)
+  values (pg_temp.id('org_a'), 'Unused', 'Agreement', 'T', 'B') returning id) insert into world select 'tmpl_unused', id from t;
+insert into b values ('none', app.create_engagement_document_batch(pg_temp.id('prj_a'), pg_temp.id('tmpl_unused'), jsonb_build_array(pg_temp.entry('eng_vendor_a'))));
+select is(pg_temp.code(pg_temp.bv('none'), 'eng_vendor_a'), 'document_batch_person', 'the refused entry says why');
+select is((select count(*)::int from app.engagement_document_batches x where x.engagement_document_template_id = pg_temp.id('tmpl_unused')), 0, 'and no batch row stays');
+select lives_ok(format($$update app.engagement_document_templates set body_template = 'Changed.' where id = '%s'$$, pg_temp.id('tmpl_unused')), 'so the template stays editable');
+
+-- The merge asks whether the caller reads the project's shifts: a reader is answered, and someone else is not.
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['crew.shift.read']), array['crew.shift.read'], 'crew.shift.read is answered on the project');
+select pg_temp.as_user('xavier');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['crew.shift.read']), '{}'::text[], 'and not for someone without it there');
+select pg_temp.as_user('alice');
 select pg_temp.as_platform();
 select pg_temp.as_user('carol');
 

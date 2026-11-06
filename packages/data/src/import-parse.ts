@@ -473,10 +473,3 @@ export function proposeTarget(
 /** How a file writes amounts: the four formats an uploader chooses from. It sets the separators only. */
 export const NUMBER_FORMATS = ["comma-dot", "dot-comma", "space-comma", "apostrophe-dot"] as const;
 export type NumberFormat = (typeof NUMBER_FORMATS)[number];
-
-const SEPARATORS: Readonly<Record<NumberFormat, { group: string; decimal: string }>> = {
-  "comma-dot": { group: ",", decimal: "." },
-  "dot-comma": { group: ".", decimal: "," },
-  "space-comma": { group: " ", decimal: "," },
-  "apostrophe-dot": { group: "'", decimal: "." },
-};

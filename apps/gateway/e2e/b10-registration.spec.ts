@@ -60,17 +60,17 @@ test("a registration page: open it, register, approve, and the person is on the 
   await expect(page.getByText("You must be 18 or older.")).toBeVisible();
   await expect(page.getByText(poolName)).toHaveCount(0);
 
-  // Sign up, and come back to the page.
+  // Sign up, and come back to the page. The page's Sign up link carries next=.
   await page.getByRole("link", { name: "Sign up" }).click();
   await page.waitForURL(/\/auth\/sign-up/);
-  await page.getByLabel(/name/i).first().fill(`Reggie Crew ${id}`);
-  await page.getByLabel(/email/i).first().fill(`reggie-${id}@example.com`);
-  await page
-    .getByLabel(/password/i)
-    .first()
-    .fill(`Xos-${id}-passphrase-41`);
-  await page.getByRole("checkbox").first().check();
-  await page.getByRole("button", { name: /sign up|create account/i }).click();
+  const email = `reggie-${id}@example.com`;
+  await page.locator("#signup-name").fill(`Reggie Crew ${id}`);
+  await page.locator("#signup-email").fill(email);
+  await page.getByRole("button", { name: "Use a password" }).click();
+  await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
+  await page.locator("#signup-terms").check();
+  await page.locator("#signup-age").check();
+  await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL(new RegExp(`/join/${ORG}/${slug}`), { timeout: 60_000 });
 
   // Work phone first, seven fields a step.
@@ -92,9 +92,11 @@ test("a registration page: open it, register, approve, and the person is on the 
   await expect(page.getByRole("status")).toContainText("You registered.");
   await expect(page.getByText(poolName)).toHaveCount(0);
 
-  // Atlas approves, and the Pools page names the person.
+  // Atlas approves through the picker, and the Pools page names the person.
   await atlas.goto(`/${ORG}/opportunities/registration-pages`);
-  await atlas.getByRole("checkbox", { name: `Reggie Crew ${id}`, exact: true }).check();
+  await atlas.getByRole("combobox", { name: "People to decide" }).click();
+  await atlas.getByRole("option", { name: new RegExp(`Reggie Crew ${id}`) }).click();
+  await atlas.keyboard.press("Escape");
   await atlas.getByRole("button", { name: /Approve 1 person/ }).click();
   await expect(atlas.getByText(`Reggie Crew ${id} was decided.`)).toBeVisible();
   await atlas.goto(`/${ORG}/opportunities/pools?pool=${pool?.id}`);
@@ -116,7 +118,16 @@ test("a registration page: open it, register, approve, and the person is on the 
     [title],
     DEMO.owner,
   );
-  await page.goto("/inbox");
+  // The decision reaches them: a notification with the outcome, and the page they registered on says so.
+  const [decided] = await sql<{ outcome: string }>(
+    `select n.args ->> 'outcome' as outcome from app.notifications n
+       join app.people p on p.id = n.recipient_person_id join auth.users u on u.id = p.user_id
+      where u.email = $1 and n.kind = 'crew_registration.decided'`,
+    [email],
+  );
+  expect(decided?.outcome).toBe("approved");
+  await page.goto(`/join/${ORG}/${slug}`);
+  await expect(page.getByText("You are approved.", { exact: false })).toBeVisible();
   await page.goto("/explore");
   await expect(page.getByText(title)).toBeVisible();
 

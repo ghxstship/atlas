@@ -869,7 +869,9 @@
       "Approved": "Aprobado",
       "Declined": "Rechazado",
       "Withdrawn": "Retirado"
-    }
+    },
+    "pick": "Personas por decidir",
+    "pickHelp": "Elige a quién aprobar o rechazar. Las respuestas de cada persona aparecen arriba."
   },
   "agreementTemplates": {
     "title": "Plantillas de acuerdo",
@@ -962,6 +964,7 @@
       "Expired": "Vencido",
       "Superseded": "Reemplazado",
       "Canceled": "Cancelado"
-    }
+    },
+    "textMasked": "Este texto contiene una tarifa que no puedes leer."
   }
 }

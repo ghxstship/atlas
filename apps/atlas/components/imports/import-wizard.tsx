@@ -909,7 +909,7 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                         }),
                       )
                       .join("; ")
-                  : (i.reason ?? ""),
+                  : reasonText(t, i.reason ?? ""),
             }))}
           />
         )}
@@ -937,6 +937,14 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
       </section>
     </div>
   );
+}
+
+/** A row's reason: codes the catalog knows are said in the reader's language, and anything else is shown as written. */
+function reasonText(t: ReturnType<typeof usePlatformT>, reason: string): string {
+  const codes = reason.split(", ");
+  return codes.every((code) => t.has(`imports.issueCodes.${code}`))
+    ? codes.map((code) => t(`imports.issueCodes.${code}`)).join("; ")
+    : reason;
 }
 
 function issueText(t: ReturnType<typeof usePlatformT>, code: string): string {

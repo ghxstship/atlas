@@ -1,17 +1,16 @@
 import { listCrewProjects, listShiftPlanningProjectIds } from "@xos/data/crew";
 import { listCrewAccessLinks, type CrewAccessLink } from "@xos/data/crew-access";
 import { CrewAccessIssue } from "@/components/crew/crew-access-issue";
+import { CrewAccessRevoke } from "@/components/crew/crew-access-revoke";
 import { Muted, Table, ViewSwitch } from "@/components/opportunities/parts";
 import { Card, PageHeader, Tag, TemplateCollection } from "@/components/opportunities/ui";
 import { FilterSelect } from "@/components/crew/views-filter-select";
-import { Button } from "@xos/ui";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { getNode } from "@xos/ia";
 import { getFormatter } from "next-intl/server";
-import { revokeCrewAccessLinkAction } from "./actions";
 
 const TONES: Readonly<
   Record<CrewAccessLink["status"], "success" | "warning" | "neutral" | "danger">
@@ -71,15 +70,7 @@ export default async function Page({
     <Tag tone={TONES[l.status]}>{t(`crew.crewAccess.statuses.${l.status}`)}</Tag>
   );
   const revoke = (l: CrewAccessLink) =>
-    l.status === "Revoked" ? null : (
-      <form action={revokeCrewAccessLinkAction}>
-        <input type="hidden" name="org" value={crew.slug} />
-        <input type="hidden" name="id" value={l.id} />
-        <Button type="submit" variant="secondary">
-          {t("crew.crewAccess.revoke")}
-        </Button>
-      </form>
-    );
+    l.status === "Revoked" ? null : <CrewAccessRevoke org={crew.slug} id={l.id} />;
   return (
     <TemplateCollection
       header={

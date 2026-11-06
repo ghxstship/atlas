@@ -51,7 +51,7 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   // The workers load for the project chosen; the picker offers the Field lead.
   const form = atlas.getByRole("form", { name: "Issue links" });
   await form.getByRole("combobox", { name: "Workers" }).click();
-  await atlas.getByRole("option").first().click();
+  await atlas.getByRole("option", { name: /Demo Field Lead/ }).click();
   await atlas.keyboard.press("Escape");
   await form.getByLabel("Valid for").selectOption("7");
   await form.getByRole("button", { name: "Issue links" }).click();
@@ -66,8 +66,9 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   expect(token).toBeTruthy();
   expect(code).toBeTruthy();
   await expect(result.getByRole("img", { name: /QR code/ })).toBeVisible();
-  await atlas.waitForTimeout(1_500);
-  await expect(result).toBeVisible();
+  // Nothing refreshes the one view away: once the page has gone quiet, the code is still there.
+  await atlas.waitForLoadState("networkidle");
+  await expect(result.getByText(code)).toBeVisible();
   await result.getByRole("button", { name: "Close", exact: true }).click();
   await result.getByRole("button", { name: "Close and refresh" }).click();
   await atlas.waitForURL((url) => !url.search.includes("issue=1"));

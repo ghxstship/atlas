@@ -63,9 +63,20 @@ insert into world select 'share_ivy', app.share_profile(pg_temp.id('org_a'), arr
 select pg_temp.as_user('rae');
 select is(pg_temp.refusal($$select pg_temp.submit('summer-crew', pg_temp.answers(), true, pg_temp.id('share_ivy'))$$), 'profile_share_not_yours', 'someone else''s profile share is refused');
 
-insert into world select 'reg_rae', pg_temp.submit('summer-crew', pg_temp.answers());
+-- The sections and the phone are written with the registration: a refusal leaves neither.
+select is(pg_temp.refusal($$select app.submit_crew_registration('northwind-live', 'summer-crew', '[]', true, null, array['skills']::app.profile_section[], '+13055550142')$$), 'registration_answer_required', 'a refused registration with sections and a phone');
+select is(pg_temp.refusal($$select app.submit_crew_registration('northwind-live', 'summer-crew', pg_temp.answers(), true, null, array['skills']::app.profile_section[], '12')$$), 'registration_phone', 'a phone that is not E.164 is refused');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.profile_shares s where s.person_id = pg_temp.id('rae')), 0, 'shares nothing with the org');
+select is((select count(*)::int from app.personal_setting_values v where v.person_id = pg_temp.id('rae') and v.setting_key = 'workforce.work_phone'), 0, 'and saves no phone');
+select pg_temp.as_user('rae');
+
+insert into world select 'reg_rae', app.submit_crew_registration('northwind-live', 'summer-crew', pg_temp.answers(), true, null, array['skills']::app.profile_section[], '+13055550142');
 select pg_temp.as_platform();
 select is((select g.confirmed_minimum_age::int from app.crew_registrations g where g.id = pg_temp.id('reg_rae')), 18, 'the minimum age at submission is recorded');
+select ok(exists (select 1 from app.crew_registrations g join app.profile_shares s on s.id = g.profile_share_id
+  where g.id = pg_temp.id('reg_rae') and s.person_id = pg_temp.id('rae') and s.org_id = pg_temp.id('org_a')), 'a registration carries the share it made');
+select is((select v.value_text from app.personal_setting_values v where v.person_id = pg_temp.id('rae') and v.setting_key = 'workforce.work_phone' and v.org_id is null and v.deleted_at is null), '+13055550142', 'and saves the phone to the person''s own settings');
 select is((select a.answer from app.crew_registration_answers a where a.crew_registration_id = pg_temp.id('reg_rae')), 'Rigging', 'and the answer');
 select pg_temp.as_user('rae');
 select is(pg_temp.refusal($$select pg_temp.submit('summer-crew', pg_temp.answers())$$), 'registration_duplicate', 'a second live registration on the page is refused');
@@ -86,6 +97,28 @@ insert into app.pool_members (talent_pool_id, person_id, standing, reason, revie
 values (pg_temp.id('pool'), pg_temp.id('quinn'), 'Do Not Engage', 'Missed two calls without notice.', '2027-12-31');
 select pg_temp.as_user('quinn');
 select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_page_closed', 'a Do Not Engage person reads the page closed');
+
+-- A dead pool and a read-only org read closed, for a person the page would otherwise take.
+select pg_temp.as_platform();
+update app.talent_pools set deleted_at = now() where id = pg_temp.id('pool');
+select pg_temp.as_user('ivy');
+select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_page_closed', 'a page whose pool was deleted takes no registration');
+select pg_temp.as_platform();
+update app.talent_pools set deleted_at = null where id = pg_temp.id('pool');
+savepoint read_only_org;
+insert into app.org_cancellations (org_id, reason, canceled_at, read_only_until, purge_after)
+values (pg_temp.id('org_a'), 'Fixture.', now(), now() + interval '30 days', now() + interval '90 days');
+select pg_temp.as_user('ivy');
+select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_page_closed', 'a read-only org takes no registration');
+select pg_temp.as_platform();
+rollback to savepoint read_only_org;
+
+-- Registering again adds to the person's own live share rather than starting another.
+select pg_temp.as_user('rae');
+select app.withdraw_crew_registration(app.submit_crew_registration('northwind-live', 'volunteers', '[]', true, null, array['bio']::app.profile_section[], null));
+select pg_temp.as_platform();
+select is((select count(*)::int from app.profile_shares s where s.person_id = pg_temp.id('rae') and s.org_id = pg_temp.id('org_a')), 1, 'a second registration reuses the person''s live share');
+select is((select count(*)::int from app.profile_share_fields f join app.profile_shares s on s.id = f.profile_share_id where s.person_id = pg_temp.id('rae') and f.field_key in ('profile.skills', 'profile.bio')), 2, 'and adds the new section to it');
 
 -- Deciding ----------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');

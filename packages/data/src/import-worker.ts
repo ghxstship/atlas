@@ -999,10 +999,11 @@ async function commit(
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      // Someone who declined within 12 months is not invited again, which is not a failure of the row.
-      if (error.message.startsWith("pool_invitation_declined")) {
-        await store.skipRow(valid.id, error.message.slice(0, 1000));
-      } else await store.refuseRow(valid.id, error.message.slice(0, 1000));
+      // Someone who declined within 12 months is not invited again, which is not a failure of the row. A pool refusal keeps
+      // its code alone, so the wizard says it in the reader's language.
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1000));
     }
   }
   await store.finishBatch(batchId);

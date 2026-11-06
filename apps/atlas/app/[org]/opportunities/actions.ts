@@ -3,12 +3,12 @@
 import type { Result } from "@xos/data";
 import * as repo from "@xos/data/opportunities";
 import { orgBaseCurrency } from "@xos/data/home";
-import { NUMBER_FORMATS } from "@xos/data/import-parse";
+import type { NumberFormat } from "@xos/data/import-parse";
 import { parseRate } from "@xos/data/import-rate";
 import { applyQuestionTemplate } from "@xos/data/opportunity-templates";
 import * as invitations from "@xos/data/pool-invitations";
+import { readOrgLanguage } from "@xos/data/settings";
 import { regionFromLocale, toE164 } from "@xos/i18n/phone";
-import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -644,7 +644,7 @@ export const removePoolMemberAction: Action = action(z.object({ memberId: uuid }
 /** Reads a standing rate through the org's number format; the database decides who may set one. */
 async function standingRate(
   ctx: OrgContext,
-  input: { rate: string | null; numberFormat: (typeof NUMBER_FORMATS)[number] },
+  input: { rate: string | null; numberFormat: NumberFormat },
 ): Promise<
   | {
       ok: true;
@@ -690,15 +690,19 @@ export const invitePoolMemberAction: Action = async (_state, form) => {
       rate: optionalText(60),
       note: optionalText(1000),
       validFor: z.coerce.number().int().min(1).max(30),
-      numberFormat: z.enum(NUMBER_FORMATS),
     })
     .safeParse(values);
   if (!parsed.success) return fieldErrors(parsed.error, values);
   const v = parsed.data;
-  const locale = await getLocale();
-  const phone = v.workPhone ? toE164(v.workPhone, regionFromLocale(locale)) : null;
+  // The org's language says how it writes numbers and phones, whoever is signed in (C19). Reading it first means a
+  // viewer's own language never changes what 1,250 means.
+  const language = (await readOrgLanguage(ctx.viewer.db, ctx.org.id)) ?? "en-US";
+  const phone = v.workPhone ? toE164(v.workPhone, regionFromLocale(language)) : null;
   if (v.workPhone && !phone) return { fieldErrors: { workPhone: "phone" }, values };
-  const rate = await standingRate(ctx, { rate: v.rate, numberFormat: v.numberFormat });
+  const rate = await standingRate(ctx, {
+    rate: v.rate,
+    numberFormat: invitations.numberFormatOfLocale(language),
+  });
   if (!rate.ok) return { fieldErrors: { rate: rate.issue }, values };
   const result = await invitations.inviteToPool(ctx.viewer.db, {
     poolId: v.poolId,

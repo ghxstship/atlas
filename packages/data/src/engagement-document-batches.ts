@@ -357,7 +357,7 @@ export async function createBatch(
     readonly requirementId?: string | null;
     readonly documents: readonly { engagementId: string; title: string; body: string }[];
   },
-): Promise<Result<{ batchId: string; results: BatchEntryResult[] }>> {
+): Promise<Result<{ batchId: string | null; results: BatchEntryResult[] }>> {
   const { data, error } = await db.rpc("create_engagement_document_batch", {
     p_project_id: input.projectId,
     p_template_id: input.templateId,
@@ -370,7 +370,7 @@ export async function createBatch(
   });
   if (error) return fail(toDataError(error));
   const answer = data as unknown as {
-    batch_id: string;
+    batch_id: string | null;
     results: {
       engagement_id: string;
       engagement_document_id: string | null;

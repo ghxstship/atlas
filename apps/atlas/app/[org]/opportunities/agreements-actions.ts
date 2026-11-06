@@ -133,6 +133,8 @@ export interface PreviewState {
   readonly sent?: number;
   readonly error?: string;
   readonly rule?: string;
+  /** When the action answered: the form shows whichever of its preview and create answered last. */
+  readonly at?: number;
 }
 
 const generateSchema = z.object({
@@ -181,9 +183,9 @@ export async function previewAgreementBatchAction(
 ): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const input = generateInput(form);
-  if (!input.success) return { error: "input" };
+  if (!input.success) return { error: "input", at: Date.now() };
   const rows = await mergedRows(ctx, input.data);
-  return rows.ok ? { rows: rows.data } : failed(rows.error);
+  return { ...(rows.ok ? { rows: rows.data } : failed(rows.error)), at: Date.now() };
 }
 
 export async function createAgreementBatchAction(
@@ -192,33 +194,39 @@ export async function createAgreementBatchAction(
 ): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const input = generateInput(form);
-  if (!input.success) return { error: "input" };
+  const at = Date.now();
+  if (!input.success) return { error: "input", at };
   const rows = await mergedRows(ctx, input.data);
-  if (!rows.ok) return failed(rows.error);
+  if (!rows.ok) return { ...failed(rows.error), at };
   // A person with a missing field is held back: their text would still hold a merge field.
   const ready = rows.data.filter((r) => r.missing.length === 0);
-  if (ready.length === 0) return { rows: rows.data, error: "noneReady" };
+  if (ready.length === 0) return { rows: rows.data, error: "noneReady", at };
   const result = await repo.createBatch(ctx.viewer.db, {
     projectId: input.data.projectId,
     templateId: input.data.templateId,
     requirementId: input.data.requirementId || null,
     documents: ready.map((r) => ({ engagementId: r.engagementId, title: r.title, body: r.body })),
   });
-  if (!result.ok) return { rows: rows.data, ...failed(result.error) };
+  if (!result.ok) return { rows: rows.data, ...failed(result.error), at };
   refresh(ctx);
-  return { rows: rows.data, batchId: result.data.batchId, created: result.data.results };
+  // Every person refused leaves no batch, so the rows say why and Create stays.
+  return {
+    rows: rows.data,
+    created: result.data.results,
+    ...(result.data.batchId ? { batchId: result.data.batchId } : {}),
+    at: Date.now(),
+  };
 }
 
 export async function sendGeneratedBatchAction(
-  state: PreviewState,
+  _: PreviewState,
   form: FormData,
 ): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("batchId"));
-  if (!id.success) return { ...state, error: "input" };
+  if (!id.success) return { error: "input" };
   const result = await repo.sendBatch(ctx.viewer.db, id.data);
-  if (!result.ok) return { ...state, ...failed(result.error) };
+  if (!result.ok) return { batchId: id.data, ...failed(result.error) };
   refresh(ctx);
-  const { error: _e, rule: _r, ...rest } = state;
-  return { ...rest, sent: result.data.sent };
+  return { batchId: id.data, sent: result.data.sent };
 }

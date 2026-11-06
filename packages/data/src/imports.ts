@@ -616,12 +616,14 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
       suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
+    // A written row is listed only when it carries a note, such as a rate left as it was.
     issues: results.data
       .filter(
         (r) =>
           r["row_state"] === "Invalid" ||
           r["row_state"] === "Refused" ||
-          r["row_state"] === "Skipped",
+          r["row_state"] === "Skipped" ||
+          (r["row_state"] === "Written" && strOrNull(r["reason"]) !== null),
       )
       .map((r) => ({
         id: str(r["id"]),

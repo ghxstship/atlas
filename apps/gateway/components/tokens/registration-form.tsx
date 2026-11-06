@@ -38,14 +38,12 @@ export interface RegistrationQuestionRow {
  * optional profile share.
  */
 export function RegistrationForm({
-  orgId,
   orgSlug,
   pageSlug,
   minimumAge,
   questions,
   phone,
 }: {
-  orgId: string;
   orgSlug: string;
   pageSlug: string;
   minimumAge: number;
@@ -85,7 +83,6 @@ export function RegistrationForm({
       aria-label={t("formLabel")}
       className="flex flex-col gap-16"
     >
-      <input type="hidden" name="orgId" value={orgId} />
       <input type="hidden" name="orgSlug" value={orgSlug} />
       <input type="hidden" name="pageSlug" value={pageSlug} />
       <input type="hidden" name="sections" value={sections.join(",")} />

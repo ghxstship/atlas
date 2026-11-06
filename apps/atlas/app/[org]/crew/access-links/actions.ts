@@ -102,10 +102,24 @@ export async function crewAccessWorkersAction(input: {
   return result.ok ? result.data : [];
 }
 
-export async function revokeCrewAccessLinkAction(form: FormData): Promise<void> {
+export interface RevokeState {
+  readonly done?: boolean;
+  readonly rule?: string;
+  readonly failed?: boolean;
+}
+
+/** Revoking says when it failed: someone closing a leaked link must not believe it closed when it did not. */
+export async function revokeCrewAccessLinkAction(
+  _: RevokeState,
+  form: FormData,
+): Promise<RevokeState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("id"));
-  if (!id.success) return;
-  await revokeCrewAccessLink(ctx.viewer.db, id.data);
+  if (!id.success) return { failed: true };
+  const result = await revokeCrewAccessLink(ctx.viewer.db, id.data);
+  if (!result.ok) {
+    return result.error.kind === "refusal" ? { rule: result.error.rule } : { failed: true };
+  }
   revalidatePath(`/${ctx.org.slug}/crew/access-links`);
+  return { done: true };
 }
