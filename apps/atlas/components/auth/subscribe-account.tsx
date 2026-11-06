@@ -83,7 +83,7 @@ function SubscribeForm({
         name="country"
         label={t("country")}
         placeholder={t("countryChoose")}
-        options={countries}
+        options={[...countries]}
         {...(state.country ? { value: state.country } : {})}
         {...(state.error === "country" ? { error: t("countryError") } : {})}
       />

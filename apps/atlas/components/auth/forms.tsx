@@ -293,7 +293,7 @@ export function OrganizationForm({
         name="orgCountry"
         label={t("fields.orgCountry")}
         placeholder={t("fields.orgCountryChoose")}
-        options={countries}
+        options={[...countries]}
         {...(state.values?.["orgCountry"] ? { value: state.values["orgCountry"] } : {})}
         {...(fieldError(t, state, "orgCountry")
           ? { error: fieldError(t, state, "orgCountry") }

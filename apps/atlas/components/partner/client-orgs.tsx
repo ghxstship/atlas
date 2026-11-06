@@ -200,7 +200,7 @@ function CreateClientDrawer({
           <Select
             label={t("partner.clients.fields.country")}
             placeholder={t("partner.clients.fields.countryChoose")}
-            options={countries}
+            options={[...countries]}
             onChange={(e) => setCountry(e.target.value)}
           />
         </ActionForm>
