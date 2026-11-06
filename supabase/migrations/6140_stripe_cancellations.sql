@@ -124,6 +124,7 @@ call private.describe('private.stripe_cancellations', 'Every cancel of a Stripe 
   'updated_at', 'When the row last changed.'
 ]);
 
+alter table private.stripe_cancellations enable row level security;
 revoke all on private.stripe_cancellations from public, anon, authenticated;
 
 create or replace function private.guard_stripe_cancellation_state()
@@ -157,11 +158,11 @@ create table private.stripe_cancellation_attempts (
   attempted_at timestamptz not null default now(),
   via text not null,
   accepted boolean not null,
-  stripe_status text,
+  reported_status text,
   error text,
   constraint stripe_cancellation_attempts_via check (via in ('Worker', 'Webhook')),
   constraint stripe_cancellation_attempts_lengths check (
-    (stripe_status is null or char_length(stripe_status) <= 100) and (error is null or char_length(error) <= 2000))
+    (reported_status is null or char_length(reported_status) <= 100) and (error is null or char_length(error) <= 2000))
 );
 
 create index stripe_cancellation_attempts_cancellation_idx on private.stripe_cancellation_attempts (cancellation_id, attempted_at);
@@ -172,10 +173,11 @@ call private.describe('private.stripe_cancellation_attempts', 'What happened eac
   'attempted_at', 'When the attempt finished.',
   'via', 'Worker or Webhook.',
   'accepted', 'True when Stripe accepted the cancel.',
-  'stripe_status', 'What Stripe reported.',
+  'reported_status', 'What Stripe reported on this attempt.',
   'error', 'Why the attempt failed.'
 ]);
 
+alter table private.stripe_cancellation_attempts enable row level security;
 revoke all on private.stripe_cancellation_attempts from public, anon, authenticated;
 
 -- Billing alerts -----------------------------------------------------------------------------------------------------
@@ -213,6 +215,7 @@ call private.describe('private.billing_alerts', 'What the platform owner must lo
   'resolved_at', 'When the cause cleared, or the owner closed it.'
 ]);
 
+alter table private.billing_alerts enable row level security;
 revoke all on private.billing_alerts from public, anon, authenticated;
 
 -- Helpers ------------------------------------------------------------------------------------------------------------
@@ -415,7 +418,7 @@ begin
   if v_row.id is null then
     return;
   end if;
-  insert into private.stripe_cancellation_attempts (cancellation_id, via, accepted, stripe_status)
+  insert into private.stripe_cancellation_attempts (cancellation_id, via, accepted, reported_status)
   values (v_row.id, p_via, true, left(p_status, 100));
   update private.billing_alerts a set resolved_at = now()
   where a.resolved_at is null and a.stripe_subscription_id = v_row.stripe_subscription_id
@@ -675,7 +678,7 @@ begin
   if p_accepted then
     perform private.accept_stripe_cancellation(p_id, coalesce(p_stripe_status, 'accepted'), 'Worker');
   elsif v_row.cancellation_state = 'Queued' then
-    insert into private.stripe_cancellation_attempts (cancellation_id, via, accepted, stripe_status, error)
+    insert into private.stripe_cancellation_attempts (cancellation_id, via, accepted, reported_status, error)
     values (p_id, 'Worker', false, left(p_stripe_status, 100), left(p_error, 2000));
     update private.stripe_cancellations c
     set locked_by = null, locked_at = null, last_error = left(p_error, 2000),

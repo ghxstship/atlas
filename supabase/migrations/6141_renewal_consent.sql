@@ -68,6 +68,7 @@ call private.describe('private.billing_renewal_consents', 'Proof that an Owner s
   'created_at', 'When the person agreed.'
 ]);
 
+alter table private.billing_renewal_consents enable row level security;
 revoke all on private.billing_renewal_consents from public, anon, authenticated;
 
 create or replace function private.guard_billing_renewal_consent()
@@ -119,6 +120,7 @@ call private.describe('private.billing_renewal_reminders', 'Each reminder sent b
   'sent_at', 'When it was queued to the billing owners.'
 ]);
 
+alter table private.billing_renewal_reminders enable row level security;
 revoke all on private.billing_renewal_reminders from public, anon, authenticated;
 
 -- Consent, before Stripe hears anything -------------------------------------------------------------------------------

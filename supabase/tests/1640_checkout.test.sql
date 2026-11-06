@@ -115,6 +115,10 @@ select pg_temp.as_user('nina');
 select is((select count(*)::integer from app.billing_checkouts c where c.org_id = pg_temp.id('org_n')), 2,
   'the Owner reads them');
 
+-- A live mode session needs the Owner's agreement to the renewal terms (6141).
+select pg_temp.as_platform();
+insert into private.billing_renewal_consents (subject_org_id, plan_code, billing_interval, amount_minor, currency_code, next_charge_on, text_version, locale, statement, livemode)
+values (pg_temp.id('org_b'), 'team', 'Monthly', 1000, 'USD', current_date, '2026-11-06', 'en-US', 'Team renews automatically.', true);
 select pg_temp.as_user_stepped_up('xavier');
 select is(app.record_billing_checkout(pg_temp.id('org_b'), 'team', 'Monthly', 'cs_live_XavLive', true, now() + interval '1 day'),
   '{}'::text[], 'a live mode session is recorded');
