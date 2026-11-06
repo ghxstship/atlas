@@ -10,9 +10,12 @@
 --     people, its dispatchers and everyone app.zone_presence places in its zones now, each once. The presence view is
 --     read inside the definer function, so the list is complete whoever calls.
 --   * Compass queues both offline (private.sync_rpcs). A replay arrives late, so each takes a client id (a replay by the
---     same person returns the stored hold; anyone else's id refuses weather_hold_id_taken) and the device time: a hold
---     or all-clear made more than 10 minutes before it reaches the server is refused (weather_hold_stale), so a hold
---     called offline never goes out late. Atlas sends no device time.
+--     same person returns the stored hold; anyone else's id refuses weather_hold_id_taken) and the device time. A late
+--     stop-work errs safe, so a hold made more than 10 minutes before it reaches the server is still sent, recorded
+--     with its device time, and its message says when it was called. A late all-clear would send people back into
+--     weather that may have changed, so one made more than 10 minutes before it arrives is refused
+--     (weather_hold_stale). Atlas sends no device time.
+--   * Neither table is in Trash (ADR 0110): a template is edited in place and a hold is a safety record.
 
 create type app.weather_message_kind as enum ('Hold', 'All Clear');
 comment on type app.weather_message_kind is 'Which weather message a template holds: the hold or the all-clear.';
@@ -51,6 +54,7 @@ create table app.weather_holds (
   cleared_by uuid references app.people (id),
   all_clear_message text,
   all_clear_request_id uuid,
+  called_on_device_at timestamptz,
   constraint weather_holds_message_length check (char_length(btrim(message)) between 1 and 1000),
   constraint weather_holds_clear check ((cleared_at is null) = (cleared_by is null)
     and (cleared_at is null) = (all_clear_message is null) and (cleared_at is null or cleared_at >= called_at)),
@@ -71,7 +75,8 @@ call private.describe('app.weather_holds', 'Weather holds of a project (gap G-15
   'weather_alert_id', 'Alert that prompted it, when one did.',
   'weather_warning_id', 'Official warning that prompted it, when one did.',
   'message', 'Hold message sent, 1 to 1,000 characters.',
-  'called_at', 'When the hold was called.',
+  'called_at', 'When the hold reached the server.',
+  'called_on_device_at', 'When the dispatcher called it on their device, for a hold queued offline in Compass; NULL from Atlas.',
   'cleared_at', 'When the all-clear was given.',
   'cleared_by', 'Who gave the all-clear.',
   'all_clear_message', 'All-clear message sent.',
@@ -84,7 +89,8 @@ create trigger t39_weather_holds_same_project before insert or update on app.wea
   for each row execute function private.assert_same_project('app.weather_alerts', 'weather_alert_id', 'app.weather_warnings', 'weather_warning_id');
 
 insert into private.trash_excluded_tables (table_name, rationale) values
-  ('weather_holds', 'A safety record written only by the hold and all-clear RPCs; nobody deletes or restores a hold.')
+  ('weather_holds', 'A safety record written only by the hold and all-clear RPCs; nobody deletes or restores a hold.'),
+  ('weather_message_templates', 'A project''s hold or all-clear text is edited in place; removing it brings back the catalog default, so there is nothing to restore.')
 on conflict (table_name) do nothing;
 
 do $$
@@ -139,6 +145,7 @@ declare
   v_org uuid := (select p.org_id from app.projects p where p.id = p_project_id and p.deleted_at is null);
   v_message text := btrim(coalesce(p_message, ''));
   v_existing app.weather_holds;
+  v_late boolean := p_device_at is not null and p_device_at < now() - interval '10 minutes';
   v_id uuid;
   v_recipient uuid;
 begin
@@ -154,9 +161,7 @@ begin
       return v_existing.id;
     end if;
   end if;
-  if p_device_at is not null and p_device_at < now() - interval '10 minutes' then
-    perform private.refuse('weather_hold_stale', 'This hold was made more than 10 minutes ago and was not sent. Check the weather and call it again.');
-  end if;
+  -- A hold queued offline is sent however late it arrives: a late stop-work errs safe. Its message says when it was called.
   if char_length(v_message) not between 1 and 1000 then
     perform private.refuse('weather_hold_message', 'Write a message of 1 to 1,000 characters.');
   end if;
@@ -164,17 +169,19 @@ begin
   if exists (select 1 from app.weather_holds h where h.project_id = p_project_id and h.cleared_at is null and h.deleted_at is null) then
     perform private.refuse('weather_hold_open', 'A weather hold is already open on this project. Give the all-clear first.');
   end if;
-  insert into app.weather_holds (id, project_id, hazard, weather_alert_id, weather_warning_id, message)
-  values (coalesce(p_id, private.uuid_v7()), p_project_id, p_hazard, p_weather_alert_id, p_weather_warning_id, v_message)
+  insert into app.weather_holds (id, project_id, hazard, weather_alert_id, weather_warning_id, message, called_on_device_at)
+  values (coalesce(p_id, private.uuid_v7()), p_project_id, p_hazard, p_weather_alert_id, p_weather_warning_id, v_message,
+    least(p_device_at, now()))
   returning id into v_id;
   for v_recipient in select distinct r from private.weather_hold_recipients(p_project_id) r loop
     perform private.notify(v_org, v_recipient, 'weather.hold', 'app.weather_holds', v_id, p_project_id,
-      jsonb_build_object('message', v_message, 'hazard', p_hazard));
+      jsonb_build_object('message', v_message, 'hazard', coalesce(p_hazard::text, ''),
+        'called_at', coalesce(least(p_device_at, now()), now()), 'late', case when v_late then 'yes' else 'no' end));
   end loop;
   return v_id;
 end;
 $$;
-comment on function app.call_weather_hold(uuid, text, app.weather_hazard, uuid, uuid, uuid, timestamptz) is 'Calls a weather hold on a project (safety.incident.dispatch): one open hold at a time (weather_hold_open), a message of 1 to 1,000 characters (weather_hold_message), optionally naming the hazard, alert or warning. Tells the alert-role people, the dispatchers and everyone present in the project''s zones now, each once (weather.hold). A client id makes it idempotent for the same person (weather_hold_id_taken for anyone else); a device time more than 10 minutes old refuses weather_hold_stale. Returns the hold id.';
+comment on function app.call_weather_hold(uuid, text, app.weather_hazard, uuid, uuid, uuid, timestamptz) is 'Calls a weather hold on a project (safety.incident.dispatch): one open hold at a time (weather_hold_open), a message of 1 to 1,000 characters (weather_hold_message), optionally naming the hazard, alert or warning. Tells the alert-role people, the dispatchers and everyone present in the project''s zones now, each once (weather.hold). A client id makes it idempotent for the same person (weather_hold_id_taken for anyone else). A hold whose device time is more than 10 minutes old is still sent, since a late stop-work errs safe: it is recorded with its device time and its message says when it was called. Returns the hold id.';
 revoke all on function app.call_weather_hold(uuid, text, app.weather_hazard, uuid, uuid, uuid, timestamptz) from public, anon;
 grant execute on function app.call_weather_hold(uuid, text, app.weather_hazard, uuid, uuid, uuid, timestamptz) to authenticated, service_role;
 
@@ -219,7 +226,7 @@ begin
   where id = v_hold.id;
   for v_recipient in select distinct r from private.weather_hold_recipients(v_hold.project_id) r loop
     perform private.notify(v_hold.org_id, v_recipient, 'weather.all_clear', 'app.weather_holds', v_hold.id, v_hold.project_id,
-      jsonb_build_object('message', v_message, 'hazard', v_hold.hazard));
+      jsonb_build_object('message', v_message, 'hazard', coalesce(v_hold.hazard::text, '')));
   end loop;
   return v_hold.id;
 end;
@@ -229,7 +236,7 @@ revoke all on function app.give_weather_all_clear(uuid, text, uuid, timestamptz)
 grant execute on function app.give_weather_all_clear(uuid, text, uuid, timestamptz) to authenticated, service_role;
 
 insert into private.sync_rpcs (rpc, description) values
-  ('app.call_weather_hold', 'A dispatcher calls a weather hold; replays are idempotent on the client id, and one made more than 10 minutes earlier is refused.'),
+  ('app.call_weather_hold', 'A dispatcher calls a weather hold; replays are idempotent on the client id, and one made more than 10 minutes earlier is still sent, saying when it was called.'),
   ('app.give_weather_all_clear', 'A dispatcher gives the weather all-clear; replays are idempotent on the client id, and one made more than 10 minutes earlier is refused.');
 
 select private.sync_trash_tables();

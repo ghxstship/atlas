@@ -12,13 +12,15 @@
 --     non-transactional, with the unsubscribe link and the postal address of decision 41.
 --   * The guest-email Edge Function claims Queued rows (app.claim_guest_emails, which checks each row again: the guest
 --     is still live, a Pass is still for an approved guest with a code, and the address is not suppressed), sends,
---     and records the outcome (app.finish_guest_email, idempotent on a Sent row). Each claim stores the SHA-256 of a
---     fresh unsubscribe token for the row.
---   * api_public.unsubscribe_guest_email follows 1382: it refuses a read-only (GET) transaction first, counts only
---     failed token lookups by client address (20 in 10 minutes), never a success, and answers the same shape either
---     way. Its callers are servers (the email-unsubscribe Edge Function and the Gateway), so the address is theirs:
---     a valid token is looked up before the limit and always unsubscribes, and a full bucket only stops recording
---     further failures.
+--     and records the outcome (app.finish_guest_email, idempotent on a Sent row; the recipient's address is taken out
+--     of a provider error before it is stored). The unsubscribe token of a row is the same on every claim, signed over
+--     the guest email's id with the Vault secret 0570 signs with (as private.unsubscribe_signature does), so a retry
+--     sends exactly the payload of the first attempt under the same idempotency key, and nothing about the token is
+--     stored.
+--   * api_public.unsubscribe_guest_email refuses a read-only (GET) transaction first, as 1382 does, and answers the
+--     same shape for a valid and an unknown or forged token. It keeps no failure counter: a signed token cannot be
+--     guessed, and both callers are servers (the email-unsubscribe Edge Function and the Gateway), so a client
+--     address would be theirs, not the guest's.
 --   * An org queues at most 2,000 guest emails a day: app.queue_guest_emails counts the org's rows of the last 24
 --     hours (guest_email_rate). Nothing is written to rate_limit_events.
 --   * pg_cron asks the function to run every minute while Queued rows exist, through Vault as 1542 and 2030 do.
@@ -107,19 +109,30 @@ on conflict (table_name) do nothing;
 insert into private.column_classifications (table_name, column_name, classification, read_capability) values
   ('app.guest_emails', 'to_email', 'Confidential', null);
 
-create table private.guest_email_unsubscribe_tokens (
-  token_hash bytea primary key,
-  guest_email_id uuid not null references app.guest_emails (id) on delete cascade,
-  created_at timestamptz not null default now(),
-  constraint guest_email_unsubscribe_tokens_length check (octet_length(token_hash) = 32)
-);
-create index guest_email_unsubscribe_tokens_email_idx on private.guest_email_unsubscribe_tokens (guest_email_id);
-comment on table private.guest_email_unsubscribe_tokens is 'One unsubscribe token per guest email sent, stored as its SHA-256; it suppresses the address for the sending org.';
-comment on column private.guest_email_unsubscribe_tokens.token_hash is 'SHA-256 of the unsubscribe token.';
-comment on column private.guest_email_unsubscribe_tokens.guest_email_id is 'Guest email the token was sent in.';
-comment on column private.guest_email_unsubscribe_tokens.created_at is 'When the token was issued.';
-alter table private.guest_email_unsubscribe_tokens enable row level security;
-revoke all on private.guest_email_unsubscribe_tokens from public, anon, authenticated;
+-- Neither table is in Trash (ADR 0110): a send and its rows are written only by the queue and the worker, are never
+-- deleted by a person, and are kept for their retention.
+insert into private.trash_excluded_tables (table_name, rationale) values
+  ('guest_email_sends', 'An append-only record of a bulk guest email, written only by app.queue_guest_emails; nobody deletes or restores a send.'),
+  ('guest_emails', 'One guest''s row of a send, written only by the queue and the guest-email worker; nobody deletes or restores it.')
+on conflict (table_name) do nothing;
+select private.sync_trash_tables();
+
+-- Unsubscribe tokens -------------------------------------------------------------------------------------------------------------
+
+create function private.guest_email_unsubscribe_token(p_guest_email_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select 'xgue_' || replace(p_guest_email_id::text, '-', '') || '.'
+    || left(encode(extensions.hmac(convert_to('guest_email_unsubscribe.' || p_guest_email_id::text, 'UTF8'),
+         convert_to((select s.decrypted_secret from vault.decrypted_secrets s where s.name = 'xos_inbound_reply_secret'), 'UTF8'),
+         'sha256'), 'hex'), 32);
+$$;
+comment on function private.guest_email_unsubscribe_token(uuid) is 'The unsubscribe token of one guest email: its id and an HMAC-SHA256 signature over it with the Vault secret 0570 signs unsubscribe links with (xos_inbound_reply_secret). The same on every claim of the row, so a retried send is byte for byte the first; nothing about it is stored.';
+revoke all on function private.guest_email_unsubscribe_token(uuid) from public, anon, authenticated;
 
 -- Suppression -----------------------------------------------------------------------------------------------------------------
 
@@ -284,7 +297,6 @@ set search_path = ''
 as $$
 declare
   v_row record;
-  v_token text;
 begin
   for v_row in
     select e.id, e.org_id, e.to_email, e.attempts, s.email_kind, g.id as entry_id, g.deleted_at as entry_deleted,
@@ -306,13 +318,10 @@ begin
     elsif v_row.attempts >= 5 then
       update app.guest_emails set send_state = 'Failed' where id = v_row.id;
     else
-      v_token := 'xgue_' || encode(extensions.gen_random_bytes(32), 'hex');
       update app.guest_emails set send_state = 'Sending', attempts = attempts + 1, claimed_at = now() where id = v_row.id;
-      insert into private.guest_email_unsubscribe_tokens (token_hash, guest_email_id)
-      values (extensions.digest(v_token, 'sha256'), v_row.id);
       return query
         select e.id, e.org_id, o.name, s.project_id, p.name, g.id, s.email_kind, s.subject, s.body, s.locale, e.to_email,
-          g.guest_name, g.plus_ones, g.pass_code, v_token,
+          g.guest_name, g.plus_ones, g.pass_code, private.guest_email_unsubscribe_token(e.id),
           p.project_key, coalesce(p.time_zone, 'UTC'), k.code, k.name, g.table_label, n.name, p.starts_on, g.decided_at
         from app.guest_emails e
         join app.guest_email_sends s on s.id = e.guest_email_send_id
@@ -326,7 +335,7 @@ begin
   end loop;
 end;
 $$;
-comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending with a fresh unsubscribe token, whose SHA-256 is stored, and are returned with what the email and, for a Pass, the guest-pass document need (the pass type, table, show and its day, the project key and time zone, and when the guest was approved).';
+comment on function app.claim_guest_emails(integer) is 'The guest-email worker''s claim (service role): up to p_limit (at most 100) Queued rows, and Sending rows left more than 10 minutes, oldest first, skipping rows another worker holds. Each is checked again: a guest no longer live or no longer approved with a pass code for a Pass is Skipped, a suppressed address Suppressed, a row out of attempts Failed; the rest move to Sending and are returned with the row's unsubscribe token (the same on every claim, private.guest_email_unsubscribe_token) with what the email and, for a Pass, the guest-pass document need (the pass type, table, show and its day, the project key and time zone, and when the guest was approved).';
 revoke all on function app.claim_guest_emails(integer) from public, anon, authenticated;
 grant execute on function app.claim_guest_emails(integer) to service_role;
 
@@ -339,10 +348,15 @@ set search_path = ''
 as $$
 declare
   v_row app.guest_emails;
+  v_error text := p_error;
 begin
   select * into v_row from app.guest_emails e where e.id = p_id for update;
   if v_row.id is null or v_row.send_state = 'Sent' then
     return;
+  end if;
+  -- A provider error may quote the recipient; the address stays only in to_email, which is Confidential.
+  if v_error is not null and v_row.to_email is not null then
+    v_error := regexp_replace(v_error, regexp_replace(v_row.to_email, '([^a-z0-9])', '\\\1', 'g'), 'the recipient', 'gi');
   end if;
   if p_error is null then
     update app.guest_emails set send_state = 'Sent', sent_at = now(), provider_message_id = left(p_provider_message_id, 200),
@@ -350,12 +364,12 @@ begin
     where id = p_id;
   else
     update app.guest_emails set send_state = case when v_row.attempts >= 5 then 'Failed' else 'Queued' end::app.guest_email_state,
-      error = left(p_error, 1000)
+      error = left(v_error, 1000)
     where id = p_id;
   end if;
 end;
 $$;
-comment on function app.finish_guest_email(uuid, text, text) is 'The guest-email worker records a send (service role): Sent with the provider''s message id, or, with an error, Queued again until the fifth attempt and then Failed. A row already Sent is left as it is, so a repeated call changes nothing.';
+comment on function app.finish_guest_email(uuid, text, text) is 'The guest-email worker records a send (service role): Sent with the provider''s message id, or, with an error, Queued again until the fifth attempt and then Failed. The recipient''s address is taken out of the error before it is stored. A row already Sent is left as it is, so a repeated call changes nothing.';
 revoke all on function app.finish_guest_email(uuid, text, text) from public, anon, authenticated;
 grant execute on function app.finish_guest_email(uuid, text, text) to service_role;
 
@@ -369,20 +383,15 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_client text;
+  v_parts text[] := regexp_match(coalesce(p_token, ''), '^xgue_([0-9a-f]{32})\.([0-9a-f]{32})$');
   v_email app.guest_emails;
 begin
   perform private.require_read_write();
-  -- The lookup comes before the limit: both callers are servers (the email-unsubscribe function and the Gateway), so
-  -- the client address is theirs, and failures by anyone must not stop a real guest's token from working.
-  select e.* into v_email from private.guest_email_unsubscribe_tokens t
-  join app.guest_emails e on e.id = t.guest_email_id
-  where t.token_hash = extensions.digest(coalesce(p_token, ''), 'sha256');
+  if v_parts is null or private.guest_email_unsubscribe_token(v_parts[1]::uuid) is distinct from p_token then
+    return null;
+  end if;
+  select e.* into v_email from app.guest_emails e where e.id = v_parts[1]::uuid;
   if v_email.id is null or v_email.to_email is null then
-    v_client := coalesce(host(private.request_ip()), 'unknown');
-    if not private.rate_limit_exceeded('guest_email.token.failure', v_client, 20, interval '10 minutes') then
-      perform private.note_rate_event('guest_email.token.failure', v_client);
-    end if;
     return null;
   end if;
   insert into app.suppression_list (org_id, channel, address, reason, category_code)
@@ -394,7 +403,7 @@ begin
   return (select o.name from app.organizations o where o.id = v_email.org_id);
 end;
 $$;
-comment on function api_public.unsubscribe_guest_email(text) is 'A guest stops every email from the org that sent them a guest email (gap G-71): the token from the email''s unsubscribe link adds the address to the org''s suppression list once (Unsubscribe, every category). Refuses a read-only (GET) call first, so a mail scanner that only fetches the link unsubscribes nobody. Returns the org name, or NULL for an unknown token. Only failed lookups count, 20 per client address in 10 minutes, and a valid token unsubscribes even when that bucket is full, because the callers are servers whose address every guest shares.';
+comment on function api_public.unsubscribe_guest_email(text) is 'A guest stops every email from the org that sent them a guest email (gap G-71): the signed token from the email''s unsubscribe link adds the address to the org''s suppression list once (Unsubscribe, every category). Refuses a read-only (GET) call first, so a mail scanner that only fetches the link unsubscribes nobody. Returns the org name, or NULL for an unknown or forged token, which changes nothing. No failure counter: a signed token cannot be guessed, and the callers are servers.';
 revoke all on function api_public.unsubscribe_guest_email(text) from public;
 grant execute on function api_public.unsubscribe_guest_email(text) to anon, authenticated, service_role;
 

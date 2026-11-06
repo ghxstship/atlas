@@ -5,7 +5,9 @@
 -- through the API. Credentials that existed before a requirement was added are untouched.
 --
 --   * A course requirement is met by a passed app.training_completions row of that course, through a membership of the
---     holder in the course's org, that has not expired. Only org members train (0804).
+--     holder in the course's org, current or ended, whose own expires_at has not passed: the completion's expiry
+--     governs, not the membership. Only org members train (0804). Only a Published course can be required
+--     (credential_requirement_course_state): a Draft cannot be taken yet and a Retired one no longer.
 --   * A certification requirement is met by a live app.certification_holders row of the holder that has not expired.
 --     A verifier records it (0352, invariant 21), so anyone, member or not, meets it; that is how a pass desk records
 --     an in-person induction. Because the row now opens a gate, private.guard_certification_holder (0352, its only
@@ -46,6 +48,35 @@ call private.install_policies('app.credential_category_requirements',
   $$credential_category_id in (select c.id from app.credential_categories c where c.project_id in (select private.project_ids_with('credentials.category.write')))$$);
 call private.install_audit_trail('app.credential_category_requirements');
 call private.install_default_retention('app.credential_category_requirements');
+
+-- A requirement is removed and added again, never restored: it has no title of its own, and a removed one only means the
+-- category stopped requiring the course or certification (ADR 0110, ADR 0147).
+insert into private.trash_excluded_tables (table_name, rationale) values
+  ('credential_category_requirements', 'A requirement is removed and added again, never restored; it names a course or certification and has no title of its own.')
+on conflict (table_name) do nothing;
+select private.sync_trash_tables();
+
+create function private.guard_credential_requirement_course()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.training_course_id is not null
+     and (tg_op = 'INSERT' or new.training_course_id is distinct from old.training_course_id
+          or (old.deleted_at is not null and new.deleted_at is null))
+     and coalesce((select c.course_state::text from app.training_courses c
+                   where c.id = new.training_course_id and c.deleted_at is null), '') <> 'Published' then
+    perform private.refuse('credential_requirement_course_state', 'Only a published training course can be required.');
+  end if;
+  return new;
+end;
+$$;
+comment on function private.guard_credential_requirement_course() is 'Credential category requirements: only a Published training course can be required (credential_requirement_course_state); a Draft cannot be taken yet and a Retired one no longer. A requirement already in place stays when its course is later retired.';
+revoke all on function private.guard_credential_requirement_course() from public, anon, authenticated;
+create trigger t40_guard_credential_requirement_course before insert or update on app.credential_category_requirements
+  for each row execute function private.guard_credential_requirement_course();
 
 -- The holder changes only their consent ------------------------------------------------------------------------------------
 
@@ -133,7 +164,7 @@ as $$
   from req
   order by req.title, req.id;
 $$;
-comment on function private.credential_requirements_state(uuid, uuid, timestamptz) is 'Each live requirement of a credential category for a holder: is_met when a passed, unexpired completion of the course through the holder''s membership of the course''s org, or a live, unexpired certification of the holder, exists now; expires_at when a met requirement stops being met before p_valid_to (the badge''s end; NULL for an open-ended badge). Internal: the issue guard and the checks call it.';
+comment on function private.credential_requirements_state(uuid, uuid, timestamptz) is 'Each live requirement of a credential category for a holder: is_met when a passed completion of the course through a membership of the holder in the course''s org (current or ended), whose own expires_at has not passed, or a live, unexpired certification of the holder, exists now; expires_at when a met requirement stops being met before p_valid_to (the badge''s end; NULL for an open-ended badge). Internal: the issue guard and the checks call it.';
 revoke all on function private.credential_requirements_state(uuid, uuid, timestamptz) from public, anon, authenticated;
 
 create function private.credential_requirements_missing(p_category_id uuid, p_person_id uuid, p_valid_to timestamptz)
@@ -170,19 +201,20 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_missing integer;
+  v_missing text;
 begin
-  select count(*) into v_missing
+  -- The titles are named for the API's problem detail; Atlas words the refusal itself from app.credential_issue_check.
+  select string_agg(s.title, ', ' order by s.title) into v_missing
   from private.credential_requirements_state(new.credential_category_id, new.holder_person_id, new.valid_to) s
   where not s.is_met;
-  if v_missing > 0 then
+  if v_missing is not null then
     perform private.refuse('credential_training_incomplete',
-      format('The holder has not completed %s of the training or certifications this category requires.', v_missing));
+      format('The holder has not met what this category requires: %s.', v_missing));
   end if;
   return new;
 end;
 $$;
-comment on function private.guard_credential_requirements() is 'Credentials: issuing a category to someone who does not meet each of its requirements now is refused (credential_training_incomplete), for direct issue, app.issue_allocation and the API alike. Existing credentials are untouched.';
+comment on function private.guard_credential_requirements() is 'Credentials: issuing a category to someone who does not meet each of its requirements now is refused (credential_training_incomplete, naming the unmet courses and certifications), for direct issue, app.issue_allocation and the API alike. Existing credentials are untouched.';
 revoke all on function private.guard_credential_requirements() from public, anon, authenticated;
 create trigger t44_guard_credential_requirements before insert on app.credentials
   for each row execute function private.guard_credential_requirements();

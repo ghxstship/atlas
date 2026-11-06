@@ -1,6 +1,6 @@
 -- pgTAP: migration 2973 (B8, G-147), one accreditation list. A second live Access credential of the same category and
 -- holder for an overlapping window is refused, on insert and on an update that widens the window or brings a deleted
--- or revoked one back; Parking is exempt; revoke then issue works; a holder booked on another project (credential or
+-- or revoked one back, while a pair that overlapped before 2973 stays editable; Parking is exempt; revoke then issue works; a holder booked on another project (credential or
 -- engagement) is flagged; the other project's key shows only to someone who can read it; credential_review(ids) gives the
 -- checks the Issued page shows; the issue check lists them.
 begin;
@@ -21,8 +21,9 @@ with x as (insert into app.credentials (credential_category_id, holder_person_id
   values (pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-01 08:00+00', '2027-06-05 08:00+00') returning id) insert into world select 'c1', id from x;
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id, valid_from, valid_to)
   values ((select id from world where key = 'cat'), (select id from world where key = 'frank'), '2027-06-04 08:00+00', '2027-06-08 08:00+00')$$,
-  'XR001', 'credential_duplicate: This person already holds a live credential of this category for an overlapping window. Revoke the earlier credential first, or change the window.',
-  'a second overlapping Access credential of the same category is refused');
+  'XR001', format('credential_duplicate: This person already holds live credential %s of this category for an overlapping window. Revoke it first, or change the window.',
+    (select credential_number from app.credentials where id = pg_temp.id('c1'))),
+  'a second overlapping Access credential of the same category is refused, naming the existing number');
 with x as (insert into app.credentials (credential_category_id, holder_person_id, valid_from, valid_to)
   values (pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-05 08:00+00', '2027-06-08 08:00+00') returning id) insert into world select 'c2', id from x;
 select ok(pg_temp.id('c2') is not null, 'a window that starts as the first ends does not overlap');
@@ -101,6 +102,25 @@ select is((select string_agg(check_code || ':' || blocking::text, ',' order by c
   'the issue check lists the duplicates as blocking and the rest as warnings');
 select is((select project_key from app.credential_issue_check(pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-02 09:00+00', '2027-06-02 10:00+00') where check_code = 'booked_elsewhere'),
   'NWX', 'with the other project''s key for a reader of it');
+select is((select string_agg(title, ',' order by title) from app.credential_issue_check(pg_temp.id('cat'), pg_temp.id('frank'), '2027-06-02 09:00+00', '2027-06-02 10:00+00')
+           where check_code = 'duplicate'),
+  (select string_agg(credential_number, ',' order by credential_number) from app.credentials where id in (pg_temp.id('c3'), '01920000-0000-7000-8973-000000000001')),
+  'and each duplicate''s number, which the form names');
+
+-- A pair that overlapped before 2973 can still be edited -----------------------------------------------------------------------
+select pg_temp.as_platform();
+select lives_ok($$update app.credentials set valid_to = '2027-06-03 20:00+00' where id = '01920000-0000-7000-8973-000000000001'$$,
+  'narrowing a credential that already overlapped a live one is allowed');
+select lives_ok($$update app.credentials set valid_from = '2027-06-02 07:00+00' where id = '01920000-0000-7000-8973-000000000001'$$,
+  'as is any edit that keeps the overlap it already had');
+select throws_ok($$update app.credentials set valid_to = '2027-06-07 08:00+00' where id = '01920000-0000-7000-8973-000000000001'$$,
+  'XR001', null, 'widening it into another live credential is refused');
+select throws_like($$update app.credentials set valid_to = '2027-06-07 08:00+00' where id = '01920000-0000-7000-8973-000000000001'$$,
+  '%credential_duplicate%', 'by the duplicate rule');
+update app.credentials set deleted_at = now() where id = '01920000-0000-7000-8973-000000000001';
+select throws_like($$update app.credentials set deleted_at = null where id = '01920000-0000-7000-8973-000000000001'$$,
+  '%credential_duplicate%', 'and once deleted, it cannot be made live again beside its duplicate');
+select pg_temp.as_user('carol');
 select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])), 1, 'an issuer reads the review of the project''s credentials');
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.credential_review(array[pg_temp.id('c3')])),

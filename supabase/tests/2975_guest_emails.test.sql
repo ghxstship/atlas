@@ -1,8 +1,9 @@
 -- pgTAP: migration 2975 (B8, G-71), bulk guest emails. The queue's authority, batch, message and daily org limits;
 -- every requested guest gets a row (Queued, Suppressed by the org's suppression list, or Skipped with the reason);
 -- the summary counts them; the worker claims each Queued row once, checks it again and finishes it idempotently;
--- unsubscribe refuses a read-only call, suppresses the address once for that org only and answers an unknown token the
--- same way; staff never write the tables directly; readers need advancing.packet.read; the addresses are Confidential.
+-- the unsubscribe token is the same on every claim and signed; a provider error loses the recipient's address before
+-- it is stored; unsubscribe refuses a read-only call, suppresses the address once for that org only, keeps no failure
+-- counter and answers an unknown or forged token the same way; neither table is in Trash; staff never write the tables directly; readers need advancing.packet.read; the addresses are Confidential.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -85,17 +86,28 @@ grant select on claimed to anon, authenticated;
 select is((select count(*)::int from claimed), 2, 'the worker claims the two Queued rows');
 select is((select string_agg(email_kind::text || ':' || to_email, ',' order by to_email) from claimed),
   'Invitation:rowan@example.test,Pass:sasha@example.test', 'with what each email needs');
-select ok((select bool_and(unsubscribe_token ~ '^xgue_[0-9a-f]{64}$') from claimed), 'each with a fresh unsubscribe token');
-select is((select count(*)::int from private.guest_email_unsubscribe_tokens t join claimed c on c.guest_email_id = t.guest_email_id
-           where t.token_hash = extensions.digest(c.unsubscribe_token, 'sha256')), 2, 'whose hash is stored');
+select ok((select bool_and(unsubscribe_token = 'xgue_' || replace(guest_email_id::text, '-', '') || '.' || right(unsubscribe_token, 32)
+                    and unsubscribe_token ~ '^xgue_[0-9a-f]{32}\.[0-9a-f]{32}$') from claimed),
+  'each with an unsubscribe token naming the row and signed');
+select ok(to_regclass('private.guest_email_unsubscribe_tokens') is null, 'and nothing about the token is stored');
 select is((select count(*)::int from app.claim_guest_emails(50)), 0, 'a claimed row is not claimed again');
 select app.finish_guest_email((select guest_email_id from claimed where email_kind = 'Pass'), 'msg-001', null);
 select app.finish_guest_email((select guest_email_id from claimed where email_kind = 'Pass'), 'msg-002', 'late duplicate');
 select is((select send_state::text || ':' || provider_message_id from app.guest_emails where id = (select guest_email_id from claimed where email_kind = 'Pass')),
   'Sent:msg-001', 'finishing a Sent row again changes nothing');
-select app.finish_guest_email((select guest_email_id from claimed where email_kind = 'Invitation'), null, 'SMTP 451 try later');
+select app.finish_guest_email((select guest_email_id from claimed where email_kind = 'Invitation'), null, 'SMTP 451 try later for Rowan@Example.test');
 select is((select send_state::text || ':' || attempts from app.guest_emails where id = (select guest_email_id from claimed where email_kind = 'Invitation')),
   'Queued:1', 'a failed attempt goes back to the queue');
+select is((select error from app.guest_emails where id = (select guest_email_id from claimed where email_kind = 'Invitation')),
+  'SMTP 451 try later for the recipient', 'and its error is stored without the recipient''s address');
+-- A Sending row left more than 10 minutes is claimed again, with the same token, so a retry sends the same email.
+update app.guest_emails set send_state = 'Sending', claimed_at = now() - interval '11 minutes'
+where id = (select guest_email_id from claimed where email_kind = 'Invitation');
+create temporary table reclaimed on commit drop as select * from app.claim_guest_emails(50);
+select is((select count(*)::int from reclaimed), 1, 'a row stuck in Sending for more than 10 minutes is claimed again');
+select is((select unsubscribe_token from reclaimed), (select unsubscribe_token from claimed where email_kind = 'Invitation'),
+  'with the same unsubscribe token as the first claim');
+select app.finish_guest_email((select guest_email_id from reclaimed), null, 'SMTP 451 try later');
 update app.guest_list_entries set deleted_at = now() where id = pg_temp.id('g_req');
 select is((select count(*)::int from app.claim_guest_emails(50)), 0, 'a guest deleted since the queue is not sent');
 select is((select send_state::text || ':' || skip_reason::text from app.guest_emails where id = (select guest_email_id from claimed where email_kind = 'Invitation')),
@@ -127,19 +139,17 @@ select is(api_public.unsubscribe_guest_email((select unsubscribe_token from clai
   'the token from the email unsubscribes and names the org');
 select is(api_public.unsubscribe_guest_email((select unsubscribe_token from claimed where email_kind = 'Pass')), 'Northwind Live', 'again, idempotently');
 select is(api_public.unsubscribe_guest_email('xgue_unknown'), null, 'an unknown token answers the same shape and changes nothing');
+select is(api_public.unsubscribe_guest_email(left((select unsubscribe_token from claimed where email_kind = 'Invitation'), 38) || repeat('0', 32)), null,
+  'as does a forged signature on a real row');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'sasha@example.test'
              and reason = 'Unsubscribe' and category_code is null and lifted_at is null), 1, 'the address is suppressed once for every category');
 select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_b') and address = 'sasha@example.test'), 0, 'for that org only');
-select is((select count(*)::int from private.rate_limit_events where bucket = 'guest_email.token.failure'), 1, 'only the failed lookup counts');
-insert into private.rate_limit_events (bucket, subject_hash)
-select 'guest_email.token.failure', extensions.digest(coalesce(host(private.request_ip()), 'unknown'), 'sha256') from generate_series(1, 25);
-select pg_temp.as_anon();
-select is(api_public.unsubscribe_guest_email((select unsubscribe_token from claimed where email_kind = 'Pass')), 'Northwind Live',
-  'a valid token unsubscribes even when failed lookups from the same server address have filled the bucket');
-select pg_temp.as_platform();
-select is((select count(*)::int from private.rate_limit_events where bucket = 'guest_email.token.failure'), 26,
-  'and a full bucket records no further failures');
+select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'rowan@example.test'), 0,
+  'the forged token suppressed nothing');
+select is((select count(*)::int from private.rate_limit_events where bucket like 'guest_email%'), 0, 'and no failure is counted');
+select ok((select count(*) = 2 from private.trash_excluded_tables where table_name in ('guest_email_sends', 'guest_emails')),
+  'neither guest email table is in Trash, each with why');
 select pg_temp.as_user('carol');
 insert into world values ('send_after', app.queue_guest_emails(pg_temp.id('prj_a'), array[pg_temp.id('g_pass')], 'Message', 'Doors at 7', 'Doors open at 7.'));
 select is((select send_state::text from app.guest_emails where guest_email_send_id = pg_temp.id('send_after')), 'Suppressed', 'later emails to the address are Suppressed');

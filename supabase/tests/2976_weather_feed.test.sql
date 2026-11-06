@@ -1,8 +1,10 @@
 -- pgTAP: migration 2976 (B8, G-150), the NWS weather feed. A feed needs a US venue with a location; the worker's
 -- functions are service-role only; due feeds respect the window and the 9-minute rule; record_weather_feed writes NWS
 -- readings once, which raise alerts through private.apply_weather_level, never lower or clear one a Manual reading raised;
--- warnings are stored once, notify once and only for Severe and Extreme, and end on a Cancel or when dropped; the
--- forecast is replaced; failures show in the status. Manual readings behave as in 0806.
+-- an observation more than 2 hours old is not recorded; warnings are stored once, notify once and only for Severe and
+-- Extreme, and end on a Cancel, an Update that references them or when dropped, an Update telling nobody again; the
+-- forecast is replaced; a malformed time is a payload refusal; failures show in the status; no new table is in Trash.
+-- Manual readings behave as in 0806.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -58,6 +60,10 @@ select is((select latitude::text || ',' || longitude::text from app.due_weather_
 
 -- A poll ----------------------------------------------------------------------------------------------------------------------------
 select is(app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object(
+  'observation', jsonb_build_object('observed_at', now() - interval '3 hours', 'wind_mph', 45, 'heat_f', 99))) ->> 'readings',
+  '0', 'an observation more than 2 hours old is not recorded, so an outage never raises a late alert');
+update private.weather_feed_runs set ran_at = ran_at - interval '10 minutes' where weather_feed_id = pg_temp.id('feed');
+select is(app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object(
   'points', jsonb_build_object('forecast_hourly_url', 'https://api.weather.gov/gridpoints/MFL/110,50/forecast/hourly', 'station_id', 'KMIA'),
   'observation', jsonb_build_object('observed_at', now() - interval '20 minutes', 'wind_mph', 33.6, 'heat_f', 91.4),
   'alerts', jsonb_build_array(
@@ -101,6 +107,18 @@ select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', 
 select is((select ended_at is not null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.a'), true, 'a Cancel ends the warning it references');
 select is(pg_temp.notified('frank', 'weather.warning'), 1, 'neither the Cancel nor a Moderate alert notifies');
 
+-- An Update replaces a warning and tells nobody again -------------------------------------------------------------------------------------
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.f', 'event', 'Tornado Warning', 'severity', 'Extreme', 'status', 'Actual', 'message_type', 'Alert'))));
+select is(pg_temp.notified('frank', 'weather.warning'), 2, 'a new Extreme warning tells the alert-role people');
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.g', 'event', 'Tornado Warning', 'severity', 'Extreme', 'status', 'Actual',
+    'message_type', 'Update', 'references', jsonb_build_array('urn:oid:2.49.0.1.840.0.f')))));
+select is((select ended_at is not null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.f'), true,
+  'an Update ends the warning it references');
+select is((select ended_at is null from app.weather_warnings where provider_alert_id = 'urn:oid:2.49.0.1.840.0.g'), true, 'and is itself active');
+select is(pg_temp.notified('frank', 'weather.warning'), 2, 'but tells nobody again: they heard of the warning it replaces');
+
 -- An NWS reading never lowers a Manual alert ----------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
 select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 21);
@@ -130,6 +148,14 @@ select is((select count(*)::int from app.weather_warnings), 0, 'nor the warnings
 select pg_temp.as_platform();
 select throws_ok($$select app.record_weather_feed((select id from world where key = 'feed'), '[]')$$,
   'XR001', 'weather_feed_payload: The weather feed payload is not in the expected shape.', 'a payload of the wrong shape is refused');
+select throws_ok($$select app.record_weather_feed((select id from world where key = 'feed'),
+    '{"alerts": [{"id": "urn:oid:2.49.0.1.840.0.z", "event": "Flood Watch", "onset": "not a time"}]}')$$,
+  'XR001', 'weather_feed_payload: The weather feed payload is not in the expected shape.', 'a malformed time is a payload refusal, not a raw 22007');
+select throws_ok($$select app.record_weather_feed((select id from world where key = 'feed'),
+    jsonb_build_object('observation', jsonb_build_object('observed_at', now(), 'wind_mph', 'calm')))$$,
+  'XR001', 'weather_feed_payload: The weather feed payload is not in the expected shape.', 'as is a malformed number');
+select is((select count(*)::int from private.trash_excluded_tables where table_name in ('weather_feeds', 'weather_warnings', 'weather_forecast_periods')), 3,
+  'no weather feed table is in Trash, each with why');
 update app.venues set location = null where id = pg_temp.id('venue_a');
 set local session_replication_role = replica;
 delete from private.weather_feed_runs where weather_feed_id = pg_temp.id('feed');

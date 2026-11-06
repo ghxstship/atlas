@@ -7,11 +7,14 @@
 --     the same holder whose window overlaps a live one. Parking categories are exempt, because one person may hold
 --     passes for several vehicles (R5 app.roster_vehicles). The guard also runs when deleted_at or revoked_at changes:
 --     credentials are not in Trash (1031), so a deleted_at cleared by hand must not bring a duplicate back. Moving a
---     credential to revoked is always allowed. An R7 allocation of an Access category to one person with a quantity of
+--     credential to revoked is always allowed. Production may already hold overlapping live Access credentials, so an
+--     update refuses only an overlap the row did not already have: the row made live again, or its window widened
+--     into another live credential. An R7 allocation of an Access category to one person with a quantity of
 --     2 or more therefore refuses its second issue with credential_duplicate (ADR 0147 decision 5);
 --   * answers, for a holder, whether they are booked elsewhere in the org (a live overlapping credential or a live
 --     overlapping engagement on another project), with app.credential_bookings_elsewhere naming only the projects the
---     caller can read;
+--     caller can read. An open-ended engagement (no end date) is booked from its start on; the start date is required
+--     (0700), and the checks say so, so an engagement without one would never count as a booking;
 --   * adds app.credential_review(ids), the checks of each listed credential the caller can read, for the Issued page's
 --     chips and "Needs attention" filter, and the accreditation rows of app.credential_issue_check.
 --
@@ -29,7 +32,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_other uuid;
+  v_other text;
 begin
   if new.revoked_at is not null or new.deleted_at is not null then
     return new;
@@ -38,19 +41,24 @@ begin
     return new;
   end if;
   perform pg_advisory_xact_lock(hashtextextended('credential_duplicate:' || new.holder_person_id || ':' || new.credential_category_id, 0));
-  select c.id into v_other from app.credentials c
+  -- On update, an overlap the row already had while live (a pair from before 2973) is left alone; only a new one refuses.
+  select c.credential_number into v_other from app.credentials c
   where c.holder_person_id = new.holder_person_id and c.credential_category_id = new.credential_category_id
     and c.id <> new.id and c.deleted_at is null and c.revoked_at is null
     and tstzrange(c.valid_from, coalesce(c.valid_to, 'infinity')) && tstzrange(new.valid_from, coalesce(new.valid_to, 'infinity'))
+    and not (tg_op = 'UPDATE' and old.deleted_at is null and old.revoked_at is null
+             and old.holder_person_id = new.holder_person_id and old.credential_category_id = new.credential_category_id
+             and tstzrange(c.valid_from, coalesce(c.valid_to, 'infinity')) && tstzrange(old.valid_from, coalesce(old.valid_to, 'infinity')))
   limit 1;
   if v_other is not null then
+    -- The number is named for the API's problem detail; Atlas reads it from app.credential_issue_check.
     perform private.refuse('credential_duplicate',
-      'This person already holds a live credential of this category for an overlapping window. Revoke the earlier credential first, or change the window.');
+      format('This person already holds live credential %s of this category for an overlapping window. Revoke it first, or change the window.', v_other));
   end if;
   return new;
 end;
 $$;
-comment on function private.guard_credential_duplicate() is 'Credentials (ADR 0147 decision 5): one live credential per holder and Access category per window. Refuses credential_duplicate when another live (not deleted, not revoked) credential of the same holder and Access category overlaps [valid_from, valid_to). Parking categories are exempt. Moving to revoked is always allowed; restoring a deleted or unrevoked state is checked. Serialized per holder and category with an advisory lock.';
+comment on function private.guard_credential_duplicate() is 'Credentials (ADR 0147 decision 5): one live credential per holder and Access category per window. Refuses credential_duplicate, naming the other credential''s number, when another live (not deleted, not revoked) credential of the same holder and Access category overlaps [valid_from, valid_to). Parking categories are exempt. Moving to revoked is always allowed; restoring a deleted or unrevoked state, or widening a window into another live credential, is checked, while an overlap the row already had while live (production data from before 2973) is left alone. Serialized per holder and category with an advisory lock.';
 revoke all on function private.guard_credential_duplicate() from public, anon, authenticated;
 create trigger t45_guard_credential_duplicate before insert or update of valid_from, valid_to, deleted_at, revoked_at on app.credentials
   for each row execute function private.guard_credential_duplicate();
@@ -84,13 +92,13 @@ begin
       select 1 from app.engagements e
       join app.projects pr on pr.id = e.project_id
       where e.org_id = p_org_id and e.person_id = p_holder_person_id and e.project_id <> p_project_id
-        and e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
-        and daterange(e.start_date, coalesce(e.end_date, e.start_date), '[]')
+        and e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing') and e.start_date is not null
+        and daterange(e.start_date, e.end_date, '[]')
             && daterange((p_valid_from at time zone pr.time_zone)::date,
                          case when p_valid_to is null then null else (p_valid_to at time zone pr.time_zone)::date end, '[]'));
 end;
 $$;
-comment on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) is 'True when the holder, in the same org, has on another project a live credential whose window overlaps, or a live engagement (Onboarding, Blocked, Active or Closing) whose days overlap the window''s days in that project''s time zone (gap G-147). Takes values, never a credential id (ADR 0016 rule 14); false for a caller without credentials.credential.read on the project.';
+comment on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) is 'True when the holder, in the same org, has on another project a live credential whose window overlaps, or a live engagement (Onboarding, Blocked, Active or Closing) whose days overlap the window''s days in that project''s time zone (gap G-147); an engagement without a start date is not a booking. Takes values, never a credential id (ADR 0016 rule 14); false for a caller without credentials.credential.read on the project.';
 revoke all on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) from public, anon, authenticated;
 
 create function private.same_name_holders(p_project_id uuid, p_holder_person_id uuid)
@@ -166,13 +174,13 @@ begin
             && tstzrange(v_credential.valid_from, coalesce(v_credential.valid_to, 'infinity'))
       union all
       select e.project_id, 'Engagement'::text, (e.start_date::timestamp at time zone pr.time_zone),
-        ((coalesce(e.end_date, e.start_date) + 1)::timestamp at time zone pr.time_zone)
+        case when e.end_date is null then null else ((e.end_date + 1)::timestamp at time zone pr.time_zone) end
       from app.engagements e
       join app.projects pr on pr.id = e.project_id
       where e.org_id = v_credential.org_id and e.person_id = v_credential.holder_person_id
         and e.project_id <> v_credential.project_id and e.deleted_at is null
-        and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
-        and daterange(e.start_date, coalesce(e.end_date, e.start_date), '[]')
+        and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing') and e.start_date is not null
+        and daterange(e.start_date, e.end_date, '[]')
             && daterange((v_credential.valid_from at time zone pr.time_zone)::date,
                          case when v_credential.valid_to is null then null
                               else (v_credential.valid_to at time zone pr.time_zone)::date end, '[]')
@@ -279,7 +287,7 @@ begin
     where not s.is_met or s.expires_at is not null;
   if v_category.category_kind = 'Access' then
     return query
-      select 'duplicate'::text, true, null::uuid, null::text, c.id, null::uuid, null::text
+      select 'duplicate'::text, true, null::uuid, c.credential_number, c.id, null::uuid, null::text
       from app.credentials c
       where c.holder_person_id = p_holder_person_id and c.credential_category_id = p_category_id
         and c.deleted_at is null and c.revoked_at is null
@@ -308,12 +316,12 @@ begin
         select e.project_id from app.engagements e
         join app.projects pr on pr.id = e.project_id
         where e.org_id = v_category.org_id and e.person_id = p_holder_person_id and e.project_id <> v_category.project_id
-          and e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
-          and daterange(e.start_date, coalesce(e.end_date, e.start_date), '[]')
+          and e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing') and e.start_date is not null
+          and daterange(e.start_date, e.end_date, '[]')
               && daterange((v_from at time zone pr.time_zone)::date,
                            case when p_valid_to is null then null else (p_valid_to at time zone pr.time_zone)::date end, '[]')
       ) b;
   end if;
 end;
 $$;
-comment on function app.credential_issue_check(uuid, uuid, timestamptz, timestamptz) is 'What the issue form shows before Issue (credentials.credential.issue on the category''s project, ADR 0147 decisions 4 and 5): training_missing (blocking) for each unmet requirement; training_expires_first for one that expires before the badge ends; duplicate (blocking) naming the live overlapping credential of the same Access category; other_badge_on_project, same_name_on_project and booked_elsewhere (not blocking), with the other project''s id and key only when the caller can read it. The window defaults to now and open-ended.';
+comment on function app.credential_issue_check(uuid, uuid, timestamptz, timestamptz) is 'What the issue form shows before Issue (credentials.credential.issue on the category''s project, ADR 0147 decisions 4 and 5): training_missing (blocking) for each unmet requirement; training_expires_first for one that expires before the badge ends; duplicate (blocking) naming the live overlapping credential of the same Access category, its number as the title; other_badge_on_project, same_name_on_project and booked_elsewhere (not blocking), with the other project''s id and key only when the caller can read it. The window defaults to now and open-ended.';

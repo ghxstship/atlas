@@ -1,7 +1,8 @@
 -- pgTAP: migration 2974 (B8, G-68), guest passes. The pass code is stamped on approval and kept on check-in, never
 -- written by a caller; the pass type is an Access category of the project; the host is a project person; a party never
 -- sets the production fields but may give the guest's email; the door list finds a guest by pass code and shows the
--- pass; a check-in tells the host, unless the host checked the guest in; a checked-in guest keeps their pass fields.
+-- pass and the host's name; a check-in at a door or in bulk tells the host once, unless the host checked the guest in; a
+-- checked-in guest keeps their pass fields; the party read of the guest list carries no pass code or email.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -58,6 +59,11 @@ select is((select pass_code from app.guest_list_entries where id = pg_temp.id('g
 select pg_temp.as_user('carol');
 update app.guest_list_entries set table_label = 'Table 5', guest_email = 'rowan@example.test' where id = pg_temp.id('g_appr');
 select is((select table_label from app.guest_list_entries where id = pg_temp.id('g_appr')), 'Table 5', 'the table changes after approval');
+select lives_ok(format($$update app.guest_list_entries set table_label = %L where id = (select id from world where key = 'g_appr')$$, repeat('T', 60)),
+  'a table label is up to 60 characters');
+select throws_ok(format($$update app.guest_list_entries set table_label = %L where id = (select id from world where key = 'g_appr')$$, repeat('T', 61)),
+  '23514', null, 'and no longer');
+update app.guest_list_entries set table_label = 'Table 5' where id = pg_temp.id('g_appr');
 
 -- A party ----------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -94,6 +100,10 @@ select is((select row(guest_name, pass_category_code, pass_category_name, table_
            from app.door_guest_list(pg_temp.id('prj_a'), (select lower(pass_code) from app.guest_list_entries where id = pg_temp.id('g_req')))),
   '("Sasha Bell",VIP,"VIP Guest","Table 4",t)', 'a search by the exact pass code finds the guest with the pass type, table and host');
 select is((select count(*)::int from app.door_guest_list(pg_temp.id('prj_a'), 'GP-ZZZZZZZZZZ')), 0, 'an unknown code finds nobody');
+select pg_temp.as_platform();
+select is((select host_name from app.door_guest_list(pg_temp.id('prj_a'), (select pass_code from app.guest_list_entries where id = pg_temp.id('g_req')))),
+  (select full_name from app.people where id = pg_temp.id('dave')), 'the door list names the host, since door staff may not read people');
+select pg_temp.as_user('frank');
 
 -- Check-in and the host -------------------------------------------------------------------------------------------------------------
 select app.check_in_guest(pg_temp.id('g_req'), 1::smallint, 'North Gate');
@@ -114,6 +124,25 @@ select app.check_in_guest(pg_temp.id('g_appr'), 0::smallint, 'South Gate');
 select is(pg_temp.notified('carol', 'guest.arrived', pg_temp.id('g_appr')), 0, 'no notification when the host checks their own guest in');
 select throws_ok($$update app.guest_list_entries set table_label = 'Table 9' where id = (select id from world where key = 'g_appr')$$,
   'XR001', 'guest_entry_checked_in: A checked-in guest keeps their pass type, table, host and email.', 'a checked-in guest keeps their table');
+
+-- A bulk check-in (2151) tells the host too, once --------------------------------------------------------------------------------
+with x as (insert into app.guest_list_entries (project_id, guest_name, plus_ones, entry_state, host_person_id)
+  values (pg_temp.id('prj_a'), 'Noor Day', 1, 'Approved', pg_temp.id('dave')) returning id)
+  insert into world select 'g_bulk', id from x;
+select pg_temp.as_user('frank');
+select is(app.bulk_update_guest_list_entries(jsonb_build_array(jsonb_build_object('id', pg_temp.id('g_bulk'),
+  'set', jsonb_build_object('entry_state', 'Checked In')))) ->> 'changed', '1', 'frank checks a guest in in bulk');
+select is(pg_temp.notified('dave', 'guest.arrived', pg_temp.id('g_bulk')), 1, 'and the host hears once, with no door check-in row');
+select pg_temp.as_platform();
+select is((select (n.message_args ->> 'has_door') || '/' || (n.message_args ->> 'plus_ones_admitted')
+           from app.notifications n where n.kind = 'guest.arrived' and n.subject_id = pg_temp.id('g_bulk')),
+  'no/1', 'naming no door and the listed plus-ones');
+select is(pg_temp.notified('dave', 'guest.arrived', pg_temp.id('g_req')), 1, 'a door check-in still told the host exactly once');
+
+-- The party read of the guest list ------------------------------------------------------------------------------------------------
+select ok(not exists (select 1 from pg_catalog.pg_proc p, unnest(p.proargnames) a
+                      where p.oid = 'app.engaged_guest_list(uuid)'::regprocedure and a in ('pass_code', 'guest_email')),
+  'a party''s guest list carries neither the pass code nor the guest''s email');
 
 -- Import fields --------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

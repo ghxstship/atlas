@@ -476,11 +476,11 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/2822_credential_photo_functions.sql#app.request_credential_photos
         test: supabase/tests/2822_credential_photo_functions.test.sql
-  # Guest arrivals (B8, 2974): the host of a guest hears when the door checks them in.
+  # Guest arrivals (B8, 2974): the host of a guest hears when the guest is checked in, at a door or in bulk.
   - kind: guest.arrived
     category: assignments
     emitted_by:
-      - emitter: supabase/migrations/2974_guest_passes.sql#app.check_in_guest
+      - emitter: supabase/migrations/2974_guest_passes.sql#private.notify_guest_arrived
         test: supabase/tests/2974_guest_passes.test.sql
   # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
   - kind: opportunity.matched

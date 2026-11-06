@@ -1,7 +1,8 @@
 -- pgTAP: migration 2977 (B8, G-150), weather hold and all-clear. Authority; one open hold; the message rules; recipients
 -- are the alert-role people, the dispatchers and everyone present in the project's zones, each once; replays by client
--- id; a hold made more than 10 minutes before it arrives is refused; the all-clear closes the hold once; templates and
--- holds follow row level security; both RPCs are in the sync allowlist.
+-- id; a hold made more than 10 minutes before it arrives is still sent, with its device time and saying when it was
+-- called, while such an all-clear is refused; the all-clear closes the hold once; templates and holds follow row level
+-- security and are not in Trash; both RPCs are in the sync allowlist.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -42,9 +43,6 @@ select throws_ok($$select app.call_weather_hold((select id from world where key 
 select pg_temp.as_user('carol');
 select throws_ok($$select app.call_weather_hold((select id from world where key = 'prj_a'), '  ')$$,
   'XR001', 'weather_hold_message: Write a message of 1 to 1,000 characters.', 'a hold needs a message');
-select throws_ok($$select app.call_weather_hold((select id from world where key = 'prj_a'), 'Hold', 'Wind', null, null, null, now() - interval '11 minutes')$$,
-  'XR001', 'weather_hold_stale: This hold was made more than 10 minutes ago and was not sent. Check the weather and call it again.',
-  'a hold made offline more than 10 minutes ago is refused');
 insert into world values ('hold', app.call_weather_hold(pg_temp.id('prj_a'), 'Weather hold: lightning within 8 miles. Move to shelter.', 'Lightning',
   null, null, '01920000-0000-7000-8977-000000000001', now() - interval '2 minutes'));
 select is(pg_temp.id('hold'), '01920000-0000-7000-8977-000000000001'::uuid, 'the hold takes the client id');
@@ -77,7 +75,25 @@ select is((select row(cleared_by = pg_temp.id('erin'), all_clear_message)::text 
   '(t,"All clear: back to work.")', 'the hold records who cleared it and the message');
 select is(pg_temp.notified('gina', 'weather.all_clear'), 1, 'the all-clear reaches the same people');
 select is(pg_temp.notified('bob', 'weather.all_clear'), 1, 'each once');
+
+-- A late hold is sent; a late all-clear is not ---------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
+insert into world values ('late_hold', app.call_weather_hold(pg_temp.id('prj_a'), 'Weather hold: gusts over 40 mph. Move to shelter.', 'Wind',
+  null, null, '01920000-0000-7000-8977-000000000003', now() - interval '25 minutes'));
+select pg_temp.as_platform();
+select ok((select called_on_device_at < now() - interval '20 minutes' and called_at > now() - interval '1 minute' from app.weather_holds
+           where id = pg_temp.id('late_hold')), 'a hold queued offline more than 10 minutes ago is still sent, recorded with its device time');
+select is((select (n.message_args ->> 'late') || ':' || ((n.message_args ->> 'called_at')::timestamptz < now() - interval '20 minutes')::text
+           from app.notifications n where n.kind = 'weather.hold' and n.subject_id = pg_temp.id('late_hold') and n.recipient_person_id = pg_temp.id('bob')),
+  'yes:true', 'and its message says when it was called');
+select is((select n.message_args ->> 'late' from app.notifications n where n.kind = 'weather.hold' and n.subject_id = pg_temp.id('hold')
+           and n.recipient_person_id = pg_temp.id('bob')), 'no', 'a hold that arrives in time says nothing more');
+select pg_temp.as_user('carol');
+select throws_ok($$select app.give_weather_all_clear((select id from world where key = 'late_hold'), 'All clear', null, now() - interval '11 minutes')$$,
+  'XR001', 'weather_hold_stale: This all-clear was made more than 10 minutes ago and was not sent. Check the weather and give it again.',
+  'an all-clear made more than 10 minutes before it arrives is refused, so nobody goes back out on a stale one');
+select lives_ok($$select app.give_weather_all_clear((select id from world where key = 'late_hold'), 'All clear: the wind has dropped.')$$,
+  'given again now, it closes the hold');
 select lives_ok($$select app.call_weather_hold((select id from world where key = 'prj_a'), 'Second hold')$$, 'a new hold may be called after the all-clear');
 
 -- Reads and writes ---------------------------------------------------------------------------------------------------------------------
@@ -86,6 +102,8 @@ select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.weather_holds), 0, 'another org reads no holds');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.sync_rpcs where rpc in ('app.call_weather_hold', 'app.give_weather_all_clear')), 2, 'both are in the sync allowlist');
+select is((select count(*)::int from private.trash_excluded_tables where table_name in ('weather_holds', 'weather_message_templates')), 2,
+  'neither holds nor templates are in Trash, each with why');
 
 select * from finish();
 rollback;

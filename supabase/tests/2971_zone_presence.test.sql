@@ -1,8 +1,10 @@
 -- pgTAP: migration 2971 (B8, G-145, G-149), zone presence, live counts and the muster list. Presence by the latest
 -- Granted scan per person; entering zone B leaves A; Out ends presence; scans older than 24 hours and Parking passes are
 -- ignored; a geofenced clock-in places a person unless a scan places them at the same venue; counts split by category
--- and engagement sum to the zone total; guests checked in at doors join the muster list; row level security decides
--- what each reader sees; the backup login reads none of the views; the read stays on recent partitions.
+-- and engagement sum to the zone total; guests checked in at a door or in bulk join the muster list; the readable
+-- columns an export needs are there; row level security decides what each reader sees, and a non-member reads every
+-- column without a crash (ADR 0016 rule 14); the backup login reads none of the views; the read stays on recent
+-- partitions.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -71,8 +73,13 @@ set local session_replication_role = origin;
 select pg_temp.as_user('carol');
 with x as (insert into app.guest_list_entries (project_id, guest_name, plus_ones, entry_state) values (pg_temp.id('prj_a'), 'Sasha Bell', 2, 'Approved') returning id)
   insert into world select 'guest', id from x;
+with x as (insert into app.guest_list_entries (project_id, guest_name, plus_ones, entry_state) values (pg_temp.id('prj_a'), 'Rory Vale', 0, 'Approved') returning id)
+  insert into world select 'guest_bulk', id from x;
 select pg_temp.as_user('frank');
 select app.check_in_guest(pg_temp.id('guest'), 1::smallint, 'North Gate');
+-- A bulk check-in (2151) moves the guest to Checked In with no door check-in row.
+select is(app.bulk_update_guest_list_entries(jsonb_build_array(jsonb_build_object('id', pg_temp.id('guest_bulk'),
+  'set', jsonb_build_object('entry_state', 'Checked In')))) ->> 'changed', '1', 'frank checks a second guest in in bulk');
 
 -- Presence ------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -86,16 +93,28 @@ select is((select row(zone_id = pg_temp.id('zone_a'), source)::text from app.zon
   'a geofence-verified clock-in places dave in the geofence''s zone');
 select is((select credential_category_id from app.zone_presence where person_id = pg_temp.id('bob')), pg_temp.id('cat_prod'), 'a scan row carries its category');
 select is((select venue_id from app.zone_presence where person_id = pg_temp.id('frank')), pg_temp.id('venue_a'), 'and the zone''s venue');
+select is((select row(zone_code, zone_name, category_code, credential_number = (select credential_number from app.credentials where id = pg_temp.id('cred_frank')))::text
+           from app.zone_presence where person_id = pg_temp.id('frank')), '(STG,Stage,CREW,t)',
+  'a row carries the zone code and name, the category code and the credential number, for export');
+select is((select full_name from app.zone_presence where person_id = pg_temp.id('frank')),
+  (select full_name from app.people where id = pg_temp.id('frank')), 'and the name of a member of the reader''s org');
+select is((select row(zone_code, credential_number is null, category_code is null)::text from app.zone_presence where person_id = pg_temp.id('dave')),
+  '(FOH,t,t)', 'a clock-in row carries its zone and no credential');
 
 -- Counts ---------------------------------------------------------------------------------------------------------------------
 select is((select sum(inside)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_a')),
   (select count(*)::int from app.zone_presence where zone_id = pg_temp.id('zone_a') and source = 'Scan'), 'zone A''s rows sum to its scan presence');
 select is((select sum(inside)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_b')), 2, 'zone B counts frank and the gala crew member');
+select is((select string_agg(distinct zone_code || ':' || category_code, ',') from app.zone_counts_live where zone_id = pg_temp.id('zone_b')),
+  'STG:CREW,STG:GALA', 'and names the zone and the categories it counts');
 select is((select count(*)::int from app.zone_counts_live where zone_id = pg_temp.id('zone_b')), 2, 'split by category and project');
 
 -- Muster list ----------------------------------------------------------------------------------------------------------------
-select is((select row(guest_name, plus_ones, door, source, zone_id is null)::text from app.muster_list where guest_name is not null),
+select is((select row(guest_name, plus_ones, door, source, zone_id is null)::text from app.muster_list where guest_name = 'Sasha Bell'),
   '("Sasha Bell",1,"North Gate","Guest Check In",t)', 'a guest checked in at a door joins the muster list with plus-ones and door');
+select is((select row(guest_name, plus_ones, door, source, entered_at = (select checked_in_at from app.guest_list_entries where id = pg_temp.id('guest_bulk')))::text
+           from app.muster_list where guest_name = 'Rory Vale'),
+  '("Rory Vale",,,"Guest Check In",t)', 'a guest checked in in bulk joins it too, at the check-in time, with no door');
 select is((select count(*)::int from app.muster_list where person_id is not null),
   (select count(*)::int from app.zone_presence), 'every present person is on the muster list');
 
@@ -108,10 +127,18 @@ select is((select count(*)::int from app.zone_presence where source = 'Clock In'
   'a Collaborator without crew.time_entry.read sees no clock-in presence');
 select ok((select count(*) from app.zone_presence where source = 'Scan') > 0, 'but sees the scans of a project they are assigned to');
 select pg_temp.as_user('gina');
-select is((select count(*)::int from app.muster_list where source = 'Guest Check In'), 0,
-  'a Viewer without credentials.scan.write sees no guest rows');
+select is((select count(*)::int from app.muster_list where source = 'Guest Check In'),
+  (select count(*)::int from app.guest_list_entries where entry_state = 'Checked In'),
+  'guest rows follow the guest list (advancing.packet.read), not the door check-ins');
+select is((select count(*)::int from app.muster_list where door is not null or plus_ones is not null), 0,
+  'and a Viewer without credentials.scan.write sees no door or plus-ones');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.muster_list), 0, 'another org sees nothing');
+select lives_ok($$select * from app.zone_presence, app.zone_counts_live, app.muster_list$$,
+  'and reads every column of the three views without a crash');
+select pg_temp.as_user('nina');
+select lives_ok($$select count(*) from (select * from app.muster_list union all select * from app.muster_list) x$$,
+  'as does a person with no org');
 select pg_temp.as_anon();
 select throws_ok($$select * from app.zone_presence$$, '42501', null, 'anon cannot read presence');
 select pg_temp.as_platform();

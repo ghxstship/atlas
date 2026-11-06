@@ -10,12 +10,19 @@
 --     private.apply_weather_level, which both call. A station may be miles from the venue, so an NWS reading never
 --     lowers or clears an alert a Manual reading raised; it may only raise it. Manual readings behave exactly as in
 --     0806. Lightning stays manual.
+--   * Wind and Heat observations older than 2 hours are not recorded, so an outage never raises a late alert.
 --   * Official alerts become app.weather_warnings, ended when the NWS cancels them or drops them from the active list.
---     A new Actual alert of severity Extreme or Severe tells the project's alert-role people and dispatchers once
---     (weather.warning).
+--     A CAP Update or Cancel has a new id and references the alerts it replaces: an alert whose references include a
+--     warning recorded for the project ends that warning and tells nobody, since its people were told already. Only
+--     a new Actual alert of severity Extreme or Severe with no recorded reference tells the project's alert-role people
+--     and dispatchers, once (weather.warning).
+--   * A payload with a malformed time or number refuses weather_feed_payload, never a raw 22007.
 --   * app.weather_forecast_periods is a provider cache of the next 48 hours, replaced on each fetch with a hard delete:
 --     no audit trail and never in Trash.
---   * private.weather_feed_runs logs every run, kept 90 days; app.weather_feed_status summarizes it.
+--   * private.weather_feed_runs logs every run, kept 90 days; app.weather_feed_status summarizes it, so app.weather_feeds
+--     keeps no last-success or last-error columns.
+--   * No new table is in Trash (ADR 0110): feeds are turned on and off, warnings and the forecast are the provider's,
+--     and none is deleted or restored by a person.
 
 create type app.weather_provider as enum ('NWS');
 comment on type app.weather_provider is 'Official weather source a project''s feed reads: NWS, the US National Weather Service (api.weather.gov).';
@@ -57,6 +64,9 @@ call private.install_policies('app.weather_feeds',
   $$org_id in (select private.orgs_with_capability('safety.emergency_code.write')) and project_id in (select private.readable_project_ids())$$);
 call private.install_audit_trail('app.weather_feeds');
 call private.install_default_retention('app.weather_feeds');
+insert into private.trash_excluded_tables (table_name, rationale) values
+  ('weather_feeds', 'A project''s feed is turned on and off, never restored: turning it on again creates a new feed.')
+on conflict (table_name) do nothing;
 
 create function private.weather_feed_supported(p_project_id uuid)
 returns boolean
@@ -202,6 +212,9 @@ call private.install_policies('app.weather_warnings', $$project_id in (select pr
 insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
   ('app.weather_warnings', 'Age', 'created_at', interval '2 years', 'Delete', 'Official alerts kept two years with the project''s safety record.')
 on conflict (table_name) do nothing;
+insert into private.trash_excluded_tables (table_name, rationale) values
+  ('weather_warnings', 'Official alerts as the provider issued them, written only by the weather feed; nobody deletes or restores one.')
+on conflict (table_name) do nothing;
 
 create table app.weather_forecast_periods (
   id uuid primary key default private.uuid_v7(),
@@ -239,6 +252,7 @@ on conflict (table_name) do nothing;
 insert into private.trash_excluded_tables (table_name, rationale) values
   ('weather_forecast_periods', 'A provider cache the weather feed replaces on each fetch; nothing a person deletes or restores.')
 on conflict (table_name) do nothing;
+select private.sync_trash_tables();
 
 do $$
 declare
@@ -345,7 +359,40 @@ comment on function app.record_weather_reading(uuid, app.weather_hazard, numeric
 revoke all on function app.record_weather_reading(uuid, app.weather_hazard, numeric, timestamptz) from public, anon;
 grant execute on function app.record_weather_reading(uuid, app.weather_hazard, numeric, timestamptz) to authenticated, service_role;
 
--- The worker (service role) -------------------------------------------------------------------------------------------------------
+-- The worker (service role) ---
+
+-- A time or number of the payload, or weather_feed_payload when the worker sent one Postgres cannot read.
+create function private.weather_feed_time(p_value text)
+returns timestamptz
+language plpgsql
+stable
+set search_path = ''
+as $$
+begin
+  return p_value::timestamptz;
+exception when data_exception then
+  perform private.refuse('weather_feed_payload', 'The weather feed payload is not in the expected shape.');
+  return null;
+end;
+$$;
+comment on function private.weather_feed_time(text) is 'A time of a weather feed payload, NULL for NULL; a malformed one refuses weather_feed_payload instead of a raw 22007.';
+revoke all on function private.weather_feed_time(text) from public, anon, authenticated;
+
+create function private.weather_feed_number(p_value text)
+returns numeric
+language plpgsql
+stable
+set search_path = ''
+as $$
+begin
+  return p_value::numeric;
+exception when data_exception then
+  perform private.refuse('weather_feed_payload', 'The weather feed payload is not in the expected shape.');
+  return null;
+end;
+$$;
+comment on function private.weather_feed_number(text) is 'A number of a weather feed payload, NULL for NULL; a malformed one refuses weather_feed_payload instead of a raw 22P02.';
+revoke all on function private.weather_feed_number(text) from public, anon, authenticated;----------------------------------------------------------------------------------------------------
 
 create function app.record_weather_feed_failure(p_feed_id uuid, p_error text)
 returns void
@@ -426,6 +473,7 @@ declare
   v_alert jsonb;
   v_warning app.weather_warnings;
   v_new boolean;
+  v_replaces boolean;
   v_person uuid;
   v_ids text[] := '{}';
   v_notified integer := 0;
@@ -452,10 +500,12 @@ begin
 
   -- Readings: Wind in mph and Heat in °F, converted by the worker from the observation's units.
   if jsonb_typeof(v_obs) = 'object' and v_obs ->> 'observed_at' is not null then
-    v_observed := (v_obs ->> 'observed_at')::timestamptz;
+    v_observed := private.weather_feed_time(v_obs ->> 'observed_at');
     foreach v_hazard in array array['Wind', 'Heat']::app.weather_hazard[] loop
-      v_value := (v_obs ->> case v_hazard when 'Wind' then 'wind_mph' else 'heat_f' end)::numeric;
-      continue when v_value is null or v_value < 0 or v_value > 200 or v_observed > now() + interval '5 minutes';
+      v_value := private.weather_feed_number(v_obs ->> case v_hazard when 'Wind' then 'wind_mph' else 'heat_f' end);
+      -- An observation more than 2 hours old is history, not a reading: an outage never raises a late alert.
+      continue when v_value is null or v_value < 0 or v_value > 200 or v_observed > now() + interval '5 minutes'
+        or v_observed < now() - interval '2 hours';
       continue when exists (select 1 from app.weather_readings r where r.project_id = v_feed.project_id and r.hazard = v_hazard
                             and r.source = 'NWS' and r.observed_at >= v_observed);
       insert into app.weather_readings (project_id, hazard, reading_value, observed_at, source)
@@ -480,23 +530,29 @@ begin
           case when v_alert ->> 'severity' in ('Extreme', 'Severe', 'Moderate', 'Minor') then v_alert ->> 'severity' else 'Unknown' end,
           left(v_alert ->> 'certainty', 40), left(v_alert ->> 'urgency', 40), left(v_alert ->> 'headline', 300),
           left(v_alert ->> 'description', 4000), left(v_alert ->> 'instruction', 2000),
-          (v_alert ->> 'onset')::timestamptz, (v_alert ->> 'expires')::timestamptz, (v_alert ->> 'ends')::timestamptz,
-          (v_alert ->> 'sent')::timestamptz, case when v_alert ->> 'message_type' = 'Cancel' then now() end)
+          private.weather_feed_time(v_alert ->> 'onset'), private.weather_feed_time(v_alert ->> 'expires'),
+          private.weather_feed_time(v_alert ->> 'ends'), private.weather_feed_time(v_alert ->> 'sent'),
+          case when v_alert ->> 'message_type' = 'Cancel' then now() end)
         returning * into v_warning;
       else
         update app.weather_warnings set headline = left(v_alert ->> 'headline', 300), description = left(v_alert ->> 'description', 4000),
-          instruction = left(v_alert ->> 'instruction', 2000), expires_at = (v_alert ->> 'expires')::timestamptz,
-          ends_at = (v_alert ->> 'ends')::timestamptz,
+          instruction = left(v_alert ->> 'instruction', 2000), expires_at = private.weather_feed_time(v_alert ->> 'expires'),
+          ends_at = private.weather_feed_time(v_alert ->> 'ends'),
           ended_at = case when v_alert ->> 'message_type' = 'Cancel' then coalesce(ended_at, now()) else ended_at end
         where id = v_warning.id;
       end if;
-      if v_alert ->> 'message_type' = 'Cancel' and jsonb_typeof(v_alert -> 'references') = 'array' then
+      -- An Update or Cancel names the alerts it replaces: they end, and the people they told are not told again.
+      v_replaces := jsonb_typeof(v_alert -> 'references') = 'array' and exists (
+        select 1 from app.weather_warnings w
+        where w.project_id = v_feed.project_id and w.id <> v_warning.id
+          and w.provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references')));
+      if v_replaces then
         update app.weather_warnings set ended_at = now()
-        where project_id = v_feed.project_id and ended_at is null
+        where project_id = v_feed.project_id and ended_at is null and id <> v_warning.id
           and provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references'));
       end if;
-      if v_new and coalesce(v_alert ->> 'status', 'Actual') = 'Actual' and coalesce(v_alert ->> 'message_type', 'Alert') <> 'Cancel'
-         and v_warning.severity in ('Extreme', 'Severe') then
+      if v_new and not v_replaces and coalesce(v_alert ->> 'status', 'Actual') = 'Actual'
+         and coalesce(v_alert ->> 'message_type', 'Alert') <> 'Cancel' and v_warning.severity in ('Extreme', 'Severe') then
         for v_person in
           select distinct ra.person_id from app.role_assignments ra
           join app.weather_alert_roles r on r.project_id = ra.project_id and r.role_code = ra.role_code and r.deleted_at is null
@@ -520,16 +576,17 @@ begin
     delete from app.weather_forecast_periods w where w.project_id = v_feed.project_id;
     insert into app.weather_forecast_periods (project_id, provider, starts_at, ends_at, temperature_f, wind_speed_mph,
       precipitation_percent, short_forecast)
-    select v_feed.project_id, 'NWS', (x ->> 'starts_at')::timestamptz, (x ->> 'ends_at')::timestamptz,
-      (x ->> 'temperature_f')::numeric, (x ->> 'wind_speed_mph')::numeric,
-      case when (x ->> 'precipitation_percent')::numeric between 0 and 100 then round((x ->> 'precipitation_percent')::numeric)::smallint end,
-      left(x ->> 'short_forecast', 200)
-    from (select x from jsonb_array_elements(p_payload -> 'forecast') with ordinality t (x, n)
-          where x ->> 'starts_at' is not null and x ->> 'ends_at' is not null
-            and (x ->> 'ends_at')::timestamptz > (x ->> 'starts_at')::timestamptz
-            and (x ->> 'ends_at')::timestamptz > now()
-          order by (x ->> 'starts_at')::timestamptz
-          limit 48) f;
+    select v_feed.project_id, 'NWS', f.starts_at, f.ends_at,
+      private.weather_feed_number(f.x ->> 'temperature_f'), private.weather_feed_number(f.x ->> 'wind_speed_mph'),
+      case when private.weather_feed_number(f.x ->> 'precipitation_percent') between 0 and 100
+           then round(private.weather_feed_number(f.x ->> 'precipitation_percent'))::smallint end,
+      left(f.x ->> 'short_forecast', 200)
+    from (select t.x, private.weather_feed_time(t.x ->> 'starts_at') as starts_at, private.weather_feed_time(t.x ->> 'ends_at') as ends_at
+          from jsonb_array_elements(p_payload -> 'forecast') with ordinality t (x, n)
+          where t.x ->> 'starts_at' is not null and t.x ->> 'ends_at' is not null) f
+    where f.ends_at > f.starts_at and f.ends_at > now()
+    order by f.starts_at
+    limit 48;
     get diagnostics v_forecast = row_count;
   end if;
 
@@ -538,7 +595,7 @@ begin
   return jsonb_build_object('readings', v_readings, 'warnings', cardinality(v_ids), 'notified', v_notified, 'forecast_periods', v_forecast);
 end;
 $$;
-comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200 and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the active alerts upserted by the provider''s id, a Cancel or an alert missing from the active list ending them, and a new Actual Extreme or Severe alert telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. Returns counts.';
+comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200, at most 2 hours old and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the active alerts upserted by the provider''s id, a Cancel, an Update that references them or their absence from the active list ending them, and a new Actual Extreme or Severe alert that replaces no recorded warning telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. A malformed time or number refuses weather_feed_payload. Returns counts.';
 revoke all on function app.record_weather_feed(uuid, jsonb) from public, anon, authenticated;
 grant execute on function app.record_weather_feed(uuid, jsonb) to service_role;
 

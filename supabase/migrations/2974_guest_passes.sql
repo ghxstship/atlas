@@ -13,8 +13,13 @@
 --     (guest_entry_stamped). Declined is reachable only from Requested, which has no code.
 --   * app.request_engaged_guest (from R9 2715) and api_public.request_advance_guest (from R10 2731) take the guest's
 --     email (guest_email_format before the insert, so the table check never surfaces as a raw 23514).
---   * app.door_guest_list (from 0806) returns the pass and finds a guest by the exact pass code; app.check_in_guest
---     (from 0806) tells the host their guest arrived (guest.arrived), unless the host checked them in.
+--   * app.door_guest_list (from 0806) returns the pass and the host's name (door staff may not read people) and finds a
+--     guest by the exact pass code. The host hears their guest arrived (guest.arrived) from t90_guest_list_arrival, an
+--     after-update trigger on the move from Approved to Checked In, so a door check-in (app.check_in_guest, from 0806)
+--     and a bulk check-in (2151) both tell them, once; not when the host is the one who checked the guest in.
+--   * A guest pass is not a ticket (S17-10): it sells nothing and admits only through the guest list at the door. The
+--     party reads of the guest list (0965 app.engaged_guest_list, the Gateway) return neither the pass code nor the
+--     guest's email.
 --   * The import worker (P3) fills guest_email and table_label.
 
 -- Columns ---------------------------------------------------------------------------------------------------------------
@@ -25,7 +30,7 @@ alter table app.guest_list_entries
   add column host_person_id uuid references app.people (id),
   add column guest_email text,
   add column pass_code text,
-  add constraint guest_list_entries_table_label_length check (table_label is null or char_length(btrim(table_label)) between 1 and 40),
+  add constraint guest_list_entries_table_label_length check (table_label is null or char_length(btrim(table_label)) between 1 and 60),
   add constraint guest_list_entries_guest_email check (guest_email is null or (guest_email = lower(guest_email)
     and guest_email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' and char_length(guest_email) <= 320)),
   add constraint guest_list_entries_pass_code_format check (pass_code is null or pass_code ~ '^GP-[A-Z2-7]{10}$');
@@ -35,7 +40,7 @@ create index guest_list_entries_host_person_id_idx on app.guest_list_entries (ho
 create unique index guest_list_entries_pass_code_key on app.guest_list_entries (org_id, pass_code) where pass_code is not null;
 
 comment on column app.guest_list_entries.pass_category_id is 'Pass type: an Access credential category of the same project, such as GUEST or VIP. Set by the production, never by a party.';
-comment on column app.guest_list_entries.table_label is 'Table or seat, 1 to 40 characters. Set by the production.';
+comment on column app.guest_list_entries.table_label is 'Table or seat, 1 to 60 characters. Set by the production.';
 comment on column app.guest_list_entries.host_person_id is 'Project person hosting the guest: a current member of the org or the person on a live engagement of the project. Told when the guest arrives.';
 comment on column app.guest_list_entries.guest_email is 'Lowercased email address the guest''s pass and messages go to. Confidential.';
 comment on column app.guest_list_entries.pass_code is 'Pass code GP- and 10 random base32 characters, unique in the org, stamped by the database when the guest is approved; the pass prints it as XOSGP1:<code>.';
@@ -377,7 +382,8 @@ returns table (
   pass_category_code text,
   pass_category_name text,
   table_label text,
-  host_person_id uuid
+  host_person_id uuid,
+  host_name text
 )
 language plpgsql
 stable
@@ -391,17 +397,18 @@ begin
   end if;
   return query
     select g.id, g.guest_name, g.plus_ones, g.entry_state, g.note, g.checked_in_at, c.plus_ones_admitted, c.door,
-      g.pass_code, k.code, k.name, g.table_label, g.host_person_id
+      g.pass_code, k.code, k.name, g.table_label, g.host_person_id, h.full_name
     from app.guest_list_entries g
     left join app.guest_check_ins c on c.guest_list_entry_id = g.id
     left join app.credential_categories k on k.id = g.pass_category_id
+    left join app.people h on h.id = g.host_person_id
     where g.project_id = p_project_id and g.deleted_at is null and g.entry_state in ('Approved', 'Checked In')
       and (coalesce(btrim(p_search), '') = '' or g.guest_name ilike '%' || btrim(p_search) || '%'
            or g.pass_code = upper(btrim(p_search)))
     order by g.entry_state, g.guest_name;
 end;
 $$;
-comment on function app.door_guest_list(uuid, text) is 'The door list of a project for door staff (credentials.scan.write): approved and checked-in guests with plus-ones, pass type, table and host, filtered by name or found by the exact pass code.';
+comment on function app.door_guest_list(uuid, text) is 'The door list of a project for door staff (credentials.scan.write): approved and checked-in guests with plus-ones, pass type, table and host (with the host''s name, since door staff may not read people), filtered by name or found by the exact pass code.';
 revoke all on function app.door_guest_list(uuid, text) from public, anon;
 grant execute on function app.door_guest_list(uuid, text) to authenticated, service_role;
 
@@ -449,25 +456,52 @@ begin
       perform private.refuse('guest_credential_holder', 'That credential belongs to someone else.');
     end if;
   end if;
-  update app.guest_list_entries set entry_state = 'Checked In' where id = p_guest_list_entry_id;
+  -- The door check-in is written before the state moves, so t90_guest_list_arrival tells the host the door.
   insert into app.guest_check_ins (guest_list_entry_id, plus_ones_admitted, credential_id, door, checked_in_by_membership_id)
   values (p_guest_list_entry_id, coalesce(p_plus_ones_admitted, 0), v_credential.id, nullif(btrim(p_door), ''),
     private.my_membership_in(v_entry.org_id))
   returning id into v_id;
+  update app.guest_list_entries set entry_state = 'Checked In' where id = p_guest_list_entry_id;
   perform private.emit_event(v_entry.org_id, 'guest.checked_in_at_door', 'guest_check_ins', v_id, v_entry.project_id,
     jsonb_build_object('plus_ones_admitted', coalesce(p_plus_ones_admitted, 0), 'credential_scanned', v_credential.id is not null));
-  if v_entry.host_person_id is not null and v_entry.host_person_id is distinct from private.current_person_id() then
-    perform private.notify(v_entry.org_id, v_entry.host_person_id, 'guest.arrived', 'app.guest_list_entries', v_entry.id,
-      v_entry.project_id, jsonb_build_object('guest_name', v_entry.guest_name, 'plus_ones_admitted', coalesce(p_plus_ones_admitted, 0),
-        'door', coalesce(nullif(btrim(p_door), ''), ''), 'has_door', case when nullif(btrim(p_door), '') is null then 'no' else 'yes' end,
-        'table_label', coalesce(v_entry.table_label, ''), 'has_table', case when v_entry.table_label is null then 'no' else 'yes' end));
-  end if;
   return v_id;
 end;
 $$;
-comment on function app.check_in_guest(uuid, smallint, text, text) is 'Checks an approved guest in at a door (credentials.scan.write on the project) with up to their listed plus-ones and an optional credential scan, which must be valid now, on the project and the guest''s own. Tells the guest''s host (guest.arrived), unless the host is the one checking them in. Returns the check-in id.';
+comment on function app.check_in_guest(uuid, smallint, text, text) is 'Checks an approved guest in at a door (credentials.scan.write on the project) with up to their listed plus-ones and an optional credential scan, which must be valid now, on the project and the guest''s own. The host hears through t90_guest_list_arrival (guest.arrived). Returns the check-in id.';
 revoke all on function app.check_in_guest(uuid, smallint, text, text) from public, anon;
 grant execute on function app.check_in_guest(uuid, smallint, text, text) to authenticated, service_role;
+
+-- The host hears their guest arrived -------------------------------------------------------------------------------------
+
+create function private.notify_guest_arrived()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_check app.guest_check_ins;
+  v_plus integer;
+begin
+  if new.host_person_id is null or new.host_person_id is not distinct from new.checked_in_by then
+    return null;
+  end if;
+  -- A door check-in names the door and the plus-ones admitted; a bulk check-in (2151) admits the guest as listed.
+  select * into v_check from app.guest_check_ins c where c.guest_list_entry_id = new.id and c.deleted_at is null;
+  v_plus := coalesce(v_check.plus_ones_admitted, new.plus_ones);
+  perform private.notify(new.org_id, new.host_person_id, 'guest.arrived', 'app.guest_list_entries', new.id, new.project_id,
+    jsonb_build_object('guest_name', new.guest_name, 'plus_ones_admitted', v_plus,
+      'door', coalesce(v_check.door, ''), 'has_door', case when v_check.door is null then 'no' else 'yes' end,
+      'table_label', coalesce(new.table_label, ''), 'has_table', case when new.table_label is null then 'no' else 'yes' end));
+  return null;
+end;
+$$;
+comment on function private.notify_guest_arrived() is 'Tells the host of a guest that the guest arrived (guest.arrived), on the move from Approved to Checked In, whether at a door (app.check_in_guest, with the door and plus-ones admitted) or in bulk (2151, with the listed plus-ones); not when the host checked the guest in.';
+revoke all on function private.notify_guest_arrived() from public, anon, authenticated;
+
+create trigger t90_guest_list_arrival after update of entry_state on app.guest_list_entries
+  for each row when (old.entry_state = 'Approved' and new.entry_state = 'Checked In')
+  execute function private.notify_guest_arrived();
 
 -- Import fields (P3) -----------------------------------------------------------------------------------------------------
 

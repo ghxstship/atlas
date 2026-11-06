@@ -1,6 +1,6 @@
--- pgTAP: migration 2972 (B8, G-148), training required before a badge. A course requirement is met by a passed,
--- unexpired completion through a membership of the org; a certification requirement by a live, unexpired
--- certification a verifier recorded, for members and non-members alike. An unmet requirement blocks a direct issue and
+-- pgTAP: migration 2972 (B8, G-148), training required before a badge. Only a Published course can be required. A
+-- course requirement is met by a passed, unexpired completion through a membership of the org, current or ended; a
+-- certification requirement by a live, unexpired certification a verifier recorded, for members and non-members alike. An unmet requirement blocks a direct issue and
 -- app.issue_allocation; credential_issue_check lists it; existing credentials are untouched; requirements follow row
 -- level security and stay in one org.
 begin;
@@ -15,6 +15,13 @@ select no_plan();
 -- Fixture: a published course, a certification, a category with an existing badge ---------------------------------------
 select pg_temp.as_platform();
 with x as (insert into app.training_courses (org_id, title) values (pg_temp.id('org_a'), 'Rigging Safety') returning id) insert into world select 'course', id from x;
+with x as (insert into app.training_courses (org_id, title) values (pg_temp.id('org_a'), 'Crowd Basics') returning id) insert into world select 'draft_course', id from x;
+with x as (insert into app.training_courses (org_id, title) values (pg_temp.id('org_a'), 'Old Rigging') returning id) insert into world select 'retired_course', id from x;
+-- Publishing needs lessons (0804); the fixture sets the states directly.
+set local session_replication_role = replica;
+update app.training_courses set course_state = 'Published' where id = pg_temp.id('course');
+update app.training_courses set course_state = 'Retired' where id = pg_temp.id('retired_course');
+set local session_replication_role = origin;
 select pg_temp.as_user('carol');
 with x as (insert into app.certifications (org_id, name, issuing_body) values (pg_temp.id('org_a'), 'Site Induction', 'Northwind Live') returning id) insert into world select 'cert', id from x;
 with x as (insert into app.credential_categories (project_id, code, name) values (pg_temp.id('prj_a'), 'RIG', 'Riggers') returning id) insert into world select 'cat_rig', id from x;
@@ -37,6 +44,12 @@ select throws_ok($$insert into app.credential_category_requirements (credential_
 select throws_ok($$insert into app.credential_category_requirements (credential_category_id, training_course_id)
   values ((select id from world where key = 'cat_rig'), (select id from world where key = 'course'))$$,
   '23505', null, 'a course is required once per category');
+select throws_ok($$insert into app.credential_category_requirements (credential_category_id, training_course_id)
+  values ((select id from world where key = 'cat_rig'), (select id from world where key = 'draft_course'))$$,
+  'XR001', 'credential_requirement_course_state: Only a published training course can be required.', 'a Draft course cannot be required');
+select throws_ok($$insert into app.credential_category_requirements (credential_category_id, training_course_id)
+  values ((select id from world where key = 'cat_rig'), (select id from world where key = 'retired_course'))$$,
+  'XR001', 'credential_requirement_course_state: Only a published training course can be required.', 'nor a Retired one');
 select pg_temp.as_user('dave');
 select is((select count(*)::int from app.credential_category_requirements where credential_category_id in (pg_temp.id('cat_rig'), pg_temp.id('cat_ind'))), 2,
   'a project member with credentials.credential.read sees the requirements');
@@ -50,8 +63,8 @@ select is((select org_id from app.credential_category_requirements where id = pg
 select is((select count(*)::int from app.credentials where id = pg_temp.id('old_badge') and revoked_at is null), 1, 'a badge issued before the requirement is untouched');
 select pg_temp.as_user('carol');
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_rig'), (select id from world where key = 'frank'))$$,
-  'XR001', 'credential_training_incomplete: The holder has not completed 1 of the training or certifications this category requires.',
-  'a member with no completion of the course is refused');
+  'XR001', 'credential_training_incomplete: The holder has not met what this category requires: Rigging Safety.',
+  'a member with no completion of the course is refused, naming the course');
 select is((select string_agg(check_code || ':' || blocking::text || ':' || title, ',') from app.credential_issue_check(pg_temp.id('cat_rig'), pg_temp.id('frank'))),
   'training_missing:true:Rigging Safety', 'the issue check lists the unmet course as blocking');
 
@@ -75,6 +88,17 @@ select throws_ok($$insert into app.credentials (credential_category_id, holder_p
 select pg_temp.as_user('frank');
 select throws_ok($$select * from app.credential_issue_check((select id from world where key = 'cat_rig'), (select id from world where key = 'dave'))$$,
   '42501', null, 'the issue check needs credentials.credential.issue');
+
+-- A completion through a membership that has since ended still counts; the completion's own expiry governs.
+select pg_temp.as_platform();
+set local session_replication_role = replica;
+update app.memberships set valid_from = now() - interval '90 days', valid_to = now() - interval '1 day' where id = pg_temp.id('mia@org_a');
+insert into app.training_completions (org_id, training_course_id, membership_id, passed, certificate_number, expires_at, completed_at)
+values (pg_temp.id('org_a'), pg_temp.id('course'), pg_temp.id('mia@org_a'), true, 'TRN-9003', null, now() - interval '60 days');
+set local session_replication_role = origin;
+select pg_temp.as_user('carol');
+select lives_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_rig'), (select id from world where key = 'mia'))$$,
+  'a completion through an ended membership meets the course requirement');
 
 -- A certification requirement, met by a non-member --------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -108,7 +132,7 @@ select pg_temp.as_user('carol');
 select is((select string_agg(check_code, ',') from app.credential_issue_check(pg_temp.id('cat_crew'), pg_temp.id('kai'))), 'training_missing',
   'the issue check lists the certification kai lacks');
 select throws_ok(format($$select app.issue_allocation('01920000-0000-7000-8972-000000000001', %L, '[{}]')$$, pg_temp.id('badge')),
-  'XR001', 'credential_training_incomplete: The holder has not completed 1 of the training or certifications this category requires.',
+  'XR001', 'credential_training_incomplete: The holder has not met what this category requires: Site Induction.',
   'an Approved badge allocation is not issued before the requirement is met');
 insert into app.certification_holders (certification_id, person_id, issued_on) values (pg_temp.id('cert'), pg_temp.id('kai'), current_date);
 select is((app.issue_allocation('01920000-0000-7000-8972-000000000002', pg_temp.id('badge'), '[{}]')) ->> 'outcome', 'applied',
@@ -116,7 +140,9 @@ select is((app.issue_allocation('01920000-0000-7000-8972-000000000002', pg_temp.
 
 -- The helpers are internal ------------------------------------------------------------------------------------------------------
 -- Callers reach the requirements through app.credential_issue_check and app.credential_review (2973), which check the
--- project first; neither helper is granted to them.
+-- project first; neither helper is granted to them. The check runs as the platform role, since naming a private function
+-- needs usage on the schema, which callers lack.
+select pg_temp.as_platform();
 select ok(not has_function_privilege('authenticated', 'private.credential_requirements_missing(uuid, uuid, timestamptz)', 'execute')
   and not has_function_privilege('authenticated', 'private.credential_requirements_state(uuid, uuid, timestamptz)', 'execute'),
   'the requirement helpers are not granted to callers');
