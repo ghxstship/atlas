@@ -34,7 +34,7 @@ test("the unsubscribe page asks before it stops a guest's emails (B8)", async ({
   );
   const token = claimed.find((c) => c.guest_list_entry_id === entry?.id)?.unsubscribe_token;
   expect(send?.id).toBeTruthy();
-  expect(token).toMatch(/^xgue_[0-9a-f]{64}$/);
+  expect(token).toMatch(/^xgue_[0-9a-f]{32}\.[0-9a-f]{32}$/);
   const suppressed = async () =>
     (
       await sql<{ n: number }>(
