@@ -9,3 +9,5 @@ order: 1
 Search the guest list, choose an approved guest and **Check In**. Set how many plus-ones come in with them, then **Confirm Check-In**.
 
 Checked-in guests show when and at which door they came in. Check-ins work offline.
+
+Scan a guest's pass, or type the code printed on it, to open that guest with their pass type, table and host. A pass that is not on tonight's list says so. When a guest checks in, their host hears that they arrived.

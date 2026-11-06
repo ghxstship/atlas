@@ -278,6 +278,7 @@ const guest = (over: Partial<DoorGuest> = {}): DoorGuest => ({
   passCategoryName: null,
   tableLabel: null,
   hostPersonId: null,
+  hostName: null,
   ...over,
 });
 

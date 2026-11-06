@@ -124,8 +124,8 @@ export type ScanCode =
 /** Credential QR: the printed number (CR-000123) or the wallet form XOSCR1:<number>. */
 const CREDENTIAL = /^(?:XOSCR1:)?(CR-\d{6,})$/;
 const LOT = /^LOT:([0-9a-f-]{36})$/i;
-/** Guest pass QR (B8, the guest-pass document): XOSGP1:GP- and 10 base32 characters. */
-const GUEST_PASS = /^XOSGP1:(GP-[A-Z2-7]{10})$/;
+/** Guest pass QR (B8, the guest-pass document): XOSGP1:GP- and 10 base32 characters, or the code as printed. */
+const GUEST_PASS = /^(?:XOSGP1:)?(GP-[A-Z2-7]{10})$/;
 
 export function classify(raw: string, symbology: Symbology | null): ScanCode {
   const value = raw.trim();
@@ -323,7 +323,8 @@ export function canOverride(
     decision.result === "Denied" &&
     decision.reason !== "revoked" &&
     decision.reason !== "unknown" &&
-    capabilities?.has("credentials.credential.issue") === true
+    capabilities?.has("credentials.credential.issue") === true &&
+    capabilities.has("credentials.scan_log.read")
   );
 }
 

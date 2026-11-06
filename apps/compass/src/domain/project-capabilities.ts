@@ -3,13 +3,16 @@ import { useCompass } from "../runtime/CompassProvider";
 
 /**
  * The capabilities on the chosen project that decide which B8 controls Compass offers (ADR 0147): Override at the
- * gate (credentials.credential.issue) and Call hold and All clear on Weather (safety.incident.dispatch). Read online
+ * gate (credentials.credential.issue with credentials.scan_log.read, as app.override_access_scan asks), Inside now
+ * (credentials.scan_log.read, which the counts are read under) and Call hold and All clear on Weather
+ * (safety.incident.dispatch). Read online
  * once per project for the session (app.my_capabilities_on_project, 0470) and kept for it, so a device that goes
  * offline later still offers them. Without an answer (offline from the start) they are not offered. The server checks
  * each queued call again.
  */
 export const PROJECT_CAPABILITIES = [
   "credentials.credential.issue",
+  "credentials.scan_log.read",
   "safety.incident.dispatch",
 ] as const;
 

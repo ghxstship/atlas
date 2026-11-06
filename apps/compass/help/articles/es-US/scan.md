@@ -17,6 +17,14 @@ Escanear es el botón elevado del centro de la barra de pestañas. Elige un modo
 
 Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código, o tocar **Leer etiqueta NFC** y acercar una credencial, pulsera o etiqueta a la parte superior del teléfono. En Consulta, **Grabar en una etiqueta NFC** pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.
 
+## Entrada y Salida
+
+En el modo Acreditación, elige **Entrada** o **Salida** para el punto de acceso. La salida nunca se niega. Un escaneo denegado dice por qué.
+
+Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece **Anular** 15 minutos: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.
+
+**Adentro ahora** cuenta quién entró con escaneo en el punto. Requiere el registro de escaneos.
+
 ## Tu credencial
 
 Si escaneas tu propia credencial en los accesos, Escanear muestra **Mi credencial** con la pantalla más brillante. Los artistas también ven las credenciales de su grupo. Los proveedores ven sus turnos de muelle, y el equipo técnico ve los equipos que tiene asignados.

@@ -225,8 +225,10 @@ const TECHNICAL =
  */
 /**
  * Refusals of B8's queued gate overrides and weather holds (2970, 2977) that Compass words itself, in the device's
- * language: the server may decide Granted where the device decided Denied, and a hold made offline too long ago is
- * refused rather than sent late.
+ * language. A hold made offline is sent however late it arrives (a late stop-work errs safe), but an all-clear made
+ * more than 10 minutes before it arrives is refused rather than sent late. An override the server no longer needs
+ * (scan_not_denied) never reaches the queue as a refusal: the uploader drops it with an informational line
+ * (domain/settled-notes.ts).
  */
 const RULE_KEYS: Readonly<Record<string, string>> = {
   scan_not_denied: "refusedScanNotDenied",

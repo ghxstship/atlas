@@ -119,6 +119,10 @@ describe("classifying scans", () => {
       kind: "guest-pass",
       passCode: "GP-ABCDEFGHIJ",
     });
+    expect(classify("GP-ABCDEFGHIJ", "code128")).toEqual({
+      kind: "guest-pass",
+      passCode: "GP-ABCDEFGHIJ",
+    });
     expect(classify("XOSGP1:GP-ABCDEFGHI1", "qr")).toEqual({
       kind: "code",
       value: "XOSGP1:GP-ABCDEFGHI1",
@@ -290,15 +294,12 @@ describe("gate decisions", () => {
       p_reason: "Escorted by the stage manager",
       p_id: "o1",
     });
-    expect(canOverride(denied, new Set(["credentials.credential.issue"]))).toBe(true);
+    const both = new Set(["credentials.credential.issue", "credentials.scan_log.read"]);
+    expect(canOverride(denied, both)).toBe(true);
+    expect(canOverride(denied, new Set(["credentials.credential.issue"]))).toBe(false);
     expect(canOverride(denied, new Set(["credentials.scan.write"]))).toBe(false);
     expect(canOverride(denied, null)).toBe(false);
-    expect(
-      canOverride(
-        decideGate("CR-999999", "nowhere", [cred()], grid, now),
-        new Set(["credentials.credential.issue"]),
-      ),
-    ).toBe(false);
+    expect(canOverride(decideGate("CR-999999", "nowhere", [cred()], grid, now), both)).toBe(false);
   });
 });
 

@@ -1409,6 +1409,44 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " puts a found item's asset tag on a blank NFC sticker." },
             ],
           },
+          { t: "h2", v: "In and Out" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "In Credential mode, choose " },
+              { t: "strong", v: "In" },
+              { t: "text", v: " or " },
+              { t: "strong", v: "Out" },
+              {
+                t: "text",
+                v: " for the access point. Out is never refused. A denied scan says why.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If you may issue badges and read the scan log, a denial other than a revoked badge offers ",
+              },
+              { t: "strong", v: "Override" },
+              {
+                t: "text",
+                v: " for 15 minutes: say why, then confirm. Offline, it waits after the scan; if the scan uploads as granted, the queue says the override was not needed.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Inside now" },
+              {
+                t: "text",
+                v: " counts the people scanned in at the access point. It needs the scan log.",
+              },
+            ],
+          },
           { t: "h2", v: "Your badge" },
           {
             t: "p",
@@ -2720,6 +2758,15 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Scan a guest's pass, or type the code printed on it, to open that guest with their pass type, table and host. A pass that is not on tonight's list says so. When a guest checks in, their host hears that they arrived.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -3100,6 +3147,31 @@ export const COMPASS_HELP: HelpContent = {
             ],
           },
           { t: "p", c: [{ t: "text", v: "Thresholds are set in Atlas." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "For a US venue with the official feed on, Weather also shows the National Weather Service warnings for the venue.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "A dispatcher can " },
+              { t: "strong", v: "Call hold" },
+              {
+                t: "text",
+                v: ": write or keep the message and send it. It reaches the alert-role people, the dispatchers and everyone inside the project's zones. ",
+              },
+              { t: "strong", v: "All clear" },
+              {
+                t: "text",
+                v: " ends it. Offline, both wait in the Offline Queue. A hold sent late still goes out and says when you called it; an all-clear that reaches the server more than 10 minutes after you gave it is not sent, so check the weather and give it again.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -4588,6 +4660,44 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          { t: "h2", v: "Entrada y Salida" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "En el modo Acreditación, elige " },
+              { t: "strong", v: "Entrada" },
+              { t: "text", v: " o " },
+              { t: "strong", v: "Salida" },
+              {
+                t: "text",
+                v: " para el punto de acceso. La salida nunca se niega. Un escaneo denegado dice por qué.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece ",
+              },
+              { t: "strong", v: "Anular" },
+              {
+                t: "text",
+                v: " 15 minutos: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Adentro ahora" },
+              {
+                t: "text",
+                v: " cuenta quién entró con escaneo en el punto. Requiere el registro de escaneos.",
+              },
+            ],
+          },
           { t: "h2", v: "Tu credencial" },
           {
             t: "p",
@@ -5959,6 +6069,15 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Escanea el pase de un invitado, o escribe el código impreso en él, para abrir a ese invitado con su tipo de pase, su mesa y su anfitrión. Un pase que no está en la lista de esta noche lo indica. Cuando un invitado se registra, su anfitrión recibe aviso de que llegó.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -6375,6 +6494,31 @@ export const COMPASS_HELP: HelpContent = {
             ],
           },
           { t: "p", c: [{ t: "text", v: "Los umbrales se definen en Atlas." }] },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "En un recinto de EE. UU. con el servicio oficial activado, Clima también muestra los avisos del Servicio Meteorológico Nacional para el recinto.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Quien despacha puede elegir " },
+              { t: "strong", v: "Suspender por clima" },
+              {
+                t: "text",
+                v: ": escribe o deja el mensaje y envíalo. Llega a las personas de los roles de alerta, a quienes despachan y a todos los que están dentro de las zonas del proyecto. ",
+              },
+              { t: "strong", v: "Fin de la suspensión" },
+              {
+                t: "text",
+                v: " la termina. Sin conexión, ambos esperan en la Cola sin conexión. Una suspensión que llega tarde se envía igual y dice cuándo la declaraste; un fin de suspensión que llega al servidor más de 10 minutos después de darlo no se envía, así que revisa el clima y dalo de nuevo.",
+              },
+            ],
+          },
         ],
       },
       {

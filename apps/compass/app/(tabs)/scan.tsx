@@ -264,16 +264,18 @@ function LiveScan({
     setDirectionState(zoneId ? (directionByZone.get(zoneId) ?? "In") : "In");
   }, [zoneId]);
   // Override (B8, 2970): offered after a denial other than revoked, to a person who holds credentials.credential.issue
-  // on the project by the answer read online once per project.
+  // and credentials.scan_log.read on the project by the answer read online once per project.
   const capabilities = useProjectCapabilities(projectId);
   const [denied, setDenied] = useState<Denied | null>(null);
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideReason, setOverrideReason] = useState("");
-  // Inside now for the chosen zone (app.zone_counts_live), read online after each scan; hidden offline.
+  // Inside now for the chosen zone (app.zone_counts_live), read online after each scan; hidden offline and from anyone
+  // without credentials.scan_log.read, under which the counts are read.
   const [inside, setInside] = useState<number | null>(null);
   const [insideTick, setInsideTick] = useState(0);
+  const readsScanLog = capabilities?.has("credentials.scan_log.read") === true;
   useEffect(() => {
-    if (grant.mode !== "credential" || !projectId || !zoneId) {
+    if (grant.mode !== "credential" || !projectId || !zoneId || !readsScanLog) {
       setInside(null);
       return;
     }
@@ -284,7 +286,7 @@ function LiveScan({
     return () => {
       live = false;
     };
-  }, [client, grant.mode, projectId, zoneId, insideTick]);
+  }, [client, grant.mode, projectId, zoneId, insideTick, readsScanLog]);
   const batch = useRef(new ContinuousScan());
   const [count, setCount] = useState(0);
   // NFC beside the camera (A92): a tag held to the phone is one more code. Lookup can also write a found
@@ -597,9 +599,14 @@ function LiveScan({
             onChange={(value) => setDirection(value === "Out" ? "Out" : "In")}
           />
           {inside !== null ? (
-            <Text variant="label13" tone="secondary" testID="scan-inside-now">
-              {t("compass.scan.insideNow", { count: inside })}
-            </Text>
+            <>
+              <Text variant="label13" tone="secondary" testID="scan-inside-now">
+                {t("compass.scan.insideNow", { count: inside })}
+              </Text>
+              <Text variant="text13" tone="tertiary">
+                {t("compass.scan.insideNowNote")}
+              </Text>
+            </>
           ) : null}
           {denied ? (
             <Button

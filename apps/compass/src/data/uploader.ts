@@ -15,6 +15,7 @@ import {
   type UploadOutcome,
   type Uploader,
 } from "@xos/sync";
+import { addSettledNote, settledKey } from "../domain/settled-notes";
 
 function asRow(value: unknown): Row | null {
   return value && typeof value === "object" && !Array.isArray(value) && "id" in value
@@ -84,6 +85,11 @@ export interface UploaderOptions {
     path: string,
     localUri: string,
   ) => Promise<{ error: { message: string; statusCode?: string } | null }>;
+  /**
+   * Called when the server refused a queued write in a way that means it was not needed (domain/settled-notes.ts),
+   * so the queue drops it as done and says so; the offline queue's informational line by default.
+   */
+  readonly onSettled?: (mutation: Mutation, key: string) => void;
 }
 
 /**
@@ -292,6 +298,11 @@ export class SupabaseUploader implements Uploader {
     ) {
       return { kind: "applied", serverRow: null };
     }
+    const settled =
+      error && error.code === "XR001"
+        ? settledKey(mutation.target, error.hint ?? /^([a-z][a-z0-9_]*):/.exec(error.message)?.[1])
+        : null;
+    if (settled) return this.#settled(mutation, settled);
     if (error) {
       // A compare-and-set RPC refuses a mismatched expected state; the server row decides the conflict.
       if (
@@ -332,9 +343,17 @@ export class SupabaseUploader implements Uploader {
       const rule = result.refusal.rule ?? "refused";
       if (ALREADY_DONE[mutation.target]?.includes(rule))
         return { kind: "applied", serverRow: null };
+      const settled = settledKey(mutation.target, rule);
+      if (settled) return this.#settled(mutation, settled);
       return { kind: "refused", error: { code: rule, message: result.refusal.message ?? rule } };
     }
     return { kind: "applied", serverRow: asRow(result.data) };
+  }
+
+  /** A write the server settled without it: dropped as done, with the queue's informational line. */
+  #settled(mutation: Mutation, key: string): UploadOutcome {
+    (this.#options.onSettled ?? ((m, k) => addSettledNote(m.id, k)))(mutation, key);
+    return { kind: "applied", serverRow: null };
   }
 
   /** The Edge Function body: device-only fields removed and a queued punch's age measured at send. */
