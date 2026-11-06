@@ -97,7 +97,7 @@ written: the 1063 trigger fires only for a person, and the portal has none.
   open from an email or a chat and spend a device grant) and scoped to the link's path; Secure on https. Cross-site
   writes are stopped by the proxy, the Origin check of server actions and the path scope.
 - The links keep the default 7-year retention, not P1's 2 years: cues reference them through
-  `called_via_link_id`, so a link must never be purged before the cues that name it.
+  `called_via_link_id`, so a link must never be purged before the cues that name it. Its private channel and device grant rows carry the org, so the org's purge and a sandbox's count them as the org's own and a link never stops either.
 
 ### 7. Cue custom fields and their audiences
 
@@ -128,7 +128,7 @@ cues and department calls; the copies are edited locally. When the library chang
 replaces, in the running orders chosen, each older copy whose cues are all uncalled and none an artist's set time
 (Global Elements Manager semantics): local edits to those cues, custom values included, are lost, and the UI says
 so. Copies with a called cue (Called) or a set time (Linked) are left untouched; a copy with no live cue, or a run
-without one, answers No Instance, so publishing never brings back what a member removed. The version is the
+without one, answers No Instance, so publishing never brings back what a member removed. A segment with no cues publishes nothing (`segment_library_empty`), since replacing a copy with nothing would remove its cues with no way back; the peek offers no publish while it has none. The version is the
 database's counter.
 
 ### 10. Clients are kept out of the show channel at four doors and the group row
@@ -146,7 +146,7 @@ so ordinary groups keep their cost. Comments and attachments on a group read thr
 (`private.can_read_subject`), so a member turned Client reads no group row, member list, comment or attachment.
 Holders of `org.communication.write` still read the group by that policy's other arm, so an Owner can resolve it.
 
-The panel sits beside the showcaller console in live mode, and the show shortcuts answer only in the console (ADR
+The panel sits beside the showcaller console in live mode, which opens a wide peek (the side peek's maximum width) because a default drawer's 400 px holds one column, and the show shortcuts answer only in the console (ADR
 0131): live mode marks no show scope region, so a key pressed on the panel (Space on its buttons, letters in its
 message box) never reaches the console's controls. The console hands `show.chat` (M) to the panel's message box.
 Because the show region holds no design system list, the list scope does not meet the show scope in the shortcut

@@ -34628,7 +34628,7 @@ export class SegmentLibraryResource extends $Resource {
   /**
    * Publish a library segment to running orders
    *
-   * Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise; 422 `segment_library_empty` for a segment with no cues), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /segment-library/{id}/publish` (operation `segmentLibrary.publish`).
    * Requires the capability `show.run_of_show.read`.

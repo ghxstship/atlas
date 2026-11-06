@@ -176,7 +176,7 @@ export const segmentLibraryResources: readonly ResourceSpec[] = [
       itemAction("publish", {
         summary: "Publish a library segment to running orders",
         description:
-          "Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy.",
+          "Publishes the segment's current version to up to 50 running orders of its org through app.publish_library_segment (422 `segment_publish_runs` otherwise; 422 `segment_library_empty` for a segment with no cues), one transaction locking them in id order. In each, an older copy whose cues are all uncalled and none an artist's set time is replaced in place with the current cues and calls; local edits to those cues, custom values included, are lost. Needs show.run_of_show.write on every running order. Answers one outcome per copy.",
         body: z
           .object({
             run_of_show_ids: z
