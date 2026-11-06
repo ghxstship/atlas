@@ -75,6 +75,10 @@ begin
   select r.id into v_field from app.roles r where r.org_id is null and r.code = 'field';
 
   -- Demo Productions: the Owner invites the person as Field; the person accepts.
+  -- They join below as themselves, and the database asks for the age first (ADR 0156).
+  insert into private.age_confirmations (person_id, user_id, minimum_age, surface)
+  select p.id, p.user_id, 18, 'Atlas' from app.people p where p.user_id in (c_multi, c_harbor_owner)
+  on conflict (person_id, minimum_age) do nothing;
   perform set_config('request.jwt.claims', json_build_object('sub', c_demo_owner, 'role', 'authenticated')::text, true);
   select i.invite_token into v_token from app.invite_member(c_demo_org, 'orgs@example.com', v_field) i;
   perform set_config('request.jwt.claims', json_build_object('sub', c_multi, 'role', 'authenticated')::text, true);
