@@ -35,7 +35,11 @@ function refresh(ctx: OrgContext) {
   revalidatePath(`/${ctx.org.slug}/p`, "layout");
 }
 
-function done(ctx: OrgContext, typed: Record<string, string>, error: DataError | null): OpportunityActionState {
+function done(
+  ctx: OrgContext,
+  typed: Record<string, string>,
+  error: DataError | null,
+): OpportunityActionState {
   if (error) return errorState(error, typed);
   refresh(ctx);
   return { ok: true };
@@ -162,7 +166,8 @@ async function mergedRows(ctx: OrgContext, input: z.infer<typeof generateSchema>
     projectId: input.projectId,
     template,
     engagementIds: input.engagementIds,
-    payBasisLabel: (basis) => (labels.has(basis.replace(/[^A-Za-z]/g, "")) ? labels(basis.replace(/[^A-Za-z]/g, "")) : basis),
+    payBasisLabel: (basis) =>
+      labels.has(basis.replace(/[^A-Za-z]/g, "")) ? labels(basis.replace(/[^A-Za-z]/g, "")) : basis,
   });
 }
 
@@ -170,7 +175,10 @@ function failed(error: DataError): PreviewState {
   return error.kind === "refusal" ? { error: "refusal", rule: error.rule } : { error: error.kind };
 }
 
-export async function previewAgreementBatchAction(_: PreviewState, form: FormData): Promise<PreviewState> {
+export async function previewAgreementBatchAction(
+  _: PreviewState,
+  form: FormData,
+): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const input = generateInput(form);
   if (!input.success) return { error: "input" };
@@ -178,7 +186,10 @@ export async function previewAgreementBatchAction(_: PreviewState, form: FormDat
   return rows.ok ? { rows: rows.data } : failed(rows.error);
 }
 
-export async function createAgreementBatchAction(_: PreviewState, form: FormData): Promise<PreviewState> {
+export async function createAgreementBatchAction(
+  _: PreviewState,
+  form: FormData,
+): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const input = generateInput(form);
   if (!input.success) return { error: "input" };
@@ -198,7 +209,10 @@ export async function createAgreementBatchAction(_: PreviewState, form: FormData
   return { rows: rows.data, batchId: result.data.batchId, created: result.data.results };
 }
 
-export async function sendGeneratedBatchAction(state: PreviewState, form: FormData): Promise<PreviewState> {
+export async function sendGeneratedBatchAction(
+  state: PreviewState,
+  form: FormData,
+): Promise<PreviewState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("batchId"));
   if (!id.success) return { ...state, error: "input" };

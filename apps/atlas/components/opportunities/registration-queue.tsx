@@ -19,7 +19,13 @@ const INITIAL: State = {};
  * The registrations queue: bulk Approve or Decline, with each row's outcome on the page itself, because a decided row can
  * leave the list after the refresh and a confirmation inside it would never be seen.
  */
-export function RegistrationQueue({ org, rows }: { org: string; rows: readonly RegistrationRow[] }) {
+export function RegistrationQueue({
+  org,
+  rows,
+}: {
+  org: string;
+  rows: readonly RegistrationRow[];
+}) {
   const t = useTranslations("opportunities.registrations") as unknown as Translate;
   const refusals = useTranslations("opportunities.errors.refusal") as unknown as Translate;
   const format = useFormatter();
@@ -47,7 +53,9 @@ export function RegistrationQueue({ org, rows }: { org: string; rows: readonly R
                   ? t("decided", { name: nameOf(d.id) })
                   : t("refused", {
                       name: nameOf(d.id),
-                      why: refusals.has(d.code ?? "") ? refusals(d.code ?? "") : refusals("generic", { rule: d.code ?? "" }),
+                      why: refusals.has(d.code ?? "")
+                        ? refusals(d.code ?? "")
+                        : refusals("generic", { rule: d.code ?? "" }),
                     })}
               </li>
             ))}
@@ -57,7 +65,10 @@ export function RegistrationQueue({ org, rows }: { org: string; rows: readonly R
       {state.error ? <InlineAlert tone="danger">{t("decideFailed")}</InlineAlert> : null}
       <ul className="m-0 flex list-none flex-col gap-8 p-0">
         {rows.map((r) => (
-          <li key={r.id} className="flex flex-col gap-4 rounded-card border border-border-subtle p-12 text-text-13">
+          <li
+            key={r.id}
+            className="flex flex-col gap-4 rounded-card border border-border-subtle p-12 text-text-13"
+          >
             <div className="flex flex-wrap items-center justify-between gap-8">
               {r.state === "Submitted" ? (
                 <Checkbox
@@ -74,7 +85,9 @@ export function RegistrationQueue({ org, rows }: { org: string; rows: readonly R
                 {t("line", {
                   page: r.pageTitle ?? "",
                   state: t(`states.${r.state}`),
-                  when: r.submittedAt ? format.dateTime(new Date(r.submittedAt), { dateStyle: "medium" }) : "",
+                  when: r.submittedAt
+                    ? format.dateTime(new Date(r.submittedAt), { dateStyle: "medium" })
+                    : "",
                 })}
               </span>
             </div>
@@ -84,18 +97,34 @@ export function RegistrationQueue({ org, rows }: { org: string; rows: readonly R
               </p>
             ))}
             {r.confirmedMinimumAge ? (
-              <p className="m-0 text-text-12 text-text-secondary">{t("ageConfirmed", { age: r.confirmedMinimumAge })}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("ageConfirmed", { age: r.confirmedMinimumAge })}
+              </p>
             ) : null}
-            {r.profileShareId ? <p className="m-0 text-text-12 text-text-secondary">{t("sharedProfile")}</p> : null}
+            {r.profileShareId ? (
+              <p className="m-0 text-text-12 text-text-secondary">{t("sharedProfile")}</p>
+            ) : null}
           </li>
         ))}
       </ul>
       {rows.some((r) => r.state === "Submitted") ? (
         <div className="flex flex-wrap gap-8">
-          <Button type="submit" name="approve" value="true" variant="secondary" disabled={pending || picked.size === 0}>
+          <Button
+            type="submit"
+            name="approve"
+            value="true"
+            variant="secondary"
+            disabled={pending || picked.size === 0}
+          >
             {t("approve", { count: picked.size })}
           </Button>
-          <Button type="submit" name="approve" value="false" variant="secondary" disabled={pending || picked.size === 0}>
+          <Button
+            type="submit"
+            name="approve"
+            value="false"
+            variant="secondary"
+            disabled={pending || picked.size === 0}
+          >
             {t("decline", { count: picked.size })}
           </Button>
         </div>

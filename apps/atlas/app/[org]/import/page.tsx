@@ -150,11 +150,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/i
           targets={allowed.map((x) => x.code)}
           destinations={destinationProps(allowed)}
           initial={
-            initial?.target === "pool_invitations" ? { ...initial, destination: poolParam } : initial
+            initial?.target === "pool_invitations"
+              ? { ...initial, destination: poolParam }
+              : initial
           }
           pools={
             pools?.ok
-              ? pools.data.filter((p) => p.kind === "Talent").map((p) => ({ id: p.id, label: p.name }))
+              ? pools.data
+                  .filter((p) => p.kind === "Talent")
+                  .map((p) => ({ id: p.id, label: p.name }))
               : []
           }
           googleSheets={googleSheets}

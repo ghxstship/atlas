@@ -29,7 +29,10 @@ export const ENGAGEMENT_DOCUMENT_MERGE_FIELDS = [
 export type MergeField = (typeof ENGAGEMENT_DOCUMENT_MERGE_FIELDS)[number];
 
 /** Fields that merge empty when the engagement has no value; every other field without a value is listed as missing. */
-const OPTIONAL_FIELDS: ReadonlySet<string> = new Set(["engagement.end_date", "engagement.opportunity"]);
+const OPTIONAL_FIELDS: ReadonlySet<string> = new Set([
+  "engagement.end_date",
+  "engagement.opportunity",
+]);
 
 const FIELD_PATTERN = /\{\{\s*([^{}]*?)\s*\}\}/g;
 
@@ -127,7 +130,10 @@ function shiftLine(shift: MergeShift, locale: string): string {
 }
 
 function fieldValue(field: string, facts: MergeFacts, locale: string, now: Date): string | null {
-  const shifts = facts.shifts === null ? null : [...facts.shifts].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const shifts =
+    facts.shifts === null
+      ? null
+      : [...facts.shifts].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const hours = (list: readonly MergeShift[]) =>
     list.reduce((sum, s) => sum + (Date.parse(s.endsAt) - Date.parse(s.startsAt)) / 3_600_000, 0);
   switch (field) {
@@ -167,7 +173,9 @@ function fieldValue(field: string, facts: MergeFacts, locale: string, now: Date)
         ? null
         : new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(hours(shifts));
     case "shifts.table":
-      return shifts && shifts.length > 0 ? shifts.map((s) => shiftLine(s, locale)).join("\n") : null;
+      return shifts && shifts.length > 0
+        ? shifts.map((s) => shiftLine(s, locale)).join("\n")
+        : null;
     case "today":
       return facts.projectTimeZone ? dateText(todayIn(facts.projectTimeZone, now), locale) : null;
     default:

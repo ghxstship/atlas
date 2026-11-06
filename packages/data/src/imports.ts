@@ -786,16 +786,25 @@ async function candidateNames(
   const members = ids("app.pool_members");
   if (invitations.length > 0) {
     const result = await rows(
-      untyped(db).from("talent_pool_invitations").select("id, invitee_name, email").in("id", invitations),
+      untyped(db)
+        .from("talent_pool_invitations")
+        .select("id, invitee_name, email")
+        .in("id", invitations),
     );
     if (!result.ok) return result;
     for (const r of result.data) {
-      names.set(str(r["id"]), typeof r["invitee_name"] === "string" ? r["invitee_name"] : str(r["email"]));
+      names.set(
+        str(r["id"]),
+        typeof r["invitee_name"] === "string" ? r["invitee_name"] : str(r["email"]),
+      );
     }
   }
   if (members.length > 0) {
     const result = await rows(
-      untyped(db).from("pool_member_names").select("pool_member_id, full_name").in("pool_member_id", members),
+      untyped(db)
+        .from("pool_member_names")
+        .select("pool_member_id, full_name")
+        .in("pool_member_id", members),
     );
     if (!result.ok) return result;
     for (const r of result.data) {

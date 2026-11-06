@@ -20,9 +20,22 @@ export interface RegistrationState {
   readonly at?: number;
 }
 
-const SECTIONS = ["headline", "bio", "pronouns", "location", "skills", "certifications", "rates", "languages", "links"] as const;
+const SECTIONS = [
+  "headline",
+  "bio",
+  "pronouns",
+  "location",
+  "skills",
+  "certifications",
+  "rates",
+  "languages",
+  "links",
+] as const;
 
-export async function submitRegistrationAction(_: RegistrationState, form: FormData): Promise<RegistrationState> {
+export async function submitRegistrationAction(
+  _: RegistrationState,
+  form: FormData,
+): Promise<RegistrationState> {
   const parsed = z
     .object({
       orgSlug: z.string().min(1).max(100),

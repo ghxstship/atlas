@@ -570,9 +570,9 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
           : i.kind === "pool"
             ? t("gateway.home.feed.invitation.pool", { org: i.orgName ?? "" })
             : t("gateway.home.feed.invitation.roster", {
-              party: i.partyName ?? "",
-              project: i.projectName ?? "",
-            }),
+                party: i.partyName ?? "",
+                project: i.projectName ?? "",
+              }),
         [
           i.kind === "account" && i.accountRole
             ? t(enumLabelKey("accountRole", i.accountRole))

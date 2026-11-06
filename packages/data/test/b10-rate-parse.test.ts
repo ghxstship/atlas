@@ -46,8 +46,12 @@ describe("parseRate (B10)", () => {
 
   it("reads the rate types in English and Spanish", () => {
     expect(parseRate("25/hr", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: "Hourly" });
-    expect(parseRate("250 per day", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: "Day" });
-    expect(parseRate("250 por día", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: "Day" });
+    expect(parseRate("250 per day", "comma-dot", exponentOf, "USD")).toMatchObject({
+      basis: "Day",
+    });
+    expect(parseRate("250 por día", "comma-dot", exponentOf, "USD")).toMatchObject({
+      basis: "Day",
+    });
     expect(parseRate("500 flat", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: "Flat" });
     expect(parseRate("500 fijo", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: "Flat" });
     expect(parseRate("500", "comma-dot", exponentOf, "USD")).toMatchObject({ basis: null });

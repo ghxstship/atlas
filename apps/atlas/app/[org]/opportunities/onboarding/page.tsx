@@ -329,7 +329,10 @@ function AgreementSections({
         {templates.length === 0 ? <Muted>{t("agreementTemplates.empty")}</Muted> : null}
         <ul className="m-0 flex list-none flex-col gap-8 p-0">
           {templates.map((x) => (
-            <li key={x.id} className="flex flex-wrap items-center justify-between gap-8 rounded-card border border-border-subtle p-8 text-text-13">
+            <li
+              key={x.id}
+              className="flex flex-wrap items-center justify-between gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+            >
               <span className="flex flex-wrap items-center gap-8">
                 <span className="font-medium">{x.name}</span>
                 <Tag tone="neutral">{t(`agreementTemplates.kinds.${enumKey(x.kind)}`)}</Tag>
@@ -339,7 +342,9 @@ function AgreementSections({
               {canEdit ? (
                 <span className="flex flex-wrap items-center gap-8">
                   {used.has(x.id) ? null : (
-                    <ButtonLink href={page.href({ template: x.id })}>{t("agreementTemplates.edit")}</ButtonLink>
+                    <ButtonLink href={page.href({ template: x.id })}>
+                      {t("agreementTemplates.edit")}
+                    </ButtonLink>
                   )}
                   <ActionForm
                     action={duplicateAgreementTemplateAction}
@@ -363,25 +368,38 @@ function AgreementSections({
         </ul>
         {canEdit && !adding && !editable ? (
           <div>
-            <ButtonLink href={page.href({ template: "new" })}>{t("agreementTemplates.new")}</ButtonLink>
+            <ButtonLink href={page.href({ template: "new" })}>
+              {t("agreementTemplates.new")}
+            </ButtonLink>
           </div>
         ) : null}
         {canEdit && adding ? <AgreementTemplateForm org={ctx.org.slug} /> : null}
-        {canEdit && editable ? <AgreementTemplateForm key={editable.id} org={ctx.org.slug} template={editable} /> : null}
+        {canEdit && editable ? (
+          <AgreementTemplateForm key={editable.id} org={ctx.org.slug} template={editable} />
+        ) : null}
       </Section>
       <Section id="agreement-batches" title={t("agreementBatches.title")}>
         {batches.length === 0 ? <Muted>{t("agreementBatches.empty")}</Muted> : null}
         <ul className="m-0 flex list-none flex-col gap-8 p-0">
           {batches.map((b) => (
-            <li key={b.id} className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13">
+            <li
+              key={b.id}
+              className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+            >
               <div className="flex flex-wrap items-center justify-between gap-8">
                 <span className="font-medium">
-                  {t("agreementBatches.line", { project: b.projectName ?? "", template: b.templateName ?? "" })}
+                  {t("agreementBatches.line", {
+                    project: b.projectName ?? "",
+                    template: b.templateName ?? "",
+                  })}
                 </span>
                 <span className="flex flex-wrap gap-4">
                   {Object.entries(b.counts).map(([state, count]) => (
                     <Tag key={state} tone="neutral">
-                      {t("agreementBatches.count", { state: t(`agreementBatches.states.${enumKey(state)}`), count })}
+                      {t("agreementBatches.count", {
+                        state: t(`agreementBatches.states.${enumKey(state)}`),
+                        count,
+                      })}
                     </Tag>
                   ))}
                 </span>

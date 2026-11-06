@@ -11,7 +11,10 @@ import { uniqueId } from "./support";
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
 
-test("an agreement batch: template, preview, create, send, and the masked reader", async ({ page, browser }) => {
+test("an agreement batch: template, preview, create, send, and the masked reader", async ({
+  page,
+  browser,
+}) => {
   const id = uniqueId().slice(-6);
   const name = `Crew Agreement ${id}`;
   await signInAs(page, "owner@example.com", DEMO_ORG);
@@ -20,7 +23,9 @@ test("an agreement batch: template, preview, create, send, and the masked reader
   const form = page.getByRole("form", { name: "Agreement template" });
   await form.getByLabel("Name").fill(name);
   await form.getByLabel("Document title").fill("Agreement for {{party.name}}");
-  await form.getByLabel("Text", { exact: true }).fill("You earn {{engagement.rate}}.\n\nYour shifts:\n{{shifts.table}}");
+  await form
+    .getByLabel("Text", { exact: true })
+    .fill("You earn {{engagement.rate}}.\n\nYour shifts:\n{{shifts.table}}");
   await form.getByRole("button", { name: "Save template" }).click();
   await expect(page.getByText(name).first()).toBeVisible();
   await expect(page.getByText("Uses the rate").first()).toBeVisible();
@@ -57,7 +62,9 @@ test("an agreement batch: template, preview, create, send, and the masked reader
   const other = await browser.newContext({ reducedMotion: "reduce" });
   const reader = await other.newPage();
   await signInAs(reader, "member@example.com", DEMO_ORG);
-  const response = await reader.goto(`/${DEMO_ORG}/documents/engagement-document/00000000-0000-4000-8000-000000000000`);
+  const response = await reader.goto(
+    `/${DEMO_ORG}/documents/engagement-document/00000000-0000-4000-8000-000000000000`,
+  );
   expect(response?.status()).toBe(404);
   await other.close();
 });

@@ -1727,7 +1727,11 @@ export async function listPoolMembers(
       if (e.account_id && e.account_name) accounts.set(e.account_id, e.account_name);
     }
     for (const a of applied.data ?? []) {
-      if (a.applicant_organization_id && a.applicant_name && !accounts.has(a.applicant_organization_id))
+      if (
+        a.applicant_organization_id &&
+        a.applicant_name &&
+        !accounts.has(a.applicant_organization_id)
+      )
         accounts.set(a.applicant_organization_id, a.applicant_name);
     }
   }

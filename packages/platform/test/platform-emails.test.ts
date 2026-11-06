@@ -121,7 +121,11 @@ describe("platform emails", () => {
   it("sends a pool invitation that names the org and the role, never the pool, in both languages (B10)", async () => {
     for (const [locale, subject, role] of [
       ["en-US", "Victor Osei invites you to join the Northwind Live crew list", "Role: Rigger"],
-      ["es-US", "Victor Osei te invita a unirte a la lista de equipo de Northwind Live", "Rol: Rigger"],
+      [
+        "es-US",
+        "Victor Osei te invita a unirte a la lista de equipo de Northwind Live",
+        "Rol: Rigger",
+      ],
     ] as const) {
       const transport = new RecordingTransport();
       const { s } = store([

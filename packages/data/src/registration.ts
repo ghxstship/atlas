@@ -22,25 +22,33 @@ export interface RegistrationPage {
   readonly openRegistrations: number;
 }
 
-export async function listRegistrationPages(db: XosClient, orgId: string): Promise<Result<RegistrationPage[]>> {
+export async function listRegistrationPages(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<RegistrationPage[]>> {
   const { data, error } = await db
     .from("registration_pages")
-    .select("id, slug, title, intro, talent_pool_id, minimum_age, page_state, crew_registrations (registration_state, deleted_at)")
+    .select(
+      "id, slug, title, intro, talent_pool_id, minimum_age, page_state, crew_registrations (registration_state, deleted_at)",
+    )
     .eq("org_id", orgId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
   return ok(
-    ((data ?? []) as unknown as {
-      id: string;
-      slug: string;
-      title: string;
-      intro: string | null;
-      talent_pool_id: string;
-      minimum_age: number;
-      page_state: RegistrationPageState;
-      crew_registrations: { registration_state: CrewRegistrationState; deleted_at: string | null }[] | null;
-    }[]).map((r) => ({
+    (
+      (data ?? []) as unknown as {
+        id: string;
+        slug: string;
+        title: string;
+        intro: string | null;
+        talent_pool_id: string;
+        minimum_age: number;
+        page_state: RegistrationPageState;
+        crew_registrations:
+          { registration_state: CrewRegistrationState; deleted_at: string | null }[] | null;
+      }[]
+    ).map((r) => ({
       id: r.id,
       slug: r.slug,
       title: r.title,
@@ -65,7 +73,10 @@ export interface RegistrationPageInput {
   readonly minimumAge: number;
 }
 
-export async function saveRegistrationPage(db: XosClient, input: RegistrationPageInput): Promise<Result<{ id: string }>> {
+export async function saveRegistrationPage(
+  db: XosClient,
+  input: RegistrationPageInput,
+): Promise<Result<{ id: string }>> {
   const row = {
     slug: input.slug.trim().toLowerCase(),
     title: input.title.trim(),
@@ -75,7 +86,11 @@ export async function saveRegistrationPage(db: XosClient, input: RegistrationPag
   };
   const query = input.id
     ? db.from("registration_pages").update(row).eq("id", input.id).select("id").single()
-    : db.from("registration_pages").insert({ ...row, org_id: input.orgId }).select("id").single();
+    : db
+        .from("registration_pages")
+        .insert({ ...row, org_id: input.orgId })
+        .select("id")
+        .single();
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
   return ok({ id: data.id });
@@ -101,7 +116,10 @@ export interface RegistrationQuestion {
   readonly isRequired: boolean;
 }
 
-export async function listRegistrationQuestions(db: XosClient, pageId: string): Promise<Result<RegistrationQuestion[]>> {
+export async function listRegistrationQuestions(
+  db: XosClient,
+  pageId: string,
+): Promise<Result<RegistrationQuestion[]>> {
   const { data, error } = await db
     .from("registration_page_questions")
     .select("id, prompt, sort_order, is_required")
@@ -110,7 +128,12 @@ export async function listRegistrationQuestions(db: XosClient, pageId: string): 
     .order("sort_order");
   if (error) return fail(toDataError(error));
   return ok(
-    (data ?? []).map((q) => ({ id: q.id, prompt: q.prompt, sortOrder: q.sort_order, isRequired: q.is_required })),
+    (data ?? []).map((q) => ({
+      id: q.id,
+      prompt: q.prompt,
+      sortOrder: q.sort_order,
+      isRequired: q.is_required,
+    })),
   );
 }
 
@@ -199,8 +222,13 @@ export async function listRegistrations(
   const rows = data ?? [];
   const answers = await db
     .from("crew_registration_answers")
-    .select("crew_registration_id, answer, registration_page_questions:registration_page_question_id (prompt, sort_order)")
-    .in("crew_registration_id", rows.flatMap((r) => (r.id ? [r.id] : [])))
+    .select(
+      "crew_registration_id, answer, registration_page_questions:registration_page_question_id (prompt, sort_order)",
+    )
+    .in(
+      "crew_registration_id",
+      rows.flatMap((r) => (r.id ? [r.id] : [])),
+    )
     .is("deleted_at", null);
   if (answers.error) return fail(toDataError(answers.error));
   const byRegistration = new Map<string, { prompt: string; answer: string; order: number }[]>();

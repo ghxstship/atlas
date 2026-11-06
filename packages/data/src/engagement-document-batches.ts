@@ -48,7 +48,10 @@ function templateOf(r: {
   };
 }
 
-export async function listTemplates(db: XosClient, orgId: string): Promise<Result<AgreementTemplate[]>> {
+export async function listTemplates(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<AgreementTemplate[]>> {
   const { data, error } = await db
     .from("engagement_document_templates")
     .select("id, name, document_kind, locale, title_template, body_template")
@@ -70,7 +73,10 @@ export interface TemplateInput {
 }
 
 /** Creates a template or changes one; the database refuses other wording once a batch uses it (document_template_in_use). */
-export async function saveTemplate(db: XosClient, input: TemplateInput): Promise<Result<{ id: string }>> {
+export async function saveTemplate(
+  db: XosClient,
+  input: TemplateInput,
+): Promise<Result<{ id: string }>> {
   const row = {
     name: input.name.trim(),
     document_kind: input.kind,
@@ -129,7 +135,10 @@ export interface BatchPerson {
   readonly jobTitle: string | null;
 }
 
-export async function listBatchPeople(db: XosClient, projectId: string): Promise<Result<BatchPerson[]>> {
+export async function listBatchPeople(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<BatchPerson[]>> {
   const { data, error } = await db
     .from("engagement_resolved")
     .select("engagement_id, person_id, counterparty_id, job_title, engagement_state")
@@ -139,12 +148,21 @@ export async function listBatchPeople(db: XosClient, projectId: string): Promise
     .is("counterparty_id", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
-  const names = await partyNames(db, rows.flatMap((r) => (r.engagement_id ? [r.engagement_id] : [])));
+  const names = await partyNames(
+    db,
+    rows.flatMap((r) => (r.engagement_id ? [r.engagement_id] : [])),
+  );
   return ok(
     rows
       .flatMap((r) =>
         r.engagement_id
-          ? [{ engagementId: r.engagement_id, name: names.get(r.engagement_id) ?? "", jobTitle: r.job_title }]
+          ? [
+              {
+                engagementId: r.engagement_id,
+                name: names.get(r.engagement_id) ?? "",
+                jobTitle: r.job_title,
+              },
+            ]
           : [],
       )
       .filter((p) => p.name !== "")
@@ -180,7 +198,13 @@ export async function previewBatch(
     readonly now?: Date;
   },
 ): Promise<Result<PreviewRow[]>> {
-  const facts = await loadFacts(db, input.projectId, input.engagementIds, input.template, input.payBasisLabel);
+  const facts = await loadFacts(
+    db,
+    input.projectId,
+    input.engagementIds,
+    input.template,
+    input.payBasisLabel,
+  );
   if (!facts.ok) return facts;
   return ok(
     input.engagementIds.flatMap((id) => {
@@ -218,7 +242,9 @@ async function loadFacts(
       .single(),
     db
       .from("engagement_resolved")
-      .select("engagement_id, job_title, rate_minor, rate_currency_code, is_masked, pay_basis, start_date, end_date")
+      .select(
+        "engagement_id, job_title, rate_minor, rate_currency_code, is_masked, pay_basis, start_date, end_date",
+      )
       .eq("project_id", projectId)
       .in("engagement_id", [...engagementIds]),
     db
@@ -226,7 +252,10 @@ async function loadFacts(
       .select("id, applications:application_id (opportunities:opportunity_id (title))")
       .in("id", [...engagementIds]),
     db.from("currencies").select("currency_code, minor_unit_exponent"),
-    db.rpc("my_capabilities_on_project", { p_project_id: projectId, p_capabilities: ["crew.shift.read"] }),
+    db.rpc("my_capabilities_on_project", {
+      p_project_id: projectId,
+      p_capabilities: ["crew.shift.read"],
+    }),
   ]);
   if (project.error) return fail(toDataError(project.error));
   if (engagements.error) return fail(toDataError(engagements.error));
@@ -247,7 +276,11 @@ async function loadFacts(
     const codes = [...new Set((data ?? []).flatMap((s) => (s.role_code ? [s.role_code] : [])))];
     const titles = new Map<string, string>();
     if (codes.length > 0) {
-      const roles = await db.schema("xpms").from("role").select("role_code, job_title").in("role_code", codes);
+      const roles = await db
+        .schema("xpms")
+        .from("role")
+        .select("role_code, job_title")
+        .in("role_code", codes);
       if (roles.error) return fail(toDataError(roles.error));
       for (const r of roles.data ?? []) if (r.job_title) titles.set(r.role_code, r.job_title);
     }
@@ -265,17 +298,22 @@ async function loadFacts(
   }
   const exponents = new Map(
     (currencies.data ?? []).flatMap((c) =>
-      c.currency_code && c.minor_unit_exponent !== null ? [[c.currency_code.trim(), c.minor_unit_exponent] as const] : [],
+      c.currency_code && c.minor_unit_exponent !== null
+        ? [[c.currency_code.trim(), c.minor_unit_exponent] as const]
+        : [],
     ),
   );
   const names = await partyNames(db, engagementIds);
   const opportunityOf = new Map(
-    ((opportunities.data ?? []) as unknown as {
-      id: string;
-      applications: { opportunities: { title: string } | null } | null;
-    }[]).map((e) => [e.id, e.applications?.opportunities?.title ?? null]),
+    (
+      (opportunities.data ?? []) as unknown as {
+        id: string;
+        applications: { opportunities: { title: string } | null } | null;
+      }[]
+    ).map((e) => [e.id, e.applications?.opportunities?.title ?? null]),
   );
-  const organization = (project.data as unknown as { organizations: { name: string } | null }).organizations;
+  const organization = (project.data as unknown as { organizations: { name: string } | null })
+    .organizations;
   const out = new Map<string, MergeFacts>();
   for (const e of engagements.data ?? []) {
     if (!e.engagement_id) continue;
@@ -361,7 +399,9 @@ export async function countersignBatch(
   db: XosClient,
   batchId: string,
 ): Promise<Result<{ executed: number; refused: { id: string; code: string }[] }>> {
-  const { data, error } = await db.rpc("countersign_engagement_document_batch", { p_batch_id: batchId });
+  const { data, error } = await db.rpc("countersign_engagement_document_batch", {
+    p_batch_id: batchId,
+  });
   if (error) return fail(toDataError(error));
   const answer = data as unknown as { executed: number; refused: { id: string; code: string }[] };
   return ok({ executed: answer.executed, refused: answer.refused });
@@ -405,7 +445,10 @@ export async function listBatches(
   const texts = await db
     .from("engagement_document_text_list")
     .select("engagement_document_batch_id, engagement_document_state")
-    .in("engagement_document_batch_id", rows.map((r) => r.id));
+    .in(
+      "engagement_document_batch_id",
+      rows.map((r) => r.id),
+    );
   if (texts.error) return fail(toDataError(texts.error));
   const counts = new Map<string, Partial<Record<EngagementDocumentState, number>>>();
   for (const t of texts.data ?? []) {
@@ -443,7 +486,10 @@ export interface OrgDocumentText {
 }
 
 /** One generated document's text as an org reader sees it; a masked reader gets no body and no hash. */
-export async function getOrgDocumentText(db: XosClient, documentId: string): Promise<Result<OrgDocumentText | null>> {
+export async function getOrgDocumentText(
+  db: XosClient,
+  documentId: string,
+): Promise<Result<OrgDocumentText | null>> {
   const { data, error } = await db
     .from("engagement_document_text_list")
     .select(

@@ -610,7 +610,9 @@ export async function myPendingInvitations(db: XosClient): Promise<Result<Pendin
   return ok(
     ((data ?? []) as Database["app"]["Functions"]["my_pending_invitations"]["Returns"]).flatMap(
       (r) =>
-        (r.invitation_kind !== "account" && r.invitation_kind !== "roster" && r.invitation_kind !== "pool") ||
+        (r.invitation_kind !== "account" &&
+          r.invitation_kind !== "roster" &&
+          r.invitation_kind !== "pool") ||
         !r.invitation_id
           ? []
           : [

@@ -50,7 +50,10 @@ function IssuedCard({
           <p className="m-0 text-text-12 text-text-secondary">
             {t("card", {
               project: projectName,
-              expires: format.dateTime(new Date(link.expiresAt), { dateStyle: "medium", timeStyle: "short" }),
+              expires: format.dateTime(new Date(link.expiresAt), {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }),
             })}
           </p>
           <p className="m-0 break-all font-mono text-text-12">{link.url}</p>
@@ -63,16 +66,26 @@ function IssuedCard({
             </p>
           ) : null}
         </div>
-        {absolute ? <QRCode value={link.url} label={t("qr", { name: link.personName ?? "" })} size={120} /> : null}
+        {absolute ? (
+          <QRCode value={link.url} label={t("qr", { name: link.personName ?? "" })} size={120} />
+        ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-8 print:hidden">
         <Button type="button" variant="secondary" onClick={() => void copy("link", link.url)}>
           {t("copyLink")}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => void copy("code", link.accessCode)}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void copy("code", link.accessCode)}
+        >
           {t("copyCode")}
         </Button>
-        {copied ? <span role="status" className="text-text-12 text-text-secondary">{t(copied === "link" ? "copiedLink" : "copiedCode")}</span> : null}
+        {copied ? (
+          <span role="status" className="text-text-12 text-text-secondary">
+            {t(copied === "link" ? "copiedLink" : "copiedCode")}
+          </span>
+        ) : null}
       </div>
     </li>
   );
@@ -161,16 +174,24 @@ export function CrewAccessIssue({
       live = false;
     };
   }, [org, project]);
-  if (state.links && state.links.length > 0) return <ResultPanel state={state} closeHref={closeHref} />;
+  if (state.links && state.links.length > 0)
+    return <ResultPanel state={state} closeHref={closeHref} />;
   const projectName = projects.find((p) => p.id === project)?.name ?? "";
   return (
-    <form action={formAction} {...keep} className="flex max-w-layout-form flex-col gap-12" aria-label={t("title")}>
+    <form
+      action={formAction}
+      {...keep}
+      className="flex max-w-layout-form flex-col gap-12"
+      aria-label={t("title")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="projectName" value={projectName} />
       <input type="hidden" name="workers" value={`[${picked.join(",")}]`} />
       {state.rule ? (
         <InlineAlert tone="danger">
-          {refusals.has(state.rule) ? refusals(state.rule) : refusals("generic", { rule: state.rule })}
+          {refusals.has(state.rule)
+            ? refusals(state.rule)
+            : refusals("generic", { rule: state.rule })}
         </InlineAlert>
       ) : state.error ? (
         <InlineAlert tone="danger">{t(`errors.${state.error}`)}</InlineAlert>
@@ -200,17 +221,28 @@ export function CrewAccessIssue({
         name="validFor"
         label={t("validFor")}
         value="7"
-        options={VALIDITY_DAYS.map((d) => ({ value: d, label: t("validDays", { days: Number(d) }) }))}
+        options={VALIDITY_DAYS.map((d) => ({
+          value: d,
+          label: t("validDays", { days: Number(d) }),
+        }))}
       />
       <div className="flex flex-col gap-4">
         <Checkbox name="includeCode" value="true" label={t("includeCode")} />
         <p className="m-0 text-text-12 text-text-secondary">{t("includeCodeHelp")}</p>
       </div>
       <div className="flex flex-wrap items-center gap-8">
-        <Button type="submit" variant="primary" disabled={pending || picked.length === 0} aria-busy={pending}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={pending || picked.length === 0}
+          aria-busy={pending}
+        >
           {t("submit")}
         </Button>
-        <Link href={closeHref as Route} className="text-text-13 text-text-secondary hover:text-text-primary">
+        <Link
+          href={closeHref as Route}
+          className="text-text-13 text-text-secondary hover:text-text-primary"
+        >
           {t("cancel")}
         </Link>
         {workers.some((w) => w.hasLiveLink) ? <Tag tone="neutral">{t("replaces")}</Tag> : null}

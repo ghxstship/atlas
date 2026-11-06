@@ -68,7 +68,13 @@ export function DocumentTextPanel({
             <input type="hidden" name="sha256" value={sha256} />
             <input type="hidden" name="path" value={path} />
             <Problem state={signed} />
-            <Input name="signedName" required autoComplete="name" label={t("name")} help={t("nameHelp")} />
+            <Input
+              name="signedName"
+              required
+              autoComplete="name"
+              label={t("name")}
+              help={t("nameHelp")}
+            />
             <div>
               <Button type="submit" variant="secondary" disabled={signing} aria-busy={signing}>
                 {t("sign")}
@@ -85,7 +91,14 @@ export function DocumentTextPanel({
               <input type="hidden" name="documentId" value={documentId} />
               <input type="hidden" name="path" value={path} />
               <Problem state={declined} />
-              <Textarea name="reason" required rows={2} width="100%" label={decline("reason")} help={decline("reasonHelp")} />
+              <Textarea
+                name="reason"
+                required
+                rows={2}
+                width="100%"
+                label={decline("reason")}
+                help={decline("reasonHelp")}
+              />
               <div>
                 <Button type="submit" variant="ghost" disabled={declining} aria-busy={declining}>
                   {decline("submit")}

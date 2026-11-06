@@ -19,7 +19,8 @@ const INITIAL: CrewAccessState = {};
 function Problem({ state }: { state: CrewAccessState }) {
   const t = useTranslations("gateway.tokens") as unknown as Translate;
   const outcomes = useTranslations("gateway.outcomes") as unknown as Translate;
-  if (state.refusal) return <InlineAlert tone="danger">{t(`refusals.${state.refusal}`)}</InlineAlert>;
+  if (state.refusal)
+    return <InlineAlert tone="danger">{t(`refusals.${state.refusal}`)}</InlineAlert>;
   if (state.outcome) return <InlineAlert tone="danger">{outcomes(state.outcome)}</InlineAlert>;
   return null;
 }
@@ -95,13 +96,20 @@ export function CrewShiftList({ token, rows }: { token: string; rows: readonly C
             {rows
               .filter((r) => r.day === day)
               .map((r) => (
-                <li key={r.id} className="flex flex-col gap-8 rounded-card border border-border-subtle p-12">
+                <li
+                  key={r.id}
+                  className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-8">
                     <div className="flex min-w-0 flex-col gap-4">
                       <p className="m-0 text-text-14 font-medium">{r.call}</p>
                       <p className="m-0 text-text-13">{r.title}</p>
-                      {r.show ? <p className="m-0 text-text-13 text-text-secondary">{r.show}</p> : null}
-                      {r.venue ? <p className="m-0 text-text-13 text-text-secondary">{r.venue}</p> : null}
+                      {r.show ? (
+                        <p className="m-0 text-text-13 text-text-secondary">{r.show}</p>
+                      ) : null}
+                      {r.venue ? (
+                        <p className="m-0 text-text-13 text-text-secondary">{r.venue}</p>
+                      ) : null}
                     </div>
                     <Tag tone={TONES[r.state] ?? "neutral"}>{r.stateLabel}</Tag>
                   </div>
@@ -109,7 +117,12 @@ export function CrewShiftList({ token, rows }: { token: string; rows: readonly C
                     <form action={formAction} onSubmit={keepInputOnSubmit(formAction)}>
                       <input type="hidden" name="token" value={token} />
                       <input type="hidden" name="shiftId" value={r.id} />
-                      <Button type="submit" variant="secondary" disabled={pending} aria-busy={pending}>
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        disabled={pending}
+                        aria-busy={pending}
+                      >
                         {t("accept")}
                       </Button>
                     </form>

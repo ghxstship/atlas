@@ -32,7 +32,9 @@ export async function listCrewAccessLinks(
 ): Promise<Result<CrewAccessLink[]>> {
   let query = db
     .from("crew_access_link_list")
-    .select("id, project_id, project_name, person_name, expires_at, last_opened_at, open_count, link_status")
+    .select(
+      "id, project_id, project_name, person_name, expires_at, last_opened_at, open_count, link_status",
+    )
     .eq("org_id", input.orgId)
     .order("expires_at", { ascending: false })
     .limit(500);
@@ -61,7 +63,10 @@ export interface CrewAccessWorker {
   readonly hasLiveLink: boolean;
 }
 
-export async function listCrewAccessWorkers(db: XosClient, projectId: string): Promise<Result<CrewAccessWorker[]>> {
+export async function listCrewAccessWorkers(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<CrewAccessWorker[]>> {
   const { data, error } = await db.rpc("crew_access_workers", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok(
@@ -100,7 +105,11 @@ export interface IssuedCrewAccessLink {
 
 export async function issueCrewAccessLinks(
   db: XosClient,
-  input: { readonly projectId: string; readonly workers: readonly CrewAccessWorkerRef[]; readonly validForDays: number },
+  input: {
+    readonly projectId: string;
+    readonly workers: readonly CrewAccessWorkerRef[];
+    readonly validForDays: number;
+  },
 ): Promise<Result<IssuedCrewAccessLink[]>> {
   const { data, error } = await db.rpc("issue_crew_access_links", {
     p_project_id: input.projectId,

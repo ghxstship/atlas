@@ -21,7 +21,11 @@ export function CopyText({ text, label }: { text: string; label: string }) {
       >
         {label}
       </Button>
-      {copied ? <span role="status" className="text-text-12 text-text-secondary">{t("copied")}</span> : null}
+      {copied ? (
+        <span role="status" className="text-text-12 text-text-secondary">
+          {t("copied")}
+        </span>
+      ) : null}
     </span>
   );
 }

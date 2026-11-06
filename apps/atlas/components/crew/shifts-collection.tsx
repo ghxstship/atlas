@@ -684,10 +684,7 @@ export async function ShiftsCollection(props: {
         />
       ) : null}
       {node === "project.crew" && crew.project ? (
-        <ButtonLink
-          href={`/${crew.slug}/crew/access-links?project=${crew.project.id}`}
-          size="sm"
-        >
+        <ButtonLink href={`/${crew.slug}/crew/access-links?project=${crew.project.id}`} size="sm">
           {t("crew.crewAccess.fromCrewTab")}
         </ButtonLink>
       ) : null}

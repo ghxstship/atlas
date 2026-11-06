@@ -58,7 +58,12 @@ export function GenerateAgreements({
   const names = picked.join(",");
   return (
     <div className="flex flex-col gap-12">
-      <form action={previewAction} {...keep} aria-label={t("generateTitle")} className="flex max-w-layout-form flex-col gap-12">
+      <form
+        action={previewAction}
+        {...keep}
+        aria-label={t("generateTitle")}
+        className="flex max-w-layout-form flex-col gap-12"
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="engagementIds" value={names} />
@@ -84,10 +89,15 @@ export function GenerateAgreements({
           label={t("people")}
           help={t("peopleHelp")}
           value={picked}
-          options={people.map((p) => ({ value: p.engagementId, label: p.jobTitle ? `${p.name} · ${p.jobTitle}` : p.name }))}
+          options={people.map((p) => ({
+            value: p.engagementId,
+            label: p.jobTitle ? `${p.name} · ${p.jobTitle}` : p.name,
+          }))}
           onChange={setPicked}
         />
-        {rateBlocked ? <InlineAlert tone="warning">{refusals("document_merge_rate_restricted")}</InlineAlert> : null}
+        {rateBlocked ? (
+          <InlineAlert tone="warning">{refusals("document_merge_rate_restricted")}</InlineAlert>
+        ) : null}
         {problem ? (
           <InlineAlert tone="danger">
             {problem === "refusal"
@@ -98,7 +108,12 @@ export function GenerateAgreements({
           </InlineAlert>
         ) : null}
         <div>
-          <Button type="submit" variant="secondary" disabled={previewing || picked.length === 0 || rateBlocked} aria-busy={previewing}>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={previewing || picked.length === 0 || rateBlocked}
+            aria-busy={previewing}
+          >
             {t("preview")}
           </Button>
         </div>
@@ -112,7 +127,10 @@ export function GenerateAgreements({
             {rows.map((r) => {
               const result = created.created?.find((c) => c.engagementId === r.engagementId);
               return (
-                <li key={r.engagementId} className="flex flex-col gap-4 rounded-card border border-border-subtle p-12 text-text-13">
+                <li
+                  key={r.engagementId}
+                  className="flex flex-col gap-4 rounded-card border border-border-subtle p-12 text-text-13"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-8">
                     <span className="font-medium">{r.name}</span>
                     {r.missing.length > 0 ? (
@@ -128,17 +146,27 @@ export function GenerateAgreements({
                   {r.missing.length > 0 ? (
                     <p className="m-0 text-text-12 text-text-secondary">
                       {t("missing", {
-                        fields: r.missing.map((f) => (fieldNames.has(f.replace(".", "_")) ? fieldNames(f.replace(".", "_")) : f)).join(", "),
+                        fields: r.missing
+                          .map((f) =>
+                            fieldNames.has(f.replace(".", "_"))
+                              ? fieldNames(f.replace(".", "_"))
+                              : f,
+                          )
+                          .join(", "),
                       })}
                     </p>
                   ) : null}
                   {result?.outcome === "refused" ? (
                     <p className="m-0 text-text-12 text-text-secondary">
-                      {refusals.has(result.code ?? "") ? refusals(result.code ?? "") : refusals("generic", { rule: result.code ?? "" })}
+                      {refusals.has(result.code ?? "")
+                        ? refusals(result.code ?? "")
+                        : refusals("generic", { rule: result.code ?? "" })}
                     </p>
                   ) : null}
                   <p className="m-0 text-text-13 font-medium">{r.title}</p>
-                  <p className="m-0 whitespace-pre-wrap text-text-12 text-text-secondary">{r.body}</p>
+                  <p className="m-0 whitespace-pre-wrap text-text-12 text-text-secondary">
+                    {r.body}
+                  </p>
                 </li>
               );
             })}
@@ -150,7 +178,12 @@ export function GenerateAgreements({
               <input type="hidden" name="templateId" value={template} />
               <input type="hidden" name="engagementIds" value={names} />
               <input type="hidden" name="requirementId" value={requirement} />
-              <Button type="submit" variant="secondary" disabled={creating || rows.every((r) => r.missing.length > 0)} aria-busy={creating}>
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={creating || rows.every((r) => r.missing.length > 0)}
+                aria-busy={creating}
+              >
                 {t("create", { count: rows.filter((r) => r.missing.length === 0).length })}
               </Button>
             </form>
@@ -158,7 +191,12 @@ export function GenerateAgreements({
             <form action={sendAction}>
               <input type="hidden" name="org" value={org} />
               <input type="hidden" name="batchId" value={created.batchId} />
-              <Button type="submit" variant="secondary" disabled={sending || sent.sent !== undefined} aria-busy={sending}>
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={sending || sent.sent !== undefined}
+                aria-busy={sending}
+              >
                 {t("send")}
               </Button>
               {sent.sent !== undefined ? (

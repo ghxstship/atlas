@@ -138,7 +138,10 @@ export interface DocumentTextState {
   readonly at?: number;
 }
 
-function textDocumentAnswer(result: Awaited<ReturnType<typeof signDocumentText>>, path: string): DocumentTextState {
+function textDocumentAnswer(
+  result: Awaited<ReturnType<typeof signDocumentText>>,
+  path: string,
+): DocumentTextState {
   if (result.ok) {
     revalidatePath(path);
     return { done: true, at: Date.now() };
@@ -148,7 +151,10 @@ function textDocumentAnswer(result: Awaited<ReturnType<typeof signDocumentText>>
     : { outcome: outcomeFor(result.error), at: Date.now() };
 }
 
-export async function signDocumentTextAction(_: DocumentTextState, form: FormData): Promise<DocumentTextState> {
+export async function signDocumentTextAction(
+  _: DocumentTextState,
+  form: FormData,
+): Promise<DocumentTextState> {
   const parsed = z
     .object({
       documentId: id,
@@ -171,10 +177,21 @@ export async function signDocumentTextAction(_: DocumentTextState, form: FormDat
   return textDocumentAnswer(result, parsed.data.path);
 }
 
-export async function declineDocumentTextAction(_: DocumentTextState, form: FormData): Promise<DocumentTextState> {
+export async function declineDocumentTextAction(
+  _: DocumentTextState,
+  form: FormData,
+): Promise<DocumentTextState> {
   const parsed = z
-    .object({ documentId: id, reason: z.string().trim().min(1).max(450), path: z.string().startsWith("/work/") })
-    .safeParse({ documentId: form.get("documentId"), reason: form.get("reason"), path: form.get("path") });
+    .object({
+      documentId: id,
+      reason: z.string().trim().min(1).max(450),
+      path: z.string().startsWith("/work/"),
+    })
+    .safeParse({
+      documentId: form.get("documentId"),
+      reason: form.get("reason"),
+      path: form.get("path"),
+    });
   if (!parsed.success) return { refusal: "document_decline_reason", at: Date.now() };
   const result = await declineDocument(await createServerSupabase(), {
     documentId: parsed.data.documentId,

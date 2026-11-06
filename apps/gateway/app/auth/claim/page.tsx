@@ -45,9 +45,9 @@ export default async function ClaimPage() {
                     : i.kind === "pool"
                       ? t("invitationPool", { org: i.orgName ?? "" })
                       : t("invitationRoster", {
-                        party: i.partyName ?? "",
-                        project: i.projectName ?? "",
-                      })}
+                          party: i.partyName ?? "",
+                          project: i.projectName ?? "",
+                        })}
                 </span>
                 <ActionButton
                   action={respondPartyInvitationAction.bind(null, i.kind, i.id, true)}

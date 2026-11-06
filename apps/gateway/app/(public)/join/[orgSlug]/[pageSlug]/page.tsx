@@ -24,7 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * or sign in; signed in, it takes the registration and then shows its state, with Withdraw. It never names the pool. A
  * closed page, a dead pool, a read-only org and a flagged person all read the same neutral message.
  */
-export default async function RegistrationPage({ params }: PageProps<"/join/[orgSlug]/[pageSlug]">) {
+export default async function RegistrationPage({
+  params,
+}: PageProps<"/join/[orgSlug]/[pageSlug]">) {
   const { orgSlug, pageSlug } = await params;
   if (!PARAM_TYPES.slug.test(orgSlug) || !PARAM_TYPES.slug.test(pageSlug)) notFound();
   const t = await getTranslations("gateway.registration");
@@ -45,7 +47,9 @@ export default async function RegistrationPage({ params }: PageProps<"/join/[org
       <BrandMark name={brand.ok ? (brand.data?.name ?? page.orgName) : page.orgName} size="sm" />
       <h1 className="m-0 text-heading-20 font-semibold">{page.title}</h1>
       {page.intro ? <p className="m-0 whitespace-pre-wrap text-text-14">{page.intro}</p> : null}
-      <p className="m-0 text-text-13 text-text-secondary">{t("minimumAge", { age: page.minimumAge })}</p>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("minimumAge", { age: page.minimumAge })}
+      </p>
     </div>
   );
   if (!ctx) {
@@ -57,7 +61,10 @@ export default async function RegistrationPage({ params }: PageProps<"/join/[org
           <ButtonLink href={`/auth/sign-up?next=${next}` as Route} variant="primary">
             {t("signUp")}
           </ButtonLink>
-          <Link href={`/auth/sign-in?next=${next}` as Route} className="text-text-13 font-medium text-accent-text">
+          <Link
+            href={`/auth/sign-in?next=${next}` as Route}
+            className="text-text-13 font-medium text-accent-text"
+          >
             {t("signIn")}
           </Link>
         </div>
@@ -67,7 +74,10 @@ export default async function RegistrationPage({ params }: PageProps<"/join/[org
   const mine = await myRegistrations(ctx.db);
   const existing = mine.ok
     ? mine.data.find(
-        (r) => r.orgSlug === orgSlug && r.pageSlug === pageSlug && (r.state === "Submitted" || r.state === "Approved"),
+        (r) =>
+          r.orgSlug === orgSlug &&
+          r.pageSlug === pageSlug &&
+          (r.state === "Submitted" || r.state === "Approved"),
       )
     : undefined;
   if (existing) {
@@ -78,10 +88,16 @@ export default async function RegistrationPage({ params }: PageProps<"/join/[org
           <p role="status" className="m-0 text-text-14">
             {t(existing.state === "Approved" ? "state.Approved" : "state.Submitted")}
           </p>
-          <Tag tone={existing.state === "Approved" ? "success" : "neutral"}>{t(existing.state === "Approved" ? "states.Approved" : "states.Submitted")}</Tag>
+          <Tag tone={existing.state === "Approved" ? "success" : "neutral"}>
+            {t(existing.state === "Approved" ? "states.Approved" : "states.Submitted")}
+          </Tag>
         </div>
         <div>
-          <ActionButton action={withdrawRegistrationAction.bind(null, existing.id, path)} label={t("withdraw")} variant="secondary" />
+          <ActionButton
+            action={withdrawRegistrationAction.bind(null, existing.id, path)}
+            label={t("withdraw")}
+            variant="secondary"
+          />
         </div>
       </>
     );

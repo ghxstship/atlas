@@ -41,7 +41,8 @@ function fieldErrors(error: z.ZodError, typed: Record<string, string>): State {
   return { fieldErrors: errors, values: typed };
 }
 
-const refresh = (ctx: OrgContext) => revalidatePath(`/${ctx.org.slug}/opportunities/registration-pages`);
+const refresh = (ctx: OrgContext) =>
+  revalidatePath(`/${ctx.org.slug}/opportunities/registration-pages`);
 
 function done(ctx: OrgContext, typed: Record<string, string>, error: DataError | null): State {
   if (error) return errorState(error, typed);
@@ -52,7 +53,12 @@ function done(ctx: OrgContext, typed: Record<string, string>, error: DataError |
 const pageSchema = z.object({
   id: z.union([z.uuid(), z.literal("")]).default(""),
   title: z.string().trim().min(1).max(200),
-  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(80),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+    .max(80),
   intro: z.string().trim().max(4000).default(""),
   poolId: z.uuid(),
   minimumAge: z.coerce.number().int().min(16).max(99),

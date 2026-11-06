@@ -986,7 +986,10 @@ export interface DocumentText {
 }
 
 /** The sent, generated texts of an engagement the caller's documents area opens. */
-export async function listDocumentTexts(db: XosClient, engagementId: string): Promise<Result<DocumentText[]>> {
+export async function listDocumentTexts(
+  db: XosClient,
+  engagementId: string,
+): Promise<Result<DocumentText[]>> {
   const { data, error } = await db
     .schema("api_external")
     .from("engagement_document_texts")
@@ -1052,7 +1055,9 @@ export async function myRegistrations(db: XosClient): Promise<Result<MyRegistrat
   const { data, error } = await db
     .schema("api_external")
     .from("my_crew_registrations")
-    .select("id, org_name, org_slug, page_title, page_slug, registration_state, submitted_at, decided_at")
+    .select(
+      "id, org_name, org_slug, page_title, page_slug, registration_state, submitted_at, decided_at",
+    )
     .order("submitted_at", { ascending: false });
   if (error) return fail(toDataError(error));
   return ok(

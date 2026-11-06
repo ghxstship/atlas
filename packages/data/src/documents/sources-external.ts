@@ -324,7 +324,10 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
     if (!row?.engagement_id || row.body_masked || row.body === null) return fail(NOT_FOUND);
     const documents = await readView(db, "engagement_documents", { eq: { id }, limit: 1 });
     if (!documents.ok) return documents;
-    const engagements = await readView(db, "engagements", { eq: { id: row.engagement_id }, limit: 1 });
+    const engagements = await readView(db, "engagements", {
+      eq: { id: row.engagement_id },
+      limit: 1,
+    });
     if (!engagements.ok) return engagements;
     const engagement = engagements.data[0];
     if (!engagement?.org_id || !engagement.project_id) return fail(NOT_FOUND);

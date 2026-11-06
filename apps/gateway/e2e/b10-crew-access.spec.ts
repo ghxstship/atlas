@@ -31,10 +31,17 @@ async function publishedShift(): Promise<{ id: string; membership: string; perso
     DEMO.owner,
   );
   await sql(`select app.publish_shifts(array[$1]::uuid[])`, [shift?.id], DEMO.owner);
-  return { id: shift?.id as string, membership: member?.id as string, person: member?.person as string };
+  return {
+    id: shift?.id as string,
+    membership: member?.id as string,
+    person: member?.person as string,
+  };
 }
 
-test("a crew access link: issue, open with a code, accept, forget, revoke", async ({ page, browser }) => {
+test("a crew access link: issue, open with a code, accept, forget, revoke", async ({
+  page,
+  browser,
+}) => {
   const shift = await publishedShift();
   const { context: lead, page: atlas } = await atlasAs(browser, "owner@example.com");
 
@@ -85,7 +92,10 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   await form2.getByRole("button", { name: "Open" }).click();
 
   // The shift, in its own zone, with the venue as text.
-  const row = worker.getByRole("listitem").filter({ hasText: /PST|PDT/ }).first();
+  const row = worker
+    .getByRole("listitem")
+    .filter({ hasText: /PST|PDT/ })
+    .first();
   await expect(row).toBeVisible();
   await expect(row.getByText("Published")).toBeVisible();
   await expect(worker.getByRole("link", { name: /map/i })).toHaveCount(0);
@@ -93,7 +103,10 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   await expect(worker.getByRole("status")).toContainText("Shift accepted");
   await expect(row.getByText("Accepted")).toBeVisible();
   await expect(async () => {
-    const [state] = await sql<{ shift_state: string }>(`select shift_state from app.shifts where id = $1`, [shift.id]);
+    const [state] = await sql<{ shift_state: string }>(
+      `select shift_state from app.shifts where id = $1`,
+      [shift.id],
+    );
     expect(state?.shift_state).toBe("Accepted");
   }).toPass();
 

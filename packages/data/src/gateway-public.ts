@@ -489,7 +489,8 @@ export async function openCrewShifts(
   if (!result.ok) return result;
   const head = result.data[0];
   const refused = refusalOf(head);
-  if (refused || !head) return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
+  if (refused || !head)
+    return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
   return ok({
     refused: false,
     orgId: head.org_id ?? "",
@@ -524,15 +525,20 @@ export async function acceptCrewShift(
   db: XosClient,
   input: { readonly token: string; readonly accessCode: string; readonly shiftId: string },
 ): Promise<Result<{ refused: false; state: string } | TokenRefusal>> {
-  const result = await rows<{ refusal: string | null; reason: string | null; shift_state: string | null }>(
-    db,
-    "crew_access_accept_shift",
-    { p_token: input.token, p_access_code: input.accessCode, p_shift_id: input.shiftId },
-  );
+  const result = await rows<{
+    refusal: string | null;
+    reason: string | null;
+    shift_state: string | null;
+  }>(db, "crew_access_accept_shift", {
+    p_token: input.token,
+    p_access_code: input.accessCode,
+    p_shift_id: input.shiftId,
+  });
   if (!result.ok) return result;
   const row = result.data[0];
   const refused = refusalOf(row);
-  if (refused || !row?.shift_state) return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
+  if (refused || !row?.shift_state)
+    return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
   return ok({ refused: false, state: row.shift_state });
 }
 

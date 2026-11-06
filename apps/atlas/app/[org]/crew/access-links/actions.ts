@@ -46,7 +46,10 @@ const WORKER = z.union([
   z.object({ roster_entry_id: z.uuid() }),
 ]);
 
-export async function issueCrewAccessLinksAction(_: IssueState, form: FormData): Promise<IssueState> {
+export async function issueCrewAccessLinksAction(
+  _: IssueState,
+  form: FormData,
+): Promise<IssueState> {
   const ctx = await contextFor(form);
   const parsed = z
     .object({

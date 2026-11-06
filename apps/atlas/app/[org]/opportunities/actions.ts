@@ -646,7 +646,10 @@ async function standingRate(
   ctx: OrgContext,
   input: { rate: string | null; numberFormat: (typeof NUMBER_FORMATS)[number] },
 ): Promise<
-  | { ok: true; rate: { rateType: invitations.RateType; rateMinor: number; currency: string } | null }
+  | {
+      ok: true;
+      rate: { rateType: invitations.RateType; rateMinor: number; currency: string } | null;
+    }
   | { ok: false; issue: string }
 > {
   if (!input.rate) return { ok: true, rate: null };
@@ -655,12 +658,23 @@ async function standingRate(
     orgBaseCurrency(ctx.viewer.db, ctx.org.id),
   ]);
   const exponents = new Map(
-    (currencies.data ?? []).map((c) => [String(c.currency_code).trim(), Number(c.minor_unit_exponent)]),
+    (currencies.data ?? []).map((c) => [
+      String(c.currency_code).trim(),
+      Number(c.minor_unit_exponent),
+    ]),
   );
-  const parsed = parseRate(input.rate, input.numberFormat, (code) => exponents.get(code), base.ok ? base.data : null);
+  const parsed = parseRate(
+    input.rate,
+    input.numberFormat,
+    (code) => exponents.get(code),
+    base.ok ? base.data : null,
+  );
   if (!parsed.ok) return { ok: false, issue: parsed.issue };
   if (parsed.basis === null) return { ok: false, issue: "rate_type_required" };
-  return { ok: true, rate: { rateType: parsed.basis, rateMinor: parsed.minor, currency: parsed.currency } };
+  return {
+    ok: true,
+    rate: { rateType: parsed.basis, rateMinor: parsed.minor, currency: parsed.currency },
+  };
 }
 
 export const invitePoolMemberAction: Action = async (_state, form) => {

@@ -65,7 +65,10 @@ test("a registration page: open it, register, approve, and the person is on the 
   await page.waitForURL(/\/auth\/sign-up/);
   await page.getByLabel(/name/i).first().fill(`Reggie Crew ${id}`);
   await page.getByLabel(/email/i).first().fill(`reggie-${id}@example.com`);
-  await page.getByLabel(/password/i).first().fill(`Xos-${id}-passphrase-41`);
+  await page
+    .getByLabel(/password/i)
+    .first()
+    .fill(`Xos-${id}-passphrase-41`);
   await page.getByRole("checkbox").first().check();
   await page.getByRole("button", { name: /sign up|create account/i }).click();
   await page.waitForURL(new RegExp(`/join/${ORG}/${slug}`), { timeout: 60_000 });

@@ -29,11 +29,17 @@ export interface CrewAccessState {
 
 const pathOf = (t: string) => `/shifts/${t}`;
 
-export async function openCrewShiftsAction(_: CrewAccessState, form: FormData): Promise<CrewAccessState> {
+export async function openCrewShiftsAction(
+  _: CrewAccessState,
+  form: FormData,
+): Promise<CrewAccessState> {
   const t = token.safeParse(form.get("token"));
   const c = code.safeParse(form.get("accessCode"));
   if (!t.success || !c.success) return { refusal: "crew_access_access_code", at: Date.now() };
-  const result = await openCrewShifts(await createServerSupabase(), { token: t.data, accessCode: c.data });
+  const result = await openCrewShifts(await createServerSupabase(), {
+    token: t.data,
+    accessCode: c.data,
+  });
   if (!result.ok) return { outcome: outcomeFor(result.error), at: Date.now() };
   if (result.data.refused) return { refusal: result.data.reason, at: Date.now() };
   const left = Math.floor((Date.parse(result.data.linkExpiresAt) - Date.now()) / 1000);
@@ -48,7 +54,10 @@ export async function openCrewShiftsAction(_: CrewAccessState, form: FormData): 
   return { at: Date.now() };
 }
 
-export async function acceptCrewShiftAction(_: CrewAccessState, form: FormData): Promise<CrewAccessState> {
+export async function acceptCrewShiftAction(
+  _: CrewAccessState,
+  form: FormData,
+): Promise<CrewAccessState> {
   const t = token.safeParse(form.get("token"));
   const shift = z.uuid().safeParse(form.get("shiftId"));
   if (!t.success || !shift.success) return { refusal: "crew_access_shift_state", at: Date.now() };

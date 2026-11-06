@@ -60,7 +60,8 @@ function lookups(
     roleCode: async (v) => (v.toLowerCase() === "rigger" ? "5000.51.02" : null),
     poolInvitationContext: async () => context,
     poolInvitation: async (id) => existing[id] ?? null,
-    destinationKeyMatch: async (_j, keys) => (keys["email"] === "match@x.test" ? "inv1" : keys["email"] === "old@x.test" ? "inv2" : null),
+    destinationKeyMatch: async (_j, keys) =>
+      keys["email"] === "match@x.test" ? "inv1" : keys["email"] === "old@x.test" ? "inv2" : null,
     async create(_o, target, values) {
       writes.push({ op: "create", target, ...values });
       if (values["email"] === "said-no@x.test") {
@@ -124,23 +125,35 @@ describe("validating a pool invitation row (B10)", () => {
       (await check(cells, dest)).issues.map((i) => i.issue);
     expect(await issues({ email: "nope" })).toEqual(["invalid_email"]);
     expect(await issues({ email: "a@x.test", pool_name: "Nobody" })).toEqual(["unknown_pool"]);
-    expect(await issues({ email: "a@x.test" }, { pools: { ...CONTEXT, talentPoolId: null } })).toEqual(["pool_required"]);
+    expect(
+      await issues({ email: "a@x.test" }, { pools: { ...CONTEXT, talentPoolId: null } }),
+    ).toEqual(["pool_required"]);
     expect(await issues({ email: "a@x.test", work_phone: "12" })).toEqual(["invalid_phone"]);
     expect(await issues({ email: "a@x.test", role: "Astronaut" })).toEqual(["unknown_role"]);
     expect(await issues({ email: "a@x.test", rate: "1,5,5 €/día" })).toEqual(["invalid_rate"]);
-    expect(await issues({ email: "a@x.test", rate: "$25/día" }, { pools: { ...CONTEXT, baseCurrency: "EUR" } })).toEqual([
-      "rate_currency_required",
-    ]);
+    expect(
+      await issues(
+        { email: "a@x.test", rate: "$25/día" },
+        { pools: { ...CONTEXT, baseCurrency: "EUR" } },
+      ),
+    ).toEqual(["rate_currency_required"]);
     expect(await issues({ email: "a@x.test", rate: "25" })).toEqual(["rate_type_required"]);
-    expect(await issues({ email: "a@x.test", rate: "25/día", rate_type: "por hora" })).toEqual(["rate_type_conflict"]);
-    expect(await issues({ email: "a@x.test", rate: "25/día" }, { pools: { ...CONTEXT, canWriteRates: false } })).toEqual([
-      "rate_not_permitted",
+    expect(await issues({ email: "a@x.test", rate: "25/día", rate_type: "por hora" })).toEqual([
+      "rate_type_conflict",
     ]);
+    expect(
+      await issues(
+        { email: "a@x.test", rate: "25/día" },
+        { pools: { ...CONTEXT, canWriteRates: false } },
+      ),
+    ).toEqual(["rate_not_permitted"]);
     expect(await issues({ rate: "" })).toContain("required");
   });
 
   it("names the pool from the row over the import's", async () => {
-    expect((await check({ email: "a@x.test", pool_name: "riggers" })).values["talent_pool_id"]).toBe("pool2");
+    expect(
+      (await check({ email: "a@x.test", pool_name: "riggers" })).values["talent_pool_id"],
+    ).toBe("pool2");
   });
 
   it("marks a repeat of email and pool within the file", async () => {
@@ -152,9 +165,20 @@ describe("validating a pool invitation row (B10)", () => {
   });
 });
 
-function world(csv: string, existing: Parameters<typeof lookups>[1] = {}, merges: Readonly<Record<number, string>> = {}) {
+function world(
+  csv: string,
+  existing: Parameters<typeof lookups>[1] = {},
+  merges: Readonly<Record<number, string>> = {},
+) {
   const writes: Row[] = [];
-  const rows: { id: string; rowNumber: number; state: string; reason: string | null; match: string | null; written?: Row }[] = [];
+  const rows: {
+    id: string;
+    rowNumber: number;
+    state: string;
+    reason: string | null;
+    match: string | null;
+    written?: Row;
+  }[] = [];
   const job: { -readonly [K in keyof ImportJobRecord]: ImportJobRecord[K] } = {
     id: "j1",
     orgId: "org",
@@ -202,7 +226,13 @@ function world(csv: string, existing: Parameters<typeof lookups>[1] = {}, merges
     mappedColumns: async () => COLUMNS,
     recordRow: async (input: { rowNumber: number; state: string; reason: string | null }) => {
       const id = `r${input.rowNumber}`;
-      rows.push({ id, rowNumber: input.rowNumber, state: input.state, reason: input.reason, match: null });
+      rows.push({
+        id,
+        rowNumber: input.rowNumber,
+        state: input.state,
+        reason: input.reason,
+        match: null,
+      });
       return id;
     },
     recordCellIssues: async () => {},
@@ -217,9 +247,16 @@ function world(csv: string, existing: Parameters<typeof lookups>[1] = {}, merges
           id: r.id,
           rowNumber: r.rowNumber,
           matchedId: r.match,
-          mergeInto: merges[r.rowNumber] ? { table: "app.pool_members", id: merges[r.rowNumber] as string } : null,
+          mergeInto: merges[r.rowNumber]
+            ? { table: "app.pool_members", id: merges[r.rowNumber] as string }
+            : null,
         })),
-    commitWrite: async (input: { rowId: string; action: string; targetId: string; before: Row | null }) => {
+    commitWrite: async (input: {
+      rowId: string;
+      action: string;
+      targetId: string;
+      before: Row | null;
+    }) => {
       const r = rows.find((x) => x.id === input.rowId);
       if (r) Object.assign(r, { state: "Written", written: input });
     },
@@ -253,14 +290,23 @@ function world(csv: string, existing: Parameters<typeof lookups>[1] = {}, merges
 }
 
 const CSV = (lines: readonly string[]) =>
-  [`email,pool_name,invitee_name,work_phone,role,rate,rate_currency,rate_type,note`, ...lines].join("\n");
+  [`email,pool_name,invitee_name,work_phone,role,rate,rate_currency,rate_type,note`, ...lines].join(
+    "\n",
+  );
 
 describe("committing pool invitations (B10)", () => {
   it("creates an invitation with the creator as inviter, and writes no person", async () => {
     const w = world(CSV(["new@x.test,,Ana,,,,,,"]));
     await w.validateAndCommit();
     expect(w.writes).toEqual([
-      { op: "create", target: "pool_invitations", email: "new@x.test", talent_pool_id: "pool1", invitee_name: "Ana", invited_by: "person1" },
+      {
+        op: "create",
+        target: "pool_invitations",
+        email: "new@x.test",
+        talent_pool_id: "pool1",
+        invitee_name: "Ana",
+        invited_by: "person1",
+      },
     ]);
     expect(w.rows[0]?.state).toBe("Written");
   });

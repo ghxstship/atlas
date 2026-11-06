@@ -86,7 +86,10 @@ export default async function CrewShiftsPage({ params }: PageProps<"/shifts/[tok
         <BrandMark name={brand.ok ? (brand.data?.name ?? page.orgName) : page.orgName} size="sm" />
         {heading}
         <p className="m-0 text-text-14 text-text-secondary">
-          {t("gateway.tokens.crewShifts.intro", { name: page.personName ?? "", project: page.projectName })}
+          {t("gateway.tokens.crewShifts.intro", {
+            name: page.personName ?? "",
+            project: page.projectName,
+          })}
         </p>
       </div>
       {rows.length === 0 ? (

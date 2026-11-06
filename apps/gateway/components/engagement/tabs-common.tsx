@@ -325,7 +325,11 @@ function documentAnswer(
   if (text) {
     if (text.bodyMasked || text.body === null || text.bodySha256 === null) {
       return {
-        detail: <p className="m-0 text-text-13 text-text-secondary">{t("gateway.documents.readAndSign.masked")}</p>,
+        detail: (
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.documents.readAndSign.masked")}
+          </p>
+        ),
       };
     }
     return {
@@ -431,7 +435,10 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                           {t("gateway.engagement.onboarding.signHint")}
                         </p>
                         <div>
-                          <ButtonLink href={tabHref(engagementKey, "engagement.documents")} size="sm">
+                          <ButtonLink
+                            href={tabHref(engagementKey, "engagement.documents")}
+                            size="sm"
+                          >
                             {t("nav.gateway.engagementTabs.documents")}
                           </ButtonLink>
                         </div>

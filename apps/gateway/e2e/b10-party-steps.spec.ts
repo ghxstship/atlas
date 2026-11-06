@@ -34,7 +34,10 @@ async function batch(tag: string, title: string, body: string, requirement: stri
   return id;
 }
 
-test("the crew person signs one agreement and declines another; Atlas countersigns", async ({ page, browser }) => {
+test("the crew person signs one agreement and declines another; Atlas countersigns", async ({
+  page,
+  browser,
+}) => {
   const tag = uniqueId().slice(-6);
   await batch(tag, `Sign me ${tag}`, "You work the show days.", null);
   await batch(tag, `Decline me ${tag}`, "A different arrangement.", null);
@@ -54,20 +57,29 @@ test("the crew person signs one agreement and declines another; Atlas countersig
 
   const { context, page: atlas } = await atlasAs(browser, "owner@example.com");
   await atlas.goto(`/${ORG}/opportunities/onboarding`);
-  const row = atlas.getByRole("listitem").filter({ hasText: `Sign me ${tag}` }).first();
+  const row = atlas
+    .getByRole("listitem")
+    .filter({ hasText: `Sign me ${tag}` })
+    .first();
   await row.getByRole("button", { name: "Countersign signed" }).click();
   await expect(row.getByText(/Executed: 1/)).toBeVisible();
 
   await page.reload();
   const download = await Promise.all([
     page.waitForEvent("download"),
-    signRow.getByRole("link", { name: /PDF|Download/ }).first().click(),
+    signRow
+      .getByRole("link", { name: /PDF|Download/ })
+      .first()
+      .click(),
   ]);
   expect(download[0].suggestedFilename()).toMatch(/\.pdf$/);
   await context.close();
 });
 
-test("a pool invitation is accepted on Home and the person is named in Atlas", async ({ page, browser }) => {
+test("a pool invitation is accepted on Home and the person is named in Atlas", async ({
+  page,
+  browser,
+}) => {
   const tag = uniqueId().slice(-6);
   const [pool] = await sql<{ id: string }>(
     `insert into app.talent_pools (org_id, name, pool_kind) values ($1, $2, 'Talent') returning id`,

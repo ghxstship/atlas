@@ -312,7 +312,10 @@ async function PoolRecord({
         </ul>
       </Section>
       {canWrite && talent ? (
-        <Section id="pool-invitations" title={t("pools.invitations.title", { count: invited.length })}>
+        <Section
+          id="pool-invitations"
+          title={t("pools.invitations.title", { count: invited.length })}
+        >
           {importHref ? (
             <div>
               <ButtonLink href={importHref} variant="secondary">
@@ -328,26 +331,54 @@ async function PoolRecord({
               rows={invited}
               columns={[
                 { key: "email", label: t("fields.email"), cell: (i: PoolInvitation) => i.email },
-                { key: "label", label: t("pools.invitations.label"), cell: (i: PoolInvitation) => i.label ?? "" },
-                { key: "role", label: t("fields.roleCode"), cell: (i: PoolInvitation) => i.jobTitle ?? i.roleCode ?? "" },
-                { key: "rate", label: t("pools.invitations.rate"), cell: (i: PoolInvitation) => rateText(i) },
+                {
+                  key: "label",
+                  label: t("pools.invitations.label"),
+                  cell: (i: PoolInvitation) => i.label ?? "",
+                },
+                {
+                  key: "role",
+                  label: t("fields.roleCode"),
+                  cell: (i: PoolInvitation) => i.jobTitle ?? i.roleCode ?? "",
+                },
+                {
+                  key: "rate",
+                  label: t("pools.invitations.rate"),
+                  cell: (i: PoolInvitation) => rateText(i),
+                },
                 {
                   key: "sent",
                   label: t("pools.invitations.sent"),
                   cell: (i: PoolInvitation) =>
-                    i.sentAt ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(i.sentAt)) : "",
+                    i.sentAt
+                      ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                          new Date(i.sentAt),
+                        )
+                      : "",
                 },
                 {
                   key: "expires",
                   label: t("pools.invitations.expires"),
                   cell: (i: PoolInvitation) =>
-                    i.expiresAt ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(i.expiresAt)) : "",
+                    i.expiresAt
+                      ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                          new Date(i.expiresAt),
+                        )
+                      : "",
                 },
                 {
                   key: "status",
                   label: t("pools.invitations.status"),
                   cell: (i: PoolInvitation) => (
-                    <Tag tone={i.status === "Pending" ? "accent" : i.status === "Claimed" ? "success" : "neutral"}>
+                    <Tag
+                      tone={
+                        i.status === "Pending"
+                          ? "accent"
+                          : i.status === "Claimed"
+                            ? "success"
+                            : "neutral"
+                      }
+                    >
                       {t(`pools.invitations.statuses.${enumKey(i.status)}`)}
                     </Tag>
                   ),
@@ -385,18 +416,40 @@ async function PoolRecord({
             title={t("pools.invitations.invite")}
             fields={[
               { name: "email", label: t("fields.email"), kind: "email", required: true },
-              { name: "label", label: t("pools.invitations.label"), kind: "text", help: t("pools.invitations.labelHelp") },
-              { name: "workPhone", label: t("pools.invitations.workPhone"), kind: "text", help: t("pools.invitations.workPhoneHelp") },
-              { name: "roleCode", label: t("fields.roleCode"), kind: "text", help: t("postings.roleCodeHelp") },
+              {
+                name: "label",
+                label: t("pools.invitations.label"),
+                kind: "text",
+                help: t("pools.invitations.labelHelp"),
+              },
+              {
+                name: "workPhone",
+                label: t("pools.invitations.workPhone"),
+                kind: "text",
+                help: t("pools.invitations.workPhoneHelp"),
+              },
+              {
+                name: "roleCode",
+                label: t("fields.roleCode"),
+                kind: "text",
+                help: t("postings.roleCodeHelp"),
+              },
               {
                 name: "rate",
                 label: t("pools.invitations.rate"),
                 kind: "text",
                 help: t("pools.invitations.rateHelp", {
-                  example: new Intl.NumberFormat(locale, { minimumFractionDigits: 2 }).format(1234.5),
+                  example: new Intl.NumberFormat(locale, { minimumFractionDigits: 2 }).format(
+                    1234.5,
+                  ),
                 }),
               },
-              { name: "note", label: t("pools.invitations.note"), kind: "text", help: t("pools.invitations.noteHelp") },
+              {
+                name: "note",
+                label: t("pools.invitations.note"),
+                kind: "text",
+                help: t("pools.invitations.noteHelp"),
+              },
               {
                 name: "validFor",
                 label: t("pools.invitations.validFor"),

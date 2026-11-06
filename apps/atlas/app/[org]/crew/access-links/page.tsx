@@ -13,7 +13,9 @@ import { getNode } from "@xos/ia";
 import { getFormatter } from "next-intl/server";
 import { revokeCrewAccessLinkAction } from "./actions";
 
-const TONES: Readonly<Record<CrewAccessLink["status"], "success" | "warning" | "neutral" | "danger">> = {
+const TONES: Readonly<
+  Record<CrewAccessLink["status"], "success" | "warning" | "neutral" | "danger">
+> = {
   Live: "success",
   Locked: "danger",
   Expired: "neutral",
@@ -27,7 +29,10 @@ const TONES: Readonly<Record<CrewAccessLink["status"], "success" | "warning" | "
  * staff (crew.shift.write there) appear, in the list, the filter and the issue form. The issue form is its own state
  * (?issue=1), and the page does not refresh while the one view of the codes is open.
  */
-export default async function Page({ params, searchParams }: PageProps<"/[org]/crew/access-links">) {
+export default async function Page({
+  params,
+  searchParams,
+}: PageProps<"/[org]/crew/access-links">) {
   const routeParams = await params;
   const search = flatParams(await searchParams);
   const node = "crew.access-links";
@@ -38,7 +43,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const base = nodeHref(node, routeParams) ?? "/";
   const entry = getNode(sitemap, node).node;
   const views = entry.list?.views ?? ["list"];
-  const view = views.includes(search["view"] as never) ? (search["view"] as string) : (entry.list?.default ?? "list");
+  const view = views.includes(search["view"] as never)
+    ? (search["view"] as string)
+    : (entry.list?.default ?? "list");
   const [allProjects, staffable] = await Promise.all([
     listCrewProjects(db, crew.orgId),
     listShiftPlanningProjectIds(db, crew.orgId),
@@ -57,7 +64,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const issueHref = withParams(base, search, { issue: "1" });
   const closeHref = withParams(base, search, { issue: null });
   const when = (iso: string | null) =>
-    iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : t("crew.crewAccess.never");
+    iso
+      ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" })
+      : t("crew.crewAccess.never");
   const status = (l: CrewAccessLink) => (
     <Tag tone={TONES[l.status]}>{t(`crew.crewAccess.statuses.${l.status}`)}</Tag>
   );
@@ -134,12 +143,33 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           rowKey={(l) => l.id}
           rows={links.data}
           columns={[
-            { key: "person", label: t("crew.fields.person"), cell: (l: CrewAccessLink) => l.personName ?? t("crew.common.unnamed") },
-            { key: "project", label: t("crew.fields.project"), cell: (l: CrewAccessLink) => l.projectName ?? "" },
+            {
+              key: "person",
+              label: t("crew.fields.person"),
+              cell: (l: CrewAccessLink) => l.personName ?? t("crew.common.unnamed"),
+            },
+            {
+              key: "project",
+              label: t("crew.fields.project"),
+              cell: (l: CrewAccessLink) => l.projectName ?? "",
+            },
             { key: "status", label: t("crew.crewAccess.status"), cell: status },
-            { key: "expires", label: t("crew.crewAccess.expires"), cell: (l: CrewAccessLink) => when(l.expiresAt) },
-            { key: "opened", label: t("crew.crewAccess.lastOpened"), cell: (l: CrewAccessLink) => when(l.lastOpenedAt) },
-            { key: "opens", label: t("crew.crewAccess.openCount"), numeric: true, cell: (l: CrewAccessLink) => l.openCount },
+            {
+              key: "expires",
+              label: t("crew.crewAccess.expires"),
+              cell: (l: CrewAccessLink) => when(l.expiresAt),
+            },
+            {
+              key: "opened",
+              label: t("crew.crewAccess.lastOpened"),
+              cell: (l: CrewAccessLink) => when(l.lastOpenedAt),
+            },
+            {
+              key: "opens",
+              label: t("crew.crewAccess.openCount"),
+              numeric: true,
+              cell: (l: CrewAccessLink) => l.openCount,
+            },
             { key: "revoke", label: t("crew.crewAccess.actions"), cell: revoke },
           ]}
         />
@@ -151,7 +181,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           {links.data.map((l) => (
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-8 px-12 py-8">
               <span className="flex flex-col">
-                <span className="text-text-13 font-medium">{l.personName ?? t("crew.common.unnamed")}</span>
+                <span className="text-text-13 font-medium">
+                  {l.personName ?? t("crew.common.unnamed")}
+                </span>
                 <span className="text-text-12 text-text-secondary">
                   {t("crew.crewAccess.listLine", {
                     project: l.projectName ?? "",

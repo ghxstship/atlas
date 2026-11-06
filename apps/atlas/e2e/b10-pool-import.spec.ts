@@ -34,19 +34,28 @@ test("a freelancer list: map, review, commit, and the invitations appear", async
     `cleo-${id}@example.com\tCleo ${id}\t\t`,
   ].join("\n");
   await page.getByLabel("Rows", { exact: true }).fill(rows);
-  await page.getByRole("button", { name: /Upload|Continue|Read/ }).first().click();
+  await page
+    .getByRole("button", { name: /Upload|Continue|Read/ })
+    .first()
+    .click();
   await page.waitForURL(/import=/);
 
   await runImportWorker();
   await reloadUntil(page, page.getByRole("heading", { name: /column/i }).first());
-  await page.getByRole("button", { name: /Confirm/ }).first().click();
+  await page
+    .getByRole("button", { name: /Confirm/ })
+    .first()
+    .click();
   await runImportWorker();
   await reloadUntil(page, page.getByRole("heading", { name: "Row issues" }));
 
   // The repeat and the bad phone are Invalid; the good rows go on.
   await expect(page.getByText(/repeats|duplicate/i).first()).toBeVisible();
   await expect(page.getByText("not a phone number").first()).toBeVisible();
-  await page.getByRole("button", { name: /Commit/ }).first().click();
+  await page
+    .getByRole("button", { name: /Commit/ })
+    .first()
+    .click();
   await runImportWorker();
 
   await page.goto(`/${DEMO_ORG}/opportunities/pools`);

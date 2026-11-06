@@ -124,7 +124,9 @@ export async function EngagementsView({
           }
           actions={
             canGenerate && !generating ? (
-              <ButtonLink href={page.href({ generate: "1" })}>{t("agreementBatches.generate")}</ButtonLink>
+              <ButtonLink href={page.href({ generate: "1" })}>
+                {t("agreementBatches.generate")}
+              </ButtonLink>
             ) : null
           }
         />
@@ -568,7 +570,9 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                   />
                 ) : null}
                 {texted.has(d.id) ? (
-                  texted.get(d.id) ? null : <DocumentActions org={ctx.org.slug} kind="engagement-document" id={d.id} />
+                  texted.get(d.id) ? null : (
+                    <DocumentActions org={ctx.org.slug} kind="engagement-document" id={d.id} />
+                  )
                 ) : null}
                 {canWrite && d.state === "Sent" && !texted.has(d.id) ? (
                   <ActionForm

@@ -122,12 +122,16 @@ export default async function RegistrationPagesPage({
             {
               key: "title",
               label: t("registrationPages.fields.title"),
-              cell: (r: RegistrationPage) => <RowLink href={page.href({ page: r.id })}>{r.title}</RowLink>,
+              cell: (r: RegistrationPage) => (
+                <RowLink href={page.href({ page: r.id })}>{r.title}</RowLink>
+              ),
             },
             {
               key: "state",
               label: t("registrationPages.fields.state"),
-              cell: (r: RegistrationPage) => <Tag tone="neutral">{t(`registrationPages.states.${r.state}`)}</Tag>,
+              cell: (r: RegistrationPage) => (
+                <Tag tone="neutral">{t(`registrationPages.states.${r.state}`)}</Tag>
+              ),
             },
             {
               key: "open",
@@ -138,14 +142,19 @@ export default async function RegistrationPagesPage({
             {
               key: "link",
               label: t("registrationPages.fields.publicLink"),
-              cell: (r: RegistrationPage) => <CopyText text={publicLink(r)} label={t("registrationPages.copyLink")} />,
+              cell: (r: RegistrationPage) => (
+                <CopyText text={publicLink(r)} label={t("registrationPages.copyLink")} />
+              ),
             },
           ]}
         />
       ) : (
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
           {rows.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover">
+            <li
+              key={r.id}
+              className="flex flex-wrap items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover"
+            >
               <RowLink href={page.href({ page: r.id })}>{r.title}</RowLink>
               <span className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
                 <Tag tone="neutral">{t(`registrationPages.states.${r.state}`)}</Tag>
@@ -165,7 +174,11 @@ export default async function RegistrationPagesPage({
   );
 }
 
-function pageFields(page: PageSetup, pools: readonly { id: string; name: string }[], record?: RegistrationPage) {
+function pageFields(
+  page: PageSetup,
+  pools: readonly { id: string; name: string }[],
+  record?: RegistrationPage,
+) {
   const { t } = page;
   return [
     {
@@ -236,14 +249,20 @@ async function PageRecord({
   return (
     <div className="flex flex-col gap-16">
       <header className="flex flex-col gap-8 border-b border-border-subtle pb-12">
-        <Link href={page.href({ page: null }) as Route} className="text-text-12 text-text-secondary hover:text-text-primary">
+        <Link
+          href={page.href({ page: null }) as Route}
+          className="text-text-12 text-text-secondary hover:text-text-primary"
+        >
           {t("registrationPages.back")}
         </Link>
         <div className="flex flex-wrap items-center gap-8">
           <h1 className="m-0 text-heading-20 font-semibold">{record.title}</h1>
           <Tag tone="neutral">{t(`registrationPages.states.${record.state}`)}</Tag>
         </div>
-        <CopyText text={gatewayUrl(`/join/${ctx.org.slug}/${record.slug}`)} label={t("registrationPages.copyLink")} />
+        <CopyText
+          text={gatewayUrl(`/join/${ctx.org.slug}/${record.slug}`)}
+          label={t("registrationPages.copyLink")}
+        />
       </header>
       {canWrite ? (
         <Section id="registration-page" title={t("registrationPages.editTitle")}>
@@ -282,7 +301,10 @@ async function PageRecord({
         {asked.length === 0 ? <Muted>{t("registrationPages.noQuestions")}</Muted> : null}
         <ul className="m-0 flex list-none flex-col gap-8 p-0">
           {asked.map((q) => (
-            <li key={q.id} className="flex flex-col gap-8 rounded-card border border-border-subtle p-8">
+            <li
+              key={q.id}
+              className="flex flex-col gap-8 rounded-card border border-border-subtle p-8"
+            >
               {canWrite && draft ? (
                 <div className="flex flex-wrap items-end gap-8">
                   <ActionForm
@@ -290,8 +312,19 @@ async function PageRecord({
                     hidden={{ ...hidden, id: q.id }}
                     inline
                     fields={[
-                      { name: "prompt", label: t("registrationPages.prompt"), kind: "text", required: true, defaultValue: q.prompt },
-                      { name: "isRequired", label: t("registrationPages.required"), kind: "checkbox", defaultValue: q.isRequired ? "true" : "" },
+                      {
+                        name: "prompt",
+                        label: t("registrationPages.prompt"),
+                        kind: "text",
+                        required: true,
+                        defaultValue: q.prompt,
+                      },
+                      {
+                        name: "isRequired",
+                        label: t("registrationPages.required"),
+                        kind: "checkbox",
+                        defaultValue: q.isRequired ? "true" : "",
+                      },
                     ]}
                     submitLabel={t("registrationPages.saveQuestion")}
                   />
@@ -306,7 +339,10 @@ async function PageRecord({
                 </div>
               ) : (
                 <p className="m-0 text-text-13">
-                  {q.prompt} {q.isRequired ? <Tag tone="neutral">{t("registrationPages.required")}</Tag> : null}
+                  {q.prompt}{" "}
+                  {q.isRequired ? (
+                    <Tag tone="neutral">{t("registrationPages.required")}</Tag>
+                  ) : null}
                 </p>
               )}
             </li>
@@ -319,7 +355,13 @@ async function PageRecord({
               hidden={{ ...hidden, pageId: record.id }}
               title={t("registrationPages.addQuestion")}
               fields={[
-                { name: "prompt", label: t("registrationPages.prompt"), kind: "text", required: true, help: t("registrationPages.promptHelp") },
+                {
+                  name: "prompt",
+                  label: t("registrationPages.prompt"),
+                  kind: "text",
+                  required: true,
+                  help: t("registrationPages.promptHelp"),
+                },
                 { name: "isRequired", label: t("registrationPages.required"), kind: "checkbox" },
               ]}
               submitLabel={t("registrationPages.addQuestionSubmit")}
@@ -350,7 +392,12 @@ async function PageRecord({
             action={inviteToRegistrationAction}
             hidden={{ ...hidden, pageId: record.id }}
             fields={[
-              { name: "includePastCrew", label: t("registrationPages.includePastCrew"), kind: "checkbox", help: t("registrationPages.includePastCrewHelp") },
+              {
+                name: "includePastCrew",
+                label: t("registrationPages.includePastCrew"),
+                kind: "checkbox",
+                help: t("registrationPages.includePastCrewHelp"),
+              },
             ]}
             submitLabel={t("registrationPages.invite")}
             successLabel={t("registrationPages.invited")}
@@ -358,7 +405,11 @@ async function PageRecord({
         </Section>
       ) : null}
       <Section id="page-registrations" title={t("registrations.title")}>
-        {queue.length === 0 ? <Muted>{t("registrations.empty")}</Muted> : <RegistrationQueue org={ctx.org.slug} rows={queue} />}
+        {queue.length === 0 ? (
+          <Muted>{t("registrations.empty")}</Muted>
+        ) : (
+          <RegistrationQueue org={ctx.org.slug} rows={queue} />
+        )}
       </Section>
     </div>
   );

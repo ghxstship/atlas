@@ -14,7 +14,17 @@ const INITIAL: RegistrationState = {};
 /** At most seven visible fields a step; the work phone comes first and takes one on the first step. */
 const PER_STEP = 7;
 
-const SECTIONS = ["headline", "bio", "pronouns", "location", "skills", "certifications", "rates", "languages", "links"] as const;
+const SECTIONS = [
+  "headline",
+  "bio",
+  "pronouns",
+  "location",
+  "skills",
+  "certifications",
+  "rates",
+  "languages",
+  "links",
+] as const;
 
 export interface RegistrationQuestionRow {
   readonly id: string;
@@ -52,14 +62,17 @@ export function RegistrationForm({
   const ref = useRef<HTMLFormElement>(null);
   // The first step holds the phone and six questions; later steps hold seven.
   const chunks: RegistrationQuestionRow[][] = [questions.slice(0, PER_STEP - 1)];
-  for (let i = PER_STEP - 1; i < questions.length; i += PER_STEP) chunks.push([...questions.slice(i, i + PER_STEP)]);
+  for (let i = PER_STEP - 1; i < questions.length; i += PER_STEP)
+    chunks.push([...questions.slice(i, i + PER_STEP)]);
   const stepNames = [...chunks.map((_c, i) => t("stepQuestions", { n: i + 1 })), t("stepConfirm")];
   const last = stepNames.length - 1;
   const next = (event: FormEvent) => {
     event.preventDefault();
-    const empty = [...(ref.current?.querySelectorAll<HTMLTextAreaElement>(`[data-step="${step}"] textarea[required]`) ?? [])].some(
-      (el) => el.value.trim() === "",
-    );
+    const empty = [
+      ...(ref.current?.querySelectorAll<HTMLTextAreaElement>(
+        `[data-step="${step}"] textarea[required]`,
+      ) ?? []),
+    ].some((el) => el.value.trim() === "");
     setMissing(empty);
     if (!empty) setStep((s) => Math.min(s + 1, last));
   };
@@ -77,11 +90,20 @@ export function RegistrationForm({
       <input type="hidden" name="pageSlug" value={pageSlug} />
       <input type="hidden" name="sections" value={sections.join(",")} />
       <Stepper steps={stepNames} current={step} />
-      {state.refusal ? <InlineAlert tone="danger">{refusals.has(state.refusal) ? refusals(state.refusal) : t("refused")}</InlineAlert> : null}
+      {state.refusal ? (
+        <InlineAlert tone="danger">
+          {refusals.has(state.refusal) ? refusals(state.refusal) : t("refused")}
+        </InlineAlert>
+      ) : null}
       {state.outcome ? <InlineAlert tone="danger">{outcomes(state.outcome)}</InlineAlert> : null}
       {missing ? <InlineAlert tone="warning">{t("answerRequired")}</InlineAlert> : null}
       {chunks.map((chunk, i) => (
-        <div key={i} data-step={i} hidden={step !== i} className={step === i ? "flex flex-col gap-12" : undefined}>
+        <div
+          key={i}
+          data-step={i}
+          hidden={step !== i}
+          className={step === i ? "flex flex-col gap-12" : undefined}
+        >
           {i === 0 ? (
             <Input
               id="registration-phone"
@@ -106,7 +128,11 @@ export function RegistrationForm({
           ))}
         </div>
       ))}
-      <div data-step={last} hidden={step !== last} className={step === last ? "flex flex-col gap-12" : undefined}>
+      <div
+        data-step={last}
+        hidden={step !== last}
+        className={step === last ? "flex flex-col gap-12" : undefined}
+      >
         {minimumAge > 16 ? (
           <Checkbox name="ageConfirmed" value="true" label={t("ageConfirm", { age: minimumAge })} />
         ) : null}

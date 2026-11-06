@@ -30,7 +30,10 @@ export interface PoolInvitation {
   readonly status: InvitationStatus;
 }
 
-export async function listPoolInvitations(db: XosClient, poolId: string): Promise<Result<PoolInvitation[]>> {
+export async function listPoolInvitations(
+  db: XosClient,
+  poolId: string,
+): Promise<Result<PoolInvitation[]>> {
   const { data, error } = await db
     .from("talent_pool_invitation_list")
     .select(
@@ -75,7 +78,10 @@ export interface PoolInvitationInput {
   readonly validForDays?: number;
 }
 
-export async function inviteToPool(db: XosClient, input: PoolInvitationInput): Promise<Result<{ id: string }>> {
+export async function inviteToPool(
+  db: XosClient,
+  input: PoolInvitationInput,
+): Promise<Result<{ id: string }>> {
   const { data, error } = await db.rpc("invite_to_talent_pool", {
     p_pool_id: input.poolId,
     p_email: input.email,
@@ -116,7 +122,10 @@ export interface PoolMemberRate {
   readonly isMasked: boolean;
 }
 
-export async function listPoolMemberRates(db: XosClient, poolId: string): Promise<Result<PoolMemberRate[]>> {
+export async function listPoolMemberRates(
+  db: XosClient,
+  poolId: string,
+): Promise<Result<PoolMemberRate[]>> {
   const { data, error } = await db
     .from("pool_member_rate_list")
     .select("pool_member_id, rate_type, rate_minor, currency_code, is_masked")
@@ -158,12 +167,14 @@ export async function setPoolMemberRate(
  * The number format an org's language implies, for reading a standing rate typed into the Pools form: derived from
  * Intl's own separators, comma-dot when they are anything else. A format per import stays the uploader's choice.
  */
-export function numberFormatOfLocale(locale: string): "comma-dot" | "dot-comma" | "space-comma" | "apostrophe-dot" {
+export function numberFormatOfLocale(
+  locale: string,
+): "comma-dot" | "dot-comma" | "space-comma" | "apostrophe-dot" {
   const parts = new Intl.NumberFormat(locale).formatToParts(1234567.5);
   const group = parts.find((p) => p.type === "group")?.value ?? ",";
   const decimal = parts.find((p) => p.type === "decimal")?.value ?? ".";
   if (decimal === "," && group === ".") return "dot-comma";
-  if (decimal === "," && /[\s  ]/.test(group)) return "space-comma";
-  if (decimal === "." && (group === "'" || group === "’")) return "apostrophe-dot";
+  if (decimal === "," && /[\s\u00a0\u202f]/.test(group)) return "space-comma";
+  if (decimal === "." && (group === "'" || group === "\u2019")) return "apostrophe-dot";
   return "comma-dot";
 }

@@ -855,7 +855,10 @@ export const TEMPLATES: TemplateRegistry = {
             kind: "fields",
             caption: t("agreementCertificate.signature"),
             fields: [
-              field(t("agreementCertificate.kind"), t(`engagementDocument.kinds.${keyOf(document.kind)}`)),
+              field(
+                t("agreementCertificate.kind"),
+                t(`engagementDocument.kinds.${keyOf(document.kind)}`),
+              ),
               field(t("common.project"), project ? projectLabel(project) : t("common.none")),
               field(t("common.state"), t(`agreementCertificate.states.${keyOf(document.state)}`)),
               field(t("agreementCertificate.signedName"), document.signedName ?? t("common.none")),

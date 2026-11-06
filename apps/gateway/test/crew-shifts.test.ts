@@ -33,9 +33,8 @@ vi.mock("@xos/data/gateway", () => ({
   },
 }));
 
-const { acceptCrewShiftAction, forgetCrewCodeAction, openCrewShiftsAction } = await import(
-  "../lib/actions/crew-shifts"
-);
+const { acceptCrewShiftAction, forgetCrewCodeAction, openCrewShiftsAction } =
+  await import("../lib/actions/crew-shifts");
 
 const TOKEN = `xcrw_${"a".repeat(64)}`;
 
@@ -62,7 +61,13 @@ describe("the crew access link's code cookie", () => {
     expect(request.set[0]).toMatchObject({
       name: "xos_crew_code",
       value: "123456",
-      options: { httpOnly: true, secure: true, sameSite: "lax", path: `/shifts/${TOKEN}`, maxAge: 43_200 },
+      options: {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: `/shifts/${TOKEN}`,
+        maxAge: 43_200,
+      },
     });
   });
 
@@ -95,6 +100,9 @@ describe("the crew access link's code cookie", () => {
 
   it("clears the cookie on the same path", async () => {
     await forgetCrewCodeAction(form({ token: TOKEN }));
-    expect(request.set[0]).toMatchObject({ value: "", options: { path: `/shifts/${TOKEN}`, maxAge: 0 } });
+    expect(request.set[0]).toMatchObject({
+      value: "",
+      options: { path: `/shifts/${TOKEN}`, maxAge: 0 },
+    });
   });
 });
