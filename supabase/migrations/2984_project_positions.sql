@@ -484,7 +484,12 @@ create trigger t92_sync_record_position_assignment after insert or update of del
   for each row execute function private.sync_record_position_assignment();
 
 call private.install_policies('app.record_position_assignments',
-  $$record_id in (select private.record_ids_with('work.record.read')) or private.holds_position(project_position_id)$$,
+  -- The shape 0943 gives record child tables: the one parent record by primary key, never every reachable record.
+  $$org_id = any (array(select private.oversight_org_ids('work.record.read')))
+    or exists (select 1 from app.records r where r.id = record_id and r.deleted_at is null
+               and (r.project_id = any (array(select private.project_ids_with('work.record.read')))
+                    or r.id = any (array(select private.my_record_ids('work.record.read')))))
+    or private.holds_position(project_position_id)$$,
   $$record_id in (select r.id from app.records r where r.project_id in (select private.project_ids_with('work.record.write')))$$);
 call private.install_default_retention('app.record_position_assignments');
 call private.install_audit_trail('app.record_position_assignments');

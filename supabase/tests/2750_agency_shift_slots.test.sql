@@ -85,7 +85,8 @@ select is((select count(*)::int from api_external.shifts where id in (pg_temp.id
 select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
            where table_schema = 'api_external' and table_name = 'shifts'),
   array['id', 'engagement_id', 'project_id', 'project_name', 'scope_node_id', 'scope_node_name', 'role_code', 'job_title',
-        'starts_at', 'ends_at', 'time_zone', 'shift_state', 'roster_entry_id', 'holder_name', 'is_agency_slot'],
+        'starts_at', 'ends_at', 'time_zone', 'shift_state', 'roster_entry_id', 'holder_name', 'is_agency_slot',
+        'project_position_id', 'position_title', 'has_no_show'],
   'no internal column appears');
 
 select pg_temp.move_engagement('eng_agency', 'Active', 'Closing');

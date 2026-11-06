@@ -114,6 +114,20 @@ alter table app.time_entries add column paid_break_minutes integer not null defa
 alter table app.time_entries add constraint time_entries_paid_break_nonnegative check (paid_break_minutes >= 0);
 comment on column app.time_entries.paid_break_minutes is 'Minutes of paid breaks taken during the entry (B9): worked time, never subtracted from the hours. break_minutes stays the unpaid break.';
 
+-- The month partitions made before this column carry the parent's comment too, as private.create_month_partition gives
+-- the ones made later (the shape of 2751).
+do $$
+declare
+  v_partition regclass;
+begin
+  for v_partition in select i.inhrelid::regclass from pg_catalog.pg_inherits i where i.inhparent = 'app.time_entries'::regclass loop
+    execute format('comment on column %s.paid_break_minutes is %L', v_partition,
+      col_description('app.time_entries'::regclass, (select a.attnum from pg_catalog.pg_attribute a
+        where a.attrelid = 'app.time_entries'::regclass and a.attname = 'paid_break_minutes')));
+  end loop;
+end;
+$$;
+
 -- Punch functions (latest: 2751) ------------------------------------------------------------------------------------------------------
 
 drop function private.apply_punch(uuid, uuid, app.punch_kind, timestamptz, bigint, uuid, numeric, numeric, numeric, uuid, app.punch_source, uuid, text, uuid, uuid, uuid);
