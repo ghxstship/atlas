@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLIENT_ERROR_ROUTES } from "../lib/client-error-routes";
-import { intakeSteps, intakeTaxKinds, todayIn, toMinorUnits } from "../lib/intake-steps";
+import { intakeSteps, intakeTaxKinds, parseLinePrice, todayIn } from "../lib/intake-steps";
 import { KNOWN_REFUSALS } from "../lib/action-result";
 
 const base = {
@@ -36,11 +36,29 @@ describe("the vendor intake wizard's plan", () => {
     expect(todayIn("America/Los_Angeles", new Date("2026-03-02T02:00:00Z"))).toBe("2026-03-01");
   });
 
-  it("reads a typed price as minor units", () => {
-    expect(toMinorUnits("1200.50")).toBe(120050);
-    expect(toMinorUnits("")).toBeNull();
-    expect(toMinorUnits("abc")).toBeNull();
-    expect(toMinorUnits("10", 0)).toBe(10);
+  it("reads a typed price in the invoice's own currency", () => {
+    expect(parseLinePrice("1200.50", "USD")).toBe(120050);
+    // No minor unit: a JPY price is not multiplied by 100.
+    expect(parseLinePrice("1000", "JPY")).toBe(1000);
+    // Three minor digits: a KWD price is not ten times too low.
+    expect(parseLinePrice("12.500", "KWD")).toBe(12500);
+    expect(parseLinePrice("3", "BHD")).toBe(3000);
+  });
+
+  it("reads separators, and leaves a blank line unpriced rather than zero", () => {
+    expect(parseLinePrice("1,200.50", "USD")).toBe(120050);
+    expect(parseLinePrice(".50", "USD")).toBe(50);
+    expect(parseLinePrice("", "USD")).toBeNull();
+    expect(parseLinePrice("  ", "JPY")).toBeNull();
+  });
+
+  it("refuses what it cannot read, so a typed price never silently becomes an unpriced line", () => {
+    for (const typed of ["abc", "$12", "1.2.3", "-5", "1,20", "1.200,50"]) {
+      expect(parseLinePrice(typed, "USD")).toBe("invalid");
+    }
+    expect(parseLinePrice("12.345", "USD")).toBe("invalid");
+    expect(parseLinePrice("1000.5", "JPY")).toBe("invalid");
+    expect(parseLinePrice("9".repeat(20), "USD")).toBe("invalid");
   });
 });
 

@@ -55,7 +55,7 @@
     "lineDescription": "Descripción",
     "lineQuantity": "Cantidad",
     "linePrice": "Precio unitario",
-    "linePriceHelp": "Déjalo vacío para dejar la línea sin precio.",
+    "linePriceHelp": "En {currency}. Déjalo vacío para dejar la línea sin precio.",
     "addLine": "Agregar línea",
     "removeLine": "Quitar",
     "lineInvalid": "Una línea necesita una descripción y una cantidad mayor que 0.",
@@ -64,6 +64,9 @@
     "reviewInvoice": "{count, plural, one {Primera factura con # línea} other {Primera factura con # líneas}}",
     "submit": "Enviar solicitud",
     "sent": "Enviado a {org}. Verás su respuesta en Inicio.",
-    "lineSummary": "{description} × {quantity}"
+    "lineSummary": "{description} × {quantity} · {price}",
+    "lineUnpriced": "sin precio aún",
+    "linePriceInvalid": "Escribe el precio como una cantidad simple en {currency}, por ejemplo 1,200, {digits, plural, =0 {sin decimales} one {con # decimal como máximo} other {con # decimales como máximo}}.",
+    "linesCleared": "La moneda cambió a {currency}, así que se borraron las líneas. Agrégalas de nuevo en {currency}."
   }
 }

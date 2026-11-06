@@ -1,3 +1,5 @@
+import { minorDigits, parseMoneyInput } from "@/lib/format";
+
 /**
  * The vendor intake wizard's plan (B2, ADR 0141), pure so its rules are unit tested. A step for each thing the link
  * collects, then Review, which holds the screen's one primary action. Each step is one form with at most seven fields
@@ -33,9 +35,18 @@ export function todayIn(timeZone: string, now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" }).format(now);
 }
 
-/** Major units as typed, to minor units for a currency's exponent; null when blank or not a number. */
-export function toMinorUnits(value: string, exponent = 2): number | null {
-  const trimmed = value.trim();
-  if (trimmed === "" || !/^\d+(\.\d+)?$/.test(trimmed)) return null;
-  return Math.round(Number(trimmed) * 10 ** exponent);
+/**
+ * A unit price as typed, in the invoice's currency: its minor units (Section 3.11, so 1000 JPY is 1000 and 12.500 KWD is
+ * 12500), null when left blank for an unpriced line, or "invalid" when it is not a plain amount that currency can hold.
+ * The currency is required, since a default would put every price a hundred times out in some currencies.
+ */
+export function parseLinePrice(text: string, currency: string): number | null | "invalid" {
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+  const decimals = trimmed.split(".")[1]?.length ?? 0;
+  if (!/^(\d+|\d{1,3}(,\d{3})+)?(\.\d+)?$/.test(trimmed) || decimals > minorDigits(currency)) {
+    return "invalid";
+  }
+  const minor = parseMoneyInput(trimmed, currency);
+  return minor !== null && Number.isSafeInteger(minor) ? minor : "invalid";
 }

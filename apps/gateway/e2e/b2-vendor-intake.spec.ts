@@ -131,9 +131,9 @@ test("a vendor goes from the code to an approved request and the intake's invoic
     expect(await cognitiveLoadProblems(page)).toEqual([]);
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.getByLabel("Description", { exact: true }).fill("Audio day");
-    await page.getByLabel("Unit price").fill("1200.00");
+    await page.getByLabel("Unit price").fill("1,200.00");
     await page.getByRole("button", { name: "Add line", exact: true }).click();
-    await expect(page.getByText("Audio day × 1")).toBeVisible();
+    await expect(page.getByText("Audio day × 1 · $1,200.00")).toBeVisible();
     await expect(page.getByLabel("Description", { exact: true })).toHaveValue("");
     expect(await cognitiveLoadProblems(page)).toEqual([]);
     await page.getByRole("button", { name: "Next", exact: true }).click();

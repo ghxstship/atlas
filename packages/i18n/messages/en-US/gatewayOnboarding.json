@@ -55,7 +55,7 @@
     "lineDescription": "Description",
     "lineQuantity": "Quantity",
     "linePrice": "Unit price",
-    "linePriceHelp": "Leave empty to leave the line unpriced.",
+    "linePriceHelp": "In {currency}. Leave empty to leave the line unpriced.",
     "addLine": "Add line",
     "removeLine": "Remove",
     "lineInvalid": "A line needs a description and a quantity above 0.",
@@ -64,6 +64,9 @@
     "reviewInvoice": "{count, plural, one {First invoice with # line} other {First invoice with # lines}}",
     "submit": "Send request",
     "sent": "Sent to {org}. You will see their answer on Home.",
-    "lineSummary": "{description} × {quantity}"
+    "lineSummary": "{description} × {quantity} · {price}",
+    "lineUnpriced": "no price yet",
+    "linePriceInvalid": "Enter the price as a plain amount in {currency}, such as 1,200, {digits, plural, =0 {with no decimals} one {with at most # decimal} other {with at most # decimals}}.",
+    "linesCleared": "The currency changed to {currency}, so the lines were cleared. Add them again in {currency}."
   }
 }

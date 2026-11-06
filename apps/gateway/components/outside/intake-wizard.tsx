@@ -3,7 +3,7 @@
 import type { Database } from "@xos/data/database.types";
 import type { PublicIntake, IntakeInvoiceDraft } from "@xos/data/vendor-intake";
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import { TaxAddressForm, type TaxAddressCopy } from "@/components/forms/tax-address-form";
@@ -16,11 +16,12 @@ import {
   type IntakeOnFileChoice,
   type IntakeResult,
 } from "@/lib/actions/intake";
+import { formatMoney, minorDigits } from "@/lib/format";
 import {
   intakeSteps,
   intakeTaxKinds,
+  parseLinePrice,
   todayIn,
-  toMinorUnits,
   type IntakeStep,
 } from "@/lib/intake-steps";
 
@@ -440,7 +441,8 @@ export function IntakeWizard({
 
 /**
  * The first invoice, in two windows so neither passes seven fields (gate 27): the header on its own, then an add-line
- * form above a read-only list with Remove. Optional: skipping sends no draft.
+ * form above a read-only list with Remove. Optional: skipping sends no draft. Prices are minor units of the header's
+ * currency, so going back to change the currency clears the lines rather than keep amounts meant for another one.
  */
 function InvoiceStep({
   header,
@@ -464,14 +466,23 @@ function InvoiceStep({
   onNext: () => void;
 }) {
   const t = useTranslations(COPY) as unknown as Translate;
+  const locale = useLocale();
+  const [editing, setEditing] = useState(header === null);
   const [error, setError] = useState<string | null>(null);
+  const [linesCleared, setLinesCleared] = useState(false);
+  const lineCurrency = header?.currency_code ?? currency;
   const saveHeader = (data: FormData) => {
+    const code = String(data.get("currency") ?? currency);
+    const changed = header !== null && header.currency_code !== code && lines.length > 0;
+    if (changed) onLines([]);
+    setLinesCleared(changed);
     onHeader({
       invoice_number: String(data.get("number") ?? "").trim(),
       issue_date: String(data.get("issued") ?? today),
       due_date: String(data.get("due") ?? today),
-      currency_code: String(data.get("currency") ?? currency),
+      currency_code: code,
     });
+    setEditing(false);
   };
   const addLine = (data: FormData) => {
     const quantity = Number(data.get("quantity") ?? 0);
@@ -480,13 +491,18 @@ function InvoiceStep({
       setError(t("lineInvalid"));
       return;
     }
+    const unitPriceMinor = parseLinePrice(String(data.get("price") ?? ""), lineCurrency);
+    if (unitPriceMinor === "invalid") {
+      setError(
+        t("linePriceInvalid", { currency: lineCurrency, digits: minorDigits(lineCurrency) }),
+      );
+      return;
+    }
     setError(null);
-    onLines([
-      ...lines,
-      { description, quantity, unitPriceMinor: toMinorUnits(String(data.get("price") ?? "")) },
-    ]);
+    setLinesCleared(false);
+    onLines([...lines, { description, quantity, unitPriceMinor }]);
   };
-  if (!header) {
+  if (editing || !header) {
     return (
       <form
         action={saveHeader}
@@ -497,6 +513,7 @@ function InvoiceStep({
           id="invoice-number"
           name="number"
           label={t("invoiceNumber")}
+          defaultValue={header?.invoice_number ?? ""}
           maxLength={60}
           required
           width="100%"
@@ -506,7 +523,7 @@ function InvoiceStep({
           name="issued"
           type="date"
           label={t("issueDate")}
-          defaultValue={today}
+          defaultValue={header?.issue_date ?? today}
           required
         />
         <Input
@@ -514,23 +531,32 @@ function InvoiceStep({
           name="due"
           type="date"
           label={t("dueDate")}
-          defaultValue={today}
+          defaultValue={header?.due_date ?? today}
           required
         />
         <Select
           id="invoice-currency"
           name="currency"
           label={t("currency")}
-          value={currency}
-          options={(currencies.includes(currency) ? currencies : [currency, ...currencies]).map(
-            (c) => ({ value: c, label: c }),
-          )}
+          value={lineCurrency}
+          options={(currencies.includes(lineCurrency)
+            ? currencies
+            : [lineCurrency, ...currencies]
+          ).map((c) => ({ value: c, label: c }))}
         />
         <div className="flex flex-wrap gap-8">
           <Button type="button" variant="ghost" onClick={onBack}>
             {t("back")}
           </Button>
-          <Button type="button" variant="ghost" onClick={onNext}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              onHeader(null);
+              onLines([]);
+              onNext();
+            }}
+          >
             {t("skip")}
           </Button>
           <Button type="submit" variant="secondary">
@@ -543,6 +569,9 @@ function InvoiceStep({
   return (
     <div className="flex flex-col gap-12">
       {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
+      {linesCleared ? (
+        <InlineAlert tone="warning">{t("linesCleared", { currency: lineCurrency })}</InlineAlert>
+      ) : null}
       <form
         key={lines.length}
         action={addLine}
@@ -572,7 +601,7 @@ function InvoiceStep({
           name="price"
           inputMode="decimal"
           label={t("linePrice")}
-          help={t("linePriceHelp")}
+          help={t("linePriceHelp", { currency: lineCurrency })}
         />
         <div>
           <Button type="submit" size="sm" variant="secondary">
@@ -588,7 +617,12 @@ function InvoiceStep({
               className="flex items-center justify-between gap-8 py-8 text-text-13"
             >
               <span>
-                {t("lineSummary", { description: line.description, quantity: line.quantity })}
+                {t("lineSummary", {
+                  description: line.description,
+                  quantity: line.quantity,
+                  price:
+                    formatMoney(locale, line.unitPriceMinor, lineCurrency) ?? t("lineUnpriced"),
+                })}
               </span>
               <Button
                 type="button"
@@ -603,7 +637,7 @@ function InvoiceStep({
         </ul>
       ) : null}
       <div className="flex flex-wrap gap-8">
-        <Button type="button" variant="ghost" onClick={() => onHeader(null)}>
+        <Button type="button" variant="ghost" onClick={() => setEditing(true)}>
           {t("back")}
         </Button>
         <Button type="button" variant="secondary" disabled={lines.length === 0} onClick={onNext}>
