@@ -71,6 +71,7 @@ describe.skipIf(!url || !anonKey || !serviceKey)("SCIM 2.0 on the local stack", 
       await owner.auth.signUp({
         email: `scim-owner-${run}@atlas-e2e.test`,
         password: `Live-${randomBytes(12).toString("base64url")}`,
+        options: { data: { age_confirmed: "18", signup_surface: "Atlas" } },
       }),
     );
     const orgId = must(
