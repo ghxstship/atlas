@@ -67072,6 +67072,7 @@ export type Database = {
           po_line_id: string;
           project_id: string;
           project_name: string;
+          purchase_order_id: string;
           quantity: number;
           role_code: string;
           shift_id: string;
