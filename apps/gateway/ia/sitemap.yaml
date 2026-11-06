@@ -700,6 +700,7 @@ nodes:
         kind: page
         label: nav.gateway.public.guestUnsubscribe
         route: "/unsubscribe/{token}"
+        auth: token
       - id: vendor-intake
         kind: page
         label: nav.gateway.public.vendorIntake

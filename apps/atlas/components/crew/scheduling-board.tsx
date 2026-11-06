@@ -448,7 +448,7 @@ export function SchedulingBoard(props: {
                   className="flex flex-col items-start gap-2 rounded-control border border-border-subtle px-8 py-6 text-text-13 hover:bg-bg-hover"
                 >
                   <span>
-                    {t(s.filled ? "heldShifts.placeHolder" : "heldShifts.fill", {
+                    {t(s.filled ? "heldShifts.putHolder" : "heldShifts.fill", {
                       position: s.positionTitle,
                       shift: s.label,
                     })}

@@ -902,7 +902,7 @@
       "title": "Held for a position ({count})",
       "help": "Nobody goes on these shifts until the position is filled, and they still count as unfilled.",
       "fill": "Fill {position} for {shift}",
-      "placeHolder": "Put the holder of {position} on {shift}"
+      "putHolder": "Put the holder of {position} on {shift}"
     },
     "polls": {
       "ask": "Ask for availability",

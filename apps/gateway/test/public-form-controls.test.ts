@@ -1,6 +1,6 @@
 /**
  * B2 (RRR-226, ADR 0141): gate 27 counts every input, so a multi_choice rendered as a checkbox per choice would pass seven
- * on its own. A public form's first window holds name, email and up to five fields, and stays within the limit however
+ * on its own. A public form's first window says who is answering and holds up to five fields, and stays within the limit however
  * many choices a field has. The honeypot sits in a hidden wrapper the gate does not count.
  */
 import { getMessages } from "@xos/i18n";
@@ -36,7 +36,7 @@ function render(fields: readonly PublicFormField[]): string {
     createElement(
       NextIntlClientProvider,
       intl as IntlProps,
-      createElement(PublicFormFill, { token: "t", fields }),
+      createElement(PublicFormFill, { token: "t", fields, answeringAs: "Rae" }),
     ),
   );
 }
@@ -52,8 +52,7 @@ describe("a public form window's controls", () => {
     const html = render([field("a", { kind: "multi_choice", choices })]);
     expect(html).toContain('role="combobox"');
     expect(html).not.toContain('type="checkbox"');
-    // Name, email and the one field.
-    expect(controls(html)).toBe(3);
+    expect(controls(html)).toBe(1);
   });
 
   it("stays within seven with a full first window that includes one", () => {
@@ -65,7 +64,7 @@ describe("a public form window's controls", () => {
       field("e", { kind: "long_text" }),
       field("f"),
     ]);
-    expect(controls(html)).toBe(7);
+    expect(controls(html)).toBe(5);
     expect(html).not.toContain('id="field-f"');
   });
 });

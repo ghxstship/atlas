@@ -24,7 +24,6 @@ import {
 } from "./gateway-external.ts";
 import { toDisplayKey } from "./gateway-keys.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
 
 export type { Database, XosClient } from "./client.ts";

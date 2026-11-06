@@ -54,7 +54,12 @@ test("the crew person signs one agreement and declines another; Atlas countersig
   await batch(tag, `Sign me ${tag}`, "You work the show days.", requirement?.id as string);
   await batch(tag, `Decline me ${tag}`, "A different arrangement.", null);
 
-  await signIn(page, "crew@example.com", `/work/engagements/${DEMO.crewEngagementKey}/documents`);
+  // Home never offers one-tap Sign for a generated agreement: it links to the Documents tab, to read and sign.
+  await signIn(page, "crew@example.com", "/home");
+  const homeRow = page.getByRole("listitem").filter({ hasText: `Sign me ${tag}` });
+  await expect(homeRow.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
+  await homeRow.getByRole("link", { name: "Read and sign" }).click();
+  await page.waitForURL(`**/work/engagements/${DEMO.crewEngagementKey}/documents`);
   const signRow = page.getByRole("listitem").filter({ hasText: `Sign me ${tag}` });
   await expect(signRow.getByText("You work the show days.")).toBeVisible();
   await signRow.getByLabel("Type your full name to sign").fill("Demo Crew");

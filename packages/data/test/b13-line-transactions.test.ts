@@ -4,13 +4,19 @@ import type { XosClient } from "../src/client.ts";
 
 /** B13 (RRR-237, G-210): a line's sections reconcile with its figures, and an unreadable one is withheld, not partial. */
 
-function fake(tables: Readonly<Record<string, readonly Record<string, unknown>[]>>): XosClient {
+function fake(
+  tables: Readonly<Record<string, readonly Record<string, unknown>[]>>,
+  filters: [string, unknown][] = [],
+): XosClient {
   const chain = (rows: readonly Record<string, unknown>[]) => {
     const query = {
       select: () => query,
       eq: () => query,
       is: () => query,
-      in: () => query,
+      in: (column: string, values: unknown) => {
+        filters.push([column, values]);
+        return query;
+      },
       order: () => query,
       then: (resolve: (value: unknown) => unknown) => resolve({ data: rows, error: null }),
     };
@@ -134,6 +140,12 @@ describe("getBudgetLineTransactions", () => {
     expect(result.data.committed?.map((c) => c.poKey)).toEqual(["NWF-PO-12"]);
     expect(result.data.invoiceTotalMinor).toBe(500);
     expect(result.data.laborRows?.[0]).toMatchObject({ isMasked: true, amountMinor: null });
+  });
+
+  it("lists only vendor invoices that stand posted, as the section's sentence says", async () => {
+    const filters: [string, unknown][] = [];
+    await getBudgetLineTransactions(fake({ invoice_lines: [] }, filters), "line", ALL, "USD");
+    expect(filters).toContainEqual(["invoices.invoice_state", ["Approved", "Disputed"]]);
   });
 
   it("withholds a section the viewer cannot read, rather than showing zero", async () => {

@@ -207,8 +207,6 @@ describe("form links", () => {
     const input = {
       token: TOKEN,
       grant: "g",
-      name: "R",
-      email: "r@x.test",
       answers: {},
       website: "",
       clientAddress: null,

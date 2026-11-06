@@ -2,7 +2,7 @@ import { cognitiveLoadProblems } from "./a11y/checks";
 import { atlasAs, ORG } from "./atlas";
 import { expect as baseExpect, settle, test } from "./engine-test";
 import { asPerson, PEOPLE, PROJECT, suffix } from "./role-fixtures";
-import { DEMO, sql, uniqueId } from "./support";
+import { DEMO, signIn, sql } from "./support";
 
 /**
  * B2 public forms (RRR-226, ADR 0141; gap G-293): a form link from its code through windows of at most seven fields, a
@@ -26,7 +26,6 @@ test("a respondent fills a multi-window form and Atlas approves it into a record
   browser,
 }) => {
   const mark = suffix();
-  const id = uniqueId();
   const fields = [
     field("company", "Company"),
     field("has_power", "Needs power", { kind: "yes_no" }),
@@ -59,16 +58,20 @@ test("a respondent fills a multi-window form and Atlas approves it into a record
   await page.goto(`/forms/${token}`);
   await page.getByLabel("Access code").fill(link?.access_code as string);
   await page.getByRole("button", { name: "Open", exact: true }).click();
+  // Owner ruling on Section 7.5 invariant 8: past the code, a person without a session sees no question, only sign-in.
+  await expect(page.getByText("Sign in or create an account to answer this form.")).toBeVisible();
+  await expect(page.locator("[data-public-form-window]")).toHaveCount(0);
+  await signIn(page, "vendor@example.com");
+  await page.goto(`/forms/${token}`);
   const form = page.locator("[data-public-form-window]");
   await expect(form).toBeVisible();
   await settle(page);
 
-  // Page 1 holds name, email and five fields; the honeypot is out of sight.
+  // Page 1 says who is answering and holds five fields; the honeypot is out of sight.
   await expect(page.getByText("Page 1 of 2")).toBeVisible();
   await expect(page.locator('input[name="website"]')).toBeHidden();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
-  await page.getByLabel("Your name").fill("Rae Respondent");
-  await page.getByLabel("Your email").fill(`rae-${id}@example.com`);
+  await expect(page.getByText("You are answering as")).toBeVisible();
   await page.getByLabel("Company", { exact: true }).fill("Harbor Audio");
 
   // Without power, the conditional field is on neither page, and Truck still fits on the first.

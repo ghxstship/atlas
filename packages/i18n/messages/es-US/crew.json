@@ -902,7 +902,7 @@
       "title": "Reservados para un puesto ({count})",
       "help": "Nadie entra en estos turnos hasta cubrir el puesto, y siguen contando como sin cubrir.",
       "fill": "Cubrir {position} para {shift}",
-      "placeHolder": "Asignar al titular de {position} a {shift}"
+      "putHolder": "Asignar al titular de {position} a {shift}"
     },
     "polls": {
       "ask": "Pedir disponibilidad",
