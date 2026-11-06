@@ -143,8 +143,12 @@ export async function ShiftsCollection(props: {
     canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
     // Budget line options load with the shift form, or for the bulk bar of one project's shifts: a line
     // belongs to one project, so an org-wide list never offers them and the key page reads nothing here.
+    // The create form lets a person choose another project, so it reads every project's lines.
     canWrite && (search["create"] === "1" || search["edit"] || projectFilter)
-      ? listLaborBudgetLines(db, projectFilter?.id ?? null)
+      ? listLaborBudgetLines(
+          db,
+          search["create"] === "1" ? (crew.project?.id ?? null) : (projectFilter?.id ?? null),
+        )
       : null,
   ]);
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
@@ -970,7 +974,9 @@ export async function ShiftsCollection(props: {
                           label: t("crew.fields.budgetLine"),
                           options: [
                             { value: null, label: t("crew.shifts.noBudgetLine") },
-                            ...laborLines.map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                            ...laborLines
+                              .filter((l) => l.projectId === projectFilter.id)
+                              .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
                           ],
                         },
                       ]
