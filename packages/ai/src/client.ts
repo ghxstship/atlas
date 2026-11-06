@@ -197,7 +197,7 @@ export interface AuroraClient {
     fields?: readonly AuroraFilterField[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraBuiltFilter>>>;
   extract(input: {
-    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "material_list";
     document_id?: string | null;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;

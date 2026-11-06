@@ -123,6 +123,17 @@ export async function updateProcurementNeed(
   return touched(db.from("procurement_needs").update(needRow(input)).eq("id", id).select("id"));
 }
 
+/** Names the catalog element a person confirmed for a free-text need. */
+export async function setProcurementNeedElement(
+  db: XosClient,
+  id: string,
+  elementId: string,
+): Promise<Result<null>> {
+  return touched(
+    db.from("procurement_needs").update({ element_id: elementId }).eq("id", id).select("id"),
+  );
+}
+
 /** Soft deletes a need; one with live requests or live order lines refuses need_has_links. */
 export async function deleteProcurementNeed(db: XosClient, id: string): Promise<Result<null>> {
   return touched(db.from("procurement_needs").update(deletedNow()).eq("id", id).select("id"));

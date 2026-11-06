@@ -514,7 +514,24 @@
       "reserved_quantity": "Held",
       "issued_quantity": "Issued",
       "returned_quantity": "Returned",
-      "decline_reason": "Decline reason"
+      "decline_reason": "Decline reason",
+      "need_number": "Need number",
+      "needed_during": "Needed during",
+      "procurement_need_id": "Procurement need",
+      "rfq_line_id": "RFQ line",
+      "acquisition_kind": "Acquisition",
+      "hire_period": "Hire period",
+      "instructions": "Instructions",
+      "first_due_on": "First due",
+      "every_count": "Every",
+      "every_unit": "Interval unit",
+      "maintenance_plan_id": "Maintenance plan",
+      "vehicle_limit": "Vehicle limit",
+      "is_open": "Open",
+      "delivery_window_id": "Delivery window",
+      "reference_code": "Reference code",
+      "vehicle_identifier": "Vehicle",
+      "dock_slot_id": "Dock slot"
     }
   }
 }

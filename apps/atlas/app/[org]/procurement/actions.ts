@@ -169,6 +169,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
   const descriptions = form.getAll("lineDescription").map((v) => String(v).trim());
   const quantities = form.getAll("lineQuantity").map((v) => String(v).trim());
   const prices = form.getAll("linePrice").map((v) => String(v));
+  const asked = form.getAll("lineRfqLineId").map((v) => String(v));
   const lines = descriptions.flatMap((description, i) => {
     if (description === "") return [];
     const quantity = Number(quantities[i] ?? "");
@@ -181,7 +182,7 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
       errors.add("lines", "money");
       return [];
     }
-    return [{ description, quantity, unitPriceMinor: price }];
+    return [{ description, quantity, unitPriceMinor: price, rfqLineId: asked[i] || null }];
   });
   if (lines.length === 0) errors.add("lines", "lines");
   if (rfqId === null) return { error: "notFound" };

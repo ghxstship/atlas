@@ -116,7 +116,12 @@
       "sponsor_asset_files_required": "Adjunta entre 1 y 10 archivos.",
       "sponsor_asset_files_invalid": "Adjunta los archivos de nuevo: cada archivo va en un solo recurso.",
       "sponsor_asset_source": "La organización aprueba los recursos que envías. Para cambiar uno que te devolvió, reenvíalo con archivos nuevos.",
-      "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene."
+      "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
+      "delivery_window_full": "Esta franja está completa. Elige otra franja.",
+      "delivery_window_closed": "Esta franja ya no admite reservas.",
+      "delivery_booking_locked": "Esta reserva ya empezó o registró su llegada, así que ya no puede cambiar.",
+      "delivery_booking_shipment": "Elige un envío que transporte tu empresa.",
+      "booking_event_reused": "Esta reserva ya se usó para otra franja o empresa. Vuelve a cargar e inténtalo de nuevo."
     }
   },
   "common": {
@@ -300,6 +305,21 @@
         "waiting": "En espera de aprobación",
         "approved": "Aprobado",
         "rejected": "Rechazado"
+      },
+      "reference": "Referencia {code}",
+      "book": {
+        "title": "Reservar una entrega",
+        "window": "Franja de entrega",
+        "windowLine": "{gate}, {when}, quedan {places}",
+        "plate": "Placa o remolque",
+        "plateHelp": "Déjalo en blanco si aún no lo sabes. Puedes agregarlo después.",
+        "shipment": "Envío",
+        "noShipment": "Sin envío",
+        "submit": "Reservar entrega",
+        "done": "Entrega reservada. Indica su código de referencia en la puerta.",
+        "savePlate": "Guardar placa",
+        "changePlate": "Cambiar placa",
+        "cancel": "Cancelar reserva"
       }
     },
     "submittals": {
@@ -2316,6 +2336,16 @@
           "dates": "El último día debe ser igual o posterior al primero."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "Ninguna empresa te ha pedido una cotización por ahora.",
+      "from": "{org}, {project}",
+      "due": "Cotizar antes de {when}",
+      "noDue": "Sin fecha límite",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, en alquiler del {from} al {to}",
+      "sendTo": "Envía tu cotización a {name}.",
+      "sendToOrg": "Envía tu cotización a tu contacto en {org}."
     }
   },
   "legal": {

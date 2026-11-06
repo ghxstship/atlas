@@ -354,6 +354,16 @@
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
+    },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} te pidió una cotización: {title}",
+        "body": "{orgName} te pidió una cotización de {title} en {projectName}{dueDate, select, none {.} other {, antes del {dueDate}.}} Ábrela para ver lo que necesitan."
+      },
+      "not_awarded": {
+        "subject": "{orgName} eligió otro proveedor para {title}",
+        "body": "{orgName} eligió otro proveedor para {title} en {projectName}. Gracias por tu cotización."
+      }
     }
   },
   "notification": {

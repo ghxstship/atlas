@@ -1,6 +1,9 @@
 "use client";
 
 import { parsePasted } from "@xos/data/import-parse";
+import { useAiFeature } from "@/components/aurora/ai-features";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import { SUGGESTION_FIELD } from "@/lib/aurora/suggestion-field";
 import type {
   ColumnSample,
   ImportDestinationKind,
@@ -66,7 +69,11 @@ export interface TargetDestinations {
 
 /** The form field that carries a destination: the action reads runOfShow or project. */
 const destinationField = (kind: ImportDestinationKind) =>
-  kind === "run_of_show_id" ? "runOfShow" : "project";
+  kind === "run_of_show_id"
+    ? "runOfShow"
+    : kind === "purchase_order_id"
+      ? "purchaseOrder"
+      : "project";
 
 /** The hidden destination field of a target, or nothing for an org-wide target. */
 function destinationHidden(
@@ -103,7 +110,9 @@ function DestinationSelect({
         t(
           dest.kind === "run_of_show_id"
             ? "imports.new.destinationRun"
-            : "imports.new.destinationProject",
+            : dest.kind === "purchase_order_id"
+              ? "imports.new.destinationOrder"
+              : "imports.new.destinationProject",
         )
       }
       help={t("imports.new.destinationHelp")}
@@ -113,6 +122,12 @@ function DestinationSelect({
     />
   );
 }
+
+/** The targets a document can feed (B11, G-106). */
+const MATERIAL_TARGETS: ReadonlySet<string> = new Set(["procurement_needs", "po_lines"]);
+
+/** The document panel, fetched the first time someone picks Document as the source. */
+const documentPanel = onDemand(() => import("./import-document"));
 
 /** How many pasted rows the live preview shows. */
 const PASTE_PREVIEW_ROWS = 5;
@@ -148,7 +163,12 @@ export function ImportList({
   const router = useRouter();
   const pathname = usePathname();
   const [target, setTarget] = useState(initial?.target ?? targets[0] ?? "");
-  const [source, setSource] = useState<"file" | "paste" | "sheets">("file");
+  const [source, setSource] = useState<"file" | "paste" | "sheets" | "document">("file");
+  const extractionOn = useAiFeature("extraction");
+  // Document reading feeds only the material targets (B11, G-106): it proposes rows for the paste path.
+  const canReadDocument = extractionOn && MATERIAL_TARGETS.has(target);
+  const [suggestions, setSuggestions] = useState<readonly string[]>([]);
+  const document = useOnDemand(documentPanel, source === "document" && canReadDocument);
   const [picked, setPicked] = useState<Record<string, string>>(() => {
     const start = initial?.destination;
     const known = initial && destinations[initial.target]?.options.some((o) => o.id === start);
@@ -195,14 +215,34 @@ export function ImportList({
               { value: "file", label: t("imports.new.sourceFile") },
               { value: "paste", label: t("imports.new.sourcePaste") },
               ...(googleSheets ? [{ value: "sheets", label: t("imports.new.sourceSheets") }] : []),
+              ...(canReadDocument
+                ? [{ value: "document", label: t("imports.new.sourceDocument") }]
+                : []),
             ]}
             onChange={(value) =>
-              setSource(value === "sheets" ? "sheets" : value === "paste" ? "paste" : "file")
+              setSource(
+                value === "sheets" || value === "paste" || value === "document"
+                  ? value
+                  : "file",
+              )
             }
           />
         ) : null}
         {targets.length === 0 ? (
           <InlineAlert tone="info">{t("imports.new.noTargets")}</InlineAlert>
+        ) : source === "document" && canReadDocument ? (
+          <div className="flex flex-col gap-12">
+            {choose}
+            {document ? (
+              <document.ImportDocument
+                onContinue={(text, ids) => {
+                  setPasted(text);
+                  setSuggestions(ids);
+                  setSource("paste");
+                }}
+              />
+            ) : null}
+          </div>
         ) : source === "paste" ? (
           <ActionForm
             action={createPastedImportAction}
@@ -213,6 +253,9 @@ export function ImportList({
             onDone={open}
           >
             {choose}
+            {suggestions.map((id) => (
+              <input key={id} type="hidden" name={SUGGESTION_FIELD} value={id} />
+            ))}
             <Textarea
               id="import-paste"
               name="text"
@@ -861,6 +904,34 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
           />
         )}
       </section>
+
+      {detail.materialMatches.length > 0 ? (
+        <section
+          aria-labelledby="material-step"
+          className="flex flex-col gap-8 rounded-card border border-border-subtle p-16"
+        >
+          <h2 id="material-step" className="m-0 text-text-15 font-semibold">
+            {t("imports.material.title")}
+          </h2>
+          <p className="m-0 text-text-13 text-text-secondary">{t("imports.material.help")}</p>
+          <DataTable
+            caption={t("imports.material.title")}
+            label={t("imports.material.title")}
+            height="auto"
+            columns={[
+              { key: "row", label: t("imports.issues.row"), type: "number" },
+              { key: "match", label: t("imports.material.match") },
+              { key: "note", label: t("imports.material.note") },
+            ]}
+            rows={detail.materialMatches.map((m) => ({
+              id: String(m.rowNumber),
+              row: m.rowNumber,
+              match: t(`imports.material.${m.match === "Matched" ? "matched" : "unmatched"}`),
+              note: m.note ? t(`imports.material.notes.${m.note}`) : "",
+            }))}
+          />
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="commit-step"

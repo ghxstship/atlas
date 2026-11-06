@@ -20,6 +20,7 @@ import {
   type PoState,
   type RfqState,
 } from "@xos/data/procurement";
+import { consolidateAllocations, createSubHireRfq } from "@xos/data/procurement-needs";
 import type { ErasedHandler, HandlerSet } from "../runtime/handler.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
@@ -161,6 +162,32 @@ function rangeFields(row: Row, column: string, from: string, to: string): Row {
   return { ...row, [from]: range.startsAt, [to]: range.endsAt };
 }
 
+/** A need's window is one tstzrange column in the database and two instants in the contract (B11). */
+const NEED_FIELDS = ["needed_from", "needed_to"] as const;
+const neededDuring = (body: Row) =>
+  body["needed_from"] && body["needed_to"]
+    ? { needed_during: `[${String(body["needed_from"])},${String(body["needed_to"])})` }
+    : {};
+const procurementNeeds = tableResource("procurementNeeds", {
+  derived: [...NEED_FIELDS],
+  extraColumns: ["needed_during"],
+  toContract: (row) => rangeFields(row, "needed_during", "needed_from", "needed_to"),
+  beforeCreate: async (body) => neededDuring(body),
+  beforeUpdate: (body) => neededDuring(body),
+});
+const procurementNeedStatus = tableResource("procurementNeedStatus", {
+  softDelete: false,
+  key: "need_id",
+  scope: (q, context) => (context.org === null ? q : q.eq("org_id", context.org.id)),
+});
+const rfqLines = tableResource("rfqLines", {
+  derived: [...HIRE_FIELDS],
+  extraColumns: ["hire_period"],
+  toContract: (row) => rangeFields(row, "hire_period", "hire_starts_at", "hire_ends_at"),
+  beforeCreate: async (body) => hirePeriodOf(body),
+  beforeUpdate: (body, current) => hirePeriodOf(body, current),
+});
+
 const poLineHireWarnings = tableResource("poLineHireWarnings", {
   softDelete: false,
   key: "warning",
@@ -217,6 +244,26 @@ export const handlers = defineHandlers("Procurement", {
   ...handlersFor("Procurement", tableResource("goodsReturns")),
   ...handlersFor("Procurement", tableResource("returnLines")),
   ...handlersFor("Procurement", poLineHireWarnings),
+  ...handlersFor("Procurement", procurementNeeds),
+  ...handlersFor("Procurement", procurementNeedStatus),
+  ...handlersFor("Procurement", rfqLines),
+  "procurementNeeds.consolidate": async ({ body }, context) => {
+    const ids = unwrap(
+      await consolidateAllocations(context.db, body.allocation_ids, body.need_id ?? null),
+    );
+    return ok({ data: ids });
+  },
+  "rfqs.createSubHire": async ({ body }, context) => {
+    const created = unwrap(
+      await createSubHireRfq(context.db, {
+        eventId: crypto.randomUUID(),
+        projectId: body.project_id,
+        assetClassIds: body.asset_class_ids,
+        title: body.title,
+      }),
+    );
+    return ok({ id: created.id });
+  },
   ...handlersFor("Procurement", invoiceMatches),
   ...handlersFor("Procurement", tableResource("catalogBindings")),
   ...handlersFor("Procurement", tableResource("vendorProducts")),

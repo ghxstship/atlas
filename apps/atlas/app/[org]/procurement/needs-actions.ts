@@ -8,12 +8,15 @@ import {
   removeRfqLine,
   addRfqLine,
   setPoLineNeed,
+  setProcurementNeedElement,
   unlinkNeedRequest,
   updateProcurementNeed,
   type NeedInput,
 } from "@xos/data/procurement-needs";
+import { searchAssetElements } from "@xos/data/assets";
 import { ACQUISITION_KINDS, type AcquisitionKind } from "@xos/data/procurement";
 import { randomUUID } from "node:crypto";
+import { getOrgContext } from "@/lib/shell/context";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
 import {
   all,
@@ -174,4 +177,26 @@ export async function removeRfqLineAction(_: ActionState, form: FormData): Promi
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   return finish(await removeRfqLine(ctx.viewer.db, id), ctx, MODULE);
+}
+
+/** Suggest categories: the person confirmed the element Aurora offered, so the need names it. Its proposal is never applied. */
+export async function setNeedElementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  const elementId = requiredText(form, "elementId", 100);
+  if (id === null || elementId === null) return { error: "notFound" };
+  return finish(await setProcurementNeedElement(ctx.viewer.db, id, elementId), ctx, MODULE);
+}
+
+/** The catalog elements a need's words might mean, read by the server, so Aurora chooses only among these. */
+export async function findNeedCandidatesAction(
+  org: string,
+  description: string,
+): Promise<{ element_id: string; name: string; urid: string }[]> {
+  const ctx = await getOrgContext(org);
+  if (!ctx) return [];
+  const found = await searchAssetElements(ctx.viewer.db, description.slice(0, 100));
+  return found.ok
+    ? found.data.map((e) => ({ element_id: e.elementId, name: e.item, urid: e.urid }))
+    : [];
 }

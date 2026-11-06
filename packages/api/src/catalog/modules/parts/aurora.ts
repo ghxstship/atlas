@@ -337,7 +337,7 @@ const FilterBody = z
 const ExtractBody = z
   .object({
     kind: z
-      .enum(["rider", "insurance_certificate", "invoice", "receipt", "quote"])
+      .enum(["rider", "insurance_certificate", "invoice", "receipt", "quote", "material_list"])
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
     document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),
     media_type: z

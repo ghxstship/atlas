@@ -43,6 +43,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ConsolidateForm, LinkOrderLinesForm } from "./needs-forms";
+import { SuggestCategoryButton } from "./needs-suggest-button";
 import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
@@ -236,7 +237,7 @@ export async function NeedsSection({
     );
   }
 
-  const importHref = `/${ctx.org.slug}/import?target=procurement_needs${projectId ? `&destination=${projectId}` : ""}`;
+  const importHref = `/${ctx.org.slug}/import?target=procurement_needs${projectId ? `&project=${projectId}` : ""}`;
 
   return (
     <CollectionView
@@ -473,6 +474,9 @@ async function NeedPeek({
         <ErrorPanel what={t("needs.what")} />
       ) : (
         <>
+          {canWrite && !need.assetClassId && !need.elementId ? (
+            <SuggestCategoryButton org={ctx.org.slug} needId={need.id} description={need.description} />
+          ) : null}
           <KitSection id="need-requests" title={t("needs.linkedRequests")}>
             {links.data.requests.length === 0 ? (
               <p className="m-0 text-text-13 text-text-secondary">{t("needs.noRequests")}</p>

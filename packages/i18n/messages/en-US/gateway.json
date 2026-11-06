@@ -116,7 +116,12 @@
       "sponsor_asset_files_required": "Attach between 1 and 10 files.",
       "sponsor_asset_files_invalid": "Attach the files again: each file goes to one asset.",
       "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
-      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them."
+      "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
+      "delivery_window_full": "This window is full. Choose another window.",
+      "delivery_window_closed": "This window is no longer open for booking.",
+      "delivery_booking_locked": "This booking has started or checked in, so it can no longer change.",
+      "delivery_booking_shipment": "Choose a shipment your company carries.",
+      "booking_event_reused": "This booking was already used for another window or company. Reload and try again."
     }
   },
   "common": {
@@ -300,6 +305,21 @@
         "waiting": "Awaiting approval",
         "approved": "Approved",
         "rejected": "Rejected"
+      },
+      "reference": "Reference {code}",
+      "book": {
+        "title": "Book a delivery",
+        "window": "Delivery window",
+        "windowLine": "{gate}, {when}, {places} left",
+        "plate": "Plate or trailer",
+        "plateHelp": "Leave blank if you do not know it yet. You can add it later.",
+        "shipment": "Shipment",
+        "noShipment": "No shipment",
+        "submit": "Book delivery",
+        "done": "Delivery booked. Quote its reference code at the gate.",
+        "savePlate": "Save plate",
+        "changePlate": "Change plate",
+        "cancel": "Cancel booking"
       }
     },
     "submittals": {
@@ -2316,6 +2336,16 @@
           "dates": "The last day must be on or after the first day."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "No company has asked you for a quote right now.",
+      "from": "{org}, {project}",
+      "due": "Quote by {when}",
+      "noDue": "No deadline set",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, on hire {from} to {to}",
+      "sendTo": "Send your quote to {name}.",
+      "sendToOrg": "Send your quote to your contact at {org}."
     }
   },
   "legal": {

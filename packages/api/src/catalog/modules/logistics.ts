@@ -11,6 +11,12 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
 import { logisticsFieldHomes } from "./parts/playbook-field-homes.ts";
+import {
+  deliveryWindowBookAction,
+  deliveryWindowGenerateAction,
+  dockSlotCancelBookingAction,
+  logisticsFollowOnResources,
+} from "./parts/supply-follow-ons.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -25,7 +31,46 @@ const shipment = (what: string) => ({
 });
 
 export const additions = defineAdditions("Logistics", {
+  resources: logisticsFollowOnResources,
+  actions: {
+    deliveryWindows: [deliveryWindowGenerateAction, deliveryWindowBookAction],
+    dockSlots: [dockSlotCancelBookingAction],
+  },
+  capabilities: {
+    deliveryWindows: {
+      read: "logistics.shipment.read",
+      write: "logistics.dock_slot.write",
+      actions: { generate: "logistics.dock_slot.write", book: "logistics.dock_slot.write" },
+    },
+    dockSlots: { actions: { cancelBooking: "logistics.dock_slot.write" } },
+  },
   corrections: [
+    {
+      id: "dock-slot-delivery-booking",
+      since: SINCE,
+      resources: ["dockSlots"],
+      change: "Adds the optional, read-side `delivery_window_id`, `reference_code` and `vehicle_identifier`.",
+      reason:
+        "app.dock_slots gains them (3005, B11, ADR 0150): a delivery booking is a dock slot. The window and code are written only by `deliveryWindows.book`. Additive.",
+      apply: editShape({
+        add: {
+          delivery_window_id: { schema: orNull(fields.ref("delivery window the booking holds a place in")) },
+          reference_code: { schema: orNull(fields.shortText("Label to quote at the gate.", "K7M2QX")) },
+          vehicle_identifier: { schema: orNull(fields.shortText("Plate or trailer number expected.", "FL ABC 123")) },
+        },
+      }),
+    },
+    {
+      id: "gate-queue-dock-slot",
+      since: SINCE,
+      resources: ["gateQueueEntries"],
+      change: "Adds the optional, read-side `dock_slot_id`.",
+      reason:
+        "app.gate_queue.dock_slot_id (3005, B11) names the booking a vehicle arrived for. Additive.",
+      apply: editShape({
+        add: { dock_slot_id: { schema: orNull(fields.ref("booking the vehicle arrived for")) } },
+      }),
+    },
     {
       id: "shipment-carrier-and-window",
       since: SINCE,

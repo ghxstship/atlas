@@ -15,6 +15,18 @@
     "reminderLimit": {
       "label": "Reminders per step",
       "help": "From 1 to 10. Automatic reminders and Remind approvers both count."
+    },
+    "quoteChaseEnabled": {
+      "label": "Remind vendors about quotes",
+      "help": "When on, vendors invited to an issued RFQ who have not answered are reminded automatically. RFQs already open at release are not chased."
+    },
+    "quoteChaseInterval": {
+      "label": "Hours between quote reminders",
+      "help": "How long to wait after an RFQ is issued, and between reminders."
+    },
+    "quoteChaseLimit": {
+      "label": "Most reminders per vendor",
+      "help": "Reminders stop at this number, when the vendor answers, or when the RFQ leaves Issued."
     }
   },
   "common": {
@@ -285,7 +297,7 @@
       "none": "No items yet.",
       "nodeLine": "{kind} scope node, code suffix {suffix}",
       "recordLine": "{kind} record · {phase} · {due}",
-      "phase": "phase {code}",
+      "phase": "Phase",
       "phaseNone": "no phase",
       "noPhase": "No phase",
       "noDue": "no due date",
@@ -315,7 +327,6 @@
         "Y": "Y: process",
         "Z": "Z: timeline"
       },
-      "phase": "Phase",
       "dueOffset": "Due, days after the start",
       "dueOffsetHelp": "Leave blank for no due date; use a negative number for before the start.",
       "remove": "Remove",

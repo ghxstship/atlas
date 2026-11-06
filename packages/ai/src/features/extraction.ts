@@ -23,6 +23,7 @@ export const DOCUMENT_KINDS = [
   "invoice",
   "receipt",
   "quote",
+  "material_list",
 ] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
@@ -45,6 +46,21 @@ export interface ExtractionTarget {
 
 /** Targets follow the OpenAPI v1 create schemas; ids such as document_id come from the caller. */
 export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>> = {
+  // B11 (G-106): a list of materials has no header, only lines. vendor_sku is read for the paste path alone; these
+  // suggestions close when the pasted import is created and are never applied through procurementNeeds.create.
+  material_list: {
+    operationId: "procurementNeeds.create",
+    fields: [],
+    lines: {
+      operationId: "procurementNeeds.create",
+      fields: [
+        { path: "description", kind: "text", description: "The item as printed." },
+        { path: "quantity", kind: "quantity", description: "How many, as printed." },
+        { path: "unit_basis", kind: "text", description: "The unit as printed, when one is." },
+        { path: "vendor_sku", kind: "text", description: "The vendor's part number, when one is." },
+      ],
+    },
+  },
   // Field paths follow the corrected insuranceCertificates.create body (the API catalog's Vendors
   // correction); the insured vendor_id comes from the person when they confirm.
   insurance_certificate: {
@@ -309,14 +325,18 @@ export async function extractDocument(
     });
 
     const header = settle(target.fields, result.value.fields);
-    const proposals: ProposedChange[] = [
-      {
-        operationId: target.operationId,
-        targetId: null,
-        summary: describe(input.kind, header),
-        fields: header,
-      },
-    ];
+    // A document with no header fields (material_list) proposes no blank "0 of 0" change.
+    const proposals: ProposedChange[] =
+      target.fields.length === 0
+        ? []
+        : [
+            {
+              operationId: target.operationId,
+              targetId: null,
+              summary: describe(input.kind, header),
+              fields: header,
+            },
+          ];
     if (target.lines) {
       const lineTarget = target.lines;
       result.value.lines.forEach((line, index) => {

@@ -3,6 +3,11 @@
  * corrections of frozen Procurement resources to the A03 and A16 schema (ADR 0023): migrations 0331
  * (RFQs, purchase orders, receipts, matches, catalog), 0491 (match results) and 0492 (submittals).
  */
+import {
+  needConsolidateAction,
+  procurementFollowOnResources,
+  rfqCreateSubHireAction,
+} from "./parts/supply-follow-ons.ts";
 import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
@@ -36,12 +41,22 @@ const reasonBody = (id: string, what: string) =>
     .meta({ id, description: `Request to ${what}.` });
 
 export const additions = defineAdditions("Procurement", {
-  resources: procurementSupplyResources,
+  resources: [...procurementSupplyResources, ...procurementFollowOnResources],
   actions: {
     purchaseOrders: [fieldHistoryAction("purchase order"), ...purchaseOrderSupplyActions],
     poLines: [poLineHireWindowQuery],
+    procurementNeeds: [needConsolidateAction],
+    rfqs: [rfqCreateSubHireAction],
   },
   capabilities: {
+    procurementNeeds: {
+      read: "procurement.po.read",
+      write: "procurement.po.write",
+      actions: { consolidate: "procurement.po.write" },
+    },
+    procurementNeedStatus: { read: "procurement.po.read" },
+    rfqLines: { read: "procurement.rfq.read", write: "procurement.rfq.write" },
+    rfqs: { actions: { createSubHire: "procurement.rfq.write" } },
     purchaseOrders: {
       actions: { receive: "procurement.receipt.write", returnGoods: "procurement.receipt.write" },
     },
@@ -51,6 +66,28 @@ export const additions = defineAdditions("Procurement", {
     poLineHireWarnings: { read: "procurement.po.read" },
   },
   corrections: [
+    {
+      id: "po-line-procurement-need",
+      since: "1.0.0-draft.2",
+      resources: ["poLines"],
+      change: "Adds the optional `procurement_need_id`.",
+      reason:
+        "app.po_lines.procurement_need_id (3001, B11) names the need a line serves; a need's status reads it. Additive and read-side.",
+      apply: editShape({
+        add: { procurement_need_id: { schema: orNull(fields.ref("need this line serves")) } },
+      }),
+    },
+    {
+      id: "rfq-response-line-request-line",
+      since: "1.0.0-draft.2",
+      resources: ["rfqResponseLines"],
+      change: "Adds the optional `rfq_line_id`.",
+      reason:
+        "app.rfq_response_lines.rfq_line_id (3003, B11) names the request line a quoted line answers. Additive and read-side.",
+      apply: editShape({
+        add: { rfq_line_id: { schema: orNull(fields.ref("request line this quoted line answers")) } },
+      }),
+    },
     {
       id: "rfq-number-and-deadline",
       since: SINCE,

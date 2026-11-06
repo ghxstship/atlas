@@ -41,6 +41,7 @@ export function ResponseForm({
   currencies,
   defaultCurrency,
   action,
+  requested = [],
 }: {
   org: string;
   rfqId: string;
@@ -48,12 +49,14 @@ export function ResponseForm({
   currencies: { value: string; label: string }[];
   defaultCurrency: string;
   action: ServerAction;
+  /** What the RFQ asks for (B11, G-97): each row starts as one of these and answers it. */
+  requested?: readonly { id: string; description: string; quantity: number }[];
 }) {
   const t = useCopy("procurement");
   const k = useCopy("procurement.kit");
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const formRef = useResetOnSuccess(state);
-  const [count, setCount] = useState(2);
+  const [count, setCount] = useState(Math.max(2, requested.length));
   useDone(state);
   const err = (name: string) =>
     state.fieldErrors?.[name] ? k(`validation.${state.fieldErrors[name]}`) : "";
@@ -105,11 +108,13 @@ export function ResponseForm({
             key={i}
             className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] max-sm:grid-cols-1 gap-8"
           >
+            <input type="hidden" name="lineRfqLineId" value={requested[i]?.id ?? ""} />
             <Input
               id={`resp-desc-${rfqId}-${i}`}
               name="lineDescription"
               label={t("lines.description", { n: i + 1 })}
               width="100%"
+              defaultValue={requested[i]?.description ?? ""}
             />
             <Input
               id={`resp-qty-${rfqId}-${i}`}
@@ -117,7 +122,7 @@ export function ResponseForm({
               inputMode="decimal"
               label={t("lines.quantity")}
               width="100%"
-              defaultValue="1"
+              defaultValue={String(requested[i]?.quantity ?? 1)}
             />
             <Input
               id={`resp-price-${rfqId}-${i}`}

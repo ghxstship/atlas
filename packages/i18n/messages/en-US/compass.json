@@ -277,7 +277,8 @@
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}.",
       "expenseReceipt": "Expense: {description}, {day}",
-      "proofPhoto": "Proof of performance photo, {time}"
+      "proofPhoto": "Proof of performance photo, {time}",
+      "bookingArrival": "Record a booked vehicle's arrival at the gate"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
@@ -1023,5 +1024,24 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "gateView": {
+    "title": "Gate",
+    "open": "Open gate view",
+    "find": "Find a booking",
+    "findHelp": "Reference code or plate.",
+    "notFound": "No booking matches. Check the code or plate.",
+    "selected": "Selected",
+    "empty": "No delivery windows at this gate today.",
+    "window": "{start} to {end}: {booked} of {limit} vehicles",
+    "noPlate": "No plate yet",
+    "arrived": "Arrived",
+    "arrivalQueued": "Arrival saved. It sends now, or when you're back online.",
+    "status": {
+      "expected": "Expected",
+      "waiting": "Waiting",
+      "released": "Released",
+      "checkedIn": "Checked In"
+    }
   }
 }

@@ -17,6 +17,7 @@ import {
   assetReservationResources,
 } from "./parts/allocations.ts";
 import { assetSupplyResources } from "./parts/supply-bridge.ts";
+import { assetFollowOnResources, assetShortagesQuery } from "./parts/supply-follow-ons.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -95,18 +96,31 @@ const AssetScanResult = z
   .meta({ id: "AssetScanResult", description: "The outcome of one scan event." });
 
 export const additions = defineAdditions("Assets", {
-  resources: [...assetSupplyResources, ...assetReservationResources],
+  resources: [...assetFollowOnResources, ...assetSupplyResources, ...assetReservationResources],
   actions: {
     assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")],
     // R7 (G-93): how many of a class are free over a window.
-    assetClasses: [assetClassAvailabilityQuery],
+    assetClasses: [assetClassAvailabilityQuery, assetShortagesQuery],
   },
   capabilities: {
+    assetMaintenancePlans: { read: "assets.asset.read", write: "assets.maintenance.write" },
+    assetMaintenanceDue: { read: "assets.asset.read" },
     assetUnitHire: { read: "assets.asset.read" },
     ...assetReservationCapabilities,
-    assetClasses: { actions: { availability: "assets.asset.read" } },
+    assetClasses: { actions: { shortages: "procurement.po.read", availability: "assets.asset.read" } },
   },
   corrections: [
+    {
+      id: "asset-maintenance-plan",
+      since: SINCE,
+      resources: ["assetMaintenanceEvents"],
+      change: "Adds the optional `maintenance_plan_id`. `performed_on` stays required.",
+      reason:
+        "app.asset_maintenance.maintenance_plan_id (3004, B11) names the plan the work fulfilled; it moves the plan's next due date. Additive.",
+      apply: editShape({
+        add: { maintenance_plan_id: { schema: orNull(fields.ref("plan this work fulfilled")), create: "optional" } },
+      }),
+    },
     {
       id: "asset-class-offering",
       since: SINCE,

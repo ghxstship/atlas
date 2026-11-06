@@ -70,6 +70,8 @@ const REFUSALS = "procurement.refusals";
 const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
 
 /** The order line form, with its hire window warnings, loads with the record page's edit state (R7a). */
+import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
+
 const PoLineForm = dynamic(() => import("./supply-forms").then((m) => m.PoLineForm));
 
 /**
@@ -432,6 +434,15 @@ async function PurchaseOrderRecord({
                   refusals={REFUSALS}
                 />
               ))}
+            </div>
+            <div className="flex flex-wrap gap-8">
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "order", purchaseOrderId: order.id }}
+              />
+              <KitLink href={`/${ctx.org.slug}/import?target=po_lines&purchaseOrder=${order.id}`}>
+                {t("needs.import")}
+              </KitLink>
             </div>
             <PoLineForm
               org={ctx.org.slug}

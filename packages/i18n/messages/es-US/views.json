@@ -514,7 +514,24 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "need_number": "Número de necesidad",
+      "needed_during": "Se necesita durante",
+      "procurement_need_id": "Necesidad de compra",
+      "rfq_line_id": "Línea de cotización",
+      "acquisition_kind": "Adquisición",
+      "hire_period": "Período de alquiler",
+      "instructions": "Instrucciones",
+      "first_due_on": "Primer vencimiento",
+      "every_count": "Cada",
+      "every_unit": "Unidad de intervalo",
+      "maintenance_plan_id": "Plan de mantenimiento",
+      "vehicle_limit": "Límite de vehículos",
+      "is_open": "Abierta",
+      "delivery_window_id": "Franja de entrega",
+      "reference_code": "Código de referencia",
+      "vehicle_identifier": "Vehículo",
+      "dock_slot_id": "Turno de muelle"
     }
   }
 }

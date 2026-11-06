@@ -16,6 +16,7 @@ import { requireOrg } from "../runtime/context.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { reservationHandlers } from "./parts/allocations.ts";
 import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
+import { listAssetShortages } from "@xos/data/procurement-needs";
 import { from, handlersFor, rpc, run, tableResource, unwrap, type Row } from "./support/table.ts";
 
 const classes = tableResource("assetClasses", { verbs: ["list", "get", "create", "update"] });
@@ -40,11 +41,37 @@ const identifiers = tableResource("assetIdentifiers");
 const custody = tableResource("assetCustodyEntries");
 
 const maintenance = tableResource("assetMaintenanceEvents");
+// B11 (G-95): what is due is computed on the org's calendar; a plan is a plain row.
+const maintenancePlans = tableResource("assetMaintenancePlans");
+const maintenanceDue = tableResource("assetMaintenanceDue", {
+  softDelete: false,
+  key: "plan_id",
+  scope: (q, context) => (context.org === null ? q : q.eq("org_id", context.org.id)),
+});
 
 const damage = tableResource("assetDamageReports");
 
 export const handlers = defineHandlers("Assets", {
   ...handlersFor("Assets", classes),
+  ...handlersFor("Assets", maintenancePlans),
+  ...handlersFor("Assets", maintenanceDue),
+  "assetClasses.shortages": async ({ query }, context) => {
+    const org = requireOrg(context);
+    return ok({
+      data: unwrap(await listAssetShortages(context.db, org.id, query.project_id)).map((s) => ({
+        project_id: s.projectId,
+        asset_class_id: s.assetClassId,
+        class_name: s.className,
+        element_id: s.elementId,
+        unit_basis: s.unitBasis,
+        short_quantity: s.shortQuantity,
+        window_from: s.windowFrom,
+        window_to: s.windowTo,
+        open_need_id: s.openNeedId,
+        open_rfq_id: s.openRfqId,
+      })),
+    });
+  },
   /** Archives a class that holds no live units or lots (asset_class_in_use otherwise). */
   "assetClasses.delete": async ({ params }, context) => {
     await classes.read(context, params.id, ["id"]);

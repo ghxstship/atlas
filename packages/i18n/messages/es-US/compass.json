@@ -277,7 +277,8 @@
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
       "expenseReceipt": "Gasto: {description}, {day}",
-      "proofPhoto": "Foto de comprobación de cumplimiento, {time}"
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
+      "bookingArrival": "Registrar la llegada a la puerta de un vehículo con reserva"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
@@ -1023,5 +1024,24 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "gateView": {
+    "title": "Puerta",
+    "open": "Abrir la vista de puerta",
+    "find": "Buscar una reserva",
+    "findHelp": "Código de referencia o placa.",
+    "notFound": "Ninguna reserva coincide. Revisa el código o la placa.",
+    "selected": "Seleccionada",
+    "empty": "No hay franjas de entrega en esta puerta hoy.",
+    "window": "{start} a {end}: {booked} de {limit} vehículos",
+    "noPlate": "Sin placa todavía",
+    "arrived": "Llegó",
+    "arrivalQueued": "Llegada guardada. Se envía ahora o cuando vuelvas a tener conexión.",
+    "status": {
+      "expected": "Esperado",
+      "waiting": "En espera",
+      "released": "Liberado",
+      "checkedIn": "Registrado"
+    }
   }
 }

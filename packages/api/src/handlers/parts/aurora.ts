@@ -556,7 +556,7 @@ export function auroraHandlers(
 
     "aurora.extract": async (request, context) => {
       const body = request.body as {
-        kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+        kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "material_list";
         document_id?: string | null;
         media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
         content_base64: string;

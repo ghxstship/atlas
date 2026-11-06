@@ -7,7 +7,7 @@ import summariesSet from "./datasets/summaries.json" with { type: "json" };
 import { loadModelConfig, type ModelConfig } from "../src/config.ts";
 import { askAssistant, type PublicApi } from "../src/features/assistant.ts";
 import { draft, type DraftKind } from "../src/features/drafting.ts";
-import { extractDocument, type DocumentKind } from "../src/features/extraction.ts";
+import { EXTRACTION_TARGETS, extractDocument, type DocumentKind } from "../src/features/extraction.ts";
 import { buildFilter, type FilterCollection } from "../src/features/filters.ts";
 import { suggestCatalogBinding, suggestColumnMappings } from "../src/features/mapping.ts";
 import { summarize, type SummaryKind } from "../src/features/summaries.ts";
@@ -110,7 +110,9 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
       fileName: `${c.id}.txt`,
       subject: null,
     });
-    const header = proposals[0]?.fields ?? [];
+    // A material list has no header, so its first proposal is already a line (B11).
+    const hasHeader = EXTRACTION_TARGETS[c.kind as DocumentKind].fields.length > 0;
+    const header = hasHeader ? (proposals[0]?.fields ?? []) : [];
     const wrong = Object.entries(c.expected).find(
       ([path, value]) =>
         !sameValue(
@@ -122,7 +124,7 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
     const expectedLines =
       "expectedLines" in c ? (c.expectedLines as Record<string, unknown>[]) : [];
     if (!detail && expectedLines.length > 0) {
-      const lines = proposals.slice(1);
+      const lines = hasHeader ? proposals.slice(1) : proposals;
       if (lines.length !== expectedLines.length)
         detail = `expected ${expectedLines.length} lines, got ${lines.length}`;
       expectedLines.forEach((line, i) => {
