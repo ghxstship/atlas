@@ -71,6 +71,10 @@ describe("agency staff time (R12)", () => {
       "from:timesheet_hours": [
         okResponse([{ timesheet_id: "ts1", worked_minutes: 450, has_open_entry: false }]),
         okResponse([{ timesheet_id: "ts1", worked_minutes: 450, has_open_entry: false }]),
+        okResponse({
+          period_starts_at: "2027-06-01T04:00:00+00:00",
+          period_ends_at: "2027-06-08T04:00:00+00:00",
+        }),
       ],
       "from:roster_entry_people": [person, person, person],
       "from:timesheet_approvals": [okResponse([])],
