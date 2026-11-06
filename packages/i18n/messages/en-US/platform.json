@@ -787,6 +787,13 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "crew_registration": {
+        "decided": "Crew registration decided",
+        "invited": "Invited to register"
+      },
+      "engagement_document": {
+        "sent": "Agreement sent to sign"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

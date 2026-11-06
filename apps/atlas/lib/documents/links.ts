@@ -42,7 +42,7 @@ export function atlasRecordPath(
     case "agreement-certificate":
       return `${o}/people/agreements?peek=${id}`;
     case "engagement-document":
-      return `${o}/opportunities/onboarding#agreement-batches`;
+      return `${o}/opportunities/onboarding?project=${encodeURIComponent(record.projectKey ?? "")}`;
     case "radio-handout":
       return `${o}/advancing/allocations?project=${encodeURIComponent(record.projectKey ?? "")}&kind=Asset`;
   }

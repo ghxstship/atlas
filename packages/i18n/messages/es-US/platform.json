@@ -787,6 +787,13 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "crew_registration": {
+        "decided": "Registro de equipo decidido",
+        "invited": "Invitación a registrarte"
+      },
+      "engagement_document": {
+        "sent": "Acuerdo enviado para firmar"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
