@@ -922,7 +922,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability.",
+            v: "The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability. This target takes its own upload, not another sheet of a workbook already read, because only the upload asks for those two choices.",
           },
         ],
       },
@@ -3356,7 +3356,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina.",
+            v: "El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina. Este destino necesita su propia carga, no otra hoja de un libro ya leído, porque solo la carga pregunta esas dos opciones.",
           },
         ],
       },

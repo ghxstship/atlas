@@ -176,9 +176,17 @@ export function GenerateAgreements({
             <form action={createAction}>
               <input type="hidden" name="org" value={org} />
               <input type="hidden" name="projectId" value={projectId} />
-              <input type="hidden" name="templateId" value={template} />
-              <input type="hidden" name="engagementIds" value={names} />
-              <input type="hidden" name="requirementId" value={requirement} />
+              <input type="hidden" name="templateId" value={latest.previewed?.templateId ?? ""} />
+              <input
+                type="hidden"
+                name="engagementIds"
+                value={latest.previewed?.engagementIds.join(",") ?? ""}
+              />
+              <input
+                type="hidden"
+                name="requirementId"
+                value={latest.previewed?.requirementId ?? ""}
+              />
               <Button
                 type="submit"
                 variant="secondary"

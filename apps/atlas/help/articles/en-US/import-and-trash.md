@@ -47,6 +47,6 @@ An Admin defines custom objects in settings. Each one gets its own list of recor
 
 ## Importing freelancers
 
-The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability.
+The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability. This target takes its own upload, not another sheet of a workbook already read, because only the upload asks for those two choices.
 
 Email inside the pool is the exact match: a pending invitation is updated with no new email, and an expired one is sent again. In duplicate review, Merged skips the row because the person is already invited or in a pool, and Keep separate sends a new invitation. Someone who declined in the last 12 months is skipped, and an organization sends at most 2,000 invitation emails in 24 hours. Undo keeps invitations already answered.

@@ -128,6 +128,8 @@ export const countersignAgreementBatchAction: Action = async (_, form) => {
 
 export interface PreviewState {
   readonly rows?: readonly repo.PreviewRow[];
+  /** The picks behind these rows: Create posts them, so changing a pick afterward cannot create what nobody previewed. */
+  readonly previewed?: GenerateInput;
   readonly batchId?: string;
   readonly created?: readonly repo.BatchEntryResult[];
   readonly sent?: number;
@@ -144,6 +146,8 @@ const generateSchema = z.object({
   engagementIds: z.array(z.uuid()).min(1).max(500),
 });
 
+type GenerateInput = z.infer<typeof generateSchema>;
+
 function generateInput(form: FormData) {
   return generateSchema.safeParse({
     projectId: form.get("projectId"),
@@ -155,7 +159,7 @@ function generateInput(form: FormData) {
   });
 }
 
-async function mergedRows(ctx: OrgContext, input: z.infer<typeof generateSchema>) {
+async function mergedRows(ctx: OrgContext, input: GenerateInput) {
   const templates = await repo.listTemplates(ctx.viewer.db, ctx.org.id);
   if (!templates.ok) return templates;
   const template = templates.data.find((x) => x.id === input.templateId);
@@ -185,7 +189,10 @@ export async function previewAgreementBatchAction(
   const input = generateInput(form);
   if (!input.success) return { error: "input", at: Date.now() };
   const rows = await mergedRows(ctx, input.data);
-  return { ...(rows.ok ? { rows: rows.data } : failed(rows.error)), at: Date.now() };
+  return {
+    ...(rows.ok ? { rows: rows.data, previewed: input.data } : failed(rows.error)),
+    at: Date.now(),
+  };
 }
 
 export async function createAgreementBatchAction(
@@ -200,18 +207,21 @@ export async function createAgreementBatchAction(
   if (!rows.ok) return { ...failed(rows.error), at };
   // A person with a missing field is held back: their text would still hold a merge field.
   const ready = rows.data.filter((r) => r.missing.length === 0);
-  if (ready.length === 0) return { rows: rows.data, error: "noneReady", at };
+  if (ready.length === 0) {
+    return { rows: rows.data, previewed: input.data, error: "noneReady", at };
+  }
   const result = await repo.createBatch(ctx.viewer.db, {
     projectId: input.data.projectId,
     templateId: input.data.templateId,
     requirementId: input.data.requirementId || null,
     documents: ready.map((r) => ({ engagementId: r.engagementId, title: r.title, body: r.body })),
   });
-  if (!result.ok) return { rows: rows.data, ...failed(result.error), at };
+  if (!result.ok) return { rows: rows.data, previewed: input.data, ...failed(result.error), at };
   refresh(ctx);
   // Every person refused leaves no batch, so the rows say why and Create stays.
   return {
     rows: rows.data,
+    previewed: input.data,
     created: result.data.results,
     ...(result.data.batchId ? { batchId: result.data.batchId } : {}),
     at: Date.now(),

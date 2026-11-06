@@ -793,9 +793,9 @@
     "status": "Estado",
     "expires": "Vence",
     "lastOpened": "Última apertura",
-    "openCount": "Aperturas",
+    "openCount": "Vistas",
     "actions": "Acciones",
-    "listLine": "{project} · vence {expires} · última apertura {opened} · {count, plural, one {# apertura} other {# aperturas}}",
+    "listLine": "{project} · vence {expires} · última apertura {opened} · {count, plural, one {# vista} other {# vistas}}",
     "revoke": "Revocar",
     "statuses": {
       "Live": "Activo",

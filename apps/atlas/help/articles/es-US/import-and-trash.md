@@ -47,6 +47,6 @@ Un administrador define los objetos personalizados en la configuración. Cada un
 
 ## Importar personal independiente
 
-El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina.
+El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina. Este destino necesita su propia carga, no otra hoja de un libro ya leído, porque solo la carga pregunta esas dos opciones.
 
 El correo dentro del grupo es la coincidencia exacta: una invitación pendiente se actualiza sin un correo nuevo, y una vencida se envía de nuevo. En la revisión de duplicados, Combinar omite la fila porque la persona ya está invitada o en un grupo, y Mantener separada envía una invitación nueva. Quien rechazó en los últimos 12 meses se omite, y una organización envía un máximo de 2,000 correos de invitación en 24 horas. Deshacer conserva las invitaciones ya respondidas.

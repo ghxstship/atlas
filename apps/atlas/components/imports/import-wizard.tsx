@@ -543,9 +543,12 @@ function SheetsSection({
               : sheet.proposedFromPlaybook
                 ? t("imports.sheets.fromPlaybook", { target: t(`imports.targets.${proposed}`) })
                 : t(`imports.targets.${proposed}`);
-          const choices = targets.includes(proposed ?? "")
-            ? [proposed as string, ...targets.filter((code) => code !== proposed)]
-            : targets;
+          // Pool invitations need a number format and a pool, which only the upload asks for: read with neither, a European
+          // sheet's rates would all fail. That sheet goes in through its own upload.
+          const sheetTargets = targets.filter((code) => code !== "pool_invitations");
+          const choices = sheetTargets.includes(proposed ?? "")
+            ? [proposed as string, ...sheetTargets.filter((code) => code !== proposed)]
+            : sheetTargets;
           return (
             <li
               key={sheet.id}

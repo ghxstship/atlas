@@ -793,9 +793,9 @@
     "status": "Status",
     "expires": "Expires",
     "lastOpened": "Last opened",
-    "openCount": "Opens",
+    "openCount": "Views",
     "actions": "Actions",
-    "listLine": "{project} · expires {expires} · last opened {opened} · {count, plural, one {# open} other {# opens}}",
+    "listLine": "{project} · expires {expires} · last opened {opened} · {count, plural, one {# view} other {# views}}",
     "revoke": "Revoke",
     "statuses": {
       "Live": "Live",

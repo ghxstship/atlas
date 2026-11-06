@@ -497,6 +497,11 @@
       "rate_type_conflict": "the rate and its type disagree",
       "rate_not_permitted": "setting a rate needs the payroll capability",
       "pool_merged_in_review": "skipped: already invited or in a pool, merged in review",
+      "pool_invitation_pool": "refused: the pool is no longer a live Talent pool of the organization",
+      "pool_invitation_phone": "refused: enter the work phone in international format, for example +13105550100",
+      "pool_invitation_duplicate": "refused: this address already has a pending invitation to the pool, so reissue it instead",
+      "pool_invitation_answered": "refused: a new invitation starts pending",
+      "pool_invitation_fixed": "refused: an invitation keeps its pool, address and inviter, so revoke it and invite again",
       "pool_invitation_declined": "skipped: this address declined an invitation to this list in the last 12 months",
       "pool_invitation_daily_limit": "refused: the organization reached its 2,000 invitation emails for the day, so import this row tomorrow",
       "pool_rate_kept": "updated, with the rate left as it was: the rate in this file was not applied"
