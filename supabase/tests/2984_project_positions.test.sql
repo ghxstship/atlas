@@ -5,7 +5,10 @@
 -- to Trash only when nothing hangs on it (position_in_use). An agency position names an agency-slot engagement
 -- (position_engagement_not_agency); filling it with an Accepted roster entry whose training is complete places the
 -- person on its slots under R12's checks, an entry with training due refuses roster_training_incomplete, and the
--- holder reads the position's records through api_external.position_records.
+-- holder reads the position's records through api_external.position_records. Filling reports the org's scheduling
+-- warnings without refusing. A position keeps its agency and project while it holds shifts or records, a shift keeps to
+-- its position's project, and a shift with waiting claims is not put on a position. app.save_roster_shift refuses
+-- another worker on a held shift.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -66,6 +69,28 @@ select throws_ok(format($$update app.shifts set membership_id = %L where id = %L
   'shift_held_for_position: This shift is held for a position. Fill the position, or take the shift off it first.',
   'nor written onto it directly');
 
+select throws_ok(format($$select app.save_roster_shift(%L, %L, %L, '0000.50.01', now() + interval '5 days', now() + interval '5 days 8 hours', 'America/New_York', %L, null, null)$$,
+    pg_temp.id('s1'), pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('frank@org_a')), 'XR001',
+  'shift_held_for_position: This shift is held for a position. Fill the position, or take the shift off it first.',
+  'nor saved through the shift editor with another worker');
+select throws_ok(format($$update app.shifts set project_id = %L where id = %L$$, pg_temp.id('prj_a2'), pg_temp.id('s1')), 'XR001',
+  'same_project: shifts.project_position_id points to a position of another project.', 'a shift keeps to its position''s project');
+
+-- A shift with waiting claims is decided first
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'scheduling.open_shift_claiming', 'Organization', pg_temp.id('org_a'), p_value_text => 'approval');
+select pg_temp.as_user('carol');
+with x as (insert into app.shifts (project_id, role_code, starts_at, ends_at, time_zone)
+  values (pg_temp.id('prj_a'), '0000.50.01', now() + interval '20 days', now() + interval '20 days 8 hours', 'America/New_York') returning id)
+insert into world select 'claimed', id from x;
+select app.publish_shifts(array[pg_temp.id('claimed')]);
+select pg_temp.as_user('mia');
+select app.claim_open_shift(pg_temp.id('claimed'));
+select pg_temp.as_user('carol');
+select throws_ok(format($$update app.shifts set project_position_id = %L where id = %L$$, pg_temp.id('pos_sm'), pg_temp.id('claimed')), 'XR001',
+  'shift_claims_waiting: Members claimed this shift; approve or reject their claims on the shift first.',
+  'a shift with waiting claims is not put on a position, where approving would be refused and filling would skip it');
+
 -- Records on the position: r1 only through it, r2 also assigned to frank directly.
 select pg_temp.new_record('r1', 'Call the riggers');
 select pg_temp.new_record('r2', 'Walk the stage');
@@ -85,7 +110,7 @@ select throws_ok(format($$select app.fill_position(%L, %L)$$, pg_temp.id('pos_sm
   'without crew.shift.write nobody fills a member position');
 select pg_temp.as_user('carol');
 select is(app.fill_position(pg_temp.id('pos_sm'), pg_temp.id('frank@org_a')) - 'position_id',
-  '{"shifts_filled": 2, "shifts_skipped": [], "records_resolved": 1}'::jsonb,
+  '{"shifts_filled": 2, "shifts_skipped": [], "policy_warnings": [], "records_resolved": 1}'::jsonb,
   'filling gives both future shifts to the member and resolves the one record they did not hold');
 select pg_temp.as_platform();
 select results_eq(format($$select membership_id, shift_state::text from app.shifts where id in (%L, %L) order by starts_at$$,
@@ -102,6 +127,20 @@ select isnt((select filled_at from app.project_positions where id = pg_temp.id('
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.fill_position(%L, %L)$$, pg_temp.id('pos_sm'), pg_temp.id('mia@org_a')), 'XR001',
   'position_filled: Someone holds this position. Vacate it first.', 'a held position is refilled only after vacating');
+
+-- Filling reports the org's warnings and never refuses for them
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'scheduling.max_daily_hours', 'Organization', pg_temp.id('org_a'), p_value_integer => 4);
+select pg_temp.as_user('carol');
+with x as (insert into app.project_positions (project_id, title) values (pg_temp.id('prj_a'), 'Long Day') returning id)
+insert into world select 'pos_long', id from x;
+select pg_temp.held_shift('s_long', 'pos_long', 8);
+select pg_temp.as_user('carol');
+select is(app.fill_position(pg_temp.id('pos_long'), pg_temp.id('dave@org_a')) -> 'policy_warnings',
+  jsonb_build_array(jsonb_build_object('shift_id', pg_temp.id('s_long'), 'code', 'shift_day_over')),
+  'filling names the shift a warning applies to and still fills it');
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'scheduling.max_daily_hours', 'Organization', pg_temp.id('org_a'), p_value_integer => 0);
 
 -- Vacating -------------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
@@ -120,6 +159,9 @@ select is((select count(*)::int from app.record_assignments where membership_id 
 
 -- Trash -------------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
+select throws_ok(format($$update app.project_positions set project_id = %L where id = %L$$, pg_temp.id('prj_a2'), pg_temp.id('pos_sm')), 'XR001',
+  'position_in_use: Move this position''s shifts and records off it before changing its agency or project.',
+  'a position with live shifts does not move to another project');
 select throws_ok(format($$update app.project_positions set deleted_at = now() where id = %L$$, pg_temp.id('pos_sm')), 'XR001',
   'position_in_use: Vacate the position and move its shifts and records off it before moving it to Trash.',
   'a position with live shifts or records does not go to Trash');
@@ -140,6 +182,12 @@ select throws_ok(format($$insert into app.project_positions (project_id, title, 
 with x as (insert into app.project_positions (project_id, title, engagement_id) values (pg_temp.id('prj_a'), 'Crowd Lead', pg_temp.id('eng_agency'))
   returning id) insert into world select 'pos_ag', id from x;
 update app.shifts set project_position_id = pg_temp.id('pos_ag') where id = pg_temp.id('slot_2');
+select throws_ok(format($$update app.project_positions set engagement_id = null where id = %L$$, pg_temp.id('pos_ag')), 'XR001',
+  'position_in_use: Move this position''s shifts and records off it before changing its agency or project.',
+  'an unfilled agency position holding slots does not turn into a member position');
+select throws_ok(format($$update app.shifts set engagement_id = null, membership_id = %L where id = %L$$, pg_temp.id('frank@org_a'), pg_temp.id('slot_2')), 'XR001',
+  'shift_held_for_position: This shift is held for a position. Fill the position, or take the shift off it first.',
+  'an agency position''s slot does not go to a member');
 select throws_ok(format($$update app.shifts set project_position_id = %L where id = %L$$, pg_temp.id('pos_ag'), pg_temp.id('sh_frank_day')),
   'XR001', null, 'a member''s shift is not held for an agency position');
 select pg_temp.new_record('r3', 'Brief the gate team');
@@ -168,8 +216,8 @@ select is((select count(*)::int from app.record_assignments where record_id = pg
 select pg_temp.as_user('stella');
 select is((select array_agg(title) from api_external.position_records), array['Brief the gate team'],
   'the holder reads the position''s records in Gateway');
-select is((select position_title from api_external.shifts where id = pg_temp.id('slot_2')), 'Crowd Lead',
-  'and their shift names its position');
+select results_eq(format($$select position_title, has_no_show from api_external.shifts where id = %L$$, pg_temp.id('slot_2')),
+  $$values ('Crowd Lead'::text, false)$$, 'and their shift names its position, with no no-show');
 select pg_temp.as_user('olga');
 select is((select count(*)::int from api_external.position_records), 1, 'the agency''s lead reads them too');
 select pg_temp.as_user('ivy');

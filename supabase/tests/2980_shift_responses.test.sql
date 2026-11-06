@@ -3,7 +3,7 @@
 -- reassignment while Published withdraws the ask and asks the new person; a first-come claim and an approved claim
 -- ask nobody; an agency slot asks nobody until the agency places someone; assign_roster_shift on a Published and an
 -- Accepted shift, unassign_roster_shift, swaps, cancel and delete keep the invariant: a live shift has a Waiting Offer
--- exactly when it is Published with a worker person. Shift readers and the person asked read the rows; nobody writes
+-- exactly when it is Published with a worker person (a claim reaches Accepted in the same transaction). Shift readers and the person asked read the rows; nobody writes
 -- them directly.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -147,17 +147,20 @@ select is(pg_temp.offers('m5'), 'Mia Takahashi:Accepted', 'a swap accepted by th
 select is(pg_temp.offers('slot_1'), '', 'an agency slot names nobody and asks nobody');
 select pg_temp.as_user('olga');
 select app.assign_roster_shift(pg_temp.id('slot_1'), pg_temp.id('e_stella'));
-select like(pg_temp.offers('slot_1'), '%:Waiting', 'placing a person on a Published slot asks them');
+select alike(pg_temp.offers('slot_1'), '%:Waiting', 'placing a person on a Published slot asks them');
 select pg_temp.as_user('stella');
 select app.accept_engaged_shift(pg_temp.id('slot_1'));
-select like(pg_temp.offers('slot_1'), '%:Accepted', 'the roster person accepts through accept_engaged_shift');
+select alike(pg_temp.offers('slot_1'), '%:Accepted', 'the roster person accepts through accept_engaged_shift');
 select pg_temp.as_user('olga');
 select app.assign_roster_shift(pg_temp.id('slot_1'), pg_temp.id('e_theo'));
+select pg_temp.as_platform();
 select is((select count(*)::int from app.shift_responses where shift_id = pg_temp.id('slot_1') and answer = 'Withdrawn'), 0,
   'moving an Accepted roster shift to another entry leaves no stray Withdrawn offer for the first person');
 select is((select count(*)::int from app.shift_responses where shift_id = pg_temp.id('slot_1') and answer = 'Waiting'), 1,
   'and asks the new person once');
+select pg_temp.as_user('olga');
 select app.unassign_roster_shift(pg_temp.id('slot_1'), 'Taken off.');
+select pg_temp.as_platform();
 select is((select count(*)::int from app.shift_responses where shift_id = pg_temp.id('slot_1') and answer = 'Waiting'), 0,
   'taking them off withdraws the waiting ask; the slot asks nobody');
 

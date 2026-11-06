@@ -5,9 +5,11 @@
 -- once the shift starts. app.respond_shift_reconfirmation by the asked person confirms or declines: with
 -- scheduling.reconfirm_reopen on a member shift becomes an open shift another member claims and a roster shift goes back
 -- to its agency's slot; with it off the shift keeps its worker. The creator hears of a decline
--- (shift.reconfirm_declined). Anyone else gets 42501 and a second answer shift_reconfirm_answered. The email link
--- accepts while the ask waits, push declines through app.act_on_notification, and app.decline_shift returns a roster
--- person's Published shift to the agency's slot.
+-- (shift.reconfirm_declined). Anyone else gets 42501, and a second answer or any answer once the shift has started gets
+-- shift_reconfirm_answered. The email link accepts while the ask waits and the shift has not started, push declines
+-- through app.act_on_notification, and app.decline_shift returns a roster person's Published shift to the agency's slot.
+-- A swap approved inside the window asks nobody; a Waiting ask only sits on an Accepted shift; and every way an ask ends
+-- retires its notification (answers, the job's No Answer, the withdrawal of t93).
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -64,6 +66,10 @@ language sql security definer as $$
 $$;
 grant execute on function pg_temp.note(text, text, text) to public;
 
+create function pg_temp.archived(p_note uuid) returns boolean
+language sql security definer as $$ select n.archived_at is not null from app.notifications n where n.id = p_note $$;
+grant execute on function pg_temp.archived(uuid) to public;
+
 -- Settings ----------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 select app.set_setting(pg_temp.id('org_a'), 'scheduling.reconfirm_shifts', 'Project', pg_temp.id('prj_a'), p_value_boolean => true);
@@ -108,6 +114,7 @@ select throws_ok(format($$select app.respond_shift_reconfirmation(%L, false)$$, 
 select pg_temp.as_platform();
 select is((select count(*)::int from private.notification_link_actions(pg_temp.note('frank', 'shift.reconfirm', 'r1'))), 0,
   'once answered, the email link no longer acts');
+select ok(pg_temp.archived(pg_temp.note('frank', 'shift.reconfirm', 'r1')), 'and an answer retires the notification');
 
 -- No Answer once the shift starts
 select pg_temp.accepted_shift('r6', 'carol', 'dave@org_a', 'prj_a', interval '19 hours');
@@ -116,6 +123,53 @@ select is(private.send_shift_reconfirmations(), 1, 'the next shift is asked');
 update app.shifts set starts_at = now() - interval '1 minute' where id = pg_temp.id('r6');
 select private.send_shift_reconfirmations();
 select is(pg_temp.ask('r6'), 'No Answer', 'a Waiting ask becomes No Answer once the shift starts');
+select ok(pg_temp.archived(pg_temp.note('dave', 'shift.reconfirm', 'r6')), 'and the job retires its notification');
+
+-- Started, before the job has run: nothing left to answer (correction d) ----------------------------------------------------------------
+select pg_temp.accepted_shift('r7', 'carol', 'erin@org_a', 'prj_a', interval '18 hours');
+select pg_temp.backdate_acceptance('r7', interval '2 days');
+select is(private.send_shift_reconfirmations(), 1, 'another shift is asked');
+select is((select count(*)::int from private.notification_link_actions(pg_temp.note('erin', 'shift.reconfirm', 'r7'))), 1, 'its email link offers accept');
+update app.shifts set starts_at = now() - interval '1 minute' where id = pg_temp.id('r7');
+select is((select count(*)::int from private.notification_link_actions(pg_temp.note('erin', 'shift.reconfirm', 'r7'))), 0,
+  'once the shift has started the email offers nothing, even with the ask still Waiting');
+select pg_temp.as_user('erin');
+select throws_ok(format($$select app.respond_shift_reconfirmation(%L, false, 'Too late.')$$, pg_temp.id('r7')), 'XR001',
+  'shift_reconfirm_answered: This shift was already confirmed, or nobody is asking any more.', 'and a late answer is refused, so a decline cannot reopen a running shift');
+select pg_temp.as_platform();
+select is((select shift_state::text from app.shifts where id = pg_temp.id('r7')), 'Accepted', 'the running shift keeps its worker');
+select private.send_shift_reconfirmations();
+
+-- A swap approved inside the window asks nobody ------------------------------------------------------------------------------------------
+select pg_temp.accepted_shift('r8', 'carol', 'frank@org_a', 'prj_a', interval '60 hours');
+select pg_temp.backdate_acceptance('r8', interval '3 days');
+select pg_temp.as_user('frank');
+with x as (insert into app.shift_swaps (shift_id, requested_by_membership_id, proposed_membership_id)
+  values (pg_temp.id('r8'), pg_temp.id('frank@org_a'), pg_temp.id('gina@org_a')) returning id)
+insert into world select 'swap_r8', id from x;
+select pg_temp.as_user('alice');
+select app.decide_shift_swap(pg_temp.id('swap_r8'), 'Approved', 'Covered.');
+select pg_temp.as_platform();
+update app.shifts set starts_at = now() + interval '16 hours', ends_at = now() + interval '24 hours' where id = pg_temp.id('r8');
+select is(private.send_shift_reconfirmations(), 0, 'whoever took a shift by a swap approved inside the window is not asked');
+select is(pg_temp.ask('r8'), '', 'so the shift has no ask');
+
+-- A Waiting ask only sits on an Accepted shift ---------------------------------------------------------------------------------------------
+select pg_temp.accepted_shift('r9', 'carol', 'erin@org_a', 'prj_a', interval '15 hours');
+select pg_temp.backdate_acceptance('r9', interval '3 days');
+select private.send_shift_reconfirmations();
+select is(pg_temp.ask('r9'), 'Waiting', 'the worker is asked');
+select pg_temp.as_user('carol');
+select app.transition_shift(pg_temp.id('r9'), 'Accepted', 'Published', 'Times may move.');
+select pg_temp.as_platform();
+select is(pg_temp.ask('r9'), 'Withdrawn', 'a planner stepping the shift off Accepted withdraws the ask');
+select ok(pg_temp.archived(pg_temp.note('erin', 'shift.reconfirm', 'r9')), 'and retires its notification');
+select is((select count(*)::int from app.shift_responses r join app.shifts s on s.id = r.shift_id
+  where r.ask_kind = 'Reconfirmation' and r.answer = 'Waiting' and r.deleted_at is null and s.shift_state <> 'Accepted'), 0,
+  'no Waiting ask sits on a shift that is not Accepted');
+select throws_ok(format($$select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id', %L, 'Draft', 'Accepted', 'Skip the offer.')$$, pg_temp.id('r9')), 'XR001',
+  'shift_transition_not_allowed: A shift cannot move from Draft to Accepted.', 'the shift lifecycle is unchanged: no new state, no new transition');
+select pg_temp.as_platform();
 
 -- Declining with reopen on: a member shift becomes an open shift ---------------------------------------------------------------------
 select pg_temp.accepted_shift('r4', 'alice', 'dave@org_a', 'prj_a', interval '21 hours');
@@ -134,6 +188,9 @@ select results_eq(format($$select shift_state::text, membership_id, engagement_i
 select is((select reason from app.shift_state_transitions where shift_id = pg_temp.id('r4') order by created_at desc, id desc limit 1),
   'Declined at reconfirmation: Sick.', 'the ledger says why');
 select isnt(pg_temp.note('alice', 'shift.reconfirm_declined', 'r4'), null, 'the planner who created it is told');
+select is((select message_args ->> 'workerName' from app.notifications where id = pg_temp.note('alice', 'shift.reconfirm_declined', 'r4')), 'Dave Lindqvist',
+  'by name, for a member');
+select ok(pg_temp.archived(pg_temp.note('dave', 'shift.reconfirm', 'r4')), 'a decline retires the ask''s notification too');
 select pg_temp.as_user('mia');
 select lives_ok(format($$select app.claim_open_shift(%L)$$, pg_temp.id('r4')), 'another member claims it under the project''s rule');
 
@@ -172,6 +229,8 @@ select pg_temp.as_platform();
 select results_eq(format($$select shift_state::text, engagement_id, roster_entry_id from app.shifts where id = %L$$, pg_temp.id('slot_2')),
   format($$values ('Published'::text, %L::uuid, null::uuid)$$, pg_temp.id('eng_agency')),
   'the shift is the agency''s Published slot again, for the agency to fill');
+select is((select message_args ->> 'workerName' from app.notifications where id = pg_temp.note('carol', 'shift.reconfirm_declined', 'slot_2')), 'Stella Okafor',
+  'a creator who reads the advancing packet hears the roster person''s name');
 
 -- app.decline_shift on a roster shift (2981, from 2200) ---------------------------------------------------------------------------
 select pg_temp.as_user('olga');

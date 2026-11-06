@@ -3,6 +3,8 @@
 -- someone who has not answered (with when they were asked), unanswered and declined "Still coming?" asks of the current
 -- worker, no-shows without a replacement someone holds; and unacknowledged labor lines of Approved or Sent purchase
 -- orders, only to procurement.po.read holders. More than 62 days refuses crew_shortages_range; another org reads nothing.
+-- A project with no dates has no window to overlap, a window that began earlier buckets on the first day asked, and a
+-- roster person's name shows only with advancing.packet.read.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -93,6 +95,39 @@ select results_eq(format($$select quantity, party_name from app.crew_shortages(%
   $$values (6::numeric, 'Tideline Labor'::text)$$, 'the unacknowledged labor line, with its quantity and vendor');
 select is((select count(*)::int from app.crew_shortages(pg_temp.id('org_a'), current_date, current_date + 14) where kind = 'awaiting_answer'
   and shift_id = pg_temp.id('rc_wait')), 0, 'an Accepted shift is not waiting on an answer');
+
+-- A project with no Build, Strike or dates has no site window: nothing to bucket, so no vendor row.
+select pg_temp.as_user('carol');
+with x as (insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a2'), pg_temp.id('ven_lab'), 'USD')
+  returning id) insert into world select 'po_nodates', id from x;
+insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor)
+  values (pg_temp.id('po_nodates'), 1, 'Stagehands, dates to come.', '2000.07.01-XPMS-001', 2, 2500);
+select pg_temp.as_user('bob');
+select app.approve_purchase_order(pg_temp.id('po_nodates'), 'Within limit.');
+select pg_temp.as_user('carol');
+select is((select count(*)::int from app.crew_shortages(pg_temp.id('org_a'), current_date, current_date + 14)
+  where kind = 'vendor_unconfirmed' and project_id = pg_temp.id('prj_a2')), 0, 'a project with no dates has no vendor row');
+-- A window that began before the range starts on the first day asked, in the project's zone.
+select pg_temp.as_platform();
+update app.projects set starts_on = current_date - 5, ends_on = current_date + 10 where id = pg_temp.id('prj_a');
+select pg_temp.as_user('carol');
+select is((select starts_at from app.crew_shortages(pg_temp.id('org_a'), current_date, current_date + 14) where kind = 'vendor_unconfirmed'),
+  current_date::timestamp at time zone 'America/New_York', 'a window that began earlier buckets on the first day asked');
+
+-- Names: a member's for any shift reader, a roster person's only with advancing.packet.read.
+select pg_temp.as_user('olga');
+select app.assign_roster_shift(pg_temp.id('slot_1'), pg_temp.id('e_stella'));
+select pg_temp.as_user('carol');
+select is((select person_name from app.crew_shortages(pg_temp.id('org_a'), current_date, current_date + 14)
+  where kind = 'awaiting_answer' and shift_id = pg_temp.id('slot_1')), 'Stella Okafor', 'an advancing reader sees the roster person''s name');
+select pg_temp.as_user('alice');
+insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
+  values ('project', pg_temp.id('prj_a'), 'crew.shift.read', pg_temp.id('gina'), now() + interval '7 days', 'Reviewing coverage.');
+select pg_temp.as_user('gina');
+select results_eq(format($$select person_name from app.crew_shortages(%L, current_date, current_date + 14) where kind = 'awaiting_answer' and shift_id in (%L, %L) order by starts_at, person_name nulls last$$,
+    pg_temp.id('org_a'), pg_temp.id('sh_frank_day'), pg_temp.id('slot_1')),
+  $$values ('Frank Adeyemi'::text), (null::text)$$,
+  'a crew.shift.read-only reader sees a member''s name and no roster person''s');
 
 -- Acknowledging and replacing clear them
 select pg_temp.as_platform();

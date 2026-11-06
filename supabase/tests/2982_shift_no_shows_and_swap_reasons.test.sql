@@ -3,7 +3,8 @@
 -- opens from now to the shift's end. The worker themself, a shift not yet started, a shift with a clock-in and a
 -- missing reason are refused. A replay with the same client id returns the same row (even once withdrawn), another
 -- shift's refuses no_show_id_conflict; while live the shift's worker and times are frozen; a later clock-in withdraws
--- it; an agency lead marks their roster staff, whose replacement is an agency slot, and nobody else's. With
+-- it; an agency lead marks their roster staff, whose replacement is an agency slot, and nobody else's; a stranger's
+-- replay of a taken id learns nothing. Under 15 minutes left refuses a replacement. With
 -- scheduling.swap_reason_required on a swap needs a reason, and a reason never changes.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -66,12 +67,29 @@ select is((select count(*)::int from app.shift_no_shows where shift_id = pg_temp
 select is((select count(*)::int from app.shifts where project_id = pg_temp.id('prj_a') and starts_at >= date_trunc('minute', now())
   and ends_at = (select ends_at from app.shifts where id = pg_temp.id('ns1')) and membership_id is null), 1, 'nor a second replacement');
 
+select pg_temp.as_user('xavier');
+select throws_ok(format($$select app.mark_shift_no_show(%L, %L, 'Guessing.')$$, pg_temp.id('nid1'), pg_temp.id('ns1')), '42501', null,
+  'a stranger replaying someone else''s id gets 42501, so the id is no existence oracle');
+select pg_temp.as_user('carol');
+
 -- Frozen while live
 select throws_ok(format($$update app.shifts set ends_at = ends_at + interval '1 hour' where id = %L$$, pg_temp.id('ns1')), 'XR001',
   'shift_no_show_frozen: This shift has a no-show. Withdraw the no-show before changing its worker, times or state, or cancel the shift.',
   'the shift''s times are frozen while the no-show is live');
 select throws_ok(format($$update app.shifts set membership_id = %L where id = %L$$, pg_temp.id('mia@org_a'), pg_temp.id('ns1')), 'XR001',
   null, 'so is its worker');
+select throws_ok(format($$select app.transition_shift(%L, 'Accepted', 'Published', 'Back.')$$, pg_temp.id('ns1')), 'XR001',
+  null, 'and its state, other than a cancel');
+
+-- Under 15 minutes left -------------------------------------------------------------------------------------------------------------
+select pg_temp.started_shift('ns6', 'dave@org_a', interval '7 hours 50 minutes');
+select pg_temp.as_user('dave');
+select app.accept_shift(pg_temp.id('ns6'));
+select pg_temp.as_user('carol');
+select throws_ok(format($$select app.mark_shift_no_show(gen_random_uuid(), %L, 'Gone.', true)$$, pg_temp.id('ns6')), 'XR001',
+  'shift_no_show_too_late: Less than 15 minutes of this shift are left, too little for a replacement.',
+  'with under 15 minutes left a replacement is refused');
+select lives_ok(format($$select app.mark_shift_no_show(gen_random_uuid(), %L, 'Gone.')$$, pg_temp.id('ns6')), 'the mark alone is fine');
 
 -- Not started, clocked in --------------------------------------------------------------------------------------------------------
 select pg_temp.started_shift('ns2', 'mia@org_a', interval '-1 day');

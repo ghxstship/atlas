@@ -2,8 +2,8 @@
 -- scheduling.max_daily_hours 12 and scheduling.max_weekly_hours 50: shift_rest_short for a person whose previous shift
 -- ends 8 hours before the candidate shift, shift_day_over when the day totals 13 scheduled hours net of
 -- scheduled_break_minutes, shift_week_over above 50 hours in the week starting on payroll.week_start; with all three at
--- 0 nothing. Writers ask about anyone, a person only about themself, 1 to 200 people at once; the other shift's id
--- appears only to a caller who reads it. Nothing is refused for policy.
+-- 0 nothing. Writers ask about anyone, a person only about themself on a shift they can read, 1 to 200 people at once;
+-- the other shift's id appears only to a caller who reads it. Nothing is refused for policy.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -77,12 +77,32 @@ select throws_ok(format($$select * from app.shift_policy_warnings(%L, '{}'::uuid
 select throws_ok(format($$select * from app.shift_policy_warnings(%L, (select array_agg(gen_random_uuid()) from generate_series(1, 201)))$$,
   pg_temp.id('cand')), 'XR001', 'shift_policy_batch: Ask about 1 to 200 people at a time.', 'at most 200 people');
 select pg_temp.as_user('frank');
+select throws_ok(format($$select * from app.shift_policy_warnings(%L, array[%L]::uuid[])$$, pg_temp.id('cand'), pg_temp.id('frank')),
+  '42501', null, 'a person cannot ask about a Draft open shift they cannot read');
+select pg_temp.as_user('xavier');
+select throws_ok(format($$select * from app.shift_policy_warnings(%L, array[%L]::uuid[])$$, pg_temp.id('cand'), pg_temp.id('xavier')),
+  '42501', null, 'nor someone in another org, who learns neither its limits nor that the shift exists');
+select pg_temp.as_user('carol');
+select app.publish_shifts(array[pg_temp.id('cand')]);
+select pg_temp.as_user('frank');
 select results_eq(format($$select code, other_shift_id from app.shift_policy_warnings(%L, array[%L]::uuid[])$$,
     pg_temp.id('cand'), pg_temp.id('frank')),
   format($$values ('shift_rest_short'::text, %L::uuid)$$, pg_temp.id('f1')),
   'a person asks about themself and sees their own shift');
 select throws_ok(format($$select * from app.shift_policy_warnings(%L, array[%L]::uuid[])$$, pg_temp.id('cand'), pg_temp.id('mia')),
   '42501', null, 'but not about anyone else');
+
+-- The other shift's id only for someone who reads it: gina writes shifts on prj_a only, and frank's other shift is on prj_a2.
+select pg_temp.as_user('alice');
+insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
+  values ('project', pg_temp.id('prj_a'), 'crew.shift.write', pg_temp.id('gina'), now() + interval '7 days', 'Covering this week.');
+select pg_temp.as_user('carol');
+update app.shifts set project_id = pg_temp.id('prj_a2') where id = pg_temp.id('f1');
+select pg_temp.as_user('gina');
+select results_eq(format($$select code, other_shift_id from app.shift_policy_warnings(%L, array[%L]::uuid[])$$,
+    pg_temp.id('cand'), pg_temp.id('frank')),
+  $$values ('shift_rest_short'::text, null::uuid)$$,
+  'a writer who cannot read the other shift still sees the warning, without its id');
 
 -- Warnings never refuse
 select pg_temp.as_user('carol');

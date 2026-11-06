@@ -38,8 +38,37 @@ select is((select count(*)::int from app.crew_shift_hours), 0, 'another org read
 select pg_temp.as_user('carol');
 select ok((select count(*) from app.crew_responses where kind = 'Offer' and person_name = 'Frank Adeyemi') >= 1,
   'shift asks appear for shift readers');
-select is((select count(*)::int from app.crew_responses where kind = 'Roster invitation' and answer = 'Accepted'), 2,
+select is((select count(*)::int from app.crew_responses where kind = 'Roster invitation' and answer = 'Accepted'
+    and person_name in ('Stella Okafor', 'Theo Ramires')), 2,
   'roster invitation answers appear for engagement readers');
+
+-- Names: a crew.shift.read and engagement reader without advancing.packet.read sees members and engaged people by name,
+-- never a roster person; a reader without the capability sees no rows.
+select pg_temp.as_user('olga');
+select app.assign_roster_shift(pg_temp.id('slot_1'), pg_temp.id('e_stella'));
+select pg_temp.as_user('carol');
+select is((select worker_name from app.crew_shift_hours where shift_id = pg_temp.id('slot_1')), 'Stella Okafor', 'an advancing reader sees the roster person''s name');
+select pg_temp.as_user('gina');
+select is((select count(*)::int from app.crew_shift_hours), 0, 'without the capability the sources are empty');
+select is((select count(*)::int from app.crew_responses), 0, 'all of them');
+select pg_temp.as_user('alice');
+insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason) values
+  ('project', pg_temp.id('prj_a'), 'crew.shift.read', pg_temp.id('gina'), now() + interval '7 days', 'Reviewing coverage.'),
+  ('project', pg_temp.id('prj_a'), 'opportunities.engagement.read', pg_temp.id('gina'), now() + interval '7 days', 'Reviewing coverage.');
+select pg_temp.as_user('gina');
+select is((select worker_name from app.crew_shift_hours where shift_id = pg_temp.id('worked')), 'Frank Adeyemi', 'a shift reader sees a member''s name');
+select results_eq(format($$select worker_kind, worker_name from app.crew_shift_hours where shift_id = %L$$, pg_temp.id('slot_1')),
+  $$values ('Agency'::text, null::text)$$, 'and a null name for a roster person');
+select is((select person_name from app.crew_responses where id = pg_temp.id('e_stella')), null, 'the roster invitation row too');
+select is((select actual_hours from app.crew_shift_hours where shift_id = pg_temp.id('worked')), null, 'and no actual hours without crew.time_entry.read');
+select pg_temp.as_platform();
+with x as (insert into app.shifts (org_id, project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+  select org_id, project_id, id, '0000.50.01', now() + interval '30 days', now() + interval '30 days 8 hours', 'America/New_York'
+  from app.engagements where id = pg_temp.id('eng_ivy_a') returning id)
+insert into world select 'engaged', id from x;
+select pg_temp.as_user('gina');
+select is((select worker_name from app.crew_shift_hours where shift_id = pg_temp.id('engaged')),
+  'Ivy Marchetti', 'an engaged external''s name appears for a reader with the capability');
 
 -- crew_removals: an accepted entry withdrawn keeps the state it left.
 select pg_temp.as_platform();
@@ -48,6 +77,9 @@ select private.transition_lifecycle('roster_entry', 'app.engagement_roster_entri
 select pg_temp.as_user('carol');
 select results_eq($$select from_state, reason from app.crew_removals where person_name = 'Theo Ramires'$$,
   $$values ('Accepted'::text, 'Not needed.'::text)$$, 'a removal keeps the state it left, which the standard report filters on');
+select pg_temp.as_user('gina');
+select results_eq(format($$select person_name, from_state from app.crew_removals where id in (select id from app.roster_entry_state_transitions where roster_entry_id = %L and to_state = 'Withdrawn')$$, pg_temp.id('e_theo')),
+  $$values (null::text, 'Accepted'::text)$$, 'an engagement reader without advancing.packet.read sees the removal, not the name');
 
 -- crew_ratings reads only the org's own side, under 0740's rule.
 select pg_temp.as_user('xavier');

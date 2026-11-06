@@ -109,7 +109,7 @@ begin
       and (select max(t.created_at) from app.shift_state_transitions t where t.shift_id = s.id and t.to_state = 'Accepted')
           < s.starts_at - make_interval(hours => lead.hours)
       -- A swap keeps the shift Accepted with its old ledger entry: whoever took it inside the window just answered too.
-      and not exists (select 1 from app.swap_state_transitions t join app.shift_swaps w on w.id = t.swap_id
+      and not exists (select 1 from app.swap_state_transitions t join app.shift_swaps w on w.id = t.shift_swap_id
                       where w.shift_id = s.id and t.to_state = 'Approved'
                         and t.created_at >= s.starts_at - make_interval(hours => lead.hours))
       and not exists (select 1 from app.shift_responses r

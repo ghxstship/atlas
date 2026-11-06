@@ -1449,6 +1449,10 @@ restated:
     parent: app.groups.project_id
     kind: own
     note: Project audience; the group link is optional.
+  - column: app.swap_state_transitions.reason
+    parent: app.shift_swaps.reason
+    kind: own
+    note: Why this decision was made; the swap's own reason is why it was asked for.
   - column: app.template_applications.template_id
     parent: app.template_versions.template_id
     kind: finding

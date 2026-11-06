@@ -340,6 +340,7 @@ insert into register_restated values
   ('app.supplier_diversity_events.account_id', 'app.supplier_diversity_certifications.account_id', 'finding'),
   ('app.supplier_diversity_events.person_id', 'app.supplier_diversity_certifications.person_id', 'finding'),
   ('app.surveys.project_id', 'app.groups.project_id', 'own'),
+  ('app.swap_state_transitions.reason', 'app.shift_swaps.reason', 'own'),
   ('app.template_applications.template_id', 'app.template_versions.template_id', 'finding'),
   ('app.time_entries.engagement_id', 'app.engagement_roster_entries.engagement_id', 'own'),
   ('app.time_entries.engagement_id', 'app.shifts.engagement_id', 'own'),
