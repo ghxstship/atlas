@@ -302,7 +302,8 @@
     "refusedWeatherHoldIdTaken": "Another hold already uses this id.",
     "settledTitle": "Settled without you",
     "settledScanNotDenied": "The server let this person in when the scan uploaded, so the override you queued was not needed and was not sent.",
-    "settledDismiss": "Dismiss"
+    "settledDismiss": "Dismiss",
+    "refusedScanOverrideNotApproved": "This pass is waiting on its approval, so it cannot be let in at the gate."
   },
   "today": {
     "title": "Today",

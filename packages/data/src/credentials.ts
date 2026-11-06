@@ -929,7 +929,7 @@ export interface OverrideScanInput {
 /**
  * Lets in someone the gate denied (app.override_access_scan, 6250; ADR 0147 decision 1): a new Granted In row tied to
  * the denied scan, for a holder of credentials.credential.issue who is not the badge's holder, within 15 minutes and
- * once. Refusals: scan_not_denied, scan_override_revoked, scan_override_stale, scan_override_taken,
+ * once. Refusals: scan_not_denied, scan_override_revoked, scan_override_not_approved, scan_override_stale, scan_override_taken,
  * scan_override_self, scan_override_reason, scan_id_taken.
  */
 export async function overrideScan(

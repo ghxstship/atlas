@@ -134,6 +134,8 @@ select ok((select message_args ->> 'title' from app.notifications where kind = '
 
 -- 3. The access-scan gate ----------------------------------------------------------------------------------------------------
 select is(pg_temp.scan('cred_frank'), 'Denied', 'a pass In Review does not open a door the grid allows');
+select is((select s.refusal_reason::text from app.access_scans s where s.credential_id = pg_temp.id('cred_frank') order by s.scanned_at desc limit 1), 'Not Approved',
+  'and says it waits on its approval (6250)');
 select is(pg_temp.scan('cred_crew'), 'Granted', 'a pass no rule gates still does');
 
 -- 4. Refusals --------------------------------------------------------------------------------------------------------------------

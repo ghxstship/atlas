@@ -302,7 +302,8 @@
     "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador.",
     "settledTitle": "Resuelto sin su cambio",
     "settledScanNotDenied": "El servidor dejó pasar a esta persona al subir el escaneo, así que la autorización que dejó en cola no hacía falta y no se envió.",
-    "settledDismiss": "Descartar"
+    "settledDismiss": "Descartar",
+    "refusedScanOverrideNotApproved": "Este pase está a la espera de su aprobación, así que no se puede dejar entrar en la puerta."
   },
   "today": {
     "title": "Hoy",

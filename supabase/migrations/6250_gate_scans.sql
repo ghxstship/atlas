@@ -255,6 +255,9 @@ begin
     if v_denied.refusal_reason = 'Revoked' or v_credential.revoked_at is not null or v_credential.deleted_at is not null then
       perform private.refuse('scan_override_revoked', 'A revoked credential is never let in. Issue a new one.');
     end if;
+    if v_denied.refusal_reason = 'Not Approved' then
+      perform private.refuse('scan_override_not_approved', 'A pass an approval rule holds is approved, not let in at the gate.');
+    end if;
     if v_denied.created_at < now() - interval '15 minutes' then
       perform private.refuse('scan_override_stale', 'A denial is overridden within 15 minutes. Scan the credential again.');
     end if;

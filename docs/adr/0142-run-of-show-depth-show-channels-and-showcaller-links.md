@@ -28,6 +28,10 @@ ProductionOS's showcaller password covers a stage. In XOS a running order is one
 order and never a second. A link per scope node would reach every show day of the stage, so a leaked code would
 reach more than the day it was given for. A multi-day stage needs one link per show day (owner step).
 
+### Section 7.5 invariant 8 (owner ruling of 2026-11-06)
+
+A link or a QR code alone opens nothing. `/share/showcaller/{token}` shows only the access code form until a device holds a grant from that code, every `api_public.showcaller_*` read and write needs the token and the grant, and `/clock` goes back to the form without one. A showcaller still reaches the portal with no XOS account, so the ruling's second sentence, that anyone not on the platform and on the project is onboarded first, is left for the owner when accepting this ADR.
+
 ### 2. Showcaller links are their own table
 
 `app.showcaller_links` is a table of its own, not a third `app.live_link_kind`. Live links (3780) only read;

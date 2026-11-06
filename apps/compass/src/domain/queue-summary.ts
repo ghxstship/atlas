@@ -233,6 +233,7 @@ const TECHNICAL =
 const RULE_KEYS: Readonly<Record<string, string>> = {
   scan_not_denied: "refusedScanNotDenied",
   scan_override_revoked: "refusedScanOverrideRevoked",
+  scan_override_not_approved: "refusedScanOverrideNotApproved",
   scan_override_stale: "refusedScanOverrideStale",
   scan_override_taken: "refusedScanOverrideTaken",
   scan_override_self: "refusedScanOverrideSelf",

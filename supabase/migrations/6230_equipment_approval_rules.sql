@@ -18,6 +18,8 @@
 --   * The approval helpers of 5860 and 5862 learn the allocation: its holder is the beneficiary, its readers read the
 --     approval, advancing.packet.write is the subject's writer, its title is "{class} x{quantity}", and a Withdrawn or
 --     decided allocation is no longer reminded. Equipment rules may now be activated, for a class an offering provides.
+--   * An approval opened from an unclaimed token answer takes its requester at the claim (R10): the claimer is then
+--     excluded from the step's approvers, recorded as Requester on a withdrawal, and told the decision.
 --   * app.my_capabilities_on_project (6215, which keeps B7's wrap-up pair) also answers advancing capabilities, so Approvals can offer Withdraw to the
 --     person private.is_subject_writer lets withdraw on that project.
 -- subject_approvals stays out of Trash (5860): an approval is withdrawn by Cancel, never restored.
@@ -71,7 +73,8 @@ begin
   end if;
   if new.approval_rule_id is distinct from old.approval_rule_id or new.credential_id is distinct from old.credential_id
      or new.dock_slot_id is distinct from old.dock_slot_id or new.advance_allocation_id is distinct from old.advance_allocation_id
-     or new.requested_by is distinct from old.requested_by
+     or (new.requested_by is distinct from old.requested_by
+         and not (old.requested_by is null and private.in_trusted_operation('subject_approval_claim')))
      or (old.canceled_at is not null and (new.canceled_at is distinct from old.canceled_at
          or new.canceled_by is distinct from old.canceled_by or new.cancel_reason is distinct from old.cancel_reason)) then
     perform private.refuse('subject_approval_rpc_only', 'An approval keeps its rule, subject and requester, and a cancel is final.');
@@ -556,6 +559,34 @@ grant execute on function app.transition_approval_rule(uuid, app.approval_policy
 
 -- 9. Who a person works with as an external party (5200 and 2641 together) -----------------------------------------------------
 
+
+-- A token answer's requester arrives with its claim -------------------------------------------------------------------------
+
+-- private.allocation_requester answers NULL for a token answer until the link is claimed (R10, 4730). An approval opened
+-- before then learns its requester at the claim, so the claimer never approves their own request and hears the decision.
+create or replace function private.stamp_claimed_approval_requester()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.begin_trusted_operation('subject_approval_claim');
+  update app.subject_approvals a set requested_by = new.claimed_by
+  from app.advance_allocations al
+  join app.advance_submission_lines l on l.id = al.advance_submission_line_id
+  join app.advance_submissions s on s.id = l.advance_submission_id
+  where a.advance_allocation_id = al.id and a.requested_by is null and a.canceled_at is null and a.deleted_at is null
+    and al.created_by is null and s.advance_recipient_token_id = new.id;
+  perform private.end_trusted_operation('subject_approval_claim');
+  return null;
+end;
+$$;
+comment on function private.stamp_claimed_approval_requester() is 'When an advance link is claimed: gives the live Equipment approvals of the allocations its answers asked for their requester, which private.allocation_requester only then knows (R10). requested_by goes from NULL to the claimer once, and otherwise stays as stamped.';
+revoke all on function private.stamp_claimed_approval_requester() from public, anon, authenticated;
+create trigger t92_claimed_approval_requester after update of claimed_by on app.advance_recipient_tokens
+  for each row when (old.claimed_by is null and new.claimed_by is not null)
+  execute function private.stamp_claimed_approval_requester();
 
 -- 9. Which advancing capabilities a person holds on a project (from 0470) --------------------------------------------------------
 

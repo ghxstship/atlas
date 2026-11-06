@@ -88,6 +88,8 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
             s.result === "Denied" &&
             s.direction === "In" &&
             s.refusalReason !== "Revoked" &&
+            // A pass an approval rule holds is approved, not let in at the gate.
+            s.refusalReason !== "Not Approved" &&
             !overridden.has(s.id) &&
             overridable(s.scannedAt),
         )

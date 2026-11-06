@@ -61,6 +61,7 @@ export const KNOWN_RULES = [
   "credential_requirement_course_state",
   "scan_not_denied",
   "scan_override_revoked",
+  "scan_override_not_approved",
   "scan_override_stale",
   "scan_override_taken",
   "scan_override_self",
