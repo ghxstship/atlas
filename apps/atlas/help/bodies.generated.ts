@@ -771,6 +771,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Instead of a file you can paste rows copied from Excel, Google Sheets or Shoflo, header row first. A preview shows the first rows as they will be read. While you map the columns, each one shows its first values, and a preview lays the first rows out by your choices.",
+          },
+        ],
+      },
+      { t: "h2", v: "Import a rundown" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a running order and choose Import cues, or choose Run of show cues on the import page and pick the running order. The rows become cues of that running order only.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "A cue number such as 12, Q12 or CUE-07 sets the cue's position. Fractions such as 12.5 are refused.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Rows without a cue number are added after the highest cue, in the order of the sheet, once the numbered rows are in.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Times such as 19:30 or 7:30 PM are read on the show date, in the project's time zone. Durations are minutes, m:ss or h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importing the same rundown again updates the cues it matches, by cue number or, without one, by cue and time. It never adds them twice, and it never changes a cue that was already called.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Two rows with the same cue number in one sheet are refused as repeats.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Import a guest list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Open a project's guest list and choose Import guests, or choose Guest list on the import page and pick the project.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Every imported guest is added as Requested. An import never approves, declines or checks in a guest.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "A guest already on the list under the same name for the same show is updated instead of added. A similar name, or the same name for another show, waits for you to decide: merge into the guest on the list, or keep them separate. Nothing merges on its own.",
+            },
+          ],
+          [{ t: "text", v: "A merge keeps the guest's name and show." }],
+          [
+            {
+              t: "text",
+              v: "Neither the person who uploaded the list nor the person who committed it may approve or decline those guests. Another reviewer decides them.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Undo removes the cues and guests the batch added and restores the ones it changed, for 7 days. A cue called or a guest decided or checked in after the import is kept, and the batch says why.",
+          },
+        ],
+      },
       { t: "h2", v: "Trash" },
       {
         t: "p",
@@ -3013,6 +3110,103 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En lugar de un archivo puede pegar filas copiadas de Excel, Google Sheets o Shoflo, con la fila de encabezados primero. Una vista previa muestra las primeras filas tal como se leerán. Mientras asocia las columnas, cada una muestra sus primeros valores y una vista previa ordena las primeras filas según sus opciones.",
+          },
+        ],
+      },
+      { t: "h2", v: "Importar una escaleta" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra una escaleta y elija Importar cues, o elija Cues de la escaleta en la página de importación y seleccione la escaleta. Las filas se convierten en cues de esa escaleta solamente.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Un número de cue como 12, Q12 o CUE-07 fija la posición del cue. Las fracciones como 12.5 se rechazan.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las filas sin número de cue se agregan después del cue más alto, en el orden de la hoja, una vez que entran las filas numeradas.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Las horas como 19:30 o 7:30 PM se leen en la fecha del show, en la zona horaria del proyecto. Las duraciones van en minutos, m:ss o h:mm:ss.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Importar la misma escaleta otra vez actualiza los cues que coinciden, por número de cue o, sin él, por cue y hora. Nunca los agrega dos veces y nunca cambia un cue que ya se dio.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Dos filas con el mismo número de cue en una hoja se rechazan como repetidas.",
+            },
+          ],
+        ],
+      },
+      { t: "h2", v: "Importar una lista de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Abra la lista de invitados de un proyecto y elija Importar invitados, o elija Lista de invitados en la página de importación y seleccione el proyecto.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Cada invitado importado se agrega como Solicitado. Una importación nunca aprueba, rechaza ni registra la llegada de un invitado.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Un invitado que ya está en la lista con el mismo nombre para el mismo show se actualiza en lugar de agregarse. Un nombre parecido, o el mismo nombre para otro show, espera su decisión: combinarlo con el invitado de la lista o mantenerlos separados. Nada se combina solo.",
+            },
+          ],
+          [{ t: "text", v: "Una combinación conserva el nombre y el show del invitado." }],
+          [
+            {
+              t: "text",
+              v: "Ni la persona que subió la lista ni la persona que la confirmó pueden aprobar o rechazar esos invitados. Los decide otro revisor.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deshacer quita los cues e invitados que agregó el lote y restaura los que cambió, durante 7 días. Un cue dado, o un invitado decidido o registrado después de la importación, se conserva, y el lote indica por qué.",
+          },
+        ],
+      },
       { t: "h2", v: "Papelera" },
       {
         t: "p",
