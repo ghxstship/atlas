@@ -169,7 +169,12 @@ test("an approved charge takes a credit, shown negative, netted on the charge", 
 test("a viewer without the capabilities is refused", async ({ page }) => {
   await signIn(page, "viewer@example.com");
   for (const tab of ["due", "reimbursements"]) {
-    await page.goto(payments(`tab=${tab}`));
-    await expect(page.getByText(/finance\.payment\.read/)).toBeVisible();
+    const response = await page.goto(payments(`tab=${tab}`));
+    await settle(page);
+    // A role the module hides from gets a 404 (ADR 0017 item 3); any other reader gets the refusal panel.
+    if (response?.status() !== 404) {
+      await expect(page.getByText(/finance\.payment\.read/)).toBeVisible();
+    }
+    await expect(page.getByRole("grid")).toHaveCount(0);
   }
 });
