@@ -263,7 +263,7 @@ export function receiptProposal(
       const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : Number.NaN;
       return Number.isSafeInteger(n) && n > 0 ? n : null;
     }),
-    currency: proposed(fields, "currency", (v) =>
+    currency: proposed(fields, "currency_code", (v) =>
       typeof v === "string" && /^[A-Z]{3}$/.test(v) ? v : null,
     ),
     incurredOn: proposed(fields, "incurred_on", (v) =>

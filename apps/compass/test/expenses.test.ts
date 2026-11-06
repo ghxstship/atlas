@@ -58,7 +58,13 @@ const FIELDS: SuggestionField[] = [
     refusal: null,
     missing: null,
   },
-  { field_path: "currency", proposed_value: "USD", confidence: 0.99, refusal: null, missing: null },
+  {
+    field_path: "currency_code",
+    proposed_value: "USD",
+    confidence: 0.99,
+    refusal: null,
+    missing: null,
+  },
   {
     field_path: "incurred_on",
     proposed_value: null,
@@ -364,9 +370,9 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
       applyProposal({ ...empty, description: "Mine" }, proposal, "USD").draft.description,
     ).toBe("Mine");
     const euros = receiptProposal("sug-2", [
-      ...FIELDS.filter((f) => f.field_path !== "currency" && f.field_path !== "incurred_on"),
+      ...FIELDS.filter((f) => f.field_path !== "currency_code" && f.field_path !== "incurred_on"),
       {
-        field_path: "currency",
+        field_path: "currency_code",
         proposed_value: "EUR",
         confidence: 0.9,
         refusal: null,
