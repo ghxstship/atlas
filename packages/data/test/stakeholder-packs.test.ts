@@ -60,6 +60,27 @@ describe("the device's grant cookie", () => {
   it("does not repeat a grant it already holds", () => {
     expect(parsePackGrants(addPackGrant(GRANT, GRANT))).toEqual([GRANT]);
   });
+
+  it("drops grants the database says are dead, so a swap never pushes out another pack's", () => {
+    const other = `xpkg_${"1".repeat(64)}`;
+    const swapped = `xpkg_${"2".repeat(64)}`;
+    expect(parsePackGrants(addPackGrant(`${swapped} ${other}`, GRANT, [swapped]))).toEqual([
+      GRANT,
+      other,
+    ]);
+    // Opening one pack again and again never fills the cookie.
+    let cookie = other;
+    for (let i = 0; i < 12; i += 1) {
+      const fresh = `xpkg_${String(i % 10).repeat(63)}a`;
+      cookie = addPackGrant(
+        cookie,
+        fresh,
+        parsePackGrants(cookie).filter((g) => g !== other),
+      );
+    }
+    expect(parsePackGrants(cookie)).toContain(other);
+    expect(parsePackGrants(cookie)).toHaveLength(2);
+  });
 });
 
 describe("refusals", () => {
@@ -135,7 +156,12 @@ describe("the anonymous side", () => {
   it("opens with a code or a grant, and passes the address relayed", async () => {
     const { db, calls } = withPublic({
       "rpc:api_public.open_stakeholder_pack": [
-        okResponse({ status: "ok", grant: GRANT, grant_expires_at: "2026-12-01T00:00:00Z" }),
+        okResponse({
+          status: "ok",
+          grant: GRANT,
+          grant_expires_at: "2026-12-01T00:00:00Z",
+          dead_grants: [`xpkg_${"f".repeat(64)}`],
+        }),
         okResponse({ status: "refused", reason: "pack_access_code_required" }),
       ],
     });
@@ -148,7 +174,12 @@ describe("the anonymous side", () => {
       }),
     ).toEqual({
       ok: true,
-      data: { refused: false, grant: GRANT, grantExpiresAt: "2026-12-01T00:00:00Z" },
+      data: {
+        refused: false,
+        grant: GRANT,
+        grantExpiresAt: "2026-12-01T00:00:00Z",
+        deadGrants: [`xpkg_${"f".repeat(64)}`],
+      },
     });
     expect(calls[0]?.args).toMatchObject({
       p_access_code: "123456",
@@ -306,6 +337,9 @@ describe("the pack email", () => {
 
   it("escapes what the team typed in the HTML", () => {
     expect(email.html).toContain("Welcome &lt;b&gt;");
+    // The HTML part links the pack and the stop page itself, rather than leaving it to the mail client.
+    expect(email.html).toMatch(/<a href="https?:[^"]+\/share\/pack\/xpkl_/);
+    expect(email.html).toMatch(/<a href="https?:[^"]+\/share\/pack\/unsubscribe\/xpku_/);
   });
 
   it("shows the expiry in the project's zone", () => {

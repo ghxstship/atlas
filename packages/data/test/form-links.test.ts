@@ -7,6 +7,7 @@ import {
   formLinkAsksForCode,
   openFormLink,
   parseFormLinkRefusal,
+  liveFormAnswers,
   planFormWindows,
   readPublicForm,
   submitPublicForm,
@@ -42,6 +43,25 @@ const field = (key: string, showIf: PublicFormField["showIf"] = null): PublicFor
 });
 
 describe("the form's windows", () => {
+  it("does not let a stale answer of a hidden field keep its dependant showing", () => {
+    const fields = [
+      field("first"),
+      field("second", { key: "first", equals: "yes" }),
+      field("third", { key: "second", equals: "yes" }),
+    ];
+    // Answered down the chain, then the first answer changed: second hides, so third must too.
+    const answers = { first: "no", second: "yes", third: "x" };
+    expect(liveFormAnswers(fields, answers)).toEqual({ first: "no" });
+    expect(
+      planFormWindows(fields, answers)
+        .flat()
+        .map((f) => f.key),
+    ).toEqual(["first"]);
+    // Changing it back brings the stale answers back with their fields.
+    const back = { ...answers, first: "yes" };
+    expect(liveFormAnswers(fields, back)).toEqual(back);
+  });
+
   it("never holds more than seven visible fields with name and email in the first", () => {
     const fields = Array.from({ length: 30 }, (_, i) => field(`f${i}`));
     const windows = planFormWindows(fields, {});

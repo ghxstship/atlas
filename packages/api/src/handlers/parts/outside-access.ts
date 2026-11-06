@@ -7,6 +7,8 @@
 import type { Components } from "../../contract/operations.generated.ts";
 import type { HandlerSet } from "../../runtime/handler.ts";
 import { created, ok } from "../../runtime/handler.ts";
+import type { ListQuery } from "../../runtime/listing.ts";
+import { badRequest } from "../../problem.ts";
 import { rpc, run, tableResource } from "../support/table.ts";
 
 const packs = tableResource("stakeholderPacks", { verbs: ["list", "get"] });
@@ -40,7 +42,15 @@ export const outsideAccessHandlers: HandlerSet<"Platform"> = {
   ...(intakeRequests.handlers as unknown as HandlerSet<"Platform">),
   ...(formLinks.handlers as unknown as HandlerSet<"Platform">),
   ...(formResponses.handlers as unknown as HandlerSet<"Platform">),
-  ...(outside.handlers as unknown as HandlerSet<"Platform">),
+
+  // A file link's project is looked up per row (2917), so this view is never read unfiltered.
+  "outsideAccess.list": async (request, context) => {
+    const query = request.query as ListQuery;
+    if (query.filter?.["project_id"]?.eq === undefined) {
+      throw badRequest("filter[project_id][eq] is required: outside access is listed per project.");
+    }
+    return ok((await outside.list(context, query)) as never);
+  },
 
   "stakeholderPacks.create": async ({ body }, context) => {
     const id = await run<string>(

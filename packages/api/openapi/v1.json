@@ -61866,10 +61866,10 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "label": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 400,
-            "description": "What the row is.",
+            "description": "What the row is, in the words people wrote; null for a live link with no note and a roster invitation.",
             "example": "Audio vendors"
           },
           "recipient_email": {
@@ -61921,6 +61921,11 @@
             "format": "uuid",
             "description": "Person who made it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "viewer_can_manage": {
+            "type": "boolean",
+            "description": "Whether the caller may revoke or regenerate it: the check that source's own operation makes.",
+            "example": true
           }
         },
         "required": [
@@ -61935,9 +61940,10 @@
           "open_count",
           "last_opened_at",
           "created_at",
-          "created_by"
+          "created_by",
+          "viewer_can_manage"
         ],
-        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably."
+        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably."
       },
       "PersonCalendarFeedPage": {
         "type": "object",
@@ -161160,7 +161166,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "x-xos-order": { "by": ["project_id"], "numeric": false },
         "summary": "List outside access row rows",
-        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -161192,7 +161198,8 @@
                       "open_count": 3,
                       "last_opened_at": "2026-10-08T14:30:00Z",
                       "created_at": "2026-10-08T14:30:00Z",
-                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "viewer_can_manage": true
                     }
                   ],
                   "next_cursor": null

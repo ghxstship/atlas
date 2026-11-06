@@ -45945,7 +45945,7 @@ export interface OutsideAccessRowPage {
 }
 
 /**
- * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably.
+ * One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably.
  */
 export interface OutsideAccessRow {
   /**
@@ -45973,10 +45973,10 @@ export interface OutsideAccessRow {
    */
   readonly source_id: string;
   /**
-   * What the row is.
+   * What the row is, in the words people wrote; null for a live link with no note and a roster invitation.
    * Length: 1 to 400.
    */
-  readonly label: string;
+  readonly label: string | null;
   /**
    * Who it was sent to, when the source names one.
    * Length: 1 to 320.
@@ -46016,6 +46016,10 @@ export interface OutsideAccessRow {
    * Format: `uuid`.
    */
   readonly created_by: string | null;
+  /**
+   * Whether the caller may revoke or regenerate it: the check that source's own operation makes.
+   */
+  readonly viewer_can_manage: boolean;
 }
 
 /**

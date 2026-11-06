@@ -8,6 +8,7 @@
  * requester's own intake calls (app.submit_vendor_intake and the rest), which Gateway's server actions make.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
@@ -64,7 +65,7 @@ const StakeholderPack = defineResource({
   },
 });
 
-const PackItemKind = z.enum(["Live Link", "File"]).meta({
+const PackItemKind = z.enum(Constants.app.Enums.pack_item_kind).meta({
   description:
     "Live Link, one P1 live link of the project; File, one Public or Internal file of the project.",
   example: "File",
@@ -121,7 +122,7 @@ const StakeholderPackRecipient = editDefinition(
   { nullable: ["created_by", "updated_by"] },
 );
 
-const PackCadence = z.enum(["Daily", "Weekly", "Monthly"]).meta({
+const PackCadence = z.enum(Constants.app.Enums.schedule_cadence).meta({
   description: "How often a fresh sign-in link goes out.",
   example: "Weekly",
 });
@@ -146,7 +147,7 @@ const StakeholderPackSchedule = z
   });
 
 const PackEventAction = z
-  .enum(["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"])
+  .enum(Constants.app.Enums.pack_event_action)
   .meta({ description: "What happened.", example: "Opened" });
 
 // Written without a person (an open, a read or a link response), so the last updater can be nobody.
@@ -321,7 +322,7 @@ const VendorIntakeRequest = defineResource({
         "Optional first invoice: invoice_number, issue_date, due_date, currency_code and up to 50 lines.",
       example: null,
     }),
-    request_state: z.enum(["Pending", "Approved", "Declined", "Withdrawn"]).meta({
+    request_state: z.enum(Constants.app.Enums.join_request_state).meta({
       description: "Pending, Approved, Declined or Withdrawn.",
       example: "Pending",
     }),
@@ -461,7 +462,7 @@ const FormLinkResponse = editDefinition(
         .nullable()
         .meta({ description: "Whether the pass score was met.", example: true }),
       submission_state: z
-        .enum(["Submitted", "Approved", "Rejected", "Recorded"])
+        .enum(Constants.app.Enums.form_submission_state)
         .meta({ description: "Where the response stands.", example: "Submitted" }),
       decided_by_membership_id: orNull(fields.ref("member who decided")),
       decision_note: orNull(
@@ -477,7 +478,7 @@ const OutsideAccessRow = defineResource({
   table: "app.project_outside_access",
   base: "view",
   description:
-    "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably.",
+    "One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably.",
   fields: {
     project_id: fields.uuid("Project reached."),
     source: z
@@ -497,7 +498,13 @@ const OutsideAccessRow = defineResource({
     source_id: fields.uuid(
       "Id of the row in its source table, for its own revoke or regenerate operation.",
     ),
-    label: fields.text("What the row is.", "Audio vendors", 400),
+    label: orNull(
+      fields.text(
+        "What the row is, in the words people wrote; null for a live link with no note and a roster invitation.",
+        "Audio vendors",
+        400,
+      ),
+    ),
     recipient_email: orNull(
       fields.text("Who it was sent to, when the source names one.", "cleo@example.com", 320),
     ),
@@ -516,6 +523,11 @@ const OutsideAccessRow = defineResource({
     last_opened_at: orNull(fields.instant("Last successful open, where the source records it.")),
     created_at: fields.instant("When it was made."),
     created_by: orNull(fields.uuid("Person who made it.")),
+    viewer_can_manage: z.boolean().meta({
+      description:
+        "Whether the caller may revoke or regenerate it: the check that source's own operation makes.",
+      example: true,
+    }),
   },
 });
 

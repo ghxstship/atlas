@@ -25088,7 +25088,7 @@ class OutsideAccessRowPage(TypedDict):
 
 
 class OutsideAccessRow(TypedDict):
-    """One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably."""
+    """One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably."""
 
     #: Project reached.
     project_id: str
@@ -25096,8 +25096,8 @@ class OutsideAccessRow(TypedDict):
     source: Literal["Live view link", "Display link", "File link", "Advance link", "Signing link", "Roster invitation", "Pack recipient", "Intake link", "Form link", "Engagement"]
     #: Id of the row in its source table, for its own revoke or regenerate operation.
     source_id: str
-    #: What the row is.
-    label: str
+    #: What the row is, in the words people wrote; null for a live link with no note and a roster invitation.
+    label: Optional[str]
     #: Who it was sent to, when the source names one.
     recipient_email: Optional[str]
     #: Last four characters of the token.
@@ -25114,6 +25114,8 @@ class OutsideAccessRow(TypedDict):
     created_at: str
     #: Person who made it.
     created_by: Optional[str]
+    #: Whether the caller may revoke or regenerate it: the check that source's own operation makes.
+    viewer_can_manage: bool
 
 
 class PersonCalendarFeedPage(TypedDict):

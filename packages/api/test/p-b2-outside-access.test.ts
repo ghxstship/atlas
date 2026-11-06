@@ -200,6 +200,7 @@ function world() {
         created_at: WHEN,
         created_by: PERSON,
         updated_by: PERSON,
+        viewer_can_manage: true,
       },
     ] as Row[],
   };
@@ -551,5 +552,12 @@ describe("Platform: outside access", () => {
     )) as { data: Row[] };
     expect(page.data[0]?.["source"]).toBe("Intake link");
     expect(Object.keys(page.data[0] ?? {})).not.toContain("token");
+    expect(page.data[0]?.["viewer_can_manage"]).toBe(true);
+  });
+
+  it("refuses a list with no project, since the view is never read unfiltered", async () => {
+    const { http } = world();
+    const response = await http.get("/outside-access");
+    expect(response.status).toBe(400);
   });
 });

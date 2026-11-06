@@ -17,6 +17,7 @@ const row = (source: OutsideAccessRow["source"], sourceId: string): OutsideAcces
   openCount: null,
   lastOpenedAt: null,
   createdAt: "x",
+  viewerCanManage: true,
 });
 
 describe("outside access", () => {

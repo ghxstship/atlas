@@ -287,12 +287,37 @@ export function formFieldShown(
   return Array.isArray(answer) && answer.some((a) => sameAnswer(a, condition.equals));
 }
 
+/**
+ * The answers that still count: those of fields that show. Answers stay in client state when a field hides, so going
+ * back and changing an earlier answer can leave a stale one behind, and a field depending on it would show here while
+ * the server, which sees only what is sent, refuses it as form_answer_hidden. So a field shows only through answers
+ * that count, worked out until nothing changes, since a rule may name any field.
+ */
+export function liveFormAnswers(
+  fields: readonly PublicFormField[],
+  answers: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  let live: Record<string, unknown> = { ...answers };
+  for (let pass = 0; pass <= fields.length; pass += 1) {
+    const next: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (formFieldShown(field, live) && answers[field.key] !== undefined) {
+        next[field.key] = answers[field.key];
+      }
+    }
+    if (Object.keys(next).length === Object.keys(live).length) return next;
+    live = next;
+  }
+  return live;
+}
+
 /** The shown fields in windows: 5 in the first (beside name and email), then 7 each. */
 export function planFormWindows(
   fields: readonly PublicFormField[],
   answers: Readonly<Record<string, unknown>>,
 ): readonly (readonly PublicFormField[])[] {
-  const shown = fields.filter((f) => formFieldShown(f, answers));
+  const live = liveFormAnswers(fields, answers);
+  const shown = fields.filter((f) => formFieldShown(f, live));
   const windows: PublicFormField[][] = [shown.slice(0, FIRST_WINDOW_FIELDS)];
   for (let i = FIRST_WINDOW_FIELDS; i < shown.length; i += WINDOW_FIELDS) {
     windows.push(shown.slice(i, i + WINDOW_FIELDS));

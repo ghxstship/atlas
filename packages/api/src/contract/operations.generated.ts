@@ -5875,7 +5875,7 @@ export interface Components {
       | "Form link"
       | "Engagement";
     source_id: string;
-    label: string;
+    label: string | null;
     recipient_email: string | null;
     token_hint: string | null;
     link_state: string;
@@ -5884,6 +5884,7 @@ export interface Components {
     last_opened_at: string | null;
     created_at: string;
     created_by: string | null;
+    viewer_can_manage: boolean;
   };
   OutsideAccessRowPage: { data: Array<Components["OutsideAccessRow"]>; next_cursor: string | null };
   OvertimeRule: {

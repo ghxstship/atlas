@@ -37256,7 +37256,7 @@ class OutsideAccessResource(Resource):
     ) -> Page[OutsideAccessRow]:
         """List outside access row rows
 
-        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /outside-access`` (operation ``outsideAccess.list``).
         Requires the capability ``projects.project.read``.
@@ -37274,7 +37274,7 @@ class OutsideAccessResource(Resource):
     ) -> Iterator[OutsideAccessRow]:
         """List outside access row rows
 
-        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides; `project_id` is required. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
+        One thing that reaches a project from outside the org: a live or display link, file link, advance or signing link, roster invitation, pack recipient, intake link, form link or engagement (ADR 0141). Each source's own row level security decides. `filter[project_id][eq]` is required: a list without it answers 400, because a file link's project is looked up per row. No token, code or password: none is stored readably. Returns a cursor page of outside access row rows the caller may see. The default order is `project_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 

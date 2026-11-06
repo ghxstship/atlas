@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import type { Database } from "./database.types.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -150,7 +151,7 @@ export async function revokeIntakeLink(db: XosClient, id: string): Promise<Resul
 
 // The team's view of requests ------------------------------------------------------------------------
 
-export type IntakeRequestState = "Pending" | "Approved" | "Declined" | "Withdrawn";
+export type IntakeRequestState = Database["app"]["Enums"]["join_request_state"];
 
 export interface IntakeRequest {
   readonly id: string;
@@ -370,6 +371,8 @@ export interface PublicIntake {
   readonly collectTaxForm: boolean;
   readonly collectPayout: boolean;
   readonly collectInvoice: boolean;
+  /** The org's base currency: where a first invoice starts. */
+  readonly currencyCode: string;
   readonly full: boolean;
   readonly agreement: { readonly title: string; readonly version: number } | null;
 }
@@ -411,6 +414,7 @@ export async function readIntake(
     collectTaxForm: b["collect_tax_form"] === true,
     collectPayout: b["collect_payout"] === true,
     collectInvoice: b["collect_invoice"] === true,
+    currencyCode: str(b["currency_code"]),
     full: b["full"] === true,
     agreement: a ? { title: str(a.title), version: Number(a.version) } : null,
   });

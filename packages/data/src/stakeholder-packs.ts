@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { XosClient } from "./client.ts";
+import type { Database } from "./database.types.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { ReportEmail, ReportMailer } from "./report-deliveries.ts";
@@ -21,6 +22,8 @@ import type { ReportEmail, ReportMailer } from "./report-deliveries.ts";
 export const PACK_LINK_TOKEN = /^xpkl_[0-9a-f]{64}$/;
 export const PACK_GRANT = /^xpkg_[0-9a-f]{64}$/;
 export const PACK_UNSUBSCRIBE_TOKEN = /^xpku_[0-9a-f]{64}$/;
+
+type PackItemKind = Database["app"]["Enums"]["pack_item_kind"];
 
 /** The most grants the cookie keeps; the RPCs read the same 8, newest first. */
 export const MAX_PACK_GRANTS = 8;
@@ -83,9 +86,16 @@ export function parsePackGrants(cookie: string | null | undefined): string[] {
     .slice(0, MAX_PACK_GRANTS);
 }
 
-/** The cookie's value after a new grant: the new one first, then the others, at most 8. */
-export function addPackGrant(cookie: string | null | undefined, grant: string): string {
-  return [grant, ...parsePackGrants(cookie).filter((g) => g !== grant)]
+/**
+ * The cookie's value after a new grant: the new one first, then the others, at most 8. Grants the database says no
+ * longer open anything drop out, so a swapped grant never pushes out another pack's live one.
+ */
+export function addPackGrant(
+  cookie: string | null | undefined,
+  grant: string,
+  dead: readonly string[] = [],
+): string {
+  return [grant, ...parsePackGrants(cookie).filter((g) => g !== grant && !dead.includes(g))]
     .slice(0, MAX_PACK_GRANTS)
     .join(" ");
 }
@@ -191,9 +201,52 @@ export async function revokeStakeholderPack(db: XosClient, id: string): Promise<
   return ok(String(data));
 }
 
+/** The org's counterparties, as the suppliers a recipient can be filed under. */
+export async function listPackSuppliers(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<{ readonly id: string; readonly name: string }[]>> {
+  const { data, error } = await db
+    .from("counterparties")
+    .select("id, counterparty_name")
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .order("counterparty_name")
+    .limit(200);
+  if (error) return fail(toDataError(error));
+  return ok(data.map((r) => ({ id: r.id, name: r.counterparty_name ?? "" })));
+}
+
+/** A file the pack editor can offer: on the project or one of its records (app.stakeholder_pack_file_choices). */
+export interface PackFileChoice {
+  readonly id: string;
+  readonly title: string;
+}
+
+/** Filtered by org and project, since a file's project is looked up per row. */
+export async function listPackFileChoices(
+  db: XosClient,
+  orgId: string,
+  projectId: string,
+): Promise<Result<PackFileChoice[]>> {
+  const { data, error } = await db
+    .from("stakeholder_pack_file_choices")
+    .select("attachment_id, title")
+    .eq("org_id", orgId)
+    .eq("project_id", projectId)
+    .order("title")
+    .limit(200);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.flatMap((r) =>
+      r.attachment_id && r.title ? [{ id: r.attachment_id, title: r.title }] : [],
+    ),
+  );
+}
+
 export interface PackItem {
   readonly id: string;
-  readonly kind: "Live Link" | "File";
+  readonly kind: PackItemKind;
   readonly liveLinkId: string | null;
   readonly attachmentId: string | null;
   readonly title: string;
@@ -462,7 +515,7 @@ export async function sendStakeholderPack(
   return ok(Number(data));
 }
 
-export type PackCadence = "Daily" | "Weekly" | "Monthly";
+export type PackCadence = Database["app"]["Enums"]["schedule_cadence"];
 
 export interface PackSchedule {
   readonly id: string;
@@ -556,6 +609,8 @@ export interface OpenedPack {
   readonly refused: false;
   readonly grant: string;
   readonly grantExpiresAt: string;
+  /** Grants the device presented that no longer open anything, for its cookie to drop. */
+  readonly deadGrants: readonly string[];
 }
 
 /** Opens a pack with its code, or with a grant the device holds (api_public.open_stakeholder_pack). */
@@ -584,6 +639,9 @@ export async function openStakeholderPack(
     refused: false,
     grant: body["grant"],
     grantExpiresAt: String(body["grant_expires_at"] ?? ""),
+    deadGrants: Array.isArray(body["dead_grants"])
+      ? body["dead_grants"].filter((g): g is string => typeof g === "string")
+      : [],
   });
 }
 
@@ -603,7 +661,7 @@ export interface PackMeta {
 export interface PublicPackItem {
   readonly id: string;
   readonly title: string;
-  readonly kind: "Live Link" | "File";
+  readonly kind: PackItemKind;
   readonly available: boolean;
   readonly requiresAcknowledgement: boolean;
   readonly signedAt: string | null;
@@ -868,6 +926,14 @@ export function packExpiryText(expiresAt: string, locale: string, timeZone: stri
 }
 
 /** The email of one delivery. It carries a sign-in link, never a code and never a file. */
+/** One line of the HTML part: escaped, with the pack's own links clickable rather than left to the mail client. */
+function linked(line: string, ...urls: readonly string[]): string {
+  return urls.reduce((html, url) => {
+    const safe = escapeHtml(url);
+    return html.replaceAll(safe, `<a href="${safe}">${safe}</a>`);
+  }, escapeHtml(line));
+}
+
 export function packEmail(
   link: MintedPackLink,
   copy: PackEmailCopy,
@@ -897,8 +963,8 @@ export function packEmail(
     subject: copy.subject(words),
     text: [...paragraphs, ...footer].join("\n\n"),
     html: [
-      ...paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`),
-      ...footer.map((p) => `<p><small>${escapeHtml(p)}</small></p>`),
+      ...paragraphs.map((p) => `<p>${linked(p, url, stopUrl)}</p>`),
+      ...footer.map((p) => `<p><small>${linked(p, url, stopUrl)}</small></p>`),
     ].join(""),
     headers: {
       "List-Unsubscribe": `<${env.apiUrl}/functions/v1/email-unsubscribe?token=${link.unsubscribeToken}>`,
