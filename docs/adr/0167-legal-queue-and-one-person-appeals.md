@@ -37,6 +37,8 @@ Hand entry is the main path, because most of this arrives by email. The sync (`p
 
 A Customer's register holds that Customer's clock (DPA 8.1), and DPA 5 limits what GHXSTSHIP personnel may see. So the feed copies the org, the kind of request and the dates, and never the person or their words. It alerts once, when overdue, by email only. Requests an account deletion writes as already Completed never open an item.
 
+An item is the platform's record, so it outlives the tenant. Its link is `tenant_org_id`, not `org_id`, because the org purge (1351) takes every row with an `org_id` and refuses any row it cannot tie to the org. Deleting the org clears the link, and a listing's title is read live from its source, so nothing of the tenant's stays in the item. For the same reason, queue entries in the console ledger name no target org.
+
 ### D4. Alerts that fail apart from each other
 
 The hourly sweep (`private.sweep_legal_queue`, `xos_sweep_legal_queue`) alerts at each lead the rule sets, then daily while overdue, until the item closes. It uses paths that already exist:
