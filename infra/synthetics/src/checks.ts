@@ -256,7 +256,7 @@ export const notificationsReachable: CheckDefinition = {
 export const legalQueueHeartbeat: CheckDefinition = {
   id: "legal_queue.heartbeat",
   component: "notifications",
-  requires: ["SUPABASE_URL", "SUPABASE_ANON_KEY"],
+  requires: ["SUPABASE_URL", "SUPABASE_ANON_KEY", "XOS_SYNTHETIC_EMAIL", "XOS_SYNTHETIC_PASSWORD"],
   budgetMs: 1000,
   required: true,
   internal: true,
@@ -264,15 +264,16 @@ export const legalQueueHeartbeat: CheckDefinition = {
   async probe(context) {
     // A stopped pg_cron cannot raise an alert about itself, and the queue page warns only someone who opens it. The answer
     // is booleans about the machinery, and nothing about any item.
-    const key = context.env["SUPABASE_ANON_KEY"] ?? "";
+    const token = await accessToken(context);
+    if (typeof token !== "string") return token;
     const response = await request(
       context,
       `${base(context.env["SUPABASE_URL"])}/rest/v1/rpc/legal_queue_heartbeat`,
       {
         method: "POST",
         headers: {
-          apikey: key,
-          authorization: `Bearer ${key}`,
+          apikey: context.env["SUPABASE_ANON_KEY"] ?? "",
+          authorization: `Bearer ${token}`,
           "content-type": "application/json",
           "content-profile": "api_public",
         },

@@ -188,7 +188,7 @@ describe("runChecks", () => {
       ["realtime.join", "fail", "join_error"],
       ["sync.liveness", "fail", "readiness_status_503"],
       ["notifications.function", "fail", "status_500"],
-      ["legal_queue.heartbeat", "fail", "sweep_stale"],
+      ["legal_queue.heartbeat", "fail", "status_400"],
     ]);
     expect(failingRequired(CHECKS, results).map((r) => r.id)).not.toContain(
       "notifications.function",
@@ -203,6 +203,7 @@ describe("runChecks", () => {
   });
 
   it.each([
+    [{ sweep_ok: false, feeds_ok: true, email_ok: true, recipient_ok: true }, "sweep_stale"],
     [{ sweep_ok: true, feeds_ok: false, email_ok: true, recipient_ok: true }, "feed_failing"],
     [
       { sweep_ok: true, feeds_ok: true, email_ok: false, recipient_ok: true },
@@ -221,8 +222,11 @@ describe("runChecks", () => {
       now: clock(1),
     });
     expect(result).toMatchObject({ status: "fail", detail });
-    const call = f.calls[0];
-    expect((call?.init?.headers as Record<string, string>)["content-profile"]).toBe("api_public");
+    const call = f.calls.find((c) => c.url.includes("legal_queue_heartbeat"));
+    expect(call?.init?.headers as Record<string, string>).toMatchObject({
+      "content-profile": "api_public",
+      authorization: "Bearer jwt-token",
+    });
   });
 
   it("covers the remaining failure shapes", async () => {

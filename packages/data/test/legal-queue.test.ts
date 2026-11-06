@@ -51,12 +51,17 @@ describe("legal queue", () => {
         ok({
           time_zone: "America/New_York",
           items: [row],
-          summary: { open: 1, overdue: 1, due_soon: 0 },
+          watched: [{ ...row, id: "i2", customer_clock: true }],
+          summary: { open: 1, watched: 1, overdue: 1, due_soon: 0 },
           delivery: {
             stuck: 2,
             failed: 0,
+            notices_stuck: 1,
+            notices_failed: 3,
             last_sent_at: null,
             overdue_without_alert: 1,
+            sweep_stale: true,
+            alert_path_failed: false,
             webhook_configured: false,
           },
           repeat_infringers: [
@@ -84,11 +89,17 @@ describe("legal queue", () => {
       nextClockAt: "2026-11-10T04:59:59Z",
       overdue: true,
     });
+    expect(queue.ok && queue.data.watched[0]).toMatchObject({ id: "i2", customerClock: true });
+    expect(queue.ok && queue.data.summary).toEqual({ open: 1, watched: 1, overdue: 1, dueSoon: 0 });
     expect(queue.ok && queue.data.delivery).toEqual({
       stuck: 2,
       failed: 0,
+      noticesStuck: 1,
+      noticesFailed: 3,
       lastSentAt: null,
       overdueWithoutAlert: 1,
+      sweepStale: true,
+      alertPathFailed: false,
       webhookConfigured: false,
     });
     expect(queue.ok && queue.data.repeatInfringers[0]?.thresholdMet).toBe(true);

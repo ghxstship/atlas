@@ -524,7 +524,7 @@ Give each mailbox an auto-reply saying it was received and when to expect an ans
 - Save the on-call webhook in Vault, the same value as the `XOS_ALERT_WEBHOOK_URL` repository secret: `select vault.create_secret('<webhook url>', 'xos_alert_webhook_url');`
 - Before `XOS_EMAIL_DELIVER_TO_ANY` is on, keep the operator's address and any backup contact in `XOS_EMAIL_ALLOWLIST`, or alerts are refused.
 - Check the queue page after setup. It says when alert email or a moderation result is stuck or has failed, when an overdue clock has had no alert in 26 hours or the sweep has not finished in 2 (the sweep is down), and when the on-call channel is not connected.
-- Install the synthetics workflow (`infra/ci/synthetics.sh`), with `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Its `legal_queue.heartbeat` check is the only alert that works when the database's own sweep has stopped. See the incident runbook, "Legal queue heartbeat failing".
+- Install the synthetics workflow (`infra/ci/synthetics.sh`), with `SUPABASE_URL`, `SUPABASE_ANON_KEY` and the synthetic user. Its `legal_queue.heartbeat` check is the only alert that works when the database's own sweep has stopped. See the incident runbook, "Legal queue heartbeat failing".
 
 **3. Name a backup contact.** Add one on the queue page, on a different provider from the owner's inbox. They get overdue alerts only, with references and dates and never the matter. Tell them what to do when one arrives: reach the owner by phone. Add a person, not another of your own addresses.
 

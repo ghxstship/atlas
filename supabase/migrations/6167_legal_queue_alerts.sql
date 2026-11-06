@@ -187,8 +187,8 @@ select cron.schedule('xos_sweep_legal_queue', '11 * * * *', 'select private.swee
 -- The outside heartbeat ------------------------------------------------------------------------------------------------
 
 -- A stopped pg_cron cannot raise an alert about itself, and the queue page warns only someone who opens it. So an outside
--- scheduler (infra/synthetics, legal_queue.heartbeat) reads this and pages on-call. It answers booleans about the machinery,
--- and nothing about any matter, so anyone may ask.
+-- scheduler (infra/synthetics, legal_queue.heartbeat) signs in as the synthetic user, reads this and pages on-call. It answers
+-- booleans about the machinery and nothing about any matter, so any signed-in user may ask, and anon has no need to.
 create function api_public.legal_queue_heartbeat()
 returns jsonb
 language sql
@@ -211,8 +211,8 @@ as $$
   from private.legal_queue_health h;
 $$;
 comment on function api_public.legal_queue_heartbeat() is 'Whether the legal queue''s alert machinery is working (ADR 0167), for the outside synthetic check: the hourly sweep finished within 2 hours, its feeds ran clean, no alert or notice email is stuck or newly failed, and someone holds legal.queue. Booleans only, with nothing about any item.';
-revoke all on function api_public.legal_queue_heartbeat() from public;
-grant execute on function api_public.legal_queue_heartbeat() to anon, authenticated, service_role;
+revoke all on function api_public.legal_queue_heartbeat() from public, anon;
+grant execute on function api_public.legal_queue_heartbeat() to authenticated, service_role;
 
 -- The banner on every console page, for operators who hold legal.queue.
 create function app.console_legal_queue_overdue()

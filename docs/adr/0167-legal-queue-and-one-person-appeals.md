@@ -55,7 +55,7 @@ The hourly sweep (`private.sweep_legal_queue`, `xos_sweep_legal_queue`) alerts a
 
 A backup contact receives overdue alerts only, with references and dates and never the matter, because a government request can come with an order forbidding disclosure.
 
-Each path sits in its own block, so one that fails leaves the others. All of this runs inside the database, so it cannot report that the database's own sweep stopped. An outside check does: `api_public.legal_queue_heartbeat` answers four booleans about the machinery (sweep, feeds, email, someone to alert) and nothing about any matter, so anyone may ask, and the `legal_queue.heartbeat` synthetic check pages on-call. It stays off the public status page, because it says nothing about the service Customers use. It works only once the synthetics workflow is installed, an owner step.
+Each path sits in its own block, so one that fails leaves the others. All of this runs inside the database, so it cannot report that the database's own sweep stopped. An outside check does: `api_public.legal_queue_heartbeat` answers four booleans about the machinery (sweep, feeds, email, someone to alert) and nothing about any matter, and the `legal_queue.heartbeat` synthetic check, signed in as the synthetic user, pages on-call. Anon cannot call it, so the public surface does not grow. It stays off the public status page, because it says nothing about the service Customers use. It works only once the synthetics workflow is installed, an owner step.
 
 ### D4a. Retention
 

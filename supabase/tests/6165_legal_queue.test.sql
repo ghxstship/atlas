@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(195);
+select plan(196);
 
 create function pg_temp.as_op(p_key text, p_aal text default 'aal2') returns void
 language plpgsql as $$
@@ -359,8 +359,10 @@ select private.sync_legal_queue_feeds();
 select is((select count(*)::int from app.legal_queue_items where rule_code = 'queue_feed_failure' and title = 'listing_reports' and closed_at is null), 0, 'the item closes when the feed works again');
 select is(api_public.legal_queue_heartbeat() ->> 'feeds_ok', 'true', 'and the heartbeat clears');
 select pg_temp.as_anon();
+select throws_ok($$select api_public.legal_queue_heartbeat()$$, '42501', null, 'anon cannot ask the heartbeat');
+select pg_temp.as_user('alice');
 select is((select array_agg(k order by k) from jsonb_object_keys(api_public.legal_queue_heartbeat()) k), array['email_ok', 'feeds_ok', 'recipient_ok', 'sweep_ok'],
-  'anyone may ask the heartbeat, and it answers four booleans about the machinery and nothing about a matter');
+  'a signed-in user, as the synthetic check is, gets four booleans about the machinery and nothing about a matter');
 select pg_temp.as_platform();
 update private.legal_queue_health set last_sweep_at = now() - interval '3 hours';
 select is(api_public.legal_queue_heartbeat() ->> 'sweep_ok', 'false', 'a sweep that stopped shows in the heartbeat');
