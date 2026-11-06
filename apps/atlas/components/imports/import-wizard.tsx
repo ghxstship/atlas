@@ -221,9 +221,7 @@ export function ImportList({
             ]}
             onChange={(value) =>
               setSource(
-                value === "sheets" || value === "paste" || value === "document"
-                  ? value
-                  : "file",
+                value === "sheets" || value === "paste" || value === "document" ? value : "file",
               )
             }
           />

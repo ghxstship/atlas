@@ -32,10 +32,14 @@ test("a vendor books a delivery and keeps its reference code on the row", async 
   await page.getByLabel("Plate or trailer", { exact: true }).fill("FL ABC 123");
   await expect(async () => {
     await page.getByRole("button", { name: "Book delivery", exact: true }).click();
-    await expect(page.getByText(/^Reference [2-9A-HJ-NP-Z]{6}$/).first()).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByText(/^Reference [2-9A-HJ-NP-Z]{6}$/).first()).toBeVisible({
+      timeout: 3_000,
+    });
   }).toPass();
   await expect(page.getByText("FL ABC 123", { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cancel booking", exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Cancel booking", exact: true }).first(),
+  ).toBeVisible();
 });
 
 test("a vendor reads an issued RFQ's lines and no prices", async ({ page }) => {
@@ -46,8 +50,16 @@ test("a vendor reads an issued RFQ's lines and no prices", async ({ page }) => {
     [PROJECT, title],
     PEOPLE.owner,
   );
-  await sql(`insert into app.rfq_lines (rfq_id, description, quantity) values ($1, 'Stage cable', 20)`, [rfq?.id], PEOPLE.owner);
-  await sql(`insert into app.rfq_invitations (rfq_id, vendor_id) values ($1, $2)`, [rfq?.id, vendor], PEOPLE.owner);
+  await sql(
+    `insert into app.rfq_lines (rfq_id, description, quantity) values ($1, 'Stage cable', 20)`,
+    [rfq?.id],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.rfq_invitations (rfq_id, vendor_id) values ($1, $2)`,
+    [rfq?.id, vendor],
+    PEOPLE.owner,
+  );
 
   await signIn(page, "vendor@example.com", "/work/quote-requests");
   await expect(page.getByRole("heading", { name: title, exact: true })).toHaveCount(0);

@@ -139,7 +139,10 @@ export function MaterialQuickAdd({
           </div>
         ) : (
           <>
-            <ul aria-label={t("paste.previewLabel")} className="m-0 flex list-none flex-col gap-8 p-0">
+            <ul
+              aria-label={t("paste.previewLabel")}
+              className="m-0 flex list-none flex-col gap-8 p-0"
+            >
               {rows.map((r) => (
                 <li key={r.key} className="flex flex-wrap items-end gap-8">
                   <Input

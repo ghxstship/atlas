@@ -55,7 +55,8 @@ function destinationOf(
     });
   if (
     !parsed.success ||
-    [parsed.data.runOfShow, parsed.data.project, parsed.data.purchaseOrder].filter(Boolean).length > 1
+    [parsed.data.runOfShow, parsed.data.project, parsed.data.purchaseOrder].filter(Boolean).length >
+      1
   )
     return null;
   return {

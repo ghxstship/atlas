@@ -19,7 +19,11 @@ export function MaterialQuickAddButton({ org, target }: { org: string; target: M
   const loaded = useOnDemand(panel, open);
   return (
     <>
-      <Button variant="secondary" onMouseEnter={() => void panel.load()} onClick={() => setOpen(true)}>
+      <Button
+        variant="secondary"
+        onMouseEnter={() => void panel.load()}
+        onClick={() => setOpen(true)}
+      >
         {t("paste.open")}
       </Button>
       {open && loaded ? (

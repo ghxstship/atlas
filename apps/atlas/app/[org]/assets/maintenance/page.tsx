@@ -106,106 +106,108 @@ export default async function MaintenancePage({
   return (
     <div className="flex flex-col gap-12">
       {tabs}
-    <AssetsCollection
-      title={t("nav.atlas.pages.assets.maintenance")}
-      view={view}
-      views={views}
-      total={entries.length}
-      rows={rows}
-      month={monthOf(today)}
-      today={today}
-      boardColumns={ASSET_STATES.map((s) => ({
-        value: s,
-        label: t(`assets.states.${assetStateKey(s)}`),
-        tone: ASSET_STATE_TONE[s],
-      }))}
-      columns={[
-        { key: "performedOn", label: t("assets.fields.performedOn") },
-        { key: "assetTag", label: t("assets.fields.assetTag"), type: "code" },
-        { key: "description", label: t("assets.fields.description"), wrap: true },
-        { key: "cost", label: t("assets.fields.costColumn") },
-      ]}
-      create={
-        can.maintenance && units.length > 0
-          ? {
-              label: t("assets.maintenance.create.open"),
-              dialog: (
-                <MaintenanceForm
-                  org={ctx.org.slug}
-                  units={unitOptions}
-                  currency={DEFAULT_CURRENCY}
-                  today={today}
-                />
-              ),
-            }
-          : null
-      }
-      empty={
-        units.length === 0
-          ? {
-              sentence: t("assets.maintenance.emptyNoUnits"),
-              actionLabel: t("assets.maintenance.emptyNoUnitsAction"),
-              href: `/${ctx.org.slug}/assets/units`,
-            }
-          : can.maintenance
+      <AssetsCollection
+        title={t("nav.atlas.pages.assets.maintenance")}
+        view={view}
+        views={views}
+        total={entries.length}
+        rows={rows}
+        month={monthOf(today)}
+        today={today}
+        boardColumns={ASSET_STATES.map((s) => ({
+          value: s,
+          label: t(`assets.states.${assetStateKey(s)}`),
+          tone: ASSET_STATE_TONE[s],
+        }))}
+        columns={[
+          { key: "performedOn", label: t("assets.fields.performedOn") },
+          { key: "assetTag", label: t("assets.fields.assetTag"), type: "code" },
+          { key: "description", label: t("assets.fields.description"), wrap: true },
+          { key: "cost", label: t("assets.fields.costColumn") },
+        ]}
+        create={
+          can.maintenance && units.length > 0
             ? {
-                sentence: t("assets.maintenance.empty"),
-                actionLabel: t("assets.maintenance.create.open"),
+                label: t("assets.maintenance.create.open"),
+                dialog: (
+                  <MaintenanceForm
+                    org={ctx.org.slug}
+                    units={unitOptions}
+                    currency={DEFAULT_CURRENCY}
+                    today={today}
+                  />
+                ),
               }
-            : {
-                sentence: t("assets.maintenance.emptyReadOnly"),
+            : null
+        }
+        empty={
+          units.length === 0
+            ? {
+                sentence: t("assets.maintenance.emptyNoUnits"),
                 actionLabel: t("assets.maintenance.emptyNoUnitsAction"),
                 href: `/${ctx.org.slug}/assets/units`,
               }
-      }
-      peek={
-        query.peek
-          ? {
-              title: selected ? selected.assetTag : t("nav.atlas.pages.assets.maintenance"),
-              content: selected ? (
-                <div className="flex flex-col gap-16">
-                  <PropertyList
-                    items={[
-                      { label: t("assets.fields.assetTag"), value: selected.assetTag },
-                      { label: t("assets.fields.performedOn"), value: day(selected.performedOn) },
-                      { label: t("assets.fields.description"), value: selected.description },
-                      {
-                        label: t("assets.fields.costColumn"),
-                        value: (
-                          <Money
-                            amount={majorUnits(selected.costMinor, selected.currencyCode)}
-                            {...(selected.currencyCode ? { currency: selected.currencyCode } : {})}
-                            unpricedLabel={t("assets.common.costUnknown")}
-                          />
-                        ),
-                      },
-                    ]}
-                  />
-                  <Link
-                    href={
-                      `/${ctx.org.slug}/assets/units?peek=${encodeURIComponent(selected.assetTag)}` as Route
-                    }
-                    className="text-text-14 text-accent-text underline"
-                  >
-                    {t("assets.custody.openUnit", { tag: selected.assetTag })}
-                  </Link>
-                  <AssetCollab
-                    db={db}
-                    org={ctx.org.slug}
-                    table="app.asset_maintenance"
-                    id={selected.id}
-                    me={ctx.viewer.person?.id ?? null}
-                  />
-                </div>
-              ) : (
-                <p className="m-0 text-text-14 text-text-secondary">
-                  {t("assets.maintenance.notFound")}
-                </p>
-              ),
-            }
-          : null
-      }
-    />
+            : can.maintenance
+              ? {
+                  sentence: t("assets.maintenance.empty"),
+                  actionLabel: t("assets.maintenance.create.open"),
+                }
+              : {
+                  sentence: t("assets.maintenance.emptyReadOnly"),
+                  actionLabel: t("assets.maintenance.emptyNoUnitsAction"),
+                  href: `/${ctx.org.slug}/assets/units`,
+                }
+        }
+        peek={
+          query.peek
+            ? {
+                title: selected ? selected.assetTag : t("nav.atlas.pages.assets.maintenance"),
+                content: selected ? (
+                  <div className="flex flex-col gap-16">
+                    <PropertyList
+                      items={[
+                        { label: t("assets.fields.assetTag"), value: selected.assetTag },
+                        { label: t("assets.fields.performedOn"), value: day(selected.performedOn) },
+                        { label: t("assets.fields.description"), value: selected.description },
+                        {
+                          label: t("assets.fields.costColumn"),
+                          value: (
+                            <Money
+                              amount={majorUnits(selected.costMinor, selected.currencyCode)}
+                              {...(selected.currencyCode
+                                ? { currency: selected.currencyCode }
+                                : {})}
+                              unpricedLabel={t("assets.common.costUnknown")}
+                            />
+                          ),
+                        },
+                      ]}
+                    />
+                    <Link
+                      href={
+                        `/${ctx.org.slug}/assets/units?peek=${encodeURIComponent(selected.assetTag)}` as Route
+                      }
+                      className="text-text-14 text-accent-text underline"
+                    >
+                      {t("assets.custody.openUnit", { tag: selected.assetTag })}
+                    </Link>
+                    <AssetCollab
+                      db={db}
+                      org={ctx.org.slug}
+                      table="app.asset_maintenance"
+                      id={selected.id}
+                      me={ctx.viewer.person?.id ?? null}
+                    />
+                  </div>
+                ) : (
+                  <p className="m-0 text-text-14 text-text-secondary">
+                    {t("assets.maintenance.notFound")}
+                  </p>
+                ),
+              }
+            : null
+        }
+      />
     </div>
   );
 }

@@ -189,7 +189,11 @@ export interface ImportStore {
   }): Promise<string>;
   recordCellIssues(rowId: string, issues: readonly CellIssue[]): Promise<void>;
   recordMatch(rowId: string, targetId: string): Promise<void>;
-  recordMaterialMatch(rowId: string, match: "Matched" | "Unmatched", note: string | null): Promise<void>;
+  recordMaterialMatch(
+    rowId: string,
+    match: "Matched" | "Unmatched",
+    note: string | null,
+  ): Promise<void>;
   validRows(jobId: string): Promise<ValidRow[]>;
   commitWrite(input: {
     rowId: string;

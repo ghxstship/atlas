@@ -32,9 +32,11 @@ describe("parseEquipmentBlock (B11, G-107)", () => {
   });
 
   it("strips bullets", () => {
-    expect(lines("- 12 x SM58\n* 2 x Truss\n• 3 x Clamp\n1. 4 x Rope\n2) 5 x Pin").map((l) => l.quantity)).toEqual([
-      12, 2, 3, 4, 5,
-    ]);
+    expect(
+      lines("- 12 x SM58\n* 2 x Truss\n• 3 x Clamp\n1. 4 x Rope\n2) 5 x Pin").map(
+        (l) => l.quantity,
+      ),
+    ).toEqual([12, 2, 3, 4, 5]);
   });
 
   it("does not read a part number's digits as a bullet or a quantity", () => {

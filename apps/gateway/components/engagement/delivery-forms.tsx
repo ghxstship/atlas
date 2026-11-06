@@ -85,7 +85,10 @@ export function DeliveryBookingActions({
   const [pending, start] = useTransition();
   const [outcome, setOutcome] = useState<string | undefined>(undefined);
   const [editing, setEditing] = useState(false);
-  const [state, action, saving] = useActionState<FormResult, FormData>(changeDeliveryPlateAction, {});
+  const [state, action, saving] = useActionState<FormResult, FormData>(
+    changeDeliveryPlateAction,
+    {},
+  );
   return (
     <div className="flex flex-col gap-8">
       <OutcomeAlert outcome={outcome ?? state.outcome} />

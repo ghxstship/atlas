@@ -23,7 +23,17 @@ import {
   SyncBanner,
   useAllowed,
 } from "../src/screens/common";
-import { Button, Card, EmptyState, InlineAlert, ListRow, Screen, Tag, Text, TextField } from "../src/ui";
+import {
+  Button,
+  Card,
+  EmptyState,
+  InlineAlert,
+  ListRow,
+  Screen,
+  Tag,
+  Text,
+  TextField,
+} from "../src/ui";
 
 interface ZoneRow extends Row {
   readonly code: string;
@@ -107,10 +117,7 @@ export default function LogisticsGateScreen(): ReactElement {
       return;
     }
     setPlateError(null);
-    send(
-      buildBookingArrival(slot, typed || null, Date.now()),
-      "compass.gateView.arrivalQueued",
-    );
+    send(buildBookingArrival(slot, typed || null, Date.now()), "compass.gateView.arrivalQueued");
   };
 
   const bookingCard = (slot: BookingRow) => {
@@ -121,10 +128,11 @@ export default function LogisticsGateScreen(): ReactElement {
         <Text variant="heading16" heading>
           {slot.reference_code ?? ""}
         </Text>
-        <Text tone="secondary">
-          {slot.vehicle_identifier ?? t("compass.gateView.noPlate")}
-        </Text>
-        <Tag testID={`gate-status-${slot.id}`} label={t(`compass.gateView.status.${STATUS_KEY[status]}`)} />
+        <Text tone="secondary">{slot.vehicle_identifier ?? t("compass.gateView.noPlate")}</Text>
+        <Tag
+          testID={`gate-status-${slot.id}`}
+          label={t(`compass.gateView.status.${STATUS_KEY[status]}`)}
+        />
         {status === "Expected" && canYard ? (
           <>
             {slot.vehicle_identifier ? null : (
@@ -154,7 +162,9 @@ export default function LogisticsGateScreen(): ReactElement {
             testID={`gate-check-in-${slot.id}`}
             variant="secondary"
             label={t("compass.logistics.dock.checkIn")}
-            onPress={() => send(buildDockCheckIn(slot, Date.now()), "compass.logistics.dock.queued")}
+            onPress={() =>
+              send(buildDockCheckIn(slot, Date.now()), "compass.logistics.dock.queued")
+            }
           />
         ) : null}
       </Card>
@@ -166,7 +176,9 @@ export default function LogisticsGateScreen(): ReactElement {
       <ProjectPicker />
       <SyncBanner />
       {queued ? <InlineAlert testID="gate-queued" tone="success" message={queued} /> : null}
-      {plateError ? <InlineAlert testID="gate-plate-error" tone="danger" message={plateError} /> : null}
+      {plateError ? (
+        <InlineAlert testID="gate-plate-error" tone="danger" message={plateError} />
+      ) : null}
       <TextField
         testID="gate-find"
         label={t("compass.gateView.find")}

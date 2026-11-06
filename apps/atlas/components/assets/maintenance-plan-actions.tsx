@@ -45,7 +45,13 @@ export function PlanCreateButton({
             value={target}
             onChange={setTarget}
           />
-          <Input id="plan-title" name="title" required width="100%" label={t("schedule.create.planTitle")} />
+          <Input
+            id="plan-title"
+            name="title"
+            required
+            width="100%"
+            label={t("schedule.create.planTitle")}
+          />
           <Input
             id="plan-first-due"
             name="firstDueOn"

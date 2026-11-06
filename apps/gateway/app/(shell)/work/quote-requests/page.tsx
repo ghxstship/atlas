@@ -32,7 +32,9 @@ export default async function QuoteRequestsPage() {
       {!requests.ok || !lines.ok ? (
         <RegionError />
       ) : requests.data.length === 0 ? (
-        <p className="m-0 text-text-14 text-text-secondary">{t("gateway.work.quoteRequests.empty")}</p>
+        <p className="m-0 text-text-14 text-text-secondary">
+          {t("gateway.work.quoteRequests.empty")}
+        </p>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-16 p-0">
           {requests.data.map((r) => (

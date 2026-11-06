@@ -34,7 +34,11 @@ const ProcurementNeed = defineResource({
     "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element.",
   fields: {
     project_id: fields.ref("project buying"),
-    need_number: fields.int("Number from the project's display key sequence, issued on insert.", 1, 1),
+    need_number: fields.int(
+      "Number from the project's display key sequence, issued on insert.",
+      1,
+      1,
+    ),
     description: fields.longText("What is needed.", "Truss Sections"),
     quantity: fields.quantity("How much the event will get.", 15),
     unit_basis: unitBasis("the quantity"),
@@ -59,7 +63,10 @@ const NeedStatusRow = defineResource({
     quantity: fields.quantity("How much the event will get.", 15),
     requested_quantity: fields.quantity("Live requests linked, with their Split children.", 15),
     drafted_quantity: fields.quantity("On lines of Proposed orders: shown, never counted.", 0),
-    ordered_quantity: fields.quantity("On lines of Approved, Sent or Closed orders, less returns.", 5),
+    ordered_quantity: fields.quantity(
+      "On lines of Approved, Sent or Closed orders, less returns.",
+      5,
+    ),
     received_quantity: fields.quantity("Received on those lines.", 0),
     need_status: z
       .enum(NEED_STATUSES)
@@ -73,10 +80,14 @@ export const needConsolidateAction = collectionAction("consolidate", {
     "Links allocations onto a need when `need_id` is given, leaving its quantity alone; otherwise adds one need per asset class with the sum of the selection. Needs procurement.po.write and advancing.packet.read on the project. Requested may be linked as well as Approved.",
   body: z
     .object({
-      allocation_ids: z.array(z.uuid()).min(1).max(200).meta({
-        description: "Allocations of one project.",
-        example: ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
-      }),
+      allocation_ids: z
+        .array(z.uuid())
+        .min(1)
+        .max(200)
+        .meta({
+          description: "Allocations of one project.",
+          example: ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+        }),
       need_id: orNull(fields.ref("need to link them to")).optional(),
     })
     .meta({ id: "ProcurementNeedConsolidateRequest", description: "Requests to consolidate." }),
@@ -119,7 +130,10 @@ const AssetShortage = z
     class_name: fields.text("Name of the class.", "Truss Sections"),
     element_id: fields.code("Catalog element of the class.", "3000.05.01-GHXST-014"),
     unit_basis: unitBasis("the quantity"),
-    short_quantity: fields.quantity("How many more the open allocations want than can supply them.", 5),
+    short_quantity: fields.quantity(
+      "How many more the open allocations want than can supply them.",
+      5,
+    ),
     window_from: fields.instant("When the allocations that are short begin."),
     window_to: fields.instant("When the allocations that are short end."),
     open_need_id: orNull(fields.ref("live need of the class overlapping the window")),
@@ -146,10 +160,14 @@ export const rfqCreateSubHireAction = collectionAction("createSubHire", {
   body: z
     .object({
       project_id: fields.ref("project short of them"),
-      asset_class_ids: z.array(z.uuid()).min(1).max(50).meta({
-        description: "Classes that are short.",
-        example: ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
-      }),
+      asset_class_ids: z
+        .array(z.uuid())
+        .min(1)
+        .max(50)
+        .meta({
+          description: "Classes that are short.",
+          example: ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+        }),
       title: fields.text("What is being sourced.", "Sub-hire truss"),
     })
     .meta({ id: "RfqCreateSubHireRequest", description: "A sub-hire draft." }),

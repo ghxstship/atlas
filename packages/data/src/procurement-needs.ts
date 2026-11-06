@@ -1,5 +1,12 @@
 import type { Database, Json, XosClient } from "./client.ts";
-import { blankToNull, deletedNow, insertedId, readRows, rpcValue, touched } from "./commercial-common.ts";
+import {
+  blankToNull,
+  deletedNow,
+  insertedId,
+  readRows,
+  rpcValue,
+  touched,
+} from "./commercial-common.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { parseHirePeriod, type AcquisitionKind } from "./procurement.ts";
 
@@ -266,7 +273,10 @@ export async function consolidateAllocations(
   return result.ok ? ok(result.data as string[]) : result;
 }
 
-export async function unlinkNeedRequest(db: XosClient, allocationId: string): Promise<Result<null>> {
+export async function unlinkNeedRequest(
+  db: XosClient,
+  allocationId: string,
+): Promise<Result<null>> {
   const { error } = await db.rpc("unlink_need_request", { p_allocation_id: allocationId });
   return error ? fail(toDataError(error)) : ok(null);
 }

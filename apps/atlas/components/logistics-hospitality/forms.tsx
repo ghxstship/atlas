@@ -122,10 +122,10 @@ function Fields({
             : f.kind === "time"
               ? "time"
               : f.kind === "date"
-              ? "date"
-              : f.kind === "number"
-                ? "number"
-                : "text";
+                ? "date"
+                : f.kind === "number"
+                  ? "number"
+                  : "text";
         return (
           <Input
             key={f.name}

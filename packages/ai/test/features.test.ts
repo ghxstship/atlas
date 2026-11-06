@@ -52,14 +52,32 @@ describe("document extraction", () => {
                 source_excerpt: "12 x Shure SM58",
                 missing: null,
               },
-              { field_path: "quantity", value: 12, confidence: 0.9, source_excerpt: "12 x Shure SM58", missing: null },
+              {
+                field_path: "quantity",
+                value: 12,
+                confidence: 0.9,
+                source_excerpt: "12 x Shure SM58",
+                missing: null,
+              },
             ],
           },
           {
             fields: [
-              { field_path: "description", value: "Mic stands", confidence: 0.9, source_excerpt: "Mic stands", missing: null },
+              {
+                field_path: "description",
+                value: "Mic stands",
+                confidence: 0.9,
+                source_excerpt: "Mic stands",
+                missing: null,
+              },
               // The excerpt shows no figure, so the quantity is not taken.
-              { field_path: "quantity", value: 4, confidence: 0.4, source_excerpt: "Mic stands", missing: null },
+              {
+                field_path: "quantity",
+                value: 4,
+                confidence: 0.4,
+                source_excerpt: "Mic stands",
+                missing: null,
+              },
             ],
           },
         ],
@@ -74,8 +92,12 @@ describe("document extraction", () => {
     });
     expect(result.kind).toBe("answer");
     expect(log.proposed).toHaveLength(2);
-    expect(log.proposed.every((p) => p.change.operationId === "procurementNeeds.create")).toBe(true);
-    expect(log.proposed[0]?.change.fields.find((f) => f.field_path === "quantity")).toMatchObject({ value: 12 });
+    expect(log.proposed.every((p) => p.change.operationId === "procurementNeeds.create")).toBe(
+      true,
+    );
+    expect(log.proposed[0]?.change.fields.find((f) => f.field_path === "quantity")).toMatchObject({
+      value: 12,
+    });
     expect(log.proposed[1]?.change.fields.find((f) => f.field_path === "quantity")).toMatchObject({
       refusal: "NO_ANSWER",
     });

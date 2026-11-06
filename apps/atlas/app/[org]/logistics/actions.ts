@@ -292,7 +292,10 @@ export async function createDeliveryWindowsAction(
   if (!parsed.success) {
     return { fieldErrors: { [String(parsed.error.issues[0]?.path[0] ?? "zoneId")]: "required" } };
   }
-  const result = await createDeliveryWindows(ctx.viewer.db, { projectId: project.id, ...parsed.data });
+  const result = await createDeliveryWindows(ctx.viewer.db, {
+    projectId: project.id,
+    ...parsed.data,
+  });
   if (!result.ok) return failed(result);
   refresh(ctx);
   return { ok: true };

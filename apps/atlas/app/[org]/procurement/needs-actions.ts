@@ -54,7 +54,8 @@ function localOrInvalid(form: FormData, name: string, zone: string): string | nu
 function needInput(form: FormData, errors: FieldErrors, zone: string): NeedInput | null {
   const description = errors.need("description", requiredText(form, "description", 500));
   const quantity = decimal(form, "quantity");
-  if (quantity === undefined || quantity === null || quantity <= 0) errors.add("quantity", "number");
+  if (quantity === undefined || quantity === null || quantity <= 0)
+    errors.add("quantity", "number");
   const from = localOrInvalid(form, "neededFrom", zone);
   const to = localOrInvalid(form, "neededTo", zone);
   if (from === undefined) errors.add("neededFrom", "date");
@@ -106,7 +107,11 @@ export async function consolidateAction(_: ActionState, form: FormData): Promise
   const ctx = await actionContext(form);
   const ids = all(form, "allocationId");
   if (ids.length === 0) return { fieldErrors: { allocationId: "required" } };
-  return finish(await consolidateAllocations(ctx.viewer.db, ids, uuid(form, "needId")), ctx, MODULE);
+  return finish(
+    await consolidateAllocations(ctx.viewer.db, ids, uuid(form, "needId")),
+    ctx,
+    MODULE,
+  );
 }
 
 export async function unlinkRequestAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -163,7 +168,8 @@ export async function addRfqLineAction(_: ActionState, form: FormData): Promise<
   const errors = new FieldErrors();
   const description = errors.need("description", requiredText(form, "description", 500));
   const quantity = decimal(form, "quantity");
-  if (quantity === undefined || quantity === null || quantity <= 0) errors.add("quantity", "number");
+  if (quantity === undefined || quantity === null || quantity <= 0)
+    errors.add("quantity", "number");
   const kindText = text(form, "acquisitionKind") ?? "Purchase";
   const kind = (ACQUISITION_KINDS as readonly string[]).includes(kindText)
     ? (kindText as AcquisitionKind)
@@ -171,7 +177,8 @@ export async function addRfqLineAction(_: ActionState, form: FormData): Promise<
   const zone = await projectZone(ctx.viewer.db, uuid(form, "projectId"));
   const from = localOrInvalid(form, "hireFrom", zone);
   const to = localOrInvalid(form, "hireTo", zone);
-  if (kind === "Rental" && (!from || !to || to <= from)) errors.add(from ? "hireTo" : "hireFrom", "date");
+  if (kind === "Rental" && (!from || !to || to <= from))
+    errors.add(from ? "hireTo" : "hireFrom", "date");
   if (errors.any || !description || typeof quantity !== "number") return errors.state;
   return finish(
     await addRfqLine(ctx.viewer.db, rfqId, {

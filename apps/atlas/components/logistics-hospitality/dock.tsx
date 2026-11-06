@@ -324,7 +324,10 @@ export async function DockSection({
   if (openWindow) {
     const org = scope.ctx.org.slug;
     const canManage = scope.access.can(openWindow.projectId, "logistics.dock_slot.write");
-    const projectTab = nodeHref("project.logistics", { ...scope.params, projectKey: openWindow.projectKey });
+    const projectTab = nodeHref("project.logistics", {
+      ...scope.params,
+      projectKey: openWindow.projectKey,
+    });
     record = (
       <RecordView
         mode="peek"

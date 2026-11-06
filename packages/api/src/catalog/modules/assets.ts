@@ -107,7 +107,9 @@ export const additions = defineAdditions("Assets", {
     assetMaintenanceDue: { read: "assets.asset.read" },
     assetUnitHire: { read: "assets.asset.read" },
     ...assetReservationCapabilities,
-    assetClasses: { actions: { shortages: "procurement.po.read", availability: "assets.asset.read" } },
+    assetClasses: {
+      actions: { shortages: "procurement.po.read", availability: "assets.asset.read" },
+    },
   },
   corrections: [
     {
@@ -118,7 +120,12 @@ export const additions = defineAdditions("Assets", {
       reason:
         "app.asset_maintenance.maintenance_plan_id (3004, B11) names the plan the work fulfilled; it moves the plan's next due date. Additive.",
       apply: editShape({
-        add: { maintenance_plan_id: { schema: orNull(fields.ref("plan this work fulfilled")), create: "optional" } },
+        add: {
+          maintenance_plan_id: {
+            schema: orNull(fields.ref("plan this work fulfilled")),
+            create: "optional",
+          },
+        },
       }),
     },
     {

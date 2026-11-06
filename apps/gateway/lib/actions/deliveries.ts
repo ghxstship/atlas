@@ -47,13 +47,14 @@ export async function cancelDeliveryBookingAction(slotId: string): Promise<Actio
   return toAction(await cancelDeliveryBooking(await createServerSupabase(), id.parse(slotId)));
 }
 
-export async function changeDeliveryPlateAction(_: FormResult, form: FormData): Promise<FormResult> {
-  const parsed = z
-    .object({ slotId: id, vehicleIdentifier: z.string().trim().max(40) })
-    .safeParse({
-      slotId: form.get("slotId"),
-      vehicleIdentifier: form.get("vehicleIdentifier") ?? "",
-    });
+export async function changeDeliveryPlateAction(
+  _: FormResult,
+  form: FormData,
+): Promise<FormResult> {
+  const parsed = z.object({ slotId: id, vehicleIdentifier: z.string().trim().max(40) }).safeParse({
+    slotId: form.get("slotId"),
+    vehicleIdentifier: form.get("vehicleIdentifier") ?? "",
+  });
   if (!parsed.success) return { fieldError: "deliveryPlate" };
   const result = await setDeliveryBookingVehicle(
     await createServerSupabase(),

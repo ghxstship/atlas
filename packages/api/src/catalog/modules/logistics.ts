@@ -46,14 +46,19 @@ export const additions = defineAdditions("Logistics", {
       id: "dock-slot-delivery-booking",
       since: SINCE,
       resources: ["dockSlots"],
-      change: "Adds the optional, read-side `delivery_window_id`, `reference_code` and `vehicle_identifier`.",
+      change:
+        "Adds the optional, read-side `delivery_window_id`, `reference_code` and `vehicle_identifier`.",
       reason:
         "app.dock_slots gains them (3005, B11, ADR 0150): a delivery booking is a dock slot. The window and code are written only by `deliveryWindows.book`. Additive.",
       apply: editShape({
         add: {
-          delivery_window_id: { schema: orNull(fields.ref("delivery window the booking holds a place in")) },
+          delivery_window_id: {
+            schema: orNull(fields.ref("delivery window the booking holds a place in")),
+          },
           reference_code: { schema: orNull(fields.text("Label to quote at the gate.", "K7M2QX")) },
-          vehicle_identifier: { schema: orNull(fields.text("Plate or trailer number expected.", "FL ABC 123")) },
+          vehicle_identifier: {
+            schema: orNull(fields.text("Plate or trailer number expected.", "FL ABC 123")),
+          },
         },
       }),
     },

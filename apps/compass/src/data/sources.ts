@@ -175,7 +175,8 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "gate_queue",
     schema: "app",
     relation: "gate_queue",
-    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
+    select:
+      "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
     projectColumn: "project_id",
   },
   {

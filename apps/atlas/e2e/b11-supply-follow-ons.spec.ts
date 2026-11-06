@@ -21,7 +21,9 @@ async function open(page: Page, path: string) {
   await settle(page);
 }
 
-test("a need is added, reads Needs Ordered, and a pasted list previews before it saves", async ({ page }) => {
+test("a need is added, reads Needs Ordered, and a pasted list previews before it saves", async ({
+  page,
+}) => {
   const suffix = uniqueId();
   await signIn(page);
   await open(page, `/${ORG}/p/${PROJECT_KEY}/procurement?section=needs`);
@@ -34,18 +36,30 @@ test("a need is added, reads Needs Ordered, and a pasted list previews before it
   await page.getByLabel("Item", { exact: true }).fill(`Truss ${suffix}`);
   await page.getByLabel("Quantity", { exact: true }).fill("5");
   await page.getByRole("button", { name: "Add needs", exact: true }).click();
-  await expect(page.getByRole("grid").getByText(`Truss ${suffix}`).or(page.getByText(`Truss ${suffix}`)).first()).toBeVisible();
+  await expect(
+    page
+      .getByRole("grid")
+      .getByText(`Truss ${suffix}`)
+      .or(page.getByText(`Truss ${suffix}`))
+      .first(),
+  ).toBeVisible();
   await expect(page.getByText("Needs Ordered", { exact: true }).first()).toBeVisible();
 
   await open(page, `/${ORG}/p/${PROJECT_KEY}/procurement?section=needs`);
   await expect(async () => {
     await page.getByRole("button", { name: "Paste list", exact: true }).click();
-    await expect(page.getByLabel("Equipment list", { exact: true })).toBeVisible({ timeout: 2_000 });
+    await expect(page.getByLabel("Equipment list", { exact: true })).toBeVisible({
+      timeout: 2_000,
+    });
   }).toPass();
-  await page.getByLabel("Equipment list", { exact: true }).fill(`Audio:\n12 x Mic ${suffix}\nCable ${suffix}`);
+  await page
+    .getByLabel("Equipment list", { exact: true })
+    .fill(`Audio:\n12 x Mic ${suffix}\nCable ${suffix}`);
   await page.getByRole("button", { name: "Preview lines", exact: true }).click();
   await expect(page.getByRole("button", { name: "Add 2 lines", exact: true })).toBeVisible();
-  await expect(page.getByText("No quantity in the list, so this reads 1.", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("No quantity in the list, so this reads 1.", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Add 2 lines", exact: true }).click();
   await expect(page.getByText(`Mic ${suffix}`, { exact: true }).first()).toBeVisible();
 });
@@ -54,11 +68,15 @@ test("a maintenance plan comes due, and Complete moves its next due date", async
   const suffix = uniqueId();
   await signIn(page);
   await open(page, `/${ORG}/assets/maintenance`);
-  await expect(page.getByRole("heading", { name: "Maintenance schedule", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Maintenance schedule", exact: true }),
+  ).toBeVisible();
 
   await expect(async () => {
     await page.getByRole("button", { name: "Add plan", exact: true }).click();
-    await expect(page.getByLabel("What is to be done", { exact: true })).toBeVisible({ timeout: 2_000 });
+    await expect(page.getByLabel("What is to be done", { exact: true })).toBeVisible({
+      timeout: 2_000,
+    });
   }).toPass();
   await page.getByLabel("Applies to", { exact: true }).click();
   await page.getByRole("option").first().click();
@@ -66,7 +84,10 @@ test("a maintenance plan comes due, and Complete moves its next due date", async
   await page.getByRole("button", { name: "Add plan", exact: true }).last().click();
   await expect(page.getByText(new RegExp(`Inspect ${suffix}`)).first()).toBeVisible();
 
-  await page.getByRole("button", { name: new RegExp(`Complete Inspect ${suffix}`) }).first().click();
+  await page
+    .getByRole("button", { name: new RegExp(`Complete Inspect ${suffix}`) })
+    .first()
+    .click();
   await page.getByRole("button", { name: "Record maintenance", exact: true }).click();
   await open(page, `/${ORG}/assets/maintenance?status=Completed`);
   await expect(page.getByText(new RegExp(`Inspect ${suffix}`)).first()).toBeVisible();

@@ -67,10 +67,34 @@ function lookups(match: MaterialMatch | null = null): TargetLookups {
 const NEED_DESTINATION: ImportDestination = { project: { id: "prj1" }, jobId: "j1" };
 const LINE_DESTINATION: ImportDestination = { jobId: "j1" };
 
-const need = (cells: readonly string[], fields: readonly string[], match: MaterialMatch | null = null) =>
-  validateRow("o", "procurement_needs", NEED_FIELDS, columns(fields), { rowNumber: 2, cells: [...cells] }, lookups(match), NEED_DESTINATION);
-const line = (cells: readonly string[], fields: readonly string[], match: MaterialMatch | null = null) =>
-  validateRow("o", "po_lines", LINE_FIELDS, columns(fields), { rowNumber: 2, cells: [...cells] }, lookups(match), LINE_DESTINATION);
+const need = (
+  cells: readonly string[],
+  fields: readonly string[],
+  match: MaterialMatch | null = null,
+) =>
+  validateRow(
+    "o",
+    "procurement_needs",
+    NEED_FIELDS,
+    columns(fields),
+    { rowNumber: 2, cells: [...cells] },
+    lookups(match),
+    NEED_DESTINATION,
+  );
+const line = (
+  cells: readonly string[],
+  fields: readonly string[],
+  match: MaterialMatch | null = null,
+) =>
+  validateRow(
+    "o",
+    "po_lines",
+    LINE_FIELDS,
+    columns(fields),
+    { rowNumber: 2, cells: [...cells] },
+    lookups(match),
+    LINE_DESTINATION,
+  );
 
 const skuMatch: MaterialMatch = {
   source: "vendor_sku",
@@ -118,30 +142,46 @@ describe("a need row", () => {
       source: "asset_class",
       assetClassId: "class2",
     });
-    expect(matched).toMatchObject({ values: { asset_class_id: "class2" }, materialMatch: "Matched" });
+    expect(matched).toMatchObject({
+      values: { asset_class_id: "class2" },
+      materialMatch: "Matched",
+    });
   });
 
   it("refuses an unknown class and unit", async () => {
-    const bad = await need(["SM58", "1", "Fog", "yards"], ["description", "quantity", "asset_class_id", "unit_basis"]);
+    const bad = await need(
+      ["SM58", "1", "Fog", "yards"],
+      ["description", "quantity", "asset_class_id", "unit_basis"],
+    );
     expect(bad.issues.map((i) => i.issue).sort()).toEqual(["unknown_asset_class", "unknown_unit"]);
   });
 
   it("turns two dates into the need's window, in the project's zone", async () => {
-    const row = await need(["SM58", "1", "2027-06-01", "2027-06-03"], ["description", "quantity", "needed_from", "needed_to"]);
+    const row = await need(
+      ["SM58", "1", "2027-06-01", "2027-06-03"],
+      ["description", "quantity", "needed_from", "needed_to"],
+    );
     expect(row.values["needed_during"]).toBe("[2027-06-01T04:00:00.000Z,2027-06-03T04:00:00.000Z)");
   });
 
   it("refuses one date alone, or dates out of order", async () => {
     const one = await need(["SM58", "1", "2027-06-01"], ["description", "quantity", "needed_from"]);
     expect(one.state).toBe("Invalid");
-    const backwards = await need(["SM58", "1", "2027-06-03", "2027-06-01"], ["description", "quantity", "needed_from", "needed_to"]);
+    const backwards = await need(
+      ["SM58", "1", "2027-06-03", "2027-06-01"],
+      ["description", "quantity", "needed_from", "needed_to"],
+    );
     expect(backwards.issues[0]?.issue).toBe("invalid_time");
   });
 });
 
 describe("an order line row", () => {
   it("takes the element and a blank price from an exact SKU", async () => {
-    const row = await line(["SM58", "2", "SKU-1"], ["description", "quantity", "vendor_sku"], skuMatch);
+    const row = await line(
+      ["SM58", "2", "SKU-1"],
+      ["description", "quantity", "vendor_sku"],
+      skuMatch,
+    );
     expect(row).toMatchObject({
       state: "Valid",
       values: { element_id: ELEMENT, unit_price_minor: 4200, quantity: 2 },
@@ -152,7 +192,11 @@ describe("an order line row", () => {
   });
 
   it("keeps a price the sheet gives", async () => {
-    const row = await line(["SM58", "2", "SKU-1", "999"], ["description", "quantity", "vendor_sku", "unit_price_minor"], skuMatch);
+    const row = await line(
+      ["SM58", "2", "SKU-1", "999"],
+      ["description", "quantity", "vendor_sku", "unit_price_minor"],
+      skuMatch,
+    );
     expect(row.values["unit_price_minor"]).toBe(999);
   });
 
@@ -192,6 +236,9 @@ describe("in-file duplicates", () => {
     const fields = ["line_number", "description", "quantity"];
     const a = await line(["1", "A", "1"], fields);
     const b = await line(["1", "B", "1"], fields);
-    expect(markInFileDuplicates("po_lines", columns(fields), [a, b]).map((m) => m.state)).toEqual(["Valid", "Invalid"]);
+    expect(markInFileDuplicates("po_lines", columns(fields), [a, b]).map((m) => m.state)).toEqual([
+      "Valid",
+      "Invalid",
+    ]);
   });
 });

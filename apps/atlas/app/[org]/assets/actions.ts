@@ -423,7 +423,14 @@ export async function recordMaintenanceAction(
       maintenancePlanId: z.uuid().optional(),
     })
     .safeParse(
-      fields(form, ["unitId", "performedOn", "description", "cost", "currencyCode", "maintenancePlanId"]),
+      fields(form, [
+        "unitId",
+        "performedOn",
+        "description",
+        "cost",
+        "currencyCode",
+        "maintenancePlanId",
+      ]),
     );
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "description") };
@@ -550,10 +557,14 @@ export async function createMaintenancePlanAction(
       title: text(200),
       firstDueOn: z.iso.date(),
       everyCount: z.coerce.number().int().min(1).max(999).optional(),
-      everyUnit: z.enum(MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]]).optional(),
+      everyUnit: z
+        .enum(MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]])
+        .optional(),
       instructions: z.string().trim().max(1000).optional(),
     })
-    .safeParse(fields(form, ["appliesTo", "title", "firstDueOn", "everyCount", "everyUnit", "instructions"]));
+    .safeParse(
+      fields(form, ["appliesTo", "title", "firstDueOn", "everyCount", "everyUnit", "instructions"]),
+    );
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "title") };
   }

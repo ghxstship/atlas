@@ -137,7 +137,10 @@ export async function NeedsSection({
     },
   }));
 
-  const classOptions = (classes.ok ? classes.data : []).map((c) => ({ value: c.id, label: c.name }));
+  const classOptions = (classes.ok ? classes.data : []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
   const projectOptions = projects.data.map((p) => ({ value: p.id, label: `${p.key} ${p.name}` }));
   const formFields = (n?: ProcurementNeed): FieldSpec[] => [
     {
@@ -266,10 +269,7 @@ export async function NeedsSection({
         canWrite ? (
           <>
             {projectId ? (
-              <MaterialQuickAddButton
-                org={ctx.org.slug}
-                target={{ kind: "needs", projectId }}
-              />
+              <MaterialQuickAddButton org={ctx.org.slug} target={{ kind: "needs", projectId }} />
             ) : null}
             <KitLink href={importHref}>{t("needs.import")}</KitLink>
             <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
@@ -295,7 +295,13 @@ export async function NeedsSection({
       {drawer}
       {canConsolidate && ready.ok ? (
         <KitSection id="needs-ready" title={t("needs.readyTitle")}>
-          <ReadyPart t={t} org={ctx.org.slug} ready={ready.data} needs={needs.data} format={format} />
+          <ReadyPart
+            t={t}
+            org={ctx.org.slug}
+            ready={ready.data}
+            needs={needs.data}
+            format={format}
+          />
         </KitSection>
       ) : null}
       <KitSection id="needs-short" title={t("needs.shortTitle")}>
@@ -476,7 +482,11 @@ async function NeedPeek({
       ) : (
         <>
           {canWrite && !need.assetClassId && !need.elementId ? (
-            <SuggestCategoryButton org={ctx.org.slug} needId={need.id} description={need.description} />
+            <SuggestCategoryButton
+              org={ctx.org.slug}
+              needId={need.id}
+              description={need.description}
+            />
           ) : null}
           <KitSection id="need-requests" title={t("needs.linkedRequests")}>
             {links.data.requests.length === 0 ? (
@@ -541,7 +551,10 @@ async function NeedPeek({
               <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
                 {links.data.rfqLines.map((l) => (
                   <li key={l.id}>
-                    <KitLink href={`/${ctx.org.slug}/procurement/rfqs?peek=${l.rfqId}&full=1`} size="sm">
+                    <KitLink
+                      href={`/${ctx.org.slug}/procurement/rfqs?peek=${l.rfqId}&full=1`}
+                      size="sm"
+                    >
                       {`${l.title}: ${t(`rfqStates.${l.state}`)}`}
                     </KitLink>
                   </li>

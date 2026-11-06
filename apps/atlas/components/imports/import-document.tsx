@@ -154,7 +154,12 @@ export function ImportDocument({
             <Button
               variant="secondary"
               disabled={missing}
-              onClick={() => onContinue(rowsToPaste(rows), rows.map((r) => r.id))}
+              onClick={() =>
+                onContinue(
+                  rowsToPaste(rows),
+                  rows.map((r) => r.id),
+                )
+              }
             >
               {t("imports.document.continue")}
             </Button>

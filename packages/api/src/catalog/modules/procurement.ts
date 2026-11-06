@@ -3,10 +3,7 @@
  * corrections of frozen Procurement resources to the A03 and A16 schema (ADR 0023): migrations 0331
  * (RFQs, purchase orders, receipts, matches, catalog), 0491 (match results) and 0492 (submittals).
  */
-import {
-  procurementFollowOnResources,
-  rfqCreateSubHireAction,
-} from "./parts/supply-follow-ons.ts";
+import { procurementFollowOnResources, rfqCreateSubHireAction } from "./parts/supply-follow-ons.ts";
 import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
@@ -83,7 +80,9 @@ export const additions = defineAdditions("Procurement", {
       reason:
         "app.rfq_response_lines.rfq_line_id (3003, B11) names the request line a quoted line answers. Additive and read-side.",
       apply: editShape({
-        add: { rfq_line_id: { schema: orNull(fields.ref("request line this quoted line answers")) } },
+        add: {
+          rfq_line_id: { schema: orNull(fields.ref("request line this quoted line answers")) },
+        },
       }),
     },
     {

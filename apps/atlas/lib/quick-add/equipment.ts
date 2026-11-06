@@ -29,7 +29,11 @@ const NUMBER = String.raw`\d+(?:[.,]\d+)?`;
 const UNIT = String.raw`(?:ea|each|pcs?|pieces?|units?|uds?|unidad(?:es)?|piezas?)\.?`;
 const X = String.raw`[x×]`;
 
-const PATTERNS: readonly { readonly re: RegExp; readonly quantity: number; readonly item: number }[] = [
+const PATTERNS: readonly {
+  readonly re: RegExp;
+  readonly quantity: number;
+  readonly item: number;
+}[] = [
   // SM58<tab>12
   { re: new RegExp(String.raw`^(.+?)\t+\s*(${NUMBER})\s*$`, "iu"), quantity: 2, item: 1 },
   // 12<tab>SM58
@@ -61,7 +65,9 @@ function quantityOf(text: string): number {
 }
 
 /** One line of a block as an item, or null for a blank line. Headings are read by parseEquipmentBlock. */
-function readLine(raw: string): { quantity: number; quantityAssumed: boolean; item: string } | null {
+function readLine(
+  raw: string,
+): { quantity: number; quantityAssumed: boolean; item: string } | null {
   const line = raw.replace(BULLET, "").replace(/\s+$/u, "");
   if (line.trim() === "") return null;
   for (const pattern of PATTERNS) {

@@ -89,7 +89,12 @@ function toWindow(row: WindowRow): DeliveryWindow {
 /** Live windows of an org or one project, in start order, with their live bookings. */
 export async function listDeliveryWindows(
   db: XosClient,
-  scope: { readonly orgId: string; readonly projectId?: string; readonly from?: string; readonly to?: string },
+  scope: {
+    readonly orgId: string;
+    readonly projectId?: string;
+    readonly from?: string;
+    readonly to?: string;
+  },
 ): Promise<Result<DeliveryWindow[]>> {
   let query = db
     .from("delivery_windows")

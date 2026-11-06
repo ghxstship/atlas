@@ -7,7 +7,11 @@ import summariesSet from "./datasets/summaries.json" with { type: "json" };
 import { loadModelConfig, type ModelConfig } from "../src/config.ts";
 import { askAssistant, type PublicApi } from "../src/features/assistant.ts";
 import { draft, type DraftKind } from "../src/features/drafting.ts";
-import { EXTRACTION_TARGETS, extractDocument, type DocumentKind } from "../src/features/extraction.ts";
+import {
+  EXTRACTION_TARGETS,
+  extractDocument,
+  type DocumentKind,
+} from "../src/features/extraction.ts";
 import { buildFilter, type FilterCollection } from "../src/features/filters.ts";
 import { suggestCatalogBinding, suggestColumnMappings } from "../src/features/mapping.ts";
 import { summarize, type SummaryKind } from "../src/features/summaries.ts";

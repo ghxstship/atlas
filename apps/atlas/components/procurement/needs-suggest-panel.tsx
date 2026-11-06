@@ -4,13 +4,21 @@ import { createAuroraClient } from "@xos/ai/client";
 import { Button, InlineAlert } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { findNeedCandidatesAction, setNeedElementAction } from "@/app/[org]/procurement/needs-actions";
+import {
+  findNeedCandidatesAction,
+  setNeedElementAction,
+} from "@/app/[org]/procurement/needs-actions";
 import { useCopy } from "@/components/collection-kit/use-copy";
 
 type Phase =
   | { readonly kind: "running" }
   | { readonly kind: "none" }
-  | { readonly kind: "proposal"; readonly elementId: string; readonly name: string; readonly suggestionIds: readonly string[] };
+  | {
+      readonly kind: "proposal";
+      readonly elementId: string;
+      readonly name: string;
+      readonly suggestionIds: readonly string[];
+    };
 
 /** The proposal itself (needs-suggest-button.tsx): the need takes the element only after the person confirms. */
 export function SuggestCategoryPanel({

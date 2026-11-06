@@ -86,7 +86,10 @@ export async function MaintenanceSchedule({
         />
       }
     >
-      <nav aria-label={t("assets.schedule.filterLabel")} className="flex flex-wrap gap-12 text-text-13">
+      <nav
+        aria-label={t("assets.schedule.filterLabel")}
+        className="flex flex-wrap gap-12 text-text-13"
+      >
         <Link
           href={path as Route}
           aria-current={status === null ? "page" : undefined}
