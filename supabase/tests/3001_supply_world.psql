@@ -1,0 +1,84 @@
+-- Shared pgTAP fixture for the B11 suites (3001 to 3008), included with \ir inside each test transaction after the
+-- allocation world (0700_engagement_world.psql, 2654_project_facts_world.psql, 2691_allocation_world.psql). Every name is
+-- fictional; nothing persists. Orgs hold Standard Library copies since 2002, so nothing here counts an org's rows.
+--
+--   ven_v: Bayside Audio (acct_v, whose Account Owner is victor) as an Active vendor of org_a.
+--   ven: Harborline Staging (no account), from the allocation world.
+--   cls_truss: a class with ten Available units and no rental order on its element.
+--   gate_a and gate_b: gates at venue_a.
+-- pg_temp.po_read_only and friends: pg_temp.producer gives a member one capability.
+
+create function pg_temp.build_supply_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+  v_n integer;
+begin
+  perform pg_temp.as_user('carol');
+  insert into app.vendors (counterparty_id, payment_terms_days) values (pg_temp.id('cp_v_a'), 30) returning id into v_id;
+  insert into world values ('ven_v', v_id);
+  perform app.transition_vendor(pg_temp.id('ven_v'), 'Prospect', 'Onboarded', 'Paperwork in.');
+  perform app.transition_vendor(pg_temp.id('ven_v'), 'Onboarded', 'Active', 'Approved for use.');
+
+  perform pg_temp.as_user('alice');
+  insert into app.asset_classes (org_id, element_id, name) values (pg_temp.id('org_a'), '3000.05.01-GHXST-014', 'Truss Sections')
+  returning id into v_id;
+  insert into world values ('cls_truss', v_id);
+  for v_n in 1..10 loop
+    insert into app.asset_units (asset_class_id, asset_tag) values (pg_temp.id('cls_truss'), 'TRS-' || lpad(v_n::text, 3, '0'))
+    returning id into v_id;
+    insert into world values ('t' || v_n, v_id);
+  end loop;
+  insert into app.zones (venue_id, code, name) values (pg_temp.id('venue_a'), 'GATE-A', 'Gate A') returning id into v_id;
+  insert into world values ('gate_a', v_id);
+  insert into app.zones (venue_id, code, name) values (pg_temp.id('venue_a'), 'GATE-B', 'Gate B') returning id into v_id;
+  insert into world values ('gate_b', v_id);
+
+  perform pg_temp.as_platform();
+  perform private.transition_lifecycle('asset', 'app.asset_units', 'asset_state', 'app.asset_state_transitions', 'asset_unit_id',
+    u.id, 'Proposed', 'Received', 'Fixture.') from app.asset_units u where u.asset_class_id = pg_temp.id('cls_truss');
+  perform private.transition_lifecycle('asset', 'app.asset_units', 'asset_state', 'app.asset_state_transitions', 'asset_unit_id',
+    u.id, 'Received', 'Available', 'Fixture.') from app.asset_units u where u.asset_class_id = pg_temp.id('cls_truss');
+end $$;
+
+select pg_temp.build_supply_world();
+
+-- A Proposed order on a vendor with one line of the quantity; the line may serve a need. World keys p_key and p_key_l.
+create function pg_temp.order_with(p_key text, p_quantity numeric, p_need uuid default null, p_vendor text default 'ven',
+  p_element text default null, p_kind app.acquisition_kind default 'Purchase', p_hire tstzrange default null) returns uuid
+language plpgsql as $$
+declare
+  v_order uuid;
+  v_line uuid;
+begin
+  perform pg_temp.as_user('carol');
+  insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id(p_vendor), 'USD')
+  returning id into v_order;
+  insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor, procurement_need_id, acquisition_kind, hire_period)
+  values (v_order, 1, 'Fixture line.', p_element, p_quantity, 1000, p_need, p_kind, p_hire) returning id into v_line;
+  insert into world values (p_key, v_order), (p_key || '_l', v_line);
+  return v_order;
+end $$;
+
+-- Approves and optionally sends an order.
+create function pg_temp.approve_order(p_key text, p_send boolean default true) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_user('bob');
+  perform app.approve_purchase_order(pg_temp.id(p_key), 'Within limit.');
+  if p_send then
+    perform pg_temp.as_user('carol');
+    perform app.transition_purchase_order(pg_temp.id(p_key), 'Approved', 'Sent', 'Emailed.');
+  end if;
+end $$;
+
+-- The status view's row for a need, read as carol.
+create function pg_temp.need(p_id uuid) returns app.procurement_need_status
+language plpgsql as $$
+declare
+  v app.procurement_need_status;
+begin
+  perform pg_temp.as_user('carol');
+  select s.* into v from app.procurement_need_status s where s.need_id = p_id;
+  return v;
+end $$;

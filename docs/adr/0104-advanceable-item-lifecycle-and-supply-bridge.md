@@ -203,3 +203,24 @@ Migrations 2690 to 2698 build section 5. Where the build differs from the text a
   - G-91: `app.allocation_radio_channels` stores radio channels, set as a whole through
     `app.set_allocation_radio_channels`, and read by `app.radio_handout` and the radio hand-out document (ADR 0031).
   - G-93: `app.asset_class_availability` gives a class's availability over a window.
+
+## Amendment: consolidation (B11, RRR-235, 2026-11)
+
+G-180 consolidates advance requests onto procurement needs (migrations 3001 and 3002).
+
+- **A request is not a need.** An allocation is what one party asked for. `app.procurement_needs` is what the event
+  will actually get. A need's quantity is set by the buyer, and linking requests never changes it; a new need made from
+  a selection starts at the selection's sum.
+- **Statuses read order lines and are never stored.** `app.procurement_need_status` computes Needs Ordered, Short, On
+  Order and Excess from `app.po_lines.procurement_need_id`, and no column holds them.
+- **Ordered, for a need.** This record says Ordered is `po_state` Approved or Sent. A need also counts Closed: a closed
+  order delivered its goods, and they still count as bought, or a need would fall back to Needs Ordered the day the
+  order closed. Proposed lines show only as drafted, and Canceled counts nothing.
+- **Returns.** A return lowers ordered unless its reason is Off Hire or Over Delivery: an off-hire ends a hire that was
+  ordered in full, and an over delivery sends back what was never ordered. Each line reads at least 0.
+- **Requested may be linked.** `app.decide_allocation` holds stock (`private.reserve_allocation`), so a short allocation
+  cannot be approved until it is bought and stays Requested. Consolidation therefore takes Requested as well as
+  Approved. Declined and Withdrawn do not link, and a later withdrawal drops out of the requested quantity.
+- **A pool or its shares, never both.** A split lowers the pool and adds a child. A need's requested quantity reads a
+  linked allocation plus its live Split children, so linking a pool with a linked child, or a child of a linked pool,
+  refuses `need_request_overlap`.
