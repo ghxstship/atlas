@@ -631,6 +631,10 @@ describe("time entries and timesheets", () => {
       "from:timesheet_hours": [
         okResponse([{ timesheet_id: "t1", worked_minutes: 450, has_open_entry: false }]),
         okResponse([{ timesheet_id: "t1", worked_minutes: 450, has_open_entry: true }]),
+        okResponse({
+          period_starts_at: "2027-06-01T04:00:00+00:00",
+          period_ends_at: "2027-06-08T04:00:00+00:00",
+        }),
       ],
       "from:timesheet_approvals": [
         okResponse([
