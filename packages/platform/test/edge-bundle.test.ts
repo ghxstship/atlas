@@ -110,8 +110,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "file-download": 64,
   "fx-rates-ecb": 64,
   // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
-  // does, came to 120.0 KB on 2026-10-31; about 10 percent of headroom.
-  "guest-email": 132,
+  // does, came to 120.0 KB on 2026-10-31; about 10 percent of headroom. 133.7 KB on merge train 9, after the shared
+  // stores it reaches grew, with the same headroom.
+  "guest-email": 147,
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
   // above that.
@@ -160,7 +161,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
   // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
   "wallet-pass": 133,
-  "weather-feed": 64,
+  // B8 (ADR 0147): the shared core plus its own NWS reader; 67.7 KB on merge train 9.
+  "weather-feed": 75,
   "webhook-dispatch": 70,
 };
 
