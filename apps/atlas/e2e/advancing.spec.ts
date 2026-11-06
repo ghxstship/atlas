@@ -364,10 +364,10 @@ test("advancing progress", async ({ page, browser }) => {
   await expectAccessibleInBothThemes(page);
 
   // One recipient answers by phone; the heatmap and the tiles follow.
-  const recordAnswer = async (body: string) => {
+  const recordAnswer = async (body: string, section = "Hotel") => {
     await page.goto(packetUrl);
     await page.getByText("Record an answer given by phone or email").click();
-    await page.getByLabel("Section", { exact: true }).selectOption({ label: "Hotel" });
+    await page.getByLabel("Section", { exact: true }).selectOption({ label: section });
     await page.getByLabel("Recipient", { exact: true }).selectOption({ label: answered });
     await page.getByLabel("Answer", { exact: true }).fill(body);
     await page.getByRole("button", { name: "Record answer" }).click();
@@ -458,35 +458,50 @@ test("advancing progress", async ({ page, browser }) => {
   await signOff.getByRole("button", { name: "Sign off" }).click();
   await expect(track(answered, "Hospitality", "Signed off")).toBeVisible();
 
-  // A newer answer reopens the signed-off track, and returning it leaves the track reopened.
-  const secondAnswer = `Fourteen rooms, three nights ${stamp}.`;
-  await recordAnswer(secondAnswer);
+  // An accepted section takes no new answer (R9), so Power moves onto the signed-off track, which reopens it; answering
+  // Power and having it returned leaves the track reopened.
+  await page.goto(packetUrl);
+  await page.getByRole("button", { name: "Edit Power" }).click();
+  await page.getByLabel("Track", { exact: true }).selectOption({ label: "Hospitality" });
+  await page
+    .locator("form")
+    .filter({ has: page.getByLabel("Track", { exact: true }) })
+    .getByRole("button", { name: "Save", exact: true })
+    .click();
+  await owner.goto(`${progress}&pane=tracks`);
+  await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
+  const secondAnswer = `Two 63 A feeds ${stamp}.`;
+  await recordAnswer(secondAnswer, "Power");
   await owner.goto(`${progress}&pane=tracks`);
   await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
   await owner.goto(`/${ORG}/advancing/submissions`);
   await owner
-    .getByRole("link", { name: new RegExp(`Hotel.*${answered}`) })
+    .getByRole("link", { name: new RegExp(`Power.*${answered}`) })
     .filter({ hasText: title })
     .click();
   await expect(owner.getByText(secondAnswer)).toBeVisible();
   await owner.getByRole("button", { name: "Return", exact: true }).click();
-  await owner.getByLabel("Why it is returned").fill("Fourteen is more than the block holds.");
+  await owner.getByLabel("Why it is returned").fill("The main stage needs a third feed.");
   await owner.getByRole("button", { name: "Return to recipient" }).click();
   await expect(owner.getByText(secondAnswer)).toHaveCount(0);
   await owner.goto(`${progress}&pane=tracks`);
   await expect(track(answered, "Hospitality", "Reopened")).toBeVisible();
   await owner.goto(progress);
   await expect(
-    ownerGrid.getByRole("gridcell", { name: `${answered}, Hotel: Returned` }),
+    ownerGrid.getByRole("gridcell", { name: `${answered}, Power: Returned` }),
   ).toBeVisible();
 
   // A section's track can change after the packet is sent.
   await page.goto(packetUrl);
   await page.getByRole("button", { name: "Edit Power" }).click();
   await page.getByLabel("Track", { exact: true }).selectOption({ label: "Finance" });
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page
+    .locator("form")
+    .filter({ has: page.getByLabel("Track", { exact: true }) })
+    .getByRole("button", { name: "Save", exact: true })
+    .click();
   await owner.goto(`${progress}&pane=tracks`);
-  await expect(track(answered, "Finance", "Not started")).toBeVisible();
+  await expect(track(answered, "Finance", "In progress")).toBeVisible();
   await ownerContext.close();
 
   // At 375 px the panes scroll inside their region, never the page.

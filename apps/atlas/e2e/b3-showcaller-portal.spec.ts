@@ -115,7 +115,7 @@ test("an outside showcaller calls and edits one running order with a link and it
   ).toContainText(/8:01|20:01/, { timeout: 20_000 });
   await guest.getByRole("button", { name: "Edit Walk-in Music Out" }).click();
   const editor = guest.getByRole("group", { name: "Edit cue Walk-in Music Out" });
-  await editor.getByLabel("Cue", { exact: true }).fill("Walk-in Music Fade");
+  await editor.getByRole("textbox", { name: "Cue", exact: true }).fill("Walk-in Music Fade");
   expect(await cognitiveLoadProblems(guest)).toEqual([]);
   await editor.getByRole("tab", { name: "Calls" }).click();
   await editor.getByLabel("Lighting call").fill("LX 12 GO");
