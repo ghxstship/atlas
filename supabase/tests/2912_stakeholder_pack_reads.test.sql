@@ -213,7 +213,7 @@ select pg_temp.put('f1', null, pg_temp.failures()::text);
 select is(pg_temp.open('x', pg_temp.v('t2'), pg_temp.v('r1')), 'pack_link_invalid', 'a link superseded by a later attempt no longer opens');
 select is(pg_temp.failures(), pg_temp.v('f1')::int, 'and does not count as a failure');
 select pg_temp.mint('t4', 'r1');
-select pg_temp.open('g4', pg_temp.v('t4'), null, array[pg_temp.v('g2')]);
+select pg_temp.open('g4', pg_temp.v('t4'), null, array[pg_temp.v('g2')]) is not null;
 
 -- Lockout and the address limit ------------------------------------------------------------------------------------------
 select pg_temp.mint('t3', 'r2');

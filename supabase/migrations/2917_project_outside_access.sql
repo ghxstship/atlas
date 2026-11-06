@@ -128,6 +128,10 @@ call private.describe('app.project_outside_access', 'Everything that reaches a p
   'created_at', 'When it was made.',
   'created_by', 'Person who made it.'
 ]);
+-- recipient_email shows a Confidential column under another name (2030).
+insert into private.view_column_sources (view_name, column_name, source_table, source_column) values
+  ('app.project_outside_access', 'recipient_email', 'app.stakeholder_pack_recipients', 'email')
+on conflict do nothing;
 revoke all on app.project_outside_access from public, anon;
 grant select on app.project_outside_access to authenticated, service_role;
 revoke select on app.project_outside_access from xos_backup;
