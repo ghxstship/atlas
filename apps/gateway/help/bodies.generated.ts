@@ -852,6 +852,25 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " in its row." },
         ],
       },
+      { t: "h2", v: "Accept a quote" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A quote is signed on its own. Choose " },
+          { t: "strong", v: "Sign" },
+          { t: "text", v: " in its row to see its total and the date it is valid until, then " },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". Download its PDF first to read the lines and terms. Accepting records your name, the date and a fingerprint of the exact content on the PDF. If you got a signing link instead, open it, enter the access code, read the quote, type your name and choose ",
+          },
+          { t: "strong", v: "Accept quote" },
+          {
+            t: "text",
+            v: ". A quote past its valid-until date can no longer be accepted; ask for a new version.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -4499,6 +4518,28 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Un documento Por firmar espera tu firma. Elige " },
           { t: "strong", v: "Firmar" },
           { t: "text", v: " en su fila." },
+        ],
+      },
+      { t: "h2", v: "Aceptar una cotización" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Una cotización se firma por separado. Elige " },
+          { t: "strong", v: "Firmar" },
+          {
+            t: "text",
+            v: " en su fila para ver su total y la fecha hasta la que es válida, y luego ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Antes descarga su PDF para leer las líneas y los términos. Al aceptar se registran tu nombre, la fecha y una huella del contenido exacto en el PDF. Si recibiste un enlace de firma, ábrelo, escribe el código de acceso, lee la cotización, escribe tu nombre y elige ",
+          },
+          { t: "strong", v: "Aceptar la cotización" },
+          {
+            t: "text",
+            v: ". Una cotización vencida ya no se puede aceptar; pide una versión nueva.",
+          },
         ],
       },
       {

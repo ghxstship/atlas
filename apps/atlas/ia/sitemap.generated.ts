@@ -1172,6 +1172,13 @@ export const sitemap: Sitemap = {
               list: { views: ["spreadsheet", "table", "matrix"], default: "spreadsheet" },
             },
             {
+              id: "finance.quotes",
+              kind: "page",
+              label: "nav.atlas.pages.finance.quotes",
+              route: "/{org}/finance/quotes",
+              list: { views: ["table", "board"], default: "table" },
+            },
+            {
               id: "finance.expenses",
               kind: "page",
               label: "nav.atlas.pages.finance.expenses",

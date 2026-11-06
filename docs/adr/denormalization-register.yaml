@@ -9,6 +9,14 @@ version: 1
 # Stored derived values and materialized views kept for measured performance: objects, source, refresh rule, reason.
 derived:
   - objects:
+      - app.quote_versions.accepted_name
+      - app.quote_versions.sent_client_name
+      - app.quote_versions.sent_title
+    source: "`app.quotes.title`, the client's name, and the name typed or the signer's name"
+    refresh: "Frozen at send and at signature; never refreshed (migrations 3023 and 3024)"
+    reason: "What the client signed: the fingerprint must keep describing it after a retitle or a rename"
+    adr: "0152"
+  - objects:
       - app.cues.project_id
     source: "`app.run_of_show.project_id`"
     refresh: Stamped by trigger on insert; never updated (migration 0412)

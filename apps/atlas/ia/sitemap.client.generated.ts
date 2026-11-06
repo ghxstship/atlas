@@ -253,6 +253,7 @@ export const clientSitemap: Sitemap = {
       "item",
       [
         ["budgets", "page"],
+        ["quotes", "page"],
         ["expenses", "page"],
         ["change-orders", "page"],
         ["invoices", "page"],
@@ -570,6 +571,7 @@ export const listNodes: ReadonlySet<string> = new Set([
   "crew.time-off",
   "crew.per-diems",
   "finance.budgets",
+  "finance.quotes",
   "finance.expenses",
   "finance.change-orders",
   "finance.invoices",

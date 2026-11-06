@@ -1,5 +1,6 @@
 # Hand-written Atlas pages owned by Finance and Reports (A15). One sitemap node id per line.
 finance.budgets
+finance.quotes
 finance.expenses
 finance.change-orders
 finance.invoices
