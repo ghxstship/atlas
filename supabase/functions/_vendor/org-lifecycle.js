@@ -2129,10 +2129,9 @@ async function expireCheckoutSession(stripe, sessionId) {
  * ends the org or the plan, and only the service role records that Stripe accepted it. This module makes the call: the
  * org-lifecycle worker retries what is due, and Atlas tries once at once for the person waiting.
  *
- * An immediate cancel has no proration and no final invoice, because Terms 5.10 refunds no unused time unless the law
- * requires it. Asking twice is safe: Stripe answers a second cancel with resource_missing, which counts as accepted. The
- * idempotency key changes with each attempt, since Stripe replays a stored failure for 24 hours under the same key and a
- * retry must reach Stripe again.
+ * An immediate cancel has no proration and no final invoice (Terms 5.10). Asking twice is safe: Stripe answers a second
+ * cancel with resource_missing, which counts as accepted. The idempotency key changes with each attempt, since Stripe
+ * replays a stored failure for 24 hours under the same key.
  */
 /**
  * What the worker allows Stripe, so a hang cannot use up the Edge Function's wall clock before certificates and domains
