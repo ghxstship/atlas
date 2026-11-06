@@ -2105,7 +2105,7 @@ tenant_exceptions:
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
   - table: app.rating_sharing_consents
     kind: person-owned
-    note: A person's own opt-in to show their ratings, keyed by person_id, for no one org (ADR 0156, migration 6145).
+    note: A person's own opt-in to show their ratings, keyed by person_id, for no one org (ADR 0158, migration 6145).
   - table: app.shortcut_bindings
     kind: person-owned
     note: Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).

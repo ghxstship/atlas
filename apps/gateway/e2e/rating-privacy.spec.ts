@@ -3,7 +3,7 @@ import { asPerson, newSignIn, PEOPLE, PROJECT, suffix, transition } from "./role
 import { expectAccessible, reloadSettled, signIn, sql } from "./support";
 
 /**
- * Ratings of a person stay with the org that gave them (RRR-248, ADR 0156). A freelancer the demo org rated reads the rating
+ * Ratings of a person stay with the org that gave them (RRR-248, ADR 0158). A freelancer the demo org rated reads the rating
  * on their own profile. Nobody else does until they opt in, and then only a signed-in person who decides no hiring anywhere:
  * an Account Owner, who may place people on shifts, still sees nothing. Withdrawing takes effect on the next read. The rating
  * stays shown after the person disputes it, so a dispute hides nothing.

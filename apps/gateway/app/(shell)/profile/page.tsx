@@ -185,6 +185,10 @@ export default async function ProfilePage() {
     listMyRatingDisputes(ctx.db, ctx.personId),
   ]);
   const disputeByRating = new Map(disputes.ok ? disputes.data.map((d) => [d.ratingId, d]) : []);
+  // An upheld dispute takes its rating out of the list above, so its decision shows on its own.
+  const shownRatings = new Set(ratings.ok ? ratings.data.map((r) => r.id) : []);
+  const removedDisputes =
+    ratings.ok && disputes.ok ? disputes.data.filter((d) => !shownRatings.has(d.ratingId)) : [];
   const count = <T,>(r: { ok: true; data: readonly T[] } | { ok: false }) =>
     r.ok ? r.data.length : 0;
   const blocks = availability.ok ? availability.data : [];
@@ -430,6 +434,21 @@ export default async function ProfilePage() {
             }))}
           />
         )}
+        {removedDisputes.length > 0 ? (
+          <ul className="m-0 flex list-none flex-col gap-8 p-0">
+            {removedDisputes.map((d) => (
+              <li key={d.id} className="flex flex-col gap-4">
+                <p className="m-0 text-text-13 font-medium">
+                  {t("gateway.profile.ratings.dispute.removed", {
+                    org: d.subject?.orgName ?? "",
+                    project: d.subject?.projectName ?? "",
+                  })}
+                </p>
+                <RatingDisputeStanding t={t} ratingId={d.ratingId} dispute={d} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </Section>
 
       {asArtist.length > 0 ? (

@@ -6,7 +6,7 @@ import { Avatar, Icon, Tag } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 import { enumLabelKey, type Translate } from "@/lib/shell/translate";
 
-/** A rating as the profile shows it. The page decides whether the viewer may have any (ADR 0156). */
+/** A rating as the profile shows it. The page decides whether the viewer may have any (ADR 0158). */
 export interface ProfileRating {
   readonly id: string;
   readonly score: number;
@@ -22,7 +22,7 @@ export interface ProfileRating {
  * EPK, languages, references, links, ratings the viewer may read and the organizations they worked
  * with. Sections the viewer may not see arrive empty from api_public and do not render. Ratings of
  * a person come only for the owner or, while the person's opt-in stands, a viewer who decides no
- * hiring (ADR 0156), and there is never an average.
+ * hiring (ADR 0158), and there is never an average.
  */
 export function PublicPersonProfile({
   data,

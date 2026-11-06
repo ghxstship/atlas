@@ -1,4 +1,4 @@
-# ADR 0156: Ratings of People Stay with the Org That Gave Them
+# ADR 0158: Ratings of People Stay with the Org That Gave Them
 
 - Status: Accepted
 - Date: 2026-11-06
@@ -22,7 +22,7 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 | An org's rating of a company or vendor | As before: anyone signed in. The row no longer names the company's contact to them |
 | A party's rating of an org             | As before: anyone signed in                                                        |
 
-- A rating is of an individual when the engagement names a person and either has no engaged account or is for crew, staff, a contractor or an artist (`private.rating_is_of_individual`). An engagement from a company's accepted bid names the applicant as well as the account, so naming a person cannot be the test alone: a vendor, client, sponsor or agency engaged through an account is a company, whoever its named contact is.
+- A rating is of an individual when the engagement names a person and either has no engaged account or is for crew, staff, a contractor or an artist that the account supplied (`private.rating_is_of_individual`). An engagement from a company's accepted bid names the applicant as well as the account, so naming a person cannot be the test alone: a vendor, client, sponsor or agency engaged through an account is a company, whoever its named contact is, and so is a company whose own bid won Contractor, Staff, Crew or Artist work (the application has `applicant_organization_id`).
 - Crew, staff, a contractor or an artist supplied through an account are individuals. That account does not read their rating or answer it.
 - A partner on a shared project, or the holder of a record grant from another org, may read the engagement but not the rating of an individual.
 - The rule is in row level security on `app.ratings` and `app.rating_replies`, and in the row filter of `api_external.ratings`. API v1 reads `app.ratings` under that security, so no v1 field, filter or list reaches another org's rating of an individual. No v1 operation changed.
@@ -30,7 +30,8 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 
 ### 2. The opt-in
 
-- `app.rating_sharing_consents` records the person's own opt-in: off until a row stands, with the notice version, source, time and IP address, one row per grant. Withdrawal closes the row and takes effect at once, since every read checks it. Deleting the account withdraws it.
+- `app.rating_sharing_consents` records the person's own opt-in: off until a row stands, with the notice version, source, time and IP address, one row per grant. Withdrawal closes the row and takes effect at once, since every read checks it. Deleting the account withdraws it. A closed row is purged 7 years after it closed, and the deletion preview says so.
+- Only the person's own session chooses. An OAuth app's or MCP connector's token is an ordinary signed-in JWT and the `app` schema is exposed, so `app.set_rating_sharing` refuses any session with `private.api_key_scopes()`, in both directions. Filing a dispute and answering one refuse the same sessions, since each is a once-only act. The notice version comes from the page the person saw; a stale page records the older notice, which is what they saw.
 - It covers every rating or none. A person cannot show only the favorable ones.
 - It opens one path: `api_public.person_profile_shared_ratings(handle)`, on that person's profile page. One person at a time, in date order, with no average and no rater named. It does not open the table or the view, and no sort, filter, search or score across people can be built on it.
 
@@ -38,15 +39,17 @@ XOS is used for hiring. Under the Fair Credit Reporting Act a consumer report is
 
 The question was whether a hiring, recruitment, crew assignment or eligibility surface may show a person's cross-org rating with their opt-in. We cannot show such a use would not bear on eligibility, so it does not show. The database enforces this in addition to the screens simply not reading it:
 
-- `private.viewer_decides_hiring()` is true for anyone who holds a capability that decides who is hired, booked, selected or put on a shift (`private.hiring_capability_codes()`), in any org or on any project, and for anyone who runs an external account, since an agency may place its people on shifts. Such a viewer gets nothing, even from the opted-in person's own profile page.
+- `private.viewer_decides_hiring()` is true for anyone who holds a capability that decides who is hired, booked, selected, approved as a supplier or put on a shift (`private.hiring_capability_codes()`), at any reach or scope, in any org or on any project, and for anyone who runs an external account, since an agency may place its people on shifts. Such a viewer gets nothing, even from the opted-in person's own profile page.
+- A session scoped to an API key or an app reaches less than the person holds, so it cannot show they decide no hiring. It counts as deciding and reads nothing.
 - No application, pipeline, shortlist, pool, roster, shift, availability ranking, marketplace search or recommendation reads ratings of people. Marketplace discovery and its `recommendation_score` read no ratings. The unused `averageScore` helper in `packages/data` is gone.
-- Who can read a shared rating: someone signed in, to whom the profile is visible, who decides no hiring anywhere.
+- Who can read a shared rating: someone signed in, in their own session, to whom the profile is visible, who holds no hiring, booking or staffing access in XOS. XOS only knows what it grants: someone who hires outside XOS, with a free account, could read it. The notice says so, and the person chooses knowing that.
 
 ### 4. Seeing and disputing
 
 - The rated person reads every released rating of them, with which org gave it, on Gateway's profile page.
-- `app.file_rating_dispute` is the route: one dispute per rating, once released, by the rated individual only. The org that gave the rating may answer once (`app.respond_to_rating_dispute`). A platform operator with `moderation.decide` decides with a statement of reasons in the console (`/moderation/rating-disputes`); the person and the org are told, naming the platform and not the operator. The `rating_dispute` lifecycle is Open to Upheld or Not Upheld.
-- Upheld takes the rating out of every read. The rating row is not edited and stays as evidence.
+- `app.file_rating_dispute` is the route: one dispute per rating, once released, by the rated individual only. The org that gave the rating may answer once (`app.respond_to_rating_dispute`). A platform operator with `moderation.decide` decides with a statement of reasons in the console (`/rating-disputes`); the person and the org are told, naming the platform and not the operator. The `rating_dispute` lifecycle is Open to Upheld or Not Upheld.
+- Upheld takes the rating out of every read. The rating row is not edited and stays as evidence. `app.rating_dispute_subjects` still tells both sides which rating it was (the org, the person, the project and the date), without the score or comment, so the org can answer knowing what it is answering and the person keeps the decision on Gateway.
+- Separation of duties: the rated person never answers for the org (`sod_rating_dispute_answer`), and an operator who belongs to the rating org never decides (`sod_rating_dispute_decide`). No screen or notice outside the console names the deciding operator, and the dispute's ledger hides who acted. The rating org's audit ledger still records the acting person id, as it does for every operator change to a tenant row (A90).
 - An operator may uphold only for a named ground: the wrong person, a false statement, abusive content or personal data. The person may file with Other, but a dispute is not upheld on it. The queue and the detail never show the score.
 - Filing does not hide the rating. A shared rating shows a Disputed tag while the dispute is open.
 
@@ -57,7 +60,7 @@ ADR 0038 stands: ratings are always on, `gateway.ratings_enabled` controls promp
 The FTC rule (16 CFR 465.7) reaches a business that controls a review website and suppresses reviews based on their rating or negative sentiment while representing that what is shown is all or most of the reviews. Limiting who reads a rating by relationship is a different thing:
 
 - **The rule is content-neutral.** It looks at who is asking and which engagement the rating came from. No path reads the score or the comment. A five-star rating of a person and a one-star rating of a person are restricted in exactly the same way, and so are a person's and a company's whatever they say. pgTAP proves a low score reads for the same people as a high one.
-- **Nothing is represented as complete that is not.** There is no public list of a person's ratings that omits the negative ones. A shared list is all of them, says so, and the person cannot pick.
+- **Nothing is represented as complete that is not.** There is no public list of a person's ratings that omits the negative ones. A shared list is every released rating, except one an operator removed on a named ground; it says exactly that, and the person cannot pick.
 - **Nobody can suppress a negative rating.** The org cannot, the rated person cannot pick (all or none), and filing a dispute hides nothing. Removal follows an operator's decision on grounds the rule itself recognizes, applied whatever the score, and the operator does not see the score.
 - **Company ratings keep their reach,** so a negative rating of a company still reads for everyone it did before.
 
@@ -78,11 +81,14 @@ Whether Part 465 applies to ratings between organizations and workers at all is 
 ## Consequences
 
 - `rated_person_id` stays on the view, additively, and `rater_organization_name` joins it; the rows changed, not the shape. On a company's rating, `rated_person_id` now reads only for the named contact and the org.
-- A new capability that decides hiring must join `private.hiring_capability_codes()`. Nothing adds it automatically, so its code review is the control.
+- A new capability that decides hiring must join `private.hiring_capability_codes()`. pgTAP suite 6145 fails when the opportunities, people or crew group gains a capability that is neither on that list nor named as not deciding hiring. A capability in another group still rests on code review.
+- pgTAP suite 6145 also fails when an owner-rights view reads `app.ratings` without `private.internal_rating_engagement_ids()` and `private.removed_rating_ids()`, or a new function reads `app.ratings` without being classified, so a later package cannot undo this unnoticed.
+- `app.crew_ratings` (B9, on `orch-train-10` as migration 6517) is such a view, and that gate will fail when it merges. The merge must add a follow-up migration above its block, named `<next>_crew_ratings_person_rule.sql`, that recreates the view with `g.id not in (select private.removed_rating_ids())` and `g.engagement_id in (select private.internal_rating_engagement_ids())` in place of `private.internal_engagement_ids('opportunities.engagement.read')`. Migration 6525 on that branch also redefines `private.account_deletion_tables()` without `app.rating_sharing_consents`; the same follow-up restores it.
 - A one-person vendor engaged through an account is still a company here. If a marker for a sole proprietor is added later, those ratings should follow Section 1.
 - A company's rating is free text and can name a person. The contact it names may not dispute it through this route; the Acceptable Use Policy's report routes remain, and a later change could extend the route.
-- A hirer who holds no hiring capability in XOS, or who reads a screenshot a person's friend took, is out of reach. The Acceptable Use Policy's bar on screening with ratings is the remaining control, and it is not a cure.
-- A rating dispute has no appeal to a second operator. With one operator, that review could not be kept.
+- A hirer who holds no hiring capability in XOS, or who reads a screenshot a person's friend took, is out of reach. The notice says so, and the Acceptable Use Policy's bar on screening with ratings is the remaining control, and it is not a cure.
+- An engagement a member entered by hand, naming a person and an account for Contractor, Staff, Crew or Artist work with no application behind it, counts as an individual. That is the stricter reading: the account's owner loses sight of it until the data says otherwise.
+- A rating dispute has no appeal to a second operator. With one operator, that review could not be kept. For the same reason, with one operator a dispute of a rating by an org that operator belongs to cannot be decided until a second operator exists.
 
 ## Alternatives considered
 

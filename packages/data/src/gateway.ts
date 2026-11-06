@@ -24,6 +24,7 @@ import {
 } from "./gateway-external.ts";
 import { toDisplayKey } from "./gateway-keys.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { readRatingDisputeSubjects, type RatingDisputeSubject } from "./rating-dispute-subjects.ts";
 import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
 
@@ -909,7 +910,7 @@ export interface Rating {
 
 /**
  * Released ratings about a person or an organization, newest first. A rating of a person reads only for that person and
- * members of the org that gave it (ADR 0156), so asking about anyone else returns nothing.
+ * members of the org that gave it (ADR 0158), so asking about anyone else returns nothing.
  */
 export async function listRatingsAbout(
   db: XosClient,
@@ -971,7 +972,7 @@ export async function replyToRating(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
-// Showing and disputing ratings of a person (ADR 0156) ---------------------------------------------------------------
+// Showing and disputing ratings of a person (ADR 0158) ---------------------------------------------------------------
 
 /**
  * The version of the notice beside the rating sharing choice, recorded with each opt-in. Change it whenever that notice's
@@ -1015,6 +1016,8 @@ export interface MyRatingDispute {
   readonly orgResponse: string | null;
   readonly decisionStatement: string | null;
   readonly decidedAt: string | null;
+  /** What the dispute is about, which outlives a rating removed by an upheld dispute. */
+  readonly subject: RatingDisputeSubject | null;
 }
 
 /** The disputes the signed-in person filed, with the org's answer and the decision, newest first. */
@@ -1022,26 +1025,31 @@ export async function listMyRatingDisputes(
   db: XosClient,
   personId: string,
 ): Promise<Result<MyRatingDispute[]>> {
-  const { data, error } = await db
-    .from("rating_disputes")
-    .select(
-      "id, rating_id, dispute_ground, details, dispute_state, filed_at, org_response, decision_statement, decided_at",
-    )
-    .eq("disputant_person_id", personId)
-    .is("deleted_at", null)
-    .order("filed_at", { ascending: false });
+  const [{ data, error }, subjects] = await Promise.all([
+    db
+      .from("rating_disputes")
+      .select(
+        "id, rating_id, dispute_ground, dispute_details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+      )
+      .eq("disputant_person_id", personId)
+      .is("deleted_at", null)
+      .order("filed_at", { ascending: false }),
+    readRatingDisputeSubjects(db),
+  ]);
   if (error) return fail(toDataError(error));
+  if (!subjects.ok) return subjects;
   return ok(
     data.map((row) => ({
       id: row.id,
       ratingId: row.rating_id,
       ground: row.dispute_ground,
-      details: row.details,
+      details: row.dispute_details,
       state: row.dispute_state,
       filedAt: row.filed_at,
       orgResponse: row.org_response,
       decisionStatement: row.decision_statement,
       decidedAt: row.decided_at,
+      subject: subjects.data.get(row.id) ?? null,
     })),
   );
 }

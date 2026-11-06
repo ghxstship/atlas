@@ -705,7 +705,7 @@ describe("ratings", () => {
             id: "d1",
             rating_id: "r1",
             dispute_ground: "False Statement",
-            details: "I was on time.",
+            dispute_details: "I was on time.",
             dispute_state: "Open",
             filed_at: "2026-11-06T12:00:00Z",
             org_response: null,
@@ -714,6 +714,21 @@ describe("ratings", () => {
           },
         ]),
         errorResponse("08000", "down"),
+      ],
+      "rpc:rating_dispute_subjects": [
+        okResponse([
+          {
+            dispute_id: "d1",
+            org_name: "Harbor",
+            engagement_id: "e1",
+            party_name: "Ivy Chen",
+            project_name: "Summer Series",
+            rating_score: null,
+            rating_comment: null,
+            rating_submitted_at: "2026-11-01T12:00:00Z",
+          },
+        ]),
+        okResponse([]),
       ],
       "rpc:file_rating_dispute": [
         okResponse("d1"),

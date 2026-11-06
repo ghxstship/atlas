@@ -210,7 +210,7 @@ export async function reportedListing(): Promise<{ id: string; title: string }> 
   return { id, title };
 }
 
-/** A released rating of the demo crew person, by the demo org, that the person disputes (ADR 0156). */
+/** A released rating of the demo crew person, by the demo org, that the person disputes (ADR 0158). */
 export async function disputedRating(): Promise<{ id: string; comment: string; details: string }> {
   const tag = uniqueId().slice(-4).toUpperCase();
   const comment = `Late to the rigging call ${tag}.`;

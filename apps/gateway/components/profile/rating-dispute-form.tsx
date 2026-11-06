@@ -13,7 +13,7 @@ import { enumLabelKey } from "@/lib/enum-key";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
- * The rated person's dispute of a rating (ADR 0156): why, and what is wrong. It sits closed under the rating so the rating
+ * The rated person's dispute of a rating (ADR 0158): why, and what is wrong. It sits closed under the rating so the rating
  * stays the first thing read. A platform operator decides; filing does not hide the rating.
  */
 export function RatingDisputeForm({ ratingId }: { ratingId: string }) {

@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Rating disputes (ADR 0156): people disputing a rating an org gave them, oldest open first, or the decided ones. The score
+ * Rating disputes (ADR 0158): people disputing a rating an org gave them, oldest open first, or the decided ones. The score
  * is not on this page or the next: what a rating scored cannot decide its dispute.
  */
 export default async function RatingDisputesPage({ searchParams }: PageProps<"/rating-disputes">) {

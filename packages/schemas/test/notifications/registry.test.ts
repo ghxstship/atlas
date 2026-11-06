@@ -62,7 +62,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and the two rating dispute kinds
-    // of ADR 0156 (6146).
+    // of ADR 0158 (6146).
     expect(registry.kinds).toHaveLength(75);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",

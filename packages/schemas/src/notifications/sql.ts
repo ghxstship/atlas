@@ -23,7 +23,7 @@ import type { NotificationKindRegistry } from "./model.ts";
  * B16's subscription pause notices billing.paused and billing.resumed (6051) and agent.change_proposed (6052), which
  * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
  * and transfer.assigned (5947) to it. 6149 adds the rating dispute notices rating_dispute.filed and
- * rating_dispute.decided (6146, ADR 0156) and carries 6059's.
+ * rating_dispute.decided (6146, ADR 0158) and carries 6059's.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/6149_notification_kind_seed.sql";

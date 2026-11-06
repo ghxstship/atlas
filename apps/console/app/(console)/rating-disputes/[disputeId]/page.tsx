@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * One rating dispute (ADR 0156): what the person says, the rating's comment without its score, the org's answer, and the
+ * One rating dispute (ADR 0158): what the person says, the rating's comment without its score, the org's answer, and the
  * form to decide. Reading it is logged in the console ledger.
  */
 export default async function RatingDisputePage({

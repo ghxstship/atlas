@@ -1831,7 +1831,7 @@
     "ratings": {
       "title": "Calificaciones",
       "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican.",
-      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
+      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti, salvo que decidas mostrar tus calificaciones en tu perfil. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
       "whoAction": "Elige si quieres mostrarlas en tu perfil.",
       "dispute": {
         "open": "Impugnar esta calificación",
@@ -1840,6 +1840,7 @@
         "details": "Qué está mal",
         "submit": "Enviar impugnación",
         "standing": "Tu impugnación: {state}. {ground}.",
+        "removed": "Se retiró una calificación de {org} en {project} tras tu impugnación.",
         "orgResponse": "La organización respondió: {response}",
         "decision": "Decisión: {statement}"
       }
@@ -1890,8 +1891,8 @@
       "links": "Enlaces",
       "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
       "ownerAction": "Configuración de privacidad",
-      "ratingsShared": "Se muestran porque esta persona lo decidió, y están todas. No sirven para decidir a quién contratar.",
-      "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes contraten o asignen personal en cualquier organización. Puedes cambiarlo en tu configuración de privacidad.",
+      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar.",
+      "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes tengan acceso de contratación, reserva o asignación de personal en XOS. Alguien que contrate fuera de XOS aún podría leerlas. Puedes cambiarlo en tu configuración de privacidad.",
       "ratingsOwnerPrivate": "Solo tú y la organización que te calificó pueden leerlas. Nadie más las ve aquí.",
       "disputed": "Impugnada por esta persona"
     },
@@ -2110,7 +2111,7 @@
       },
       "ratings": {
         "title": "Calificaciones sobre ti",
-        "body": "La calificación que te da una organización solo pueden leerla esa organización y tú. Si activas esta opción, las personas con sesión iniciada podrán leer todas tus calificaciones en tu perfil, incluidas las bajas. No puedes elegir cuáles. Quien contrate o asigne personal en cualquier organización seguirá sin verlas, y nunca aparecen en una solicitud, en una búsqueda ni en una pantalla de equipo. Desactívala cuando quieras y dejarán de mostrarse al instante.",
+        "body": "La calificación que te da una organización solo pueden leerla esa organización y tú. Si activas esta opción, las personas con sesión iniciada podrán leer todas tus calificaciones en tu perfil, incluidas las bajas. No puedes elegir cuáles. Quienes tengan acceso de contratación, reserva o asignación de personal en XOS seguirán sin verlas, y nunca aparecen en una solicitud, en una búsqueda ni en una pantalla de equipo. No podemos saber quién contrata fuera de XOS, así que alguien así con una cuenta gratuita podría leerlas. Desactívala cuando quieras y dejarán de mostrarse al instante. Solo tú puedes cambiar esto, desde tu propia sesión; una aplicación conectada no puede.",
         "choice": "Mostrar todas mis calificaciones en mi perfil",
         "save": "Guardar esta elección"
       }

@@ -59,6 +59,7 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "rating_dispute_decided",
   "rating_dispute_answered",
   "rating_dispute_response",
+  "sod_rating_dispute_answer",
   "sod_rating_self",
   "deliverable_return_reason",
   "sod_deliverable_self",

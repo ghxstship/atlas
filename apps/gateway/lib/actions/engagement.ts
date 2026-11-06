@@ -129,7 +129,7 @@ export async function replyToRatingAction(
   return result.ok ? { done: true } : { outcome: result.outcome };
 }
 
-/** The rated person disputes a rating of them; the database checks it is theirs and released (ADR 0156). */
+/** The rated person disputes a rating of them; the database checks it is theirs and released (ADR 0158). */
 export async function fileRatingDisputeAction(
   _: RatingFormState,
   form: FormData,

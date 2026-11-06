@@ -33,7 +33,7 @@ async function sql<T extends Record<string, unknown>>(
 }
 
 /**
- * ADR 0156: a person the org rated disputes the rating. The org that gave it sees the dispute on its Ratings page and answers
+ * ADR 0158: a person the org rated disputes the rating. The org that gave it sees the dispute on its Ratings page and answers
  * once. It has no way to remove the rating or decide the dispute itself; a platform operator does that in the console.
  */
 test("the org answers a dispute of its rating, once, and cannot decide it", async ({ page }) => {
@@ -82,6 +82,11 @@ test("the org answers a dispute of its rating, once, and cannot decide it", asyn
   const item = section.getByRole("listitem").filter({ hasText: details });
   await expect(item).toBeVisible();
   await expect(item.getByText("Says it is false", { exact: false })).toBeVisible();
+  // The org can tell which rating it is answering for.
+  await expect(item.getByRole("link")).toHaveAttribute("href", new RegExp(`id=${engagement?.id}`));
+  await expect(
+    item.getByText(`Your rating: 2 stars. Late to the call ${tag}.`, { exact: true }),
+  ).toBeVisible();
   await expectAccessible(page);
 
   await item.getByLabel("Your answer", { exact: true }).fill(answer);

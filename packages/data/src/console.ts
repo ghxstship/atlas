@@ -833,7 +833,7 @@ export function groundsFor(action: ModerationAction): readonly ModerationGround[
     : ["No Violation"];
 }
 
-// Rating disputes (ADR 0156). The score never comes through here: what a rating scored cannot decide its dispute. ------
+// Rating disputes (ADR 0158). The score never comes through here: what a rating scored cannot decide its dispute. ------
 
 export type RatingDisputeState = Database["app"]["Enums"]["rating_dispute_state"];
 export type RatingDisputeGround = Database["app"]["Enums"]["rating_dispute_ground"];

@@ -193,7 +193,8 @@
       "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them.",
       "rating_dispute_decided": "This dispute has already been decided.",
       "rating_dispute_answered": "Your organization has already answered this dispute.",
-      "rating_dispute_response": "Write your answer in up to 4,000 characters."
+      "rating_dispute_response": "Write your answer in up to 4,000 characters.",
+      "sod_rating_dispute_answer": "You filed this dispute, so someone else with rating access answers it for the organization."
     },
     "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
     "questionsNotApplied": "The draft is saved, but the template's questions were not added. Open the draft and add them there."
@@ -418,7 +419,7 @@
     "reply": "Public reply",
     "sendReply": "Reply",
     "rateTitle": "Rate the party",
-    "ratingHelp": "Never edited. Only your organization and the person can read a rating of a person. A rating of a company can be read by anyone signed in. Keep internal notes off ratings.",
+    "ratingHelp": "Never edited. Only your organization and the person can read a rating of a person, unless that person chooses to show their ratings on their profile. A rating of a company can be read by anyone signed in. Keep internal notes off ratings.",
     "rate": "Submit rating",
     "stars": "{score, plural, one {# star} other {# stars}}",
     "reengagement": "Re-engagement",
@@ -444,6 +445,7 @@
     "disputes": {
       "title": "Disputes of your ratings",
       "help": "A person you rated may dispute the rating. You can answer once, and our platform team decides. A low score alone is never a reason to remove a rating, and you cannot remove one yourself.",
+      "yourRating": "Your rating: {score}. {comment}",
       "answer": "Your answer",
       "sendAnswer": "Send answer",
       "answered": "Your answer: {response}",

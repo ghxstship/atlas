@@ -193,7 +193,8 @@
       "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos.",
       "rating_dispute_decided": "Esta impugnación ya se decidió.",
       "rating_dispute_answered": "Tu organización ya respondió a esta impugnación.",
-      "rating_dispute_response": "Escribe tu respuesta en un máximo de 4,000 caracteres."
+      "rating_dispute_response": "Escribe tu respuesta en un máximo de 4,000 caracteres.",
+      "sod_rating_dispute_answer": "Tú presentaste esta impugnación, así que otra persona con acceso a valoraciones responde por la organización."
     },
     "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
     "questionsNotApplied": "El borrador está guardado, pero no se añadieron las preguntas de la plantilla. Abre el borrador y añádelas allí."
@@ -418,7 +419,7 @@
     "reply": "Respuesta pública",
     "sendReply": "Responder",
     "rateTitle": "Valorar a la parte",
-    "ratingHelp": "Nunca se edita. Solo tu organización y la persona pueden leer la valoración de una persona. La valoración de una empresa la puede leer cualquiera con sesión iniciada. No incluyas notas internas en las valoraciones.",
+    "ratingHelp": "Nunca se edita. Solo tu organización y la persona pueden leer la valoración de una persona, salvo que esa persona decida mostrar sus valoraciones en su perfil. La valoración de una empresa la puede leer cualquiera con sesión iniciada. No incluyas notas internas en las valoraciones.",
     "rate": "Enviar valoración",
     "stars": "{score, plural, one {# estrella} other {# estrellas}}",
     "reengagement": "Nueva contratación",
@@ -444,6 +445,7 @@
     "disputes": {
       "title": "Impugnaciones de tus valoraciones",
       "help": "Una persona a la que valoraste puede impugnar la valoración. Puedes responder una vez y nuestro equipo de la plataforma decide. Una puntuación baja por sí sola nunca es motivo para retirar una valoración, y no puedes retirarla tú.",
+      "yourRating": "Tu valoración: {score}. {comment}",
       "answer": "Tu respuesta",
       "sendAnswer": "Enviar respuesta",
       "answered": "Tu respuesta: {response}",

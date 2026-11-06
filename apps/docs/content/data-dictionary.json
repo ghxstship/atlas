@@ -6047,7 +6047,7 @@
           "type": "boolean"
         }
       ],
-      "comment": "Released two-sided ratings and their replies (Section 4.4.3). A rating of a company or vendor, or a party's rating of an org, reads for anyone signed in, without naming the company's contact. An org's rating of an individual reads only for that person and members of the org that gave it, opt-in or not (ADR 0156). Internal ratings and org notes never appear.",
+      "comment": "Released two-sided ratings and their replies (Section 4.4.3). A rating of a company or vendor, or a party's rating of an org, reads for anyone signed in, without naming the company's contact. An org's rating of an individual reads only for that person and members of the org that gave it, opt-in or not (ADR 0158). Internal ratings and org notes never appear.",
       "kind": "view",
       "name": "ratings",
       "partitioned": false,
@@ -57603,7 +57603,7 @@
         },
         {
           "comment": "What the person says is wrong.",
-          "name": "details",
+          "name": "dispute_details",
           "nullable": false,
           "references": null,
           "type": "text"
@@ -57658,7 +57658,7 @@
           "type": "text"
         },
         {
-          "comment": "Operator who decided, from the session; never the disputant and never shown outside the console.",
+          "comment": "Operator who decided, from the session; never the disputant nor a member of the rating org. No screen or notice outside the console names them; like any change to a tenant row, the org's audit ledger records the acting person (A90).",
           "name": "decided_by",
           "nullable": true,
           "references": "app.people.id",
@@ -57707,7 +57707,7 @@
           "type": "uuid"
         }
       ],
-      "comment": "A rated person's dispute of an org's rating of them (ADR 0156). The org that gave the rating may answer once; a platform operator decides. Written only through the dispute RPCs. A dispute does not hide the rating while it is open, so filing one suppresses nothing.",
+      "comment": "A rated person's dispute of an org's rating of them (ADR 0158). The org that gave the rating may answer once; a platform operator decides. Written only through the dispute RPCs. A dispute does not hide the rating while it is open, so filing one suppresses nothing.",
       "kind": "table",
       "name": "rating_disputes",
       "partitioned": false,
@@ -57883,7 +57883,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "A person's own opt-in to show organizations' ratings of them on their profile (ADR 0156). Off until a row stands; one row per grant; a withdrawal closes the row and takes effect at once. It covers every rating or none, so no one can show only the good ones.",
+      "comment": "A person's own opt-in to show organizations' ratings of them on their profile (ADR 0158). Off until a row stands; one row per grant; a withdrawal closes the row and takes effect at once. It covers every rating or none, so no one can show only the good ones.",
       "kind": "table",
       "name": "rating_sharing_consents",
       "partitioned": false,
@@ -57929,7 +57929,7 @@
           "type": "smallint"
         },
         {
-          "comment": "Comment on the rating. Who reads it depends on who was rated, never on what it says (ADR 0156).",
+          "comment": "Comment on the rating. Who reads it depends on who was rated, never on what it says (ADR 0158).",
           "name": "comment",
           "nullable": true,
           "references": null,
@@ -57985,7 +57985,7 @@
           "type": "uuid"
         }
       ],
-      "comment": "Two-sided ratings of a completed engagement (Section 4.4.3): the org rates the party and the party rates the org. Both are released together once both are in or 14 days after the engagement completed. An org's rating of an individual reads only inside that org and for that person (ADR 0156); a rating of a company or vendor and a party's rating of an org read for anyone signed in. Ratings are never edited, withdrawn or suppressed by the org or the rated side (Section 14.9); gateway.ratings_enabled only decides whether the org's members are prompted to rate and never hides or removes a rating (ADR 0038). Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score. Internal org notes and internal ratings live elsewhere and never appear here.",
+      "comment": "Two-sided ratings of a completed engagement (Section 4.4.3): the org rates the party and the party rates the org. Both are released together once both are in or 14 days after the engagement completed. An org's rating of an individual reads only inside that org and for that person (ADR 0158); a rating of a company or vendor and a party's rating of an org read for anyone signed in. Ratings are never edited, withdrawn or suppressed by the org or the rated side (Section 14.9); gateway.ratings_enabled only decides whether the org's members are prompted to rate and never hides or removes a rating (ADR 0038). Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score. Internal org notes and internal ratings live elsewhere and never appear here.",
       "kind": "table",
       "name": "ratings",
       "partitioned": false,

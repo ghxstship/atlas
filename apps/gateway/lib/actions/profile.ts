@@ -91,7 +91,7 @@ export async function saveProfileAction(
 }
 
 /**
- * The person's own choice to show every rating of them on their profile (ADR 0156). Turning it on records the notice they
+ * The person's own choice to show every rating of them on their profile (ADR 0158). Turning it on records the notice they
  * saw; turning it off takes effect at once.
  */
 export async function saveRatingSharingAction(

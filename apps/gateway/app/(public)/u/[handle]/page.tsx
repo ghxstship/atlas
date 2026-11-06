@@ -15,7 +15,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * The ratings this viewer may read on the profile (ADR 0156): the owner reads theirs; someone signed in reads them only
+ * The ratings this viewer may read on the profile (ADR 0158): the owner reads theirs; someone signed in reads them only
  * while the person's opt-in stands and only if they decide no hiring in any org, which the database checks. Nobody signed
  * out reads any.
  */

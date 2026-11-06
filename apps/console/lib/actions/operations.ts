@@ -85,7 +85,7 @@ export async function decideListingAction(_: ActionState, form: FormData): Promi
   return fromResult(result);
 }
 
-/** An operator decides a rating dispute (ADR 0156). Upholding needs a named ground, which the database checks again. */
+/** An operator decides a rating dispute (ADR 0158). Upholding needs a named ground, which the database checks again. */
 export async function decideRatingDisputeAction(
   _: ActionState,
   form: FormData,

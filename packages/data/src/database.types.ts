@@ -43225,8 +43225,8 @@ export type Database = {
           decision_ground: Database["app"]["Enums"]["rating_dispute_ground"] | null;
           decision_statement: string | null;
           deleted_at: string | null;
-          details: string;
           disputant_person_id: string;
+          dispute_details: string;
           dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
           dispute_state: Database["app"]["Enums"]["rating_dispute_state"];
           filed_at: string;
@@ -43248,8 +43248,8 @@ export type Database = {
           decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
           decision_statement?: string | null;
           deleted_at?: string | null;
-          details: string;
           disputant_person_id: string;
+          dispute_details: string;
           dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
           dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
           filed_at?: string;
@@ -43270,8 +43270,8 @@ export type Database = {
           decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
           decision_statement?: string | null;
           deleted_at?: string | null;
-          details?: string;
           disputant_person_id?: string;
+          dispute_details?: string;
           dispute_ground?: Database["app"]["Enums"]["rating_dispute_ground"];
           dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
           filed_at?: string;
@@ -74332,6 +74332,19 @@ export type Database = {
           person_id: string;
           week_minutes: number;
           worked_role: boolean;
+        }[];
+      };
+      rating_dispute_subjects: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          dispute_id: string;
+          engagement_id: string;
+          org_name: string;
+          party_name: string;
+          project_name: string;
+          rating_comment: string;
+          rating_score: number;
+          rating_submitted_at: string;
         }[];
       };
       react_to_feed_post: {

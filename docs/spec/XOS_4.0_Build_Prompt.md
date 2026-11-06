@@ -518,7 +518,7 @@ Gateway is the external face of every org on the platform. Atlas is for the peop
 - Ratings come only from completed engagements, and both sides rate each other.
 - Both ratings are released together, once both are in or after 14 days.
 - The person rated can reply.
-- An org's rating of an individual is read only inside that org and by that person; another org sees it only through that person's own withdrawable opt-in, and never on a hiring surface. The person can dispute it (ADR 0156).
+- An org's rating of an individual is read only inside that org and by that person; another org sees it only through that person's own withdrawable opt-in, and never on a hiring surface. The person can dispute it (ADR 0158).
 - Internal org notes are never shown externally.
 
 **Abuse**
@@ -1100,7 +1100,7 @@ AI features use Anthropic's Claude models through the Anthropic API. The model i
   - photo, name, preferred name, pronouns (optional), headline, bio, location to city level
   - skills by URID, certifications with verification badges, portfolio or EPK
   - rates (optional), availability, languages, links
-  - ratings from completed engagements, for the person themselves and, with their opt-in, for viewers who decide no hiring (ADR 0156)
+  - ratings from completed engagements, for the person themselves and, with their opt-in, for viewers who decide no hiring (ADR 0158)
   - organizations worked with (each one shown only if both sides allow it)
 - **Organization profile:**
   - logo, cover, name, about, locations and service regions, capabilities by URID

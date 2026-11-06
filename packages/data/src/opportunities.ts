@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { readRatingDisputeSubjects, type RatingDisputeSubject } from "./rating-dispute-subjects.ts";
 import * as enums from "./enums.generated.ts";
 
 /**
@@ -1527,40 +1528,47 @@ export interface RatingDispute {
   readonly orgResponse: string | null;
   readonly decisionStatement: string | null;
   readonly decidedAt: string | null;
+  /** What the dispute is about, so the org knows what it is answering; null only if the read failed to match. */
+  readonly subject: RatingDisputeSubject | null;
 }
 
-/** Disputes of the ratings this org gave people, open ones first in filing order (ADR 0156). */
+/** Disputes of the ratings this org gave people, open ones first in filing order (ADR 0158). */
 export async function listRatingDisputes(
   db: XosClient,
   orgId: string,
 ): Promise<Result<RatingDispute[]>> {
-  const { data, error } = await db
-    .from("rating_disputes")
-    .select(
-      "id, rating_id, dispute_ground, details, dispute_state, filed_at, org_response, decision_statement, decided_at",
-    )
-    .eq("org_id", orgId)
-    .is("deleted_at", null)
-    .order("filed_at", { ascending: false });
+  const [{ data, error }, subjects] = await Promise.all([
+    db
+      .from("rating_disputes")
+      .select(
+        "id, rating_id, dispute_ground, dispute_details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+      )
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("filed_at", { ascending: false }),
+    readRatingDisputeSubjects(db),
+  ]);
   if (error) return fail(toDataError(error));
+  if (!subjects.ok) return subjects;
   return ok(
     data
       .map((row) => ({
         id: row.id,
         ratingId: row.rating_id,
         ground: row.dispute_ground,
-        details: row.details,
+        details: row.dispute_details,
         state: row.dispute_state,
         filedAt: row.filed_at,
         orgResponse: row.org_response,
         decisionStatement: row.decision_statement,
         decidedAt: row.decided_at,
+        subject: subjects.data.get(row.id) ?? null,
       }))
       .sort((a, b) => Number(b.state === "Open") - Number(a.state === "Open")),
   );
 }
 
-/** The org that gave a rating answers a dispute of it once while it is open. A platform operator decides (ADR 0156). */
+/** The org that gave a rating answers a dispute of it once while it is open. A platform operator decides (ADR 0158). */
 export async function respondToRatingDispute(
   db: XosClient,
   disputeId: string,

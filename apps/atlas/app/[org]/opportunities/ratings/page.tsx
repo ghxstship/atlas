@@ -21,7 +21,7 @@ import { rateAction, replyAction, respondToRatingDisputeAction } from "../action
  * Ratings (Section 4.4.3, Section 14.9): two-sided ratings of completed engagements. The org rates the party here; both
  * ratings release together once both are in or 14 days after completion; the org replies once to the party's rating.
  * Ratings are never edited, withdrawn or suppressed, and internal notes never appear here. A rating of a person stays with
- * this org and that person (ADR 0156): the person may dispute it, the org answers here, and a platform operator decides.
+ * this org and that person (ADR 0158): the person may dispute it, the org answers here, and a platform operator decides.
  * gateway.ratings_enabled decides only whether members are prompted to rate (ADR 0038): with prompts off the list of
  * engagements waiting for a rating goes, and every rating still shows.
  */
@@ -121,7 +121,13 @@ export default async function RatingsPage({
           <p className="m-0 text-text-13 text-text-secondary">{t("ratings.disputes.help")}</p>
           <ul className="m-0 flex list-none flex-col gap-8 p-0">
             {disputed.map((d) => (
-              <DisputeItem key={d.id} page={page} d={d} canRate={canRate} />
+              <DisputeItem
+                key={d.id}
+                page={page}
+                d={d}
+                canRate={canRate}
+                engagementsHref={engagementsHref}
+              />
             ))}
           </ul>
         </Section>
@@ -187,14 +193,34 @@ function DisputeItem({
   page,
   d,
   canRate,
+  engagementsHref,
 }: {
   page: PageSetup;
   d: RatingDispute;
   canRate: boolean;
+  engagementsHref: string;
 }) {
   const { ctx, t } = page;
+  const about = d.subject;
   return (
     <li className="flex flex-col gap-4 rounded-card border border-border-subtle p-8 text-text-13">
+      {about ? (
+        <>
+          <p className="m-0 font-medium">
+            <RowLink href={`${engagementsHref}?id=${about.engagementId}`}>
+              {about.partyName ?? t("engagements.unnamed")} · {about.projectName}
+            </RowLink>
+          </p>
+          {about.ratingScore === null ? null : (
+            <p className="m-0">
+              {t("ratings.disputes.yourRating", {
+                score: t("engagements.stars", { score: about.ratingScore }),
+                comment: about.ratingComment ?? t("none"),
+              })}
+            </p>
+          )}
+        </>
+      ) : null}
       <p className="m-0 font-medium">
         {t(`ratings.disputes.grounds.${enumKey(d.ground)}`)} ·{" "}
         {t(`ratings.disputes.states.${enumKey(d.state)}`)}

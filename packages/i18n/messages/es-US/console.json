@@ -125,6 +125,7 @@
     "funnel_alert_missing": "Esa alerta de embudo ya no existe. Vuelve a cargar la página.",
     "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada.",
     "rating_dispute_own": "Otro operador decide esta impugnación: es tuya.",
+    "sod_rating_dispute_decide": "Otro operador decide esta impugnación: perteneces a la organización que dio la calificación.",
     "rating_dispute_outcome": "Acepta la impugnación o recházala.",
     "rating_dispute_decision_ground": "Para aceptarla se necesita un motivo concreto: persona equivocada, declaración falsa, contenido ofensivo o datos personales. Una puntuación baja o una opinión desfavorable no lo son.",
     "rating_dispute_statement": "Escribe los motivos que recibirán la persona y la organización, en un máximo de 4,000 caracteres.",
@@ -739,7 +740,7 @@
     "statementHelp": "Se envía tal como lo escribas. Di qué decidiste y por qué, sin usar la puntuación ni una opinión como motivo.",
     "decide": "Registrar la decisión",
     "decided": "Decisión registrada y enviada.",
-    "own": "Esta impugnación es tuya, así que otro operador la decide.",
+    "own": "Esta impugnación es tuya, o perteneces a la organización que dio la calificación, así que otro operador la decide.",
     "decidedBy": "{state} el {when} por {name}"
   },
   "ratingDisputeGrounds": {

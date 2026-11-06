@@ -1582,7 +1582,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A rating of a person stays with your organization and that person: no other organization can read it, and it never appears on a hiring, search or crew screen elsewhere. A rating of a company can be read by anyone signed in. A person you rated may dispute the rating; you can answer once on the Ratings page, and our platform team decides.",
+            v: "A rating of a person stays with your organization and that person: no other organization can read it unless that person chooses to show all their ratings on their profile, and even then it never appears on a hiring, search or crew screen, and no one with hiring, booking or staffing access in XOS can read it. A rating of a company can be read by anyone signed in. A person you rated may dispute the rating; you can answer once on the Ratings page, and our platform team decides.",
           },
         ],
       },
@@ -4410,7 +4410,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "La calificación de una persona queda entre su organización y esa persona: ninguna otra organización puede leerla, y nunca aparece en una pantalla de contratación, búsqueda o equipo de otra organización. La calificación de una empresa la puede leer cualquiera con sesión iniciada. Una persona a la que calificó puede impugnar la calificación; usted puede responder una vez en la página de calificaciones, y nuestro equipo de la plataforma decide.",
+            v: "La calificación de una persona queda entre su organización y esa persona: ninguna otra organización puede leerla, salvo que esa persona decida mostrar todas sus calificaciones en su perfil, y aun así nunca aparece en una pantalla de contratación, búsqueda o equipo, y nadie con acceso de contratación, reserva o asignación de personal en XOS puede leerla. La calificación de una empresa la puede leer cualquiera con sesión iniciada. Una persona a la que calificó puede impugnar la calificación; usted puede responder una vez en la página de calificaciones, y nuestro equipo de la plataforma decide.",
           },
         ],
       },

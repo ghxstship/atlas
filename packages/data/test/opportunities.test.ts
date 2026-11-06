@@ -792,7 +792,7 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
       id: "d1",
       rating_id: "rt",
       dispute_ground: "False Statement",
-      details: "I was on time.",
+      dispute_details: "I was on time.",
       filed_at: "2026-11-06T12:00:00Z",
       org_response: null,
       decision_statement: null,
@@ -805,6 +805,33 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
           { ...dispute, dispute_state: "Open" },
         ]),
         errorResponse("08000", "down"),
+        okResponse([]),
+      ],
+      "rpc:rating_dispute_subjects": [
+        okResponse([
+          {
+            dispute_id: "d1",
+            org_name: "Org",
+            engagement_id: "e1",
+            party_name: "Ivy Chen",
+            project_name: "Summer Series",
+            rating_score: 2,
+            rating_comment: "Late.",
+            rating_submitted_at: "2026-11-01T12:00:00Z",
+          },
+          {
+            dispute_id: "d2",
+            org_name: "Org",
+            engagement_id: "e2",
+            party_name: "Sam Ortiz",
+            project_name: "Summer Series",
+            rating_score: null,
+            rating_comment: null,
+            rating_submitted_at: "2026-11-01T12:00:00Z",
+          },
+        ]),
+        okResponse([]),
+        errorResponse("08000", "down"),
       ],
       "rpc:respond_to_rating_dispute": [
         okResponse(null),
@@ -813,7 +840,10 @@ describe("opportunities repository: ratings, requirements, pools and settings", 
     });
     const list = await repo.listRatingDisputes(db, "org");
     expect(list.ok && list.data.map((d) => d.id)).toEqual(["d1", "d2"]);
+    expect(list.ok && list.data[0]?.subject?.partyName).toBe("Ivy Chen");
+    expect(list.ok && list.data[1]?.subject?.ratingComment).toBeNull();
     expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "org"]]);
+    expect((await repo.listRatingDisputes(db, "org")).ok).toBe(false);
     expect((await repo.listRatingDisputes(db, "org")).ok).toBe(false);
     expect(await repo.respondToRatingDispute(db, "d1", "The call sheet says 07:00.")).toEqual({
       ok: true,

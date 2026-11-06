@@ -170,7 +170,7 @@ export function DecideAppealForm({
 }
 
 /**
- * The decision on a rating dispute (ADR 0156): upheld needs a named ground; not upheld has none. "Other" stays a filing
+ * The decision on a rating dispute (ADR 0158): upheld needs a named ground; not upheld has none. "Other" stays a filing
  * ground only, so it is not offered here.
  */
 export function DecideRatingDisputeForm({ disputeId }: { disputeId: string }) {

@@ -193,7 +193,7 @@ test("Trust and Safety removes a reported listing with a statement of reasons", 
   expect(decision?.notified).toBeGreaterThan(0);
 });
 
-// ADR 0156: a rated person's dispute reaches an operator, who sees what was said but not the score, and removes the rating
+// ADR 0158: a rated person's dispute reaches an operator, who sees what was said but not the score, and removes the rating
 // only on a named ground.
 test("Trust and Safety upholds a rating dispute without seeing the score", async ({ page }) => {
   const dispute = await disputedRating();

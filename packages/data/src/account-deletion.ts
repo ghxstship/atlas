@@ -25,11 +25,18 @@ export interface AccountDeletionBlocker {
 }
 
 export type KeptCategory =
-  "time_and_pay" | "tax_forms" | "engagements" | "org_records" | "audit_trail" | "erasure_request";
+  | "time_and_pay"
+  | "tax_forms"
+  | "engagements"
+  | "org_records"
+  | "audit_trail"
+  | "erasure_request"
+  | "rating_sharing"
+  | "rating_disputes";
 
 export interface KeptRecord {
   readonly category: KeptCategory;
-  /** "7 years", or "org" when the org keeps the record as its own. */
+  /** "7 years", "org" when the org keeps the record as its own, or "rating" for as long as the rating. */
   readonly retention: string;
 }
 
