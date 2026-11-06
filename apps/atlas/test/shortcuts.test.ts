@@ -5,6 +5,7 @@ import { getNode, routeParams, type ATLAS_ROLES } from "@xos/ia";
 import { allCapabilities, grantsByRole, loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { sitemap } from "../ia/sitemap.generated";
+import { holdFirstPress } from "../components/shell/first-press";
 import { installShellKeys, type KeyState } from "../components/shell/key-dispatch";
 import { showActionOf, showKeyAction, stepTarget } from "../components/show/show-keys";
 import { CREATE_KINDS, createItems } from "../lib/shell/create-menu";
@@ -385,7 +386,7 @@ describe("shell key handler (Section 11.2)", () => {
   });
   afterEach(() => stop?.());
 
-  function start(keys: ShellKeys) {
+  function start(keys: ShellKeys, held: readonly KeyboardEvent[] = []) {
     window = new EventTarget();
     Object.assign(globalThis, { window });
     calls = [];
@@ -399,12 +400,11 @@ describe("shell key handler (Section 11.2)", () => {
         },
       },
     };
-    stop = installShellKeys(state);
+    stop = installShellKeys(state, held);
   }
 
-  function press(key: string, init: PressInit = {}): Pressed {
+  function keyEvent(key: string, init: PressInit = {}): Event {
     const event = new Event("keydown", { cancelable: true });
-    const out: Pressed = { defaultPrevented: false, stopped: false };
     Object.defineProperties(event, {
       key: { value: key },
       code: { value: init.code ?? "" },
@@ -416,6 +416,12 @@ describe("shell key handler (Section 11.2)", () => {
       isComposing: { value: false },
       target: { value: init.target ?? new FakeElement() },
     });
+    return event;
+  }
+
+  function press(key: string, init: PressInit = {}): Pressed {
+    const event = keyEvent(key, init);
+    const out: Pressed = { defaultPrevented: false, stopped: false };
     const original = event.stopPropagation.bind(event);
     event.stopPropagation = () => {
       out.stopped = true;
@@ -451,6 +457,42 @@ describe("shell key handler (Section 11.2)", () => {
       "pending:none",
       "go:/acme/home",
     ]);
+  });
+
+  it("answers the presses first-press.ts held until it arrived, in order", () => {
+    const held = [keyEvent("k", { ctrlKey: true }), keyEvent("g"), keyEvent("h")];
+    held[0]?.preventDefault();
+    start(keys(), held as unknown as KeyboardEvent[]);
+    expect(calls.slice(0, 3)).toEqual(["command:command-menu", "pending:G", "pending:none"]);
+    expect(calls[3]).toMatch(/^go:.*home/);
+  });
+
+  it("holds the first press, stopping only a browser default the shell binds", () => {
+    const k = keys();
+    window = new EventTarget();
+    Object.assign(globalThis, { window });
+    const loads: number[] = [];
+    const held: KeyboardEvent[] = [];
+    stop = holdFirstPress(
+      () => k,
+      (list) => {
+        loads.push(list.length);
+        held.push(...list);
+      },
+    );
+    const send = (key: string, init: PressInit = {}) => {
+      const event = keyEvent(key, init);
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(send("Shift")).toBe(false);
+    expect(loads).toEqual([]);
+    expect(send("k", { ctrlKey: true })).toBe(true);
+    expect(loads).toEqual([1]);
+    expect(send("c", { ctrlKey: true })).toBe(false);
+    expect(send("z", { ctrlKey: true, target: new FakeElement("INPUT") })).toBe(false);
+    expect(send("j")).toBe(false);
+    expect(loads).toEqual([1]);
   });
 
   it("cancels a sequence on another key, and after four seconds", () => {

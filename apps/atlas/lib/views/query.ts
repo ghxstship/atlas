@@ -1,5 +1,29 @@
-import { savedViewTypeOf, VIEW_REGISTRY, viewCodeOf, type SavedViewType } from "@xos/schemas/views";
+import type { SavedViewType } from "@xos/schemas/views";
 import type { Database } from "@xos/data/database.types";
+
+/**
+ * Each view code and the saved view type it saves as, as VIEW_REGISTRY has them (test/views.test.ts holds the two equal).
+ * Every collection page imports this module, and the registry's descriptions and traits are not for the browser.
+ */
+export const VIEW_SAVED_AS: readonly (readonly [string, SavedViewType])[] = [
+  ["list", "List"],
+  ["table", "Table"],
+  ["spreadsheet", "Spreadsheet"],
+  ["gallery", "Gallery"],
+  ["board", "Board"],
+  ["calendar", "Calendar"],
+  ["resource-schedule", "Resource Schedule"],
+  ["timeline", "Timeline"],
+  ["map", "Map"],
+  ["site-plan", "Site Plan"],
+  ["tree", "Tree"],
+  ["matrix", "Matrix"],
+  ["org-chart", "Org Chart"],
+  ["chart", "Chart"],
+  ["feed", "Feed"],
+  ["inbox", "Inbox"],
+  ["split", "List"],
+];
 
 /**
  * Saved views and the query string (Section 11.15). Every Atlas collection keeps its view, filters,
@@ -134,7 +158,7 @@ export function queryToView(search: URLSearchParams, currentView: string): ViewQ
   const q = search.get("q")?.trim() ?? "";
   const group = search.get("group") ?? "";
   return {
-    viewType: savedViewTypeOf(VIEW_REGISTRY, currentView) ?? "List",
+    viewType: VIEW_SAVED_AS.find(([code]) => code === currentView)?.[1] ?? "List",
     searchText: q === "" ? null : q.slice(0, MAX_SEARCH),
     groupByField: FIELD.test(group) ? group : null,
     filters,
@@ -166,7 +190,9 @@ export function viewToQuery(
   offered: readonly string[],
 ): string {
   const next = new URLSearchParams();
-  const code = viewCodeOf(VIEW_REGISTRY, view.viewType, offered);
+  const code = VIEW_SAVED_AS.find(
+    ([candidate, savedAs]) => savedAs === view.viewType && offered.includes(candidate),
+  )?.[0];
   if (code) next.set("view", code);
   for (const f of view.filters) {
     const operator = isConditionOperator(f.operator) ? f.operator : "eq";
