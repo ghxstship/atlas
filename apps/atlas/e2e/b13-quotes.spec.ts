@@ -27,12 +27,6 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     [DEMO_ORG_ID, DEMO_PROJECT],
   );
   const engagementId = engagement?.id as string;
-  await localSql(`select set_config('xos.test', '1', false)`);
-  await localSql(
-    `update app.engagements set engagement_state = 'Active' where id = $1`,
-    [engagementId],
-  ).catch(() => undefined);
-
   try {
     await signInAs(page, "owner@example.com", DEMO_ORG);
 
@@ -54,12 +48,12 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     await sheet.getByLabel("Client engagement", { exact: true }).selectOption(engagementId);
     await sheet.getByRole("button", { name: "New quote", exact: true }).click();
 
-    const [quote] = await expect
+    await expect
       .poll(async () =>
-        localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId]),
+        (await localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId])).length,
       )
-      .toHaveLength(1)
-      .then(() => localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId]));
+      .toBe(1);
+    const [quote] = await localSql<{ id: string }>(`select id from app.quotes where budget_id = $1`, [budgetId]);
     const quoteId = quote?.id as string;
 
     // The Draft shows client lines, internal cost and margin, and never the excluded line.
