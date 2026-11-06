@@ -108,7 +108,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "file-download": 64,
   "fx-rates-ecb": 64,
   // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
-  // does, came to 119.8 KB on 2026-10-31; about 10 percent of headroom.
+  // does, came to 120.0 KB on 2026-10-31; about 10 percent of headroom.
   "guest-email": 132,
   "import-run": 120,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
@@ -119,27 +119,30 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "kiosk-punch": 64,
   // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
   // R7 (2698): the four allocation kinds (decided, assigned, issued, withdrawn) in both locales took it to 186.9 KB
-  // on 2026-10-30; the same 2 percent of headroom R5 left. B8 (2979): P5's badge photo kind (merged with it) and B8's
-  // guest.arrived, weather.warning, weather.hold and weather.all_clear in both locales took it to 193.3 KB on
-  // 2026-10-31; about 2 percent of headroom again.
+  // on 2026-10-30; the same 2 percent of headroom R5 left. Measured on B8's merged base on 2026-10-31: the stacked
+  // merge's own share, P5's badge photo kind (2822), took it to 187.7 KB; B8's own guest.arrived, weather.warning,
+  // weather.hold and weather.all_clear in both locales (2979) added 6.0 KB, to 193.7 KB; about 2 percent of headroom.
   "notification-dispatch": 197,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
-  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. B8: P5's card
-  // renderer chunk (merged with it), the B8 kinds and the guest_message email copy took it to 225.1 KB on 2026-10-31;
-  // about 2 percent of headroom.
+  // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. Measured on
+  // B8's merged base on 2026-10-31: the stacked merge's own share, P5's card renderer chunk and badge photo kind, took
+  // it to 221.1 KB; B8's own kinds and the guest_message email copy added 6.1 KB, to 227.2 KB; about 1 percent of
+  // headroom.
   "org-lifecycle": 230,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
   // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
   // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
-  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. B8 (2979): P5's
-  // badge photo kind and B8's four kinds in both locales took it to 154.6 KB on 2026-10-31; about 2 percent again.
+  // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. Measured on B8's
+  // merged base on 2026-10-31: the stacked merge's own share, P5's badge photo kind, took it to 150.9 KB; B8's own four
+  // kinds in both locales (2979) added 4.1 KB, to 155.0 KB; about 2 percent again.
   "sms-webhook": 158,
   "stripe-webhook": 84,
-  // B8: the guest_message template's copy in both locales and the four B8 kinds in the shared email chunks took it to
-  // 118.4 KB on 2026-10-31 (113.6 before); about 2 percent of headroom.
+  // Measured on B8's merged base on 2026-10-31: the stacked merge's own share, P5's badge photo kind, took it to
+  // 114.0 KB (113.6 before); B8's own guest_message copy and four kinds in both locales in the shared email chunks
+  // added 4.7 KB, to 118.7 KB; about 2 percent of headroom.
   "subprocessor-notices": 121,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).

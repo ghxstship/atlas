@@ -2,7 +2,9 @@
  * The guest pass PDF for the guest-email Edge Function (B8, ADR 0147 decision 6): the guest-pass document of the
  * shared pipeline (ADR 0031), built from the claim's own facts and rendered on A6. Loaded only when a Pass email is
  * sent, so pdfkit, its fonts and the documents copy never load at boot. The brand is the sending org's name: the
- * worker holds no org's logo, and the pass carries only the row's org.
+ * worker holds no org's logo, and the pass carries only the row's org. The document is dated when the guest was
+ * approved, so its CreationDate, and with it pdfkit's file ID, are the same on every attempt: a retried send carries
+ * a byte-identical attachment under the same idempotency key (review correction C15).
  */
 import { buildDocumentModel } from "../../data/src/documents/build.ts";
 import { renderDocumentPdf } from "../../data/src/documents/render.ts";
@@ -48,7 +50,11 @@ export async function renderGuestPassPdf(
       // A card draws no record link (render-card.ts), and a guest has no record to open: the facts name Gateway.
       recordUrl: options.gatewayUrl,
       paper: "a6",
-      ...(options.now ? { now: options.now } : {}),
+      ...(pass.decidedAt
+        ? { now: new Date(pass.decidedAt) }
+        : options.now
+          ? { now: options.now }
+          : {}),
     },
   );
   return renderDocumentPdf(model, { paper: "a6" });
