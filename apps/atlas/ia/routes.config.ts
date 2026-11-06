@@ -100,6 +100,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":
     "Route handler: Android App Links to Compass for Continue on another device (ADR 0030).",
+  "/.well-known/security.txt": "The vulnerability disclosure contact (RFC 9116), not a screen",
   "/.well-known/oauth-protected-resource":
     "Route handler: OAuth protected-resource metadata of the hosted MCP endpoint (RFC 9728; B16).",
   "/.well-known/oauth-protected-resource/mcp":
