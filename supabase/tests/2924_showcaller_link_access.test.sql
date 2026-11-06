@@ -388,10 +388,10 @@ select is((select count(*) from private.rate_limit_events where bucket = 'live_l
   'and does count as a failure');
 
 -- The creator leaves the project: writes stop -------------------------------------------------------------------------------------
-insert into k values ('before2', null, pg_temp.snapshot());
 select pg_temp.as_user('alice');
 update app.project_members set deleted_at = now() where project_id = pg_temp.id('prj_a') and membership_id = pg_temp.id('dave@org_a');
 select pg_temp.as_platform();
+insert into k values ('before2', null, pg_temp.snapshot());
 select is(pg_temp.w('l1', 'g1', 'showcaller_call_cue', quote_literal(pg_temp.id('q3'))) ->> 'reason', 'showcaller_link_owner_access',
   'a link stops when its creator loses show.run_of_show.write or show.cue.call');
 select is(pg_temp.run('l1', 'g1') ->> 'reason', 'showcaller_link_owner_access', 'reads too');

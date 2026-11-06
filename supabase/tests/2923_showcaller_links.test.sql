@@ -82,7 +82,8 @@ select pg_temp.as_user('alice');
 insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason) values
   (pg_temp.id('mia@org_a'), 'show.run_of_show.write', 'project', pg_temp.id('prj_a'), 'Script supervisor for the run.'),
   (pg_temp.id('mia@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Script supervisor for the run.'),
-  (pg_temp.id('gina@org_a'), 'show.cue.call', 'project', pg_temp.id('prj_a'), 'Calls the show from the booth.');
+  (pg_temp.id('gina@org_a'), 'show.cue.call', 'project', pg_temp.id('prj_a'), 'Calls the show from the booth.'),
+  (pg_temp.id('gina@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Calls the show from the booth.');
 select pg_temp.as_platform();
 
 -- Making links -------------------------------------------------------------------------------------------------------------------
@@ -130,7 +131,7 @@ select is(pg_temp.try('platform', format($$update app.showcaller_links set calle
   'showcaller_link_immutable', 'even the platform changes a link only through the RPCs');
 select is((select link_state from app.showcaller_link_states where id = pg_temp.k('l1')), 'Active', 'a new link is Active');
 select ok(not has_table_privilege('xos_backup', 'app.showcaller_link_states', 'select'), 'the backup login reads no computed link state');
-select is(pg_temp.try('frank', format('select app.showcaller_link_devices(%L)', pg_temp.k('l1'))), '42501',
+select is(pg_temp.try('gina', format('select app.showcaller_link_devices(%L)', pg_temp.k('l1'))), '42501',
   'only a manager of the link reads its device count');
 select pg_temp.as_user('dave');
 select is(app.showcaller_link_devices(pg_temp.k('l1')), 0, 'which starts at none');
@@ -153,7 +154,7 @@ select pg_temp.as_user('dave');
 select is(app.sign_out_showcaller_devices(pg_temp.k('l1')), 1, 'signing devices out drops their grants');
 select pg_temp.as_platform();
 select ok(exists (select 1 from app.audit_events where action = 'showcaller_link.signed_out' and subject_id = pg_temp.k('l1')), 'and is audited');
-select is(pg_temp.try('frank', format('select app.revoke_showcaller_link(%L)', pg_temp.k('l2'))), '42501',
+select is(pg_temp.try('gina', format('select app.revoke_showcaller_link(%L)', pg_temp.k('l2'))), '42501',
   'a member without show.run_of_show.write who did not make it cannot revoke it');
 select is(pg_temp.try('carol', format('select app.revoke_showcaller_link(%L)', pg_temp.k('l2'))), 'ok',
   'an editor of the running order may');
