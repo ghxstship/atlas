@@ -238,7 +238,7 @@ export async function intakeRequestParty(
     requester_name: string;
     account_name: string | null;
   } | null;
-  return ok(row && { requesterName: row.requester_name, accountName: row.account_name });
+  return ok(row ? { requesterName: row.requester_name, accountName: row.account_name } : null);
 }
 
 /** Approves into an Onboarding engagement or declines. Answers the engagement id or the request id. */

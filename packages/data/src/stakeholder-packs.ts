@@ -857,8 +857,11 @@ const escapeHtml = (s: string) =>
 /** The expiry as the recipient reads it: in the project's zone, with the zone's name. */
 export function packExpiryText(expiresAt: string, locale: string, timeZone: string): string {
   return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZone,
     timeZoneName: "short",
   }).format(new Date(expiresAt));

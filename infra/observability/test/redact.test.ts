@@ -121,6 +121,24 @@ describe("redactString", () => {
       "GET /share/[token] 404",
     );
     expect(redactUrl("/share/abc")).toBe("/share/[token]");
+    // B2 (ADR 0141): stakeholder packs, intake links and public forms.
+    for (const prefix of ["xpkl", "xpkg", "xpku", "xvin", "xvig", "xfrm", "xfrg"]) {
+      expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
+    }
+    expect(redactUrl(`/share/pack/xpkl_${hex}`)).toBe("/share/pack/[token]");
+    expect(redactUrl(`/share/pack/not-a-token/open`)).toBe("/share/pack/[token]/open");
+    expect(redactUrl(`/share/pack/unsubscribe/abc`)).toBe("/share/pack/unsubscribe/[token]");
+    expect(redactUrl(`/onboard/abc`)).toBe("/onboard/[token]");
+    expect(redactUrl(`/forms/abc/open`)).toBe("/forms/[token]/open");
+    expect(redactString("GET https://gateway.example.test/forms/abc 200")).toBe(
+      "GET https://gateway.example.test/forms/[token] 200",
+    );
+    // Atlas's Knowledge forms stay: /forms/ there follows a path, not a host.
+    expect(redactUrl("/northwind/knowledge/forms")).toBe("/northwind/knowledge/forms");
+    expect(redactUrl("/northwind/knowledge/forms/abc")).toBe("/northwind/knowledge/forms/abc");
+    expect(redactString("GET https://atlas.example.test/northwind/onboard/abc 200")).toBe(
+      "GET https://atlas.example.test/northwind/onboard/abc 200",
+    );
     // P1 (ADR 0130): live links, their open handler, device grants and channel keys.
     expect(redactUrl(`/share/view/xshv_${hex}`)).toBe("/share/view/[token]");
     expect(redactUrl(`/share/screen/xscr_${hex}/open?reason=live_link_access_code`)).toBe(

@@ -179,6 +179,12 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
       /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|pack\/(?:unsubscribe\/)?)?)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
+  // Gateway's intake and public form links (B2, ADR 0141), with the same lookbehind: it matches only at the start of a
+  // string, after a host or after a delimiter, so Atlas's /{org}/knowledge/forms stays and needs no host logic.
+  {
+    pattern: /(?=\/(?:onboard|forms)\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/(?:onboard|forms)\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
   { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },
   { pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g, replace: "[api-key]" },
   {
