@@ -22,7 +22,9 @@ import {
   type TemplateRegistry,
   type TemplateVersion,
 } from "../../src/documents/templates.ts";
-import { BADGE_V2, BRAND, FIXTURES, NOW, PHOTO_JPEG } from "./fixtures.ts";
+import { renderDocumentPdf } from "../../src/documents/render.ts";
+import { ACCEPTED_QUOTES, BADGE_V2, BRAND, FIXTURES, NOW, PHOTO_JPEG } from "./fixtures.ts";
+import { pdfText } from "./pdf-text.ts";
 
 const messages = (locale: string): unknown =>
   JSON.parse(
@@ -118,8 +120,8 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report, B8's guest pass and B10's generated agreement.
-    expect(DOCUMENT_KINDS).toHaveLength(18);
+    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report, B8's guest pass B10's generated agreement and B13's client quote.
+    expect(DOCUMENT_KINDS).toHaveLength(19);
     expect(DOCUMENT_KINDS).toEqual(
       expect.arrayContaining([
         "purchase-order",
@@ -157,7 +159,7 @@ describe("every template", () => {
     expect(model.facts.labels.qrAlt).toContain(model.facts.recordKey);
     for (const s of strings(model)) {
       expect(s, `${kind} ${locale}`).not.toMatch(
-        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout)\./,
+        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout|quote)\./,
       );
     }
   });
@@ -189,6 +191,7 @@ describe("data mapping", () => {
       recordKey: "GP-ABCDEFGHIJ",
       issuedAt: "2027-05-20T18:00:00Z",
     });
+    expect(d("quote")).toEqual({ recordKey: "NWF26-Q-14-v2", issuedAt: "2026-11-02T15:00:00Z" });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -647,4 +650,98 @@ describe("the guest pass (B8)", () => {
       "guest-pass-GP-ABCDEFGHIJ-a6.pdf",
     );
   });
+});
+
+describe("the client quote (B13)", () => {
+  const quoteOf = (over: Partial<(typeof FIXTURES)["quote"]["quote"]>) =>
+    ({ ...FIXTURES.quote, quote: { ...FIXTURES.quote.quote, ...over } }) as never;
+  const text = (kindData: never, locale = "en-US") =>
+    strings(
+      buildDocumentModel("quote", kindData, {
+        locale,
+        messages: locale === "en-US" ? EN : ES,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      }),
+    ).join("\n");
+
+  it("prints the fingerprint and tax sentence from Sent, and no signature block", () => {
+    const shown = text(quoteOf({}));
+    expect(shown).toContain("Content fingerprint (SHA-256)");
+    expect(shown).toContain("Prices exclude tax");
+    expect(shown).not.toContain("Name as signed");
+  });
+
+  it("says a Draft is not sent and prints no fingerprint", () => {
+    const shown = text(quoteOf({ state: "Draft", contentSha256: null }));
+    expect(shown).toContain("Draft: not sent");
+    expect(shown).not.toContain("Content fingerprint");
+  });
+
+  it("prints who signed through a link", () => {
+    const shown = text(
+      quoteOf({
+        state: "Accepted",
+        acceptedAt: "2026-11-03T15:00:00Z",
+        acceptedName: "Cleo Marsh",
+        acceptedEmail: "cleo@coral-group.test",
+      }),
+    );
+    expect(shown).toContain("Cleo Marsh");
+    expect(shown).toContain("Signing link with access code, sent to cleo@coral-group.test");
+    expect(shown).toContain("any change to the content changes the fingerprint");
+  });
+
+  it("prints who signed in, in Spanish too", () => {
+    const signed = quoteOf({
+      state: "Accepted",
+      acceptedAt: "2026-11-03T15:00:00Z",
+      acceptedName: "Cleo Marsh",
+      acceptedEmail: null,
+    });
+    expect(text(signed)).toContain("Signed in to Gateway");
+    expect(text(signed, "es-US")).toContain("Con sesión iniciada en Gateway");
+  });
+
+  const INTERNAL = ["cost", "markup", "margin", "urid", "5000."];
+
+  it.each([
+    ["Sent", FIXTURES.quote],
+    ["accepted by link", ACCEPTED_QUOTES["quote-accepted-link"]],
+    ["accepted signed in", ACCEPTED_QUOTES["quote-accepted-signed-in"]],
+  ])(
+    "prints no cost, markup, margin or URID on a %s quote, read from the PDF itself",
+    async (_name, data) => {
+      const model = buildDocumentModel("quote", data, {
+        locale: "en-US",
+        messages: EN,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      });
+      const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+      // The reader is reading: the client content is there, so an absence below means something.
+      expect(extracted).toContain("Main stage production");
+      expect(extracted).toContain("Scope line 80");
+      expect(extracted).toContain("Prices exclude tax");
+      expect(extracted).toContain("a".repeat(16));
+      const lower = extracted.toLowerCase();
+      for (const word of INTERNAL) expect(lower).not.toContain(word);
+    },
+    60_000,
+  );
+
+  it("prints the Signature block in the PDF once accepted", async () => {
+    const model = buildDocumentModel("quote", ACCEPTED_QUOTES["quote-accepted-link"], {
+      locale: "en-US",
+      messages: EN,
+      brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+      recordUrl: "https://example.test/q",
+      now: NOW,
+    });
+    const extracted = await pdfText(await renderDocumentPdf(model, { paper: "letter" }));
+    expect(extracted).toContain("Cleo Marsh");
+    expect(extracted).toContain("cleo@coral-group.test");
+  }, 60_000);
 });

@@ -8,6 +8,7 @@ import {
   previewAdvance,
   previewTokenDocument,
   requestAdvanceGuest,
+  previewTokenQuote,
   signTokenDocument,
   storeAdvanceUpload,
   submitAdvance,
@@ -18,6 +19,7 @@ import {
   type Result,
   type TokenDocument,
   type TokenRefusal,
+  type TokenQuote,
 } from "@xos/data/gateway";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -290,6 +292,31 @@ export async function openDocumentAction(input: {
     : { ok: true, data: result.data };
 }
 
+/** A Quote document's lines, total and terms, after the access code (S4.4-12). */
+export async function openQuoteAction(input: {
+  token: string;
+  accessCode: string;
+}): Promise<TokenOutcome<TokenQuote>> {
+  const t = token.safeParse(input.token);
+  const c = code.safeParse(input.accessCode);
+  if (!t.success || !c.success) return { ok: false, refusal: "document_access_code" };
+  const result = await previewTokenQuote(await createServerSupabase(), {
+    token: t.data,
+    accessCode: c.data,
+  });
+  if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
+  return result.data.refused
+    ? { ok: false, refusal: result.data.reason }
+    : { ok: true, data: result.data };
+}
+
+const QUOTE_SIGN_REFUSALS: readonly string[] = [
+  "quote_expired",
+  "quote_not_sent",
+  "quote_client_engagement",
+];
+const isQuoteSignRefusal = (rule: string) => QUOTE_SIGN_REFUSALS.includes(rule);
+
 export async function signDocumentTokenAction(input: {
   token: string;
   accessCode: string;
@@ -300,6 +327,12 @@ export async function signDocumentTokenAction(input: {
     .safeParse(input);
   if (!parsed.success) return { ok: false, refusal: "document_signer_name" };
   const result = await signTokenDocument(await createServerSupabase(), parsed.data);
+  // Inside token_sign_document a quote's refusals raise rather than return (6554); they read as the others
+  // do. Any other raised rule, such as a lifecycle conflict from two signers at once, has its copy under
+  // the outcomes and goes through outcomeFor.
+  if (!result.ok && result.error.kind === "refusal" && isQuoteSignRefusal(result.error.rule)) {
+    return { ok: false, refusal: result.error.rule };
+  }
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
   return result.data.refused
     ? { ok: false, refusal: result.data.reason }

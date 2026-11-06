@@ -170,3 +170,22 @@ ADR 0147 decision 6 gives guests passes, not credentials. These decisions extend
    effect at a fixed instant no earlier than the planned release of the package that ships it, as P5's
    `BADGE_V2_FROM`; the record key in its facts line is the pass code.
 4. **veraPDF** renders the guest pass on A6 and CR80 in en-US and es-US (four more files).
+
+## Amendment (2026-11-06, B13, RRR-237): the client quote
+
+- **A fourteenth record document.** `quote` is keyed by the quote version id, so it is served at
+  `/{org}/documents/quote/{quoteVersionId}` and, for a client, `/documents/quote/{quoteVersionId}?engagement={key}`.
+- **Classification and version.** Internal. Its issue time is `sent_at`; a Draft preview uses the version's `created_at`,
+  prints "Draft: not sent" in its facts and has no fingerprint (ADR 0152).
+- **Sources.** Atlas reads as the viewer with `finance.budget.read`: a Draft reads live prices, Sent and later the frozen
+  capture. Gateway reads `api_external.quote_versions` and `quote_version_lines`. A signing link's Download PDF is built
+  only from what `api_public.token_quote` returned, after it re-resolves the link and code, posted in the form body. Its
+  printed record link and QR code open Gateway's Documents page, never the link: the token is one of the link's two secrets
+  and the PDF is meant to be forwarded.
+- **Brand.** Externals and anon cannot read `app.org_brands`, so a quote's readers build the brand from fields the view and
+  the token reader carry: legal entity, accent and logo path. The org-brand bucket is public, so anon can fetch the logo.
+- **Delivery.** Atlas's quote peek and Gateway's engagement Documents tab. The QR code opens the quote or that tab.
+- **Certificate.** An accepted quote's PDF carries a Signature block: name as signed, date and time in the project's zone,
+  how signed, the content fingerprint and the statement (S14.5-01). It has no ledger table, because reasons are internal.
+- **veraPDF.** The gate now renders fourteen templates. With the two papers and two locales that is 56 record files (52
+  before).

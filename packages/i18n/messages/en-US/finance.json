@@ -239,7 +239,12 @@
       "unitPrice": "Enter a price of zero or more, or leave it blank for Unpriced.",
       "urid": "Choose a canon discipline or category.",
       "xyz": "Choose the XYZ tag; a discipline needs it declared.",
-      "zeroNeedsNoCost": "A zero price needs No cost checked; otherwise leave the price blank."
+      "zeroNeedsNoCost": "A zero price needs No cost checked; otherwise leave the price blank.",
+      "defaultMarkupPercent": "Enter a markup from 0 to 1000 percent, or leave it blank.",
+      "validUntil": "Enter a valid date.",
+      "terms": "Terms run up to 4000 characters.",
+      "email": "Enter a valid email address.",
+      "label": "Name the snapshot in 1 to 120 characters."
     }
   },
   "refusals": {
@@ -349,6 +354,29 @@
     "deliverable_fee_currency": "Set the engagement's currency before pricing its milestones.",
     "sod_document_creator": "Your organization does not let the person who created a document approve it. Ask another approver.",
     "sod_change_order_requester_steps": "Your organization does not let the requester of a change order decide any step of its approval. Ask another approver.",
+    "budget_version_capture_only": "A budget version is taken with Take snapshot or when a quote is sent.",
+    "budget_version_immutable": "A budget version never changes. Take a new snapshot instead.",
+    "budget_version_in_use": "This version backs a sent quote, so it is kept.",
+    "budget_version_label": "Name the snapshot in 1 to 120 characters.",
+    "budget_not_found": "This budget no longer exists.",
+    "budget_has_sent_quote": "A quote was sent from this budget, so the budget is kept.",
+    "budget_line_labor_linked": "Shifts post their time to this Labor line. Move them to another line first.",
+    "quote_immutable": "A quote keeps its budget and number.",
+    "quote_client_engagement": "Choose an open Client engagement of the project to send the quote to.",
+    "quote_budget_project": "The client engagement is on the budget's project.",
+    "quote_sent_parties": "The client is fixed once a version was sent. Start a new quote for another client.",
+    "quote_accepted_locked": "This quote was accepted, so it can't change. Record changes as a change order.",
+    "quote_sent_permanent": "A quote that was sent is kept. Withdraw its version instead.",
+    "quote_not_draft": "Only a Draft version changes. Start a new version to change a sent quote.",
+    "quote_rpc_only": "Quote versions change only through their actions.",
+    "quote_draft_exists": "This quote already has a draft version. Edit that one.",
+    "quote_valid_until": "Valid until is in the past. Choose a later day.",
+    "quote_no_lines": "The budget has no line on the quote.",
+    "quote_unpriced_lines": "Every line on the quote needs a client price. Set a markup or a client unit price.",
+    "quote_not_sent": "This quote version is no longer waiting for a signature.",
+    "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+    "quote_document_locked": "A Quote document follows its quote. Change the quote instead.",
+    "budget_lines_markup_range": "Markup runs from 0 to 1000 percent.",
     "expense_credit_original": "A credit is against a live approved or paid expense of this organization that is not itself a credit.",
     "expense_credit_line": "A credit posts to the budget line of the expense it credits.",
     "expense_credit_exceeds": "Credits on this expense would go beyond its amount. Lower this one or cancel another.",
@@ -422,7 +450,17 @@
       "unitPrice": "Unit price",
       "unpriced": "Unpriced",
       "urid": "URID",
-      "xyz": "XYZ"
+      "xyz": "XYZ",
+      "markup": "Markup %",
+      "markupDefault": "{percent}% default",
+      "clientUnitPrice": "Client unit price",
+      "clientAmount": "Client amount",
+      "margin": "Margin",
+      "onQuote": "On quote",
+      "remaining": "Remaining commitment",
+      "etc": "Estimate to complete",
+      "efc": "Estimated final cost",
+      "varianceAtCompletion": "Variance at completion"
     },
     "conflict": {
       "field": "Field",
@@ -451,7 +489,9 @@
     "emptyProject": "{project} has no budget yet. Create the gate 3 baseline to start pricing.",
     "fields": {
       "isBaseline": "Gate 3 baseline",
-      "name": "Budget name"
+      "name": "Budget name",
+      "defaultMarkup": "Default markup %",
+      "defaultMarkupHelp": "Applies to lines without their own markup. Blank means no default."
     },
     "figures": {
       "actual": "Actual",
@@ -468,14 +508,22 @@
       "unpricedCaption": "{count, plural, one {# line is unpriced} other {# lines are unpriced}}; priced lines total {priced}.",
       "variance": "{amount} left against the revised budget",
       "varianceUnknown": "The variance is unknown until every line is priced.",
-      "withheld": "Withheld"
+      "withheld": "Withheld",
+      "clientTotal": "Client total",
+      "margin": "Margin",
+      "efc": "Estimated final cost",
+      "forwardExposure": "Forward exposure",
+      "efcUnallocated": "Includes {amount} of approved changes with no budget line."
     },
     "grade": "Grade",
     "gridErrors": {
       "costCenter": "That cost center code does not exist. The change was not saved.",
       "description": "A line needs a description. The change was not saved.",
       "urid": "That URID is not a canon discipline or category. The change was not saved.",
-      "xyz": "A discipline needs a declared XYZ tag. Use Add line to set it."
+      "xyz": "A discipline needs a declared XYZ tag. Use Add line to set it.",
+      "markup": "Markup runs from 0 to 1000 percent. The change was not saved.",
+      "clientPrice": "A client price cannot be negative. The change was not saved.",
+      "etc": "An estimate to complete cannot be negative. The change was not saved."
     },
     "gridLabel": "Budget lines",
     "kind": "Budget",
@@ -536,7 +584,87 @@
     "lineFields": "Line fields",
     "lineFieldsSentence": "Tags and other fields your organization adds to budget lines in Settings, Custom fields. Choose a line, then edit its fields.",
     "lineFieldsLine": "Line",
-    "filteredLines": "Showing {shown} of {total} lines. Budget figures above cover every line."
+    "filteredLines": "Showing {shown} of {total} lines. Budget figures above cover every line.",
+    "columnSets": {
+      "label": "Columns",
+      "cost": "Cost",
+      "client": "Client pricing",
+      "forecast": "Forecast"
+    },
+    "quoteLines": "Quote lines",
+    "quoteLinesSentence": "Lines left off stay internal: they never appear on a quote, a client total or a PDF.",
+    "quoteLinesConflict": "Someone else saved one of these lines first. Reopen Quote lines to see their change.",
+    "quotesLink": "Quotes ({count})",
+    "importLines": "Import lines",
+    "unpricedHours": "{hours} unpriced hours",
+    "versions": {
+      "open": "Versions",
+      "title": "Budget versions",
+      "sentence": "A version freezes this budget's plan to compare later. It does not replace the gate 3 baseline.",
+      "label": "Snapshot name",
+      "take": "Take snapshot",
+      "empty": "No versions yet.",
+      "loadError": "The versions did not load. Try again.",
+      "compare": "Compare",
+      "compareTitle": "{from} to {to}",
+      "live": "Live budget",
+      "backToGrid": "Back to the grid",
+      "deleted": "Snapshot moved to Trash.",
+      "costChange": "Cost change",
+      "clientChange": "Client change",
+      "added": "Added",
+      "changedRemoved": "Changed / removed",
+      "changedOnly": "Changed only",
+      "allLines": "All lines",
+      "status": "Status",
+      "fieldsChanged": "Fields changed",
+      "costBefore": "Cost before",
+      "costAfter": "Cost after",
+      "purposes": {
+        "Snapshot": "Snapshot",
+        "Quote": "Quote capture"
+      },
+      "statuses": {
+        "added": "Added",
+        "removed": "Removed",
+        "changed": "Changed",
+        "unchanged": "Unchanged"
+      },
+      "changedFields": {
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price",
+        "lineType": "Type",
+        "urid": "URID",
+        "markup": "Markup",
+        "clientPrice": "Client price",
+        "onQuote": "On quote"
+      }
+    },
+    "transactions": {
+      "open": "Transactions",
+      "title": "Transactions on this line",
+      "loadError": "The transactions did not load. Try again.",
+      "expenses": "Expenses",
+      "labor": "Labor",
+      "committed": "Committed",
+      "invoices": "Vendor invoices on this line",
+      "invoicesNote": "Vendor invoices on this line are posted to the ledger and counted in the final cost report, not in Actual.",
+      "withheld": "You don't have access to this section, so it isn't shown in part.",
+      "restricted": "Restricted",
+      "teams": {
+        "OwnTeam": "Own team",
+        "Agency": "Agency",
+        "Engaged": "Engaged individual"
+      },
+      "segments": {
+        "Regular": "Regular",
+        "Overtime": "Overtime",
+        "DoubleTime": "Double time"
+      },
+      "hours": "{hours} h"
+    },
+    "laborOtherCurrency": "{count} labor {count, plural, one {posting} other {postings}} in another currency {count, plural, one {is} other {are}} counted here and left out of Actual."
   },
   "expenses": {
     "create": "New expense",
@@ -891,6 +1019,85 @@
       "payments": "Payments",
       "amount": "Paid in year"
     }
+  },
+  "quotes": {
+    "kind": "Quote",
+    "create": "New quote",
+    "empty": "No quotes yet. Price a budget for a client and create the first one.",
+    "emptyProject": "No quotes on {project} yet. Create the first one from its budget.",
+    "loadError": "The quotes did not load. Try again.",
+    "states": {
+      "Draft": "Draft",
+      "Sent": "Sent",
+      "Expired": "Expired",
+      "Accepted": "Accepted",
+      "Declined": "Declined",
+      "Withdrawn": "Withdrawn",
+      "Superseded": "Superseded"
+    },
+    "fields": {
+      "budget": "Budget",
+      "chooseBudget": "Choose a budget",
+      "title": "Title",
+      "engagement": "Client engagement",
+      "engagementHelp": "Required to send. Lists Client engagements of the budget's project.",
+      "currentEngagement": "Current client engagement",
+      "validUntil": "Valid until",
+      "validUntilHelp": "Blank is 30 days from today on the project's calendar.",
+      "terms": "Notes and terms",
+      "client": "Client",
+      "version": "Version",
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "pdf": "PDF"
+    },
+    "actions": {
+      "send": "Send quote",
+      "newVersion": "New version",
+      "withdraw": "Withdraw",
+      "decline": "Mark declined",
+      "deleteDraft": "Delete draft",
+      "signingLink": "Signing link"
+    },
+    "figures": {
+      "label": "Quote totals",
+      "clientTotal": "Client total",
+      "cost": "Cost",
+      "margin": "Margin",
+      "marginPercent": "Margin %"
+    },
+    "lines": "Client lines",
+    "versions": "Versions",
+    "draftSection": "Draft",
+    "internalCost": "Cost",
+    "internalMargin": "Margin",
+    "internalNote": "Internal: never on the quote: the Cost and Margin columns stay here.",
+    "signature": "Signature",
+    "nameAsSigned": "Name as signed",
+    "signedAt": "Signed",
+    "howSigned": "How signed",
+    "signedByLink": "Signing link with access code, sent to {email}",
+    "signedIn": "Signed in to Gateway",
+    "fingerprint": "Content fingerprint (SHA-256)",
+    "lockedSentence": "This quote was accepted, so it can't change. Record changes as a change order.",
+    "changeOrders": "Change orders",
+    "draftDeleted": "Draft deleted.",
+    "send": {
+      "sentence": "The version freezes when you send it. A signing link is issued if you enter an email; otherwise the client signs in Gateway's Documents tab.",
+      "signInGateway": "The client signs in Gateway's Documents tab.",
+      "reason": "Reason",
+      "email": "Recipient email",
+      "emailHelp": "Leave blank to have the client sign in Gateway.",
+      "reissueSentence": "A new link revokes earlier links for this quote.",
+      "linkTitle": "Signing link",
+      "linkOnce": "Copy the link and code now. They are shown once and never stored.",
+      "linkUrl": "Link",
+      "accessCode": "Access code",
+      "sentTitle": "Quote sent",
+      "noLinkTime": "Less than an hour of Valid until is left, so no link was issued. The client signs in Gateway's Documents tab.",
+      "linkFailed": "The quote was sent, but the signing link was not issued. Close this and choose Signing link to try again."
+    },
+    "draftLines": "Draft v{version} lines"
   },
   "due": {
     "empty": "Nothing is owed right now.",

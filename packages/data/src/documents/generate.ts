@@ -8,8 +8,19 @@ import type { DocumentKind, DocumentLogo, DocumentModel, Paper, PrintSize } from
 import type { Orientation } from "./render.ts";
 import { isEmbeddableImage, MAX_BATCH, renderDocumentPdf, streamDocumentsPdf } from "./render.ts";
 import { documentProject, loadDocumentData, type LoadOptions } from "./sources.ts";
-import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
-import { DESCRIBE, type DocumentDataMap } from "./templates.ts";
+import {
+  loadExternalDocumentData,
+  quoteDataFromFields,
+  type ExternalDocumentKind,
+  type QuoteBrandFields,
+} from "./sources-external.ts";
+import {
+  DESCRIBE,
+  TEMPLATES,
+  templateFor,
+  type DocumentDataMap,
+  type TemplateRegistry,
+} from "./templates.ts";
 
 /**
  * The document pipeline (Section 11.9, ADR 0031): load the record as the caller, pick the template
@@ -213,20 +224,78 @@ export async function generateExternalDocument(
 ): Promise<Result<GeneratedDocument>> {
   const loaded = await loadExternalDocumentData(input.db, input.kind, input.id);
   if (!loaded.ok) return loaded;
-  return renderLoaded(input, input.kind, loaded.data.data, loaded.data.orgId, loaded.data.orgName);
+  return renderLoaded(
+    input,
+    input.kind,
+    loaded.data.data,
+    loaded.data.orgId,
+    loaded.data.orgName,
+    loaded.data.brand,
+  );
+}
+
+/**
+ * A quote from the fields of api_public.token_quote, for a signing link's Download PDF. The token
+ * reader already checked the link and code; nothing here reads a record, and the brand comes from the
+ * same fields because anon cannot read app.org_brands.
+ */
+export async function generateTokenQuoteDocument(
+  input: Omit<ExternalGenerateInput, "kind" | "id"> & {
+    readonly quote: Readonly<Record<string, unknown>>;
+  },
+): Promise<Result<GeneratedDocument>> {
+  const q = input.quote as Parameters<typeof quoteDataFromFields>[0] & {
+    readonly org_id?: string;
+    readonly org_name?: string;
+    readonly legal_entity_name?: string | null;
+    readonly brand_accent_hex?: string | null;
+    readonly brand_logo_path?: string | null;
+    readonly lines?: Parameters<typeof quoteDataFromFields>[1];
+  };
+  const data = quoteDataFromFields(q, q.lines ?? []);
+  return renderLoaded(input, "quote", data, q.org_id ?? "", q.org_name ?? "", {
+    legalEntityName: q.legal_entity_name ?? null,
+    accentHex: q.brand_accent_hex ?? null,
+    logoPath: q.brand_logo_path ?? null,
+  });
+}
+
+/** The brand from a record's own fields; the org-brand bucket is public, so anon can fetch the logo. */
+async function brandFromFields(
+  db: XosClient,
+  name: string,
+  fields: QuoteBrandFields,
+  logoAlt: (name: string) => string,
+): Promise<DocumentBrand> {
+  let logo: DocumentLogo | null = null;
+  if (fields.logoPath) {
+    const { data } = await db.storage.from("org-brand").download(fields.logoPath);
+    if (data) {
+      const bytes = new Uint8Array(await data.arrayBuffer());
+      if (isEmbeddableImage(bytes)) logo = { bytes, alt: logoAlt(name) };
+    }
+  }
+  return {
+    name,
+    legalEntity: fields.legalEntityName?.trim() || null,
+    accentHex: fields.accentHex,
+    logo,
+  };
 }
 
 async function renderLoaded<K extends DocumentKind>(
-  input: Omit<GenerateInput, "orgId" | "orgName" | "kind">,
+  input: Omit<GenerateInput, "orgId" | "orgName" | "kind" | "id">,
   kind: K,
   data: DocumentDataMap[K],
   orgId: string,
   orgName: string,
+  brandFields?: QuoteBrandFields,
 ): Promise<Result<GeneratedDocument>> {
   const t = documentTranslator(input.messages);
-  const brand = await loadDocumentBrand(input.db, orgId, orgName, (name) =>
-    t("facts.logoAlt", { name }),
-  );
+  const logoAlt = (name: string) => t("facts.logoAlt", { name });
+  const brand = brandFields
+    ? await brandFromFields(input.db, orgName, brandFields, logoAlt)
+    : await loadDocumentBrand(input.db, orgId, orgName, logoAlt);
   const project = "project" in data ? data.project : null;
   const now = input.now ?? new Date();
   const described = DESCRIBE[kind](data, now);

@@ -24,6 +24,7 @@
     "site-plan": "Site plan",
     "signage-build-sheet": "Signage build sheet",
     "radio-handout": "Radio hand-out",
+    "quote": "Quote",
     "engagement-document": "Generated agreement"
   },
   "facts": {
@@ -764,6 +765,27 @@
       "Declined": "Declined",
       "Withdrawn": "Withdrawn"
     }
+  },
+  "quote": {
+    "title": "Quote {key}",
+    "key": "Quote",
+    "version": "Version",
+    "client": "Client",
+    "issued": "Date issued",
+    "validUntil": "Valid until",
+    "draftNotSent": "Draft: not sent",
+    "linesCaption": "Lines of quote {key}",
+    "unit": "Unit",
+    "terms": "Notes and terms",
+    "taxNote": "Prices exclude tax, which is added on the invoice where it applies.",
+    "fingerprint": "Content fingerprint (SHA-256)",
+    "signature": "Signature",
+    "nameAsSigned": "Name as signed",
+    "signed": "Signed",
+    "howSigned": "How signed",
+    "signedByLink": "Signing link with access code, sent to {email}",
+    "signedIn": "Signed in to Gateway",
+    "signatureStatement": "The signer typed their name to accept the exact quote above. XOS fixed the SHA-256 of its content when it was sent; any change to the content changes the fingerprint."
   },
   "engagementDocument": {
     "text": "Agreement text",

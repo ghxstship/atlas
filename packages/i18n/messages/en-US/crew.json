@@ -57,7 +57,8 @@
     "communication_no_assignee": "Only a live shift with someone on it can be marked as communicated. Assign the shift first, or leave it out.",
     "communication_too_many": "Mark at most 500 shifts at a time. Narrow the list to a week or a project and try again.",
     "communication_note_length": "Keep the note to 300 characters.",
-    "worker": "Choose someone from the list, or leave the shift open."
+    "worker": "Choose someone from the list, or leave the shift open.",
+    "budgetLine": "Choose a budget line from the list."
   },
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
@@ -177,6 +178,9 @@
     "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
     "sod_roster_training": "A person cannot verify their own training. Ask someone else to verify it.",
     "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet.",
+    "shift_budget_line_project": "Choose a live line of a budget of this shift's project.",
+    "shift_budget_line_labor": "A shift posts its time to a Labor line.",
+    "shift_budget_line_posted": "Approved time on this shift is already on the budget, so moving it needs finance.budget.write.",
     "per_diem_payment_rpc": "A per diem is marked paid from Finance > Payments.",
     "per_diem_paid_locked": "A paid per diem stays as it was paid. Clear its payment first.",
     "per_diem_payment_batch": "Mark 1 to 500 per diems paid at a time.",
@@ -279,7 +283,8 @@
     "hours": "Hours",
     "state": "State",
     "startsAt": "Starts ({zone})",
-    "endsAt": "Ends ({zone})"
+    "endsAt": "Ends ({zone})",
+    "budgetLine": "Budget line"
   },
   "common": {
     "unnamed": "Unnamed person",
@@ -442,7 +447,10 @@
         "when": "Add when the shift starts, for example Friday 8am-4pm.",
         "role": "That role is not in the Roles Library."
       }
-    }
+    },
+    "budgetLineHelp": "Approved time on this shift posts to this Labor line.",
+    "noBudgetLine": "No budget line",
+    "currentBudgetLine": "Current budget line"
   },
   "swapsPage": {
     "title": "{from} to {to}",

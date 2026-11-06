@@ -169,6 +169,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "invoice.submitted",
       "invoice.scheduled",
       "invoice.paid",
+      "quote.accepted",
     ]);
     expect(matrix.map((r) => r.order)).toEqual(
       [...matrix.map((r) => r.order)].sort((a, b) => a - b),

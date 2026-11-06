@@ -53,6 +53,8 @@ export function atlasRecordPath(
       return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/reports?wrap=1`;
     case "guest-pass":
       return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/advancing?peek=${id}&section=guests`;
+    case "quote":
+      return `${o}/finance/quotes?peek=${id}`;
   }
 }
 

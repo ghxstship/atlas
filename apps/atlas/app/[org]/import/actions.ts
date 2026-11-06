@@ -37,13 +37,14 @@ import { getTranslate } from "@/lib/shell/translate";
 const TARGET = z.string().regex(/^[a-z][a-z0-9_]{1,60}$/);
 
 /**
- * The destination fields of a form: at most a running order, a project or a purchase order, each a uuid, and for a pool
+ * The destination fields of a form: at most a running order, a project, a purchase order or a budget, each a uuid, and for a pool
  * invitation import its optional pool and number format (B10). Null when malformed.
  */
 function destinationOf(form: FormData): {
   runOfShowId: string | null;
   projectId: string | null;
   purchaseOrderId: string | null;
+  budgetId: string | null;
   talentPoolId: string | null;
   numberFormat: NumberFormat | null;
 } | null {
@@ -52,6 +53,7 @@ function destinationOf(form: FormData): {
       runOfShow: z.uuid().nullable(),
       project: z.uuid().nullable(),
       purchaseOrder: z.uuid().nullable(),
+      budget: z.uuid().nullable(),
       pool: z.uuid().nullable(),
       numberFormat: z.enum(NUMBER_FORMATS).nullable(),
     })
@@ -59,19 +61,25 @@ function destinationOf(form: FormData): {
       runOfShow: field(form, "runOfShow") || null,
       project: field(form, "project") || null,
       purchaseOrder: field(form, "purchaseOrder") || null,
+      budget: field(form, "budget") || null,
       pool: field(form, "pool") || null,
       numberFormat: field(form, "numberFormat") || null,
     });
   if (
     !parsed.success ||
-    [parsed.data.runOfShow, parsed.data.project, parsed.data.purchaseOrder].filter(Boolean).length >
-      1
+    [
+      parsed.data.runOfShow,
+      parsed.data.project,
+      parsed.data.purchaseOrder,
+      parsed.data.budget,
+    ].filter(Boolean).length > 1
   )
     return null;
   return {
     runOfShowId: parsed.data.runOfShow,
     projectId: parsed.data.project,
     purchaseOrderId: parsed.data.purchaseOrder,
+    budgetId: parsed.data.budget,
     talentPoolId: parsed.data.pool,
     numberFormat: parsed.data.numberFormat,
   };

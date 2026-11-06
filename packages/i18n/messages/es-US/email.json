@@ -423,6 +423,12 @@
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
     },
+    "quote": {
+      "accepted": {
+        "subject": "Cotización aceptada: {quoteKey} v{version}",
+        "body": "{actorName} aceptó la cotización {quoteKey}, versión {version}, mediante firma electrónica. Ya no puede cambiar; registra los cambios posteriores como una orden de cambio."
+      }
+    },
     "rfq": {
       "quote_reminder": {
         "subject": "{orgName} te pidió una cotización: {title}",

@@ -1,6 +1,6 @@
 import { EXTERNAL_DOCUMENT_KINDS } from "@xos/data/documents/sources-external";
 import { describe, expect, it } from "vitest";
-import { documentHref, gatewayRecordPath } from "@/lib/documents/links";
+import { documentHref, gatewayRecordPath, signsInOneClick } from "@/lib/documents/links";
 
 describe("Gateway document links (Section 11.9)", () => {
   it("carries the engagement so the QR code opens the tab", () => {
@@ -17,5 +17,13 @@ describe("Gateway document links (Section 11.9)", () => {
 
   it("falls back to Work without an engagement", () => {
     expect(gatewayRecordPath("credential-badge", null)).toBe("/work");
+  });
+
+  it("never lets a Quote be signed in one click, in any state", () => {
+    for (const state of ["Proposed", "Sent", "Signed", "Executed"]) {
+      expect(signsInOneClick({ kind: "Quote", state })).toBe(false);
+    }
+    expect(signsInOneClick({ kind: "Agreement", state: "Sent" })).toBe(true);
+    expect(signsInOneClick({ kind: "Agreement", state: "Signed" })).toBe(false);
   });
 });

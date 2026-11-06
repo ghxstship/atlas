@@ -61,7 +61,7 @@ function stepOf(status: ImportStatus, confirmed: boolean): number {
 
 // Destinations (P3) ----------------------------------------------------------------------------------------
 
-/** The running orders or projects a destination target may import into, as the page listed them. */
+/** The running orders, projects or budgets a destination target may import into, as the page listed them. */
 export interface TargetDestinations {
   readonly kind: ImportDestinationKind;
   readonly options: readonly { id: string; label: string }[];
@@ -73,7 +73,9 @@ const destinationField = (kind: ImportDestinationKind) =>
     ? "runOfShow"
     : kind === "purchase_order_id"
       ? "purchaseOrder"
-      : "project";
+      : kind === "budget_id"
+        ? "budget"
+        : "project";
 
 /** The hidden destination field of a target, or nothing for an org-wide target. */
 function destinationHidden(
@@ -86,7 +88,7 @@ function destinationHidden(
   return dest && id ? { [destinationField(dest.kind)]: id } : {};
 }
 
-/** The destination Select of a target with one: Running order for cues, Project for guest list entries. */
+/** The destination Select of a target with one: Running order for cues, Project for guest list entries, Budget for budget lines. */
 function DestinationSelect({
   destinations,
   target,
@@ -112,6 +114,8 @@ function DestinationSelect({
             ? "imports.new.destinationRun"
             : dest.kind === "purchase_order_id"
               ? "imports.new.destinationOrder"
+            : dest.kind === "budget_id"
+              ? "imports.new.destinationBudget"
               : "imports.new.destinationProject",
         )
       }

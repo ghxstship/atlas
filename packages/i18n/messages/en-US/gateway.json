@@ -180,6 +180,9 @@
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
       "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+      "quote_not_sent": "This quote version is no longer waiting for a signature.",
+      "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
       "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
       "registration_not_withdrawable": "This registration was already declined or withdrawn."
     }
@@ -269,7 +272,14 @@
     "documents": {
       "empty": "No documents yet. Contracts and forms the organization shares appear here.",
       "emptyKind": "Nothing of this kind has been shared yet. Ask the organization if you expected it.",
-      "expires": "Expires {date}"
+      "expires": "Expires {date}",
+      "quote": {
+        "confirmTitle": "Accept this quote",
+        "consent": "By choosing Accept quote, you consent to using electronic records and signatures for this quote and agree to its lines, total and terms.",
+        "accept": "Accept quote",
+        "total": "Total",
+        "validUntil": "Valid until"
+      }
     },
     "onboarding": {
       "empty": "No onboarding steps. The organization adds any it needs before you start.",
@@ -1050,7 +1060,8 @@
       "lienWaiver": "Lien Waiver",
       "settlement": "Settlement",
       "proofOfPerformance": "Proof of Performance",
-      "contentConsent": "Content Consent"
+      "contentConsent": "Content Consent",
+      "quote": "Quote"
     },
     "engagementDocumentState": {
       "proposed": "Proposed",
@@ -1745,6 +1756,7 @@
       "interview": "Interview for {title}",
       "rate": "Rate your work with {org}",
       "rateAction": "Rate",
+      "reviewQuote": "Review quote",
       "stillComing": "Still coming to {title}?",
       "stillComingYes": "I'm coming",
       "stillComingNo": "Can't make it",
@@ -2132,7 +2144,25 @@
       "nameHelp": "Typing your name is your electronic signature. A signed document cannot be withdrawn.",
       "submit": "Sign",
       "signed": "Signed by {name}. The organization countersigns next.",
-      "done": "You signed the document"
+      "done": "You signed the document",
+      "quote": {
+        "lines": "Quote lines",
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price",
+        "amount": "Amount",
+        "total": "Total",
+        "unpriced": "Unpriced",
+        "validUntil": "Valid until {date}",
+        "tax": "Prices exclude tax, which is added on the invoice where it applies.",
+        "fingerprint": "Content fingerprint (SHA-256)",
+        "downloadPdf": "Download PDF",
+        "downloadPdfA4": "PDF (A4)",
+        "consent": "By typing your name and choosing Accept quote, you consent to using electronic records and signatures for this quote and agree to its lines, total and terms.",
+        "submit": "Accept quote",
+        "signed": "Accepted by {name}.",
+        "done": "You accepted the quote"
+      }
     },
     "refusals": {
       "advance_access_code": "That access code does not match. Check the six digits in your message and try again.",
@@ -2152,6 +2182,10 @@
       "document_signer_name": "Type your full name, at least two characters.",
       "token_invalid": "This link is not valid. Use the latest link the organization sent.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
+      "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
+      "quote_not_sent": "This quote version is no longer waiting for a signature.",
+      "quote_not_found": "This link does not open a quote.",
+      "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
       "crew_access_token_invalid": "This link no longer works. Ask your crew lead for a new one.",
       "crew_access_token_expired": "This link expired. Ask your crew lead for a new one.",
       "crew_access_token_locked": "Too many wrong codes. The link is locked; ask your crew lead for a new one.",

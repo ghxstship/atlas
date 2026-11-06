@@ -69,11 +69,22 @@ export function typedLine(
   id: string,
   input: BudgetLineInput,
 ): readonly BudgetLine[] {
-  return current.map((l) =>
-    l.id === id
-      ? { ...l, ...input, extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor) }
-      : l,
-  );
+  return current.map((l) => {
+    if (l.id !== id) return l;
+    // A field the input leaves out keeps the value the line has; null clears it.
+    return {
+      ...l,
+      ...input,
+      markupBp: input.markupBp === undefined ? l.markupBp : input.markupBp,
+      clientUnitPriceMinor:
+        input.clientUnitPriceMinor === undefined
+          ? l.clientUnitPriceMinor
+          : input.clientUnitPriceMinor,
+      excludedFromQuote: input.excludedFromQuote ?? l.excludedFromQuote,
+      etcMinor: input.etcMinor === undefined ? l.etcMinor : input.etcMinor,
+      extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor),
+    };
+  });
 }
 
 /** What updateBudgetLineAction answered, as far as the grid reads it. */
@@ -153,4 +164,22 @@ export class LineSaves {
     this.inflight.delete(id);
     return true;
   }
+}
+
+export type LineConflictField =
+  "description" | "urid" | "quantity" | "unitPrice" | "markup" | "clientPrice" | "onQuote" | "etc";
+
+/** What differs between a stale save and the line that beat it, for the conflict dialog (journey 33). */
+export function lineConflictFields(mine: BudgetLineInput, theirs: BudgetLine): LineConflictField[] {
+  const differing: readonly [LineConflictField, boolean][] = [
+    ["description", mine.description !== theirs.description],
+    ["urid", mine.urid !== theirs.urid],
+    ["quantity", mine.quantity !== theirs.quantity],
+    ["unitPrice", mine.unitPriceMinor !== theirs.unitPriceMinor],
+    ["markup", (mine.markupBp ?? null) !== theirs.markupBp],
+    ["clientPrice", (mine.clientUnitPriceMinor ?? null) !== theirs.clientUnitPriceMinor],
+    ["onQuote", (mine.excludedFromQuote ?? false) !== theirs.excludedFromQuote],
+    ["etc", (mine.etcMinor ?? null) !== theirs.etcMinor],
+  ];
+  return differing.flatMap(([field, differs]) => (differs ? [field] : []));
 }

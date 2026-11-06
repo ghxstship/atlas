@@ -346,6 +346,7 @@
       "destinationProject": "Project",
       "destinationHelp": "Rows are added to this running order or project.",
       "sourcePaste": "Pasted rows",
+      "destinationBudget": "Budget",
       "destinationOrder": "Purchase order",
       "sourceDocument": "Document",
       "destinationPool": "Pool",
@@ -376,6 +377,7 @@
       "asset_units": "Asset units",
       "cues": "Run of show cues",
       "guest_list_entries": "Guest list",
+      "budget_lines": "Budget lines",
       "procurement_needs": "Procurement needs",
       "po_lines": "Purchase order lines",
       "pool_invitations": "Freelancers and crew to invite"
@@ -472,6 +474,20 @@
       "note": "Note for the door",
       "scope_node_id": "Show",
       "counterparty_id": "On the list of",
+      "line_number": "Line number",
+      "urid": "URID",
+      "quantity": "Quantity",
+      "unit_price": "Unit price",
+      "line_type": "Type",
+      "cost_center": "Cost center",
+      "unit_basis": "Unit",
+      "grade_code": "Grade",
+      "phase_code": "Phase",
+      "tier_code": "Tier",
+      "xyz": "XYZ",
+      "markup_percent": "Markup %",
+      "client_unit_price": "Client unit price",
+      "excluded_from_quote": "Off the quote",
       "email": "Email",
       "pool_name": "Pool name",
       "invitee_name": "Name",
@@ -510,7 +526,17 @@
       "row": "Row",
       "state": "State",
       "cells": "Problems",
-      "cell": "{column}: {issue}"
+      "cell": "{column}: {issue}",
+      "unknown_urid": "not a canon discipline or category",
+      "invalid_line_number": "not a whole line number",
+      "invalid_quantity": "not a quantity of zero or more",
+      "invalid_price": "not an amount, or the word Unpriced",
+      "invalid_line_type": "not Cost, Labor, Fee or Contingency",
+      "unknown_cost_center": "no cost center of this org has this code",
+      "invalid_xyz": "not X, Y or Z",
+      "xyz_required": "a discipline needs an XYZ tag in this row",
+      "invalid_markup": "not 0 to 1000 percent",
+      "invalid_boolean": "not yes or no"
     },
     "rowStates": {
       "Valid": "Valid",
@@ -906,6 +932,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "quote": {
+        "accepted": "Quote accepted"
       },
       "rfq": {
         "quote_reminder": "Quote requested",

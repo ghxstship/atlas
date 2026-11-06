@@ -589,7 +589,16 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                     compact
                   />
                 </div>
-                {canWrite && docMoves.length > 0 ? (
+                {/* A Quote document follows its quote (6553): it moves only through the quote, so it offers no action here. */}
+                {d.kind === "Quote" ? (
+                  <Link
+                    className="text-accent-text underline"
+                    href={`/${ctx.org.slug}/finance/quotes?document=${d.id}` as Route}
+                  >
+                    {t("engagements.openQuote")}
+                  </Link>
+                ) : null}
+                {canWrite && docMoves.length > 0 && d.kind !== "Quote" ? (
                   <ActionForm
                     action={transitionDocumentAction}
                     hidden={{ org: ctx.org.slug, documentId: d.id, expected: d.state }}
@@ -622,7 +631,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                     <DocumentActions org={ctx.org.slug} kind="engagement-document" id={d.id} />
                   )
                 ) : null}
-                {canWrite && d.state === "Sent" && !texted.has(d.id) ? (
+                {canWrite && d.state === "Sent" && !texted.has(d.id) && d.kind !== "Quote" ? (
                   <ActionForm
                     action={issueSigningLinkAction}
                     hidden={{ org: ctx.org.slug, documentId: d.id }}

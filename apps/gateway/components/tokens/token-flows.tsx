@@ -1,6 +1,7 @@
 "use client";
 
-import type { AdvancePacket, TokenDocument } from "@xos/data/gateway";
+import { currencyDigits } from "@xos/data/documents/format";
+import type { AdvancePacket, TokenDocument, TokenQuote } from "@xos/data/gateway";
 import {
   advanceSectionOpen,
   type AdvanceRosterEntry,
@@ -9,7 +10,7 @@ import {
 import { Button, InlineAlert, Input, MoreFields, Textarea, buttonClass } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import {
   useActionState,
   useEffect,
@@ -34,6 +35,7 @@ import {
   openAdvanceAction,
   openDocumentAction,
   requestTokenGuestAction,
+  openQuoteAction,
   signDocumentTokenAction,
   submitTokenRosterAction,
   uploadAdvanceTokenFileAction,
@@ -661,6 +663,7 @@ export function SignTokenFlow({ token }: { token: string }) {
   const [pending, start] = useTransition();
   const [code, setCode] = useState("");
   const [opened, setOpened] = useState<TokenOutcome<TokenDocument> | null>(null);
+  const [quote, setQuote] = useState<TokenQuote["quote"] | null>(null);
   const [name, setName] = useState("");
   const [signed, setSigned] = useState<TokenOutcome<{ signedAt: string }> | null>(null);
   if (!opened?.ok) {
@@ -674,7 +677,17 @@ export function SignTokenFlow({ token }: { token: string }) {
           onOpen={(c) =>
             start(async () => {
               setCode(c);
-              setOpened(await openDocumentAction({ token, accessCode: c }));
+              const doc = await openDocumentAction({ token, accessCode: c });
+              // A quote shows its lines, total and terms before anyone can accept it.
+              if (doc.ok && doc.data.kind === "Quote") {
+                const q = await openQuoteAction({ token, accessCode: c });
+                if (!q.ok) {
+                  setOpened(q);
+                  return;
+                }
+                setQuote(q.data.quote);
+              }
+              setOpened(doc);
             })
           }
         />
@@ -693,13 +706,19 @@ export function SignTokenFlow({ token }: { token: string }) {
           {t("sign.state", { state: tRoot(enumLabelKey("engagementDocumentState", doc.state)) })}
         </p>
       </Header>
-      {doc.storageUri ? <p className="m-0 text-text-13">{t("sign.read")}</p> : null}
+      {quote ? (
+        <QuoteSummary quote={quote} token={token} code={code} />
+      ) : doc.storageUri ? (
+        <p className="m-0 text-text-13">{t("sign.read")}</p>
+      ) : null}
       {alreadySigned ? (
         <>
           <InlineAlert tone="success">
-            {t("sign.signed", { name: doc.signerName ?? name })}
+            {quote
+              ? t("sign.quote.signed", { name: doc.signerName ?? name })
+              : t("sign.signed", { name: doc.signerName ?? name })}
           </InlineAlert>
-          <ClaimOffer title={t("sign.done")} />
+          <ClaimOffer title={quote ? t("sign.quote.done") : t("sign.done")} />
         </>
       ) : (
         <form
@@ -715,6 +734,7 @@ export function SignTokenFlow({ token }: { token: string }) {
           }}
         >
           <Problem result={signed} />
+          {quote ? <p className="m-0 text-text-13">{t("sign.quote.consent")}</p> : null}
           <Input
             id="signer-name"
             autoComplete="name"
@@ -732,11 +752,98 @@ export function SignTokenFlow({ token }: { token: string }) {
               disabled={pending}
               aria-busy={pending}
             >
-              {t("sign.submit")}
+              {quote ? t("sign.quote.submit") : t("sign.submit")}
             </Button>
           </div>
         </form>
       )}
     </div>
+  );
+}
+
+/** A quote's client-facing content on its signing link: lines, total, valid until, terms and fingerprint. */
+function QuoteSummary({
+  quote,
+  token,
+  code,
+}: {
+  quote: TokenQuote["quote"];
+  token: string;
+  code: string;
+}) {
+  const t = useCopy();
+  const format = useFormatter();
+  const money = (minor: number | null) =>
+    minor === null
+      ? t("sign.quote.unpriced")
+      : format.number(minor / 10 ** currencyDigits(quote.currency_code), {
+          style: "currency",
+          currency: quote.currency_code,
+        });
+  // A calendar date, so it never shifts a day across zones.
+  const validUntil = format.dateTime(new Date(`${quote.valid_until.slice(0, 10)}T00:00:00Z`), {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  });
+  return (
+    <section aria-label={t("sign.quote.lines")} className="flex flex-col gap-12">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-text-13">
+          <caption className="sr-only">{t("sign.quote.lines")}</caption>
+          <thead>
+            <tr className="text-text-secondary">
+              <th scope="col" className="py-4 text-start font-medium">
+                {t("sign.quote.description")}
+              </th>
+              <th scope="col" className="py-4 text-end font-medium">
+                {t("sign.quote.quantity")}
+              </th>
+              <th scope="col" className="py-4 text-end font-medium">
+                {t("sign.quote.unitPrice")}
+              </th>
+              <th scope="col" className="py-4 text-end font-medium">
+                {t("sign.quote.amount")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {quote.lines.map((l) => (
+              <tr key={l.id} className="border-t border-border-subtle">
+                <td className="py-6">{l.description}</td>
+                <td className="py-6 text-end tabular-nums">{format.number(l.quantity)}</td>
+                <td className="py-6 text-end tabular-nums">{money(l.unit_price_minor)}</td>
+                <td className="py-6 text-end tabular-nums">{money(l.amount_minor)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-border-subtle font-medium">
+              <th scope="row" colSpan={3} className="py-6 text-start">
+                {t("sign.quote.total")}
+              </th>
+              <td className="py-6 text-end tabular-nums">{money(quote.total_minor)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p className="m-0 text-text-13">{t("sign.quote.validUntil", { date: validUntil })}</p>
+      {quote.terms ? <p className="m-0 text-text-13 whitespace-pre-wrap">{quote.terms}</p> : null}
+      <p className="m-0 text-text-12 text-text-secondary">{t("sign.quote.tax")}</p>
+      {quote.content_sha256 ? (
+        <p className="m-0 break-all text-text-12 text-text-secondary">
+          {t("sign.quote.fingerprint")}: <span className="font-mono">{quote.content_sha256}</span>
+        </p>
+      ) : null}
+      {/* Posted, so the access code travels in the form body and never in a URL. */}
+      <form method="post" action={`/sign/${token}/quote`} className="flex flex-wrap gap-8">
+        <input type="hidden" name="accessCode" value={code} />
+        <Button type="submit" size="sm" name="paper" value="letter">
+          {t("sign.quote.downloadPdf")}
+        </Button>
+        <Button type="submit" size="sm" name="paper" value="a4">
+          {t("sign.quote.downloadPdfA4")}
+        </Button>
+      </form>
+    </section>
   );
 }

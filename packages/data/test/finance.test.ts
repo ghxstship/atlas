@@ -567,11 +567,90 @@ describe("budgets", () => {
         ]),
       ],
       "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
     });
     const result = await finance.getBudget(db, "o1", "b1");
     expect(result.ok && result.data.lines[0]).toMatchObject({
       extendedMinor: null,
       accountCode: "5500",
+    });
+  });
+
+  it("reads each line's forecast and the budget's forecast totals", async () => {
+    const { db } = fakeClient({
+      "from:budgets": [okResponse({ id: "b1", project_id: "p1" }), okResponse([budgetRow])],
+      "from:budget_revised_totals": [okResponse([totalRow])],
+      "from:budget_lines": [okResponse([lineRow, { ...lineRow, id: "l2", line_number: 2 }])],
+      "from:budget_line_amounts": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            actual_minor: 300,
+            labor_actual_minor: 100,
+            labor_unpriced_minutes: 90,
+            labor_other_currency_count: 2,
+          },
+        ]),
+      ],
+      "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            current_budget_minor: 1000,
+            remaining_commitment_minor: 500,
+            etc_minor: 200,
+            etc_source: "Derived",
+            efc_minor: 1000,
+            forward_exposure_minor: 700,
+            variance_at_completion_minor: 0,
+            is_withheld: false,
+          },
+          {
+            budget_line_id: "l2",
+            current_budget_minor: null,
+            remaining_commitment_minor: null,
+            etc_minor: null,
+            etc_source: "Derived",
+            efc_minor: null,
+            forward_exposure_minor: null,
+            variance_at_completion_minor: null,
+            is_withheld: true,
+          },
+        ]),
+      ],
+      "from:budget_forecast_totals": [
+        okResponse([
+          {
+            efc_minor: 1250,
+            forward_exposure_minor: 950,
+            unallocated_change_minor: 250,
+            is_withheld: false,
+          },
+        ]),
+      ],
+    });
+    const result = await finance.getBudget(db, "o1", "b1");
+    if (!result.ok) throw new Error("the budget did not load");
+    expect(result.data.lines[0]).toMatchObject({
+      remainingCommitmentMinor: 500,
+      forecastEtcMinor: 200,
+      efcMinor: 1000,
+      forwardExposureMinor: 700,
+      forecastWithheld: false,
+      laborUnpricedMinutes: 90,
+      laborOtherCurrencyCount: 2,
+    });
+    expect(result.data.lines[1]).toMatchObject({ efcMinor: null, forecastWithheld: true });
+    // The totals come from the view, so approved changes on no line count.
+    expect(result.data.forecast).toEqual({
+      efcMinor: 1250,
+      forwardExposureMinor: 950,
+      unallocatedChangeMinor: 250,
+      isWithheld: false,
     });
   });
 
@@ -581,6 +660,9 @@ describe("budgets", () => {
       "from:budget_revised_totals": [okResponse([totalRow])],
       "from:budget_lines": [okResponse([lineRow, { ...lineRow, id: "l2", line_number: 2 }])],
       "from:budget_line_amounts": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
       "from:budget_line_commitments": [
         okResponse([
           {
@@ -638,6 +720,25 @@ describe("budgets", () => {
       committedWithheld: false,
       poLineCount: 1,
       otherCurrencyPoLineCount: 0,
+      markupBp: null,
+      clientUnitPriceMinor: null,
+      excludedFromQuote: false,
+      etcMinor: null,
+      effectiveMarkupBp: null,
+      effectiveClientUnitPriceMinor: null,
+      clientExtendedMinor: null,
+      marginMinor: null,
+      currentBudgetMinor: 1000,
+      remainingCommitmentMinor: 500,
+      forecastEtcMinor: 100,
+      etcSource: "Derived",
+      efcMinor: 1000,
+      forwardExposureMinor: 600,
+      varianceAtCompletionMinor: 0,
+      forecastWithheld: false,
+      laborActualMinor: 0,
+      laborUnpricedMinutes: 0,
+      laborOtherCurrencyCount: 0,
       updatedAt: "2027-01-01T00:00:00Z",
     };
     const saved = {
@@ -1434,6 +1535,9 @@ describe("errors on reads", () => {
       "from:budget_lines": [okResponse([])],
       "from:budget_line_amounts": [okResponse([])],
       "from:budget_line_commitments": [okResponse([])],
+      "from:budget_line_prices": [okResponse([])],
+      "from:budget_line_forecasts": [okResponse([])],
+      "from:budget_forecast_totals": [okResponse([])],
     });
     expect(await finance.getBudget(db, "o1", "b1")).toEqual({
       ok: false,

@@ -509,7 +509,8 @@
     "poolNeedsWrite": "Una persona con acceso a grupos registra la nueva contratación.",
     "milestoneFee": "Tarifa: {amount}. La autofacturación la cobra cuando se acepta el hito.",
     "milestoneFeeLabel": "Tarifa ({currency})",
-    "setFee": "Fijar tarifa"
+    "setFee": "Fijar tarifa",
+    "openQuote": "Abrir la cotización"
   },
   "ratings": {
     "title": "Valoraciones",
@@ -641,7 +642,8 @@
     "lienWaiver": "Renuncia de gravamen",
     "settlement": "Liquidación",
     "proofOfPerformance": "Prueba de cumplimiento",
-    "contentConsent": "Consentimiento de contenido"
+    "contentConsent": "Consentimiento de contenido",
+    "quote": "Cotización"
   },
   "deliverableStates": {
     "open": "Pendiente",

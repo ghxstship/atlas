@@ -18,6 +18,7 @@ import {
   TOTALS,
 } from "../test/documents/compliance-fixtures.ts";
 import {
+  ACCEPTED_QUOTES,
   BADGE_V2,
   BRAND,
   DAY_SHEET_V3,
@@ -289,6 +290,21 @@ for (const locale of LOCALES) {
     });
     writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
     files.push(name);
+  }
+  // An Accepted quote's Signature block (S14.5-01), signed through a link and signed in.
+  for (const [variant, data] of Object.entries(ACCEPTED_QUOTES)) {
+    const model = buildDocumentModel("quote", data, {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/northwind/documents/quote",
+      now: NOW,
+    });
+    for (const paper of PAPERS) {
+      const name = `${variant}.${locale}.${paper}.pdf`;
+      writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+      files.push(name);
+    }
   }
   // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.
   const certificate = buildDeletionCertificateModel(DELETION_CERTIFICATE, {

@@ -602,3 +602,145 @@ describe("loadDocumentBrand", () => {
     expect((await loadDocumentBrand(bare.db, ORG, "Northwind Live", alt)).legalEntity).toBeNull();
   });
 });
+
+describe("the Atlas quote loader (B13)", () => {
+  const VERSION = "q-v2";
+  const statusRow = {
+    quote_id: "q1",
+    org_id: ORG,
+    project_id: "p1",
+    budget_id: "b1",
+    engagement_id: "e1",
+    quote_key: "NWF26-Q-14",
+    title: "Frozen title of v1",
+    client_name: "Coral Group",
+    current_version_id: "q-v1",
+    current_version_number: 1,
+    display_state: "Sent",
+    valid_until: "2026-12-01",
+    sent_at: "2026-11-01T15:00:00Z",
+    accepted_at: null,
+    currency_code: "EUR",
+    client_total_minor: 999,
+    margin_minor: 1,
+    has_draft: true,
+  };
+  const versionRow = (id: string, number: number, state: string, capture: string | null) => ({
+    id,
+    quote_id: "q1",
+    version_number: number,
+    quote_version_state: state,
+    valid_until: "2026-12-01",
+    terms: null,
+    budget_version_id: capture,
+    content_sha256: capture ? "a".repeat(64) : null,
+    engagement_document_id: capture ? "d1" : null,
+    sent_at: capture ? "2026-11-01T15:00:00Z" : null,
+    sent_by: null,
+    accepted_at: null,
+    accepted_by: null,
+    accepted_name: null,
+    sent_title: capture ? "Frozen title of v1" : null,
+    sent_client_name: capture ? "Coral Group" : null,
+    updated_at: "2026-11-02T15:00:00Z",
+  });
+
+  it("prints a Draft beside a sent version from live prices, with the quote's title and the budget's currency", async () => {
+    const { db } = fakeClient({
+      "from:quote_versions": [
+        okResponse({
+          id: VERSION,
+          quote_id: "q1",
+          org_id: ORG,
+          created_at: "2026-11-02T15:00:00Z",
+        }),
+        okResponse([
+          versionRow(VERSION, 2, "Draft", null),
+          versionRow("q-v1", 1, "Sent", "capture-1"),
+        ]),
+      ],
+      "from:quote_statuses": [okResponse([statusRow])],
+      "from:quotes": [okResponse([{ title: "Retitled for v2" }])],
+      "from:budget_lines": [
+        okResponse([
+          { id: "l1", line_number: 1, description: "Deck", quantity: 2, unit_basis: "day" },
+        ]),
+        okResponse([
+          { id: "l1", line_number: 1, description: "Deck", quantity: 2, unit_basis: "day" },
+        ]),
+      ],
+      "from:budget_line_prices": [
+        okResponse([
+          {
+            budget_line_id: "l1",
+            client_unit_price_minor: 1500,
+            client_extended_minor: 3000,
+            cost_extended_minor: 2000,
+            margin_minor: 1000,
+          },
+        ]),
+        okResponse([{ budget_line_id: "l1", client_unit_price_minor: 1500 }]),
+      ],
+      "from:budget_price_totals": [
+        okResponse({ client_total_minor: 3000, margin_minor: 1000, currency_code: "USD" }),
+      ],
+      "from:projects": [project],
+    });
+    const result = await loadDocumentData(db, ORG, "quote", VERSION);
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(result.data.quote).toMatchObject({
+      title: "Retitled for v2",
+      currency: "USD",
+      state: "Draft",
+      totalMinor: 3000,
+      contentSha256: null,
+    });
+  });
+
+  it("carries only client fields, whatever else a capture holds", async () => {
+    const { db, calls } = fakeClient({
+      "from:quote_versions": [
+        okResponse({ id: "q-v1", quote_id: "q1", org_id: ORG, created_at: "2026-11-01T15:00:00Z" }),
+        okResponse([versionRow("q-v1", 1, "Sent", "capture-1")]),
+      ],
+      "from:quote_statuses": [okResponse([{ ...statusRow, has_draft: false }])],
+      "from:quotes": [okResponse([{ title: "Live title" }])],
+      "from:budget_version_lines": [
+        okResponse([]),
+        okResponse([
+          {
+            line_number: 1,
+            description: "Deck",
+            quantity: 2,
+            unit_basis: "day",
+            client_unit_price_minor: 1500,
+            // Internal figures a row might carry, to show they stop here.
+            unit_price_minor: 777_777,
+            effective_markup_bp: 888_888,
+            urid: "5000.04.02",
+          },
+        ]),
+      ],
+      "from:projects": [project],
+    });
+    const result = await loadDocumentData(db, ORG, "quote", "q-v1");
+    if (!result.ok) throw new Error("the quote did not load");
+    expect(result.data.quote.title).toBe("Frozen title of v1");
+    expect(result.data.quote.lines).toEqual([
+      {
+        lineNumber: 1,
+        description: "Deck",
+        quantity: 2,
+        unitBasis: "day",
+        unitPriceMinor: 1500,
+        amountMinor: 3000,
+      },
+    ]);
+    const captured = calls.filter((c) => c.target === "from:budget_version_lines").at(-1);
+    const select = captured?.steps.find(([step]) => step === "select")?.[1][0];
+    for (const internal of ["unit_price_minor,", "markup", "urid", "cost"]) {
+      expect(String(select)).not.toContain(internal);
+    }
+    expect(JSON.stringify(result.data)).not.toMatch(/777777|888888|5000\.04/);
+  });
+});

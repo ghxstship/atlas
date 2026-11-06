@@ -92,8 +92,9 @@ select results_eq($$select code, write_capability, destination from app.import_t
     ('vendor_products', 'vendors.vendor.write', null), ('asset_units', 'assets.asset.write', null),
     ('cues', 'show.run_of_show.write', 'run_of_show_id'), ('guest_list_entries', 'advancing.rider.write', 'project_id'),
     ('pool_invitations', 'opportunities.pool.write', null),
-        ('procurement_needs', 'procurement.po.write', 'project_id'), ('po_lines', 'procurement.po.write', 'purchase_order_id')$$,
-  'cues and guest list entries follow the four org-wide targets, each naming its destination');
+        ('procurement_needs', 'procurement.po.write', 'project_id'), ('po_lines', 'procurement.po.write', 'purchase_order_id'),
+    ('budget_lines', 'finance.budget.write', 'budget_id')$$,
+  'cues, guest list entries, pool invitations, order lines and budget lines follow the four org-wide targets, each naming its destination');
 select set_eq($$select field_name, required, strong_key from app.import_target_fields where target_code = 'cues'$$,
   $$values ('position', false, true), ('label', true, false), ('segment', false, false), ('description', false, false),
     ('planned_at', false, false), ('duration', false, false), ('space_id', false, false)$$,
@@ -205,7 +206,7 @@ select app.commit_import_write(pg_temp.id('r_new'), pg_temp.id('batch'), pg_temp
 select app.commit_import_write(pg_temp.id('r_called'), pg_temp.id('batch'), pg_temp.id('cue_called'), 'Created');
 select app.commit_import_write(pg_temp.id('r_match'), pg_temp.id('batch'), pg_temp.id('cue_1'), 'Updated', '{"label": "House to half"}');
 select throws_ok($$select app.commit_import_write((select id from world where key = 'r_other'), (select id from world where key = 'batch'), (select id from world where key = 'cue_a2'), 'Updated', '{"label": "Doors"}')$$,
-  'XR001', 'import_target_outside_destination: The written row must be in the running order or project the import names.',
+  'XR001', 'import_target_outside_destination: The written row must be in the running order, project or budget the import names.',
   'a cue of another running order is never written');
 select app.finish_import_batch(pg_temp.id('batch'));
 update app.import_batches set committed_at = now() - interval '1 hour' where id = pg_temp.id('batch');

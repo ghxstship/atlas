@@ -180,6 +180,9 @@
       "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
       "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
       "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
+      "quote_not_sent": "Esta versión de la cotización ya no espera una firma.",
+      "quote_client_engagement": "La contratación del cliente de esta cotización está cerrada, así que ya no se puede aceptar.",
       "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
       "registration_not_withdrawable": "Este registro ya se rechazó o se retiró."
     }
@@ -269,7 +272,14 @@
     "documents": {
       "empty": "Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.",
       "emptyKind": "Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.",
-      "expires": "Vence {date}"
+      "expires": "Vence {date}",
+      "quote": {
+        "confirmTitle": "Aceptar esta cotización",
+        "consent": "Al elegir Aceptar la cotización, aceptas usar registros y firmas electrónicos para esta cotización y aceptas sus líneas, su total y sus términos.",
+        "accept": "Aceptar la cotización",
+        "total": "Total",
+        "validUntil": "Válida hasta"
+      }
     },
     "onboarding": {
       "empty": "No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.",
@@ -1050,7 +1060,8 @@
       "lienWaiver": "Renuncia de gravamen",
       "settlement": "Liquidación",
       "proofOfPerformance": "Prueba de cumplimiento",
-      "contentConsent": "Consentimiento de contenido"
+      "contentConsent": "Consentimiento de contenido",
+      "quote": "Cotización"
     },
     "engagementDocumentState": {
       "proposed": "Borrador",
@@ -1745,6 +1756,7 @@
       "interview": "Entrevista para {title}",
       "rate": "Califica tu trabajo con {org}",
       "rateAction": "Calificar",
+      "reviewQuote": "Revisar la cotización",
       "stillComing": "¿Sigues yendo a {title}?",
       "stillComingYes": "Voy a ir",
       "stillComingNo": "No puedo ir",
@@ -2132,7 +2144,25 @@
       "nameHelp": "Escribir tu nombre es tu firma electrónica. Un documento firmado no se puede retirar.",
       "submit": "Firmar",
       "signed": "Firmado por {name}. La organización firma después.",
-      "done": "Firmaste el documento"
+      "done": "Firmaste el documento",
+      "quote": {
+        "lines": "Líneas de la cotización",
+        "description": "Descripción",
+        "quantity": "Cantidad",
+        "unitPrice": "Precio unitario",
+        "amount": "Importe",
+        "total": "Total",
+        "unpriced": "Sin precio",
+        "validUntil": "Válida hasta el {date}",
+        "tax": "Los precios no incluyen impuestos, que se agregan en la factura cuando corresponda.",
+        "fingerprint": "Huella del contenido (SHA-256)",
+        "downloadPdf": "Descargar PDF",
+        "downloadPdfA4": "PDF (A4)",
+        "consent": "Al escribir tu nombre y elegir Aceptar la cotización, aceptas usar registros y firmas electrónicos para esta cotización y aceptas sus líneas, su total y sus términos.",
+        "submit": "Aceptar la cotización",
+        "signed": "Aceptada por {name}.",
+        "done": "Aceptaste la cotización"
+      }
     },
     "refusals": {
       "advance_access_code": "Ese código de acceso no coincide. Revisa los seis dígitos de tu mensaje e inténtalo de nuevo.",
@@ -2152,6 +2182,10 @@
       "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
       "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
+      "quote_not_sent": "Esta versión de la cotización ya no está a la espera de una firma.",
+      "quote_not_found": "Este enlace no abre una cotización.",
+      "quote_client_engagement": "La contratación del cliente de esta cotización se cerró, así que ya no se puede aceptar.",
       "crew_access_token_invalid": "Este enlace ya no funciona. Pide uno nuevo a tu jefe de equipo.",
       "crew_access_token_expired": "Este enlace venció. Pide uno nuevo a tu jefe de equipo.",
       "crew_access_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a tu jefe de equipo.",

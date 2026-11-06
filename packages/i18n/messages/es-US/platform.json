@@ -346,6 +346,7 @@
       "destinationProject": "Proyecto",
       "destinationHelp": "Las filas se agregan a esta escaleta o proyecto.",
       "sourcePaste": "Filas pegadas",
+      "destinationBudget": "Presupuesto",
       "destinationOrder": "Orden de compra",
       "sourceDocument": "Documento",
       "destinationPool": "Grupo",
@@ -376,6 +377,7 @@
       "asset_units": "Unidades de activos",
       "cues": "Cues de la escaleta",
       "guest_list_entries": "Lista de invitados",
+      "budget_lines": "Líneas de presupuesto",
       "procurement_needs": "Necesidades de compra",
       "po_lines": "Líneas de orden de compra",
       "pool_invitations": "Personal independiente y equipo a invitar"
@@ -472,6 +474,20 @@
       "note": "Nota para la puerta",
       "scope_node_id": "Show",
       "counterparty_id": "En la lista de",
+      "line_number": "Número de línea",
+      "urid": "URID",
+      "quantity": "Cantidad",
+      "unit_price": "Precio unitario",
+      "line_type": "Tipo",
+      "cost_center": "Centro de costo",
+      "unit_basis": "Unidad",
+      "grade_code": "Grado",
+      "phase_code": "Fase",
+      "tier_code": "Nivel",
+      "xyz": "XYZ",
+      "markup_percent": "Recargo %",
+      "client_unit_price": "Precio unitario al cliente",
+      "excluded_from_quote": "Fuera de la cotización",
       "email": "Correo",
       "pool_name": "Nombre del grupo",
       "invitee_name": "Nombre",
@@ -510,7 +526,17 @@
       "row": "Fila",
       "state": "Estado",
       "cells": "Problemas",
-      "cell": "{column}: {issue}"
+      "cell": "{column}: {issue}",
+      "unknown_urid": "no es una disciplina o categoría canónica",
+      "invalid_line_number": "no es un número de línea entero",
+      "invalid_quantity": "no es una cantidad de cero o más",
+      "invalid_price": "no es un importe ni la palabra Unpriced",
+      "invalid_line_type": "no es Cost, Labor, Fee ni Contingency",
+      "unknown_cost_center": "ningún centro de costo de esta organización tiene este código",
+      "invalid_xyz": "no es X, Y ni Z",
+      "xyz_required": "una disciplina necesita una etiqueta XYZ en esta fila",
+      "invalid_markup": "no está entre 0 y 1000 por ciento",
+      "invalid_boolean": "no es sí o no"
     },
     "rowStates": {
       "Valid": "Válida",
@@ -906,6 +932,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "quote": {
+        "accepted": "Cotización aceptada"
       },
       "rfq": {
         "quote_reminder": "Cotización solicitada",

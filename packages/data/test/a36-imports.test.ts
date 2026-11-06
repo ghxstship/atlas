@@ -220,6 +220,7 @@ describe("import repository", () => {
       p_project_id: "prj1",
       p_run_of_show_id: null,
       p_purchase_order_id: null,
+      p_budget_id: null,
     });
   });
 

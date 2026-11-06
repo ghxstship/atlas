@@ -95,7 +95,8 @@
     },
     "variance": "Variación",
     "varianceIn": "Variación en {currency}",
-    "withheld": "Retenido"
+    "withheld": "Retenido",
+    "efc": "Costo final estimado"
   },
   "labor": {
     "budget": "Presupuesto de mano de obra",
@@ -111,7 +112,23 @@
     "open": "Registros de tiempo abiertos",
     "payrollRuns": "Corridas de nómina",
     "run": "Corrida",
-    "timesheets": "Hojas de horas"
+    "timesheets": "Hojas de horas",
+    "postedByTeam": "Registrado en el presupuesto por equipo",
+    "team": "Equipo",
+    "cost": "Costo",
+    "unpricedHours": "Horas sin precio",
+    "offBudget": "Horas sin línea de presupuesto",
+    "person": "Persona",
+    "date": "Fecha",
+    "shift": "Turno",
+    "openShift": "Abrir el turno",
+    "noShift": "Sin turno",
+    "teams": {
+      "OwnTeam": "Equipo propio",
+      "Agency": "Agencia",
+      "Engaged": "Personas contratadas"
+    },
+    "offBudgetMore": "Se muestran los últimos {count} registros; hay más."
   },
   "po": {
     "caption": "Compromiso pendiente por orden de compra",

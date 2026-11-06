@@ -33,6 +33,8 @@ export interface Shift {
   readonly member: WorkerRef | null;
   /** Roster entry of the agency staff member on the shift (R12); null otherwise. */
   readonly rosterEntryId?: string | null;
+  /** The Labor budget line its approved time posts to (G-133); null leaves it off the budget. */
+  readonly budgetLineId?: string | null;
   /** The staffing agency the shift is allocated to while no one on its roster holds it (R12); null otherwise. */
   readonly agencySlot?: AgencySlot | null;
   readonly roleCode: string | null;
@@ -73,7 +75,7 @@ export interface ShiftFilter {
   readonly limit?: number;
 }
 
-const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, updated_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id, project_position_id, position:project_positions!shifts_project_position_id_fkey(title, membership_id, roster_entry_id)`;
+const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, updated_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED}), roster_entry_id, budget_line_id, project_position_id, position:project_positions!shifts_project_position_id_fkey(title, membership_id, roster_entry_id)`;
 
 interface ShiftRow {
   id: string;
@@ -99,6 +101,7 @@ interface ShiftRow {
   roster_entry_id?: string | null;
   project_position_id?: string | null;
   position?: { title: string; membership_id: string | null; roster_entry_id: string | null } | null;
+  budget_line_id?: string | null;
 }
 
 function toShift(row: ShiftRow): Shift {
@@ -116,6 +119,7 @@ function toShift(row: ShiftRow): Shift {
         ? toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id)
         : null,
     rosterEntryId,
+    budgetLineId: row.budget_line_id ?? null,
     agencySlot: slot ? { engagementId: row.engagement_id as string, accountName: null } : null,
     roleCode: row.role_code,
     startsAt: row.starts_at,
@@ -240,6 +244,8 @@ export interface ShiftInput {
   readonly scopeNodeId?: string | null;
   /** The project position it is held for (B9); the database keeps anyone else off it. */
   readonly projectPositionId?: string | null;
+  /** The Labor budget line the shift's approved time posts to (G-133); null leaves it off the budget. */
+  readonly budgetLineId?: string | null;
 }
 
 /** Plans a Draft shift. The database refuses an end before the start and a zone that is not IANA. */
@@ -260,6 +266,7 @@ export async function createShift(
       ...(input.engagementId ? { engagement_id: input.engagementId } : {}),
       scope_node_id: input.scopeNodeId ?? null,
       ...(input.projectPositionId ? { project_position_id: input.projectPositionId } : {}),
+      budget_line_id: input.budgetLineId ?? null,
     })
     .select("id")
     .single();
@@ -277,6 +284,7 @@ export type ShiftPatch = Partial<
     | "membershipId"
     | "engagementId"
     | "projectPositionId"
+    | "budgetLineId"
   >
 >;
 
@@ -294,6 +302,7 @@ export async function updateShift(
   if (patch.timeZone !== undefined) update.time_zone = patch.timeZone;
   if (patch.membershipId !== undefined) update.membership_id = patch.membershipId;
   if (patch.engagementId !== undefined) update.engagement_id = patch.engagementId;
+  if (patch.budgetLineId !== undefined) update.budget_line_id = patch.budgetLineId;
   const { data, error } = await db
     .from("shifts")
     .update(update)
@@ -302,6 +311,38 @@ export async function updateShift(
     .select("id");
   if (error) return fail(toDataError(error));
   return landed(data);
+}
+
+export interface LaborBudgetLine {
+  readonly id: string;
+  readonly budgetId: string;
+  readonly projectId: string;
+  readonly budgetName: string;
+  readonly lineNumber: number;
+  readonly description: string;
+}
+
+/** The Labor lines a shift planner may choose (app.labor_budget_lines): no amounts. */
+export async function listLaborBudgetLines(
+  db: XosClient,
+  projectId?: string | null,
+): Promise<Result<LaborBudgetLine[]>> {
+  let query = db
+    .from("labor_budget_lines")
+    .select("id, budget_id, project_id, budget_name, line_number, description");
+  if (projectId) query = query.eq("project_id", projectId);
+  const { data, error } = await query.order("budget_name").order("line_number");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      id: r.id ?? "",
+      budgetId: r.budget_id ?? "",
+      projectId: r.project_id ?? "",
+      budgetName: r.budget_name ?? "",
+      lineNumber: r.line_number ?? 0,
+      description: r.description ?? "",
+    })),
+  );
 }
 
 /** Moves a shift to Trash (soft delete); it can be restored within the retention period. */

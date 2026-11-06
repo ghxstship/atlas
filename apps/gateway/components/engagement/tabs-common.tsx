@@ -3,6 +3,7 @@ import { submitIntakeInvoiceAction } from "@/lib/actions/intake";
 import { addCalendarDays } from "@xos/data/calendar";
 import { workflowMarker } from "@xos/data/workflow-signal";
 import { ActionOutcomeScope } from "@xos/ui/pwa/action-outcome";
+import { QuoteSignButton } from "./quote-sign-button";
 import {
   APP_ENUMS,
   listDocumentTexts,
@@ -16,6 +17,8 @@ import {
   type EngagementDocument,
   type EngagementDocumentKind,
   type OnboardingItem,
+  listEngagementQuoteVersions,
+  type EngagementQuoteVersion,
 } from "@xos/data/gateway";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
@@ -37,6 +40,7 @@ import { onRoster } from "@/lib/roster-member";
 import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { signsInOneClick } from "@/lib/documents/links";
 import { toneFor } from "@/lib/states";
 import {
   InvoiceForm,
@@ -158,14 +162,19 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                   id: d.id,
                   title: t("gateway.home.needsYou.sign", { title: d.title }),
                   meta: [t(enumLabelKey("engagementDocumentKind", d.kind))],
-                  action: (
-                    <ActionButton
-                      action={signDocumentAction.bind(null, d.id)}
-                      label={t("gateway.common.sign")}
-                      variant="secondary"
-                      done={t("gateway.common.signed")}
-                    />
-                  ),
+                  // A quote is signed from the Documents tab, after its total and consent are shown.
+                  ...(signsInOneClick(d)
+                    ? {
+                        action: (
+                          <ActionButton
+                            action={signDocumentAction.bind(null, d.id)}
+                            label={t("gateway.common.sign")}
+                            variant="secondary"
+                            done={t("gateway.common.signed")}
+                          />
+                        ),
+                      }
+                    : { href: tabHref(engagementKey, "engagement.documents") }),
                 })),
                 ...(open.length > 0
                   ? [
@@ -293,6 +302,14 @@ export async function DocumentsTab({
   if (!docs.ok || !texts.ok) return <RegionError />;
   const textOf = new Map(texts.data.map((x) => [x.documentId, x]));
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;
+  // A Quote document's PDF and confirmation read its version (api_external.quote_versions).
+  const quotes = shown.some((d) => d.kind === "Quote")
+    ? await listEngagementQuoteVersions(
+        view.ctx.db,
+        shown.map((d) => d.id),
+      )
+    : null;
+  const quoteOf = new Map((quotes?.ok ? quotes.data : []).map((q) => [q.engagementDocumentId, q]));
   if (shown.length === 0) {
     return (
       <TabEmpty
@@ -318,8 +335,27 @@ export async function DocumentsTab({
             : null,
         ],
         tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
-        // A generated document is read in full and signed with the hash of what was read (B10), never with one button.
-        ...documentAnswer(d, textOf.get(d.id), { t, engagementKey }),
+        ...(d.kind === "Quote" && quoteOf.get(d.id)
+          ? {
+              action: (
+                <QuoteDocumentActions
+                  quote={quoteOf.get(d.id) as EngagementQuoteVersion}
+                  documentId={d.id}
+                  engagementKey={engagementKey}
+                  canSign={d.state === "Sent"}
+                  total={
+                    formatMoney(
+                      locale,
+                      quoteOf.get(d.id)?.totalMinor ?? null,
+                      quoteOf.get(d.id)?.currency ?? "USD",
+                    ) ?? ""
+                  }
+                  validUntil={formatDate(locale, quoteOf.get(d.id)?.validUntil ?? "")}
+                />
+              ),
+            }
+          : // A generated document is read in full and signed with the hash of what was read (B10), never with one button.
+            documentAnswer(d, textOf.get(d.id), { t, engagementKey })),
       }))}
     />
   );
@@ -356,7 +392,7 @@ function documentAnswer(
       ),
     };
   }
-  return d.state === "Sent"
+  return signsInOneClick(d)
     ? {
         action: (
           <ActionButton
@@ -368,6 +404,32 @@ function documentAnswer(
         ),
       }
     : {};
+}
+
+/** A Quote row: its PDF, and Sign behind a confirmation while it waits for a signature. */
+function QuoteDocumentActions({
+  quote,
+  documentId,
+  engagementKey,
+  canSign,
+  total,
+  validUntil,
+}: {
+  quote: EngagementQuoteVersion;
+  documentId: string;
+  engagementKey: string;
+  canSign: boolean;
+  total: string;
+  validUntil: string;
+}) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-8">
+      <DocumentActions kind="quote" id={quote.id} engagementKey={engagementKey} />
+      {canSign ? (
+        <QuoteSignButton documentId={documentId} total={total} validUntil={validUntil} />
+      ) : null}
+    </span>
+  );
 }
 
 export function OfferTab(props: TabProps) {

@@ -509,7 +509,8 @@
     "poolNeedsWrite": "Someone with pool access records re-engagement.",
     "milestoneFee": "Fee: {amount}. Self-billing bills it once the milestone is accepted.",
     "milestoneFeeLabel": "Fee ({currency})",
-    "setFee": "Set fee"
+    "setFee": "Set fee",
+    "openQuote": "Open the quote"
   },
   "ratings": {
     "title": "Ratings",
@@ -641,7 +642,8 @@
     "lienWaiver": "Lien Waiver",
     "settlement": "Settlement",
     "proofOfPerformance": "Proof of Performance",
-    "contentConsent": "Content Consent"
+    "contentConsent": "Content Consent",
+    "quote": "Quote"
   },
   "deliverableStates": {
     "open": "Open",

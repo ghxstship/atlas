@@ -123,12 +123,26 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
   const name = text(200).safeParse(f["name"]);
   if (!name.success) return inputError("name");
   const isBaseline = f["isBaseline"] === "on" || f["isBaseline"] === "true";
+  // Typed as a percent; a blank field is no default markup, stored as NULL.
+  const markupText = (f["defaultMarkupPercent"] ?? "").trim();
+  const markupPercent = markupText === "" ? null : Number(markupText);
+  if (
+    markupPercent !== null &&
+    !(Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000)
+  ) {
+    return inputError("defaultMarkupPercent");
+  }
+  const defaultMarkupBp = markupPercent === null ? null : Math.round(markupPercent * 100);
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
     return finish(
       ctx,
-      await finance.updateBudget(ctx.viewer.db, id.data, { name: name.data, isBaseline }),
+      await finance.updateBudget(ctx.viewer.db, id.data, {
+        name: name.data,
+        isBaseline,
+        ...("defaultMarkupPercent" in f ? { defaultMarkupBp } : {}),
+      }),
     );
   }
   const projectId = z.uuid().safeParse(f["projectId"]);
@@ -140,6 +154,7 @@ export async function saveBudgetAction(_: ActionState, form: FormData): Promise<
     name: name.data,
     currency: code.data,
     isBaseline,
+    defaultMarkupBp,
   });
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
@@ -163,6 +178,10 @@ const LineSchema = z.object({
   unitPriceMinor: z.number().int().min(0).nullable(),
   xyz: z.enum(["X", "Y", "Z"]),
   xyzBasis: z.enum(enums.xyzBasis),
+  markupBp: z.number().int().min(0).max(100000).nullable().optional(),
+  clientUnitPriceMinor: z.number().int().min(0).nullable().optional(),
+  excludedFromQuote: z.boolean().optional(),
+  etcMinor: z.number().int().min(0).nullable().optional(),
 });
 
 /** Appends one or many lines (single add, catalog picks or a spreadsheet paste) as one batch. */

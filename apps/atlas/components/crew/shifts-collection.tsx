@@ -6,6 +6,7 @@ import {
   listAgencyEngagements,
   listAssignableRosterEntries,
   listPositions,
+  listLaborBudgetLines,
   listShifts,
   listTimeEntries,
   shiftMinutes,
@@ -152,7 +153,7 @@ export async function ShiftsCollection(props: {
   const canWrite = crew.can("crew.shift.write");
   // Planners also read the org's shift templates, for "Plan from template", and the projects they may staff,
   // for the drag board (A132), alongside the shifts rather than after them.
-  const [result, templates, planning] = await Promise.all([
+  const [result, templates, planning, laborResult] = await Promise.all([
     listShifts(db, {
       orgId: crew.orgId,
       from: startOfDayIn(from, zone),
@@ -162,11 +163,25 @@ export async function ShiftsCollection(props: {
     }),
     canWrite ? listShiftTemplates(db, crew.orgId) : null,
     canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
+    // Budget line options load with the shift form, or for the bulk bar of one project's shifts: a line
+    // belongs to one project, so an org-wide list never offers them and the key page reads nothing here.
+    // The create form lets a person choose another project, so it reads every project's lines.
+    canWrite && (search["create"] === "1" || search["edit"] || projectFilter)
+      ? listLaborBudgetLines(
+          db,
+          search["create"] === "1" ? (crew.project?.id ?? null) : (projectFilter?.id ?? null),
+        )
+      : null,
   ]);
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
   if (planning && !planning.ok) {
     throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
   }
+  const shifts = result.data;
+  const laborLines = laborResult?.ok ? laborResult.data : [];
+  const projectKeyOf = new Map(projects.map((p) => [p.id, p.key]));
+  const laborLineLabel = (l: (typeof laborLines)[number]) =>
+    `${projectKeyOf.get(l.projectId) ?? ""} · ${l.budgetName} · ${l.lineNumber} ${l.description}`;
   const staffable = planning?.ok ? planning.data : new Set<string>();
   // Needs review (B6, 5951): for writers, whether the people on the live staffed shifts still to come
   // were told of their changes. The month calendar can list more than 500, so the data layer chunks.
@@ -815,6 +830,40 @@ export async function ShiftsCollection(props: {
         value: s ? isoToZoned(s.endsAt, zone) : `${week}T16:00`,
         required: true,
       },
+      {
+        kind: "select",
+        name: "budgetLineId",
+        label: t("crew.fields.budgetLine"),
+        help: t("crew.shifts.budgetLineHelp"),
+        value: s?.budgetLineId ?? "",
+        // A new shift's project is still a choice, so its lines follow that select and the field resets
+        // with it. Once the project is fixed the lines are plain options.
+        ...(!s && !crew.project
+          ? {
+              dependsOn: {
+                field: "projectId",
+                optionsBy: Object.fromEntries(
+                  projects.map((p) => [
+                    p.id,
+                    laborLines
+                      .filter((l) => l.projectId === p.id)
+                      .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                  ]),
+                ),
+              },
+            }
+          : {}),
+        options: [
+          { value: "", label: t("crew.shifts.noBudgetLine") },
+          ...laborLines
+            .filter((l) => l.projectId === (s?.projectId ?? crew.project?.id))
+            .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+          // The line it holds always shows, so a save never clears it.
+          ...(s?.budgetLineId && !laborLines.some((l) => l.id === s.budgetLineId)
+            ? [{ value: s.budgetLineId, label: t("crew.shifts.currentBudgetLine") }]
+            : []),
+        ],
+      },
     ];
   };
   const swapShift = shiftOf(search["swap"]);
@@ -1352,6 +1401,20 @@ export async function ShiftsCollection(props: {
                       })),
                     ],
                   },
+                  ...(projectFilter
+                    ? [
+                        {
+                          key: "budget_line_id",
+                          label: t("crew.fields.budgetLine"),
+                          options: [
+                            { value: null, label: t("crew.shifts.noBudgetLine") },
+                            ...laborLines
+                              .filter((l) => l.projectId === projectFilter.id)
+                              .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+                          ],
+                        },
+                      ]
+                    : []),
                 ],
               }
             : null

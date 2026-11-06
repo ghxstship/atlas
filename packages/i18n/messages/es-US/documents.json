@@ -24,6 +24,7 @@
     "site-plan": "Plano del sitio",
     "signage-build-sheet": "Hoja de montaje de señalización",
     "radio-handout": "Hoja de radios",
+    "quote": "Cotización",
     "engagement-document": "Acuerdo generado"
   },
   "facts": {
@@ -764,6 +765,27 @@
       "Declined": "Rechazada",
       "Withdrawn": "Retirada"
     }
+  },
+  "quote": {
+    "title": "Cotización {key}",
+    "key": "Cotización",
+    "version": "Versión",
+    "client": "Cliente",
+    "issued": "Fecha de emisión",
+    "validUntil": "Válida hasta",
+    "draftNotSent": "Borrador: sin enviar",
+    "linesCaption": "Líneas de la cotización {key}",
+    "unit": "Unidad",
+    "terms": "Notas y términos",
+    "taxNote": "Los precios no incluyen impuestos, que se agregan en la factura cuando corresponda.",
+    "fingerprint": "Huella del contenido (SHA-256)",
+    "signature": "Firma",
+    "nameAsSigned": "Nombre como se firmó",
+    "signed": "Firmada",
+    "howSigned": "Cómo se firmó",
+    "signedByLink": "Enlace de firma con código de acceso, enviado a {email}",
+    "signedIn": "Con sesión iniciada en Gateway",
+    "signatureStatement": "La persona firmante escribió su nombre para aceptar exactamente la cotización anterior. XOS fijó el SHA-256 de su contenido al enviarla; cualquier cambio en el contenido cambia la huella."
   },
   "engagementDocument": {
     "text": "Texto del acuerdo",
