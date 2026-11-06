@@ -120,5 +120,15 @@ select lives_ok($$select app.apply_itinerary_lines((select id from world where k
 select throws_ok($$select app.apply_itinerary_lines((select id from world where key = 'prj_a'), null, jsonb_build_array(pg_temp.item('s3', 'ivy', '2027-06-03T12:15:00Z')))$$,
   'XR001', 'aurora_intake_item_invalid: Line 1 is no longer proposed. Read the file again.', 'an applied line cannot apply again');
 
+-- Another org's booking of the same traveler never counts as a repeat here, and its existence is never told.
+select pg_temp.as_user('dave');
+select pg_temp.segment('s_org', 'r1');
+select pg_temp.as_platform();
+insert into app.travel_segments (project_id, person_id, travel_mode, service_identifier, departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_time_zone)
+values (pg_temp.id('prj_b'), pg_temp.id('ivy'), 'Flight', 'GA 777', 'MIA', '2027-06-05T12:15:00Z', 'America/New_York', 'ORD', 'America/Chicago');
+select pg_temp.as_user('dave');
+select lives_ok($$select app.apply_itinerary_lines((select id from world where key = 'prj_a'), null, jsonb_build_array(pg_temp.item('s_org', 'ivy', '2027-06-05T12:15:00Z', jsonb_build_object('service_identifier', 'GA 777'))))$$,
+  'another org''s booking of the same flight is not a repeat');
+
 select * from finish();
 rollback;

@@ -641,7 +641,9 @@
         },
         "dropped": "{count, plural, one {# answer was} other {# answers were}} left out, because they could not be checked against the source.",
         "unanswered": "Not answered"
-      }
+      },
+      "fileFailed": "{file} could not be read, so nothing from it is listed. Try it again, or split it if it is long.",
+      "fileNoAnswer": "Aurora found nothing to read in {file}, so nothing from it is listed."
     },
     "rules": {
       "aurora_intake_item_invalid": "{detail}",

@@ -35,6 +35,8 @@ export const accountingPeriodState = [
 export const acquisitionKind = ["Purchase", "Rental"] as const;
 /** app.actor_kind */
 export const actorKind = ["Person", "Service", "System"] as const;
+/** app.advance_answer_source_kind */
+export const advanceAnswerSourceKind = ["Project Inbox", "File"] as const;
 /** app.advance_review_outcome */
 export const advanceReviewOutcome = ["Accepted", "Returned"] as const;
 /** app.advance_section_kind */
@@ -46,6 +48,16 @@ export const advanceSectionKind = [
   "Crew Roster",
   "Guest List",
   "Credential Request",
+] as const;
+/** app.advance_track */
+export const advanceTrack = [
+  "Finance",
+  "Technical",
+  "Hospitality",
+  "Catering",
+  "Travel",
+  "Logistics",
+  "General",
 ] as const;
 /** app.advance_window_kind */
 export const advanceWindowKind = [
@@ -201,6 +213,14 @@ export const brandRadiusScale = ["Compact", "Default", "Rounded"] as const;
 export const budgetLineType = ["Cost", "Labor", "Fee", "Contingency"] as const;
 /** app.calendar_conflict_policy */
 export const calendarConflictPolicy = ["XOS Wins", "Provider Wins", "Latest Wins"] as const;
+/** app.calendar_feed_source */
+export const calendarFeedSource = [
+  "Shifts",
+  "Meetings",
+  "Milestones",
+  "Deadlines",
+  "Cues",
+] as const;
 /** app.calendar_sync_kind */
 export const calendarSyncKind = ["Meeting", "Event", "Shift"] as const;
 /** app.canon_extension_level */
@@ -263,6 +283,8 @@ export const credentialPhotoState = [
 ] as const;
 /** app.cue_call_kind */
 export const cueCallKind = ["Audio", "Lighting", "Video", "Special Effects", "Stage"] as const;
+/** app.cue_field_audience */
+export const cueFieldAudience = ["Crew", "Showcaller", "Client"] as const;
 /** app.custom_data_type */
 export const customDataType = [
   "Text",
@@ -278,6 +300,21 @@ export const customDataType = [
 ] as const;
 /** app.data_classification */
 export const dataClassification = ["Public", "Internal", "Confidential", "Restricted"] as const;
+/** app.day_template_item_kind */
+export const dayTemplateItemKind = ["Record", "Cue"] as const;
+/** app.debrief_area */
+export const debriefArea = [
+  "Schedule",
+  "Budget",
+  "Safety",
+  "Audience",
+  "Sustainability",
+  "Crew",
+  "Vendors",
+  "Other",
+] as const;
+/** app.debrief_item_kind */
+export const debriefItemKind = ["Went Well", "To Improve", "Action"] as const;
 /** app.deliverable_state */
 export const deliverableState = ["Open", "Submitted", "Accepted", "Returned"] as const;
 /** app.delivery_status */
@@ -311,6 +348,10 @@ export const dietaryNeed = [
 export const digestFrequency = ["Off", "Daily", "Weekly"] as const;
 /** app.display_mode */
 export const displayMode = ["Room Clock", "Presenter Timer", "Backstage"] as const;
+/** app.document_book_kind */
+export const documentBookKind = ["Tour Book", "Production Book"] as const;
+/** app.document_requirement */
+export const documentRequirement = ["Required", "Recommended"] as const;
 /** app.domain_provisioning_status */
 export const domainProvisioningStatus = [
   "Not Started",
@@ -381,6 +422,16 @@ export const engagementState = [
   "Complete",
   "Canceled",
 ] as const;
+/** app.event_audience */
+export const eventAudience = [
+  "Public Ticketed",
+  "Public Free",
+  "Invite Only",
+  "Trade",
+  "Internal",
+] as const;
+/** app.event_scale */
+export const eventScale = ["Intimate", "Small", "Medium", "Large", "Major"] as const;
 /** app.expense_state */
 export const expenseState = ["Proposed", "Approved", "Rejected", "Paid", "Canceled"] as const;
 /** app.export_filter_operator */
@@ -412,6 +463,8 @@ export const fileAccessAction = [
 ] as const;
 /** app.file_link_mode */
 export const fileLinkMode = ["Link", "Import"] as const;
+/** app.file_review_decision */
+export const fileReviewDecision = ["Approved", "Changes Requested"] as const;
 /** app.filter_operator */
 export const filterOperator = [
   "eq",
@@ -453,6 +506,19 @@ export const grantTargetKind = ["organization", "workspace", "team", "project", 
 export const groupKind = ["Department", "Project", "Crew", "Custom"] as const;
 /** app.group_role */
 export const groupRole = ["Owner", "Member"] as const;
+/** app.guest_email_kind */
+export const guestEmailKind = ["Invitation", "Pass", "Message"] as const;
+/** app.guest_email_skip_reason */
+export const guestEmailSkipReason = ["No Email", "Not Live", "No Pass"] as const;
+/** app.guest_email_state */
+export const guestEmailState = [
+  "Queued",
+  "Sending",
+  "Sent",
+  "Failed",
+  "Suppressed",
+  "Skipped",
+] as const;
 /** app.guest_entry_state */
 export const guestEntryState = ["Requested", "Approved", "Declined", "Checked In"] as const;
 /** app.handbook_article_state */
@@ -804,6 +870,24 @@ export const profileSection = [
 ] as const;
 /** app.profile_visibility */
 export const profileVisibility = ["Private", "Network", "Public"] as const;
+/** app.project_copy_part */
+export const projectCopyPart = [
+  "Plan",
+  "Pass Categories",
+  "Hotel Blocks",
+  "Budgets",
+  "Advance Forms",
+] as const;
+/** app.project_day_type */
+export const projectDayType = [
+  "Load In",
+  "Show",
+  "Load Out",
+  "Travel",
+  "Off",
+  "Rehearsal",
+  "Other",
+] as const;
 /** app.project_fact_kind */
 export const projectFactKind = ["Travel", "Uniform", "Vehicle"] as const;
 /** app.project_role */
@@ -868,8 +952,19 @@ export const rosterPersonResponse = ["Pending", "Accepted", "Declined"] as const
 export const rsvpResponse = ["Going", "Maybe", "Declined"] as const;
 /** app.run_status */
 export const runStatus = ["Queued", "Running", "Succeeded", "Failed"] as const;
+/** app.scan_direction */
+export const scanDirection = ["In", "Out"] as const;
 /** app.scan_mode */
 export const scanMode = ["Asset", "Credential", "Shipment", "Inventory", "Lookup"] as const;
+/** app.scan_refusal_reason */
+export const scanRefusalReason = [
+  "Revoked",
+  "Not Yet Valid",
+  "Expired",
+  "No Zone Access",
+  "Outside Window",
+  "Not Approved",
+] as const;
 /** app.scan_resolution */
 export const scanResolution = ["Matched", "Created", "Dismissed"] as const;
 /** app.scan_result */
@@ -1162,6 +1257,7 @@ export const viewType = [
   "Chart",
   "Feed",
   "Inbox",
+  "Heatmap",
 ] as const;
 /** app.warehouse_delivery_state */
 export const warehouseDeliveryState = [
@@ -1187,6 +1283,12 @@ export const warehouseProvider = [
 export const weatherAlertLevel = ["Monitor", "Restrict", "Evacuate"] as const;
 /** app.weather_hazard */
 export const weatherHazard = ["Wind", "Lightning", "Heat"] as const;
+/** app.weather_message_kind */
+export const weatherMessageKind = ["Hold", "All Clear"] as const;
+/** app.weather_provider */
+export const weatherProvider = ["NWS"] as const;
+/** app.weather_reading_source */
+export const weatherReadingSource = ["Manual", "NWS"] as const;
 /** app.work_detail_category */
 export const workDetailCategory = [
   "Emergency Contacts",

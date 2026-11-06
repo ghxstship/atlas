@@ -641,7 +641,9 @@
         },
         "dropped": "{count, plural, one {# respuesta quedó fuera} other {# respuestas quedaron fuera}} porque no se pudieron comprobar con la fuente.",
         "unanswered": "Sin responder"
-      }
+      },
+      "fileFailed": "No se pudo leer {file}, así que nada de ese archivo aparece aquí. Inténtalo de nuevo, o divídelo si es largo.",
+      "fileNoAnswer": "Aurora no encontró nada que leer en {file}, así que nada de ese archivo aparece aquí."
     },
     "rules": {
       "aurora_intake_item_invalid": "{detail}",

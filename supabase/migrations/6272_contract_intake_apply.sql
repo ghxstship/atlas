@@ -9,6 +9,24 @@
 --     engagement each already has, and the non-employee rate card rows the terms step offers.
 --   * app.apply_contract_intake: books or attaches each group in one transaction.
 
+-- One rule for the review and the apply: a party's live Artist engagements on the project. An engagement may name both a
+-- person and a counterparty (an artist booked through a management company), so it counts for either.
+create or replace function private.contract_party_engagement_ids(p_project_id uuid, p_person uuid, p_counterparty uuid)
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select e.id from app.engagements e
+  where e.project_id = p_project_id and e.role_type = 'Artist' and e.deleted_at is null
+    and e.engagement_state not in ('Complete', 'Canceled')
+    and ((p_person is not null and e.person_id = p_person)
+      or (p_counterparty is not null and e.counterparty_id = p_counterparty));
+$$;
+comment on function private.contract_party_engagement_ids(uuid, uuid, uuid) is 'A party''s live Artist engagements on a project, for app.contract_intake_options and app.apply_contract_intake, so the review and the apply always agree on what is already booked.';
+revoke all on function private.contract_party_engagement_ids(uuid, uuid, uuid) from public, anon, authenticated;
+
 create or replace function app.contract_intake_options(p_project_id uuid)
 returns jsonb
 language plpgsql
@@ -29,16 +47,14 @@ begin
         order by x.name, x.id)
       from (
         select 'counterparty'::text as kind, c.id, o.name,
-          coalesce((select jsonb_agg(e.id order by e.id) from app.engagements e
-            where e.project_id = p_project_id and e.counterparty_id = c.id and e.role_type = 'Artist' and e.deleted_at is null
-              and e.engagement_state not in ('Complete', 'Canceled')), '[]'::jsonb) as engagement_ids
+          coalesce((select jsonb_agg(i order by i) from private.contract_party_engagement_ids(p_project_id, null, c.id) i),
+            '[]'::jsonb) as engagement_ids
         from app.counterparties c join app.organizations o on o.id = c.organization_id
         where c.org_id = v_org and c.deleted_at is null
         union all
         select 'person', n.person_id, n.full_name,
-          coalesce((select jsonb_agg(e.id order by e.id) from app.engagements e
-            where e.project_id = p_project_id and e.person_id = n.person_id and e.role_type = 'Artist' and e.deleted_at is null
-              and e.engagement_state not in ('Complete', 'Canceled')), '[]'::jsonb)
+          coalesce((select jsonb_agg(i order by i) from private.contract_party_engagement_ids(p_project_id, n.person_id, null) i),
+            '[]'::jsonb)
         from app.person_names(array(select s.person_id from private.project_people(p_project_id) s)) n
       ) x), '[]'::jsonb),
     'rate_cards', coalesce((
@@ -169,16 +185,10 @@ begin
 
       -- A named engagement, or the party's one live Artist engagement, takes the documents; the fee is then ignored.
       v_given := nullif(v_item ->> 'engagement_id', '')::uuid;
-      select count(*), min(e.id::text)::uuid into v_live, v_engagement_id from app.engagements e
-      where e.project_id = p_project_id and e.role_type = 'Artist' and e.deleted_at is null
-        and e.engagement_state not in ('Complete', 'Canceled')
-        and e.person_id is not distinct from v_person and e.counterparty_id is not distinct from v_counterparty;
+      select count(*), min(i::text)::uuid into v_live, v_engagement_id
+      from private.contract_party_engagement_ids(p_project_id, v_person, v_counterparty) i;
       if v_given is not null then
-        if not exists (
-             select 1 from app.engagements e
-             where e.id = v_given and e.project_id = p_project_id and e.deleted_at is null
-               and e.engagement_state not in ('Complete', 'Canceled')
-               and e.person_id is not distinct from v_person and e.counterparty_id is not distinct from v_counterparty) then
+        if v_given not in (select i from private.contract_party_engagement_ids(p_project_id, v_person, v_counterparty) i) then
           perform private.refuse('aurora_intake_item_invalid', 'That engagement is not a live engagement of this party on this project.');
         end if;
         v_engagement_id := v_given;

@@ -116,6 +116,20 @@ select pg_temp.as_platform();
 select is((select count(*)::int from app.engagements where counterparty_id = pg_temp.id('cp_owls')), 1, 'a live engagement gets no second one');
 select is((select (r -> 'engagements' -> 0 ->> 'created')::boolean from attached), false, 'it says it attached');
 
+-- An engagement that names a person and a counterparty counts for the counterparty in the review and in the apply.
+select pg_temp.as_user('carol');
+insert into world values ('cp_mgmt', app.create_counterparty(pg_temp.id('org_a'), 'Owl Management', null, null));
+insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis, arrangement, start_date)
+  select pg_temp.id('prj_a'), pg_temp.id('art'), pg_temp.id('cp_mgmt'), 'Artist', t ->> 'role_code', t ->> 'worker_classification', t ->> 'pay_basis', t ->> 'arrangement', '2027-07-01' from pg_temp.terms() t;
+select is((select jsonb_array_length(p -> 'engagement_ids') from jsonb_array_elements(app.contract_intake_options(pg_temp.id('prj_a')) -> 'parties') p where p ->> 'id' = pg_temp.id('cp_mgmt')::text), 1,
+  'the review lists a booking through a management company under the company');
+select pg_temp.request('r_mgmt', 'prj_a');
+select pg_temp.document('c_mgmt', 'r_mgmt', 'Contract');
+create temporary table attached_mgmt as
+  select app.apply_contract_intake(pg_temp.id('prj_a'), jsonb_build_array(pg_temp.booking(array['c_mgmt'], 'cp_mgmt'))) as r;
+grant select on attached_mgmt to public;
+select is((select (r -> 'engagements' -> 0 ->> 'created')::boolean from attached_mgmt), false, 'and the apply attaches to it, as the review said');
+
 -- Two live engagements with none named.
 select pg_temp.as_user('carol');
 select app.apply_contract_intake(pg_temp.id('prj_a'), jsonb_build_array(pg_temp.booking(array['c5'], 'cp_two')));

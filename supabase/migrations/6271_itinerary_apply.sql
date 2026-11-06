@@ -172,7 +172,7 @@ begin
       end if;
       if exists (
            select 1 from app.travel_segments ts
-           where ts.person_id = v_person and ts.departs_at = v_departs and ts.deleted_at is null
+           where ts.org_id = v_org and ts.person_id = v_person and ts.departs_at = v_departs and ts.deleted_at is null
              and nullif(btrim(ts.service_identifier), '') is not distinct from v_service) then
         perform private.refuse('aurora_itinerary_duplicate', format('Line %s is already booked for this traveler.', v_line));
       end if;

@@ -140,7 +140,10 @@ export function ContractIntakeDialog({
           key,
           act,
           documents,
-          keep: documents.some((d) => typeOf(d) !== "Other"),
+          // Kept only if it can be added: a rider-only group of someone who may not add riders has nothing to add.
+          keep: documents.some(
+            (d) => typeOf(d) === "Contract" || (typeOf(d) === "Rider" && opts.can_write_riders),
+          ),
           party: matchExact(normalizeAct(act), candidates) ?? "",
           engagementId: "",
           startDate: contract ? textOf(contract, "start_date") : "",
@@ -190,8 +193,10 @@ export function ContractIntakeDialog({
       if (suggestion) held.current.set(suggestion, file);
       if (result.ok && result.data.model) setModel(result.data.model);
       if (!result.ok) setProblem(result.problem);
-      if (result.ok && result.data.outcome === "failed") {
-        notes.push(t("intake.tooManyLines", { file: file.name }));
+      if (!result.ok || result.data.outcome === "failed") {
+        notes.push(t("intake.fileFailed", { file: file.name }));
+      } else if (result.data.outcome === "no_answer") {
+        notes.push(t("intake.fileNoAnswer", { file: file.name }));
       }
       setStatuses((s) => s.map((v, j) => (j === i ? (suggestion ? "read" : "failed") : v)));
     });

@@ -6,6 +6,7 @@ import { zonedInstant } from "@xos/ai/lists";
 import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
+import { travelersOf } from "@/lib/aurora/intake-travelers";
 import type { ItineraryEntryProps } from "./intake-entry";
 import {
   atConcurrency,
@@ -45,9 +46,12 @@ interface Row {
   readonly from: string;
   readonly fromLocal: string;
   readonly fromZone: string;
+  /** The zone as first read: it names the Zones row while the zone is typed. */
+  readonly fromZoneRead: string;
   readonly to: string;
   readonly toLocal: string;
   readonly toZone: string;
+  readonly toZoneRead: string;
   readonly confidence: number | null;
   readonly excerpt: string;
   readonly yearInferred: boolean;
@@ -72,9 +76,11 @@ const rowOf = (p: AuroraOpenProposal, personId: string): Row => {
     from: textOf(p, "departs_from"),
     fromLocal: textOf(p, "departs_local"),
     fromZone: textOf(p, "departs_time_zone"),
+    fromZoneRead: textOf(p, "departs_time_zone"),
     to: textOf(p, "arrives_at_place"),
     toLocal: textOf(p, "arrives_local"),
     toZone: textOf(p, "arrives_time_zone"),
+    toZoneRead: textOf(p, "arrives_time_zone"),
     confidence:
       fieldOf(p, "departs_local")?.confidence ?? fieldOf(p, "departs_from")?.confidence ?? null,
     excerpt:
@@ -208,6 +214,12 @@ export function ItineraryIntakeDialog({
       } else if (!result.ok) {
         setProblem(result.problem);
       }
+      // The panel moves on to the review, so a file that gave no lines says so there.
+      if (!result.ok || result.data.outcome === "failed") {
+        notes.push(t("intake.fileFailed", { file: file.name }));
+      } else if (result.data.outcome === "no_answer") {
+        notes.push(t("intake.fileNoAnswer", { file: file.name }));
+      }
       setStatuses((s) => s.map((v, j) => (j === i ? (ok ? "read" : "failed") : v)));
     });
     setDropNote(notes.join(" "));
@@ -219,29 +231,18 @@ export function ItineraryIntakeDialog({
   const set = (rowId: string, patch: Partial<Row>) =>
     setRows((current) => current?.map((r) => (r.id === rowId ? { ...r, ...patch } : r)) ?? null);
 
-  const travelers = useMemo(() => {
-    const byPerson = new Map<string, { label: string; engagementId: string | null }>();
-    for (const c of options?.travelers ?? []) {
-      const known = byPerson.get(c.person_id);
-      byPerson.set(c.person_id, {
-        label: c.display_name,
-        // The engagement is filled only when the person has exactly one on the project.
-        engagementId:
-          known === undefined
-            ? c.engagement_id
-            : known.engagementId === c.engagement_id
-              ? c.engagement_id
-              : (known.engagementId ?? c.engagement_id),
-      });
-    }
-    return [...byPerson.entries()].map(([value, v]) => ({ value, ...v }));
-  }, [options]);
+  const travelers = useMemo(() => travelersOf(options?.travelers ?? []), [options]);
 
   const zones = useMemo(() => {
-    const out = new Map<string, { place: string; zone: string }>();
+    // Keyed by the zone as first read, so typing in a row keeps its input and focus.
+    const out = new Map<string, { place: string; zone: string; read: string }>();
+    const add = (place: string, zone: string, read: string) => {
+      const key = zoneKey(place, read);
+      if (!out.has(key)) out.set(key, { place, zone, read });
+    };
     for (const r of rows ?? []) {
-      out.set(zoneKey(r.from, r.fromZone), { place: r.from, zone: r.fromZone });
-      out.set(zoneKey(r.to, r.toZone), { place: r.to, zone: r.toZone });
+      add(r.from, r.fromZone, r.fromZoneRead);
+      add(r.to, r.toZone, r.toZoneRead);
     }
     return [...out.values()].filter((z) => z.place !== "");
   }, [rows]);
@@ -578,12 +579,12 @@ export function ItineraryIntakeDialog({
                 <p className="m-0 text-text-12 text-text-secondary">
                   {t("intake.itinerary.checkZone")}
                 </p>
-                {zones.map((z) => {
+                {zones.map((z, index) => {
                   const key = zoneKey(z.place, z.zone);
                   return (
-                    <div key={key} className="flex flex-wrap items-end gap-8">
+                    <div key={zoneKey(z.place, z.read)} className="flex flex-wrap items-end gap-8">
                       <Input
-                        id={`${id}-zone-${key}`}
+                        id={`${id}-zone-${index}`}
                         label={t("intake.itinerary.zoneOf", { place: z.place })}
                         value={z.zone}
                         error={
@@ -598,8 +599,11 @@ export function ItineraryIntakeDialog({
                               current?.map((r) => ({
                                 ...r,
                                 fromZone:
-                                  r.from === z.place && r.fromZone === z.zone ? value : r.fromZone,
-                                toZone: r.to === z.place && r.toZone === z.zone ? value : r.toZone,
+                                  r.from === z.place && r.fromZoneRead === z.read
+                                    ? value
+                                    : r.fromZone,
+                                toZone:
+                                  r.to === z.place && r.toZoneRead === z.read ? value : r.toZone,
                               })) ?? null,
                           );
                         }}
