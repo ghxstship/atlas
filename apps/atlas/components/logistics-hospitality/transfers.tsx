@@ -572,6 +572,7 @@ export async function TransfersSection({
           sentence={t("empty")}
           actionLabel={t("new")}
           href={createHref}
+          secondary
         />
       ) : (
         <EmptyStateLink

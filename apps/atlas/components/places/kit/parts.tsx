@@ -226,13 +226,24 @@ export function CollectionEmpty({
   actionLabel,
   href,
   icon = "Inbox",
+  secondary = false,
 }: {
   sentence: string;
   actionLabel: string;
   href: string;
   icon?: string;
+  /** The page header already holds this primary action (gate 27). */
+  secondary?: boolean;
 }) {
-  return <EmptyStateLink icon={icon} sentence={sentence} actionLabel={actionLabel} href={href} />;
+  return (
+    <EmptyStateLink
+      secondary={secondary}
+      icon={icon}
+      sentence={sentence}
+      actionLabel={actionLabel}
+      href={href}
+    />
+  );
 }
 
 /** A link back from a full record page to the collection, keeping its filters. */

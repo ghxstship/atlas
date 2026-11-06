@@ -314,6 +314,7 @@ export async function SignagePage({
         sentence={t("places.signage.empty")}
         actionLabel={t("places.signage.create")}
         href={withQuery(path, search, { create: "1" })}
+        secondary={projectOptions.length > 0}
       />
     ) : (
       <InlineAlert tone="info">{t("places.signage.emptyReadOnly")}</InlineAlert>

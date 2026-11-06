@@ -369,21 +369,25 @@ export function McpConnectorForm({
           />
         ) : null}
       </div>
-      <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-        <legend className="mb-4 text-label-13 font-medium">{labels.scopes}</legend>
-        <p className="m-0 text-text-12 text-text-secondary">{labels.scopesHelp}</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {groups.map((g) => (
-            <Checkbox
-              key={g.value}
-              name="scope"
-              value={g.value}
-              label={g.label}
-              defaultChecked={defaults.includes(g.value)}
-            />
-          ))}
-        </div>
-      </fieldset>
+      {/* About twenty groups, folded so the form stays within seven visible fields (gate 27). */}
+      <details className="flex flex-col gap-4">
+        <summary className="cursor-pointer text-label-13 font-medium">{labels.scopes}</summary>
+        <fieldset className="m-0 mt-4 flex flex-col gap-4 border-0 p-0">
+          <legend className="sr-only">{labels.scopes}</legend>
+          <p className="m-0 text-text-12 text-text-secondary">{labels.scopesHelp}</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {groups.map((g) => (
+              <Checkbox
+                key={g.value}
+                name="scope"
+                value={g.value}
+                label={g.label}
+                defaultChecked={defaults.includes(g.value)}
+              />
+            ))}
+          </div>
+        </fieldset>
+      </details>
       {state.connector ? (
         <div className="flex flex-col gap-8" data-testid="mcp-connector-result">
           <InlineAlert tone="success">{state.message}</InlineAlert>
