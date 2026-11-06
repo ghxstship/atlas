@@ -26,6 +26,8 @@ export interface SectionSpec {
   readonly perPerson?: boolean;
   /** Item and credential requests: the asset class or credential category names offered. */
   readonly choices?: readonly string[];
+  /** The section's track in the Track select (R11), General when left out. */
+  readonly track?: string;
 }
 
 export interface SentPacket {
@@ -90,6 +92,9 @@ export async function sendTypedPacket(
         section.choices ?? [],
       );
     }
+    if (section.track) {
+      await page.getByLabel("Track", { exact: true }).selectOption({ label: section.track });
+    }
     await page.getByRole("button", { name: "Add section" }).click();
     await expect(page.getByText(new RegExp(`\\d+\\. ${section.title}$`))).toBeVisible();
   }
@@ -119,6 +124,20 @@ export async function acceptAnswer(page: Page, section: string, recipient: strin
   const card = answerCard(page, section, recipient);
   await card.getByRole("button", { name: "Accept" }).click();
   await expect(card.getByText("Accepted", { exact: true })).toBeVisible();
+}
+
+/** Returns the answer to one section with a reason, as the Owner on the packet page. */
+export async function returnAnswer(
+  page: Page,
+  section: string,
+  recipient: string,
+  reason: string,
+): Promise<void> {
+  const card = answerCard(page, section, recipient);
+  await card.getByRole("button", { name: "Return", exact: true }).click();
+  await card.getByLabel("Why it is returned").fill(reason);
+  await card.getByRole("button", { name: "Return to recipient" }).click();
+  await expect(card.getByText("Returned", { exact: true })).toBeVisible();
 }
 
 /** The page fits a 375 px wide screen without sideways scrolling. */

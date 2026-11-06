@@ -1500,6 +1500,12 @@
         "shiftAssigned": "New shift: {title}",
         "shiftChanged": "Shift changed: {title}",
         "messageReceived": "New message",
+        "advanceReminder": "{reminder, select, overdue {Overdue: {title}} other {Reminder: {title}}} for {projectName}",
+        "advanceReturned": "Your answer to {title} was returned",
+        "submittalReturned": "Submittal returned: {title}",
+        "rosterRemoved": "You were taken off the {partyName} crew for {projectName}",
+        "rosterFactsRequested": "{projectName} needs your {kind, select, uniform {uniform sizes} travel {travel request} vehicle {vehicle details} other {project details}}",
+        "credentialRevoked": "Your {title} credential for {projectName} was revoked",
         "other": "{title}",
         "untitled": "New update"
       }

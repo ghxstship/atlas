@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, SegmentedControl, Textarea, Toast, ToastRegion } from "@xos/ui";
+import { Button, SegmentedControl, StatusHeatmap, Textarea, Toast, ToastRegion } from "@xos/ui";
 import type {
   StatusHeatmapCell,
   StatusHeatmapCol,
@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import { BulkActionBar } from "@/components/lazy-ui/bulk-action-bar";
 import { Dialog } from "@/components/lazy-ui/dialog";
-import { StatusHeatmap } from "@/components/lazy-ui/status-heatmap";
 import {
   revokeTrackSignoffAction,
   sendAdvanceReminderAction,
@@ -23,9 +22,10 @@ import { useCopy } from "./use-copy";
 import { useQueryHref } from "./views";
 
 /**
- * Client pieces of Advancing > Progress (R11): the pane switcher, the heatmaps (StatusHeatmap loads through
- * lazy-ui, so a page that never shows a pane never carries it), the bulk reminder on chosen recipients of one
- * packet, and the sign-off and revoke dialogs of the Tracks pane. Every write goes through progress-actions.
+ * Client pieces of Advancing > Progress (R11): the pane switcher, the heatmaps (imported directly, since Progress is
+ * the route's default section and a control that renders on arrival loses its first clicks behind next/dynamic), the
+ * bulk reminder on chosen recipients of one packet, and the sign-off and revoke dialogs of the Tracks pane. Every
+ * write goes through progress-actions.
  */
 
 export interface HeatmapData {

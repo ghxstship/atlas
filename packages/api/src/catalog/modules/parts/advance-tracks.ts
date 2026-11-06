@@ -11,21 +11,14 @@
  * catalog/modules/advancing.ts.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
 
-export const ADVANCE_TRACKS = [
-  "Finance",
-  "Technical",
-  "Hospitality",
-  "Catering",
-  "Travel",
-  "Logistics",
-  "General",
-] as const;
+export const ADVANCE_TRACKS = Constants.app.Enums.advance_track;
 
 export const TRACK_STATES = [
   "Not Started",

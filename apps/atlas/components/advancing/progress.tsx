@@ -25,6 +25,7 @@ import {
   type HeatmapData,
   type TrackCellAction,
 } from "./progress-panes";
+import { progressCellHref } from "./progress-links";
 import type { Search } from "./shared";
 import { PageHeader, StatTile } from "./ui";
 import { SelectFilter } from "./views";
@@ -198,9 +199,7 @@ export async function AdvancingProgress({
             `${c.recipientId}:${c.sectionId}`,
             {
               state: c.state,
-              href: c.latestSubmissionId
-                ? `${path}?section=submissions&peek=${c.latestSubmissionId}`
-                : `${path}?section=packets&peek=${c.packetId}`,
+              href: progressCellHref(path, c),
               ...(c.overdue ? { detail: t("advancing.progress.overdue") } : {}),
             },
           ]),

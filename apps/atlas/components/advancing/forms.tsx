@@ -2,6 +2,7 @@
 
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
+import type { Database } from "@xos/data/database.types";
 import { emitWorkflow } from "@xos/data/workflow-signal";
 import { useActionOutcome } from "@xos/ui/pwa/action-outcome";
 import type { Route } from "next";
@@ -67,16 +68,19 @@ const SECTION_KINDS = [
   "Credential Request",
 ] as const;
 
-/** The tracks a section can be grouped under (app.advance_track, R11). */
-const TRACKS = [
-  "Finance",
-  "Technical",
-  "Hospitality",
-  "Catering",
-  "Travel",
-  "Logistics",
-  "General",
-] as const;
+/**
+ * The tracks a section can be grouped under, with the catalog segment of each (R11). Keyed by the generated enum, so a
+ * track a migration adds fails the typecheck here; @xos/data/advancing stays out of this client module.
+ */
+const TRACK_NAMES: Readonly<Record<Database["app"]["Enums"]["advance_track"], string>> = {
+  Finance: "finance",
+  Technical: "technical",
+  Hospitality: "hospitality",
+  Catering: "catering",
+  Travel: "travel",
+  Logistics: "logistics",
+  General: "general",
+};
 
 /** The track a section is on, as a Select; it stays editable after the packet is sent (R11). */
 function TrackSelect({ id, defaultValue }: { id: string; defaultValue: string }) {
@@ -89,7 +93,10 @@ function TrackSelect({ id, defaultValue }: { id: string; defaultValue: string })
       label={t("label")}
       help={t("help")}
       value={track}
-      options={TRACKS.map((k) => ({ value: k, label: t(`names.${kindKey(k)}`) }))}
+      options={Object.entries(TRACK_NAMES).map(([value, name]) => ({
+        value,
+        label: t(`names.${name}`),
+      }))}
       onChange={(e) => setTrack(e.target.value)}
     />
   );

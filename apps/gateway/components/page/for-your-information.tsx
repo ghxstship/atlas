@@ -23,6 +23,13 @@ const KINDS: Readonly<Record<string, string>> = {
   "message.received": "fyi.kinds.messageReceived",
   // A company entered project details for the person (R5): they open their details here and correct them.
   "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
+  // Advancing notices (R11, migrations 2741 and 2742).
+  "advance_packet.reminder": "fyi.kinds.advanceReminder",
+  "advance_submission.returned": "fyi.kinds.advanceReturned",
+  "submittal.returned": "fyi.kinds.submittalReturned",
+  "roster_entry.removed": "fyi.kinds.rosterRemoved",
+  "roster_entry.facts_requested": "fyi.kinds.rosterFactsRequested",
+  "credential.revoked": "fyi.kinds.credentialRevoked",
 };
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
@@ -62,6 +69,8 @@ export async function ForYourInformation({
       kind: n.args["kind"] ?? "other",
       actorName: n.args["actorName"] ?? "",
       projectName: n.args["projectName"] ?? "",
+      partyName: n.args["partyName"] ?? "",
+      reminder: n.args["reminder"] ?? "other",
     };
     const text = key
       ? t(`gateway.home.${key}`, values)

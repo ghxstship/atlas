@@ -11,4 +11,4 @@ people on a roster by readiness category, or the parties of a project by offerin
 - Every state shows its `StateIcon` and its label, never color alone. A row and column with no cell reads "not asked".
 - The table is its own accessible alternative: row and column headers name every cell, and the legend lists each
   state once. Wide grids scroll inside a `ScrollRegion`, so a 375 px page never scrolls sideways.
-- Atlas loads it through `components/lazy-ui/status-heatmap.tsx`, so key pages do not carry it.
+- Atlas imports it directly on Advancing > Progress, the default section of a route that is not a key page: a control that renders on arrival loses its first clicks behind `next/dynamic` (ADR 0027).

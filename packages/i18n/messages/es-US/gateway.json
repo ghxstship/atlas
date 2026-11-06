@@ -1500,6 +1500,12 @@
         "shiftAssigned": "Nuevo turno: {title}",
         "shiftChanged": "Turno modificado: {title}",
         "messageReceived": "Mensaje nuevo",
+        "advanceReminder": "{reminder, select, overdue {Vencido: {title}} other {Recordatorio: {title}}} para {projectName}",
+        "advanceReturned": "Se devolvió tu respuesta a {title}",
+        "submittalReturned": "Entregable devuelto: {title}",
+        "rosterRemoved": "Ya no estás en el equipo de {partyName} para {projectName}",
+        "rosterFactsRequested": "{projectName} necesita tus {kind, select, uniform {tallas de uniforme} travel {datos de viaje} vehicle {datos del vehículo} other {datos del proyecto}}",
+        "credentialRevoked": "Se revocó tu credencial {title} para {projectName}",
         "other": "{title}",
         "untitled": "Novedad"
       }

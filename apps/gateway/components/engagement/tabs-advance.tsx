@@ -1,3 +1,4 @@
+import { ADVANCE_TRACKS } from "@xos/data/advancing";
 import { readView, type ExternalRow } from "@xos/data/gateway";
 import {
   listMyTrackProgress,
@@ -41,17 +42,6 @@ import type { TabProps } from "./tab-context";
  * track (R11, G-176) when a packet uses more than General, each with its computed state and when it was signed off
  * (api_external.advance_track_progress, which names no reviewer).
  */
-
-/** Tracks in the order the producer's Tracks pane shows them (app.advance_track). */
-const TRACKS = [
-  "Finance",
-  "Technical",
-  "Hospitality",
-  "Catering",
-  "Travel",
-  "Logistics",
-  "General",
-] as const;
 
 function trackTone(state: string): "success" | "accent" | "warning" | "danger" | "neutral" {
   if (state === "Signed Off") return "success";
@@ -246,7 +236,7 @@ function TrackGroups({
   locale: string;
 }) {
   const trackOf = (s: SectionRow) => tracks.get(s.id ?? "") ?? "General";
-  const used = TRACKS.filter((tr) => sections.some((s) => trackOf(s) === tr));
+  const used = ADVANCE_TRACKS.filter((tr) => sections.some((s) => trackOf(s) === tr));
   if (used.length <= 1 && used[0] === "General") {
     return <RowList label={label} items={sections.map(render)} />;
   }

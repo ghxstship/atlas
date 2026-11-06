@@ -3,11 +3,21 @@ import {
   acceptAnswer,
   answerCard,
   expectNoSidewaysScroll,
+  returnAnswer,
   sendTypedPacket,
 } from "./advance-builder";
 import { expect, test } from "./engine-test";
 import { completeVendorEngagement } from "./fixtures";
-import { asPerson, newSignIn, offer, PEOPLE, PROJECT, suffix, transition } from "./role-fixtures";
+import {
+  asPerson,
+  newSignIn,
+  offer,
+  PEOPLE,
+  PROJECT,
+  suffix,
+  transition,
+  vendorEngagement,
+} from "./role-fixtures";
 import {
   DEMO,
   expectAccessible,
@@ -397,5 +407,108 @@ test("R9: a vendor answers a typed advance, the org books its dock slot, and nam
       "update app.asset_units set deleted_at = now() where asset_tag like $1 and deleted_at is null",
       [`R9-${tag}-%`],
     ).catch(() => undefined);
+  }
+});
+
+/**
+ * R11 (RRR-192; Section 11.11, parity gap G-176): what a vendor sees of an advance being chased. The Owner sends a
+ * packet with a Hospitality and a Technical section and reminds the vendor, who reads the reminder in For Your
+ * Information on Home. The vendor answers, the Owner returns the answer with a reason, and the return notice reaches
+ * Home too. Answered again and accepted, the Hospitality track is signed off, and the vendor's Advance tab shows it
+ * Signed off with its date while the Technical track reads Not started, naming no reviewer.
+ */
+test("R11: a vendor is reminded, gets an answer back and sees its Hospitality track signed off", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(300_000);
+  const tag = suffix();
+  const engagement = await vendorEngagement();
+  const packetTitle = `Track Advance ${tag}`;
+  const [party] = await sql<{ counterparty_id: string; name: string }>(
+    `select e.counterparty_id, c.counterparty_name as name
+       from app.engagements e join app.counterparties c on c.id = e.counterparty_id where e.id = $1`,
+    [engagement.id],
+  );
+  const vendorName = party?.name as string;
+  await transition("engagement", engagement.id, "Onboarding", "Active");
+  let atlas: { close: () => Promise<void> } | null = null;
+  try {
+    const sent = await sendTypedPacket(browser, {
+      project: "NWS · Northwind Summer Series",
+      title: packetTitle,
+      sections: [
+        { title: "Hotel", kind: "Text", track: "Hospitality" },
+        { title: "Power", kind: "Text", track: "Technical" },
+      ],
+      party: `counterparty:${party?.counterparty_id}`,
+      engagementId: engagement.id,
+    });
+    atlas = sent.context;
+    const [recipient] = await sql<{ id: string; packet: string }>(
+      `select r.id, p.id as packet from app.advance_recipients r
+         join app.advance_packets p on p.id = r.advance_packet_id
+        where p.title = $1 and r.deleted_at is null`,
+      [packetTitle],
+    );
+
+    // The Owner's reminder reaches the vendor's Home.
+    await asPerson(
+      PEOPLE.owner,
+      "select * from app.send_advance_reminder_now($1, array[$2]::uuid[])",
+      [recipient?.packet, recipient?.id],
+    );
+    await signIn(page, "vendor@example.com", "/home");
+    const updates = page.getByRole("list", { name: "For your information" });
+    await slow(
+      updates.getByRole("listitem").filter({ hasText: `Reminder: ${packetTitle}` }),
+    ).toBeVisible();
+
+    // The vendor answers; the Owner returns it with a reason, and the notice reaches Home.
+    const advance = `/work/engagements/${engagement.key}/advance`;
+    const answer = async (body: string) => {
+      await page.goto(advance);
+      const form = page.getByRole("form", { name: "Hotel" });
+      await form.getByLabel("Your answer").fill(body);
+      await form.getByRole("button", { name: "Send answer" }).click();
+      await slow(page.getByText("Answer sent. The organization reviews it next.")).toBeVisible();
+    };
+    await answer("Ten rooms for three nights.");
+    await sent.page.goto(sent.url);
+    await returnAnswer(sent.page, "Hotel", vendorName, "The block holds twelve rooms.");
+    await page.goto("/home");
+    await slow(
+      updates.getByRole("listitem").filter({ hasText: "Your answer to Hotel was returned" }),
+    ).toBeVisible();
+
+    // Answered again and accepted, the Hospitality track is signed off.
+    await answer("Twelve rooms for three nights.");
+    await sent.page.goto(sent.url);
+    await acceptAnswer(sent.page, "Hotel", vendorName);
+    await asPerson(PEOPLE.owner, "select app.sign_off_advance_track($1, 'Hospitality')", [
+      recipient?.id,
+    ]);
+
+    await page.goto(advance);
+    const hospitality = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name: "Hospitality track" }) })
+      .last();
+    await slow(hospitality.getByText("Signed off", { exact: true })).toBeVisible();
+    await slow(hospitality.getByText(/^Signed off .+/)).toBeVisible();
+    const technical = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name: "Technical track" }) })
+      .last();
+    await slow(technical.getByText("Not started", { exact: true })).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+  } finally {
+    await atlas?.close();
+    await sql("update app.advance_packets set deleted_at = now() where title = $1", [
+      packetTitle,
+    ]).catch(() => undefined);
+    await sql("update app.engagements set deleted_at = now() where id = $1", [engagement.id]).catch(
+      () => undefined,
+    );
   }
 });

@@ -125,6 +125,9 @@ select results_eq(format($$select sent, skipped from app.send_advance_reminder_n
   $$values (0, 1)$$, 'at most once a day');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.advance_reminders_sent where reminder = 'manual'), 2, 'one manual ledger row per person reached');
+select ok(not exists (select 1 from private.advance_reminders_sent l, app.projects p
+    where l.reminder = 'manual' and p.id = pg_temp.id('prj_a') and l.due_at <> date_trunc('day', now(), p.time_zone)),
+  'a manual reminder counts its day on the project''s calendar');
 
 -- Jobs -----------------------------------------------------------------------------------------------------------------------------
 select ok(exists (select 1 from cron.job where jobname = 'xos_send_advance_reminders' and schedule = '23 * * * *'),

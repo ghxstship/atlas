@@ -45,7 +45,7 @@ comment on column private.advance_reminders_sent.advance_recipient_id is 'Recipi
 comment on column private.advance_reminders_sent.recipient_person_id is 'Person reminded.';
 comment on column private.advance_reminders_sent.org_id is 'Org that sent the packet; org deletion (1351) and the sandbox purge (1530) remove the row with it.';
 comment on column private.advance_reminders_sent.reminder is 'due (ahead of the due date), overdue:<k> (the k-th overdue reminder, 1 to 5) or manual (a coordinator''s).';
-comment on column private.advance_reminders_sent.due_at is 'Due date the reminder was for; a moved due date is reminded again. For a manual reminder, the start of the UTC day it was sent, so a recipient is reminded by hand at most once a day.';
+comment on column private.advance_reminders_sent.due_at is 'Due date the reminder was for; a moved due date is reminded again. For a manual reminder, the start of the project''s day it was sent, so a recipient is reminded by hand at most once a day.';
 comment on column private.advance_reminders_sent.sent_at is 'When it was sent.';
 
 alter table private.advance_reminders_sent enable row level security;
@@ -328,6 +328,7 @@ declare
   v_outstanding integer;
   v_sent integer := 0;
   v_skipped integer := 0;
+  v_time_zone text;
 begin
   perform private.require_person();
   select p.* into v_packet from app.advance_packets p where p.id = p_packet_id and p.deleted_at is null;
@@ -340,12 +341,13 @@ begin
   if v_packet.sent_at is null then
     perform private.refuse('advance_packet_unsent', 'Send the packet before reminding its recipients.');
   end if;
+  select pr.time_zone into v_time_zone from app.projects pr where pr.id = v_packet.project_id;
   for v_id in select distinct x from unnest(p_recipient_ids) x loop
     v_outstanding := case when exists (
         select 1 from app.advance_recipients r where r.id = v_id and r.advance_packet_id = v_packet.id and r.deleted_at is null)
       then private.advance_outstanding(v_id) else 0 end;
     if v_outstanding > 0
-       and private.queue_advance_reminder(v_id, 'manual', date_trunc('day', now(), 'UTC'), v_outstanding) > 0 then
+       and private.queue_advance_reminder(v_id, 'manual', date_trunc('day', now(), v_time_zone), v_outstanding) > 0 then
       v_sent := v_sent + 1;
     else
       v_skipped := v_skipped + 1;
@@ -355,6 +357,6 @@ begin
 end;
 $$;
 
-comment on function app.send_advance_reminder_now(uuid, uuid[]) is 'A coordinator with advancing.packet.send on the project reminds chosen recipients of a sent packet (1 to 200, advance_reminder_batch) now: advance_packet.reminder to everyone private.advance_reminder_recipients names, at most once a UTC day per recipient. A recipient with nothing outstanding, not on the packet, or already reminded by hand today is skipped. Returns how many were reminded and how many skipped.';
+comment on function app.send_advance_reminder_now(uuid, uuid[]) is 'A coordinator with advancing.packet.send on the project reminds chosen recipients of a sent packet (1 to 200, advance_reminder_batch) now: advance_packet.reminder to everyone private.advance_reminder_recipients names, at most once per recipient on the project''s calendar day. A recipient with nothing outstanding, not on the packet, or already reminded by hand today is skipped. Returns how many were reminded and how many skipped.';
 revoke all on function app.send_advance_reminder_now(uuid, uuid[]) from public, anon;
 grant execute on function app.send_advance_reminder_now(uuid, uuid[]) to authenticated, service_role;

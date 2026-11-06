@@ -4,10 +4,11 @@
  * is answered from it with a reply typed in place, all without opening Compass.
  *
  * The categories are the server's (packages/platform/src/notifications/push.ts, pushCategoryFor): shift_offer for
- * shift.assigned and shift.changed about a shift still Published, engagement_offer for offer.sent and message_reply
- * for message.received. Each action answers through notifications.act (POST /api/v1/notifications/{id}/act), which
- * runs app.act_on_notification as the person: app.accept_shift or app.accept_engaged_shift, app.decline_shift,
- * app.accept_offer, app.decline_offer, or app.send_chat_message with the reply. The approval category stays
+ * shift.assigned and shift.changed about a shift still Published, engagement_offer for offer.sent and
+ * roster_entry.invited, and message_reply for message.received. Each action answers through notifications.act (POST
+ * /api/v1/notifications/{id}/act), which runs app.act_on_notification as the person: app.accept_shift or
+ * app.accept_engaged_shift, app.decline_shift, app.accept_offer, app.decline_offer, app.respond_roster_entry, or
+ * app.send_chat_message with the reply. The approval category stays
  * notifications.ts's; this module never reads its actions, nor that one these.
  */
 import type { ActionResponseLike } from "./notifications";
