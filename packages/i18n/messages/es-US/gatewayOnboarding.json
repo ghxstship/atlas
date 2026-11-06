@@ -63,6 +63,7 @@
     "reviewSigned": "Firmado por {name}, versión {version}",
     "reviewInvoice": "{count, plural, one {Primera factura con # línea} other {Primera factura con # líneas}}",
     "submit": "Enviar solicitud",
-    "sent": "Enviado a {org}. Verás su respuesta en Inicio."
+    "sent": "Enviado a {org}. Verás su respuesta en Inicio.",
+    "lineSummary": "{description} × {quantity}"
   }
 }

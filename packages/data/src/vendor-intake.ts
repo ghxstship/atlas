@@ -272,26 +272,30 @@ export async function intakeOnFile(
   db: XosClient,
   request: { readonly taxFormId: string | null; readonly payoutAccountId: string | null },
 ): Promise<Result<IntakeOnFile>> {
-  let form: { form_kind: string; tin_last4: string | null } | null = null;
-  let payout: { provider: string; account_last4: string | null } | null = null;
-  if (request.taxFormId) {
-    const read = await db
-      .from("tax_forms")
-      .select("form_kind, tin_last4")
-      .eq("id", request.taxFormId)
-      .maybeSingle();
-    if (read.error) return fail(toDataError(read.error));
-    form = read.data as unknown as typeof form;
-  }
-  if (request.payoutAccountId) {
-    const read = await db
-      .from("payout_accounts")
-      .select("provider, account_last4")
-      .eq("id", request.payoutAccountId)
-      .maybeSingle();
-    if (read.error) return fail(toDataError(read.error));
-    payout = read.data as unknown as typeof payout;
-  }
+  const formRead = request.taxFormId
+    ? await db
+        .from("tax_forms")
+        .select("form_kind, tin_last4")
+        .eq("id", request.taxFormId)
+        .maybeSingle()
+    : null;
+  if (formRead?.error) return fail(toDataError(formRead.error));
+  const payoutRead = request.payoutAccountId
+    ? await db
+        .from("payout_accounts")
+        .select("provider, account_last4")
+        .eq("id", request.payoutAccountId)
+        .maybeSingle()
+    : null;
+  if (payoutRead?.error) return fail(toDataError(payoutRead.error));
+  const form = (formRead?.data ?? null) as unknown as {
+    form_kind: string;
+    tin_last4: string | null;
+  } | null;
+  const payout = (payoutRead?.data ?? null) as unknown as {
+    provider: string;
+    account_last4: string | null;
+  } | null;
   return ok({
     taxFormKind: form?.form_kind ?? null,
     tinLast4: form?.tin_last4 ?? null,

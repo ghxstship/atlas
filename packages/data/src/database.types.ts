@@ -2169,6 +2169,51 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      my_vendor_intake_requests: {
+        Row: {
+          created_at: string | null;
+          decision_reason: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          invoice_ready: boolean | null;
+          invoice_used: boolean | null;
+          org_name: string | null;
+          project_name: string | null;
+          request_state: Database["app"]["Enums"]["join_request_state"] | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_offerings";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_up_next";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "my_roster_engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       offer_versions: {
         Row: {
           amount_minor: number | null;
@@ -20849,6 +20894,143 @@ export type Database = {
           },
         ];
       };
+      form_links: {
+        Row: {
+          access_code_hash: string;
+          created_at: string;
+          created_by: string | null;
+          daily_cap: number;
+          deleted_at: string | null;
+          expires_at: string;
+          failed_attempts: number;
+          form_template_id: string;
+          id: string;
+          max_responses: number | null;
+          note: string | null;
+          one_per_email: boolean;
+          org_id: string;
+          project_id: string | null;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          rotated_at: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash: string;
+          created_at?: string;
+          created_by?: string | null;
+          daily_cap?: number;
+          deleted_at?: string | null;
+          expires_at: string;
+          failed_attempts?: number;
+          form_template_id: string;
+          id?: string;
+          max_responses?: number | null;
+          note?: string | null;
+          one_per_email?: boolean;
+          org_id: string;
+          project_id?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          rotated_at?: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          access_code_hash?: string;
+          created_at?: string;
+          created_by?: string | null;
+          daily_cap?: number;
+          deleted_at?: string | null;
+          expires_at?: string;
+          failed_attempts?: number;
+          form_template_id?: string;
+          id?: string;
+          max_responses?: number | null;
+          note?: string | null;
+          one_per_email?: boolean;
+          org_id?: string;
+          project_id?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          rotated_at?: string | null;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "form_links_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_links_form_template_id_fkey";
+            columns: ["form_template_id"];
+            isOneToOne: false;
+            referencedRelation: "form_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "form_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "form_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "form_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_links_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       form_submission_state_transitions: {
         Row: {
           created_at: string;
@@ -20930,6 +21112,7 @@ export type Database = {
           decided_by_membership_id: string | null;
           decision_note: string | null;
           deleted_at: string | null;
+          form_link_id: string | null;
           form_template_id: string;
           form_template_version_id: string;
           id: string;
@@ -20940,12 +21123,14 @@ export type Database = {
           passed: boolean | null;
           project_id: string | null;
           record_id: string | null;
+          respondent_email: string | null;
+          respondent_name: string | null;
           score: number | null;
           signature_path: string | null;
           signed_at: string | null;
           signer_name: string | null;
           submission_state: Database["app"]["Enums"]["form_submission_state"];
-          submitted_by_membership_id: string;
+          submitted_by_membership_id: string | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -20958,6 +21143,7 @@ export type Database = {
           decided_by_membership_id?: string | null;
           decision_note?: string | null;
           deleted_at?: string | null;
+          form_link_id?: string | null;
           form_template_id: string;
           form_template_version_id: string;
           id?: string;
@@ -20968,12 +21154,14 @@ export type Database = {
           passed?: boolean | null;
           project_id?: string | null;
           record_id?: string | null;
+          respondent_email?: string | null;
+          respondent_name?: string | null;
           score?: number | null;
           signature_path?: string | null;
           signed_at?: string | null;
           signer_name?: string | null;
           submission_state?: Database["app"]["Enums"]["form_submission_state"];
-          submitted_by_membership_id: string;
+          submitted_by_membership_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -20985,6 +21173,7 @@ export type Database = {
           decided_by_membership_id?: string | null;
           decision_note?: string | null;
           deleted_at?: string | null;
+          form_link_id?: string | null;
           form_template_id?: string;
           form_template_version_id?: string;
           id?: string;
@@ -20995,12 +21184,14 @@ export type Database = {
           passed?: boolean | null;
           project_id?: string | null;
           record_id?: string | null;
+          respondent_email?: string | null;
+          respondent_name?: string | null;
           score?: number | null;
           signature_path?: string | null;
           signed_at?: string | null;
           signer_name?: string | null;
           submission_state?: Database["app"]["Enums"]["form_submission_state"];
-          submitted_by_membership_id?: string;
+          submitted_by_membership_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -21018,6 +21209,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_submissions_form_link_fkey";
+            columns: ["form_link_id", "form_template_id"];
+            isOneToOne: false;
+            referencedRelation: "form_links";
+            referencedColumns: ["id", "form_template_id"];
+          },
+          {
+            foreignKeyName: "form_submissions_form_link_project_fkey";
+            columns: ["form_link_id", "project_id"];
+            isOneToOne: false;
+            referencedRelation: "form_links";
+            referencedColumns: ["id", "project_id"];
           },
           {
             foreignKeyName: "form_submissions_form_template_id_fkey";
@@ -52236,6 +52441,605 @@ export type Database = {
           },
         ];
       };
+      stakeholder_pack_deliveries: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivery_kind: string;
+          delivery_status: string;
+          id: string;
+          last_error: string | null;
+          org_id: string;
+          provider_message_id: string | null;
+          recipient_id: string;
+          scheduled_for: string;
+          sent_at: string | null;
+          stakeholder_pack_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_kind: string;
+          delivery_status?: string;
+          id?: string;
+          last_error?: string | null;
+          org_id: string;
+          provider_message_id?: string | null;
+          recipient_id: string;
+          scheduled_for: string;
+          sent_at?: string | null;
+          stakeholder_pack_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_kind?: string;
+          delivery_status?: string;
+          id?: string;
+          last_error?: string | null;
+          org_id?: string;
+          provider_message_id?: string | null;
+          recipient_id?: string;
+          scheduled_for?: string;
+          sent_at?: string | null;
+          stakeholder_pack_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_recipient_fkey";
+            columns: ["recipient_id", "stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_recipient_activity";
+            referencedColumns: ["recipient_id", "stakeholder_pack_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_recipient_fkey";
+            columns: ["recipient_id", "stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_recipients";
+            referencedColumns: ["id", "stakeholder_pack_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_deliveries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_pack_events: {
+        Row: {
+          action: Database["app"]["Enums"]["pack_event_action"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          item_id: string | null;
+          occurred_at: string;
+          org_id: string;
+          recipient_id: string;
+          signer_name: string | null;
+          stakeholder_pack_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: Database["app"]["Enums"]["pack_event_action"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          item_id?: string | null;
+          occurred_at?: string;
+          org_id: string;
+          recipient_id: string;
+          signer_name?: string | null;
+          stakeholder_pack_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action?: Database["app"]["Enums"]["pack_event_action"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          item_id?: string | null;
+          occurred_at?: string;
+          org_id?: string;
+          recipient_id?: string;
+          signer_name?: string | null;
+          stakeholder_pack_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_item_fkey";
+            columns: ["item_id", "stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_items";
+            referencedColumns: ["id", "stakeholder_pack_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_recipient_fkey";
+            columns: ["recipient_id", "stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_recipient_activity";
+            referencedColumns: ["recipient_id", "stakeholder_pack_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_recipient_fkey";
+            columns: ["recipient_id", "stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_pack_recipients";
+            referencedColumns: ["id", "stakeholder_pack_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_events_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_pack_items: {
+        Row: {
+          attachment_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          item_kind: Database["app"]["Enums"]["pack_item_kind"];
+          live_link_id: string | null;
+          org_id: string;
+          position: number;
+          requires_acknowledgement: boolean;
+          stakeholder_pack_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          attachment_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          item_kind?: Database["app"]["Enums"]["pack_item_kind"];
+          live_link_id?: string | null;
+          org_id: string;
+          position: number;
+          requires_acknowledgement?: boolean;
+          stakeholder_pack_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          attachment_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          item_kind?: Database["app"]["Enums"]["pack_item_kind"];
+          live_link_id?: string | null;
+          org_id?: string;
+          position?: number;
+          requires_acknowledgement?: boolean;
+          stakeholder_pack_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_items_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_live_link_id_fkey";
+            columns: ["live_link_id"];
+            isOneToOne: false;
+            referencedRelation: "live_link_states";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_live_link_id_fkey";
+            columns: ["live_link_id"];
+            isOneToOne: false;
+            referencedRelation: "live_links";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_pack_recipients: {
+        Row: {
+          access_code_hash: string;
+          code_salt: string;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          email: string;
+          failed_attempts: number;
+          full_name: string;
+          id: string;
+          label: string | null;
+          org_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          stakeholder_pack_id: string;
+          unsubscribed_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash: string;
+          code_salt: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          email: string;
+          failed_attempts?: number;
+          full_name: string;
+          id?: string;
+          label?: string | null;
+          org_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          stakeholder_pack_id: string;
+          unsubscribed_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          access_code_hash?: string;
+          code_salt?: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          email?: string;
+          failed_attempts?: number;
+          full_name?: string;
+          id?: string;
+          label?: string | null;
+          org_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          stakeholder_pack_id?: string;
+          unsubscribed_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_recipients_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_recipients_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_recipients_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_recipients_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_recipients_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_recipients_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_pack_schedules: {
+        Row: {
+          cadence: Database["app"]["Enums"]["schedule_cadence"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          local_hour: number;
+          month_day: number | null;
+          next_run_at: string;
+          org_id: string;
+          paused_at: string | null;
+          stakeholder_pack_id: string;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+          weekday: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          cadence: Database["app"]["Enums"]["schedule_cadence"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          local_hour: number;
+          month_day?: number | null;
+          next_run_at: string;
+          org_id: string;
+          paused_at?: string | null;
+          stakeholder_pack_id: string;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          weekday?: number | null;
+        };
+        Update: {
+          cadence?: Database["app"]["Enums"]["schedule_cadence"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          local_hour?: number;
+          month_day?: number | null;
+          next_run_at?: string;
+          org_id?: string;
+          paused_at?: string | null;
+          stakeholder_pack_id?: string;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          weekday?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_schedules_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_schedules_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_schedules_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_pack_schedules_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stakeholder_packs: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          id: string;
+          message: string | null;
+          name: string;
+          note: string | null;
+          org_id: string;
+          project_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          id?: string;
+          message?: string | null;
+          name: string;
+          note?: string | null;
+          org_id: string;
+          project_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          id?: string;
+          message?: string | null;
+          name?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_packs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stakeholder_packs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       stripe_events: {
         Row: {
           attempts: number;
@@ -57938,6 +58742,406 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_intake_links: {
+        Row: {
+          access_code_hash: string;
+          agreement_document_id: string | null;
+          agreement_version_id: string | null;
+          arrangement: string | null;
+          collect_invoice: boolean;
+          collect_payout: boolean;
+          collect_tax_form: boolean;
+          counterparty_type: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          end_date: string | null;
+          expires_at: string;
+          failed_attempts: number;
+          id: string;
+          instructions: string | null;
+          max_requests: number;
+          note: string | null;
+          org_id: string;
+          pay_basis: string | null;
+          project_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          role_code: string;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          rotated_at: string | null;
+          start_date: string;
+          title: string;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+          worker_classification: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash: string;
+          agreement_document_id?: string | null;
+          agreement_version_id?: string | null;
+          arrangement?: string | null;
+          collect_invoice?: boolean;
+          collect_payout?: boolean;
+          collect_tax_form?: boolean;
+          counterparty_type?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_date?: string | null;
+          expires_at: string;
+          failed_attempts?: number;
+          id?: string;
+          instructions?: string | null;
+          max_requests?: number;
+          note?: string | null;
+          org_id: string;
+          pay_basis?: string | null;
+          project_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          role_code: string;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          rotated_at?: string | null;
+          start_date: string;
+          title: string;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification: string;
+        };
+        Update: {
+          access_code_hash?: string;
+          agreement_document_id?: string | null;
+          agreement_version_id?: string | null;
+          arrangement?: string | null;
+          collect_invoice?: boolean;
+          collect_payout?: boolean;
+          collect_tax_form?: boolean;
+          counterparty_type?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          end_date?: string | null;
+          expires_at?: string;
+          failed_attempts?: number;
+          id?: string;
+          instructions?: string | null;
+          max_requests?: number;
+          note?: string | null;
+          org_id?: string;
+          pay_basis?: string | null;
+          project_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          role_code?: string;
+          role_type?: Database["app"]["Enums"]["external_role_type"];
+          rotated_at?: string | null;
+          start_date?: string;
+          title?: string;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_intake_links_agreement_document_id_fkey";
+            columns: ["agreement_document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_agreement_version_id_fkey";
+            columns: ["agreement_version_id"];
+            isOneToOne: false;
+            referencedRelation: "document_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_intake_requests: {
+        Row: {
+          account_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_reason: string | null;
+          deleted_at: string | null;
+          engagement_id: string | null;
+          id: string;
+          invoice_draft: Json | null;
+          invoice_id: string | null;
+          org_id: string;
+          payout_account_id: string | null;
+          project_id: string;
+          request_state: Database["app"]["Enums"]["join_request_state"];
+          requested_by: string;
+          signed_at: string | null;
+          signed_version_id: string | null;
+          signer_name: string | null;
+          tax_form_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_intake_link_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_reason?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          invoice_draft?: Json | null;
+          invoice_id?: string | null;
+          org_id: string;
+          payout_account_id?: string | null;
+          project_id: string;
+          request_state?: Database["app"]["Enums"]["join_request_state"];
+          requested_by: string;
+          signed_at?: string | null;
+          signed_version_id?: string | null;
+          signer_name?: string | null;
+          tax_form_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_intake_link_id: string;
+        };
+        Update: {
+          account_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_reason?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          id?: string;
+          invoice_draft?: Json | null;
+          invoice_id?: string | null;
+          org_id?: string;
+          payout_account_id?: string | null;
+          project_id?: string;
+          request_state?: Database["app"]["Enums"]["join_request_state"];
+          requested_by?: string;
+          signed_at?: string | null;
+          signed_version_id?: string | null;
+          signer_name?: string | null;
+          tax_form_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_intake_link_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_intake_requests_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_payout_account_id_fkey";
+            columns: ["payout_account_id"];
+            isOneToOne: false;
+            referencedRelation: "payout_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_signed_version_id_fkey";
+            columns: ["signed_version_id"];
+            isOneToOne: false;
+            referencedRelation: "document_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_tax_form_id_fkey";
+            columns: ["tax_form_id"];
+            isOneToOne: false;
+            referencedRelation: "tax_forms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_intake_requests_vendor_intake_link_id_fkey";
+            columns: ["vendor_intake_link_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_intake_links";
             referencedColumns: ["id"];
           },
         ];
@@ -63928,6 +65132,24 @@ export type Database = {
           },
         ];
       };
+      project_outside_access: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          expires_at: string | null;
+          label: string | null;
+          last_opened_at: string | null;
+          link_state: string | null;
+          open_count: number | null;
+          project_id: string | null;
+          recipient_email: string | null;
+          source: string | null;
+          source_id: string | null;
+          token_hint: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       project_requirements: {
         Row: {
           assertion_domain: string | null;
@@ -64801,6 +66023,29 @@ export type Database = {
           },
         ];
       };
+      stakeholder_pack_recipient_activity: {
+        Row: {
+          downloads: number | null;
+          first_opened_at: string | null;
+          items_viewed: number | null;
+          last_opened_at: string | null;
+          last_sent_at: string | null;
+          opens: number | null;
+          recipient_id: string | null;
+          signatures: number | null;
+          stakeholder_pack_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_pack_recipients_stakeholder_pack_id_fkey";
+            columns: ["stakeholder_pack_id"];
+            isOneToOne: false;
+            referencedRelation: "stakeholder_packs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sync_rpcs: {
         Row: {
           description: string | null;
@@ -65094,6 +66339,16 @@ export type Database = {
         Args: { p_description: string; p_id?: string; p_incident_id: string; p_person_id?: string };
         Returns: string;
       };
+      add_intake_payout_reference: {
+        Args: {
+          p_account_id?: string;
+          p_client_address?: string;
+          p_grant: string;
+          p_reference: string;
+          p_token: string;
+        };
+        Returns: string;
+      };
       add_marshalling_entry: {
         Args: { p_entry: string; p_project_id: string; p_shipment_id?: string; p_zone_id?: string };
         Returns: string;
@@ -65121,6 +66376,29 @@ export type Database = {
           p_role_code?: string;
         };
         Returns: string;
+      };
+      add_stakeholder_pack_item: {
+        Args: {
+          p_attachment_id?: string;
+          p_live_link_id?: string;
+          p_pack_id: string;
+          p_requires_acknowledgement?: boolean;
+          p_title?: string;
+        };
+        Returns: string;
+      };
+      add_stakeholder_pack_recipient: {
+        Args: {
+          p_counterparty_id?: string;
+          p_email: string;
+          p_full_name: string;
+          p_label?: string;
+          p_pack_id: string;
+        };
+        Returns: {
+          access_code: string;
+          recipient_id: string;
+        }[];
       };
       add_supplier_diversity_certification: {
         Args: {
@@ -65916,6 +67194,7 @@ export type Database = {
         };
         Returns: boolean;
       };
+      clear_stakeholder_pack_schedule: { Args: { p_pack_id: string }; Returns: undefined };
       close_incident: { Args: { p_incident_id: string; p_signoff_note: string }; Returns: string };
       close_occupancy_counter: { Args: { p_counter_id: string }; Returns: string };
       commit_import_write: {
@@ -66362,6 +67641,23 @@ export type Database = {
         };
         Returns: string;
       };
+      create_form_link: {
+        Args: {
+          p_daily_cap?: number;
+          p_expires_at: string;
+          p_max_responses?: number;
+          p_note?: string;
+          p_one_per_email?: boolean;
+          p_project_id?: string;
+          p_template_id: string;
+        };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          form_link_id: string;
+          token: string;
+        }[];
+      };
       create_invite_link: {
         Args: { p_max_uses?: number; p_org_id: string; p_role_id: string; p_valid_for?: string };
         Returns: {
@@ -66446,6 +67742,16 @@ export type Database = {
           token: string;
         }[];
       };
+      create_stakeholder_pack: {
+        Args: {
+          p_expires_at: string;
+          p_message?: string;
+          p_name: string;
+          p_note?: string;
+          p_project_id: string;
+        };
+        Returns: string;
+      };
       create_survey: {
         Args: {
           p_audience_kind?: Database["app"]["Enums"]["audience_kind"];
@@ -66466,6 +67772,34 @@ export type Database = {
       create_template_from_project: {
         Args: { p_description?: string; p_name: string; p_project_id: string };
         Returns: string;
+      };
+      create_vendor_intake_link: {
+        Args: {
+          p_agreement_document_id?: string;
+          p_arrangement: string;
+          p_collect_invoice?: boolean;
+          p_collect_payout?: boolean;
+          p_collect_tax_form?: boolean;
+          p_counterparty_type?: string;
+          p_end_date?: string;
+          p_expires_at: string;
+          p_instructions?: string;
+          p_max_requests?: number;
+          p_note?: string;
+          p_pay_basis: string;
+          p_project_id: string;
+          p_role_code: string;
+          p_role_type: Database["app"]["Enums"]["external_role_type"];
+          p_start_date: string;
+          p_title: string;
+          p_worker_classification: string;
+        };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          token: string;
+          vendor_intake_link_id: string;
+        }[];
       };
       create_view_link: {
         Args: {
@@ -66597,6 +67931,10 @@ export type Database = {
           p_reason: string;
           p_timesheet_id: string;
         };
+        Returns: string;
+      };
+      decide_vendor_intake: {
+        Args: { p_approve: boolean; p_reason?: string; p_request_id: string };
         Returns: string;
       };
       decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
@@ -66945,6 +68283,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      finish_stakeholder_pack_delivery: {
+        Args: {
+          p_delivery_id: string;
+          p_error?: string;
+          p_provider_message_id?: string;
+          p_retry?: boolean;
+          p_sent: boolean;
+        };
+        Returns: undefined;
+      };
       finish_stripe_event: {
         Args: { p_error?: string; p_stripe_event_row_id: string };
         Returns: undefined;
@@ -67193,6 +68541,15 @@ export type Database = {
           audience: string;
           expires_at: string;
           token: string;
+        }[];
+      };
+      mint_stakeholder_pack_link: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          email: Json;
+          expires_at: string;
+          token: string;
+          unsubscribe_token: string;
         }[];
       };
       my_access_paths: {
@@ -67612,6 +68969,10 @@ export type Database = {
           project_id: string;
         }[];
       };
+      order_stakeholder_pack_items: {
+        Args: { p_item_ids: string[]; p_pack_id: string };
+        Returns: undefined;
+      };
       org_allows_personal_tokens: { Args: { p_org_id: string }; Returns: boolean };
       org_banner_status: {
         Args: { p_org_id: string };
@@ -67901,6 +69262,7 @@ export type Database = {
         Args: { p_run_id: string; p_webhook_endpoint_id: string };
         Returns: string;
       };
+      queue_due_pack_schedules: { Args: { p_limit?: number }; Returns: number };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
       queue_due_warehouse_deliveries: { Args: Record<PropertyKey, never>; Returns: number };
       queue_subprocessor_notice: {
@@ -68498,8 +69860,24 @@ export type Database = {
         };
         Returns: undefined;
       };
+      regenerate_form_link: {
+        Args: { p_id: string };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          token: string;
+        }[];
+      };
       regenerate_live_link: {
         Args: { p_live_link_id: string };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          token: string;
+        }[];
+      };
+      regenerate_vendor_intake_link: {
+        Args: { p_id: string };
         Returns: {
           access_code: string;
           expires_at: string;
@@ -68549,6 +69927,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      remove_stakeholder_pack_item: { Args: { p_item_id: string }; Returns: undefined };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
@@ -68707,6 +70086,7 @@ export type Database = {
         Returns: number;
       };
       reset_sidebar_layout: { Args: { p_org_id: string }; Returns: number };
+      reset_stakeholder_pack_recipient_code: { Args: { p_recipient_id: string }; Returns: string };
       resolve_asset_code: {
         Args: { p_code: string; p_org_id: string };
         Returns: {
@@ -68857,6 +70237,7 @@ export type Database = {
         Returns: undefined;
       };
       revoke_engagement_document_token: { Args: { p_token_id: string }; Returns: undefined };
+      revoke_form_link: { Args: { p_id: string }; Returns: string };
       revoke_invite_link: { Args: { p_invite_link_id: string }; Returns: undefined };
       revoke_live_link: { Args: { p_live_link_id: string }; Returns: string };
       revoke_organization_verification: {
@@ -68869,7 +70250,10 @@ export type Database = {
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_share_link: { Args: { p_share_link_id: string }; Returns: string };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
+      revoke_stakeholder_pack: { Args: { p_pack_id: string }; Returns: string };
+      revoke_stakeholder_pack_recipient: { Args: { p_recipient_id: string }; Returns: string };
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
+      revoke_vendor_intake_link: { Args: { p_id: string }; Returns: string };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
       roster_project_fact_status: {
@@ -69152,6 +70536,10 @@ export type Database = {
         };
         Returns: string;
       };
+      send_stakeholder_pack: {
+        Args: { p_pack_id: string; p_recipient_ids?: string[] };
+        Returns: number;
+      };
       set_account_notification_defaults: {
         Args: { p_account_id: string; p_defaults: Json };
         Returns: undefined;
@@ -69248,6 +70636,17 @@ export type Database = {
           p_keys: string;
           p_shell: Database["app"]["Enums"]["shortcut_shell"];
           p_shortcut_id: string;
+        };
+        Returns: string;
+      };
+      set_stakeholder_pack_schedule: {
+        Args: {
+          p_cadence: Database["app"]["Enums"]["schedule_cadence"];
+          p_local_hour: number;
+          p_month_day?: number;
+          p_pack_id: string;
+          p_time_zone?: string;
+          p_weekday?: number;
         };
         Returns: string;
       };
@@ -69557,6 +70956,7 @@ export type Database = {
         };
         Returns: string;
       };
+      submit_intake_invoice: { Args: { p_request_id: string }; Returns: string };
       submit_onboarding_item: {
         Args: { p_document_id?: string; p_item_id: string };
         Returns: undefined;
@@ -69574,6 +70974,19 @@ export type Database = {
         Returns: string;
       };
       submit_timesheet: { Args: { p_reason?: string; p_timesheet_id: string }; Returns: string };
+      submit_vendor_intake: {
+        Args: {
+          p_account_id?: string;
+          p_client_address?: string;
+          p_grant: string;
+          p_invoice_draft?: Json;
+          p_payout_account_id?: string;
+          p_signer_name?: string;
+          p_tax_form_id?: string;
+          p_token: string;
+        };
+        Returns: string;
+      };
       subprocessor_notice_subscription: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -69986,6 +71399,7 @@ export type Database = {
         Returns: number;
       };
       unsubscribe_by_token: { Args: { p_token: string }; Returns: string };
+      unsubscribe_pack_by_token: { Args: { p_token: string }; Returns: boolean };
       unsubscribe_token: {
         Args: { p_category: string; p_org_id: string; p_person_id: string };
         Returns: string;
@@ -70019,6 +71433,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      update_stakeholder_pack: {
+        Args: {
+          p_expires_at: string;
+          p_message: string;
+          p_name: string;
+          p_note: string;
+          p_pack_id: string;
+        };
+        Returns: undefined;
+      };
       upsert_integration_external_id: {
         Args: {
           p_connection_id: string;
@@ -70033,6 +71457,17 @@ export type Database = {
       use_notification_action: {
         Args: { p_app: string; p_comment?: string; p_token: string };
         Returns: string;
+      };
+      vendor_intake_org: {
+        Args: { p_client_address?: string; p_grant: string; p_token: string };
+        Returns: string;
+      };
+      vendor_intake_request_party: {
+        Args: { p_request_id: string };
+        Returns: {
+          account_name: string;
+          requester_name: string;
+        }[];
       };
       venue_latitude: {
         Args: {
@@ -70129,6 +71564,7 @@ export type Database = {
         Returns: undefined;
       };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
+      withdraw_vendor_intake: { Args: { p_request_id: string }; Returns: undefined };
       work_order_display_key: {
         Args: {
           p_work_order: Omit<
@@ -70492,6 +71928,8 @@ export type Database = {
       opportunity_visibility: "Invited" | "Pool" | "Network" | "Public";
       org_domain_purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
       organization_verification_method: "Stripe Identity" | "Business Registry";
+      pack_event_action: "Sent" | "Opened" | "Viewed" | "Downloaded" | "Signed" | "Unsubscribed";
+      pack_item_kind: "Live Link" | "File";
       pay_period_state: "Open" | "Closed" | "Posted";
       payment_state: "Proposed" | "Approved" | "Canceled";
       payout_provider: "Stripe Connect" | "Accounting System";
@@ -77162,6 +78600,8 @@ export const Constants = {
       opportunity_visibility: ["Invited", "Pool", "Network", "Public"],
       org_domain_purpose: ["Atlas", "Gateway", "Email Sending", "Verified Domain"],
       organization_verification_method: ["Stripe Identity", "Business Registry"],
+      pack_event_action: ["Sent", "Opened", "Viewed", "Downloaded", "Signed", "Unsubscribed"],
+      pack_item_kind: ["Live Link", "File"],
       pay_period_state: ["Open", "Closed", "Posted"],
       payment_state: ["Proposed", "Approved", "Canceled"],
       payout_provider: ["Stripe Connect", "Accounting System"],

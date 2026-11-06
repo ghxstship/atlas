@@ -20,12 +20,12 @@ export function publicDb(): XosClient {
 }
 
 export function visitorAddress(headers: { get(name: string): string | null }): string | null {
-  return clientAddress(headers, trustedProxyHops(env().XOS_TRUSTED_PROXY_HOPS));
+  return clientAddress(headers, trustedProxyHops(process.env["XOS_TRUSTED_PROXY_HOPS"]));
 }
 
 export function pathGrantCookie(name: string, path: string, grant: string, expiresAt: string): string {
   const seconds = Math.max(0, Math.floor((Date.parse(expiresAt) - Date.now()) / 1000));
-  const secure = env().GATEWAY_SITE_URL?.startsWith("https:") ? "; Secure" : "";
+  const secure = env().GATEWAY_SITE_URL.startsWith("https:") ? "; Secure" : "";
   return `${name}=${grant}; Path=${path}; Max-Age=${seconds}; HttpOnly; SameSite=Lax${secure}`;
 }
 

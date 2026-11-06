@@ -63,6 +63,7 @@
     "reviewSigned": "Signed by {name}, version {version}",
     "reviewInvoice": "{count, plural, one {First invoice with # line} other {First invoice with # lines}}",
     "submit": "Send request",
-    "sent": "Sent to {org}. You will see their answer on Home."
+    "sent": "Sent to {org}. You will see their answer on Home.",
+    "lineSummary": "{description} × {quantity}"
   }
 }

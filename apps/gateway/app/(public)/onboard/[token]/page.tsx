@@ -5,14 +5,13 @@ import {
   readIntake,
   type IntakeRefusal,
 } from "@xos/data/vendor-intake";
-import type { Metadata, Route } from "next";
+import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { IntakeWizard } from "@/components/outside/intake-wizard";
 import { OutsideCodeForm } from "@/components/outside/code-form";
-import { buttonClass, InlineAlert } from "@/components/ui";
+import { ButtonLink, InlineAlert } from "@/components/ui";
 import { observability } from "@/lib/observability";
 import { INTAKE_GRANT_COOKIE, publicDb, visitorAddress } from "@/lib/outside/public";
 import { getGatewayContext } from "@/lib/shell/context";
@@ -137,12 +136,12 @@ export default async function VendorIntakePage({ params, searchParams }: PagePro
             {t("gatewayOnboarding.intake.signInWhy")}
           </p>
           <div>
-            <Link
-              className={buttonClass({ variant: "primary" })}
-              href={`/auth/sign-in?next=${encodeURIComponent(path)}` as Route}
+            <ButtonLink
+              variant="primary"
+              href={`/auth/sign-in?next=${encodeURIComponent(path)}`}
             >
               {t("gatewayOnboarding.intake.continue")}
-            </Link>
+            </ButtonLink>
           </div>
         </section>
       ) : (

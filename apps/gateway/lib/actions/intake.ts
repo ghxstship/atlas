@@ -84,7 +84,7 @@ export async function intakeCreateAccountAction(
   if (name.length === 0 || slug.length < 3) return { ok: false, outcome: "invalid" };
   const created = await createExternalAccount(link.ctx.db, { name, slug });
   if (!created.ok) return { ok: false, outcome: outcomeFor(created.error) };
-  return { ok: true, data: created.data.id };
+  return { ok: true, data: created.data.accountId };
 }
 
 const taxInput = z.object({

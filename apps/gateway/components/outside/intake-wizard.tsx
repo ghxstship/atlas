@@ -467,7 +467,7 @@ function InvoiceStep({
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
           {lines.map((line, index) => (
             <li key={`${line.description}-${index}`} className="flex items-center justify-between gap-8 py-8 text-text-13">
-              <span>{`${line.description} × ${line.quantity}`}</span>
+              <span>{t("lineSummary", { description: line.description, quantity: line.quantity })}</span>
               <Button
                 type="button"
                 size="sm"
