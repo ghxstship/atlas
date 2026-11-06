@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import { createExternalAccount, submitTaxForm } from "@xos/data/gateway";
 import {
   addIntakePayoutReference,
@@ -87,7 +88,7 @@ export async function intakeCreateAccountAction(
 }
 
 const taxInput = z.object({
-  formKind: z.enum(["W-9", "W-8BEN", "W-8BEN-E"]),
+  formKind: z.enum(Constants.app.Enums.tax_form_kind),
   tin: z.string().trim().min(4).max(40),
   withholding: z.boolean(),
   accountId: id.nullable(),

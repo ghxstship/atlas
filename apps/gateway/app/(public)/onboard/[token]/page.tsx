@@ -5,6 +5,7 @@ import {
   readIntake,
   type IntakeRefusal,
 } from "@xos/data/vendor-intake";
+import { listCurrencies } from "@xos/data/projects";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -101,6 +102,7 @@ export default async function VendorIntakePage({
     gateway: { outcomes: unknown };
     gatewayOnboarding: { intake: unknown };
   };
+  const currencies = ctx === null ? null : await listCurrencies(ctx.db);
   const asks = [
     link.roleType === "Vendor" ? t("gatewayOnboarding.intake.asks.company") : null,
     link.collectTaxForm ? t("gatewayOnboarding.intake.asks.tax") : null,
@@ -167,6 +169,7 @@ export default async function VendorIntakePage({
           <IntakeWizard
             token={token}
             link={link}
+            currencies={currencies?.ok ? currencies.data : []}
             addressCopy={{
               title: t("payouts.w9.formTitle"),
               legalName: t("payouts.w9.legalName"),

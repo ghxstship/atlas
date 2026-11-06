@@ -1,5 +1,6 @@
 "use client";
 
+import type { Database } from "@xos/data/database.types";
 import type { PublicIntake, IntakeInvoiceDraft } from "@xos/data/vendor-intake";
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
@@ -65,11 +66,14 @@ export function IntakeWizard({
   token,
   link,
   accounts,
+  currencies,
   addressCopy,
 }: {
   token: string;
   link: PublicIntake;
   accounts: readonly { readonly id: string; readonly name: string }[];
+  /** ISO 4217 codes a first invoice may use; it starts on the org's base currency. */
+  currencies: readonly string[];
   addressCopy: TaxAddressCopy;
 }) {
   const t = useTranslations(COPY) as unknown as Translate;
@@ -110,7 +114,9 @@ export function IntakeWizard({
   );
   const [taxState, taxAction, taxPending] = useStep(
     async (data) => {
-      const kind = String(data.get("formKind") ?? "W-9") as "W-9" | "W-8BEN" | "W-8BEN-E";
+      const kind = String(
+        data.get("formKind") ?? "W-9",
+      ) as Database["app"]["Enums"]["tax_form_kind"];
       const filed = await intakeTaxFormAction(token, {
         formKind: kind,
         tin: String(data.get("tin") ?? ""),
@@ -387,6 +393,8 @@ export function IntakeWizard({
           header={header}
           lines={lines}
           today={todayIn(link.timeZone)}
+          currency={link.currencyCode}
+          currencies={currencies}
           onHeader={setHeader}
           onLines={setLines}
           onBack={back}
@@ -438,6 +446,8 @@ function InvoiceStep({
   header,
   lines,
   today,
+  currency,
+  currencies,
   onHeader,
   onLines,
   onBack,
@@ -446,6 +456,8 @@ function InvoiceStep({
   header: Omit<IntakeInvoiceDraft, "lines"> | null;
   lines: readonly Line[];
   today: string;
+  currency: string;
+  currencies: readonly string[];
   onHeader: (value: Omit<IntakeInvoiceDraft, "lines"> | null) => void;
   onLines: (value: readonly Line[]) => void;
   onBack: () => void;
@@ -458,7 +470,7 @@ function InvoiceStep({
       invoice_number: String(data.get("number") ?? "").trim(),
       issue_date: String(data.get("issued") ?? today),
       due_date: String(data.get("due") ?? today),
-      currency_code: String(data.get("currency") ?? "USD"),
+      currency_code: String(data.get("currency") ?? currency),
     });
   };
   const addLine = (data: FormData) => {
@@ -509,8 +521,10 @@ function InvoiceStep({
           id="invoice-currency"
           name="currency"
           label={t("currency")}
-          value="USD"
-          options={["USD", "CAD", "EUR", "GBP", "MXN"].map((c) => ({ value: c, label: c }))}
+          value={currency}
+          options={(currencies.includes(currency) ? currencies : [currency, ...currencies]).map(
+            (c) => ({ value: c, label: c }),
+          )}
         />
         <div className="flex flex-wrap gap-8">
           <Button type="button" variant="ghost" onClick={onBack}>
@@ -529,7 +543,12 @@ function InvoiceStep({
   return (
     <div className="flex flex-col gap-12">
       {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
-      <form action={addLine} onSubmit={keepInputOnSubmit(addLine)} className="flex flex-col gap-12">
+      <form
+        key={lines.length}
+        action={addLine}
+        onSubmit={keepInputOnSubmit(addLine)}
+        className="flex flex-col gap-12"
+      >
         <Input
           id="line-description"
           name="description"
