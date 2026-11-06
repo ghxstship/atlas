@@ -17,15 +17,20 @@ create temporary table a (key text primary key, id uuid, told integer, on_site i
 grant select, insert on a to public;
 
 -- Who is where: dave is clocked in on the project, inside his own quiet hours. Ivy is engaged and on no time entry.
--- Mia is a member of the org with no part in this project, and gina is its Viewer outside the project.
+-- Gina is a Viewer of the org outside the project.
 select pg_temp.as_platform();
 insert into app.time_entries (org_id, project_id, membership_id, clock_in)
 values (pg_temp.id('org_a'), pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), now() - interval '1 hour');
 insert into app.notification_settings (membership_id, time_zone, quiet_hours_start, quiet_hours_end)
 values (pg_temp.id('dave@org_a'), 'UTC', ((now() at time zone 'UTC') - interval '1 hour')::time, ((now() at time zone 'UTC') + interval '10 hours')::time);
-select private.begin_trusted_operation('test');
-update app.engagements set engagement_state = 'Active' where id = pg_temp.id('eng_ivy_a');
-select private.end_trusted_operation('test');
+select pg_temp.as_user('alice');
+select app.transition_engagement(pg_temp.id('eng_ivy_a'), 'Onboarding', 'Active', 'Starts now.');
+
+-- Mia is not on the project but has a published shift on it starting within the hour.
+select pg_temp.as_user('carol');
+with x as (insert into app.shifts (project_id, membership_id, role_code, starts_at, ends_at, time_zone)
+  values (pg_temp.id('prj_a'), pg_temp.id('mia@org_a'), '0000.50.01', now() + interval '1 hour', now() + interval '9 hours', 'America/New_York') returning id)
+select app.publish_shifts(array(select id from x));
 
 -- Announcing ------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -46,6 +51,7 @@ select is((select c.people_told from app.crisis_alerts c where c.id = (select id
 select is(pg_temp.notes('dave', 'crisis_alert.issued', (select id from a where key = 'alert')), 1, 'someone clocked in is told, once');
 select is(pg_temp.notes('frank', 'crisis_alert.issued', (select id from a where key = 'alert')), 1, 'a project member not clocked in is told');
 select is(pg_temp.notes('ivy', 'crisis_alert.issued', (select id from a where key = 'alert')), 1, 'an engaged external person is told');
+select is(pg_temp.notes('mia', 'crisis_alert.issued', (select id from a where key = 'alert')), 1, 'someone on a shift starting soon is told');
 select is(pg_temp.notes('alice', 'crisis_alert.issued', (select id from a where key = 'alert')), 1, 'an org-wide dispatcher is told');
 select is(pg_temp.notes('carol', 'crisis_alert.issued', (select id from a where key = 'alert')), 0, 'whoever announced is not');
 select is(pg_temp.notes('gina', 'crisis_alert.issued', (select id from a where key = 'alert')), 0, 'nor is an org member with no part in the project');

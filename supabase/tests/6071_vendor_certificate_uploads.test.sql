@@ -68,7 +68,9 @@ create function pg_temp.reads(p_who text, p_uri text) returns boolean
 language plpgsql as $$
 declare v boolean;
 begin
+  -- As the storage policy calls it: with the person's claims, under a role that reaches the private schema.
   perform pg_temp.as_user(p_who);
+  perform set_config('role', 'postgres', true);
   v := private.onboarding_upload_readable(replace(p_uri, 'storage://onboarding-uploads/', ''));
   perform pg_temp.as_platform();
   return v;

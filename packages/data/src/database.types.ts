@@ -16783,6 +16783,8 @@ export type Database = {
           issued_at: string;
           message: string;
           org_id: string;
+          people_told: number | null;
+          people_told_on_site: number | null;
           project_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -16798,6 +16800,8 @@ export type Database = {
           issued_at?: string;
           message: string;
           org_id: string;
+          people_told?: number | null;
+          people_told_on_site?: number | null;
           project_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -16812,6 +16816,8 @@ export type Database = {
           issued_at?: string;
           message?: string;
           org_id?: string;
+          people_told?: number | null;
+          people_told_on_site?: number | null;
           project_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -76426,6 +76432,18 @@ export type Database = {
       use_notification_action: {
         Args: { p_app: string; p_comment?: string; p_token: string };
         Returns: string;
+      };
+      vendor_certificate_uploads: {
+        Args: { p_org_id: string };
+        Returns: {
+          engagement_id: string;
+          item_name: string;
+          onboarding_item_id: string;
+          storage_uri: string;
+          submitted_at: string;
+          vendor_id: string;
+          vendor_name: string;
+        }[];
       };
       venue_latitude: {
         Args: {

@@ -25,13 +25,14 @@ stable
 security definer
 set search_path = ''
 as $$
-  select i.id, e.id, v.id, c.counterparty_name, r.name, i.submitted_at, f.storage_uri
+  select i.id, e.id, v.id, o.name, r.name, i.submitted_at, f.storage_uri
   from app.onboarding_items i
   join app.onboarding_requirements r on r.id = i.onboarding_requirement_id and r.item_kind in ('Document Upload', 'Certification')
   join app.engagements e on e.id = i.engagement_id and e.deleted_at is null
     and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
   join app.vendors v on v.counterparty_id = e.counterparty_id and v.org_id = e.org_id and v.deleted_at is null
   join app.counterparties c on c.id = v.counterparty_id
+  left join app.organizations o on o.id = c.organization_id
   join lateral (
     select dv.storage_uri from app.document_versions dv
     where dv.document_id = i.document_id
