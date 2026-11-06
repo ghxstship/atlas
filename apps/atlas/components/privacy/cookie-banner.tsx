@@ -1,6 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui";
+import { Button } from "./cookie-button";
 import { getTranslations } from "next-intl/server";
 import { saveCookieChoice } from "@/lib/privacy/actions";
 import { consentState } from "@/lib/privacy/consent";

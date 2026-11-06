@@ -6,7 +6,6 @@ import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { withQuery } from "@/components/work/format";
 import { loadShellPeekAction, type ShellPeekResult } from "@/lib/shell/peek-actions";
 import { shellOpensPeek } from "@/lib/shell/peek";
 import { peekHandoffs, serverPeekHandoffs, subscribePeekHandoffs } from "@/lib/shell/peek-handoff";
@@ -62,8 +61,12 @@ export function ShellPeek({ org }: { org: string }) {
   }, [active, key, org, version]);
 
   if (!active || key === null) return null;
-  const close = () =>
-    router.replace(withQuery(pathname, search, { peek: null }) as Route, { scroll: false });
+  const close = () => {
+    const rest = new URLSearchParams(search);
+    rest.delete("peek");
+    const query = rest.toString();
+    router.replace((query ? `${pathname}?${query}` : pathname) as Route, { scroll: false });
+  };
   const current = result?.key === key ? result.value : null;
   if (current === null || (current.ok && loaded === null)) {
     return (
