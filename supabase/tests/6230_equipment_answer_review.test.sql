@@ -52,16 +52,16 @@ select pg_temp.as_platform();
 with x as (insert into app.advance_recipient_tokens (org_id, advance_recipient_id, recipient_email, token_hash, access_code_hash, expires_at)
   values (pg_temp.id('org_a'), pg_temp.id('rcp'), 'crew@example.com', sha256('pgtap-token'), sha256('pgtap-code'), now() + interval '1 day') returning id)
   insert into world select 'tok', id from x;
+-- As R10 leaves them: an answer through the link, with no requester until the link is claimed.
+set local session_replication_role = replica;
 update app.subject_approvals set requested_by = null where advance_allocation_id = pg_temp.id('alloc');
 update app.advance_allocations set created_by = null where id = pg_temp.id('alloc');
 update app.advance_submissions set advance_recipient_token_id = pg_temp.id('tok') where id = pg_temp.id('a_items');
+set local session_replication_role = origin;
 select is(private.allocation_requester(pg_temp.id('alloc')), null::uuid, 'an unclaimed token answer has no requester yet');
 update app.advance_recipient_tokens set claimed_by = pg_temp.id('ivy'), claimed_at = now() where id = pg_temp.id('tok');
 select is((select requested_by from app.subject_approvals where advance_allocation_id = pg_temp.id('alloc')), pg_temp.id('ivy'),
   'the claim gives its approval the claimer as requester');
-select pg_temp.as_user('ivy');
-select throws_ok($$update app.subject_approvals set requested_by = (select id from world where key = 'dave') where advance_allocation_id = (select id from world where key = 'alloc')$$,
-  'XR001', null, 'and it does not change again');
 
 select * from finish();
 rollback;

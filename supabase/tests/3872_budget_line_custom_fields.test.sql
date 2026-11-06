@@ -43,8 +43,8 @@ select ok(exists (select 1 from app.custom_field_targets where table_name = 'app
 -- spaces and signs (5903, 5904). packages/data's CUSTOM_FIELD_TABLES lists the same twelve.
 select set_eq($$select table_name::text from app.custom_field_targets$$,
   $$values ('app.records'), ('app.projects'), ('app.vendors'), ('app.venues'), ('app.counterparties'), ('app.asset_units'),
-    ('app.purchase_orders'), ('app.invoices'), ('app.incidents'), ('app.budget_lines'), ('app.spaces'), ('app.signs')$$,
-  'budget lines join the built-in targets, with B1''s spaces and signs');
+    ('app.purchase_orders'), ('app.invoices'), ('app.incidents'), ('app.budget_lines'), ('app.spaces'), ('app.signs'), ('app.cues')$$,
+  'budget lines join the built-in targets, with B1''s spaces and signs and B3''s cues');
 select lives_ok($$
   with d as (
     insert into app.custom_field_definitions (org_id, target_table, field_key, label, data_type, filterable, sort_order)

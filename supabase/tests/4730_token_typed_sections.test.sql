@@ -185,8 +185,8 @@ select is((select (proargnames[3:17])::text from pg_proc where oid = 'api_public
   '{refusal,reason,org_name,packet_title,due_at,recipient_email,expires_at,section_id,section_position,section_title,section_prompt,answer_body,answered_at,review_outcome,return_reason}',
   'preview_advance keeps its 0430 columns in order');
 select is((select (proargnames[18:])::text from pg_proc where oid = 'api_public.preview_advance(text, text)'::regprocedure),
-  '{section_kind,window_kind,max_lines,per_person,choices,answer_id,answer_note,answer_lines,answer_files,can_answer,guest_cap,guests_used,roster_summary,project_time_zone,roster_people}',
-  'and appends the typed section columns');
+  '{section_kind,window_kind,max_lines,per_person,choices,answer_id,answer_note,answer_lines,answer_files,can_answer,guest_cap,guests_used,roster_summary,project_time_zone,roster_people,recorded_by_producer}',
+  'and appends the typed section columns, then B15''s recorded_by_producer (6273)');
 select pg_temp.as_anon();
 create temporary table pv on commit drop as select * from api_public.preview_advance('xadv_r10vendor', '424242');
 select pg_temp.as_platform();
