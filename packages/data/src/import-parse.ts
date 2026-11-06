@@ -330,6 +330,7 @@ export const IMPORT_TARGET_TABLES: Readonly<Record<string, string>> = {
   asset_units: "app.asset_units",
   cues: "app.cues",
   guest_list_entries: "app.guest_list_entries",
+  budget_lines: "app.budget_lines",
 };
 
 /** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */

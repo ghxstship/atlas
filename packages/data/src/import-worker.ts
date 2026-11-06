@@ -84,12 +84,23 @@ export interface ImportJobRecord {
   readonly projectId?: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId?: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId?: string | null;
 }
 
 /** Where a cue or guest list import writes (P3): its running order or its project. */
 export interface ImportDestination {
   readonly runOfShow?: RunOfShowContext;
   readonly project?: { readonly id: string };
+  readonly budget?: BudgetDestination;
+}
+
+/** What validating and numbering a budget line needs from its budget (B13). */
+export interface BudgetDestination {
+  readonly id: string;
+  /** Digits after the point in the budget's currency, to read typed amounts. */
+  readonly exponent: number;
+  readonly maxLineNumber: number;
 }
 
 /** What validating a cue needs from its running order. */
@@ -211,6 +222,12 @@ export interface TargetLookups {
   jurisdictionExists(id: string): Promise<boolean>;
   vendorIdByName(orgId: string, name: string): Promise<string | null>;
   elementExists(id: string): Promise<boolean>;
+  /** The canon discipline or category exists (a budget line's URID). */
+  uridExists(urid: string): Promise<boolean>;
+  /** The category's own XYZ tag; null for a discipline, whose lines declare one. */
+  uridXyz(urid: string): Promise<"X" | "Y" | "Z" | null>;
+  /** A live cost center of the org by its code; null for none. */
+  costCenterId(orgId: string, code: string): Promise<string | null>;
   assetClassId(orgId: string, idOrName: string): Promise<string | null>;
   venueId(orgId: string, idOrName: string): Promise<string | null>;
   strongKeyMatch(
@@ -238,6 +255,8 @@ export interface TargetLookups {
   ): Promise<string | null>;
   /** The position after the highest live cue of the running order (1 when it has none). */
   nextCuePosition(runOfShowId: string): Promise<number>;
+  /** The budget a budget line import writes into: its currency's exponent and its highest line number. */
+  budgetDestination(budgetId: string): Promise<BudgetDestination | null>;
   /** True when the cue was already called; an import never rewrites a called cue (C11). */
   cueCalled(id: string): Promise<boolean>;
 }
@@ -499,6 +518,70 @@ export async function validateRow(
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "budget_lines": {
+      const budget = destination.budget;
+      const exponent = budget?.exponent ?? 2;
+      for (const f of ["description", "unit_basis"]) bounded(f);
+      await set("urid", (v) => lookups.uridExists(v), "unknown_urid");
+      await set("line_number", (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null), "invalid_line_number");
+      if (!text("quantity")) values["quantity"] = 1;
+      await set("quantity", (v) => nonNegative(v), "invalid_quantity");
+      // A blank price or the word Unpriced is NULL, never zero (S3.7-02).
+      const price = text("unit_price").trim();
+      if (price === "" || price.toLowerCase() === "unpriced") {
+        values["unit_price_minor"] = null;
+      } else {
+        const minor = minorUnits(price, exponent);
+        if (minor === null) issues.push({ columnIndex: columnOf("unit_price"), issue: "invalid_price" });
+        else values["unit_price_minor"] = minor;
+      }
+      const type = text("line_type").trim();
+      if (type === "") values["line_type"] = "Cost";
+      else {
+        const known = BUDGET_LINE_TYPES.find((k) => k.toLowerCase() === type.toLowerCase());
+        if (known) values["line_type"] = known;
+        else issues.push({ columnIndex: columnOf("line_type"), issue: "invalid_line_type" });
+      }
+      await set("cost_center", (v) => lookups.costCenterId(orgId, v), "unknown_cost_center", "cost_center_id");
+      for (const f of ["grade_code", "element_id", "phase_code", "tier_code"]) {
+        if (text(f).trim()) values[f] = text(f).trim();
+      }
+      const declared = text("xyz").trim().toUpperCase();
+      if (declared !== "") {
+        if (declared === "X" || declared === "Y" || declared === "Z") {
+          values["xyz"] = declared;
+          values["xyz_basis"] = "Declared";
+        } else issues.push({ columnIndex: columnOf("xyz"), issue: "invalid_xyz" });
+      } else if (text("urid")) {
+        const tag = await lookups.uridXyz(text("urid"));
+        if (tag) {
+          values["xyz"] = tag;
+          values["xyz_basis"] = "Category";
+        } else issues.push({ columnIndex: columnOf("urid"), issue: "xyz_required" });
+      }
+      await set(
+        "markup_percent",
+        (v) => {
+          const n = Number(v.trim().replace(/%$/, ""));
+          return Number.isFinite(n) && n >= 0 && n <= 1000 ? Math.round(n * 100) : null;
+        },
+        "invalid_markup",
+        "markup_bp",
+      );
+      await set(
+        "client_unit_price",
+        (v) => minorUnits(v.trim(), exponent),
+        "invalid_price",
+        "client_unit_price_minor",
+      );
+      const excluded = text("excluded_from_quote").trim().toLowerCase();
+      if (excluded !== "") {
+        if (["true", "yes", "1"].includes(excluded)) values["excluded_from_quote"] = true;
+        else if (["false", "no", "0"].includes(excluded)) values["excluded_from_quote"] = false;
+        else issues.push({ columnIndex: columnOf("excluded_from_quote"), issue: "invalid_boolean" });
+      }
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
@@ -529,8 +612,26 @@ export async function validateRow(
   };
 }
 
-/** Targets whose imports name a running order or a project (P3). */
-const DESTINATION_TARGETS: ReadonlySet<string> = new Set(["cues", "guest_list_entries"]);
+/** Targets whose imports name a running order, a project (P3) or a budget (B13). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
+  "cues",
+  "guest_list_entries",
+  "budget_lines",
+]);
+
+const BUDGET_LINE_TYPES = ["Cost", "Labor", "Fee", "Contingency"] as const;
+
+/** A number of at least zero, or null. */
+function nonNegative(text: string): number | null {
+  const n = Number(text.trim().replace(/,/g, ""));
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+/** Major units of a currency as integer minor units, half away from zero; null when it is no amount. */
+function minorUnits(text: string, exponent: number): number | null {
+  const n = nonNegative(text.replace(/^[^\d.-]+/, ""));
+  return n === null ? null : Math.round(n * 10 ** exponent);
+}
 
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
@@ -553,6 +654,11 @@ function destinationStrongKeys(targetCode: string, values: Row): Record<string, 
     const guest_name = name.trim().toLowerCase();
     return show === null ? { guest_name } : { guest_name, scope_node_id: show };
   }
+  if (targetCode === "budget_lines") {
+    return typeof values["line_number"] === "number"
+      ? { line_number: String(values["line_number"]) }
+      : {};
+  }
   return null;
 }
 
@@ -561,6 +667,7 @@ const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  line_number: "line_number",
 };
 
 /**
@@ -602,6 +709,11 @@ async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { project: { id: job.projectId } };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    if (budget === null) throw new Error(`The budget of import ${job.id} no longer exists.`);
+    return { budget };
   }
   return {};
 }
@@ -890,10 +1002,12 @@ async function commit(
   // Numbered cues and updates are written first; unnumbered new cues are then appended in sheet order, so an
   // appended cue never takes a position a later numbered row needs (C10).
   const appended = (v: ValidRow) =>
-    job.targetCode === "cues" &&
     v.mergeInto === null &&
     v.matchedId === null &&
-    typeof byNumber.get(v.rowNumber)?.values["position"] !== "number";
+    ((job.targetCode === "cues" &&
+      typeof byNumber.get(v.rowNumber)?.values["position"] !== "number") ||
+      (job.targetCode === "budget_lines" &&
+        typeof byNumber.get(v.rowNumber)?.values["line_number"] !== "number"));
   const ordered = [...valids.filter((v) => !appended(v)), ...valids.filter(appended)];
   for (const valid of ordered) {
     const checked = byNumber.get(valid.rowNumber);
@@ -949,6 +1063,7 @@ function updateChanges(targetCode: string, values: Row): Row {
     counterparties: ["name"],
     cues: ["run_of_show_id", "project_id", "position"],
     guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    budget_lines: ["budget_id", "line_number"],
   };
   const keep = kept[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
@@ -968,6 +1083,15 @@ async function createValues(store: ImportStore, job: ImportJobRecord, values: Ro
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  if (job.targetCode === "budget_lines" && job.budgetId) {
+    // Unnumbered rows are written last, in sheet order, each after the highest number at that moment.
+    const budget = await store.lookups.budgetDestination(job.budgetId);
+    const line_number =
+      typeof values["line_number"] === "number"
+        ? values["line_number"]
+        : (budget?.maxLineNumber ?? 0) + 1;
+    return { ...values, budget_id: job.budgetId, line_number };
   }
   return values;
 }
@@ -1061,6 +1185,7 @@ const TABLES: Readonly<Record<string, string>> = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  budget_lines: "budget_lines",
 };
 
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
@@ -1141,6 +1266,31 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         );
       });
       return match ? text(match, "id") : null;
+    },
+    async uridExists(urid) {
+      const [discipline, category] = await Promise.all([
+        one(canon.from("dim_discipline").select("disc_code").eq("disc_code", urid.trim()).limit(1), "dim_discipline"),
+        one(canon.from("dim_category").select("cat_urid").eq("cat_urid", urid.trim()).limit(1), "dim_category"),
+      ]);
+      return discipline !== null || category !== null;
+    },
+    async uridXyz(urid) {
+      const row = await one(canon.from("dim_category").select("xyz").eq("cat_urid", urid.trim()).limit(1), "dim_category");
+      const tag = typeof row?.["xyz"] === "string" ? row["xyz"].trim() : null;
+      return tag === "X" || tag === "Y" || tag === "Z" ? tag : null;
+    },
+    async costCenterId(orgId, code) {
+      const row = await one(
+        app
+          .from("cost_centers")
+          .select("id")
+          .eq("org_id", orgId)
+          .eq("code", code.trim().toUpperCase())
+          .is("deleted_at", null)
+          .limit(1),
+        "cost_centers",
+      );
+      return typeof row?.["id"] === "string" ? row["id"] : null;
     },
     async elementExists(id) {
       return (
@@ -1291,6 +1441,34 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       });
       return typeof id === "string" ? id : null;
     },
+    async budgetDestination(budgetId) {
+      const budget = await one(
+        app.from("budgets").select("currency_code").eq("id", budgetId).is("deleted_at", null),
+        "budgets",
+      );
+      if (!budget) return null;
+      const [currency, last] = await Promise.all([
+        one(
+          app.from("currencies").select("minor_unit_exponent").eq("currency_code", budget["currency_code"]),
+          "currencies",
+        ),
+        one(
+          app
+            .from("budget_lines")
+            .select("line_number")
+            .eq("budget_id", budgetId)
+            .is("deleted_at", null)
+            .order("line_number", { ascending: false })
+            .limit(1),
+          "budget_lines",
+        ),
+      ]);
+      return {
+        id: budgetId,
+        exponent: typeof currency?.["minor_unit_exponent"] === "number" ? currency["minor_unit_exponent"] : 2,
+        maxLineNumber: typeof last?.["line_number"] === "number" ? last["line_number"] : 0,
+      };
+    },
     async nextCuePosition(runOfShowId) {
       const row = await one(
         app
@@ -1347,7 +1525,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, budget_id",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1368,6 +1546,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            budgetId: optional("budget_id"),
           }
         : null;
     },

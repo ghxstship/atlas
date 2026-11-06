@@ -34,17 +34,29 @@ import { getTranslate } from "@/lib/shell/translate";
 
 const TARGET = z.string().regex(/^[a-z][a-z0-9_]{1,60}$/);
 
-/** The destination fields of a form: at most a running order or a project, each a uuid. Null when malformed. */
+/** The destination fields of a form: at most one of a running order, a project or a budget, each a uuid. Null when malformed. */
 function destinationOf(
   form: FormData,
-): { runOfShowId: string | null; projectId: string | null } | null {
+): { runOfShowId: string | null; projectId: string | null; budgetId: string | null } | null {
   const runOfShow = field(form, "runOfShow");
   const project = field(form, "project");
+  const budget = field(form, "budget");
   const parsed = z
-    .object({ runOfShow: z.uuid().nullable(), project: z.uuid().nullable() })
-    .safeParse({ runOfShow: runOfShow || null, project: project || null });
-  if (!parsed.success || (parsed.data.runOfShow && parsed.data.project)) return null;
-  return { runOfShowId: parsed.data.runOfShow, projectId: parsed.data.project };
+    .object({
+      runOfShow: z.uuid().nullable(),
+      project: z.uuid().nullable(),
+      budget: z.uuid().nullable(),
+    })
+    .safeParse({ runOfShow: runOfShow || null, project: project || null, budget: budget || null });
+  if (!parsed.success) return null;
+  if ([parsed.data.runOfShow, parsed.data.project, parsed.data.budget].filter(Boolean).length > 1) {
+    return null;
+  }
+  return {
+    runOfShowId: parsed.data.runOfShow,
+    projectId: parsed.data.project,
+    budgetId: parsed.data.budget,
+  };
 }
 
 export async function createImportAction(

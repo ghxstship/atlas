@@ -47,7 +47,7 @@ export interface ImportTargetField {
 }
 
 /** The import column that names where a target's rows go: none for an org-wide target. */
-export type ImportDestinationKind = "run_of_show_id" | "project_id";
+export type ImportDestinationKind = "run_of_show_id" | "project_id" | "budget_id";
 
 export interface ImportTarget {
   readonly code: string;
@@ -83,7 +83,9 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
       writeCapability: str(t["write_capability"]) as CapabilityCode,
       fuzzyMatch: t["fuzzy_match"] === true,
       destination:
-        t["destination"] === "run_of_show_id" || t["destination"] === "project_id"
+        t["destination"] === "run_of_show_id" ||
+        t["destination"] === "project_id" ||
+        t["destination"] === "budget_id"
           ? t["destination"]
           : null,
       fields: fields.data
@@ -149,13 +151,15 @@ export function importObjectPath(personId: string, uploadId: string, ext: string
 export interface ImportDestinationInput {
   readonly projectId?: string | null;
   readonly runOfShowId?: string | null;
+  readonly budgetId?: string | null;
 }
 
-/** The destination columns of a new import; an org-wide target sends neither. */
+/** The destination columns of a new import; an org-wide target sends none. */
 function destinationColumns(input: ImportDestinationInput): Record<string, string> {
   return {
     ...(input.projectId ? { project_id: input.projectId } : {}),
     ...(input.runOfShowId ? { run_of_show_id: input.runOfShowId } : {}),
+    ...(input.budgetId ? { budget_id: input.budgetId } : {}),
   };
 }
 
@@ -241,12 +245,13 @@ export async function createPastedImport(
     contentType: "text/csv",
     projectId: input.projectId ?? null,
     runOfShowId: input.runOfShowId ?? null,
+    budgetId: input.budgetId ?? null,
   });
 }
 
 /** A running order or project a person may import cues or guests into (app.import_destinations, P3). */
 export interface ImportDestination {
-  /** The running order (cues) or project (guest list entries). */
+  /** The running order (cues), project (guest list entries) or budget (budget lines). */
   readonly id: string;
   readonly projectId: string;
   /** Project key · name. */
@@ -353,6 +358,7 @@ export function importDetectedSheet(
       p_target_code: input.targetCode,
       p_project_id: input.projectId ?? null,
       p_run_of_show_id: input.runOfShowId ?? null,
+      p_budget_id: input.budgetId ?? null,
     },
     str,
   );
