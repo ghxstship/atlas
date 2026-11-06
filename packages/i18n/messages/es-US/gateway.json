@@ -2014,7 +2014,8 @@
         "declined": "Rechazada",
         "revoked": "Invitación reemplazada",
         "expired": "Invitación vencida"
-      }
+      },
+      "recordedBy": "{org} lo registró a partir de tu mensaje. Pídele que lo devuelva si necesita cambios."
     },
     "sign": {
       "eyebrow": "Enlace de firma",

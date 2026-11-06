@@ -218,6 +218,11 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
                 </p>
               ) : null}
               {s.kind !== "Text" && s.answerId ? <TokenAnswer section={s} packet={packet} /> : null}
+              {s.recordedByProducer ? (
+                <p className="m-0 text-text-12 text-text-secondary">
+                  {t("advance.recordedBy", { org: packet.orgName })}
+                </p>
+              ) : null}
               {s.reviewOutcome === "Returned" && open ? (
                 <InlineAlert tone="warning">
                   {t("advance.returned", { reason: s.returnReason ?? "" })}

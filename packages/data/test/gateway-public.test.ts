@@ -113,6 +113,7 @@ describe("previewAdvance (R10 columns)", () => {
       choices: [{ id: "c1", assetClassId: "radios", className: "Radios" }],
       answerId: "a1",
       answerNote: "Two for the stage crew.",
+      recordedByProducer: false,
       canAnswer: false,
       rosterPeople: [{ rosterEntryId: "e1", displayName: "n***@example.com" }],
     });

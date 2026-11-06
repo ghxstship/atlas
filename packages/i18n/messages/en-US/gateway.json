@@ -2014,7 +2014,8 @@
         "declined": "Declined",
         "revoked": "Invitation replaced",
         "expired": "Invitation expired"
-      }
+      },
+      "recordedBy": "Recorded by {org} from your message. Ask them to return it if it needs changing."
     },
     "sign": {
       "eyebrow": "Signing link",

@@ -117,6 +117,4 @@ record held only a storage URI and a version label.
 
 ## Merge notes for the train
 
-- R10 replaces `api_public.preview_advance` at 4730 on origin/batch-c. Append `recorded_by_producer` to R10's latest answer and show the
-  Gateway label on the token page too; otherwise a token recipient sees an answer they did not write with no explanation.
-- B5's `/hospitality/travel` page is not on this stack. Also mount `ItineraryEntry` there; it takes only `projectId` and `fulfillmentId`.
+Merge train 9 (6270 to 6275) did both: `api_public.preview_advance`, from R10's 4730, appends `recorded_by_producer` in 6273 and the token page shows the label, and `ItineraryEntry` also mounts on the project's Travel section, from B5.

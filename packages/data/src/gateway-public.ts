@@ -372,6 +372,8 @@ export interface AdvanceSection {
   readonly choices: readonly AdvanceChoice[];
   readonly answerId: string | null;
   readonly answerNote: string | null;
+  /** The org recorded this answer for the recipient from an Aurora draft (B15, ADR 0154 D1). */
+  readonly recordedByProducer: boolean;
   readonly answerLines: readonly AdvanceAnsweredLine[];
   readonly answerFiles: readonly AdvanceAnsweredFile[];
   /** False for a Crew Roster section and while the latest answer awaits review or was Accepted. */
@@ -439,6 +441,7 @@ interface AdvanceRow {
     | null;
   answer_id?: string | null;
   answer_note?: string | null;
+  recorded_by_producer?: boolean | null;
   answer_lines?:
     | readonly {
         line_number: number;
@@ -486,6 +489,8 @@ function advanceSection(r: AdvanceRow): AdvanceSection {
     })),
     answerId: r.answer_id ?? null,
     answerNote: r.answer_note ?? null,
+    // B15 (ADR 0154 D1): the org recorded this answer from an Aurora draft.
+    recordedByProducer: r.recorded_by_producer === true,
     answerLines: (r.answer_lines ?? []).map((l) => ({
       lineNumber: l.line_number,
       assetClassId: l.asset_class_id ?? null,

@@ -342,6 +342,128 @@ $$;
 comment on function app.record_drafted_advance_answer(uuid, jsonb) is 'Records one advance answer drafted by Aurora, for the person who accepts it (B15, ADR 0154 D1). The suggestion is the caller''s own (42501), an advanceAnswers.record suggestion of an Answered drafting request whose subject is the recipient, target_id the section, Proposed (ai_suggestion_transition_not_allowed) and unexpired (ai_suggestion_expired). The caller holds advancing.submission.review on the packet''s project and is a member of its org (42501), plus advancing.packet.write for an Item Request or Credential Request (42501); the section must be private.advance_section_draftable, so Guest List, File, Crew Roster and per-person sections refuse aurora_advance_section_not_allowed. Project Inbox mail is read again: purpose Project Inbox, the packet''s project''s inbox, Verified or Filed, not discarded, knowledge.document.write on the project, and the excerpt found in private.ai_redact(body_text) after whitespace normalization; any failure refuses aurora_advance_source_unverified. p_values may correct text, note (Item and Credential only) and lines; a line takes exactly choice_id, quantity, needed_window_start, needed_window_end, window_zone and note, the choice is resolved through the section''s own choices (advance_line_kind), a quantity runs 1 to 10000 and a note at most 500 characters. Writes through private.record_advance_answer, so its offering, cap, line and advance_answer_pending rules hold and the caller is the submitter (sod_advance_submitter). Adds the app.advance_answer_sources row, moves the suggestion Proposed, Confirmed, Applied with the answer, and notifies the recipient person or the account''s Owner, Admin and Member people with advance_answer.recorded, excluding the actor. Returns the answer id. Calls no model and meters nothing.';
 
 -- 4. What Gateway reads ------------------------------------------------------------------------------------------------------
+-- The packet through a link, from 4730, appends recorded_by_producer: a token recipient sees that the org recorded an answer.
+
+drop function api_public.preview_advance(text, text);
+
+create function api_public.preview_advance(p_token text, p_access_code text)
+returns table (
+  refusal text,
+  reason text,
+  org_name text,
+  packet_title text,
+  due_at timestamptz,
+  recipient_email text,
+  expires_at timestamptz,
+  section_id uuid,
+  section_position integer,
+  section_title text,
+  section_prompt text,
+  answer_body text,
+  answered_at timestamptz,
+  review_outcome app.advance_review_outcome,
+  return_reason text,
+  section_kind app.advance_section_kind,
+  window_kind app.advance_window_kind,
+  max_lines integer,
+  per_person boolean,
+  choices jsonb,
+  answer_id uuid,
+  answer_note text,
+  answer_lines jsonb,
+  answer_files jsonb,
+  can_answer boolean,
+  guest_cap integer,
+  guests_used integer,
+  roster_summary jsonb,
+  project_time_zone text,
+  roster_people jsonb,
+  recorded_by_producer boolean
+)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_token_id uuid;
+  v_reason text;
+begin
+  select r.token_id, r.reason into v_token_id, v_reason from private.resolve_advance_token(p_token, p_access_code) r;
+  if v_reason is not null then
+    return query select 'REFUSE'::text, v_reason, null::text, null::text, null::timestamptz, null::text, null::timestamptz,
+      null::uuid, null::integer, null::text, null::text, null::text, null::timestamptz, null::app.advance_review_outcome, null::text,
+      null::app.advance_section_kind, null::app.advance_window_kind, null::integer, null::boolean, null::jsonb, null::uuid,
+      null::text, null::jsonb, null::jsonb, null::boolean, null::integer, null::integer, null::jsonb, null::text, null::jsonb, null::boolean;
+    return;
+  end if;
+  return query
+    select null::text, null::text, o.name, p.title, p.due_at, t.recipient_email, t.expires_at,
+      s.id, s.position, s.title, s.prompt, a.body, a.submitted_at, a.review_outcome, a.return_reason,
+      s.section_kind, s.window_kind, s.max_lines::integer, s.per_person,
+      case when s.section_kind in ('Item Request', 'Credential Request') then (
+        select coalesce(jsonb_agg(jsonb_build_object('id', c.id, 'asset_class_id', c.asset_class_id, 'class_name', ac.name,
+            'credential_category_id', c.credential_category_id, 'category_name', k.name) order by coalesce(ac.name, k.name), c.id), '[]'::jsonb)
+        from app.advance_section_choices c
+        left join app.asset_classes ac on ac.id = c.asset_class_id
+        left join app.credential_categories k on k.id = c.credential_category_id
+        where c.advance_section_id = s.id and c.deleted_at is null) end,
+      a.id, a.note,
+      case when a.id is not null then (
+        select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('line_number', l.line_number,
+            'asset_class_id', l.asset_class_id, 'credential_category_id', l.credential_category_id,
+            'roster_entry_id', l.roster_entry_id, 'quantity', l.quantity,
+            'needed_window_start', lower(l.needed_window), 'needed_window_end', upper(l.needed_window),
+            'window_zone', l.window_zone, 'note', l.note)) order by l.line_number), '[]'::jsonb)
+        from app.advance_submission_lines l where l.advance_submission_id = a.id) end,
+      case when a.id is not null then (
+        select coalesce(jsonb_agg(jsonb_build_object('file_id', f.document_id, 'title', d.title,
+            'scan_status', coalesce(sc.scan_status::text, 'Scanning')) order by f.position), '[]'::jsonb)
+        from app.advance_submission_files f
+        join app.documents d on d.id = f.document_id
+        left join lateral (
+          select v.storage_uri from app.document_versions v where v.document_id = d.id order by v.created_at, v.id limit 1
+        ) dv on true
+        left join private.object_scans sc on sc.bucket_id = 'party-uploads'
+          and sc.object_name = substr(dv.storage_uri, char_length('storage://party-uploads/') + 1)
+        where f.advance_submission_id = a.id) end,
+      s.section_kind <> 'Crew Roster' and not private.advance_answer_open(s.id, rc.id),
+      case when s.section_kind = 'Guest List' and rc.engagement_id is not null then (
+        select eo.cap_per_engagement from private.effective_offerings(rc.engagement_id) eo where eo.offering = 'Guest List') end,
+      case when s.section_kind = 'Guest List' and rc.engagement_id is not null then (
+        select coalesce(sum(1 + g.plus_ones), 0)::integer from app.guest_list_entries g
+        where g.engagement_id = rc.engagement_id and g.deleted_at is null and g.entry_state <> 'Declined') end,
+      case when s.section_kind = 'Crew Roster' and rc.engagement_id is not null then (
+        select coalesce(jsonb_object_agg(x.entry_state, x.n), '{}'::jsonb) from (
+          select r.entry_state::text as entry_state, count(*)::integer as n from app.engagement_roster_entries r
+          where r.engagement_id = rc.engagement_id and r.deleted_at is null group by r.entry_state) x) end,
+      pr.time_zone,
+      case when s.section_kind in ('Item Request', 'Credential Request') and rc.engagement_id is not null then (
+        select coalesce(jsonb_agg(jsonb_build_object('roster_entry_id', r.id, 'display_name', private.advance_roster_display_name(r.id))
+            order by r.created_at, r.id), '[]'::jsonb)
+        from app.engagement_roster_entries r
+        where r.engagement_id = rc.engagement_id and r.deleted_at is null and r.entry_state in ('Draft', 'Submitted', 'Accepted')
+          and r.person_response <> 'Declined') end,
+      a.id is not null and exists (select 1 from app.advance_answer_sources x where x.advance_submission_id = a.id)
+    from app.advance_recipient_tokens t
+    join app.advance_recipients rc on rc.id = t.advance_recipient_id
+    join app.advance_packets p on p.id = rc.advance_packet_id
+    join app.organizations o on o.id = p.org_id
+    join app.projects pr on pr.id = p.project_id
+    join app.advance_sections s on s.advance_packet_id = p.id and s.deleted_at is null
+    left join lateral (
+      select x.id, x.body, x.note, x.submitted_at, x.review_outcome, x.return_reason from app.advance_submissions x
+      where x.advance_section_id = s.id and x.advance_recipient_id = rc.id and x.deleted_at is null
+      order by x.submitted_at desc, x.id desc limit 1
+    ) a on true
+    where t.id = v_token_id
+    order by s.position;
+end;
+$$;
+comment on function api_public.preview_advance(text, text) is 'Gateway advance form without an account (Section 4.4.6): with a valid token and access code, returns one row per section of the packet with the recipient''s latest answer and its review. R10 appends, after return_reason: the section''s kind, window kind, most lines and per-person flag; its choices [{id, asset_class_id, class_name, credential_category_id, category_name}]; the latest answer''s id, note, lines and files [{file_id, title, scan_status}]; can_answer (false for a Crew Roster section and while the latest answer awaits review or was Accepted); for a Guest List the engagement''s cap and the guests used, plus-ones counted; for a Crew Roster the roster''s counts by entry state; the project''s time zone; and for an Item or Credential Request the roster people a line may name [{roster_entry_id, display_name}], each a name once accepted and a masked email otherwise. Otherwise one row with refusal REFUSE and the reason: advance_token_invalid, advance_token_locked, advance_access_code or advance_token_expired.';
+revoke all on function api_public.preview_advance(text, text) from public;
+grant execute on function api_public.preview_advance(text, text) to anon, authenticated, service_role;
+
 -- From 4714 (no later definition on this stack), with recorded_by_producer appended.
 
 create or replace view api_external.advance_submissions as

@@ -251,10 +251,10 @@ begin
     v_items := v_items
       + (select count(*) from app.scope_nodes n where n.project_id = v_src.id and n.parent_id is not null and n.deleted_at is null
            and n.scope_kind in ('Show', 'Standing Venue') and n.scope_code like v_src.project_key || '-%')
-      + (select count(*) + count(r2.parent_record_id) from app.records r2 where r2.project_id = v_src.id and r2.deleted_at is null
+      + (select count(*) + count(r2.parent_record_id) from app.records r2 where r2.project_id = v_src.id and r2.deleted_at is null and r2.archived_at is null
            and r2.record_state not in ('Complete', 'Canceled') and r2.record_kind <> 'Approval')
       + (select count(*) from app.record_dependencies d join app.records r2 on r2.id = d.successor_record_id
-           where r2.project_id = v_src.id and d.deleted_at is null and r2.deleted_at is null)
+           where r2.project_id = v_src.id and d.deleted_at is null and r2.deleted_at is null and r2.archived_at is null)
       + (select count(*) from app.project_days d where d.project_id = v_src.id and d.deleted_at is null);
   end if;
   if 'Pass Categories' = any (v_parts) then
@@ -328,7 +328,7 @@ begin
 
       for r in
         select x.* from app.records x
-        where x.project_id = v_src.id and x.deleted_at is null and x.record_state not in ('Complete', 'Canceled')
+        where x.project_id = v_src.id and x.deleted_at is null and x.archived_at is null and x.record_state not in ('Complete', 'Canceled')
           and x.record_kind <> 'Approval'
         order by x.record_number, x.id
       loop
@@ -352,7 +352,7 @@ begin
 
       for r in
         select x.id, x.title, x.parent_record_id from app.records x
-        where x.project_id = v_src.id and x.deleted_at is null and x.record_state not in ('Complete', 'Canceled')
+        where x.project_id = v_src.id and x.deleted_at is null and x.archived_at is null and x.record_state not in ('Complete', 'Canceled')
           and x.record_kind <> 'Approval' and x.parent_record_id is not null
         order by x.record_number, x.id
       loop

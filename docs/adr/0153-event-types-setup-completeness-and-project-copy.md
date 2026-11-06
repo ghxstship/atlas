@@ -141,34 +141,6 @@ target, checked before anything is written.
 - A record or day in the source project's zone lands in the target's on copy, so 18:00 stays 18:00; one with its own
   other zone keeps it.
 
-### Merge hazards for the orchestrator
+### Merge train 9
 
-These are numbers on batch-c and train 8 as of 2026-11-06; nothing here acts on them.
-
-- B14 sorts after R9's set (R4, R5, R6, R7a), P8, B4 and A127, wherever they land. B4 is on neither batch-c nor train 8.
-- `app.act_on_notification`: the latest is `5861_approval_links_signed_out.sql` (it restates 5200, and adds
-  subject_approvals, approval.reminder and `private.is_subject_step_approver`), and R11's 2744 adds roster_entry.invited
-  accept and decline. 6264 restates it from 5200 (5200), so at renumbering it must be their union plus the app.records
-  branch, or it silently removes them. R11's 2744 is on neither batch-c nor train 8: whichever of B14 and R11 lands
-  second restates the union. `private.notification_link_actions` (5861) stays unrestated by B14.
-- `app.apply_template` and `app.create_template_from_project`: P8's 6121 is 6121 on train 8. `private.project_site_window`:
-  4683 is 4683. `private.emit_project_update` (0401), `app.pass_gate` (0301) and `app.transition_submittal` (0492) have
-  not moved. 5940 redefines `app.person_names` with the same signature.
-- 6267 restores two definitions the stacked branches overwrote: `private.party_org_ids` (2641 dropped A127's open offers
-  from 5200) and `api_external.engagement_up_next` (6110 dropped R8's roster readers from 4701). At renumbering each must
-  be the union with the latest definition on the train.
-- The notification seed pointer is 6059 on batch-c and 6129 on train 8: regenerate with `generate:notifications`.
-- `create-project.tsx`: batch-c split out `create-project-fields.tsx`, and train 7 moved the dialog behind a static button
-  whose first click loads it. The wizard lands behind that button and replaces DrawerFields behind it;
-  `project-fields.tsx` still exists on batch-c.
-- 5180 adds `archived_at` to app.records and app.documents. At renumbering, 6266's Plan loops and size count must leave
-  out archived records, and `private.project_setup_item_met` and the view's `documents_count` must leave out archived
-  documents, or an archived Site Plan passes a gate.
-- 5945 adds `accommodation_blocks.budget_line_id`. The copy leaves it NULL, because a source budget line must not cross
-  projects.
-- 4731 changes `issue_roster_invitation` to a 4-argument form with a default, so 6267's 3-argument call still binds.
-- The value lists of `setup.ts`, `project-copy.ts`, `attachments.ts` and `work.ts` move to `@xos/data/enums` on the train.
-- The train takes the larger edge ceiling on batch-c: notification-dispatch 222 against the branch's 196, org-lifecycle
-  262 against 228, sms-webhook 179 against 157, subprocessor-notices 136 against 120.
-- No name collision: `app.event_types`, `document_types`, `event_type_templates`, `project_copies`,
-  `attachment_version_reviews`, `project_setup_progress` and `project_site_windows` do not exist on batch-c.
+The train carried these: 6264's `app.act_on_notification` is the union with 5861 and R11's 6224 plus the app.records branch; 6267 no longer restates `private.party_org_ids` or `api_external.engagement_up_next`, which 5200 and 6110 hold; 6266's plan copy and its size count leave out archived records, and `private.project_setup_item_met` and the view's `documents_count` leave out archived documents (5180); the copy leaves `accommodation_blocks.budget_line_id` NULL (5945); and the value lists read `@xos/data/enums`.

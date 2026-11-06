@@ -239,6 +239,7 @@ as $$
     when p_document_type_id is not null then exists (
       select 1 from app.documents d
       where d.project_id = p_project_id and d.document_type_id = p_document_type_id and d.deleted_at is null
+        and d.archived_at is null
         and exists (select 1 from app.document_versions v where v.document_id = d.id and v.deleted_at is null))
     else exists (
       select 1 from app.custom_field_values v
@@ -283,7 +284,7 @@ join app.event_type_document_requirements r on r.event_type_id = p.event_type_id
 join app.document_types dt on dt.id = r.document_type_id and dt.deleted_at is null
 left join lateral (
   select count(*) as documents from app.documents d
-  where d.project_id = p.id and d.document_type_id = r.document_type_id and d.deleted_at is null
+  where d.project_id = p.id and d.document_type_id = r.document_type_id and d.deleted_at is null and d.archived_at is null
     and exists (select 1 from app.document_versions v where v.document_id = d.id and v.deleted_at is null)
 ) dc on true
 where p.deleted_at is null and p.id in (select private.project_ids_with('knowledge.document.read'))
