@@ -25,6 +25,6 @@ A banquet event order (BEO) tells the caterer exactly what to serve, when and wh
 
 An accommodation block holds rooms at a hotel for a date range. Assign people to rooms from the block and see how many remain.
 
-## Import itineraries with Aurora
+## Read itineraries with Aurora
 
-On a Travel fulfillment, **Import itineraries with Aurora** reads up to 25 booking confirmations, as files or as verified messages in the project inbox, into one preview. Each file is one Aurora request from this month's allowance, and the panel says how many you use. Every row is one passenger on one segment, with the excerpt it was read from. You always choose the traveler: a suggested name is only a hint. Zones are read from each place, so check them; a date or time the confirmation does not print is left empty. A row the traveler already has as a segment, with the same flight or service and departure, is marked Already booked and left out; **Add segments** adds the rows you keep in one step.
+On a Travel fulfillment, **Read Itineraries** reads up to 25 confirmations. Each file is one Aurora request from this month's allowance. You choose who each passenger is, and you confirm each zone, because Aurora infers zones from the airport or city. A year the confirmation does not print is the next time that date comes, and it says so. A line matching a segment already booked starts unchecked. Lines you leave stay open for 7 days, so you can come back to them.

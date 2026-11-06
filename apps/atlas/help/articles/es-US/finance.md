@@ -27,6 +27,6 @@ Las facturas de proveedores y a clientes se reúnen en **Facturas**. Las factura
 - La **Exportación de la línea de registro universal** genera las líneas contables para su sistema de contabilidad.
 - **Cierre del año** lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.
 
-## Leer líneas de factura con Aurora
+## Revisar las líneas de una factura desde el documento
 
-En una factura por pagar en estado Propuesta, **Leer líneas de un documento** lee las líneas y los totales impresos del proveedor. Elija usted la partida presupuestaria de cada línea; las líneas anteriores del mismo proveedor se muestran como pistas, con una insignia cuando el precio difiere un 10 % o más. La conciliación compara las líneas con el total impreso en cada edición, redondeando como la factura. Si difieren, marque **Revisé la diferencia** antes de agregar las líneas. Un recibo leído con Aurora muestra sus artículos y la misma conciliación, solo para lectura.
+Cuando Aurora completa una factura desde un documento, sus líneas esperan en la factura guardada. **Revisar líneas del documento** las muestra con la diferencia con el total impreso y lo que el proveedor cobró antes. Tú eliges cada línea de presupuesto: **Usar esta línea de presupuesto** la completa solo cuando haces clic. Cuando las líneas y el total difieren, marca **Revisé la diferencia** antes de agregarlas. La diferencia aparece después en la factura como una advertencia y no bloquea la aprobación ni el asiento.

@@ -18,6 +18,6 @@ Escribe tu respuesta bajo la sección y elige **Enviar respuesta**. Luego la org
 
 Los artistas envían su rider y sus necesidades de hospitalidad por la coordinación previa. Un representante de artista con el alcance Avance responde por el artista.
 
-## Respuestas que registró la organización
+## Respuestas que registró tu organización
 
-Cuando responde por correo o envía un tour book, la organización puede registrar su respuesta a partir de lo que envió. Esa respuesta dice **Registrada por** la organización, y **a partir de un correo al proyecto** cuando se leyó de un correo. Para cambiarla, pida a la organización que la devuelva y vuelva a responder.
+Cuando respondes por correo o envías un libro de gira, la organización puede registrar tu respuesta a partir de lo que enviaste. Esa respuesta indica quién la registró, y se te avisa cuando ocurre. Si necesita cambios, pídele que la devuelva y responde de nuevo.

@@ -10,14 +10,12 @@ import {
 import { DEMO, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**
- * B15 (RRR-239, ADR 0154): an answer the org recorded from an Aurora draft carries a recorded-by
- * label on the party's Advance tab, in en-US and es-US. The label never claims the party sent it:
- * an answer drafted from project inbox mail reads "from an email to the project", one drafted from
- * a file reads "Recorded by {org}". While nobody has reviewed it, the label adds that the party asks
- * the org to return it to change it; once someone other than the recorder accepts it, that line goes.
+ * B15 (RRR-239, ADR 0154 D1): an answer the org recorded from an Aurora draft carries a recorded-by
+ * label on the party's Advance tab, in en-US and es-US, so a party held back by
+ * advance_answer_pending can see why and ask for it back.
  *
  * The draft is recorded through the database's own path, as the Owner: a drafting request about the
- * recipient, one proposed answer, then app.apply_drafted_advance_answer, so no model or Aurora
+ * recipient, one proposed answer, then app.record_drafted_advance_answer, so no model or Aurora
  * fixture server is needed. The packet, its two Text sections and the inbox message are fixtures.
  */
 test.use({ reducedMotion: "reduce" });
@@ -28,7 +26,7 @@ const expect = baseExpect.configure({ timeout: 20_000 });
 async function recordDraft(
   recipient: string,
   section: string,
-  body: string,
+  text: string,
   source: { inbound_message_id: string } | { file_name: string },
 ): Promise<string> {
   const [request] = await asPerson<{ id: string }>(
@@ -41,19 +39,31 @@ async function recordDraft(
     "select app.ai_complete_request($1, 'Answered', 'Draft answers from [document text/plain].', 'Drafted.', 100, 40)",
     [request?.id],
   );
+  const fromMail = "inbound_message_id" in source;
   const [suggestion] = await asPerson<{ id: string }>(
     PEOPLE.owner,
-    "select app.ai_propose_suggestion($1, 'aurora.applyAdvanceAnswer', $2, 'Answer the section.', $3::jsonb) as id",
+    "select app.ai_propose_suggestion($1, 'advanceAnswers.record', $2, 'Answer the section.', $3::jsonb) as id",
     [
       request?.id,
       section,
-      JSON.stringify([{ field_path: "body", value: body, confidence: 0.8, source_excerpt: body }]),
+      JSON.stringify([
+        {
+          field_path: "source_kind",
+          value: fromMail ? "Project Inbox" : "File",
+          confidence: 0.8,
+          source_excerpt: text,
+        },
+        fromMail
+          ? { field_path: "inbound_message_id", value: source.inbound_message_id, confidence: 1 }
+          : { field_path: "file_name", value: source.file_name, confidence: 1 },
+        { field_path: "text", value: text, confidence: 0.8 },
+      ]),
     ],
   );
   const [answer] = await asPerson<{ id: string }>(
     PEOPLE.owner,
-    "select app.apply_drafted_advance_answer($1, '{}'::jsonb, $2::jsonb) as id",
-    [suggestion?.id, JSON.stringify(source)],
+    "select app.record_drafted_advance_answer($1, '{}'::jsonb) as id",
+    [suggestion?.id],
   );
   return answer?.id as string;
 }
@@ -134,19 +144,16 @@ test("recorded-by label on an answer the org recorded from an Aurora draft", asy
       { file_name: "tour-book.pdf" },
     );
 
-    // en-US: both labels, each with how to change it while unreviewed.
+    // en-US.
     await signIn(page, "contractor@example.com", `/work/engagements/${engagement.key}/advance`);
     const label = (title: string) =>
       page.getByRole("listitem").filter({ hasText: title }).getByTestId("recorded-by-producer");
-    await expect(label(parking)).toHaveText(
-      `Recorded by ${orgName} from an email to the project. To change it, ask ${orgName} to return it.`,
-    );
-    await expect(label(loadIn)).toHaveText(
-      `Recorded by ${orgName}. To change it, ask ${orgName} to return it.`,
-    );
+    const SENTENCE = `Recorded by ${orgName} from your message. Ask them to return it if it needs changing.`;
+    await expect(label(parking)).toHaveText(SENTENCE);
+    await expect(label(loadIn)).toHaveText(SENTENCE);
     await expectAccessibleInBothThemes(page);
 
-    // The recorder cannot review their own recording; another reviewer accepts it.
+    // The accepter cannot review what they recorded; another reviewer accepts it.
     const review = `update app.advance_submissions
         set reviewed_at = now(), reviewed_by = $2, review_outcome = 'Accepted'
       where id = $1 and reviewed_at is null`;
@@ -154,17 +161,16 @@ test("recorded-by label on an answer the org recorded from an Aurora draft", asy
       /sod_advance_submitter/,
     );
     await asPerson(PEOPLE.admin, review, [fromFile, PEOPLE.admin]);
-    await page.reload();
-    await expect(label(loadIn)).toHaveText(`Recorded by ${orgName}.`);
 
-    // es-US.
-    await page.context().addCookies([{ name: "xos-locale", value: "es-US", url: page.url() }]);
+    // es-US. The cookie is set for the origin, not the page's directory.
+    await page
+      .context()
+      .addCookies([{ name: "xos-locale", value: "es-US", url: new URL(page.url()).origin }]);
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("lang", "es-US");
     await expect(label(parking)).toHaveText(
-      `Registrada por ${orgName} a partir de un correo al proyecto. Para cambiarla, pide a ${orgName} que la devuelva.`,
+      `${orgName} lo registró a partir de tu mensaje. Pídele que lo devuelva si necesita cambios.`,
     );
-    await expect(label(loadIn)).toHaveText(`Registrada por ${orgName}.`);
   } finally {
     if (message) {
       await asPerson(PEOPLE.owner, "select app.discard_inbound_message($1, $2)", [

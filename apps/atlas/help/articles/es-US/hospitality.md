@@ -25,6 +25,6 @@ Una orden de evento (BEO) indica al servicio de catering qué servir, cuándo y 
 
 Un bloque reserva habitaciones en un hotel para un rango de fechas. Asigne personas a habitaciones del bloque y vea cuántas quedan.
 
-## Importar itinerarios con Aurora
+## Leer itinerarios con Aurora
 
-En un servicio de viaje, **Importar itinerarios con Aurora** lee hasta 25 confirmaciones de reserva, como archivos o como mensajes verificados del buzón del proyecto, en una sola vista previa. Cada archivo es una solicitud de Aurora de la asignación de este mes, y el panel indica cuántas usa. Cada fila es un pasajero en un tramo, con el fragmento del que se leyó. Usted siempre elige al viajero: un nombre sugerido es solo una pista. Las zonas se leen de cada lugar, así que revíselas; una fecha u hora que la confirmación no imprime queda vacía. Una fila que el viajero ya tiene como tramo, con el mismo vuelo o servicio y la misma salida, se marca como Ya reservado y queda fuera; **Agregar tramos** agrega en un solo paso las filas que conserva.
+En un cumplimiento de viaje, **Leer itinerarios** lee hasta 25 confirmaciones. Cada archivo es una solicitud de Aurora de la asignación de este mes. Tú eliges quién es cada pasajero y confirmas cada zona, porque Aurora deduce las zonas del aeropuerto o la ciudad. Un año que la confirmación no imprime es la próxima vez que llega esa fecha, y lo indica. Una línea igual a un tramo ya reservado empieza sin marcar. Las líneas que dejes siguen abiertas 7 días, para que puedas volver a ellas.

@@ -11,7 +11,7 @@ import type { ModelContent, ModelRequest, ModelResponse } from "@xos/ai";
 
 const usage = { inputTokens: 0, outputTokens: 0 };
 
-function toolCall(name: string, input: unknown): ModelResponse {
+export function toolCall(name: string, input: unknown): ModelResponse {
   return {
     content: [{ type: "tool_use", id: `fixture_${name}`, name, input }],
     stopReason: "tool_use",
@@ -102,6 +102,8 @@ export function fixtureDraft(request: ModelRequest): ModelResponse {
     ...named.map((n, i) => `${i + 2}. Confirm the details of ${n}.`),
   ];
   if (/\b(price|cost|fee)\b/i.test(instructions)) lines.push("Cost: [needs: the agreed price]");
+  // A waste plan's figure with no measurement is Unmeasured, never zero (B15).
+  if (request.system.includes("write Unmeasured")) lines.push("Waste diverted: Unmeasured");
   return toolCall("draft", { title, body: lines.join("\n"), gaps: [] });
 }
 

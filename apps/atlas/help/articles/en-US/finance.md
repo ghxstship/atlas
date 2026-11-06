@@ -27,6 +27,6 @@ Invoices from vendors and to clients collect in **Invoices**. Approved invoices 
 - **Universal Posting Line Export** writes posting lines for your accounting system.
 - **Year-End** lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.
 
-## Read invoice lines with Aurora
+## Review an invoice's lines from the document
 
-On a Proposed payable invoice, **Read lines from a document** reads the vendor's lines and printed totals. Choose each line's budget line yourself; earlier lines of the same vendor are shown as hints, with a badge when the price differs by 10% or more. The tie-out compares the lines with the printed total on every edit, rounding as the invoice does. When they differ, check **I checked the difference** before you add the lines. A receipt read with Aurora shows its items and the same tie-out, read-only.
+When Aurora fills an invoice from a document, its lines wait on the saved invoice. **Review Lines from the Document** shows them with the live difference from the printed total and what the vendor last billed. You choose each budget line: **Use This Budget Line** fills it only when you click. When the lines and the total differ, check **I checked the difference** before you add them. A residual then shows on the invoice as a warning, and it blocks neither approval nor posting.

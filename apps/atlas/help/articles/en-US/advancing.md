@@ -38,10 +38,10 @@ Allocations say what each party and person is given for a production: badges, pa
 
 Related: [Venues, spaces and site plans](help:places).
 
-## Draft advance answers with Aurora
+## Draft answers from a reply
 
-When a party answers by email or sends a tour book or rider, a reviewer can choose **Draft advance answers** on a recipient of a sent packet, or on a verified message in the project inbox. Aurora drafts at most one answer per open section from that source, with the words it read, and lists the sections the source does not answer. A time, quantity, item or person the source does not show is left out. Each answer you accept is recorded on the party's behalf: you become its submitter, so someone else reviews it, and the party sees that your org recorded it. To change it, return it.
+When a party answers by email or sends a tour book or rider, a reviewer can choose **Draft Answers from a Reply** on a recipient of a sent packet. Aurora reads one source, verified mail in the project inbox or a file you choose, into proposed answers for the recipient's open sections, with the words it read and who sent the mail. It never drafts a guest list, a file, a crew roster or a per-person section. Each answer you accept is recorded for the recipient: someone else reviews it, the recipient is told, and they can ask you to return it.
 
 ## Contracts and riders with Aurora
 
-On a project's Engagements tab, **Import contracts and riders** reads booking contracts and riders, sorts them by act and books each act you keep as an Artist engagement at Onboarding, with its riders. You choose each act's party and the terms for the batch; the fee is read only for someone who may see pay rates.
+On the engagements list, **Read Contracts and Riders** reads contracts and riders, groups them by act and adds each booking you keep as an Artist engagement at Onboarding. You choose the party and the terms; Aurora creates no person, account or counterparty. A fee is read only for people allowed to read pay. A fee printed as a total fills in only on a flat fee, because an engagement's rate is per unit, and a contract's file is kept Restricted.

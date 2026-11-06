@@ -20,4 +20,4 @@ Artists send their rider and hospitality needs through the advance. An artist's 
 
 ## Answers your organization recorded
 
-When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says **Recorded by** the organization, and **from an email to the project** when it was read from mail. To change it, ask the organization to return it, then answer again.
+When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says **Recorded by** the organization, and you are told when it happens. If it needs changing, ask them to return it, then answer again.

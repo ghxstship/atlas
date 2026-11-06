@@ -14,6 +14,7 @@ import {
   fixtureRunOfShow,
   fixtureSummary,
 } from "./fixture-entry";
+import { fixtureAdvanceAnswers, fixtureIntake } from "./fixture-intake";
 
 /**
  * Aurora's end-to-end fixture model (finding A24-007). Browser journeys 35 and 36 run Aurora
@@ -128,10 +129,12 @@ export class FixtureModelClient implements ModelClient {
   async complete(request: ModelRequest): Promise<ModelResponse> {
     const tools = new Set((request.tools ?? []).map((t) => t.name));
     if (tools.has("record_fields")) {
-      return (
-        fixtureDocument(request, documentText(request.messages[0]?.content ?? [])) ??
-        this.extract(request)
-      );
+      const text = documentText(request.messages[0]?.content ?? []);
+      return fixtureIntake(request, text) ?? fixtureDocument(request, text) ?? this.extract(request);
+    }
+    // B15: answers drafted from mail or a file (fixture-intake.ts).
+    if (tools.has("draft_advance_answers")) {
+      return fixtureAdvanceAnswers(request, documentText(request.messages[0]?.content ?? []));
     }
     if (tools.has("map_columns")) return this.mapColumns(request);
     if (tools.has("answer")) return this.assist(request);
