@@ -55,11 +55,12 @@ describe("where XOS is offered (ADR 0160)", () => {
   it("keeps the default equal to what migration 6150 seeds as open", () => {
     const us = DEFAULT_OFFERING.territories[0];
     const countries = (us?.countries ?? []).map((c) => `'${c}'`).join(", ");
-    expect(migration).toContain(
-      `('US', 'the United States', 'los Estados Unidos', array[${countries}], array['USD'], array['en-US', 'es-US'], true`,
-    );
+    expect(migration).toContain(`select 'US', unnest(array[${countries}])`);
+    expect(migration).toContain("('US', 'USD', 10)");
+    for (const locale of us?.locales ?? []) expect(migration).toContain(`('US', '${locale}')`);
     // Only the US row is seeded open.
-    expect(migration.match(/\btrue,\n\s+'/g)).toHaveLength(1);
+    expect(migration.match(/, true, '/g)).toHaveLength(1);
+    expect(migration).toContain("('US', 'the United States', 'los Estados Unidos', true,");
   });
 
   it("reads what the database offers, adding its currencies and languages", async () => {

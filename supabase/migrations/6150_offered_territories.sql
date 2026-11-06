@@ -31,9 +31,6 @@ create table private.territories (
   code text primary key,
   name_en text not null,
   name_es text not null,
-  country_codes text[] not null,
-  currency_codes text[] not null default '{}',
-  locale_codes text[] not null default '{}',
   offered boolean not null default false,
   changed_at timestamptz not null default now(),
   changed_by uuid references app.people (id),
@@ -41,39 +38,149 @@ create table private.territories (
   constraint territories_code_format check (code ~ '^[A-Z][A-Z0-9]{1,7}$'),
   constraint territories_name_en_length check (char_length(btrim(name_en)) between 1 and 100),
   constraint territories_name_es_length check (char_length(btrim(name_es)) between 1 and 100),
-  constraint territories_has_countries check (cardinality(country_codes) > 0),
   constraint territories_reason_length check (char_length(btrim(change_reason)) between 1 and 500)
 );
 create index territories_changed_by_idx on private.territories (changed_by);
 
-comment on table private.territories is 'The one source of truth for where XOS is offered (ADR 0160): each territory''s countries, the price book currencies and languages that open with it, and whether it is offered. Closed territories keep their row, so opening one needs no code. Written only by the console RPCs, which log every change to app.platform_operator_actions. Read through api_public.offered_territories.';
+comment on table private.territories is 'The one source of truth for where XOS is offered (ADR 0160), with private.territory_countries, private.territory_currencies and private.territory_locales: each territory''s countries, the price book currencies and languages that open with it, and whether it is offered. Closed territories keep their rows, so opening one needs no code. Written only by the console RPCs, which log every change to app.platform_operator_actions. Read through api_public.offered_territories.';
 comment on column private.territories.code is 'Territory code: an ISO country code for a single country, or a short name such as EEA.';
 comment on column private.territories.name_en is 'Name in English, as it reads in "XOS is offered to organizations in ...".';
 comment on column private.territories.name_es is 'Name in Spanish, for the same sentence.';
-comment on column private.territories.country_codes is 'ISO 3166-1 alpha-2 countries in the territory. A country belongs to one territory.';
-comment on column private.territories.currency_codes is 'Price book currencies that open with the territory; the first is what its organizations pay in. Empty means USD.';
-comment on column private.territories.locale_codes is 'Languages (locale.language choices) that open with the territory.';
 comment on column private.territories.offered is 'Whether XOS is offered there now.';
 comment on column private.territories.changed_at is 'When the territory last opened, closed or was edited.';
 comment on column private.territories.changed_by is 'Operator who made the last change; null for the launch seed.';
 comment on column private.territories.change_reason is 'Why, in the operator''s words.';
 
-alter table private.territories enable row level security;
-revoke all on private.territories from public, anon, authenticated;
-grant select on private.territories to service_role;
+create table private.territory_countries (
+  country_code text primary key,
+  territory_code text not null references private.territories (code),
+  constraint territory_countries_format check (country_code ~ '^[A-Z]{2}$')
+);
+create index territory_countries_territory_idx on private.territory_countries (territory_code);
+comment on table private.territory_countries is 'The countries of each territory. The key is the country alone, so a country belongs to one territory.';
+comment on column private.territory_countries.country_code is 'ISO 3166-1 alpha-2 country.';
+comment on column private.territory_countries.territory_code is 'Its territory.';
 
-insert into private.territories (code, name_en, name_es, country_codes, currency_codes, locale_codes, offered, change_reason) values
-  ('US', 'the United States', 'los Estados Unidos', array['US', 'PR', 'VI', 'GU', 'AS', 'MP'], array['USD'], array['en-US', 'es-US'], true,
-    'Launch offers XOS in the United States only (ADR 0160).'),
-  ('EEA', 'the European Economic Area', 'el Espacio Económico Europeo',
-    array['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO'],
-    array['EUR'], array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch: no representative is appointed (ADR 0160).'),
-  ('GB', 'the United Kingdom', 'el Reino Unido', array['GB'], array['GBP'], '{}', false, 'Closed at launch: no representative is appointed (ADR 0160).'),
-  ('CH', 'Switzerland', 'Suiza', array['CH'], '{}', array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch (ADR 0160).'),
-  ('CA', 'Canada', 'Canadá', array['CA'], array['CAD'], array['fr-FR'], false, 'Closed at launch (ADR 0160).'),
-  ('AU', 'Australia', 'Australia', array['AU'], array['AUD'], '{}', false, 'Closed at launch (ADR 0160).'),
-  ('BR', 'Brazil', 'Brasil', array['BR'], '{}', array['pt-BR'], false, 'Closed at launch (ADR 0160).'),
-  ('JP', 'Japan', 'Japón', array['JP'], '{}', array['ja-JP'], false, 'Closed at launch (ADR 0160).');
+create table private.territory_currencies (
+  territory_code text not null references private.territories (code),
+  currency_code text not null,
+  sort_order smallint not null,
+  primary key (territory_code, currency_code),
+  constraint territory_currencies_format check (currency_code ~ '^[A-Z]{3}$')
+);
+comment on table private.territory_currencies is 'Price book currencies that open with a territory. The lowest sort_order is what its organizations pay in; a territory with none pays in USD.';
+comment on column private.territory_currencies.territory_code is 'The territory.';
+comment on column private.territory_currencies.currency_code is 'A currency the price book has (private.plan_list_prices).';
+comment on column private.territory_currencies.sort_order is 'Position in the territory''s list, ascending.';
+
+create table private.territory_locales (
+  territory_code text not null references private.territories (code),
+  locale_code text not null,
+  primary key (territory_code, locale_code),
+  constraint territory_locales_format check (locale_code ~ '^[a-z]{2}-[A-Z]{2}$')
+);
+comment on table private.territory_locales is 'Languages (locale.language choices) that open with a territory.';
+comment on column private.territory_locales.territory_code is 'The territory.';
+comment on column private.territory_locales.locale_code is 'A locale.language choice.';
+
+alter table private.territories enable row level security;
+alter table private.territory_countries enable row level security;
+alter table private.territory_currencies enable row level security;
+alter table private.territory_locales enable row level security;
+revoke all on private.territories, private.territory_countries, private.territory_currencies, private.territory_locales from public, anon, authenticated;
+grant select on private.territories, private.territory_countries, private.territory_currencies, private.territory_locales to service_role;
+
+insert into private.territories (code, name_en, name_es, offered, change_reason) values
+  ('US', 'the United States', 'los Estados Unidos', true, 'Launch offers XOS in the United States only (ADR 0160).'),
+  ('EEA', 'the European Economic Area', 'el Espacio Económico Europeo', false, 'Closed at launch: no representative is appointed (ADR 0160).'),
+  ('GB', 'the United Kingdom', 'el Reino Unido', false, 'Closed at launch: no representative is appointed (ADR 0160).'),
+  ('CH', 'Switzerland', 'Suiza', false, 'Closed at launch (ADR 0160).'),
+  ('CA', 'Canada', 'Canadá', false, 'Closed at launch (ADR 0160).'),
+  ('AU', 'Australia', 'Australia', false, 'Closed at launch (ADR 0160).'),
+  ('BR', 'Brazil', 'Brasil', false, 'Closed at launch (ADR 0160).'),
+  ('JP', 'Japan', 'Japón', false, 'Closed at launch (ADR 0160).');
+
+insert into private.territory_countries (territory_code, country_code)
+select 'US', unnest(array['US', 'PR', 'VI', 'GU', 'AS', 'MP'])
+union all select 'EEA', unnest(array['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO'])
+union all select 'GB', 'GB'
+union all select 'CH', 'CH'
+union all select 'CA', 'CA'
+union all select 'AU', 'AU'
+union all select 'BR', 'BR'
+union all select 'JP', 'JP';
+
+insert into private.territory_currencies (territory_code, currency_code, sort_order) values
+  ('US', 'USD', 10),
+  ('EEA', 'EUR', 10),
+  ('GB', 'GBP', 10),
+  ('CA', 'CAD', 10),
+  ('AU', 'AUD', 10);
+
+insert into private.territory_locales (territory_code, locale_code) values
+  ('US', 'en-US'),
+  ('US', 'es-US'),
+  ('EEA', 'fr-FR'),
+  ('EEA', 'de-DE'),
+  ('EEA', 'it-IT'),
+  ('CH', 'fr-FR'),
+  ('CH', 'de-DE'),
+  ('CH', 'it-IT'),
+  ('CA', 'fr-FR'),
+  ('BR', 'pt-BR'),
+  ('JP', 'ja-JP');
+
+create or replace function private.territory_country_list(p_code text)
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(c.country_code order by c.country_code), '{}') from private.territory_countries c where c.territory_code = p_code;
+$$;
+comment on function private.territory_country_list(text) is 'A territory''s countries as a list, for the readers below.';
+revoke all on function private.territory_country_list(text) from public, anon, authenticated;
+
+create or replace function private.territory_currency_list(p_code text)
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(c.currency_code order by c.sort_order), '{}') from private.territory_currencies c where c.territory_code = p_code;
+$$;
+comment on function private.territory_currency_list(text) is 'A territory''s currencies in order, for the readers below.';
+revoke all on function private.territory_currency_list(text) from public, anon, authenticated;
+
+create or replace function private.territory_locale_list(p_code text)
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(l.locale_code order by l.locale_code), '{}') from private.territory_locales l where l.territory_code = p_code;
+$$;
+comment on function private.territory_locale_list(text) is 'A territory''s languages as a list, for the readers below.';
+revoke all on function private.territory_locale_list(text) from public, anon, authenticated;
+
+create or replace function private.country_offered(p_country text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from private.territory_countries c
+    join private.territories t on t.code = c.territory_code
+    where c.country_code = p_country and t.offered
+  );
+$$;
+comment on function private.country_offered(text) is 'Whether XOS is offered in a country now.';
+revoke all on function private.country_offered(text) from public, anon, authenticated;
 
 create or replace function api_public.offered_territories()
 returns table (code text, name_en text, name_es text, country_codes text[], currency_codes text[], locale_codes text[])
@@ -82,12 +189,13 @@ stable
 security definer
 set search_path = ''
 as $$
-  select t.code, t.name_en, t.name_es, t.country_codes, t.currency_codes, t.locale_codes
+  select t.code, t.name_en, t.name_es,
+    private.territory_country_list(t.code), private.territory_currency_list(t.code), private.territory_locale_list(t.code)
   from private.territories t
   where t.offered
   order by t.code = 'US' desc, t.code;
 $$;
-comment on function api_public.offered_territories() is 'The territories XOS is offered in now, with their countries, currencies and languages (ADR 0160). Public configuration: signed-out pages choose their languages from it. A reader that cannot reach it falls back to the United States alone (@xos/data/territories).';
+comment on function api_public.offered_territories() is 'The territories XOS is offered in now, with their countries, currencies and languages (ADR 0160). Public configuration: signed-out pages choose their languages from it. A reader that cannot reach it falls back to the United States alone (@xos/i18n/offering).';
 revoke all on function api_public.offered_territories() from public;
 grant execute on function api_public.offered_territories() to anon, authenticated, service_role;
 
@@ -103,10 +211,14 @@ begin
     raise exception using errcode = '42501', message = 'only a member reads the org''s checkout currency';
   end if;
   return coalesce(
-    (select t.currency_codes[1]
+    (select cur.currency_code
      from app.organizations o
-     join private.territories t on t.offered and o.country_code = any (t.country_codes)
-     where o.id = p_org_id),
+     join private.territory_countries c on c.country_code = o.country_code
+     join private.territories t on t.code = c.territory_code and t.offered
+     join private.territory_currencies cur on cur.territory_code = t.code
+     where o.id = p_org_id
+     order by cur.sort_order
+     limit 1),
     'USD');
 end;
 $$;
@@ -180,7 +292,7 @@ begin
   if p_country is null or p_country !~ '^[A-Z]{2}$' then
     perform private.refuse('organization_country_invalid', 'Choose the country the organization is established in.');
   end if;
-  if exists (select 1 from private.territories t where t.offered and p_country = any (t.country_codes)) then
+  if private.country_offered(p_country) then
     return null;
   end if;
   select e.id into v_exception
@@ -386,7 +498,9 @@ as $$
 begin
   perform private.require_platform_operator('tenants.read');
   return query
-  select t.code, t.name_en, t.name_es, t.country_codes, t.currency_codes, t.locale_codes, t.offered, t.changed_at, p.full_name, t.change_reason
+  select t.code, t.name_en, t.name_es,
+    private.territory_country_list(t.code), private.territory_currency_list(t.code), private.territory_locale_list(t.code),
+    t.offered, t.changed_at, p.full_name, t.change_reason
   from private.territories t
   left join app.people p on p.id = t.changed_by
   order by t.offered desc, t.code = 'US' desc, t.code;
@@ -414,7 +528,7 @@ as $$
 declare
   v_operator uuid := private.require_platform_operator('territories.write');
   v_code text := upper(btrim(p_code));
-  v_before private.territories;
+  v_before jsonb;
 begin
   perform private.require_territory_reason(p_reason);
   if v_code is null or v_code !~ '^[A-Z][A-Z0-9]{1,7}$' then
@@ -428,7 +542,7 @@ begin
      or exists (select 1 from unnest(p_country_codes) c where c !~ '^[A-Z]{2}$') then
     perform private.refuse('territory_countries', 'Name at least one country by its two-letter code.');
   end if;
-  if exists (select 1 from private.territories t where t.code <> v_code and t.country_codes && p_country_codes) then
+  if exists (select 1 from private.territory_countries c where c.territory_code <> v_code and c.country_code = any (p_country_codes)) then
     perform private.refuse('territory_country_taken', 'A country belongs to one territory. Take it out of the other one first.');
   end if;
   if exists (select 1 from unnest(coalesce(p_currency_codes, '{}')) c
@@ -440,16 +554,26 @@ begin
     perform private.refuse('territory_locale_unknown', 'Choose languages XOS has.');
   end if;
 
-  select * into v_before from private.territories t where t.code = v_code for update;
-  insert into private.territories as t (code, name_en, name_es, country_codes, currency_codes, locale_codes, changed_at, changed_by, change_reason)
-  values (v_code, btrim(p_name_en), btrim(p_name_es), p_country_codes, coalesce(p_currency_codes, '{}'), coalesce(p_locale_codes, '{}'),
-          now(), v_operator, btrim(p_reason))
+  select to_jsonb(t) || jsonb_build_object('countries', private.territory_country_list(t.code),
+           'currencies', private.territory_currency_list(t.code), 'locales', private.territory_locale_list(t.code))
+    into v_before
+  from private.territories t where t.code = v_code for update;
+  insert into private.territories as t (code, name_en, name_es, changed_at, changed_by, change_reason)
+  values (v_code, btrim(p_name_en), btrim(p_name_es), now(), v_operator, btrim(p_reason))
   on conflict (code) do update set
-    name_en = excluded.name_en, name_es = excluded.name_es, country_codes = excluded.country_codes,
-    currency_codes = excluded.currency_codes, locale_codes = excluded.locale_codes,
+    name_en = excluded.name_en, name_es = excluded.name_es,
     changed_at = excluded.changed_at, changed_by = excluded.changed_by, change_reason = excluded.change_reason;
+  delete from private.territory_countries c where c.territory_code = v_code;
+  insert into private.territory_countries (territory_code, country_code)
+  select distinct v_code, c from unnest(p_country_codes) c;
+  delete from private.territory_currencies c where c.territory_code = v_code;
+  insert into private.territory_currencies (territory_code, currency_code, sort_order)
+  select v_code, c.code, (c.position * 10)::smallint from unnest(coalesce(p_currency_codes, '{}')) with ordinality as c (code, position);
+  delete from private.territory_locales l where l.territory_code = v_code;
+  insert into private.territory_locales (territory_code, locale_code)
+  select distinct v_code, l from unnest(coalesce(p_locale_codes, '{}')) l;
   perform private.log_operator_action('territory.saved', null, null, null, p_reason,
-    jsonb_build_object('code', v_code, 'before', case when v_before.code is null then null else to_jsonb(v_before) end,
+    jsonb_build_object('code', v_code, 'before', v_before,
       'countries', p_country_codes, 'currencies', coalesce(p_currency_codes, '{}'), 'locales', coalesce(p_locale_codes, '{}')));
   return v_code;
 end;
@@ -553,7 +677,7 @@ begin
   if p_country_code is null or p_country_code !~ '^[A-Z]{2}$' then
     perform private.refuse('organization_country_invalid', 'Choose the country the organization is established in.');
   end if;
-  if exists (select 1 from private.territories t where t.offered and p_country_code = any (t.country_codes)) then
+  if private.country_offered(p_country_code) then
     perform private.refuse('territory_exception_not_needed', 'XOS is already offered in that country.');
   end if;
   if p_contract_reference is null or char_length(btrim(p_contract_reference)) not between 1 and 200 then
@@ -624,7 +748,7 @@ begin
   where o.deleted_at is null
     and exists (select 1 from app.subscriptions s where s.org_id = o.id and s.deleted_at is null)
     and not exists (select 1 from app.sandbox_orgs sb where sb.org_id = o.id)
-    and not exists (select 1 from private.territories t where t.offered and o.country_code = any (t.country_codes))
+    and not private.country_offered(o.country_code)
   order by o.name;
 end;
 $$;

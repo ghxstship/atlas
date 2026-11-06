@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(58);
+select plan(59);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -34,7 +34,8 @@ select is((select currency_codes from api_public.offered_territories()), array['
 select is((select locale_codes from api_public.offered_territories()), array['en-US', 'es-US'], 'and the two launch languages');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.territories where not offered), 7, 'closed territories keep their rows, so nothing has to be rebuilt to open them');
-select is((select currency_codes from private.territories where code = 'EEA'), array['EUR'], 'the euro stays with its territory');
+select is((select currency_code from private.territory_currencies where territory_code = 'EEA'), 'EUR', 'the euro stays with its territory');
+select throws_ok($$insert into private.territory_countries (territory_code, country_code) values ('GB', 'US')$$, '23505', null, 'the database holds a country to one territory');
 select ok(not exists (select 1 from unnest(array['USD', 'EUR', 'GBP', 'CAD', 'AUD']) c
   where not exists (select 1 from private.plan_list_prices lp where lp.currency_code = c)), 'and the price book keeps every currency');
 select ok(exists (select 1 from private.setting_choices where setting_key = 'locale.language' and choice = 'fr-FR'), 'and the settings registry keeps the Beta languages');
