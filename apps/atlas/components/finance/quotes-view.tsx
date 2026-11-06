@@ -60,15 +60,14 @@ export async function QuotesView({ page }: { page: FinancePage }) {
     return <FinanceCollection {...base} canCreate={false} refusal="finance.budget.read" />;
   }
   const db = ctx.viewer.db;
-  // A document's QR code opens a version; its quote's peek shows every version.
-  const versionLink = query.extra["version"];
-  if (versionLink) {
+  // A document's QR code opens a version id in the peek; the quote's peek shows every version.
+  if (query.peek) {
     const { data } = await db
       .from("quote_versions")
       .select("quote_id")
-      .eq("id", versionLink)
+      .eq("id", query.peek)
       .maybeSingle();
-    if (data) redirect(withQuery(page, { version: null, peek: data.quote_id }) as Route);
+    if (data) redirect(withQuery(page, { peek: data.quote_id }) as Route);
   }
   // An engagement's Quote document links to its quote.
   const documentLink = query.extra["document"];

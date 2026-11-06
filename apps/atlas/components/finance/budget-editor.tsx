@@ -602,7 +602,7 @@ export function BudgetEditor(props: Props) {
             </Button>
           </>
         ) : null}
-        <Button icon="History" onClick={() => setSheet("versions")}>
+        <Button icon="Clock" onClick={() => setSheet("versions")}>
           {t("budgets.versions.open")}
         </Button>
         <Button

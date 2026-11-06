@@ -787,6 +787,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "quote": {
+        "accepted": "Cotización aceptada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

@@ -787,6 +787,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "quote": {
+        "accepted": "Quote accepted"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

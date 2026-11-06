@@ -44,6 +44,6 @@ export function atlasRecordPath(
     case "radio-handout":
       return `${o}/advancing/allocations?project=${encodeURIComponent(record.projectKey ?? "")}&kind=Asset`;
     case "quote":
-      return `${o}/finance/quotes?version=${id}`;
+      return `${o}/finance/quotes?peek=${id}`;
   }
 }
