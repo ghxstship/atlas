@@ -317,8 +317,8 @@ begin
   end if;
 
   v_email := (select lower(u.email) from auth.users u where u.id = v_uid);
-  -- app.delete_my_account confirms against the stored address. A sign-in with none gets a placeholder here, in the
-  -- transaction that deletes it, so it can close too. An org's register needs an address, so it holds this placeholder, and
+  -- app.delete_my_account confirms against the stored address. A sign-in with none gets a stand-in here, in the
+  -- transaction that deletes it, so it can close too. An org's register needs an address, so it holds this stand-in, and
   -- its entry says so below.
   if v_email is null then
     v_email := format('closed-%s@example.invalid', v_uid);
@@ -332,7 +332,7 @@ begin
     perform app.delete_my_account(v_email);
     if v_invented then
       update app.dsar_requests
-      set details = details || ' The account had no email address, so the address on this entry is a placeholder.'
+      set details = details || ' The account had no email address, so the address on this entry is a stand-in.'
       where subject_person_id = v_person and subject_email = v_email;
     end if;
     perform private.erase_age_refused_records(v_person);

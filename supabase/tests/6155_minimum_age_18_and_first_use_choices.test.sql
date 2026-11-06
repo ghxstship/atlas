@@ -157,15 +157,15 @@ select is(app.refuse_minimum_age('Compass') ->> 'outcome', 'Account Removed', 'a
 select pg_temp.as_platform();
 select is((select count(*)::int from auth.users where id = pg_temp.id('noemail_user')), 0, 'and is gone');
 
--- With org records its erasure entry needs an address, so it holds a placeholder and says so.
+-- With org records its erasure entry needs an address, so it holds a stand-in and says so.
 select pg_temp.sign_up('noemailorg', 'noemailorg@age18.test', '{"full_name": "Noa Noemail"}');
 select pg_temp.provision('noemailorg', 'org_a');
 update auth.users set email = null where id = pg_temp.id('noemailorg_user');
 select pg_temp.as_user('noemailorg');
 select is(app.refuse_minimum_age('Gateway') ->> 'outcome', 'Account Closed', 'a sign-in with no email address and org records closes');
 select pg_temp.as_platform();
-select ok((select subject_email like 'closed-%@example.invalid' and details like '%placeholder%' from app.dsar_requests
-  where subject_person_id = pg_temp.id('noemailorg')), 'and the org''s erasure entry says its address is a placeholder');
+select ok((select subject_email like 'closed-%@example.invalid' and details like '%stand-in%' from app.dsar_requests
+  where subject_person_id = pg_temp.id('noemailorg')), 'and the org''s erasure entry says its address is a stand-in');
 
 -- What a signed-in person leaves on a common path, with no org: none of it keeps the account from going, and none stays.
 select pg_temp.sign_up('browsed', 'browsed@age18.test', '{"full_name": "Bea Browsed"}');
