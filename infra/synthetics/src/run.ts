@@ -115,7 +115,10 @@ export function formatAlerts(results: readonly CheckResult[], repositoryUrl: str
     );
 }
 
-/** A required check alerts on its second failure in a row, so one lost request wakes no one. */
+/**
+ * A failure is confirmed on the second failure in a row. Only then does a required check alert and does the
+ * status page say Outage, so one lost request neither wakes anyone nor makes a public statement.
+ */
 export const CONFIRM_AFTER_FAILS = 2;
 /** Then it reminds at this interval, about every six hours at one run every five minutes. */
 export const REMIND_EVERY_FAILS = 72;
@@ -127,7 +130,10 @@ export interface AlertDecision {
   readonly alerted: boolean;
   /** Required checks that are failing, confirmed or not. */
   readonly failing: readonly CheckResult[];
-  /** True when a check started or stopped failing, so the status page has something new to say. */
+  /**
+   * True when a failure was just confirmed or a confirmed failure ended, so the status page has something
+   * new to say. A failure that passes on the next run changes nothing, and costs no deployment.
+   */
   readonly changed: boolean;
 }
 
@@ -152,7 +158,10 @@ export function decideAlerts(
     const previous = before.regions[result.region]?.[result.id];
     const streak = after.regions[result.region]?.[result.id]?.failStreak ?? 0;
     const previousStreak = previous?.failStreak ?? 0;
-    if (previous === undefined || (streak === 0) !== (previousStreak === 0)) changed = true;
+    const confirmed = streak >= CONFIRM_AFTER_FAILS;
+    if (previous === undefined || confirmed !== previousStreak >= CONFIRM_AFTER_FAILS) {
+      changed = true;
+    }
     if (!required.has(result.id)) continue;
     const due =
       streak === CONFIRM_AFTER_FAILS ||
@@ -198,6 +207,8 @@ export interface DayCounts {
   pass: number;
   degraded: number;
   fail: number;
+  /** Of `fail`, those in a run of at least CONFIRM_AFTER_FAILS failures. Absent while there are none. */
+  confirmed?: number;
 }
 
 export interface CheckHistory {
@@ -241,8 +252,19 @@ export function recordRun(
     const day = result.at.slice(0, 10);
     const counts = (entry.days[day] ??= { pass: 0, degraded: 0, fail: 0 });
     counts[result.status] += 1;
+    const streak = result.status === "fail" ? (entry.failStreak ?? 0) + 1 : 0;
+    if (streak >= CONFIRM_AFTER_FAILS) {
+      counts.confirmed = (counts.confirmed ?? 0) + 1;
+      // The failure before this one is confirmed by it, and it may belong to yesterday.
+      const earlier =
+        streak === CONFIRM_AFTER_FAILS && entry.last ? entry.last.at.slice(0, 10) : null;
+      const earlierCounts = earlier === null ? undefined : entry.days[earlier];
+      if (earlierCounts) {
+        earlierCounts.confirmed = (earlierCounts.confirmed ?? 0) + CONFIRM_AFTER_FAILS - 1;
+      }
+    }
     entry.last = result;
-    entry.failStreak = result.status === "fail" ? (entry.failStreak ?? 0) + 1 : 0;
+    entry.failStreak = streak;
   }
   const cutoff = new Date(at.getTime() - HISTORY_DAYS * 86_400_000).toISOString().slice(0, 10);
   for (const region of Object.values(next.regions)) {

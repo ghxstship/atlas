@@ -2,8 +2,10 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  decideAlerts,
   emptyHistory,
   recordRun,
+  type CheckDefinition,
   type CheckResult,
   type StatusHistory,
 } from "../../synthetics/src/index.ts";
@@ -69,31 +71,90 @@ describe("state rules", () => {
       result("gateway.home", "gateway", "pass", "2026-10-16T11:59:00Z"),
     ]);
     expect(currentState(h, "us-east", "atlas", NOW, 20)).toBe("degraded");
-    expect(currentState(h, "us-east", "api", NOW, 20)).toBe("outage");
+    expect(currentState(h, "us-east", "api", NOW, 20)).toBe("degraded");
     expect(currentState(h, "us-east", "sync", NOW, 20)).toBe("unknown");
     expect(currentState(h, "us-east", "notifications", NOW, 20)).toBe("unknown");
     expect(currentState(h, "us-east", "gateway", NOW, 20)).toBe("operational");
     expect(currentState(h, "eu-central", "atlas", NOW, 20)).toBe("unknown");
   });
 
-  it("summarizes days and uptime", () => {
+  it("says outage only once a failure is confirmed", () => {
+    const at = "2026-10-16T11:55:00Z";
+    const fail = result("api.read", "api", "fail", at);
+    expect(currentState(history([fail]), "us-east", "api", NOW, 20)).toBe("degraded");
+    expect(currentState(history([fail, fail]), "us-east", "api", NOW, 20)).toBe("outage");
+    expect(currentState(history([fail, fail, fail]), "us-east", "api", NOW, 20)).toBe("outage");
+    const passed = [fail, fail, result("api.read", "api", "pass", at)];
+    expect(currentState(history(passed), "us-east", "api", NOW, 20)).toBe("operational");
+  });
+
+  it("summarizes days and uptime from confirmed failures", () => {
+    const fail = (at: string) => result("api.read", "api", "fail", at);
+    const pass = (at: string) => result("api.read", "api", "pass", at);
     const runs: CheckResult[] = [];
-    for (let i = 0; i < 99; i += 1)
-      runs.push(result("api.read", "api", "pass", "2026-10-15T01:00:00Z"));
-    runs.push(result("api.read", "api", "fail", "2026-10-15T02:00:00Z"));
-    runs.push(result("api.read", "api", "fail", "2026-10-14T02:00:00Z"));
-    runs.push(result("api.read", "api", "pass", "2026-10-16T02:00:00Z"));
     runs.push(result("api.read", "api", "degraded", "2026-10-13T02:00:00Z"));
+    for (let i = 0; i < 2; i += 1) runs.push(fail("2026-10-14T02:00:00Z"));
+    for (let i = 0; i < 98; i += 1) runs.push(pass("2026-10-15T01:00:00Z"));
+    runs.push(fail("2026-10-15T02:00:00Z"), pass("2026-10-16T02:00:00Z"));
     const h = history(runs);
     expect(dailyStates(h, "us-east", "api", NOW, 5)).toEqual([
       { day: "2026-10-12", state: "unknown" },
       { day: "2026-10-13", state: "degraded" },
       { day: "2026-10-14", state: "outage" },
-      { day: "2026-10-15", state: "degraded" },
+      { day: "2026-10-15", state: "operational" },
       { day: "2026-10-16", state: "operational" },
     ]);
+    // 103 checks, of which only the two in a row count against the service.
     expect(uptime(h, "us-east", "api", NOW, 30)).toBeCloseTo(101 / 103);
     expect(uptime(h, "us-east", "realtime", NOW, 30)).toBeNull();
+  });
+
+  it("does not turn a day red or yellow for scattered lost requests", () => {
+    const at = "2026-10-16T01:00:00Z";
+    const day = (lost: number) => {
+      const runs: CheckResult[] = [];
+      for (let i = 0; i < 300; i += 1) {
+        runs.push(result("api.openapi", "api", i < lost ? "fail" : "pass", at));
+        if (i < lost) runs.push(result("api.openapi", "api", "pass", at));
+      }
+      const h = history(runs);
+      return {
+        state: dailyStates(h, "us-east", "api", NOW, 1)[0]?.state,
+        uptime: uptime(h, "us-east", "api", NOW, 1),
+      };
+    };
+    expect(day(0)).toEqual({ state: "operational", uptime: 1 });
+    expect(day(4)).toEqual({ state: "operational", uptime: 1 });
+    expect(day(15)).toEqual({ state: "operational", uptime: 1 });
+    expect(day(20)).toEqual({ state: "degraded", uptime: 1 });
+  });
+
+  it("marks a day by the length of its confirmed failure", () => {
+    const at = "2026-10-16T01:00:00Z";
+    const day = (failedInARow: number) => {
+      const runs: CheckResult[] = [];
+      for (let i = 0; i < 300; i += 1) {
+        runs.push(result("api.openapi", "api", "pass", at));
+      }
+      for (let i = 0; i < failedInARow; i += 1) {
+        runs.push(result("api.openapi", "api", "fail", at));
+      }
+      return dailyStates(history(runs), "us-east", "api", NOW, 1)[0]?.state;
+    };
+    expect(day(1)).toBe("operational");
+    expect(day(2)).toBe("degraded");
+    expect(day(3)).toBe("degraded");
+    expect(day(4)).toBe("outage");
+  });
+
+  it("counts a confirmed failure on the days it happened, across midnight", () => {
+    const h = history([
+      result("api.read", "api", "fail", "2026-10-15T23:55:00Z"),
+      result("api.read", "api", "fail", "2026-10-16T00:00:00Z"),
+    ]);
+    const days = h.regions["us-east"]?.["api.read"]?.days;
+    expect(days?.["2026-10-15"]).toEqual({ pass: 0, degraded: 0, fail: 1, confirmed: 1 });
+    expect(days?.["2026-10-16"]).toEqual({ pass: 0, degraded: 0, fail: 1, confirmed: 1 });
   });
 
   it("marks a day slow by its share of slow answers, not by one of them", () => {
@@ -129,6 +190,78 @@ describe("helpers", () => {
 describe("renderStatusPage", () => {
   const rowOf = (html: string, name: string) =>
     html.split('<li class="component">').find((row) => row.includes(`"name">${name}<`)) ?? "";
+
+  describe("a failed check on the public page", () => {
+    const check: CheckDefinition = {
+      id: "atlas.sign_in_page",
+      component: "atlas",
+      requires: [],
+      budgetMs: 600,
+      required: true,
+      runbook: "r",
+      probe: () => Promise.resolve({ ok: true }),
+    };
+    /** Plays one check's results through the alert decision and the page, as a run of the workflow does. */
+    function play(statuses: CheckResult["status"][], locale = "en-US") {
+      let h = emptyHistory();
+      return statuses.map((status, index) => {
+        const at = `2026-10-16T11:${String(40 + index * 3)}:00Z`;
+        const results = [result(check.id, check.component, status, at)];
+        const after = recordRun(h, results, NOW);
+        const decision = decideAlerts([check], results, h, after, "https://github.test/o/r");
+        h = after;
+        const html = renderStatusPage({
+          locale,
+          messages: messages(locale),
+          config,
+          history: h,
+          incidents: [],
+          now: NOW,
+          tokenCss,
+        });
+        return { decision, html, atlas: rowOf(html, "Atlas") };
+      });
+    }
+
+    it("publishes nothing for one lost request, and says no outage if a page goes out anyway", () => {
+      const [, , lost, back] = play(["pass", "pass", "fail", "pass"]);
+      expect(lost?.decision).toMatchObject({ changed: false, alerted: false, lines: [] });
+      expect(lost?.atlas).toContain("Degraded");
+      expect(lost?.atlas).not.toContain("Outage");
+      expect(lost?.html).not.toContain("We are working on it");
+      expect(lost?.html).toContain('data-state="degraded">Some systems are slower than normal or');
+      expect(back?.decision).toMatchObject({ changed: false, alerted: false, lines: [] });
+      expect(back?.atlas).toContain("Operational");
+    });
+
+    it("says outage, publishes and alerts together, on the second failure in a row", () => {
+      const [, , , confirmed, more, back] = play(["pass", "pass", "fail", "fail", "fail", "pass"]);
+      expect(confirmed?.decision).toMatchObject({ changed: true, alerted: true });
+      expect(confirmed?.atlas).toContain("Outage");
+      expect(confirmed?.html).toContain("We are working on it");
+      expect(more?.decision).toMatchObject({ changed: false, alerted: false });
+      expect(back?.decision).toMatchObject({ changed: true, alerted: false });
+      expect(back?.atlas).toContain("Operational");
+    });
+
+    it("says the same in Spanish", () => {
+      const [lost, confirmed] = play(["fail", "fail"], "es-US");
+      expect(lost?.atlas).toContain("Degradado");
+      expect(lost?.html).not.toContain("Estamos trabajando en ello");
+      expect(confirmed?.atlas).toContain("Interrupción");
+      expect(confirmed?.html).toContain("Estamos trabajando en ello");
+    });
+  });
+
+  it("promises no exact update time, and explains its states, in either locale", () => {
+    expect(messages("en-US").description).toContain("about once an hour");
+    expect(messages("es-US").description).toContain("aproximadamente una vez por hora");
+    expect(messages("en-US").footer).toContain("two in a row show as Outage");
+    expect(messages("es-US").footer).toContain("dos seguidas, como Interrupción");
+    for (const locale of ["en-US", "es-US"]) {
+      expect(JSON.stringify(messages(locale))).not.toMatch(/at least hourly|al menos cada hora/);
+    }
+  });
 
   it("claims a check only for a component a check touched", () => {
     const at = "2026-10-16T11:55:00Z";
@@ -189,6 +322,7 @@ describe("renderStatusPage", () => {
 
   it("renders states, uptime, history labels and incidents in Spanish", () => {
     const h = history([
+      result("api.read", "api", "fail", "2026-10-16T11:53:00Z"),
       result("api.read", "api", "fail", "2026-10-16T11:58:00Z"),
       result("atlas.sign_in_page", "atlas", "pass", "2026-10-16T11:58:00Z"),
     ]);

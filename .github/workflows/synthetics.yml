@@ -4,10 +4,12 @@ name: Synthetics
 # infra/ci/README.md section 2). Every check is an anonymous GET a visitor could make. A required check alerts on its
 # second failure in a row, through XOS_ALERT_WEBHOOK_URL when it is set and by marking that one run failed, then every
 # 6 hours until it recovers. Other runs in an outage stay green and quiet; their summary and the status page show it.
+# The status page says Outage only for a failure confirmed the same way, so one lost request deploys nothing.
 on:
   schedule:
     - cron: "*/5 * * * *"
-    # The status page also redeploys on any change in what fails; this keeps "last checked" within the hour.
+    # The status page also redeploys when a failure is confirmed or ends. This run keeps "last checked" to about an
+    # hour. GitHub can delay or drop a scheduled run, and this group can cancel one still pending, so it is not a promise.
     - cron: "2 * * * *"
   workflow_dispatch:
 

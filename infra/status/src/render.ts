@@ -8,7 +8,11 @@
  * setting. State is never shown by color alone: every mark carries its state as text.
  */
 
-import type { CheckHistory, StatusHistory } from "../../synthetics/src/run.ts";
+import {
+  CONFIRM_AFTER_FAILS,
+  type CheckHistory,
+  type StatusHistory,
+} from "../../synthetics/src/run.ts";
 import type { ComponentId } from "../../synthetics/src/types.ts";
 
 export type ComponentState = "operational" | "degraded" | "outage" | "unknown";
@@ -97,7 +101,12 @@ function checksOf(history: StatusHistory, region: string, component: ComponentId
   return Object.values(history.regions[region] ?? {}).filter((c) => c.component === component);
 }
 
-/** Current state of a component in a region from the latest result of each of its checks. */
+/**
+ * Current state of a component in a region from the latest result of each of its checks. A failure is an
+ * outage only once it is confirmed, which is also when it alerts: one failed check is Degraded, so the page
+ * never says "unavailable, we are working on it" about a request that may only have been lost, before anyone
+ * has been told.
+ */
 export function currentState(
   history: StatusHistory,
   region: string,
@@ -109,7 +118,9 @@ export function currentState(
   const states = checksOf(history, region, component).map((check): ComponentState => {
     const last = check.last;
     if (!last || last.status === "skipped" || Date.parse(last.at) < fresh) return "unknown";
-    if (last.status === "fail") return "outage";
+    if (last.status === "fail") {
+      return (check.failStreak ?? 0) >= CONFIRM_AFTER_FAILS ? "outage" : "degraded";
+    }
     return last.status === "degraded" ? "degraded" : "operational";
   });
   const known = states.filter((s) => s !== "unknown");
@@ -126,16 +137,17 @@ export interface DaySummary {
 }
 
 /**
- * A day counts as slow when more than this share of its answers ran over budget. One slow answer from a
- * CI runner says little about the service, and at 288 runs a day any stricter rule would mark most days
- * Degraded on a public page.
+ * A day counts as unsteady when more than this share of its answers ran over budget or failed without being
+ * confirmed. One such answer from a CI runner says little about the service, and at about 300 runs a day any
+ * stricter rule would mark most days Degraded on a public page.
  */
-export const SLOW_DAY_SHARE = 0.05;
+export const UNSTEADY_DAY_SHARE = 0.05;
 
 /**
- * Daily state, oldest first: outage below 99 percent of good checks that day, degraded below 100
- * percent or with more than SLOW_DAY_SHARE of its answers slow, operational otherwise, unknown with
- * no checks.
+ * Daily state, oldest first, where only a confirmed failure counts as the service being down. Outage when
+ * confirmed failures leave less than 99 percent of that day's checks good; degraded on any confirmed failure
+ * or with more than UNSTEADY_DAY_SHARE of its answers slow or failed without confirmation; operational
+ * otherwise; unknown with no checks.
  */
 export function dailyStates(
   history: StatusHistory,
@@ -148,23 +160,23 @@ export function dailyStates(
   const out: DaySummary[] = [];
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = utcDay(now, offset);
-    let good = 0;
-    let slow = 0;
+    let confirmed = 0;
+    let unsteady = 0;
     let total = 0;
     for (const check of checks) {
       const counts = check.days[day];
       if (!counts) continue;
-      good += counts.pass + counts.degraded;
-      slow += counts.degraded;
+      const down = counts.confirmed ?? 0;
+      confirmed += down;
+      unsteady += counts.degraded + counts.fail - down;
       total += counts.pass + counts.degraded + counts.fail;
     }
     let state: ComponentState = "unknown";
     if (total > 0) {
-      const ratio = good / total;
       state =
-        ratio < 0.99
+        (total - confirmed) / total < 0.99
           ? "outage"
-          : ratio < 1 || slow / total > SLOW_DAY_SHARE
+          : confirmed > 0 || unsteady / total > UNSTEADY_DAY_SHARE
             ? "degraded"
             : "operational";
     }
@@ -173,7 +185,7 @@ export function dailyStates(
   return out;
 }
 
-/** Share of good checks over the window, or null when nothing ran. */
+/** Share of checks over the window that were not confirmed failures, or null when nothing ran. */
 export function uptime(
   history: StatusHistory,
   region: string,
@@ -187,8 +199,9 @@ export function uptime(
     for (let offset = 0; offset < days; offset += 1) {
       const counts = check.days[utcDay(now, offset)];
       if (!counts) continue;
-      good += counts.pass + counts.degraded;
-      total += counts.pass + counts.degraded + counts.fail;
+      const checked = counts.pass + counts.degraded + counts.fail;
+      good += checked - (counts.confirmed ?? 0);
+      total += checked;
     }
   }
   return total === 0 ? null : good / total;

@@ -43,7 +43,7 @@ for (const result of decision.failing) {
 const warning = await postAlerts(process.env["XOS_ALERT_WEBHOOK_URL"], decision.lines);
 if (warning) console.error(`::warning::${warning}`);
 
-// The workflow publishes the status page when something changed.
+// The workflow publishes the status page when a failure was confirmed or a confirmed failure ended.
 const output = process.env["GITHUB_OUTPUT"];
 if (output) appendFileSync(output, `changed=${decision.changed}\n`);
 const summary = process.env["GITHUB_STEP_SUMMARY"];

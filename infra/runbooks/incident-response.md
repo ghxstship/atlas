@@ -110,7 +110,7 @@ Check: `notifications.function`, not set in `synthetics.yml` for now, so the sta
 
 ## Communication
 
-- **Status page.** Add an entry to `infra/status/incidents.json` (title and update in en-US and es-US, affected components and regions, `startedAt`, `resolvedAt` set to null) and merge it. The next synthetics run republishes the page. Update at least every 60 minutes until resolved (SLA Section 5).
+- **Status page.** Add an entry to `infra/status/incidents.json` (title and update in en-US and es-US, affected components and regions, `startedAt`, `resolvedAt` set to null) and merge it. The page republishes when a failure is confirmed or ends and about once an hour, so publish it now with `gh workflow run synthetics.yml --repo ghxstship/atlas --ref main`. Update at least every 60 minutes until resolved (SLA Section 5).
 
   ```json
   {

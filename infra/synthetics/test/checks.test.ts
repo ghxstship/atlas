@@ -447,7 +447,7 @@ describe("alert decisions", () => {
     const [first, second] = play(REQUIRED, ["fail", "fail"]);
     expect(first).toMatchObject({ lines: [], alerted: false, changed: true });
     expect(first?.failing).toHaveLength(1);
-    expect(second).toMatchObject({ alerted: true, changed: false });
+    expect(second).toMatchObject({ alerted: true, changed: true });
     expect(second?.lines).toEqual([
       expect.stringContaining("atlas.sign_in_page (atlas) failed: status_503"),
     ]);
@@ -467,7 +467,7 @@ describe("alert decisions", () => {
     expect(recovered?.lines).toEqual([expect.stringContaining("recovered after 2 failed runs")]);
     expect(quiet).toMatchObject({ lines: [], changed: false });
     const [, blip] = play(REQUIRED, ["fail", "pass"]);
-    expect(blip).toMatchObject({ lines: [], alerted: false, changed: true });
+    expect(blip).toMatchObject({ lines: [], alerted: false, changed: false });
   });
 
   it("counts a slow answer as working, and leaves the streak alone on a skipped run", () => {
@@ -499,7 +499,7 @@ describe("alert decisions", () => {
     expect(after.regions["us-east"]?.["atlas.sign_in_page"]?.failStreak).toBe(1);
     expect(decideAlerts(REQUIRED, results, old, after, REPO)).toMatchObject({
       lines: [],
-      changed: true,
+      changed: false,
     });
   });
 
