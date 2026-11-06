@@ -1,4 +1,4 @@
-import { expect as baseExpect, test } from "./engine-test";
+import { expect as baseExpect, settle, test } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
 import {
   DEMO_ORG_ID,
@@ -65,6 +65,20 @@ test("approved time reaches Actual and the Labor report", async ({ page }) => {
     await expect(
       page.getByRole("grid").getByRole("gridcell", { name: "$60.00", exact: true }).first(),
     ).toBeVisible();
+
+    // Transactions explains the figure: Labor equals the line's Actual.
+    const transactions = page.getByRole("button", { name: "Transactions", exact: true });
+    await settle(page);
+    await expect(async () => {
+      await page
+        .getByRole("grid")
+        .getByRole("gridcell", { name: "Stagehands", exact: true })
+        .click();
+      await expect(transactions).toBeEnabled({ timeout: 3_000 });
+    }).toPass();
+    await transactions.click();
+    const drawer = page.getByRole("dialog", { name: "Transactions on this line" });
+    await expect(drawer.getByRole("heading", { name: /^Labor/ })).toContainText("$60.00");
 
     await page.goto(`/${DEMO_ORG}/reports/labor?project=NWS`);
     await expect(

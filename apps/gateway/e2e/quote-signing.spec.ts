@@ -131,6 +131,12 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
   await expect(page.getByRole("link", { name: "Review quote", exact: true }).first()).toBeVisible();
   await expect(item.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
 
+  // Nor from the engagement's Overview, which links to the Documents tab instead.
+  await page.goto(`/work/engagements/${engagement.key}`);
+  const next = page.getByRole("listitem").filter({ hasText: name }).first();
+  await expect(next.getByRole("link").first()).toBeVisible();
+  await expect(next.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
+
   await page.goto(`/work/engagements/${engagement.key}/documents`);
   const row = page.getByRole("listitem").filter({ hasText: name });
   await row.getByRole("button", { name: "Sign", exact: true }).click();
