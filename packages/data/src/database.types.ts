@@ -72042,6 +72042,7 @@ export type Database = {
           id: string;
           name: string;
           slug: string;
+          uses_atlas: boolean;
         }[];
       };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
@@ -72310,7 +72311,12 @@ export type Database = {
         Returns: string;
       };
       create_external_account: {
-        Args: { p_name: string; p_organization_type?: string; p_slug: string };
+        Args: {
+          p_country_code?: string;
+          p_name: string;
+          p_organization_type?: string;
+          p_slug: string;
+        };
         Returns: string;
       };
       create_feed_post: {

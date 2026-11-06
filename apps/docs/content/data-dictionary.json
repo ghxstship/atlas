@@ -46968,7 +46968,7 @@
           "type": "text"
         },
         {
-          "comment": "ISO 3166-1 alpha-2 country the organization's creator stated at signup, which decides whether XOS is offered to it (private.territories). Null for an organization from before the question, a Gateway company account that does not use Atlas, a counterparty or a sandbox. Not a person's location, and never read from an IP address.",
+          "comment": "ISO 3166-1 alpha-2 country the organization's creator stated, which decides whether XOS is offered to it (private.territories). Null when nobody stated one: an organization from before the question, a caller of the API or the database functions who omitted it, a counterparty or a sandbox. Not a person's location, and never read from an IP address.",
           "name": "country_code",
           "nullable": true,
           "references": null,

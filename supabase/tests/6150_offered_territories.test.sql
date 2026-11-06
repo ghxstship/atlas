@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(59);
+select plan(83);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -66,9 +66,11 @@ select is((select count(*)::int from app.organizations where slug = 'vogel-konto
 select throws_ok($$select app.create_external_account('Vogel Licht', 'vogel-konto', 'For-Profit', 'germany')$$, 'XR001',
   'organization_country_invalid: Choose the country the organization is established in.', 'its country must be a two-letter code too');
 insert into k select 'acct', app.create_external_account('Vogel Rigging', 'vogel-rigging', 'For-Profit', 'US');
-select is((select country_code from app.organizations where slug = 'vogel-rigging'), 'US', 'a company account in the United States records the country stated');
 insert into k select 'acct_silent', app.create_external_account('Vogel Silent', 'vogel-silent');
+select pg_temp.as_platform();
+select is((select country_code from app.organizations where slug = 'vogel-rigging'), 'US', 'a company account in the United States records the country stated');
 select is((select country_code from app.organizations where slug = 'vogel-silent'), null, 'one that states nothing records nothing');
+select pg_temp.as_user('liesel');
 select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct'), 'DE')$$, 'XR001',
   'territory_not_offered: XOS is not offered to organizations in this country.', 'but it cannot start Atlas from Germany');
 select pg_temp.as_platform();
@@ -136,7 +138,9 @@ select pg_temp.as_op('olga');
 select lives_ok($$select app.console_grant_territory_exception('tomas@example.de', 'DE', 'US-CUSTOMER-VENDOR-7', current_date, 'A US customer''s signed contract engages this vendor.')$$, 'an exception for a vendor company');
 select pg_temp.as_user('tomas');
 insert into k select 'acct_de', app.create_external_account('Weber Audio', 'weber-audio', 'For-Profit', 'DE');
+select pg_temp.as_platform();
 select is((select country_code from app.organizations where slug = 'weber-audio'), 'DE', 'the person it names creates the company account');
+select pg_temp.as_user('tomas');
 select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct_de'))$$, 'XR001',
   'territory_not_offered: XOS is not offered to organizations in this country.', 'which cannot then start Atlas on the record of its country and a spent exception');
 select pg_temp.as_op('olga');
