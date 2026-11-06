@@ -153,7 +153,7 @@ begin
         where o.ended_at is null;
       end if;
     exception when others then
-      update private.legal_queue_health set alert_path_failed_at = now();
+      update private.legal_queue_health set alert_path_failed_at = now() where id;
     end;
 
     -- The on-call channel, the alert path synthetics posts to, naming references only.
@@ -170,12 +170,12 @@ begin
           );
         end if;
       exception when others then
-        update private.legal_queue_health set alert_path_failed_at = now();
+        update private.legal_queue_health set alert_path_failed_at = now() where id;
       end;
     end if;
   end if;
 
-  update private.legal_queue_health set last_sweep_at = now();
+  update private.legal_queue_health set last_sweep_at = now() where id;
   return jsonb_array_length(v_lines);
 end;
 $$;

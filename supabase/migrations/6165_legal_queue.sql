@@ -759,8 +759,10 @@ begin
       end;
     end;
   end loop;
+  -- With a where clause, though there is one row: PostgREST's sessions load safeupdate, which refuses an update with none.
   update private.legal_queue_health
-  set feeds_checked_at = now(), feeds_failing = not v_all_ok;
+  set feeds_checked_at = now(), feeds_failing = not v_all_ok
+  where id;
   return v_new;
 end;
 $$;
