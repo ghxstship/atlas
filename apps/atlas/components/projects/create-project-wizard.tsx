@@ -100,6 +100,10 @@ export function CreateProjectWizard({
       moved.current = true;
       setIndex(at);
     }
+    // A detail the action refused may sit on a continuation page.
+    if (steps[at] === "details" && details.current && !details.current.check()) {
+      setDetailsPage(details.current.problemPage() ?? 0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new action state moves the wizard
   }, [state]);
 
