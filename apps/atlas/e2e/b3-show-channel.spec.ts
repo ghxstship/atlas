@@ -1,3 +1,4 @@
+import { cognitiveLoadProblems } from "./a11y/checks";
 import { expect, test, type Page } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
@@ -63,12 +64,14 @@ test("the show channel sits beside the running cue, takes a joiner and delivers 
   const liveUrl = `${page.url()}&live=1`;
   await page.goto(liveUrl);
 
-  // The Owner opens the channel and writes first.
+  // The Owner opens the channel and writes first. The panel renders on arrival, so it answers the first click.
   const panel = page.getByRole("region", { name: "Show channel" });
   await expect(panel.getByText("Clients are never in this channel.")).toBeVisible();
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
   await panel.getByRole("button", { name: "Open the show channel" }).click();
   const box = panel.getByLabel("Message the crew");
   await expect(box).toBeVisible({ timeout: 20_000 });
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
   await box.fill("Doors in five");
   await panel.getByRole("button", { name: "Send" }).click();
   await expectMessage(page, "Doors in five");

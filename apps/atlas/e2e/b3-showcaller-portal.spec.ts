@@ -1,3 +1,5 @@
+import { cognitiveLoadProblems } from "./a11y/checks";
+import { expectDialogWithinLoad } from "./b3-support";
 import { expect, test, type Browser, type Page } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
@@ -69,7 +71,8 @@ test("an outside showcaller calls and edits one running order with a link and it
       "Anyone with this link and code can call cues and edit this running order until it expires.",
     ),
   ).toBeVisible();
-  await dialog.getByLabel("Showcaller").fill("Sam Okafor");
+  await expectDialogWithinLoad(dialog);
+  await dialog.getByLabel("Showcaller", { exact: true }).fill("Sam Okafor");
   await dialog.getByRole("button", { name: "Create showcaller link" }).click();
   const url = await dialog.getByRole("textbox", { name: "Link" }).inputValue();
   const code = await dialog.getByRole("textbox", { name: "Access code" }).inputValue();
@@ -87,14 +90,15 @@ test("an outside showcaller calls and edits one running order with a link and it
   await guest.getByRole("button", { name: "Open" }).click();
   await expect(guest.getByRole("heading", { name: "Opening Night Running Order" })).toBeVisible();
   await expect(guest.getByText("Calling as Sam Okafor")).toBeVisible();
+  expect(await cognitiveLoadProblems(guest)).toEqual([]);
 
-  // Standby, then Go.
-  await guest.getByRole("button", { name: "Standby: House to Half" }).click();
-  await expect(guest.getByRole("status").filter({ hasText: "Standby: House to Half" })).toBeVisible(
-    {
-      timeout: 20_000,
-    },
-  );
+  // Standby, then Go. The console just arrived after the code's POST, so the first click retries until hydrated.
+  await expect(async () => {
+    await guest.getByRole("button", { name: "Standby: House to Half" }).click({ timeout: 2_000 });
+    await expect(
+      guest.getByRole("status").filter({ hasText: "Standby: House to Half" }),
+    ).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
   await guest.getByRole("button", { name: /^Go: call House to Half/ }).click();
   await expect(
     guest
@@ -106,9 +110,12 @@ test("an outside showcaller calls and edits one running order with a link and it
   // Nudge the remaining plan and edit an uncalled cue and its Lighting call.
   await guest.getByRole("button", { name: "Nudge +1 min" }).click();
   await guest.getByRole("button", { name: "Edit Walk-in Music Out" }).click();
-  const editor = guest.getByRole("form", { name: "Edit cue Walk-in Music Out" });
+  const editor = guest.getByRole("group", { name: "Edit cue Walk-in Music Out" });
   await editor.getByLabel("Cue", { exact: true }).fill("Walk-in Music Fade");
+  expect(await cognitiveLoadProblems(guest)).toEqual([]);
+  await editor.getByRole("tab", { name: "Calls" }).click();
   await editor.getByLabel("Lighting call").fill("LX 12 GO");
+  expect(await cognitiveLoadProblems(guest)).toEqual([]);
   await editor.getByRole("button", { name: "Save" }).click();
   await expect(guest.getByRole("listitem").filter({ hasText: "Walk-in Music Fade" })).toContainText(
     "Lighting · LX 12 GO",

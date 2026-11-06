@@ -1,3 +1,5 @@
+import { cognitiveLoadProblems } from "./a11y/checks";
+import { expectDialogWithinLoad } from "./b3-support";
 import { expect, test, type Page } from "./engine-test";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
@@ -63,23 +65,35 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   await page.getByLabel("Cue", { exact: true }).fill("House to Half");
   await page.getByRole("button", { name: "Add cue" }).click();
   await page.getByRole("button", { name: "Edit House to Half" }).click();
-  const editor = page.getByRole("form", { name: "Edit cue House to Half" });
+  const editor = page.getByRole("group", { name: "Edit cue House to Half" });
   await editor.getByLabel("Segment", { exact: true }).fill("Act I");
   await editor.getByLabel("Segment color").selectOption({ label: "Vermillion" });
+  // The editor is one screen of the peek: at most seven visible fields and one primary action on each tab.
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await editor.getByRole("tab", { name: "Words" }).click();
   await editor.getByLabel("Script").fill("Ladies and gentlemen, welcome.");
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await editor.getByRole("tab", { name: "Calls" }).click();
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
   await editor.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Act I").first()).toBeVisible();
 
   await page.getByRole("button", { name: "Edit House to Half" }).click();
+  // The color shown follows the segment typed, without a pick.
+  const reopened = page.getByRole("group", { name: "Edit cue House to Half" });
+  await expect(reopened.getByLabel("Segment color")).toHaveValue("cat-6");
+  await reopened.getByLabel("Segment", { exact: true }).fill("Act II");
+  await expect(reopened.getByLabel("Segment color")).toHaveValue("");
+  await reopened.getByLabel("Segment", { exact: true }).fill("Act I");
+  await reopened.getByRole("tab", { name: "Fields" }).click();
+  await expect(reopened.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
   const fields = page.getByRole("region", { name: "Custom fields" });
   await fields.getByRole("button", { name: "Edit fields" }).click();
   await fields.getByLabel("Camera").selectOption({ label: "Wide" });
   await fields.getByRole("button", { name: "Save fields" }).click();
   await expect(fields.getByText("Wide")).toBeVisible();
-  await page
-    .getByRole("form", { name: "Edit cue House to Half" })
-    .getByRole("button", { name: "Cancel" })
-    .click();
+  await reopened.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByText("Camera: Wide")).toBeVisible({ timeout: 20_000 });
   const runUrl = page.url();
 
@@ -90,10 +104,25 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   await create.getByLabel("Color").selectOption({ label: "Yellow" });
   await create.getByRole("button", { name: "Save segment" }).click();
   await page.waitForURL(/peek=/);
+  // The peek reads first: its changes open dialogs, and Publish to shows waits for a copy.
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await page.getByRole("button", { name: "Edit segment" }).click();
+  const editSegment = page.getByRole("dialog", { name: "Edit segment" });
+  await expectDialogWithinLoad(editSegment);
+  await editSegment.getByLabel("Description").fill("Three awards and the walk-off.");
+  await editSegment.getByRole("button", { name: "Save segment" }).click();
+  await expect(editSegment).toBeHidden();
   for (const label of ["Award One", "Walk-off"]) {
-    const form = page.getByRole("form", { name: "Add cue" });
+    await page.getByRole("button", { name: "Add cue" }).click();
+    const form = page.getByRole("dialog", { name: "Add cue" });
+    await expectDialogWithinLoad(form);
     await form.getByLabel("Cue", { exact: true }).fill(label);
+    await form.getByRole("tab", { name: "Words" }).click();
+    await expectDialogWithinLoad(form);
+    await form.getByRole("tab", { name: "Calls" }).click();
+    await expectDialogWithinLoad(form);
     await form.getByRole("button", { name: "Add cue" }).click();
+    await expect(form).toBeHidden();
     await expect(page.getByRole("dialog").getByText(label)).toBeVisible();
   }
 
@@ -114,22 +143,28 @@ test("cue fields with colors, segment colors and the segment library", async ({ 
   await page.goto(`/${slug}/show/segments`);
   await page.getByRole("button", { name: "Open" }).first().click();
   await page.getByRole("button", { name: "Edit Award One" }).click();
-  await page
-    .getByRole("form", { name: "Edit cue Award One" })
-    .getByLabel("Cue", { exact: true })
-    .fill("Award One (Gold)");
-  await page
-    .getByRole("form", { name: "Edit cue Award One" })
-    .getByRole("button", { name: "Save" })
-    .click();
+  const libraryCue = page.getByRole("dialog", { name: "Edit cue Award One" });
+  await expectDialogWithinLoad(libraryCue);
+  await libraryCue.getByLabel("Cue", { exact: true }).fill("Award One (Gold)");
+  await libraryCue.getByRole("button", { name: "Save" }).click();
+  await expect(libraryCue).toBeHidden();
   await expect(page.getByText("Library updated: publish to shows", { exact: false })).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByText("Local edits to those cues", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: /Publish version/ }).click();
-  await expect(page.getByRole("status", { name: "What publishing did" })).toContainText(
-    "Opening Night Running Order: Published",
-  );
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await page.getByRole("button", { name: "Publish to shows" }).click();
+  const publish = page.getByRole("dialog", { name: "Publish to shows" });
+  await expectDialogWithinLoad(publish);
+  await expect(publish.getByText("Local edits to those cues", { exact: false })).toBeVisible();
+  await publish.getByRole("button", { name: /Publish version/ }).click();
+  await expect(publish).toBeHidden();
+  // The outcome stays in the peek after the dialog closes and after the refresh that brings the new copies.
+  const outcome = page.getByRole("status", { name: "What publishing did" });
+  await expect(outcome).toContainText("Opening Night Running Order: Published");
+  await expect(page.getByText("Library updated: publish to shows", { exact: false })).toBeHidden({
+    timeout: 20_000,
+  });
+  await expect(outcome).toContainText("Opening Night Running Order: Published");
 
   await page.goto(runUrl);
   await expect(
