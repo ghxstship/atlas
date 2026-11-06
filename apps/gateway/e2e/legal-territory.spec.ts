@@ -20,7 +20,11 @@ test("a company outside an offered territory gets no account, and the form says 
   await expectAccessible(page);
 
   const form = page.getByRole("form", { name: "Create a company account", exact: true });
-  const country = form.getByLabel("Country where the company is established", { exact: true });
+  // A combobox by role: this form's label wraps the select, so a label match would read every country's name too.
+  const country = form.getByRole("combobox", {
+    name: "Country where the company is established",
+    exact: true,
+  });
   await expect(country).toHaveValue("");
 
   const slug = `vogel-${id}`;
