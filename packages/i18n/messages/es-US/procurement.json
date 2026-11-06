@@ -149,7 +149,9 @@
     "chaseOn": "A los proveedores que no han respondido se les recuerda cada {hours} horas, máximo {limit} veces, con un último recordatorio el último día.",
     "chaseOff": "Los recordatorios de cotización están desactivados en esta organización.",
     "chaseSent": "{count, plural, =0 {No se enviaron recordatorios.} one {Se envió # recordatorio.} other {Se enviaron # recordatorios.}}",
-    "notReachable": "No hay a quién escribir en este proveedor. Llámalo por teléfono."
+    "notReachable": "No hay a quién escribir en este proveedor. Llámalo por teléfono.",
+    "answersLine": "Responde a",
+    "answersNone": "Sin línea solicitada"
   },
   "orders": {
     "title": "Órdenes de compra",
@@ -496,7 +498,8 @@
       "lineFormat": "Revisa el formato: una entrada por línea, como indica la ayuda debajo del campo.",
       "quizCorrect": "Escribe el número de la opción correcta, del 1 a la cantidad de opciones.",
       "httpsUrl": "Escribe una dirección web que empiece con https://.",
-      "hireOrder": "El alquiler debe terminar después de empezar."
+      "hireOrder": "El alquiler debe terminar después de empezar.",
+      "tooLong": "Este texto es demasiado largo. Acórtalo e inténtalo de nuevo."
     },
     "loadError": {
       "title": "No se pudo cargar",
@@ -650,7 +653,9 @@
       "assumed": "La lista no indica cantidad, así que se toma 1.",
       "matched": "Coincide",
       "add": "{count, plural, one {Agregar # línea} other {Agregar # líneas}}",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "project": "Proyecto",
+      "chooseProject": "Elige un proyecto"
     },
     "rfqLine": "{title}: {state}"
   }

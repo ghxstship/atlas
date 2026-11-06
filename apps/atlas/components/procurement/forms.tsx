@@ -49,7 +49,11 @@ export function ResponseForm({
   currencies: { value: string; label: string }[];
   defaultCurrency: string;
   action: ServerAction;
-  /** What the RFQ asks for (B11, G-97): each row starts as one of these and answers it. */
+  /**
+   * What the RFQ asks for (B11, G-97): each row starts as one of these and names the line it answers, in plain view,
+   * because the order line takes its element, unit, hire period and need from it. Rows read from a document may list
+   * items in another order, so reading one clears every row's choice for the person to make.
+   */
   requested?: readonly { id: string; description: string; quantity: number }[];
 }) {
   const t = useCopy("procurement");
@@ -57,7 +61,11 @@ export function ResponseForm({
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const formRef = useResetOnSuccess(state);
   const [count, setCount] = useState(Math.max(2, requested.length));
+  const [readings, setReadings] = useState(0);
   useDone(state);
+  useEffect(() => {
+    if (state.ok) setReadings(0);
+  }, [state]);
   const err = (name: string) =>
     state.fieldErrors?.[name] ? k(`validation.${state.fieldErrors[name]}`) : "";
   return (
@@ -74,7 +82,10 @@ export function ResponseForm({
         kind="quote"
         fields={{ valid_until: { name: "validUntil" }, currency_code: { name: "currencyCode" } }}
         lines={{ description: "lineDescription", quantity: "lineQuantity", unitPrice: "linePrice" }}
-        ensureRows={(rows) => setCount((c) => Math.max(c, Math.min(rows, 30)))}
+        ensureRows={(rows) => {
+          setCount((c) => Math.max(c, Math.min(rows, 30)));
+          setReadings((r) => r + 1);
+        }}
       />
       <ActionFeedback state={state} refusals="procurement.refusals" />
       <div className="flex flex-wrap gap-12">
@@ -108,7 +119,26 @@ export function ResponseForm({
             key={i}
             className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] max-sm:grid-cols-1 gap-8"
           >
-            <input type="hidden" name="lineRfqLineId" value={requested[i]?.id ?? ""} />
+            {requested.length > 0 ? (
+              <div className="col-span-full">
+                <Select
+                  key={readings}
+                  id={`resp-asked-${rfqId}-${i}`}
+                  name="lineRfqLineId"
+                  label={t("rfqs.answersLine")}
+                  value={readings === 0 ? (requested[i]?.id ?? "") : ""}
+                  options={[
+                    { value: "", label: t("rfqs.answersNone") },
+                    ...requested.map((r) => ({
+                      value: r.id,
+                      label: `${r.quantity} ${r.description}`,
+                    })),
+                  ]}
+                />
+              </div>
+            ) : (
+              <input type="hidden" name="lineRfqLineId" value="" />
+            )}
             <Input
               id={`resp-desc-${rfqId}-${i}`}
               name="lineDescription"

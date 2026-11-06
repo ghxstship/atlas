@@ -8,7 +8,9 @@ import {
   findNeedCandidatesAction,
   setNeedElementAction,
 } from "@/app/[org]/procurement/needs-actions";
+import { ActionFeedback } from "@/components/collection-kit/kit";
 import { useCopy } from "@/components/collection-kit/use-copy";
+import type { ActionState } from "@/lib/collection-kit/forms";
 
 type Phase =
   | { readonly kind: "running" }
@@ -35,6 +37,7 @@ export function SuggestCategoryPanel({
   const client = useMemo(() => createAuroraClient({ baseUrl: "/api/v1" }), []);
   const [phase, setPhase] = useState<Phase>({ kind: "running" });
   const [pending, start] = useTransition();
+  const [outcome, setOutcome] = useState<ActionState>({});
   useEffect(() => {
     let live = true;
     void (async () => {
@@ -43,7 +46,12 @@ export function SuggestCategoryPanel({
         if (live) setPhase({ kind: "none" });
         return;
       }
-      const result = await client.bindCode({ code: description, description, candidates });
+      // The body takes a code of up to 100 characters and the whole description beside it.
+      const result = await client.bindCode({
+        code: description.slice(0, 100),
+        description,
+        candidates,
+      });
       if (!live) return;
       setPhase(
         result.ok && result.data.outcome === "answer" && result.data.answer
@@ -73,17 +81,21 @@ export function SuggestCategoryPanel({
       form.set("id", needId);
       form.set("elementId", phase.elementId);
       const state = await setNeedElementAction({}, form);
+      setOutcome(state);
       if (state.ok) {
         await Promise.all(phase.suggestionIds.map((id) => client.reject(id, t("suggest.closed"))));
         router.refresh();
       }
     });
   return (
-    <div className="flex flex-wrap items-center gap-8 text-text-13">
-      <span>{t("suggest.proposal", { name: phase.name })}</span>
-      <Button variant="secondary" size="sm" disabled={pending} onClick={confirm}>
-        {t("suggest.confirm")}
-      </Button>
+    <div className="flex flex-col gap-8 text-text-13">
+      <ActionFeedback state={outcome} refusals="procurement.refusals" />
+      <div className="flex flex-wrap items-center gap-8">
+        <span>{t("suggest.proposal", { name: phase.name })}</span>
+        <Button variant="secondary" size="sm" disabled={pending} onClick={confirm}>
+          {t("suggest.confirm")}
+        </Button>
+      </div>
     </div>
   );
 }

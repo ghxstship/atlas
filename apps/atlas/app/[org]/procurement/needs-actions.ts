@@ -5,6 +5,7 @@ import {
   createProcurementNeed,
   createSubHireRfq,
   deleteProcurementNeed,
+  getProcurementTimeZone,
   removeRfqLine,
   addRfqLine,
   setPoLineNeed,
@@ -38,11 +39,15 @@ import {
 
 const MODULE = "procurement";
 
-/** The time zone of a project, read as the caller; what a person types is local to it. */
-async function projectZone(db: XosClient, projectId: string | null): Promise<string> {
-  if (projectId === null) return "UTC";
-  const { data } = await db.from("projects").select("time_zone").eq("id", projectId).maybeSingle();
-  return data?.time_zone ?? "UTC";
+/**
+ * The time zone of a project; what a person types is local to it. A buyer may hold procurement capabilities and not
+ * projects.project.read, so this reads through app.procurement_time_zone. Null means the caller has neither the project
+ * nor its zone, and the action refuses rather than save a typed time as UTC.
+ */
+async function projectZone(db: XosClient, projectId: string | null): Promise<string | null> {
+  if (projectId === null) return null;
+  const zone = await getProcurementTimeZone(db, projectId);
+  return zone.ok ? zone.data : null;
 }
 
 function localOrInvalid(form: FormData, name: string, zone: string): string | null | undefined {
@@ -80,8 +85,11 @@ export async function createNeedAction(_: ActionState, form: FormData): Promise<
   const ctx = await actionContext(form);
   const errors = new FieldErrors();
   const projectId = errors.need("projectId", uuid(form, "projectId"));
-  const input = needInput(form, errors, await projectZone(ctx.viewer.db, projectId));
-  if (errors.any || !projectId || !input) return errors.state;
+  if (!projectId) return errors.state;
+  const zone = await projectZone(ctx.viewer.db, projectId);
+  if (zone === null) return { error: "notFound" };
+  const input = needInput(form, errors, zone);
+  if (errors.any || !input) return errors.state;
   return finish(await createProcurementNeed(ctx.viewer.db, projectId, input), ctx, MODULE);
 }
 
@@ -90,7 +98,9 @@ export async function updateNeedAction(_: ActionState, form: FormData): Promise<
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   const errors = new FieldErrors();
-  const input = needInput(form, errors, await projectZone(ctx.viewer.db, uuid(form, "projectId")));
+  const zone = await projectZone(ctx.viewer.db, uuid(form, "projectId"));
+  if (zone === null) return { error: "notFound" };
+  const input = needInput(form, errors, zone);
   if (errors.any || !input) return errors.state;
   return finish(await updateProcurementNeed(ctx.viewer.db, id, input), ctx, MODULE);
 }
@@ -175,6 +185,7 @@ export async function addRfqLineAction(_: ActionState, form: FormData): Promise<
     ? (kindText as AcquisitionKind)
     : "Purchase";
   const zone = await projectZone(ctx.viewer.db, uuid(form, "projectId"));
+  if (zone === null) return { error: "notFound" };
   const from = localOrInvalid(form, "hireFrom", zone);
   const to = localOrInvalid(form, "hireTo", zone);
   if (kind === "Rental" && (!from || !to || to <= from))

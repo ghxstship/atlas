@@ -8,6 +8,7 @@ import {
   type RfqState,
 } from "@xos/data/procurement";
 import {
+  getProcurementTimeZone,
   getRfqChaseStatus,
   listRfqLines,
   listUnreachableVendorIds,
@@ -278,14 +279,20 @@ async function RfqRecord({
   purchaseOrdersPath: string;
 }) {
   const db = ctx.viewer.db;
-  const [format, responses, currencies, requested, chase, unreachable] = await Promise.all([
+  const [format, responses, currencies, requested, chase, unreachable, zone] = await Promise.all([
     getFormatter(),
     listRfqResponses(db, rfq.id),
     listCurrencies(db),
     listRfqLines(db, rfq.id),
     getRfqChaseStatus(db, rfq.id),
     listUnreachableVendorIds(db, rfq.id),
+    getProcurementTimeZone(db, rfq.projectId),
   ]);
+  // The hire dates read on the project's calendar, as they were typed.
+  const hireDay = {
+    dateStyle: "medium",
+    ...(zone.ok && zone.data ? { timeZone: zone.data } : {}),
+  } as const;
   const unreachableIds = new Set(unreachable.ok ? unreachable.data : []);
   const exponent = new Map(
     (currencies.ok ? currencies.data : []).map((c) => [c.code, c.minorUnits]),
@@ -349,8 +356,8 @@ async function RfqRecord({
                     ? t("rfqs.requestedHire", {
                         quantity: format.number(l.quantity),
                         description: l.description,
-                        from: format.dateTime(new Date(l.hireStartsAt), { dateStyle: "medium" }),
-                        to: format.dateTime(new Date(l.hireEndsAt), { dateStyle: "medium" }),
+                        from: format.dateTime(new Date(l.hireStartsAt), hireDay),
+                        to: format.dateTime(new Date(l.hireEndsAt), hireDay),
                       })
                     : t("rfqs.requestedLine", {
                         quantity: format.number(l.quantity),
@@ -379,7 +386,12 @@ async function RfqRecord({
             fields={[
               { kind: "text", name: "description", label: t("needs.description"), required: true },
               { kind: "number", name: "quantity", label: t("needs.quantity"), required: true },
-              { kind: "text", name: "unitBasis", label: t("needs.unit") },
+              {
+                kind: "text",
+                name: "unitBasis",
+                label: t("needs.unit"),
+                help: t("lines.unitBasisHelp"),
+              },
               {
                 kind: "select",
                 name: "acquisitionKind",

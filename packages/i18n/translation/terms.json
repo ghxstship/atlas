@@ -19,9 +19,7 @@
       },
       {
         "term": "Legend",
-        "except": [
-          "ui.chart.legend"
-        ]
+        "except": ["ui.chart.legend"]
       },
       {
         "term": "URID"
@@ -34,9 +32,7 @@
       },
       {
         "term": "Core",
-        "except": [
-          "canonBrowser.departments.coreFunction"
-        ]
+        "except": ["canonBrowser.departments.coreFunction"]
       },
       {
         "term": "Pro"
@@ -46,67 +42,39 @@
       },
       {
         "term": "Team",
-        "only": [
-          "platform.partner.plans.team",
-          "shell.plans.team.name",
-          "help/contact-support.md"
-        ]
+        "only": ["platform.partner.plans.team", "shell.plans.team.name", "help/contact-support.md"]
       },
       {
         "term": "Access",
-        "only": [
-          "platform.partner.plans.access",
-          "shell.plans.access.name"
-        ]
+        "only": ["platform.partner.plans.access", "shell.plans.access.name"]
       },
       {
         "term": "English (US)",
-        "only": [
-          "shell.chrome.locales.en-US",
-          "gateway.shell.locales.en-US"
-        ]
+        "only": ["shell.chrome.locales.en-US", "gateway.shell.locales.en-US"]
       },
       {
         "term": "Español (EE. UU.)",
-        "only": [
-          "shell.chrome.locales.es-US",
-          "gateway.shell.locales.es-US"
-        ]
+        "only": ["shell.chrome.locales.es-US", "gateway.shell.locales.es-US"]
       },
       {
         "term": "Français",
-        "only": [
-          "shell.chrome.locales.fr-FR",
-          "gateway.shell.locales.fr-FR"
-        ]
+        "only": ["shell.chrome.locales.fr-FR", "gateway.shell.locales.fr-FR"]
       },
       {
         "term": "Deutsch",
-        "only": [
-          "shell.chrome.locales.de-DE",
-          "gateway.shell.locales.de-DE"
-        ]
+        "only": ["shell.chrome.locales.de-DE", "gateway.shell.locales.de-DE"]
       },
       {
         "term": "Italiano",
-        "only": [
-          "shell.chrome.locales.it-IT",
-          "gateway.shell.locales.it-IT"
-        ]
+        "only": ["shell.chrome.locales.it-IT", "gateway.shell.locales.it-IT"]
       },
       {
         "term": "Português (Brasil)",
-        "only": [
-          "shell.chrome.locales.pt-BR",
-          "gateway.shell.locales.pt-BR"
-        ]
+        "only": ["shell.chrome.locales.pt-BR", "gateway.shell.locales.pt-BR"]
       },
       {
         "term": "日本語",
-        "only": [
-          "shell.chrome.locales.ja-JP",
-          "gateway.shell.locales.ja-JP"
-        ]
+        "only": ["shell.chrome.locales.ja-JP", "gateway.shell.locales.ja-JP"]
       },
       {
         "term": "Stripe"
@@ -278,9 +246,7 @@
         "pattern": "\\bgates?\\b",
         "flags": "i"
       },
-      "except": [
-        "@physical-gate"
-      ],
+      "except": ["@physical-gate"],
       "targets": {
         "es-US": {
           "require": {

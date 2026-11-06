@@ -111,14 +111,16 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A127: one-tap email action links in the shared stores, the offer and message push categories, offer.sent and the
   // email action copy in both locales (about 3.5 KB). R7 (2698): the four allocation kinds (decided, assigned,
   // issued, withdrawn) in both locales took it to 186.9 KB on 2026-10-30, the same 2 percent of headroom R5 left.
-  // B11 (3009): the two RFQ notice kinds in both locales took it to 196.0 KB on 2026-11-06, with the same 2 KB of headroom.
+  // B11 (3009): measured at 196.0 KB on 2026-11-06 with the two RFQ notice kinds in both locales, on a base that also holds
+  // the stacked R7, R9, P3 and P9 merges, which account for most of the rise. The merge train measures its own base.
   "notification-dispatch": 198,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. R7: the radio hand-out's document copy in both
   // locales and the four allocation kinds in the shared stores chunk took it to 218.6 KB on 2026-10-30. P9: the shared
   // stores mint an approval link's access code, and the email copy chunks carry the access-code email and the approval
   // reminder in both locales (about 1.5 KB at boot).
-  // B11 (3009): the two RFQ notice kinds in the shared stores chunk and both locales took it to 225.1 KB on 2026-11-06.
+  // B11 (3009): measured at 225.1 KB on 2026-11-06 with the two RFQ notice kinds, on a base that also holds the stacked
+  // R7, R9, P3 and P9 merges, which account for most of the rise. The merge train measures its own base.
   "org-lifecycle": 228,
   "report-run": 128,
   scim: 92,
@@ -127,10 +129,12 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent. R7 (2698): the four
   // allocation kinds in both locales took it to 150.1 KB on 2026-10-30, with the same 2 KB of headroom. P9:
   // approval.reminder and approval.link_code in both locales (about 1.4 KB).
-  // B11 (3009): the two RFQ notice kinds in both locales took it to 157.3 KB on 2026-11-06, with the same 2 KB of headroom.
+  // B11 (3009): measured at 157.3 KB on 2026-11-06 with the two RFQ notice kinds in both locales, on a base that also holds
+  // the stacked R7, R9, P3 and P9 merges, which account for most of the rise. The merge train measures its own base.
   "sms-webhook": 160,
   "stripe-webhook": 84,
-  // B11 (3009): the two RFQ notice kinds in the shared copy took it to 119.4 KB on 2026-11-06, with 2 KB of headroom.
+  // B11 (3009): measured at 119.4 KB on 2026-11-06 with the two RFQ notice kinds in the shared copy, on a base that also holds
+  // the stacked R7, R9, P3 and P9 merges, which account for most of the rise. The merge train measures its own base.
   "subprocessor-notices": 122,
   "upload-scan": 100,
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).

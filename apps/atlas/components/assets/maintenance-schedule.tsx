@@ -57,7 +57,7 @@ export async function MaintenanceSchedule({
     iso
       ? format.dateTime(new Date(`${iso}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" })
       : t("assets.schedule.noDate");
-  const path = `/${ctx.org.slug}/assets/maintenance`;
+  const path = `/${ctx.org.slug}/assets/maintenance?section=schedule`;
   const appliesTo = [
     ...units.map((u) => ({ value: `unit:${u.id}`, label: `${u.assetTag} · ${u.className}` })),
     ...classes.map((c) => ({
@@ -100,7 +100,7 @@ export async function MaintenanceSchedule({
         {MAINTENANCE_DUE_STATUSES.map((s) => (
           <Link
             key={s}
-            href={`${path}?status=${encodeURIComponent(s)}` as Route}
+            href={`${path}&status=${encodeURIComponent(s)}` as Route}
             aria-current={status === s ? "page" : undefined}
             className="text-accent-text underline"
           >
@@ -121,7 +121,9 @@ export async function MaintenanceSchedule({
               className="flex flex-wrap items-center justify-between gap-12 py-12 text-text-13"
             >
               <div className="flex min-w-0 flex-col gap-2">
-                <span className="font-medium">{t("assets.schedule.rowTitle", { title: d.title, tag: d.assetTag })}</span>
+                <span className="font-medium">
+                  {t("assets.schedule.rowTitle", { title: d.title, tag: d.assetTag })}
+                </span>
                 <span className="text-text-12 text-text-secondary">
                   {t("assets.schedule.line", {
                     status: t(`assets.schedule.statuses.${STATUS_KEY[d.status]}`),

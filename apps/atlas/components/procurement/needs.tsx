@@ -108,9 +108,9 @@ export async function NeedsSection({
   const statusLabel = (s: NeedStatus) => t(`needs.statuses.${STATUS_KEY[s]}`);
   const quantityOf = (n: number, unit: string | null) =>
     unit ? `${format.number(n)} ${unit}` : format.number(n);
-  const spanOf = (from: string | null, to: string | null) =>
+  const spanOf = (from: string | null, to: string | null, timeZone: string) =>
     from && to
-      ? format.dateTimeRange(new Date(from), new Date(to), { dateStyle: "medium" })
+      ? format.dateTimeRange(new Date(from), new Date(to), { dateStyle: "medium", timeZone })
       : t("needs.noWindow");
   const selected = state.peek ? needs.data.find((n) => n.id === state.peek) : undefined;
 
@@ -133,7 +133,7 @@ export async function NeedsSection({
       drafted: format.number(n.draftedQuantity),
       ordered: format.number(n.orderedQuantity),
       received: format.number(n.receivedQuantity),
-      during: spanOf(n.neededFrom, n.neededTo),
+      during: spanOf(n.neededFrom, n.neededTo, n.timeZone),
     },
   }));
 
@@ -157,26 +157,37 @@ export async function NeedsSection({
       required: true,
       defaultValue: n ? String(n.quantity) : "",
     },
-    { kind: "text", name: "unitBasis", label: t("needs.unit"), defaultValue: n?.unitBasis ?? "" },
     {
-      kind: "select",
-      name: "assetClassId",
-      label: t("needs.assetClass"),
-      blankLabel: t("needs.noClass"),
-      defaultValue: n?.assetClassId ?? "",
-      options: classOptions,
+      kind: "text",
+      name: "unitBasis",
+      label: t("needs.unit"),
+      help: t("lines.unitBasisHelp"),
+      defaultValue: n?.unitBasis ?? "",
     },
+    // A need names one catalog target: once a person confirmed an element, there is no class to offer.
+    ...(n?.elementId
+      ? []
+      : [
+          {
+            kind: "select" as const,
+            name: "assetClassId",
+            label: t("needs.assetClass"),
+            blankLabel: t("needs.noClass"),
+            defaultValue: n?.assetClassId ?? "",
+            options: classOptions,
+          },
+        ]),
     {
       kind: "datetime",
       name: "neededFrom",
       label: t("needs.neededFrom"),
-      defaultValue: n?.neededFrom ? instantToLocal(n.neededFrom, n.timeZone) : "",
+      defaultValue: n?.ownFrom ? instantToLocal(n.ownFrom, n.timeZone) : "",
     },
     {
       kind: "datetime",
       name: "neededTo",
       label: t("needs.neededTo"),
-      defaultValue: n?.neededTo ? instantToLocal(n.neededTo, n.timeZone) : "",
+      defaultValue: n?.ownTo ? instantToLocal(n.ownTo, n.timeZone) : "",
     },
     {
       kind: "textarea",
@@ -234,7 +245,10 @@ export async function NeedsSection({
           { label: t("needs.drafted"), value: format.number(selected.draftedQuantity) },
           { label: t("needs.ordered"), value: format.number(selected.orderedQuantity) },
           { label: t("needs.received"), value: format.number(selected.receivedQuantity) },
-          { label: t("needs.during"), value: spanOf(selected.neededFrom, selected.neededTo) },
+          {
+            label: t("needs.during"),
+            value: spanOf(selected.neededFrom, selected.neededTo, selected.timeZone),
+          },
         ]}
         fields={formFields(selected)}
       />
@@ -270,7 +284,13 @@ export async function NeedsSection({
           <>
             {projectId ? (
               <MaterialQuickAddButton org={ctx.org.slug} target={{ kind: "needs", projectId }} />
-            ) : null}
+            ) : (
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "needs", projectId: "" }}
+                projects={projectOptions}
+              />
+            )}
             <KitLink href={importHref}>{t("needs.import")}</KitLink>
             <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
               {t("needs.create")}
@@ -366,7 +386,7 @@ function ShortPart({
   org: string;
   shortages: readonly AssetShortage[];
   canDraft: boolean;
-  spanOf: (from: string | null, to: string | null) => string;
+  spanOf: (from: string | null, to: string | null, timeZone: string) => string;
   quantityOf: (n: number, unit: string | null) => string;
 }) {
   if (shortages.length === 0) {
@@ -384,7 +404,7 @@ function ShortPart({
               project: s.projectKey,
               className: s.className,
               quantity: quantityOf(s.shortQuantity, s.unitBasis),
-              during: spanOf(s.windowFrom, s.windowTo),
+              during: spanOf(s.windowFrom, s.windowTo, s.timeZone),
             })}
           </span>
           {s.openRfqId ? (

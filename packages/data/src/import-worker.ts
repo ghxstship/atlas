@@ -645,11 +645,7 @@ export async function validateRow(
         if (match?.elementId && values["element_id"] === undefined)
           values["element_id"] = match.elementId;
         // A vendor's price fills only a blank one, and only in the order's currency.
-        if (
-          match &&
-          match.unitPriceMinor !== null &&
-          values["unit_price_minor"] === undefined
-        ) {
+        if (match && match.unitPriceMinor !== null && values["unit_price_minor"] === undefined) {
           if (match.currencyCode === match.orderCurrencyCode)
             values["unit_price_minor"] = match.unitPriceMinor;
           else matchNote = "price_currency_differs";

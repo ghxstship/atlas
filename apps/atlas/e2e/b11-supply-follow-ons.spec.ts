@@ -67,7 +67,7 @@ test("a need is added, reads Needs Ordered, and a pasted list previews before it
 test("a maintenance plan comes due, and Complete moves its next due date", async ({ page }) => {
   const suffix = uniqueId();
   await signIn(page);
-  await open(page, `/${ORG}/assets/maintenance`);
+  await open(page, `/${ORG}/assets/maintenance?section=schedule`);
   await expect(
     page.getByRole("heading", { name: "Maintenance schedule", exact: true }),
   ).toBeVisible();
@@ -89,7 +89,7 @@ test("a maintenance plan comes due, and Complete moves its next due date", async
     .first()
     .click();
   await page.getByRole("button", { name: "Record maintenance", exact: true }).click();
-  await open(page, `/${ORG}/assets/maintenance?status=Completed`);
+  await open(page, `/${ORG}/assets/maintenance?section=schedule&status=Completed`);
   await expect(page.getByText(new RegExp(`Inspect ${suffix}`)).first()).toBeVisible();
 });
 

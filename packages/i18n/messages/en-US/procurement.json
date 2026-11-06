@@ -149,7 +149,9 @@
     "chaseOn": "Vendors who have not answered are reminded every {hours} hours, at most {limit} times, with a last reminder in the final day.",
     "chaseOff": "Quote reminders are off for this organization.",
     "chaseSent": "{count, plural, =0 {No reminders went out.} one {# reminder went out.} other {# reminders went out.}}",
-    "notReachable": "No one to email at this vendor. Chase them by phone."
+    "notReachable": "No one to email at this vendor. Chase them by phone.",
+    "answersLine": "Answers",
+    "answersNone": "No request line"
   },
   "orders": {
     "title": "Purchase orders",
@@ -496,7 +498,8 @@
       "lineFormat": "Check the format: one entry per line, as the help under the field describes.",
       "quizCorrect": "Enter the number of the correct option, from 1 to the number of options.",
       "httpsUrl": "Enter a web address that starts with https://.",
-      "hireOrder": "The hire must end after it starts."
+      "hireOrder": "The hire must end after it starts.",
+      "tooLong": "This is too long. Shorten it and try again."
     },
     "loadError": {
       "title": "This did not load",
@@ -650,7 +653,9 @@
       "assumed": "No quantity in the list, so this reads 1.",
       "matched": "Matched",
       "add": "{count, plural, one {Add # line} other {Add # lines}}",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "project": "Project",
+      "chooseProject": "Choose a project"
     },
     "rfqLine": "{title}: {state}"
   }

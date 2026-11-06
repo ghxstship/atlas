@@ -132,6 +132,7 @@ select is((select places_left from api_external.delivery_windows where id = pg_t
 select is((select count(*)::integer from api_external.delivery_windows where id = pg_temp.id('w3')), 0, 'and no window that has started');
 select ok((select reference_code from api_external.dock_slots where id = pg_temp.id('b1')) is not null, 'its booking shows the code');
 select is((select vehicle_identifier from api_external.dock_slots where id = pg_temp.id('b1')), 'FL ABC 123', 'and the plate');
+select ok((select time_zone from api_external.dock_slots where id = pg_temp.id('b1')) is not null, 'and the project''s time zone, to read its times in');
 select pg_temp.as_user('carol');
 insert into world select 'b4', app.book_delivery_window(gen_random_uuid(), pg_temp.id('w'));
 select pg_temp.as_user('sam');

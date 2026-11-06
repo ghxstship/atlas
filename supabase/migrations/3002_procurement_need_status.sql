@@ -80,16 +80,32 @@ comment on function private.need_project_facts(uuid) is 'A project''s key and ti
 revoke all on function private.need_project_facts(uuid) from public, anon;
 grant execute on function private.need_project_facts(uuid) to authenticated, service_role;
 
+create or replace function app.procurement_time_zone(p_project_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.time_zone from app.projects p
+  where p.id = p_project_id and p.deleted_at is null
+    and (private.can_on_project(p.id, 'procurement.po.read') or private.can_on_project(p.id, 'procurement.po.write')
+      or private.can_on_project(p.id, 'procurement.rfq.read') or private.can_on_project(p.id, 'procurement.rfq.write'));
+$$;
+comment on function app.procurement_time_zone(uuid) is 'The project''s time zone for a buyer (B11, G-180, G-97), who may hold procurement capabilities and not projects.project.read: what they type and read is local to it. NULL without one of procurement.po.read, procurement.po.write, procurement.rfq.read or procurement.rfq.write on the project, so a form refuses rather than assume UTC.';
+revoke all on function app.procurement_time_zone(uuid) from public, anon;
+grant execute on function app.procurement_time_zone(uuid) to authenticated, service_role;
+
 create view app.procurement_need_status with (security_invoker = true) as
 select x.need_id, x.org_id, x.project_id, x.project_key, x.time_zone, x.need_number, x.description, x.quantity, x.unit_basis, x.asset_class_id,
-  x.element_id, x.note, x.created_at, x.requested_quantity, x.effective_during, x.drafted_quantity, x.ordered_quantity, x.received_quantity,
+  x.element_id, x.note, x.created_at, x.requested_quantity, x.needed_during, x.effective_during, x.drafted_quantity, x.ordered_quantity, x.received_quantity,
   case when x.ordered_quantity = 0 then 'Needs Ordered'
        when x.ordered_quantity < x.quantity then 'Short'
        when x.ordered_quantity = x.quantity then 'On Order'
        else 'Excess' end as need_status
 from (
   select n.id as need_id, n.org_id, n.project_id, p.project_key, p.time_zone, n.need_number, n.description, n.quantity, n.unit_basis, n.asset_class_id,
-    n.element_id, n.note, n.created_at,
+    n.element_id, n.note, n.created_at, n.needed_during,
     private.need_requested_quantity(n.id) as requested_quantity,
     private.need_effective_during(n.id) as effective_during,
     coalesce((select sum(l.quantity) from app.po_lines l
@@ -128,6 +144,7 @@ call private.describe('app.procurement_need_status', 'Each live need with what w
   'note', 'What the buyer noted.',
   'created_at', 'When the need was added.',
   'requested_quantity', 'Live Requested and Approved linked allocations plus their live Split children.',
+  'needed_during', 'The need''s own window; NULL when it follows its requests. What an edit form starts from.',
   'effective_during', 'Its own window, else the span of those allocations.',
   'drafted_quantity', 'On lines of Proposed orders: shown, never counted.',
   'ordered_quantity', 'On lines of Approved, Sent or Closed orders, less returns other than Off Hire and Over Delivery, each line at least 0.',

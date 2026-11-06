@@ -1,7 +1,9 @@
 "use client";
 
 import { Button, Input, Select } from "@xos/ui";
-import { useActionState, useTransition, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useTransition, useState } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
 import type { FormResult } from "@/lib/actions/operations";
 import {
@@ -10,7 +12,7 @@ import {
   changeDeliveryPlateAction,
 } from "@/lib/actions/deliveries";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
-import { FormShell, useCopy } from "./forms";
+import { FormShell } from "./forms";
 
 interface Option {
   readonly value: string;
@@ -33,46 +35,44 @@ export function DeliveryBookingForm({
   windows: readonly Option[];
   shipments: readonly Option[];
 }) {
-  const t = useCopy();
+  const t = useTranslations("gateway.engagement.deliveries.book");
   const [state, action, pending] = useActionState<FormResult, FormData>(bookDeliveryAction, {});
   return (
     <FormShell
       state={state}
       pending={pending}
       action={action}
-      submitLabel={t("deliveries.book.submit")}
-      doneLabel={t("deliveries.book.done")}
-      label={t("deliveries.book.title")}
+      submitLabel={t("submit")}
+      doneLabel={t("done")}
+      label={t("title")}
       row
     >
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="engagementId" value={engagementId} />
-      <Select
-        id="delivery-window"
-        name="windowId"
-        label={t("deliveries.book.window")}
-        options={[...windows]}
-      />
+      <Select id="delivery-window" name="windowId" label={t("window")} options={[...windows]} />
       <Input
         id="delivery-plate"
         name="vehicleIdentifier"
         maxLength={40}
-        label={t("deliveries.book.plate")}
-        help={t("deliveries.book.plateHelp")}
+        label={t("plate")}
+        help={t("plateHelp")}
       />
       {shipments.length > 0 ? (
         <Select
           id="delivery-shipment"
           name="shipmentId"
-          label={t("deliveries.book.shipment")}
-          options={[{ value: "", label: t("deliveries.book.noShipment") }, ...shipments]}
+          label={t("shipment")}
+          options={[{ value: "", label: t("noShipment") }, ...shipments]}
         />
       ) : null}
     </FormShell>
   );
 }
 
-/** Cancel and Change plate on a booking's row. The database says when it is too late (delivery_booking_locked). */
+/**
+ * Cancel and Change plate on a booking's row. The database says when it is too late (delivery_booking_locked). Each
+ * success refreshes the tab, so the row leaves or shows the new plate; a refusal keeps what was typed.
+ */
 export function DeliveryBookingActions({
   slotId,
   plate,
@@ -80,7 +80,8 @@ export function DeliveryBookingActions({
   slotId: string;
   plate: string | null;
 }) {
-  const t = useCopy();
+  const t = useTranslations("gateway.engagement.deliveries.book");
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [outcome, setOutcome] = useState<string | undefined>(undefined);
   const [editing, setEditing] = useState(false);
@@ -88,10 +89,15 @@ export function DeliveryBookingActions({
     changeDeliveryPlateAction,
     {},
   );
+  useEffect(() => {
+    if (!state.done) return;
+    setEditing(false);
+    router.refresh();
+  }, [state, router]);
   return (
     <div className="flex flex-col gap-8">
       <OutcomeAlert outcome={outcome ?? state.outcome} />
-      {editing && !state.done ? (
+      {editing ? (
         <form
           action={action}
           onSubmit={keepInputOnSubmit(action)}
@@ -103,16 +109,16 @@ export function DeliveryBookingActions({
             name="vehicleIdentifier"
             maxLength={40}
             defaultValue={plate ?? ""}
-            label={t("deliveries.book.plate")}
+            label={t("plate")}
           />
           <Button type="submit" variant="secondary" size="sm" disabled={saving}>
-            {t("deliveries.book.savePlate")}
+            {t("savePlate")}
           </Button>
         </form>
       ) : (
         <div className="flex gap-8">
           <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
-            {t("deliveries.book.changePlate")}
+            {t("changePlate")}
           </Button>
           <Button
             variant="ghost"
@@ -121,11 +127,12 @@ export function DeliveryBookingActions({
             onClick={() =>
               start(async () => {
                 const result = await cancelDeliveryBookingAction(slotId);
-                if (!result.ok) setOutcome(result.outcome);
+                setOutcome(result.ok ? undefined : result.outcome);
+                if (result.ok) router.refresh();
               })
             }
           >
-            {t("deliveries.book.cancel")}
+            {t("cancel")}
           </Button>
         </div>
       )}

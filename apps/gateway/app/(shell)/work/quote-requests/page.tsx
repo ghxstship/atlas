@@ -52,7 +52,7 @@ export default async function QuoteRequestsPage() {
               <p className="m-0 text-text-13">
                 {r.responses_due_at
                   ? t("gateway.work.quoteRequests.due", {
-                      when: formatDateTime(locale, r.responses_due_at),
+                      when: formatDateTime(locale, r.responses_due_at, r.time_zone),
                     })
                   : t("gateway.work.quoteRequests.noDue")}
               </p>
@@ -65,8 +65,8 @@ export default async function QuoteRequestsPage() {
                         ? t("gateway.work.quoteRequests.hireLine", {
                             quantity: l.quantity ?? 0,
                             description: l.description ?? "",
-                            from: formatDateTime(locale, l.hire_from),
-                            to: formatDateTime(locale, l.hire_to),
+                            from: formatDateTime(locale, l.hire_from, r.time_zone),
+                            to: formatDateTime(locale, l.hire_to, r.time_zone),
                           })
                         : t("gateway.work.quoteRequests.line", {
                             quantity: l.quantity ?? 0,

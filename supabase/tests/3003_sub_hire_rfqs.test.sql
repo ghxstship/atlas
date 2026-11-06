@@ -24,6 +24,9 @@ select is(pg_temp.short('cls_truss'), null::numeric, 'nothing asked for, nothing
 insert into world select 'a1', pg_temp.alloc('request', 'dave', 'eng_vendor_a', 'class', 'cls_truss', 15);
 select is(pg_temp.short('cls_truss'), 5::numeric, 'own stock of 10 against 15 requested gives short 5');
 select pg_temp.as_user('carol');
+select is((select s.time_zone from app.asset_shortages(pg_temp.id('org_a'), pg_temp.id('prj_a')) s where s.asset_class_id = pg_temp.id('cls_truss')),
+  (select p.time_zone from app.projects p where p.id = pg_temp.id('prj_a')), 'the row carries the project''s time zone, to read its window in');
+select pg_temp.as_user('carol');
 select ok(not exists (
   select 1 from information_schema.parameters p join information_schema.routines r on r.specific_name = p.specific_name
   where r.routine_schema = 'app' and r.routine_name = 'asset_shortages' and p.parameter_name ilike '%price%'), 'no price column');

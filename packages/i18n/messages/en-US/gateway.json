@@ -482,7 +482,9 @@
         "allocationWindow": "Give the need a start, a later end and a time zone.",
         "advanceLine": "Check each line: choose an item and a whole quantity of 1 or more.",
         "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
-        "title": "Say what the asset is, in up to 200 characters."
+        "title": "Say what the asset is, in up to 200 characters.",
+        "deliveryWindow": "Choose a delivery window.",
+        "deliveryPlate": "Enter a plate or trailer of up to 40 characters."
       },
       "advance": {
         "answer": "Your answer",

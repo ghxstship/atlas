@@ -245,7 +245,13 @@ describe("rfqs", () => {
           p_valid_until: null,
           p_currency_code: "USD",
           p_lines: [
-            { description: "Mics", element_id: null, quantity: 4, unit_price_minor: null, rfq_line_id: null },
+            {
+              description: "Mics",
+              element_id: null,
+              quantity: 4,
+              unit_price_minor: null,
+              rfq_line_id: null,
+            },
           ],
         },
       ],

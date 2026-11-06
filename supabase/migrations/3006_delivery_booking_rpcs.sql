@@ -10,7 +10,7 @@
 --     insert-only (ADR 0150).
 --   * app.cancel_delivery_booking and app.set_delivery_booking_vehicle: the vendor or the coordinator, until check-in.
 --   * app.record_booking_arrival: replayable from Compass (private.sync_rpcs), so security definer as 0935 requires.
---   * api_external.dock_slots gains the three columns at its end, and api_external.delivery_windows lists open, future
+--   * api_external.dock_slots gains four columns at its end, and api_external.delivery_windows lists open, future
 --     windows with places left and no other vendor.
 
 create or replace function app.create_delivery_windows(
@@ -235,11 +235,11 @@ on conflict (rpc) do nothing;
 
 -- External views ----------------------------------------------------------------------------------------------------------------------
 
--- From 1000: three columns at the end, from the same rows.
+-- From 1000: four columns at the end, from the same rows.
 create or replace view api_external.dock_slots as
 select d.id, d.project_id, p.name as project_name, d.zone_id, z.code as zone_code, z.name as zone_name, d.shipment_id,
   s.direction, s.tracking_identifier, d.starts_at, d.ends_at, d.engagement_id,
-  d.reference_code, d.vehicle_identifier, d.delivery_window_id
+  d.reference_code, d.vehicle_identifier, d.delivery_window_id, p.time_zone
 from app.dock_slots d
 join app.projects p on p.id = d.project_id
 join app.zones z on z.id = d.zone_id
@@ -251,6 +251,7 @@ where d.deleted_at is null
 comment on column api_external.dock_slots.reference_code is 'Six-character label to quote at the gate, for a booking; NULL for a slot booked directly.';
 comment on column api_external.dock_slots.vehicle_identifier is 'Plate or trailer number expected on the booking; NULL until given.';
 comment on column api_external.dock_slots.delivery_window_id is 'Delivery window the booking holds a place in; NULL for a slot booked directly.';
+comment on column api_external.dock_slots.time_zone is 'Time zone of the project, for reading the slot''s times.';
 
 create view api_external.delivery_windows as
 select w.id, w.project_id, p.name as project_name, p.time_zone, w.zone_id, z.code as zone_code, z.name as zone_name, w.starts_at, w.ends_at,

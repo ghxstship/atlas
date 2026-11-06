@@ -42,8 +42,12 @@ export interface ProcurementNeed {
   readonly elementId: string | null;
   readonly note: string | null;
   readonly requestedQuantity: number;
+  /** When it is needed: its own window, else the span of its linked requests. */
   readonly neededFrom: string | null;
   readonly neededTo: string | null;
+  /** Its own window only, which is what an edit starts from and writes back; NULL while it follows its requests. */
+  readonly ownFrom: string | null;
+  readonly ownTo: string | null;
   readonly draftedQuantity: number;
   readonly orderedQuantity: number;
   readonly receivedQuantity: number;
@@ -54,6 +58,7 @@ type NeedStatusRow = Database["app"]["Views"]["procurement_need_status"]["Row"];
 
 function toNeed(row: NeedStatusRow): ProcurementNeed {
   const period = parseHirePeriod(row.effective_during as string | null);
+  const own = parseHirePeriod(row.needed_during as string | null);
   return {
     id: row.need_id ?? "",
     key: `${row.project_key ?? ""}-NEED-${row.need_number ?? 0}`,
@@ -69,6 +74,8 @@ function toNeed(row: NeedStatusRow): ProcurementNeed {
     requestedQuantity: row.requested_quantity ?? 0,
     neededFrom: period.startsAt,
     neededTo: period.endsAt,
+    ownFrom: own.startsAt,
+    ownTo: own.endsAt,
     draftedQuantity: row.drafted_quantity ?? 0,
     orderedQuantity: row.ordered_quantity ?? 0,
     receivedQuantity: row.received_quantity ?? 0,
@@ -85,6 +92,16 @@ export async function listProcurementNeeds(
   let query = db.from("procurement_need_status").select("*").eq("org_id", orgId);
   if (projectId) query = query.eq("project_id", projectId);
   return readRows(query.order("created_at", { ascending: false }), toNeed);
+}
+
+/** A project's time zone for a buyer who may not read app.projects; null without a procurement capability on it. */
+export async function getProcurementTimeZone(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await db.rpc("procurement_time_zone", { p_project_id: projectId });
+  if (error) return fail(toDataError(error));
+  return ok((data as string | null) ?? null);
 }
 
 export interface NeedInput {
@@ -358,6 +375,7 @@ export interface AssetShortage {
   readonly shortQuantity: number;
   readonly windowFrom: string;
   readonly windowTo: string;
+  readonly timeZone: string;
   readonly openNeedId: string | null;
   readonly openRfqId: string | null;
 }
@@ -383,6 +401,7 @@ export async function listAssetShortages(
       shortQuantity: r.short_quantity,
       windowFrom: r.window_from,
       windowTo: r.window_to,
+      timeZone: r.time_zone,
       openNeedId: r.open_need_id,
       openRfqId: r.open_rfq_id,
     })),

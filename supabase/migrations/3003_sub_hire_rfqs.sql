@@ -272,7 +272,8 @@ returns table (
   window_from timestamptz,
   window_to timestamptz,
   open_need_id uuid,
-  open_rfq_id uuid
+  open_rfq_id uuid,
+  time_zone text
 )
 language sql
 stable
@@ -297,14 +298,15 @@ as $$
   )
   select s.project_id, p.project_key, s.asset_class_id, c.name, c.element_id, e.unit_basis::text, s.short_quantity, s.window_from, s.window_to,
     case when private.can_on_project(s.project_id, 'procurement.po.read') then s.need_id end,
-    case when private.can_on_project(s.project_id, 'procurement.rfq.read') then private.open_rfq_of_need(s.need_id) end
+    case when private.can_on_project(s.project_id, 'procurement.rfq.read') then private.open_rfq_of_need(s.need_id) end,
+    p.time_zone
   from short s
   join app.projects p on p.id = s.project_id
   join app.asset_classes c on c.id = s.asset_class_id
   join xpms.elements e on e.element_id = c.element_id
   order by p.project_key, c.name;
 $$;
-comment on function app.asset_shortages(uuid, uuid) is 'Short against own stock (B11, G-97): one row per project and asset class with open allocations wanting more than can supply them (private.project_asset_shortage), in the unit of the class element. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. The open need answers procurement.po.read holders and its open RFQ procurement.rfq.read holders. No prices or names. Computed, never stored.';
+comment on function app.asset_shortages(uuid, uuid) is 'Short against own stock (B11, G-97): one row per project and asset class with open allocations wanting more than can supply them (private.project_asset_shortage), in the unit of the class element. Needs advancing.packet.read or procurement.po.read on the project; other projects are omitted. The open need answers procurement.po.read holders and its open RFQ procurement.rfq.read holders. The project''s time zone comes with each row, for reading the window. No prices or names. Computed, never stored.';
 revoke all on function app.asset_shortages(uuid, uuid) from public, anon;
 grant execute on function app.asset_shortages(uuid, uuid) to authenticated, service_role;
 

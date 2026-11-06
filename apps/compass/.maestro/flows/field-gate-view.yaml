@@ -1,12 +1,14 @@
 appId: pro.ghxstship.compass
-# Find a delivery booking by its reference code at the gate, then mark it Arrived (B11, G-115).
-# Named after its file: config.yaml orders flows by name.
+# Find a delivery booking at the gate, then Arrived, Release and Check in (B11, G-115). Seed 3000 holds the booking,
+# whose plate is fixed and whose reference code is random, so the flow finds it by plate; apps/compass/test/gate.test.ts
+# covers the find by code and the offline replay by mutation id. Named after its file: config.yaml orders flows by name.
+# The Producer holds logistics.yard.write, logistics.release.approve and logistics.dock_slot.write.
 name: field-gate-view
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
-      EMAIL: field@example.com
+      EMAIL: producer@example.com
 - tapOn:
     id: "tab-more"
 - tapOn:
@@ -19,3 +21,31 @@ name: field-gate-view
     id: "gate-find"
 - inputText: "NOTHING"
 - assertVisible: "No booking matches"
+- eraseText: 7
+- inputText: "FL GATE-42"
+- extendedWaitUntil:
+    visible:
+      id: "gate-booking-01920000-0000-7000-8000-000000300003"
+    timeout: 10000
+- assertVisible: "Expected"
+- tapOn:
+    id: "gate-arrived-01920000-0000-7000-8000-000000300003"
+- extendedWaitUntil:
+    visible:
+      id: "gate-release-01920000-0000-7000-8000-000000300003"
+    timeout: 10000
+- assertVisible: "Waiting"
+- tapOn:
+    id: "gate-release-01920000-0000-7000-8000-000000300003"
+- extendedWaitUntil:
+    visible: "Released"
+    timeout: 10000
+- tapOn:
+    id: "gate-check-in-01920000-0000-7000-8000-000000300003"
+- extendedWaitUntil:
+    visible: "Checked in"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000

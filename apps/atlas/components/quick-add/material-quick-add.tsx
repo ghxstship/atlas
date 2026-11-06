@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Tag, Textarea } from "@xos/ui";
+import { Button, Input, Select, Tag, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ActionFeedback } from "@/components/collection-kit/kit";
@@ -34,10 +34,13 @@ interface PreviewRow {
 export function MaterialQuickAdd({
   org,
   target,
+  projects,
   onClose,
 }: {
   org: string;
   target: MaterialTarget;
+  /** Across events: the projects the needs may go to, chosen here. */
+  projects?: readonly { value: string; label: string }[];
   onClose: () => void;
 }) {
   const t = useCopy("procurement.needs");
@@ -45,6 +48,7 @@ export function MaterialQuickAdd({
   const [text, setText] = useState("");
   const [rows, setRows] = useState<readonly PreviewRow[] | null>(null);
   const [tooMany, setTooMany] = useState(false);
+  const [projectId, setProjectId] = useState("");
   const [resolving, start] = useTransition();
   const [state, formAction, pending] = useActionState(addMaterialLinesAction, INITIAL);
   const seen = useRef<ActionState | null>(null);
@@ -117,7 +121,7 @@ export function MaterialQuickAdd({
               type="submit"
               form="material-quick-add"
               variant="primary"
-              disabled={pending || rows.length === 0}
+              disabled={pending || rows.length === 0 || (projects !== undefined && !projectId)}
             >
               {t("paste.add", { count: rows.length })}
             </Button>
@@ -133,11 +137,22 @@ export function MaterialQuickAdd({
       >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="targetKind" value={target.kind} />
-        <input
-          type="hidden"
-          name="targetId"
-          value={target.kind === "needs" ? target.projectId : target.purchaseOrderId}
-        />
+        {projects ? (
+          <Select
+            id="material-project"
+            name="targetId"
+            label={t("paste.project")}
+            placeholder={t("paste.chooseProject")}
+            options={[...projects]}
+            onChange={(e) => setProjectId(e.target.value)}
+          />
+        ) : (
+          <input
+            type="hidden"
+            name="targetId"
+            value={target.kind === "needs" ? target.projectId : target.purchaseOrderId}
+          />
+        )}
         <input type="hidden" name="lines" value={payload} />
         <ActionFeedback state={state} refusals="procurement.refusals" />
         <Textarea
@@ -158,7 +173,10 @@ export function MaterialQuickAdd({
           </p>
         ) : null}
         {rows === null ? null : (
-          <ul aria-label={t("paste.previewLabel")} className="m-0 flex list-none flex-col gap-8 p-0">
+          <ul
+            aria-label={t("paste.previewLabel")}
+            className="m-0 flex list-none flex-col gap-8 p-0"
+          >
             {rows.map((r) => (
               <li key={r.key} className="flex flex-wrap items-end gap-8">
                 <Input

@@ -189,7 +189,8 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
     isLiveEngagement(view.engagement.state) && windows.data.some((w) => (w.places_left ?? 0) > 0);
   // A new id with each render: a second click on one form replays its booking, and the next booking is a new one.
   const eventId = randomUUID();
-  if (docks.data.length === 0 && deliveries.data.length === 0 && windows.data.length === 0) {
+  // Windows that are all full leave nothing to book, so the tab still needs its sentence.
+  if (docks.data.length === 0 && deliveries.data.length === 0 && !canBook) {
     return (
       <TabEmpty
         icon="Truck"
@@ -213,7 +214,7 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
                 value: w.id ?? "",
                 label: t("gateway.engagement.deliveries.book.windowLine", {
                   gate: w.zone_name ?? w.zone_code ?? "",
-                  when: w.starts_at ? formatDateTime(locale, w.starts_at) : "",
+                  when: w.starts_at ? formatDateTime(locale, w.starts_at, w.time_zone) : "",
                   places: w.places_left ?? 0,
                 }),
               }))}
@@ -232,8 +233,8 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
               id: d.id ?? "",
               title: d.zone_name ?? d.zone_code ?? "",
               meta: [
-                d.starts_at ? formatDateTime(locale, d.starts_at) : null,
-                d.ends_at ? formatDateTime(locale, d.ends_at) : null,
+                d.starts_at ? formatDateTime(locale, d.starts_at, d.time_zone) : null,
+                d.ends_at ? formatDateTime(locale, d.ends_at, d.time_zone) : null,
                 d.tracking_identifier,
                 d.reference_code
                   ? t("gateway.engagement.deliveries.reference", { code: d.reference_code })

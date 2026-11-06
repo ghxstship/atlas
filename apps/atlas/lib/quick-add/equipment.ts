@@ -24,7 +24,7 @@ export type EquipmentParse =
 /** The most lines one block takes; app.add_procurement_needs and app.add_po_lines refuse above it too. */
 export const EQUIPMENT_LINE_LIMIT = 200;
 
-const BULLET = /^\s*(?:[-*•·–—]|\d+[.)])\s+/u;
+const BULLET = /^\s*(?:[-*•·–\u2014]|\d+[.)])\s+/u;
 const NUMBER = String.raw`\d+(?:[.,]\d+)?`;
 const UNIT = String.raw`(?:ea|each|pcs?|pieces?|units?|uds?|unidad(?:es)?|piezas?)\.?`;
 const X = String.raw`[x×]`;

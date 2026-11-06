@@ -268,10 +268,6 @@ export function nullAwareTotal(amounts: readonly (number | null)[]): number | nu
   return (amounts as number[]).reduce((a, b) => a + b, 0);
 }
 
-/**
- * Responses to an RFQ. Responses are sealed: row level security returns none until the RFQ is
- * Closed or Awarded, so an empty list on an Issued RFQ means sealed, not absent.
- */
 /** The facts a quoted line takes from the request line it answers (B11, G-97). */
 interface RfqLineFacts {
   element_id: string | null;
@@ -281,6 +277,10 @@ interface RfqLineFacts {
   procurement_need_id: string | null;
 }
 
+/**
+ * Responses to an RFQ. Responses are sealed: row level security returns none until the RFQ is
+ * Closed or Awarded, so an empty list on an Issued RFQ means sealed, not absent.
+ */
 export async function listRfqResponses(
   db: XosClient,
   rfqId: string,

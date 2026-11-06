@@ -64,14 +64,13 @@ import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
 const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
 
 /** The order line form, with its hire window warnings, loads with the record page's edit state (R7a). */
-import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
-
 const PoLineForm = dynamic(() => import("./supply-forms").then((m) => m.PoLineForm));
 
 /**

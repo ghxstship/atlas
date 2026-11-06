@@ -98,6 +98,8 @@ select pg_temp.producer('buyer', 'procurement.po.read');
 select pg_temp.as_user('buyer');
 select is((select requested_quantity from app.procurement_need_status where need_id = pg_temp.id('nt')), 15::numeric, 'a buyer without advancing.packet.read reads the true number');
 select ok((select effective_during from app.procurement_need_status where need_id = pg_temp.id('nt')) is not null, 'and the span of the requests');
+select is((select needed_during from app.procurement_need_status where need_id = pg_temp.id('nt')), null::tstzrange, 'its own window stays empty, so an edit form never stores the span');
+select is(app.procurement_time_zone(pg_temp.id('prj_a')), (select time_zone from app.procurement_need_status where need_id = pg_temp.id('nt')), 'and reads the project''s time zone to type times in');
 select is((select count(*)::integer from app.advance_allocations where id = pg_temp.id('rq1')), 0, 'and cannot read the allocations');
 select is((select count(*)::integer from app.allocations_ready_to_consolidate), 0, 'nor the holder names');
 select pg_temp.as_user('xavier');
@@ -126,6 +128,7 @@ select app.consolidate_allocations(array[pg_temp.id('kid')]);
 select is((select count(*)::integer from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('pool')), 0, 'nor a pool with a linked child');
 select pg_temp.producer('adv', 'advancing.packet.read');
 select pg_temp.as_user('adv');
+select is(app.procurement_time_zone(pg_temp.id('prj_a')), null::text, 'no procurement capability reads no time zone');
 select is((select count(*)::integer from app.allocations_ready_to_consolidate), 0, 'advancing.packet.read alone reads nothing there');
 
 -- The backup login reads no new view.

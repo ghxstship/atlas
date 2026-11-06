@@ -26,6 +26,7 @@ import { getTranslate } from "@/lib/shell/translate";
  * unknown, never zero (Section 3.7). The board groups work by the unit's current state, so gear
  * still in maintenance stands out; the calendar places work on the day it was done. Schedule (B11, G-95) is what is
  * due, computed from each plan; Log is the work done. Completing a due plan records work here and moves its next due.
+ * The page stays the Log unless `?section=schedule` asks otherwise, so every view, peek and record link keeps working.
  */
 export default async function MaintenancePage({
   params,
@@ -34,7 +35,7 @@ export default async function MaintenancePage({
   const ctx = await requireNode("assets.maintenance", await params);
   const search = await searchParams;
   const t = await getTranslate();
-  const section = search["section"] === "log" ? "log" : "schedule";
+  const section = search["section"] === "schedule" ? "schedule" : "log";
   const tabs = (
     <SectionTabs
       label={t("assets.schedule.sections")}

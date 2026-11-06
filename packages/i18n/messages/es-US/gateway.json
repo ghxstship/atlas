@@ -482,7 +482,9 @@
         "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria.",
         "advanceLine": "Revisa cada línea: elige un artículo y una cantidad entera de 1 o más.",
         "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
-        "title": "Di qué es el recurso, en hasta 200 caracteres."
+        "title": "Di qué es el recurso, en hasta 200 caracteres.",
+        "deliveryWindow": "Elige una franja de entrega.",
+        "deliveryPlate": "Escribe una placa o remolque de hasta 40 caracteres."
       },
       "advance": {
         "answer": "Tu respuesta",

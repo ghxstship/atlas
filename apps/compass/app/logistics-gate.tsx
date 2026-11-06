@@ -215,8 +215,8 @@ export default function LogisticsGateScreen(): ReactElement {
                 <View key={w.id}>
                   <Text variant="heading16" heading>
                     {t("compass.gateView.window", {
-                      start: formatTime(w.starts_at),
-                      end: formatTime(w.ends_at),
+                      start: formatTime(w.starts_at, timeZone),
+                      end: formatTime(w.ends_at, timeZone),
                       booked: bookings.length,
                       limit: w.vehicle_limit,
                     })}
