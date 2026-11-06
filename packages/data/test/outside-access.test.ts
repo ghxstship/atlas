@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupOutsideAccess,
+  listManageableLiveLinkIds,
   listOutsideAccess,
   type OutsideAccessRow,
 } from "../src/outside-access.ts";
@@ -21,6 +22,17 @@ const row = (source: OutsideAccessRow["source"], sourceId: string): OutsideAcces
 });
 
 describe("outside access", () => {
+  it("reads the live links the reader may share from the view's own check", async () => {
+    const { db: client, calls } = fakeClient({
+      "from:project_outside_access": [okResponse([{ source_id: "a" }, { source_id: "b" }])],
+    });
+    const db = client as unknown as Parameters<typeof listManageableLiveLinkIds>[0];
+    const result = await listManageableLiveLinkIds(db, "p");
+    expect(result.ok && [...result.data]).toEqual(["a", "b"]);
+    expect(JSON.stringify(calls)).toContain("viewer_can_manage");
+    expect(JSON.stringify(calls)).toContain('"p"');
+  });
+
   it("always filters by project, since a file link's project is looked up per row", async () => {
     const { db: client, calls } = fakeClient({
       "from:project_outside_access": [

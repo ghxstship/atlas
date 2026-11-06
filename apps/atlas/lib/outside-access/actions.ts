@@ -57,6 +57,7 @@ import {
   revokeFormLink,
 } from "@xos/data/form-links";
 import { fail, ok, toDataError } from "@xos/data/result";
+import { listManageableLiveLinkIds } from "@xos/data/outside-access";
 import { revokeShareLink } from "@xos/data/share-links";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -64,6 +65,7 @@ import { env } from "@/lib/env";
 import { gatewayUrl } from "@/lib/gateway-url";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { getOrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { dayInZone, endOfDayInZone } from "@/lib/stakeholder-packs/expiry";
 
 /**
@@ -77,6 +79,7 @@ export type OutsideResult<T> =
 
 function refused(error: { kind: string; rule?: string }): { ok: false; error: string } {
   if (error.kind === "refusal" && error.rule) return { ok: false, error: error.rule };
+  if (error.kind === "invalid" || error.kind === "conflict") return { ok: false, error: "invalid" };
   return { ok: false, error: error.kind === "not-found" ? "notFound" : "unexpected" };
 }
 
@@ -326,10 +329,13 @@ export interface PackItemChoice {
   readonly title: string;
 }
 
-/** What the Items step offers: the project's live links, and its Public or Internal files. */
+/**
+ * What the Items step offers: the project's live links the reader may share, as private.manageable_live_link would
+ * accept them, and its Public or Internal files.
+ */
 export async function packItemChoicesAction(ref: ProjectKeyRef): Promise<
   OutsideResult<{
-    readonly links: readonly (LiveLink & { readonly title: string })[];
+    readonly links: readonly LiveLink[];
     readonly files: readonly PackItemChoice[];
   }>
 > {
@@ -338,14 +344,16 @@ export async function packItemChoicesAction(ref: ProjectKeyRef): Promise<
   const db = ctx.org.viewer.db;
   const links = await listLiveLinks(db, { projectId: ctx.project.id });
   if (!links.ok) return refused(links.error);
+  const manageable = await listManageableLiveLinkIds(db, ctx.project.id);
+  if (!manageable.ok) return refused(manageable.error);
   const files = await listPackFileChoices(db, ctx.org.org.id, ctx.project.id);
   if (!files.ok) return refused(files.error);
   return {
     ok: true,
     data: {
-      links: links.data
-        .filter((l) => l.state === "Active" || l.state === "Locked")
-        .map((l) => ({ ...l, title: l.note ?? `${l.kind} ${l.tokenHint}` })),
+      links: links.data.filter(
+        (l) => (l.state === "Active" || l.state === "Locked") && manageable.data.has(l.id),
+      ),
       files: files.data,
     },
   };
@@ -652,30 +660,32 @@ export async function decideIntakeRequestAction(
 
 export async function formLinkOptionsAction(org: string): Promise<
   OutsideResult<{
-    readonly projects: readonly { value: string; label: string }[];
-    readonly today: string;
-    readonly lastDay: string;
+    readonly projects: readonly { value: string; label: string; timeZone: string }[];
+    readonly orgTimeZone: string;
   }>
 > {
   const ctx = await getOrgContext(org);
   if (!ctx) return { ok: false, error: "notFound" };
   const { data, error } = await ctx.viewer.db
     .from("projects")
-    .select("id, name")
+    .select("id, name, time_zone")
     .eq("org_id", ctx.org.id)
     .is("deleted_at", null)
     .order("name")
     .limit(200);
   if (error) return { ok: false, error: "unexpected" };
+  const orgTimeZone = await getOrgTimeZone(ctx);
   return {
     ok: true,
     data: {
-      projects: ((data ?? []) as unknown as { id: string; name: string }[]).map((p) => ({
+      projects: (
+        (data ?? []) as unknown as { id: string; name: string; time_zone: string | null }[]
+      ).map((p) => ({
         value: p.id,
         label: p.name,
+        timeZone: p.time_zone ?? orgTimeZone,
       })),
-      today: dayInZone(0, "UTC"),
-      lastDay: dayInZone(89, "UTC"),
+      orgTimeZone,
     },
   };
 }
@@ -692,8 +702,8 @@ export async function createFormLinkAction(
 ): Promise<OutsideResult<Revealed>> {
   const ctx = await getOrgContext(org);
   if (!ctx) return { ok: false, error: "notFound" };
-  // A form link's expiry is the end of the day in the named project's zone; with none, the end of the UTC day.
-  let zone = "UTC";
+  // A form link's expiry is the end of the day in the named project's zone, else the org's; never a UTC day.
+  let zone = await getOrgTimeZone(ctx);
   if (input.projectId) {
     const { data } = await ctx.viewer.db
       .from("projects")

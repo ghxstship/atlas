@@ -23,6 +23,7 @@ import {
 } from "@/lib/outside-access/actions";
 import { dayInZone } from "@/lib/stakeholder-packs/expiry";
 import type { PackSummary } from "@xos/data/stakeholder-packs";
+import { refusalText } from "./refusal-text";
 import { RevealLines, type HeldReveal } from "./reveal-panel";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
@@ -36,13 +37,11 @@ function useLabels() {
   return useTranslations("projects.outsideAccess.pack") as unknown as Translate;
 }
 
-/** A refusal's copy, with a plain fallback for a rule that has no sentence of its own. */
+/** A refusal's copy; a rule with no sentence of its own names its code. */
 function Refusal({ error }: { error: string | null }) {
   const t = useTranslations("projects.outsideAccess.errors") as unknown as Translate;
   if (!error) return null;
-  return (
-    <InlineAlert tone="danger">{t.has?.(error) === false ? t("unexpected") : t(error)}</InlineAlert>
-  );
+  return <InlineAlert tone="danger">{refusalText(t, error)}</InlineAlert>;
 }
 
 type FormState = { readonly error: string | null; readonly saved?: boolean };
@@ -71,7 +70,7 @@ function DetailsStep({
     });
     if (!saved.ok) return { error: saved.error };
     onSaved(saved.data);
-    return CLEAN;
+    return SAVED;
   }, CLEAN);
   const defaultExpiry = pack
     ? new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" }).format(
@@ -123,10 +122,15 @@ function DetailsStep({
         max={dayInZone(89, timeZone)}
         required
       />
-      <div>
+      <div className="flex flex-wrap items-center gap-8">
         <Button type="submit" variant="primary" loading={pending}>
           {t("saveDetails")}
         </Button>
+        {wasSaved(state) ? (
+          <span role="status" className="text-text-12 text-text-secondary">
+            {t("savedDetails")}
+          </span>
+        ) : null}
       </div>
     </form>
   );
@@ -157,7 +161,9 @@ function ItemsStep({
       setChoices([
         ...result.data.links.map((l) => ({
           value: `link:${l.id}`,
-          label: t("linkChoice", { title: l.title }),
+          label: t("linkChoice", {
+            title: l.note ?? `${t(`linkKinds.${l.kind}`)} ${l.tokenHint}`,
+          }),
           expiresAt: l.expiresAt,
         })),
         ...result.data.files.map((f) => ({
@@ -397,9 +403,19 @@ function DeliveryStep({
 }) {
   const t = useLabels();
   const [cadence, setCadence] = useState<string>(data.schedule?.cadence ?? "Off");
-  const [sent, setSent] = useState<number | null>(null);
+  const [sent, setSent] = useState<{ count: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, start] = useTransition();
+  const live = data.recipients.filter((r) => r.revokedAt === null);
+  const send = (ids: readonly string[] | null, total: number) =>
+    start(async () => {
+      setError(null);
+      setSent(null);
+      const result = await sendPackAction(refs, data.pack.id, ids);
+      if (result.ok) setSent({ count: result.data, total });
+      else setError(result.error);
+      onChanged();
+    });
   const [state, dispatch, pending] = useActionState(async (_s: FormState, form: FormData) => {
     const saved = await savePackScheduleAction(refs, data.pack.id, {
       cadence: String(form.get("cadence") ?? "Off"),
@@ -409,7 +425,7 @@ function DeliveryStep({
     });
     if (!saved.ok) return { error: saved.error };
     onChanged();
-    return CLEAN;
+    return SAVED;
   }, CLEAN);
   return (
     <div className="flex flex-col gap-16">
@@ -422,24 +438,44 @@ function DeliveryStep({
             size="sm"
             variant="secondary"
             loading={sending}
-            onClick={() =>
-              start(async () => {
-                setError(null);
-                const result = await sendPackAction(refs, data.pack.id, null);
-                if (result.ok) setSent(result.data);
-                else setError(result.error);
-                onChanged();
-              })
-            }
+            onClick={() => send(null, live.length)}
           >
             {t("send")}
           </Button>
           {sent === null ? null : (
             <span role="status" className="text-text-12 text-text-secondary">
-              {t("sent", { count: sent })}
+              {sent.count === 0
+                ? t("sentNone")
+                : sent.count < sent.total
+                  ? t("sentSome", { count: sent.count, total: sent.total })
+                  : t("sent", { count: sent.count })}
             </span>
           )}
         </div>
+        {live.length === 0 ? null : (
+          <ul
+            aria-label={t("sendOneHeading")}
+            className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
+          >
+            {live.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-8 py-4">
+                <span className="text-text-13">
+                  {r.fullName} · {r.email}
+                  {r.unsubscribedAt ? ` · ${t("recipientStopped")}` : ""}
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={sending || r.unsubscribedAt !== null}
+                  onClick={() => send([r.id], 1)}
+                >
+                  {t("sendOne", { name: r.fullName })}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <form
         action={dispatch}
@@ -494,12 +530,7 @@ function DeliveryStep({
             }))}
           />
         ) : null}
-        <div>
-          <Button type="submit" variant="primary" loading={pending}>
-            {t("saveSchedule")}
-          </Button>
-        </div>
-      </form>
+  XX      </form>
     </div>
   );
 }

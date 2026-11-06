@@ -502,7 +502,14 @@
       "form_link_unsupported": "Los formularios con fotos, firmas o ubicación GPS solo los llenan los miembros.",
       "form_link_expiry_range": "Un enlace de formulario vence después de hoy y dentro de 90 días.",
       "form_link_revoked": "Un enlace de formulario revocado sigue revocado. Crea un enlace nuevo.",
-      "live_link_revoked": "Un enlace revocado sigue revocado. Crea un enlace nuevo."
+      "live_link_revoked": "Un enlace revocado sigue revocado. Crea un enlace nuevo.",
+      "refusedRule": "Se rechazó ({rule}). Cámbialo e inténtalo de nuevo.",
+      "XOS-ENG-1": "Esta clasificación necesita una base de pago, o una clasificación no remunerada no lleva ninguna. Ajusta la base de pago.",
+      "XOS-ENG-2": "Las contrataciones de empleados necesitan situación laboral y estado FLSA.",
+      "XOS-ENG-3": "La situación laboral, el estado FLSA y los convenios colectivos solo se aplican a empleados.",
+      "XOS-ENG-4": "Las contrataciones aportadas por proveedor deben indicar la cuenta del proveedor.",
+      "XOS-ENG-5": "La regla de horas extra está por debajo del mínimo legal aquí. Elige una tarifa que lo cumpla.",
+      "XOS-ENG-6": "El tipo de tu organización no permite esa clasificación laboral."
     },
     "reveal": {
       "headings": {
@@ -601,7 +608,18 @@
       "signatureLine": "{name} confirmó {item} el {date}",
       "revokePack": "Revocar paquete",
       "revokeConfirm": "¿Revocar este paquete? Ninguno de sus enlaces vuelve a abrirse.",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "linkKinds": {
+        "View": "Vista en vivo",
+        "Display": "Pantalla"
+      },
+      "savedDetails": "Guardado.",
+      "scheduleSaved": "Programación guardada.",
+      "scheduleOff": "Programación desactivada.",
+      "sentNone": "No se envió ningún correo. Quien dejó de recibir estos correos o está en la lista de exclusión de la organización no recibe ninguno, y cada persona recibe como máximo 3 envíos manuales por hora.",
+      "sentSome": "{count} de {total} correos en cola. Quien dejó de recibir estos correos o está en la lista de exclusión de la organización no recibe ninguno, y cada persona recibe como máximo 3 envíos manuales por hora.",
+      "sendOne": "Enviar a {name}",
+      "sendOneHeading": "Enviar a una persona"
     },
     "intake": {
       "title": "Nuevo enlace de alta",

@@ -502,7 +502,14 @@
       "form_link_unsupported": "Forms with photos, signatures or a GPS stamp are filled in by members only.",
       "form_link_expiry_range": "A form link expires after today and within 90 days.",
       "form_link_revoked": "A revoked form link stays revoked. Make a new link instead.",
-      "live_link_revoked": "A revoked link stays revoked. Make a new link instead."
+      "live_link_revoked": "A revoked link stays revoked. Make a new link instead.",
+      "refusedRule": "That was refused ({rule}). Change it and try again.",
+      "XOS-ENG-1": "This classification needs a pay basis, or an unpaid classification has none. Adjust the pay basis.",
+      "XOS-ENG-2": "Employee engagements need an employment status and FLSA status.",
+      "XOS-ENG-3": "Employment status, FLSA status and labor agreements apply only to employees.",
+      "XOS-ENG-4": "Vendor-supplied engagements must name the vendor's account.",
+      "XOS-ENG-5": "The overtime rule is below the legal minimum here. Choose a rate card that meets it.",
+      "XOS-ENG-6": "Your organization type does not permit that worker classification."
     },
     "reveal": {
       "headings": {
@@ -601,7 +608,18 @@
       "signatureLine": "{name} acknowledged {item} on {date}",
       "revokePack": "Revoke pack",
       "revokeConfirm": "Revoke this pack? None of its links opens again.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "linkKinds": {
+        "View": "Live view",
+        "Display": "Display"
+      },
+      "savedDetails": "Saved.",
+      "scheduleSaved": "Schedule saved.",
+      "scheduleOff": "Schedule off.",
+      "sentNone": "No email went out. Nobody who stopped these emails or is on the org's stop list gets one, and each person gets at most 3 manual sends an hour.",
+      "sentSome": "{count} of {total} emails queued. Nobody who stopped these emails or is on the org's stop list gets one, and each person gets at most 3 manual sends an hour.",
+      "sendOne": "Send to {name}",
+      "sendOneHeading": "Send to one person"
     },
     "intake": {
       "title": "New intake link",

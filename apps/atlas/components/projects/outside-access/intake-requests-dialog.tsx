@@ -11,6 +11,7 @@ import {
   type IntakeRequestRow,
   type ProjectKeyRef,
 } from "@/lib/outside-access/actions";
+import { refusalText } from "./refusal-text";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
   has?: (key: string) => boolean;
@@ -48,7 +49,7 @@ function Decide({
     <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
       {state.error ? (
         <InlineAlert tone="danger">
-          {errors.has?.(state.error) === false ? errors("unexpected") : errors(state.error)}
+          {refusalText(errors, state.error)}
         </InlineAlert>
       ) : null}
       <Textarea

@@ -12,6 +12,7 @@ import {
   type Revealed,
 } from "@/lib/outside-access/actions";
 import { RevealPanel } from "./reveal-panel";
+import { refusalText } from "./refusal-text";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
   has?: (key: string) => boolean;
@@ -158,7 +159,7 @@ export function IntakeLinkDialog({
       <div className="flex flex-col gap-16">
         {refusal ? (
           <InlineAlert tone="danger">
-            {errors.has?.(refusal) === false ? errors("unexpected") : errors(refusal)}
+            {refusalText(errors, refusal)}
           </InlineAlert>
         ) : null}
         {created ? (

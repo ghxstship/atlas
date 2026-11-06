@@ -39,6 +39,25 @@ export interface OutsideAccessRow {
   readonly viewerCanManage: boolean;
 }
 
+/**
+ * The project's live links the reader may revoke or put in a pack: what private.can_manage_live_link answers, read
+ * from the access view because the helper is not executable by authenticated. private.manageable_live_link makes the
+ * same check when a pack item is added.
+ */
+export async function listManageableLiveLinkIds(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ReadonlySet<string>>> {
+  const { data, error } = await db
+    .from("project_outside_access")
+    .select("source_id")
+    .eq("project_id", projectId)
+    .in("source", ["Live view link", "Display link"])
+    .eq("viewer_can_manage", true);
+  if (error) return fail(toDataError(error));
+  return ok(new Set(((data ?? []) as unknown as { source_id: string }[]).map((r) => r.source_id)));
+}
+
 export async function listOutsideAccess(
   db: XosClient,
   projectId: string,

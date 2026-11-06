@@ -9,6 +9,8 @@ import {
   formLinkOptionsAction,
   type Revealed,
 } from "@/lib/outside-access/actions";
+import { dayInZone } from "@/lib/stakeholder-packs/expiry";
+import { refusalText } from "@/components/projects/outside-access/refusal-text";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
   has?: (key: string) => boolean;
@@ -29,10 +31,13 @@ export function FormLinkDialog({
   const t = useTranslations("workforce.forms.publicLink") as unknown as Translate;
   const errors = useTranslations("projects.outsideAccess.errors") as unknown as Translate;
   const [options, setOptions] = useState<{
-    projects: readonly { value: string; label: string }[];
-    today: string;
-    lastDay: string;
+    projects: readonly { value: string; label: string; timeZone: string }[];
+    orgTimeZone: string;
   } | null>(null);
+  const [projectId, setProjectId] = useState("");
+  // The days offered and when the last one ends follow the chosen project's zone, else the org's.
+  const zone =
+    options?.projects.find((p) => p.value === projectId)?.timeZone ?? options?.orgTimeZone;
   useEffect(() => {
     void formLinkOptionsAction(org).then((r) => {
       if (r.ok) setOptions(r.data);
@@ -75,7 +80,7 @@ export function FormLinkDialog({
       >
         {state.error ? (
           <InlineAlert tone="danger">
-            {errors.has?.(state.error) === false ? errors("unexpected") : errors(state.error)}
+            {refusalText(errors, state.error)}
           </InlineAlert>
         ) : null}
         <Select
@@ -84,15 +89,24 @@ export function FormLinkDialog({
           label={t("project")}
           help={t("projectHelp")}
           value=""
-          options={[{ value: "", label: t("noProject") }, ...(options?.projects ?? [])]}
+          onChange={(event) => setProjectId(event.target.value)}
+          options={[
+            { value: "", label: t("noProject") },
+            ...(options?.projects ?? []).map((p) => ({ value: p.value, label: p.label })),
+          ]}
         />
         <Input
           id="form-link-expires"
           name="expiresOn"
           type="date"
           label={t("expiresOn")}
-          min={options?.today}
-          max={options?.lastDay}
+          {...(zone
+            ? {
+                min: dayInZone(0, zone),
+                max: dayInZone(89, zone),
+                help: t("expiresHelp", { zone }),
+              }
+            : {})}
           required
         />
         <Input

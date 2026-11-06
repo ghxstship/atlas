@@ -330,7 +330,8 @@
       "expiresOn": "Available until",
       "dailyCap": "Most responses in any 24 hours",
       "onePerEmail": "One response per email",
-      "submit": "Create link"
+      "submit": "Create link",
+      "expiresHelp": "Ends at the end of this day in {zone}."
     }
   },
   "training": {
