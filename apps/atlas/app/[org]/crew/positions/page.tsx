@@ -247,11 +247,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                 defaultReason=""
                 reason={false}
                 action={trashPositionAction}
-                hidden={{
-                  org: crew.slug,
-                  id: p.id,
-                  back: withParams(base, search, { peek: null, full: null }),
-                }}
+                hidden={{ org: crew.slug, id: p.id }}
                 variant="ghost"
               />
             </>

@@ -67,7 +67,9 @@ test("B9: a position holds a shift until it is filled, shortages name it, and wa
   // An open shift held for it.
   await page.goto(`/${slug}/crew/schedule?create=1&week=${day}`);
   const shift = page.getByRole("dialog", { name: "New shift" });
-  await shift.getByLabel("Position").selectOption({ label: "NWL · Stage Manager" });
+  await shift
+    .getByLabel("Position", { exact: true })
+    .selectOption({ label: "NWL · Stage Manager" });
   await shift.getByLabel(/^Starts/).fill(`${day}T08:00`);
   await shift.getByLabel(/^Ends/).fill(`${day}T16:00`);
   await shift.getByRole("button", { name: "New shift" }).click();
@@ -103,10 +105,20 @@ test("B9: a position holds a shift until it is filled, shortages name it, and wa
 
   // A warned person is asked about, from the keyboard, and then assigned.
   await page.goto(`/${slug}/settings/scheduling`);
-  const daily = page.getByLabel("Maximum scheduled hours in a day");
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  const settings = page.getByRole("form", { name: "Settings on this page" });
+  const daily = settings.getByLabel("Maximum scheduled hours in a day");
+  // The page shows seven fields; the limits sit under More fields.
+  await expect(async () => {
+    if (!(await daily.isVisible())) {
+      await settings.getByRole("button", { name: "More fields" }).first().click();
+    }
+    await expect(daily).toBeVisible({ timeout: 2_000 });
+  }).toPass();
   await daily.fill("1");
-  await page.getByRole("button", { name: "Save" }).first().click();
-  await settle(page);
+  const save = settings.getByRole("button", { name: "Save", exact: true });
+  await save.click();
+  await expect(save).toHaveCount(0);
   await page.goto(`/${slug}/crew/schedule?create=1&week=${day}`);
   const open = page.getByRole("dialog", { name: "New shift" });
   await open.getByLabel(/^Starts/).fill(`${day}T18:00`);

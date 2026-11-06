@@ -223,6 +223,15 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
       <Section title={t("gateway.home.needsYou.title")}>
         {failed ? <RegionError /> : null}
+        {query["answered"] === "coming" || query["answered"] === "declined" ? (
+          <p role="status" className="m-0 text-text-13 text-success-text">
+            {t(
+              query["answered"] === "coming"
+                ? "gateway.home.needsYou.stillComingConfirmed"
+                : "gateway.home.needsYou.stillComingDeclined",
+            )}
+          </p>
+        ) : null}
         {feed.length === 0 && !failed ? (
           <EmptyStateLink
             icon="Inbox"

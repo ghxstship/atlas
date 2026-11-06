@@ -49,19 +49,22 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   {
     // No-shows of the project's shifts (B9), so the Crew tab leaves out who was marked. Never the reason: it is
-    // Confidential, and the device only needs to know the mark exists.
+    // Confidential, and the device only needs to know the mark exists. A withdrawn mark comes down with its deleted_at
+    // and stays on the device, since a project's pull removes nothing, so the Crew tab reads live marks only.
     table: "shift_no_shows",
     schema: "app",
     relation: "shift_no_shows",
-    select: "id,org_id,project_id,shift_id,recorded_at",
+    select: "id,org_id,project_id,shift_id,recorded_at,deleted_at",
     projectColumn: "project_id",
   },
   {
-    // The org's break types (B9), so Break offers them offline.
+    // The org's break types (B9), so Break offers them offline. A retired type is still readable and the device drops
+    // it: a punch naming it is refused break_type_unknown.
     table: "break_types",
     schema: "app",
     relation: "break_types",
-    select: "id,org_id,name,paid,planned_minutes,is_default",
+    select: "id,org_id,name,paid,planned_minutes,is_default,deleted_at",
+    map: (r) => (r["deleted_at"] ? {} : r),
   },
   {
     table: "clock_punches",

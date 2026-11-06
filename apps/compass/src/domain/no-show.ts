@@ -30,6 +30,13 @@ export function lateCrew<S extends LateShift>(
   );
 }
 
+/** The shifts with a live no-show: a withdrawn one stays on the device with its deleted_at, and the person is late again. */
+export function markedShiftIds(
+  rows: readonly { readonly shift_id: string; readonly deleted_at?: string | null }[],
+): Set<string> {
+  return new Set(rows.filter((n) => !n.deleted_at).map((n) => n.shift_id));
+}
+
 export function buildNoShow(
   input: {
     readonly shiftId: string;

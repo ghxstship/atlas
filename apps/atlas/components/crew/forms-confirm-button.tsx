@@ -24,6 +24,8 @@ export function ConfirmButton(props: {
   variant?: "primary" | "secondary" | "ghost" | "danger";
   /** Ask for a reason; acts without one say only what will happen. */
   reason?: boolean;
+  /** The reason may be left empty. */
+  reasonOptional?: boolean;
   confirmLabel?: string;
 }) {
   const t = useTranslations("crew.form");
@@ -94,7 +96,7 @@ export function ConfirmButton(props: {
                 label={t("reason")}
                 help={t("reasonHelp")}
                 defaultValue={props.defaultReason}
-                required
+                required={!props.reasonOptional}
                 width="100%"
               />
             )}

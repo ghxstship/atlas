@@ -81,6 +81,7 @@ var REPORT_SOURCES = [
     code: "finance",
     relation: "budget_line_facts",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       {
@@ -140,6 +141,7 @@ var REPORT_SOURCES = [
     code: "procurement",
     relation: "purchase_order_totals",
     orgColumn: "project_id",
+    softDeletes: false,
     currencyColumn: "currency_code",
     fields: [
       {
@@ -225,6 +227,7 @@ var REPORT_SOURCES = [
     code: "crew_hours",
     relation: "crew_shift_hours",
     orgColumn: "org_id",
+    softDeletes: false,
     fields: [
       {
         key: "shift_id",
@@ -268,6 +271,7 @@ var REPORT_SOURCES = [
     code: "crew_responses",
     relation: "crew_responses",
     orgColumn: "org_id",
+    softDeletes: false,
     fields: [
       {
         key: "kind",
@@ -299,6 +303,7 @@ var REPORT_SOURCES = [
     code: "crew_removals",
     relation: "crew_removals",
     orgColumn: "org_id",
+    softDeletes: false,
     fields: [
       {
         key: "removed_at",
@@ -334,6 +339,7 @@ var REPORT_SOURCES = [
     code: "crew_ratings",
     relation: "crew_ratings",
     orgColumn: "org_id",
+    softDeletes: false,
     fields: [
       {
         key: "party_name",
@@ -463,6 +469,7 @@ function planReport(d) {
         ...fields.map((f) => f.field),
         ...(group ? [group] : []),
         ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
+        ...d.filters.filter((f) => known.has(f.field)).map((f) => f.field),
       ]),
     ],
     group,

@@ -47,9 +47,8 @@ test("B9: Still coming? is answered from Needs You", async ({ page }) => {
   const declined = await askAboutShift(`Still Coming ${tag} B`);
 
   await signIn(page, "crew@example.com", "/home");
-  const needs = page
-    .getByRole("list")
-    .filter({ hasText: `Still coming to Still Coming ${tag} A?` });
+  // Either ask finds the list, so it still resolves once the first has left.
+  const needs = page.getByRole("list").filter({ hasText: `Still coming to Still Coming ${tag} ` });
   await expect(needs).toBeVisible();
   // It waits on an answer, so For Your Information leaves it out.
   await expect(page.getByRole("list", { name: "For your information" })).not.toContainText(
@@ -64,6 +63,7 @@ test("B9: Still coming? is answered from Needs You", async ({ page }) => {
       timeout: 2_000,
     });
   }).toPass();
+  await expect(page.getByRole("status").getByText("You're confirmed.")).toBeVisible();
   const [yes] = await sql<{ answer: string }>(
     `select answer::text from app.shift_responses where shift_id = $1 and ask_kind = 'Reconfirmation'`,
     [coming],
@@ -71,10 +71,17 @@ test("B9: Still coming? is answered from Needs You", async ({ page }) => {
   expect(yes?.answer).toBe("Accepted");
 
   const second = needs.getByRole("listitem").filter({ hasText: `Still Coming ${tag} B` });
-  await second.getByRole("button", { name: "Can't make it" }).click();
-  await second.getByLabel("Reason (optional)").fill("Family matter.");
+  const why = second.getByLabel("Reason (optional)");
+  await expect(async () => {
+    // Opens the form; once it is open the same words are its submit, so it is pressed only while the form is shut.
+    if (!(await why.isVisible()))
+      await second.getByRole("button", { name: "Can't make it" }).click();
+    await expect(why).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await why.fill("Family matter.");
   await second.getByRole("button", { name: "Can't make it" }).click();
   await expect(page.getByText(`Still coming to Still Coming ${tag} B?`)).toBeHidden();
+  await expect(page.getByRole("status").getByText("Thanks for letting us know.")).toBeVisible();
   const [no] = await sql<{ answer: string; shift_state: string; engagement_id: string | null }>(
     `select r.answer::text, s.shift_state::text, s.engagement_id from app.shift_responses r
      join app.shifts s on s.id = r.shift_id where r.shift_id = $1 and r.ask_kind = 'Reconfirmation'`,

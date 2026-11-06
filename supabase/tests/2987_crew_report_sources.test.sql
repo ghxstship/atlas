@@ -81,6 +81,32 @@ select pg_temp.as_user('gina');
 select results_eq(format($$select person_name, from_state from app.crew_removals where id in (select id from app.roster_entry_state_transitions where roster_entry_id = %L and to_state = 'Withdrawn')$$, pg_temp.id('e_theo')),
   $$values (null::text, 'Accepted'::text)$$, 'an engagement reader without advancing.packet.read sees the removal, not the name');
 
+-- A queued run of the Crew removals report applies its filter though it does not show from_state: the worker asks for the
+-- filter's column too (planReport), and app.report_run_rows filters only on the columns it is asked for (1050).
+select pg_temp.as_user('olga');
+insert into world select 'e_draft', app.invite_to_roster(pg_temp.id('eng_agency'), 'dee@crestline-staffing.test');
+select pg_temp.as_platform();
+select private.transition_lifecycle('roster_entry', 'app.engagement_roster_entries', 'entry_state', 'app.roster_entry_state_transitions',
+  'roster_entry_id', pg_temp.id('e_draft'), 'Draft', 'Withdrawn', 'Invited by mistake.');
+select pg_temp.as_user('carol');
+with d as (insert into app.report_definitions (membership_id, name, source_code)
+    values (pg_temp.id('carol@org_a'), 'Crew removals', 'crew_removals') returning id)
+  insert into world select 'removals', id from d;
+insert into app.report_fields (report_definition_id, field, aggregate, position) values (pg_temp.id('removals'), 'removed_at', 'None', 1);
+insert into app.report_filters (report_definition_id, field, operator, value_text) values (pg_temp.id('removals'), 'from_state', 'eq', 'Accepted');
+select ok((select count(*) from app.crew_removals where from_state = 'Draft') >= 1, 'a Draft withdrawal is in the source');
+select pg_temp.as_platform();
+with r as (insert into app.report_runs (report_definition_id, run_for_membership_id, export_format)
+    values (pg_temp.id('removals'), pg_temp.id('carol@org_a'), 'CSV') returning id)
+  insert into world select 'removals_run', id from r;
+select set_config('role', 'service_role', true);
+select app.start_report_run(pg_temp.id('removals_run'));
+create temporary table removals_rows as
+  select r from app.report_run_rows(pg_temp.id('removals_run'), array['removed_at', 'from_state'], 1000) r;
+grant select on removals_rows to public;
+select ok((select count(*) from removals_rows) >= 1, 'the queued run reads the removals');
+select is((select count(*)::int from removals_rows where r ->> 'from_state' <> 'Accepted'), 0, 'and leaves out what the filter leaves out');
+
 -- crew_ratings reads only the org's own side, under 0740's rule.
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.crew_ratings), 0, 'another org reads none of the org''s ratings');

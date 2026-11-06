@@ -244,26 +244,27 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
                   ? {
                       detail: <AssignRosterShiftForm shiftId={s.id} options={assignable.data(s)} />,
                     }
-                  : s.roster_entry_id && !s.has_no_show && s.starts_at && hasPassed(s.starts_at)
+                  : s.roster_entry_id && !s.has_no_show
                     ? {
-                        // Started, and nobody marked: the agency's lead says they did not arrive (B9).
-                        detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} />,
+                        // Running, and nobody marked: the agency's lead says they did not arrive (B9).
+                        ...(s.starts_at &&
+                        hasPassed(s.starts_at) &&
+                        !(s.ends_at && hasPassed(s.ends_at))
+                          ? { detail: <MarkNoShowForm shiftId={s.id} noShowId={newNoShowId()} /> }
+                          : {}),
+                        action: (
+                          <ActionButton
+                            action={unassignRosterShiftAction.bind(
+                              null,
+                              s.id,
+                              t("gateway.engagement.staffing.unassignReason"),
+                            )}
+                            label={t("gateway.engagement.staffing.unassign")}
+                            variant="secondary"
+                          />
+                        ),
                       }
-                    : s.roster_entry_id && !s.has_no_show
-                      ? {
-                          action: (
-                            <ActionButton
-                              action={unassignRosterShiftAction.bind(
-                                null,
-                                s.id,
-                                t("gateway.engagement.staffing.unassignReason"),
-                              )}
-                              label={t("gateway.engagement.staffing.unassign")}
-                              variant="secondary"
-                            />
-                          ),
-                        }
-                      : {}
+                    : {}
                 : {}),
             }))}
           />

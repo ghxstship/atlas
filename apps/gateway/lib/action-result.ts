@@ -111,6 +111,16 @@ export const KNOWN_REFUSALS = [
   "notification_action_invalid",
   "notification_action_reason",
   "notification_action_elsewhere",
+  // B9: an agency's lead marks a no-show (migration 2982), and a held or marked shift keeps its worker (2982, 2984);
+  // "Still coming?" takes one answer, before the shift starts (2981).
+  "shift_no_show_self",
+  "shift_no_show_state",
+  "shift_no_show_clocked_in",
+  "shift_no_show_reason",
+  "shift_no_show_frozen",
+  "no_show_id_conflict",
+  "shift_held_for_position",
+  "shift_reconfirm_answered",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

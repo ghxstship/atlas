@@ -93,6 +93,15 @@ describe("placement refusals", () => {
     "roster_shift_closed",
     "roster_entry_not_working",
     "sod_roster_training",
+    // B9: a lead's no-show and the "Still coming?" answer say what happened too.
+    "shift_no_show_self",
+    "shift_no_show_state",
+    "shift_no_show_clocked_in",
+    "shift_no_show_reason",
+    "shift_no_show_frozen",
+    "no_show_id_conflict",
+    "shift_held_for_position",
+    "shift_reconfirm_answered",
   ];
   it("are known refusals with copy in both locales", () => {
     for (const rule of rules) {

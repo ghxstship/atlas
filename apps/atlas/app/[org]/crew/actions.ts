@@ -173,6 +173,10 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
   };
   // Agency staff are placed in the same transaction that writes their slot, so a refusal leaves no slot behind.
   if (worker.kind === "staff") {
+    // The position is a second write, so what t37 would refuse is said first and no shift is left behind.
+    const misfit =
+      position === null ? null : await positionMisfit(db, position, project.data, worker);
+    if (misfit) return positionState({}, t, misfit);
     const saved = await saveRosterShift(db, { ...shift, worker });
     if (!saved.ok || position === null) return done(ctx.org.slug, saved, t);
     const held = await updateShift(db, saved.data.id, { projectPositionId: position });
@@ -188,6 +192,28 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
     projectPositionId: position,
   });
   return positionState(done(ctx.org.slug, created, t), t, created);
+}
+
+/** t37's refusal for agency staff on this position, read before the shift is written. */
+async function positionMisfit(
+  db: XosClient,
+  positionId: string,
+  projectId: string,
+  worker: { readonly engagementId: string },
+): Promise<Result<never> | null> {
+  const { data } = await db
+    .from("project_positions")
+    .select("project_id, engagement_id")
+    .eq("id", positionId)
+    .maybeSingle();
+  if (!data) return null;
+  const rule =
+    data.project_id !== projectId
+      ? "same_project"
+      : data.engagement_id !== worker.engagementId
+        ? "shift_held_for_position"
+        : null;
+  return rule ? { ok: false, error: { kind: "refusal", rule, message: rule } } : null;
 }
 
 /** The agency's engagement of a position, for a shift planned on it with nobody named. */
@@ -218,23 +244,24 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
   if (!unchanged && !worker) return invalid(t, { membershipId: "crew.errors.worker" });
   const position = positionOf(form);
   const positionMoved = position !== (current.data.projectPositionId ?? null);
-  // Off a position first, so the new worker is not held out; onto one last, once the worker fits it.
-  if (positionMoved && position === null) {
-    const off = await updateShift(db, id.data, { projectPositionId: null });
-    if (!off.ok) return positionState({}, t, off);
-  }
   const times_ = {
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
   };
-  const onPosition = positionMoved && position !== null ? { projectPositionId: position } : {};
+  // One write takes the position with the rest, so a refusal leaves the shift as it was.
+  const onPosition = positionMoved ? { projectPositionId: position } : {};
   if (worker === null) {
     const saved = await updateShift(db, id.data, { ...times_, ...onPosition });
     return positionState(done(ctx.org.slug, saved, t), t, saved);
   }
   if (worker.kind === "staff" || held !== null) {
+    // Off a position first, so the new worker is not held out; onto one last, once the worker fits it.
+    if (positionMoved && position === null) {
+      const off = await updateShift(db, id.data, { projectPositionId: null });
+      if (!off.ok) return positionState({}, t, off);
+    }
     // Onto, between or off the agency's roster: the times, the slot and the placement save together
     // (app.save_roster_shift), so a refused placement leaves the shift and its person as they were.
     const saved = await saveRosterShift(db, {

@@ -300,6 +300,7 @@ export async function ShiftsCollection(props: {
               title={t("crew.reconfirm.notComingTitle")}
               description={t("crew.reconfirm.notComingHelp")}
               defaultReason=""
+              reasonOptional
               action={declineComingAction}
               hidden={hidden}
             />

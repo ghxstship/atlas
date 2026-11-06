@@ -208,7 +208,7 @@ export async function trashPositionAction(_: State, form: FormData): Promise<Sta
   const result = await retirePosition(db, id.data);
   if (!result.ok) return failed(t, result.error);
   refresh(ctx.org.slug);
-  return { ok: true, redirect: text(form, "back") || `/${ctx.org.slug}/crew/positions` };
+  return { ok: true };
 }
 
 // Records on a position ---------------------------------------------------------------------------------------------

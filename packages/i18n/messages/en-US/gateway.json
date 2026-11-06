@@ -42,6 +42,14 @@
       "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
       "notification_action_invalid": "This link does not work. Open the item from Home.",
       "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
+      "shift_no_show_self": "You cannot mark yourself as a no-show. Tell the production.",
+      "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
+      "shift_no_show_clocked_in": "This person clocked in on the shift, so they are not a no-show.",
+      "shift_no_show_reason": "Say what happened, so the production knows.",
+      "shift_no_show_frozen": "This shift has a no-show. The production withdraws it before anyone else takes the shift.",
+      "no_show_id_conflict": "This no-show was already recorded for another shift. Reload the page and try again.",
+      "shift_held_for_position": "This shift is held for a position another team fills. Choose a shift on your own slots.",
+      "shift_reconfirm_answered": "This shift has already started or your answer is already in, so there is nothing more to answer.",
       "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
@@ -1384,7 +1392,8 @@
       "stillComingYes": "I'm coming",
       "stillComingNo": "Can't make it",
       "stillComingReason": "Reason (optional)",
-      "stillComingDeclined": "Your planner has been told."
+      "stillComingDeclined": "Thanks for letting us know.",
+      "stillComingConfirmed": "You're confirmed. Thanks for letting us know."
     },
     "fyi": {
       "title": "For your information",

@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { formatElapsed } from "../../src/domain/clock";
-import { buildNoShow, lateCrew } from "../../src/domain/no-show";
+import { buildNoShow, lateCrew, markedShiftIds } from "../../src/domain/no-show";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { formatTime, Gate, ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
 import { Button, Card, ListRow, Screen, Sheet, Tag, Text, TextField } from "../../src/ui";
@@ -43,13 +43,12 @@ function Crew(): ReactElement {
       shift_state?: string;
     }
   >("shifts", (s) => s.project_id === projectId && s.shift_state === "Accepted");
-  const { rows: noShows } = useRows<Row & { project_id: string; shift_id: string }>(
-    "shift_no_shows",
-    (n) => n.project_id === projectId,
-  );
+  const { rows: noShows } = useRows<
+    Row & { project_id: string; shift_id: string; deleted_at?: string | null }
+  >("shift_no_shows", (n) => n.project_id === projectId);
   const names = new Map(roster.map((r) => [r.id, r.display_name]));
   const onSite = new Set(open.map((e) => e.membership_id));
-  const late = lateCrew(shifts, onSite, new Set(noShows.map((n) => n.shift_id)), now);
+  const late = lateCrew(shifts, onSite, markedShiftIds(noShows), now);
   const submitNoShow = async () => {
     if (!marking || !projectId || reason.trim() === "") return;
     await enqueue(

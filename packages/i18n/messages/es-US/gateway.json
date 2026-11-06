@@ -42,6 +42,14 @@
       "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
       "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
       "notification_action_elsewhere": "Este enlace se abre en Atlas. Usa el botón del correo para abrirlo allí.",
+      "shift_no_show_self": "No puedes marcarte como ausente. Avísale a la producción.",
+      "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
+      "shift_no_show_clocked_in": "Esta persona registró su entrada en el turno, así que no está ausente.",
+      "shift_no_show_reason": "Indica qué pasó, para que la producción lo sepa.",
+      "shift_no_show_frozen": "Este turno tiene una ausencia. La producción debe retirarla antes de que otra persona tome el turno.",
+      "no_show_id_conflict": "Esta ausencia ya se registró para otro turno. Vuelve a cargar la página e inténtalo de nuevo.",
+      "shift_held_for_position": "Este turno está reservado para un puesto que cubre otro equipo. Elige un turno de tus propios espacios.",
+      "shift_reconfirm_answered": "Este turno ya empezó o ya respondiste, así que no hay nada más que contestar.",
       "notification_action_reason": "Di por qué lo rechazas.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
@@ -1384,7 +1392,8 @@
       "stillComingYes": "Voy a ir",
       "stillComingNo": "No puedo ir",
       "stillComingReason": "Motivo (opcional)",
-      "stillComingDeclined": "Ya se le avisó a quien planifica."
+      "stillComingDeclined": "Gracias por avisar.",
+      "stillComingConfirmed": "Quedaste confirmado. Gracias por avisar."
     },
     "fyi": {
       "title": "Para tu información",
