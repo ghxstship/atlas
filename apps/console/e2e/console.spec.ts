@@ -214,7 +214,9 @@ test("Trust and Safety upholds a rating dispute without seeing the score", async
     .getByLabel("Reasons sent to the person and the organization", { exact: true })
     .fill("The call sheet shows the person arrived on time, so the statement is false.");
   await form.getByRole("button", { name: "Record the decision" }).click();
-  await expect(form.getByText("Decision recorded and sent.")).toBeVisible();
+  // Decided, the page shows the decision in place of the form.
+  await expect(page.getByText(/^Upheld on .* by Theo Disputes$/)).toBeVisible();
+  await expect(page.getByTestId("decide-rating-dispute")).toHaveCount(0);
 
   const [row] = await sql<{ state: string; ground: string; removed: boolean; score: number }>(
     `select d.dispute_state::text as state, d.decision_ground::text as ground, r.score,
