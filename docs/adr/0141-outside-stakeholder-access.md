@@ -58,6 +58,9 @@ packs stop mailing that address, and a Hard Bounce or Complaint row stops a send
 
 S4.5.4-01 fixes twenty project tabs, every project child in the Atlas sitemap is a tab, and a 21st redraws every project
 baseline. So Outside access is a section, last on Project Settings at `#outside-access`, reachable from the Engagements tab.
+Each row's controls follow `viewer_can_manage` on the view, the check that source's own revoke or regenerate RPC makes, so a
+control never shows to someone the RPC would refuse. A one-time code is held in a list, each until dismissed, because it is
+stored only as a hash and a second reveal must never lose the first.
 Settings is hidden from collaborators, field and viewer roles, and each source's own policy decides the rest. A QR code
 appears only at creation or regeneration, since a hashed token cannot be redrawn. **Owner step (f): say if you want a tab.**
 
