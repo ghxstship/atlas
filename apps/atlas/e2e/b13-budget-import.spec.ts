@@ -1,5 +1,5 @@
 import { expect as baseExpect, test } from "./engine-test";
-import { DEMO_ORG, runImportWorker, signInAs } from "./a36-support";
+import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
 import { localSql, newBudget, newLine, removeBudget } from "./b13-support";
 import { uniqueId } from "./support";
 
@@ -11,7 +11,7 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
 const expect = baseExpect.configure({ timeout: 25_000 });
 
-test("budget lines import from a spreadsheet with a preview", async ({ page, request, baseURL }) => {
+test("budget lines import from a spreadsheet with a preview", async ({ page }) => {
   const id = uniqueId();
   const budgetId = await newBudget(`Import budget ${id}`);
   await newLine(budgetId, 1, "Stage deck", 10000);
@@ -26,18 +26,41 @@ test("budget lines import from a spreadsheet with a preview", async ({ page, req
       `1,Stage deck ${id},5000.04.02,2,150.00`,
       `,New line ${id},5000.04.02,1,`,
     ].join("\n");
-    await page.locator('input[type="file"]').setInputFiles({
+    await page.locator("#import-file").setInputFiles({
       name: `lines-${id}.csv`,
       mimeType: "text/csv",
       buffer: Buffer.from(csv),
     });
-    await page.getByRole("button", { name: "Upload", exact: false }).first().click();
-    await page.waitForURL(/\/import\/[0-9a-f-]{36}/);
-    await runImportWorker(request, baseURL ?? "");
+    await page.getByRole("button", { name: "Upload and read" }).click();
+    await page.waitForURL(/\?import=/);
+    await runImportWorker();
+    await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
+    await page.getByRole("button", { name: "Confirm the mapping" }).click();
+    await runImportWorker();
+    await reloadUntil(page, page.getByRole("heading", { name: "Dry run" }));
+    const dry = page.getByRole("region", { name: "Dry run" });
+    await expect(dry.getByText("New records").locator("..")).toContainText("1");
+    await expect(dry.getByText("Updates").locator("..")).toContainText("1");
+    await page.getByRole("button", { name: "Commit the import" }).click();
+    await runImportWorker();
+    await reloadUntil(page, page.getByRole("heading", { name: "Undo the whole batch" }));
+
+    const lines = await localSql<{ line_number: number; description: string; unit_price_minor: string | null }>(
+      `select line_number, description, unit_price_minor::text from app.budget_lines
+       where budget_id = $1 and deleted_at is null order by line_number`,
+      [budgetId],
+    );
+    expect(lines).toEqual([
+      { line_number: 1, description: `Stage deck ${id}`, unit_price_minor: "15000" },
+      { line_number: 2, description: `New line ${id}`, unit_price_minor: null },
+    ]);
+
+    // Undo removes the created line and restores the updated one.
+    await page.getByRole("button", { name: "Undo the whole batch" }).click();
     await expect
       .poll(async () => {
         const rows = await localSql<{ n: string }>(
-          `select count(*)::text as n from app.import_jobs where budget_id = $1`,
+          `select count(*)::text as n from app.budget_lines where budget_id = $1 and deleted_at is null`,
           [budgetId],
         );
         return rows[0]?.n;
