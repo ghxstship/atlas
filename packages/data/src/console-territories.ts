@@ -42,6 +42,8 @@ export interface OrgOutsideTerritories {
   readonly name: string;
   readonly slug: string;
   readonly countryCode: string | null;
+  /** False for a Gateway company account that has not started Atlas. */
+  readonly usesAtlas: boolean;
   readonly exceptionContract: string | null;
 }
 
@@ -180,6 +182,7 @@ export async function listOrgsOutsideTerritories(
         name: str(r["name"]),
         slug: str(r["slug"]),
         countryCode: strOrNull(r["country_code"]),
+        usesAtlas: bool(r["uses_atlas"]),
         exceptionContract: strOrNull(r["exception_contract"]),
       };
     }),

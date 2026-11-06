@@ -5,7 +5,7 @@ section: operate
 order: 14
 ---
 
-Puede llevar su organización de XOS a otro proveedor, o a su propia instalación de XOS, en cualquier momento. La sección 11.3 de los Términos del servicio establece lo que GHXSTSHIP hace cuando usted cambia, como exige la Ley de Datos de la UE: exportar todos los datos y metadatos exportables en los formatos estructurados que se documentan aquí, dar 30 días de soporte de transición si lo pide y, desde el 12 de enero de 2027, no cobrar cargos por cambio. Esta guía es el proceso; los Términos son el texto vinculante.
+Puede llevar su organización de XOS a otro proveedor, o a su propia instalación de XOS, en cualquier momento. La sección 11.3 de los Términos del servicio establece lo que GHXSTSHIP hace cuando usted cambia: exportar todos los datos y metadatos exportables en los formatos estructurados que se documentan aquí, dar 30 días de soporte de transición si lo pide y, desde el 12 de enero de 2027, no cobrar cargos por cambio. Esta guía es el proceso; los Términos son el texto vinculante.
 
 ## Qué recibe
 

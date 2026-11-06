@@ -1,5 +1,5 @@
 import { countryName, countryOptions } from "@xos/i18n/formats";
-import { offeringNames, type Offering } from "@xos/i18n/offering";
+import { offeringPhrase } from "@xos/i18n/offering";
 import { getLocale } from "next-intl/server";
 import { currentOffering } from "@/lib/offering";
 
@@ -8,16 +8,10 @@ import { currentOffering } from "@/lib/offering";
  * territories, so opening one changes these sentences with no code change.
  */
 
-function namesIn(offering: Offering, locale: string): string {
-  return new Intl.ListFormat(locale, { type: "conjunction" }).format(
-    offeringNames(offering, locale),
-  );
-}
-
 /** The offered territories as one phrase: "the United States". */
 export async function offeredTerritoriesPhrase(): Promise<string> {
   const [offering, locale] = await Promise.all([currentOffering(), getLocale()]);
-  return namesIn(offering, locale);
+  return offeringPhrase(offering, locale);
 }
 
 /** Every country, for the question signup asks. Which ones are offered stays on the server. */
@@ -30,5 +24,5 @@ export async function notOfferedValues(
   country: string,
 ): Promise<{ country: string; territories: string }> {
   const [offering, locale] = await Promise.all([currentOffering(), getLocale()]);
-  return { country: countryName(country, locale), territories: namesIn(offering, locale) };
+  return { country: countryName(country, locale), territories: offeringPhrase(offering, locale) };
 }

@@ -20,6 +20,7 @@
     "partner_is_client": "Una organización cliente no puede tener clientes propios, así que no define una marca predeterminada para clientes.",
     "partner_client_unknown": "Esa organización no es uno de sus clientes.",
     "partner_price_client_immutable": "Un precio se queda con su cliente. Defina un precio para el otro cliente.",
+    "partner_price_currency_not_offered": "Fije este precio en una moneda en la que se ofrece XOS.",
     "partner_depth": "Un socio no puede tener un socio superior, y una organización con clientes no puede volverse cliente.",
     "partner_agreement_missing": "La facturación mayorista empieza cuando la plataforma registra su acuerdo de socio. Contacte a su gerente de cuenta.",
     "partner_no_clients": "Cree una organización cliente antes de ejecutar la facturación mayorista.",

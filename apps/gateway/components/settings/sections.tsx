@@ -33,7 +33,9 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RowList, TabEmpty } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
+import { countryOptions } from "@xos/i18n/formats";
 import { currentOffering } from "@/lib/offering";
+import { offeredTerritoriesPhrase } from "@/lib/territory";
 import { InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
@@ -591,8 +593,11 @@ function SecuritySection(props: SectionProps) {
 }
 
 async function OrganizationsSection(props: SectionProps) {
-  const { ctx, t } = props;
-  const accounts = await listMyAccounts(ctx.db);
+  const { ctx, t, locale } = props;
+  const [accounts, territories] = await Promise.all([
+    listMyAccounts(ctx.db),
+    offeredTerritoriesPhrase(),
+  ]);
   const members = accounts.ok
     ? await Promise.all(accounts.data.map((a) => listAccountMembers(ctx.db, a.id)))
     : [];
@@ -635,6 +640,9 @@ async function OrganizationsSection(props: SectionProps) {
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.organizations.createBody")}
         </p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.organizations.availability", { territories })}
+        </p>
         <SimpleForm
           id="create-account"
           action={createAccountAction}
@@ -655,6 +663,16 @@ async function OrganizationsSection(props: SectionProps) {
               label: t("gateway.settings.organizations.slug"),
               required: true,
               help: t("gateway.settings.organizations.slugHelp"),
+            },
+            {
+              name: "countryCode",
+              kind: "select",
+              label: t("gateway.settings.organizations.country"),
+              required: true,
+              options: [
+                { value: "", label: t("gateway.settings.organizations.countryChoose") },
+                ...countryOptions(locale),
+              ],
             },
           ]}
         />

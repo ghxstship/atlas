@@ -561,11 +561,13 @@ Billing opens with the live catalogue and live keys, a separate owner step: crea
 
 ## Where XOS is offered (OWNER and platform team)
 
-XOS launches in the United States only (ADR 0160). `private.territories` is the one source of truth, and an Administrator opens or closes a territory on the console's Territories page, with a reason, with no deploy. Signup, prices and languages follow within a minute. Before opening a territory, do what the table in ADR 0160 lists for it. After a territory opens, run `pnpm --filter @xos/i18n translate --locale <code>` if its language should read translated, and rerun nothing in Stripe: every price already carries its currency.
+XOS launches in the United States only (ADR 0160). `private.territories` is the one source of truth, and an Administrator opens or closes a territory on the console's Territories page, with a reason, with no deploy. Signup, prices and languages follow within a minute. Before opening a territory, do what the table in ADR 0160 lists for it. Only after a territory opens, run `pnpm --filter @xos/i18n translate --locale <code>` if its language should read translated: email reads a saved language with no territory check, so a catalog written earlier would reach anyone who saved it. Rerun nothing in Stripe: every price already carries its currency.
+
+Before launch, once the live catalogue exists, run one test-mode Checkout from the Billing page and confirm it opens in USD with no currency switcher: `currency` and `adaptive_pricing` on the session were only tested against fakes, and if Stripe refused the combination every plan checkout would fail.
 
 The owner keeps the app stores in step: App Store Connect and Google Play availability set to the United States only. A worker abroad whose store account is in another country cannot download Compass from a United States listing and uses Gateway on the web, or the app already on their phone.
 
-The console's list of organizations outside the offered territories is the review to do before launch and after any close: an organization from before the question has no recorded country.
+The console's list of organizations outside the offered territories is the review to do before launch, after any close and from time to time after that. It includes Gateway company accounts, anyone from before the question, and anyone who called the API or the database without stating a country. A vendor company abroad that a US customer has engaged under a signed contract can be let in with an exception naming that contract; it cannot start a company account by itself.
 
 ## Machine translation (OWNER, Google Cloud Translation)
 

@@ -20,6 +20,7 @@
     "partner_is_client": "A client org cannot have clients of its own, so it sets no default client brand.",
     "partner_client_unknown": "That org is not one of your clients.",
     "partner_price_client_immutable": "A price stays with its client. Set a price for the other client instead.",
+    "partner_price_currency_not_offered": "Set this price in a currency XOS is offered in.",
     "partner_depth": "A partner cannot have a parent partner, and an org with clients cannot become a client.",
     "partner_agreement_missing": "Wholesale billing starts once the platform records your partner agreement. Contact your account manager.",
     "partner_no_clients": "Create a client org before running wholesale billing.",

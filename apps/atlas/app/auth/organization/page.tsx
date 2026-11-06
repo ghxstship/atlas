@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { minimumAgeConfirmed } from "@xos/data/consent";
 import { listSubscribableAccounts } from "@xos/data/identity";
-import { OrganizationForm } from "@/components/auth/forms";
+import { OrganizationForm } from "@/components/auth/organization-form";
 import { SubscribeAccounts } from "@/components/auth/subscribe-account";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { ownerSignupDocuments } from "@/lib/auth/legal";

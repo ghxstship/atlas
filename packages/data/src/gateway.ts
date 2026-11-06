@@ -627,11 +627,17 @@ export async function listMyAccounts(db: XosClient): Promise<Result<ExternalAcco
 /** Creates an external account with the caller as Account Owner (app.create_external_account). */
 export async function createExternalAccount(
   db: XosClient,
-  input: { readonly name: string; readonly slug: string },
+  input: {
+    readonly name: string;
+    readonly slug: string;
+    /** The country the creator states the company is established in (ADR 0160). */
+    readonly countryCode: string;
+  },
 ): Promise<Result<{ accountId: string }>> {
   const { data, error } = await db.rpc("create_external_account", {
     p_name: input.name,
     p_slug: input.slug,
+    p_country_code: input.countryCode,
   });
   if (error) return fail(toDataError(error));
   return ok({ accountId: data });

@@ -241,6 +241,7 @@ export default async function TerritoriesPage() {
             testId="territories-outside"
             columns={[
               t("territories.org"),
+              t("territories.uses"),
               t("territories.country"),
               t("territories.exceptionContract"),
             ]}
@@ -254,6 +255,7 @@ export default async function TerritoriesPage() {
                 >
                   {o.name}
                 </NextLink>,
+                o.usesAtlas ? t("territories.usesAtlas") : t("territories.usesAccount"),
                 o.countryCode ? name(o.countryCode) : t("territories.notRecorded"),
                 o.exceptionContract ?? t("common.none"),
               ],

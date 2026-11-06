@@ -39,6 +39,8 @@ export interface SimpleFormState {
   readonly outcome?: string;
   /** A key under the form's `errorsNamespace`. */
   readonly fieldError?: string;
+  /** Values for that message. */
+  readonly fieldValues?: Readonly<Record<string, string>>;
   readonly done?: boolean;
 }
 
@@ -154,7 +156,11 @@ export function SimpleForm({
       aria-label={label}
       noValidate
     >
-      {state.fieldError ? <InlineAlert tone="danger">{te(state.fieldError)}</InlineAlert> : null}
+      {state.fieldError ? (
+        <InlineAlert tone="danger">
+          {te(state.fieldError, state.fieldValues ? { ...state.fieldValues } : undefined)}
+        </InlineAlert>
+      ) : null}
       <OutcomeAlert outcome={state.outcome} />
       {state.done && !resetOnDone ? (
         <p role="status" className="m-0 text-text-13 text-success-text">

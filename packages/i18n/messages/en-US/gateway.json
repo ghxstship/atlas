@@ -1875,6 +1875,8 @@
       "availability": "Choose a start date and an end date on or after it.",
       "name": "Enter your name, up to 200 characters.",
       "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
+      "accountCountry": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country ({country}), so we did not create this company account. XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation. If your company has a signed contract, ask the organization or your contact at GHXSTSHIP to set it up.",
       "company": "Check the handle and visibility.",
       "website": "Enter a full web address starting with https://.",
       "email": "Enter an email address like team@company.com."
@@ -2092,9 +2094,12 @@
       "leave": "Leave",
       "create": "Create a company account",
       "createBody": "Vendors, agencies, contractor firms and sponsors bid and invoice as a company. You become its Account Owner.",
+      "availability": "XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need a company account: open your invitation.",
       "name": "Company name",
       "slug": "Web address",
       "slugHelp": "2 to 48 lowercase letters, numbers and hyphens.",
+      "country": "Country where the company is established",
+      "countryChoose": "Choose a country",
       "createSubmit": "Create account",
       "created": "Company account created. Act as it from the account menu."
     },

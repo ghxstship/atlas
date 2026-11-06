@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   COUNTRY_CODES,
   countryName,
@@ -10,10 +10,13 @@ import { betaLocales, launchLocales, locales, offeredLocaleList } from "../src/l
 import {
   createOfferingCache,
   DEFAULT_OFFERING,
+  offeringFetch,
   offeringFrom,
   offeringNames,
+  offeringPhrase,
   planFeatureOffered,
   readOffering,
+  type Offering,
   type OfferingClient,
 } from "../src/offering.ts";
 
@@ -94,6 +97,7 @@ describe("where XOS is offered (ADR 0160)", () => {
   it("names the territories in the reader's language", () => {
     expect(offeringNames(DEFAULT_OFFERING, "en-US")).toEqual(["the United States"]);
     expect(offeringNames(DEFAULT_OFFERING, "es-US")).toEqual(["los Estados Unidos"]);
+    expect(offeringPhrase(DEFAULT_OFFERING, "en-US")).toBe("the United States");
   });
 
   it("hides a plan feature that names a closed territory", () => {
@@ -104,6 +108,107 @@ describe("where XOS is offered (ADR 0160)", () => {
       { code: "EEA", nameEn: "", nameEs: "", countries: [], currencies: [], locales: [] },
     ]);
     expect(planFeatureOffered("eu_data_residency", open)).toBe(true);
+  });
+
+  it("answers from the last good read while a refresh is under way, so no page waits on it", async () => {
+    let now = 0;
+    let finish: (offering: Offering) => void = () => undefined;
+    const reads: Promise<Offering>[] = [];
+    const good = offeringFrom([...DEFAULT_OFFERING.territories]);
+    const cached = createOfferingCache(
+      () => {
+        const read = reads.length === 0 ? Promise.resolve(good) : new Promise<Offering>((r) => (finish = r));
+        reads.push(read);
+        return read;
+      },
+      60,
+      () => now,
+    );
+    expect(await cached()).toBe(good);
+    now = 61_000;
+    // The refresh never settles here, and the page still gets its answer.
+    expect(await cached()).toBe(good);
+    expect(await cached()).toBe(good);
+    expect(reads).toHaveLength(2);
+    const fresh = offeringFrom([]);
+    finish(fresh);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(await cached()).toBe(fresh);
+  });
+
+  it("gives the launch state when a read stalls and there is no good read to answer from", async () => {
+    vi.useFakeTimers();
+    try {
+      let reads = 0;
+      const cached = createOfferingCache(
+        () => {
+          reads += 1;
+          return new Promise<Offering>(() => undefined);
+        },
+        60,
+        Date.now,
+        1500,
+      );
+      const first = cached();
+      const second = cached();
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(await first).toBe(DEFAULT_OFFERING);
+      expect(await second).toBe(DEFAULT_OFFERING);
+      expect(reads).toBe(1);
+      // Not kept: the next request asks again.
+      const third = cached();
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(await third).toBe(DEFAULT_OFFERING);
+      expect(reads).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops answering from a good read that has been stale too long", async () => {
+    let now = 0;
+    const good = offeringFrom([...DEFAULT_OFFERING.territories]);
+    let reads = 0;
+    const cached = createOfferingCache(
+      () => {
+        reads += 1;
+        return Promise.resolve(reads === 1 ? good : DEFAULT_OFFERING);
+      },
+      60,
+      () => now,
+      1500,
+      600,
+    );
+    expect(await cached()).toBe(good);
+    now = 659_000;
+    expect(await cached()).toBe(good);
+    now = 660_000;
+    expect(await cached()).toBe(DEFAULT_OFFERING);
+  });
+
+  it("reads every time with no cache, and never answers from an old read", async () => {
+    let answer = offeringFrom([]);
+    const cached = createOfferingCache(() => Promise.resolve(answer), 0);
+    const first = await cached();
+    answer = offeringFrom([...DEFAULT_OFFERING.territories]);
+    expect(await cached()).toBe(answer);
+    expect(await cached()).not.toBe(first);
+  });
+
+  it("gives every read a timeout through its fetch", async () => {
+    const seen: (AbortSignal | null | undefined)[] = [];
+    vi.stubGlobal("fetch", (_: unknown, init?: RequestInit) => {
+      seen.push(init?.signal);
+      return Promise.resolve(new Response("[]"));
+    });
+    try {
+      await offeringFetch("http://x.test", { method: "POST" });
+      expect(seen[0]).toBeInstanceOf(AbortSignal);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("keeps a good read for its time, and never keeps the fallback", async () => {

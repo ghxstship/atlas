@@ -3,8 +3,8 @@ import { launchLocales, offeredLocaleList, type Locale } from "./locales.ts";
 /**
  * Where XOS is offered (ADR 0160). private.territories in the database is the one source of truth, and an operator changes
  * it in the console with no code change; api_public.offered_territories is how every shell reads it. This module is
- * only the reader. Its default is the launch state, the United States alone, and a failed read gives the default, so the
- * failure mode is a closed territory rather than an open one.
+ * only the reader. Its default is the launch state, the United States alone, and a failed or slow read gives the default,
+ * so the failure mode is a closed territory rather than an open one, and never a page left waiting.
  */
 
 export interface OfferedTerritory {
@@ -40,6 +40,16 @@ export const DEFAULT_OFFERING: Offering = offeringFrom([
 
 /** How long a shell keeps the offering, so an operator's change reaches every server within a minute. */
 export const OFFERING_CACHE_SECONDS = 60;
+
+/** How long a good read still answers while newer ones fail, before the launch state does. */
+export const OFFERING_STALE_SECONDS = 600;
+
+/** How long a page waits for the offering: every page in every shell does, so a stalled database must not hold them. */
+export const OFFERING_READ_TIMEOUT_MS = 1500;
+
+/** Give this to the reader's Supabase client: supabase-js sets no timeout of its own, so a stalled read would hang on. */
+export const offeringFetch: typeof fetch = (input, init) =>
+  fetch(input, { ...init, signal: AbortSignal.timeout(OFFERING_READ_TIMEOUT_MS) });
 
 export function offeringFrom(territories: readonly OfferedTerritory[]): Offering {
   return {
@@ -81,29 +91,45 @@ export async function readOffering(db: OfferingClient): Promise<Offering> {
 }
 
 /**
- * A reader that keeps the offering for `ttlSeconds` and answers from the last good read while another is under way. A read
- * that failed is not kept, so the next request asks again. `ttlSeconds` of 0 reads every time, as development does, so
- * a journey that opens a territory sees it at once.
+ * A reader that keeps the offering for `ttlSeconds`. Once that passes, the last good read answers at once while one
+ * request refreshes behind it, for up to `staleSeconds`, so no page waits on a refresh. With no good read to answer from,
+ * callers share the one read under way and wait at most `timeoutMs`, then get the launch state. A failed read is not kept,
+ * so the next request asks again. `ttlSeconds` of 0 reads every time, as development does, so a journey that opens a
+ * territory sees it at once.
  */
 export function createOfferingCache(
   read: () => Promise<Offering>,
   ttlSeconds: number = OFFERING_CACHE_SECONDS,
   clock: () => number = Date.now,
+  timeoutMs: number = OFFERING_READ_TIMEOUT_MS,
+  staleSeconds: number = OFFERING_STALE_SECONDS,
 ): () => Promise<Offering> {
   let entry: { readonly at: number; readonly offering: Offering } | null = null;
   let pending: Promise<Offering> | null = null;
-  return async function cached(): Promise<Offering> {
-    if (entry && clock() - entry.at < ttlSeconds * 1000) return entry.offering;
+  const refresh = (): Promise<Offering> => {
     if (pending) return pending;
-    pending = read()
-      .then((offering) => {
-        if (offering !== DEFAULT_OFFERING) entry = { at: clock(), offering };
-        return offering;
-      })
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<Offering>((resolve) => {
+      timer = setTimeout(() => resolve(DEFAULT_OFFERING), timeoutMs);
+    });
+    const done = read().then((offering) => {
+      if (ttlSeconds > 0 && offering !== DEFAULT_OFFERING) entry = { at: clock(), offering };
+      return offering;
+    });
+    pending = Promise.race([done, late])
+      .catch(() => DEFAULT_OFFERING)
       .finally(() => {
+        clearTimeout(timer);
         pending = null;
       });
     return pending;
+  };
+  return async function cached(): Promise<Offering> {
+    const age = entry ? clock() - entry.at : Number.POSITIVE_INFINITY;
+    if (entry && age < ttlSeconds * 1000) return entry.offering;
+    const refreshed = refresh();
+    if (entry && age < (ttlSeconds + staleSeconds) * 1000) return entry.offering;
+    return refreshed;
   };
 }
 
@@ -130,6 +156,13 @@ export function createOfferingReader(
 /** The offered territories' names in the reader's language, for "XOS is offered to organizations in ...". */
 export function offeringNames(offering: Offering, locale: string): string[] {
   return offering.territories.map((t) => (locale.startsWith("es") ? t.nameEs : t.nameEn));
+}
+
+/** The offered territories as one phrase: "the United States". */
+export function offeringPhrase(offering: Offering, locale: string): string {
+  return new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    offeringNames(offering, locale),
+  );
 }
 
 /**
