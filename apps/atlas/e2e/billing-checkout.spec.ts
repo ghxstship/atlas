@@ -150,7 +150,7 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
   await page.getByRole("button", { name: "Open the billing portal" }).click();
   await page.waitForURL(`${stripe.url}/portal/**`);
   await expect(page.getByRole("heading", { name: "Fake Stripe billing portal" })).toBeVisible();
-  await expect(page.getByText(/^Customer: cus_fake\d+$/)).toBeVisible();
+  await expect(page.getByText(/^Customer: cus_fake[0-9a-f]+$/)).toBeVisible();
   await page.getByRole("link", { name: "Return to XOS" }).click();
   await page.waitForURL(`**/${slug}/settings/billing-and-plan`);
   await expect(page.getByRole("heading", { name: "Billing portal" })).toBeVisible();
