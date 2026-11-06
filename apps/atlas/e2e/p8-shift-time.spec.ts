@@ -53,6 +53,10 @@ test("a minute retime of one record previews and applies", async ({ page }) => {
   const key = await createTask(page, slug, "Run the cue-to-cue", "2027-03-13T14:00");
   await page.goto(`/${slug}/r/${key}`);
   const retime = page.getByRole("region", { name: "Retime by minutes" });
+  await expect(async () => {
+    await page.getByRole("button", { name: "Retime by minutes" }).click({ timeout: 2_000 });
+    await expect(retime).toBeVisible({ timeout: 2_000 });
+  }).toPass();
   await retime.getByLabel("Move by").fill("+1:30");
   await retime.getByRole("button", { name: "Preview" }).click();
   await expect(retime.getByText("Only this record moves.")).toBeVisible();

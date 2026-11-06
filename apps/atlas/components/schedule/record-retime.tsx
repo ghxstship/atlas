@@ -5,7 +5,7 @@ import { shiftUndoRows, type RescheduleMove } from "@xos/data/schedule";
 import { Button, Input } from "@xos/ui";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { ActionError } from "@/components/work/action-result";
 import { ActionErrorAlert, useCopy } from "@/components/work/action-ui";
 import { bulkUpdateAction } from "@/lib/bulk/actions";
@@ -31,8 +31,8 @@ export function parseOffset(text: string): number | null {
 }
 
 /**
- * Minute retime of one dated record (Section 11.11, P8), loaded on demand from the record page for
- * people who may change the timeline. Move by shifts its start and end; Change length by moves its
+ * Minute retime of one dated record (Section 11.11, P8), loaded when a person who may change the
+ * timeline opens it from the record page (record-retime-open.tsx). Move by shifts its start and end; Change length by moves its
  * end only, so the start moves by Move by and the end by Move by plus Change length. Preview asks
  * app.reschedule_record what moves (the record and every successor it pushes, by whole minutes),
  * Apply writes exactly that, and Undo sends the old times back through app.bulk_update_records.
@@ -46,6 +46,9 @@ export function RecordRetime({ org, recordId }: { org: string; recordId: string 
   const [error, setError] = useState<ActionError | null>(null);
   const [said, setSaid] = useState("");
   const [pending, start] = useTransition();
+  // It opens from a button that goes away, so focus moves here.
+  const region = useRef<HTMLElement>(null);
+  useEffect(() => region.current?.focus(), []);
 
   const by = parseOffset(move);
   const longer = parseOffset(length);
@@ -108,7 +111,12 @@ export function RecordRetime({ org, recordId }: { org: string; recordId: string 
   };
   const pushed = moves?.filter((m) => !m.isTarget).length ?? 0;
   return (
-    <section aria-labelledby={`retime-${recordId}`} className="flex flex-col gap-8">
+    <section
+      ref={region}
+      tabIndex={-1}
+      aria-labelledby={`retime-${recordId}`}
+      className="flex flex-col gap-8"
+    >
       <h3 id={`retime-${recordId}`} className="m-0 text-label-13 font-semibold">
         {t("retime.title")}
       </h3>

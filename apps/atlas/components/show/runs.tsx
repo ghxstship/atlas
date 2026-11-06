@@ -65,13 +65,16 @@ import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
-import { CueShift } from "./cue-shift";
-import { ShowcallerConsole } from "./showcaller-console";
 
-// The inline cue editor loads when a person opens it, so the route keeps its weight. The showcaller console and the
-// cue shift render on arrival, so they load with the page: a control still waiting for its chunk would lose a click.
+// These load behind a person's action, so the route keeps its weight. The console never renders on the server: an
+// inert copy of its buttons would lose a click made before its chunk arrives, so they appear when they can answer.
+const ShowcallerConsole = dynamic(
+  () => import("./showcaller-console").then((m) => m.ShowcallerConsole),
+  { ssr: false },
+);
 const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
 const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
+const CueShift = dynamic(() => import("./cue-shift").then((m) => m.CueShift));
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -665,6 +668,7 @@ export function RunBody({
   const params = useSearchParams();
   const rowMenu = useRowMenu();
   const tz = runOfShow.timeZone;
+  const [shifting, setShifting] = useState(false);
   const details = useAction();
   const cueAction = useAction();
   const [name, setName] = useState(runOfShow.name);
@@ -961,12 +965,18 @@ export function RunBody({
           </ol>
         )}
         {canEdit && cues.some((c) => !c.calledAt && c.plannedAt) ? (
-          <CueShift
-            org={org}
-            runId={runOfShow.id}
-            cues={cues}
-            label={(c) => time(c.plannedAt) ?? ""}
-          />
+          shifting ? (
+            <CueShift
+              org={org}
+              runId={runOfShow.id}
+              cues={cues}
+              label={(c) => time(c.plannedAt) ?? ""}
+            />
+          ) : (
+            <div>
+              <Button onClick={() => setShifting(true)}>{t("cueShift.title")}</Button>
+            </div>
+          )
         ) : null}
         {moving ? (
           <MoveCueDialog

@@ -29,7 +29,7 @@ import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
-import { RecordRetime } from "@/components/schedule/record-retime";
+import { RecordRetimeOpen } from "@/components/schedule/record-retime-open";
 import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
@@ -466,7 +466,7 @@ export async function RecordBody({
         )}
       </RegionContent>
       {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
-        <RecordRetime org={org} recordId={record.id} />
+        <RecordRetimeOpen org={org} recordId={record.id} />
       ) : null}
       {dated ? (
         <RegionContent data={detail.actual}>

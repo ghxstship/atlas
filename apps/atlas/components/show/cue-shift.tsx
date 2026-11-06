@@ -5,7 +5,7 @@ import type { Cue } from "@xos/data/show";
 import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useCopy } from "@/components/work/action-ui";
 import { bulkUpdateAction } from "@/lib/bulk/actions";
 
@@ -15,8 +15,8 @@ const LIMIT = 1440;
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 /**
- * Shift the planned times of cues still to come (Section 11.7, P8), loaded on demand by the run of
- * show's edit mode. Each uncalled cue with a planned time gets a checkbox, with one to select every
+ * Shift the planned times of cues still to come (Section 11.7, P8), loaded when a person who edits
+ * the run of show opens it. Each uncalled cue with a planned time gets a checkbox, with one to select every
  * such cue at once; Preview asks app.bulk_update_cues how many move (a called cue keeps its time and
  * is refused, cue_called, so nothing changes), Apply moves them in one transaction, and Undo (the
  * toast or Cmd or Ctrl+Z) sets the old times back. Every step is announced in a live region.
@@ -43,6 +43,9 @@ export function CueShift({
   const [error, setError] = useState<string | null>(null);
   const [said, setSaid] = useState("");
   const [pending, start] = useTransition();
+  // It opens from a button that goes away, so focus moves here.
+  const region = useRef<HTMLElement>(null);
+  useEffect(() => region.current?.focus(), []);
 
   const minutes = /^[+-]?\d{1,4}$/.test(raw.trim()) ? Number(raw.trim()) : Number.NaN;
   const valid = Number.isInteger(minutes) && minutes !== 0 && Math.abs(minutes) <= LIMIT;
@@ -118,7 +121,12 @@ export function CueShift({
   if (open.length === 0) return null;
   const blocked = preview !== null && preview.refused.length > 0;
   return (
-    <section aria-labelledby={`cue-shift-${runId}`} className="flex flex-col gap-8">
+    <section
+      ref={region}
+      tabIndex={-1}
+      aria-labelledby={`cue-shift-${runId}`}
+      className="flex flex-col gap-8"
+    >
       <h3 id={`cue-shift-${runId}`} className="m-0 text-label-13 font-semibold">
         {t("cueShift.title")}
       </h3>

@@ -44,8 +44,11 @@ test("shift the cues still to come and undo it", async ({ page }) => {
   await page.goto(runUrl);
 
   const shift = page.getByRole("region", { name: "Shift cues still to come" });
-  await expect(shift).toBeVisible();
   await settle(page);
+  await expect(async () => {
+    await page.getByRole("button", { name: "Shift cues still to come" }).click({ timeout: 2_000 });
+    await expect(shift).toBeVisible({ timeout: 2_000 });
+  }).toPass();
   await shift.getByLabel("Select all cues still to come (2)").focus();
   await page.keyboard.press("Space");
   await shift.getByLabel("Minutes").fill("+5");

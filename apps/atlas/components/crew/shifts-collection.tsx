@@ -83,8 +83,7 @@ import * as enums from "@xos/data/enums";
 import { createShiftsFromTemplateAction } from "@/app/[org]/crew/scheduling-actions";
 import { FillMeter } from "./fill-meter";
 // The drag board loads only for planners on the resource schedule (A132).
-import { AvailabilityPollResults } from "./availability-poll-results";
-import { SchedulingBoard } from "./lazy-scheduling";
+import { AvailabilityPollResults, SchedulingBoard } from "./lazy-scheduling";
 import { listCommunicationStatus, type CommunicationStatus } from "@xos/data/change-tracking";
 import { markCommunicatedAction } from "@/app/[org]/crew/actions";
 import { CommunicationSection, toldTag } from "./shift-communication";
