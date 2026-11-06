@@ -1,11 +1,14 @@
 "use client";
 
 import { AGE_OLD_ENOUGH, AGE_UNDER } from "@xos/data/consent";
+import type { Route } from "next";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 import {
   acceptSignUpTerms,
   answerAgeQuestion,
+  closeUnderAgeAccount,
   sendMagicLink,
   signInWithPassword,
   signUp,
@@ -330,7 +333,36 @@ export function TermsForm({
   );
 }
 
-/** The age question on its own, for someone who confirmed the earlier age of 16 (/auth/age). */
+/**
+ * What an answer of under 18 does to an existing account, before it does it: closing cannot be undone, so an adult who
+ * chose the wrong answer gets to go back (ADR 0156). No field: the page's whole question is this one button.
+ */
+export function AgeUnderConfirmForm({ back }: { back: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(closeUnderAgeAccount, INITIAL);
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <Button
+        type="submit"
+        variant="danger"
+        disabled={pending}
+        aria-busy={pending}
+        className="w-full"
+      >
+        {t("ageQuestion.under.confirm")}
+      </Button>
+      <Link
+        href={`/auth/age?next=${encodeURIComponent(back)}` as Route}
+        className="text-center text-text-13 text-accent-text underline"
+      >
+        {t("ageQuestion.under.back")}
+      </Link>
+    </form>
+  );
+}
+
+/** The age question on its own, for anyone who has not answered at 18 (/auth/age). */
 export function AgeQuestionForm({ next }: { next: string }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);

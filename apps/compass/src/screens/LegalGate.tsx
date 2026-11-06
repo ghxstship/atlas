@@ -1,8 +1,13 @@
 import type { XosClient } from "@xos/data/client";
-import { confirmMinimumAge, refuseMinimumAge, type AgeRefusal } from "@xos/data/consent";
+import {
+  confirmMinimumAge,
+  readLegalStanding,
+  refuseMinimumAge,
+  type AgeRefusal,
+} from "@xos/data/consent";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import * as Linking from "expo-linking";
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { revokeAppleBeforeDeletion } from "../domain/appleSignIn";
@@ -16,6 +21,7 @@ import {
 } from "../runtime/apple";
 import { useCompass } from "../runtime/CompassProvider";
 import { forgetGoogleAccount } from "../runtime/google";
+import { queuedChanges } from "../runtime/legalGate";
 import { Button, Card, InlineAlert, Screen, Switch, Text, useTheme } from "../ui";
 
 type Step =
@@ -25,6 +31,34 @@ type Step =
   | { readonly kind: "declined" }
   | { readonly kind: "refused" }
   | { readonly kind: "held"; readonly reason: HeldReason; readonly org: string };
+
+/**
+ * Warns when leaving would delete work still on this device: this step comes before Compass opens, so nothing has
+ * uploaded since it last ran, and a sign-out or a closed account wipes the local store. Hours held here are the records
+ * the copy says an org keeps, so the person sees this before they choose.
+ */
+export function QueuedWarning({
+  testID,
+  messageKey,
+}: {
+  readonly testID: string;
+  readonly messageKey: string;
+}): ReactElement | null {
+  const { t } = useTranslation();
+  const { store } = useCompass();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void queuedChanges(store).then((n) => {
+      if (live) setCount(n);
+    });
+    return () => {
+      live = false;
+    };
+  }, [store]);
+  if (count === 0) return null;
+  return <InlineAlert testID={testID} tone="warning" message={t(messageKey, { count })} />;
+}
 
 /**
  * What Compass asks before anything else (legal issue 4, ADR 0156): the age, then the Mobile EULA and, where they apply,
@@ -90,13 +124,18 @@ export function LegalGate({
   const refuse = async () => {
     const answer: { refusal?: AgeRefusal } = {};
     const done = await attempt(async () => {
-      // Apple's sheet comes first, while the account still exists; neither closing it nor a failure holds up the refusal.
-      await revokeAppleBeforeDeletion({
-        signedInWithApple: await accountSignsInWithApple(xos),
-        appleOnDevice: await appleAvailable(),
-        native: loadAppleNative,
-        revoke: appleRevoker(xos, config.supabaseUrl),
-      }).catch(() => undefined);
+      // Nothing is revoked for an account that would not close, or when the server cannot be reached to close it.
+      const standing = await readLegalStanding(xos);
+      if (!standing.ok) return false;
+      if (!standing.data.closingBlocked) {
+        // Apple's sheet comes first, while the account still exists; neither closing it nor a failure holds up the refusal.
+        await revokeAppleBeforeDeletion({
+          signedInWithApple: await accountSignsInWithApple(xos),
+          appleOnDevice: await appleAvailable(),
+          native: loadAppleNative,
+          revoke: appleRevoker(xos, config.supabaseUrl),
+        }).catch(() => undefined);
+      }
       const refused = await refuseMinimumAge(xos, "Compass");
       if (!refused.ok) return false;
       answer.refusal = refused.data;
@@ -115,12 +154,16 @@ export function LegalGate({
     );
   };
 
-  /** The sign-in no longer exists on the server, or may not be used: forget it on this device only. */
-  const leave = async () => {
+  /**
+   * The sign-in no longer exists on the server: forget it on this device. One that is held still exists, so every session
+   * it has ends, and only this device's is forgotten when the server cannot be reached.
+   */
+  const leave = async (held: boolean) => {
     setBusy(true);
     await store?.wipe();
     await forgetGoogleAccount();
-    await client.auth.signOut({ scope: "local" });
+    const ended = held ? await client.auth.signOut({ scope: "global" }) : null;
+    if (!held || ended?.error) await client.auth.signOut({ scope: "local" });
   };
 
   const problem = failed ? (
@@ -171,6 +214,7 @@ export function LegalGate({
       <Screen testID="legal-gate-under" title={t("compass.legalGate.under.title")}>
         <Text>{t("compass.legalGate.under.sentence")}</Text>
         <Text tone="secondary">{t("compass.legalGate.under.keeps")}</Text>
+        <QueuedWarning testID="legal-gate-under-queued" messageKey="compass.legalGate.under.queued" />
         {problem}
         <Button
           testID="legal-gate-under-confirm"
@@ -223,7 +267,7 @@ export function LegalGate({
           loading={busy}
           disabled={busy}
           label={t("compass.common.done")}
-          onPress={() => void leave()}
+          onPress={() => void leave(held)}
         />
       </Screen>
     );
@@ -233,6 +277,10 @@ export function LegalGate({
     return (
       <Screen testID="legal-gate-declined" title={t("compass.legalGate.declined.title")}>
         <Text>{t("compass.legalGate.declined.sentence")}</Text>
+        <QueuedWarning
+          testID="legal-gate-declined-queued"
+          messageKey="compass.legalGate.declined.queued"
+        />
         <Button
           testID="legal-gate-declined-back"
           block

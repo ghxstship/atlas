@@ -62,11 +62,17 @@ try {
     body: JSON.stringify({
       email: email,
       password: XOS_DEMO_PASSWORD,
-      data: { full_name: "Maestro Roster Crew" },
+      // What Compass's first sign-in asks (ADR 0156) is answered here, so the flow opens on Today.
+      data: { full_name: "Maestro Roster Crew", age_confirmed: "18", signup_surface: "Compass" },
     }),
   });
   var person = json(signUp.body).id || json(signUp.body).user.id;
   var crew = signIn(email);
+  rpc(crew, "record_legal_acceptances", {
+    p_org_id: null,
+    p_document_slugs: ["mobile-eula", "worker-terms"],
+    p_document_versions: ["1.0.0-draft", "1.0.0-draft"],
+  });
   var vendor = signIn("vendor@example.com");
   var owner = signIn("owner@example.com");
 

@@ -32,6 +32,16 @@ export interface LegalNeeds {
   readonly changes: readonly LegalReacceptance[];
 }
 
+/**
+ * The announced changes Compass asks about: its own documents, which it can name and link. Anything else a person accepted
+ * elsewhere is for that app to ask.
+ */
+export function askedInCompass(announced: readonly LegalReacceptance[]): LegalReacceptance[] {
+  return announced.filter(
+    (c) => c.documentSlug === MOBILE_EULA.slug || c.documentSlug === WORKER_TERMS.slug,
+  );
+}
+
 export function legalNeeds(
   standing: LegalStanding,
   announced: readonly LegalReacceptance[],
@@ -41,7 +51,7 @@ export function legalNeeds(
   return {
     age: !standing.ageConfirmed,
     documents: wanted.filter((d) => !accepted.has(d.slug)),
-    changes: announced.filter((c) => c.required),
+    changes: askedInCompass(announced).filter((c) => c.required),
   };
 }
 

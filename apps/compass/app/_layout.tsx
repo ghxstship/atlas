@@ -18,7 +18,7 @@ import { useOfferActions } from "../src/runtime/offer-actions";
 import { SystemBanners } from "../src/runtime/systemBanners";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
-import { LegalGate } from "../src/screens/LegalGate";
+import { LegalGate, QueuedWarning } from "../src/screens/LegalGate";
 import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor";
 import { SignIn } from "../src/screens/SignIn";
 import {
@@ -119,6 +119,10 @@ function Gatekeeper(): ReactElement {
           sentence={t("compass.legalGate.connection.sentence")}
           actionLabel={t("compass.common.retry")}
           onRetry={retryIdentity}
+        />
+        <QueuedWarning
+          testID="legal-connection-queued"
+          messageKey="compass.legalGate.declined.queued"
         />
         <Button
           testID="legal-connection-sign-out"

@@ -1053,15 +1053,22 @@
     "ageRefused": {
       "title": "Las cuentas de XOS son para personas de 18 años en adelante",
       "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
-      "closed": "Nos dijiste que tienes menos de 18 años, así que tu inicio de sesión está cerrado. Guardamos un registro de que se rechazó a una persona menor de 18 años, sin nada que te identifique. Si una organización ya tiene registros sobre ti, conserva lo que exige la ley.",
-      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta todavía no se puede eliminar: lo impide una retención legal, un turno abierto o que seas el único propietario de una organización. Contáctanos y terminaremos de cerrarla.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada y tu inicio de sesión se eliminó. XOS solo conserva un recuento mensual de las personas menores de 18 años que rechazó. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
       "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
       "contact": "Contáctanos"
     },
     "ageQuestion": {
       "title": "Confirma tu edad",
       "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
-      "submit": "Continuar"
+      "submit": "Continuar",
+      "under": {
+        "title": "Confirma tu respuesta",
+        "sentence": "Las cuentas de XOS son para personas de 18 años o más. Si tienes menos de 18 años, cerramos esta cuenta.",
+        "consequences": "Al cerrarla, terminan tus membresías, se cancela el trabajo en curso y se elimina tu inicio de sesión. No se puede deshacer. Después, XOS solo conserva un recuento mensual de las personas menores de 18 años que rechazó. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó.",
+        "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
+        "back": "Volver"
+      }
     }
   },
   "roles": {

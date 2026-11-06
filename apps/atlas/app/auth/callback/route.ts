@@ -1,9 +1,9 @@
-import { minimumAgeConfirmed, minimumAgeOutdated } from "@xos/data/consent";
-import { joinBySsoSession } from "@xos/data/identity-providers";
+import { owesAgeAnswer } from "@xos/data/consent";
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
+import { ssoLanding } from "@/lib/auth/sso-landing";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -20,9 +20,10 @@ function goTo(path: string): NextResponse {
  * exchanged for the session cookies, or with the provider's refusal, which goes back to sign-in with
  * its message. `next` survives both ways (safeNext keeps it on this site), so an invitation or an org
  * page is where the person lands once signed in. `provider` is set by signInWithProvider: an OAuth
- * code that cannot be exchanged means the sign-in expired or started in another browser. After an
- * Enterprise single sign-on (A77) the person joins the identity provider's org when it adds people
- * just in time, and lands on that org's Home unless they were going somewhere.
+ * code that cannot be exchanged means the sign-in expired or started in another browser. Anyone who
+ * has not answered the age question answers it first, however they signed in: a provider, single
+ * sign-on and SCIM all make accounts before any form (ADR 0156). Then an Enterprise single sign-on
+ * (A77) joins the identity provider's org when it adds people just in time (lib/auth/sso-landing.ts).
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
@@ -48,20 +49,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const key = authErrorKey(error);
     return back(key === "link_invalid" ? "oauth_expired" : key);
   }
-  const provider = data.user?.app_metadata["provider"];
-  if (typeof provider === "string" && provider.startsWith("sso:")) {
-    const joined = await joinBySsoSession(db);
-    // The org's blocklist (B16, 6050) refused the just-in-time join: the person hears the generic sentence.
-    if (!joined.ok && joined.error.kind === "refusal" && joined.error.rule === "member_blocked") {
-      return back("member_blocked");
-    }
-    if (joined.ok && joined.data && next === "/") return goTo(`/${joined.data.slug}/home`);
-  }
-  // A provider creates the account before any form, and someone who confirmed the earlier age of 16
-  // answers again at 18 (ADR 0156). A failed read lets them on: the org and invite steps still ask.
-  const age = oauth ? await minimumAgeConfirmed(db) : null;
-  if ((age?.ok && !age.data) || (await minimumAgeOutdated(db))) {
-    return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
-  }
-  return goTo(next);
+  // A failed read carries on: the proxy asks at the next page, and the database refuses a join until it is answered.
+  if (await owesAgeAnswer(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  const landing = await ssoLanding(db, data.user?.app_metadata["provider"], next);
+  // The org's blocklist (B16, 6050) refused the just-in-time join: the person hears the generic sentence.
+  return landing === null ? back("member_blocked") : goTo(landing);
 }

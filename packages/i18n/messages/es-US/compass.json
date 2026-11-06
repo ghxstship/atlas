@@ -739,9 +739,10 @@
     "under": {
       "title": "Las cuentas de XOS son para personas de 18 años en adelante",
       "sentence": "Nos dijiste que tienes menos de 18 años, así que no puedes usar Compass con este inicio de sesión. Si continúas, lo cerramos.",
-      "keeps": "Guardamos un registro de que se rechazó a una persona menor de 18 años, sin nada que te identifique. Si una organización ya tiene registros sobre ti, como las horas que trabajaste, conserva lo que exige la ley y verá que tu cuenta se eliminó.",
+      "keeps": "Después, XOS solo conserva un recuento mensual de las personas menores de 18 años que rechazó. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó.",
       "confirm": "Cerrar este inicio de sesión",
-      "back": "Volver"
+      "back": "Volver",
+      "queued": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar este inicio de sesión se eliminan. Si puedes, conéctate y deja que se suban primero."
     },
     "refused": {
       "title": "Tu inicio de sesión está cerrado",
@@ -754,7 +755,7 @@
       "onShift": "Marcaste entrada en {org}, así que tu cuenta no se puede eliminar ahora.",
       "soleOwner": "Eres el único propietario de {org}, así que tu cuenta no se puede eliminar ahora.",
       "other": "Tu cuenta no se puede eliminar ahora.",
-      "next": "No puedes usar Compass con este inicio de sesión. Contáctanos y terminaremos de cerrarlo.",
+      "next": "No puedes usar Compass con este inicio de sesión. Cerramos tu sesión en todos los dispositivos y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
       "contact": "Contáctanos"
     },
     "documents": {
@@ -774,7 +775,8 @@
     "declined": {
       "title": "Compass necesita tu aceptación",
       "sentence": "No puedes usar Compass sin aceptar estos documentos. Puedes revisarlos de nuevo o cerrar sesión.",
-      "back": "Revisar de nuevo"
+      "back": "Revisar de nuevo",
+      "queued": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar sesión se eliminan de este dispositivo."
     },
     "connection": {
       "title": "Conéctate para continuar",

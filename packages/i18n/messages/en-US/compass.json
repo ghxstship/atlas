@@ -739,9 +739,10 @@
     "under": {
       "title": "XOS accounts are for people 18 and older",
       "sentence": "You told us you are under 18, so you cannot use Compass with this sign-in. If you continue, we close it.",
-      "keeps": "We keep a record that someone under 18 was turned away, with nothing that identifies you. If an organization already has records about you, such as hours you worked, it keeps what the law requires and sees that your account was deleted.",
+      "keeps": "XOS then keeps only a monthly count of people under 18 it turned away. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted.",
       "confirm": "Close This Sign-In",
-      "back": "Go Back"
+      "back": "Go Back",
+      "queued": "{count} changes on this device have not uploaded, such as hours you worked. Closing this sign-in deletes them. Connect and let them upload first if you can."
     },
     "refused": {
       "title": "Your sign-in is closed",
@@ -754,7 +755,7 @@
       "onShift": "You are clocked in at {org}, so your account cannot be deleted now.",
       "soleOwner": "You are the only owner of {org}, so your account cannot be deleted now.",
       "other": "Your account cannot be deleted now.",
-      "next": "You cannot use Compass with this sign-in. Contact us and we will finish closing it.",
+      "next": "You cannot use Compass with this sign-in. We signed you out everywhere and will ask again when you sign in. Contact us and we will finish closing it.",
       "contact": "Contact Us"
     },
     "documents": {
@@ -774,7 +775,8 @@
     "declined": {
       "title": "Compass needs your agreement",
       "sentence": "You cannot use Compass without agreeing to these documents. You can review them again or sign out.",
-      "back": "Review Again"
+      "back": "Review Again",
+      "queued": "{count} changes on this device have not uploaded, such as hours you worked. Signing out deletes them from this device."
     },
     "connection": {
       "title": "Connect to continue",

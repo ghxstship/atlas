@@ -7,9 +7,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { XosClient } from "@xos/data/client";
 import { readLegalStanding, type AiChoice } from "@xos/data/consent";
 import { listPendingReacceptances, type LegalReacceptance } from "@xos/data/legal-reacceptance";
+import { Outbox, type LocalStore } from "@xos/sync";
 import * as SecureStore from "expo-secure-store";
 import {
   aiChoiceState,
+  askedInCompass,
   decideGate,
   legalNeeds,
   type AiChoiceState,
@@ -47,7 +49,7 @@ export async function readGate(
     await rememberAiChoice(userId, aiChoice, aiDisclosureVersion);
     return {
       decision,
-      upcoming: announced.data.filter((c) => !c.required),
+      upcoming: askedInCompass(announced.data).filter((c) => !c.required),
       aiChoice: aiChoiceState(aiChoice, aiDisclosureVersion),
     };
   }
@@ -81,6 +83,12 @@ async function rememberedAiChoice(userId: string): Promise<AiChoiceState> {
   } catch {
     return "unknown";
   }
+}
+
+/** How many changes wait on this device to upload; a sign-out or a closed account deletes them. */
+export async function queuedChanges(store: LocalStore | null): Promise<number> {
+  if (!store) return 0;
+  return new Outbox(store).count();
 }
 
 /** Forgets what this device remembers about the person: sign-out wipes it with the local store. */

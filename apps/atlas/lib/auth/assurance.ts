@@ -89,6 +89,19 @@ export function secondFactorRedirect(path: string, search: string, org?: string)
   return `${MFA_PATH}?${query}`;
 }
 
+/**
+ * Whether the age question comes before this path. Pages behind the auth routes ask it themselves or come before it, and
+ * the legal pages stay open so a person can read what they are asked about (ADR 0156).
+ */
+export function asksAgeFirst(path: string): boolean {
+  return !path.startsWith("/auth/") && path !== "/legal" && !path.startsWith("/legal/");
+}
+
+/** The age question for a request, carrying where to return. */
+export function ageRedirect(path: string, search: string): string {
+  return `/auth/age?next=${nextOf(path, search)}`;
+}
+
 /** Where an org's decision sends the request, or null to let it through. */
 export function orgAuthRedirect(
   decision: OrgAuthDecision,

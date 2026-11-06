@@ -49,9 +49,20 @@ function insert(token, table, row) {
 function signUp(email, name) {
   var res = http.post(SUPABASE_URL + "/auth/v1/signup", {
     headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email, password: XOS_DEMO_PASSWORD, data: { full_name: name } }),
+    // What Compass's first sign-in asks (ADR 0156) is answered here, so the flow opens on its own screen.
+    body: JSON.stringify({
+      email: email,
+      password: XOS_DEMO_PASSWORD,
+      data: { full_name: name, age_confirmed: "18", signup_surface: "Compass" },
+    }),
   });
-  return json(res.body).id || json(res.body).user.id;
+  var person = json(res.body).id || json(res.body).user.id;
+  rpc(signIn(email), "record_legal_acceptances", {
+    p_org_id: null,
+    p_document_slugs: ["mobile-eula", "worker-terms"],
+    p_document_versions: ["1.0.0-draft", "1.0.0-draft"],
+  });
+  return person;
 }
 
 var stamp = new Date().getTime();

@@ -10,7 +10,7 @@ import {
   ageMetadata,
   confirmMinimumAge,
   minimumAgeConfirmed,
-  minimumAgeOutdated,
+  owesAgeAnswer,
   recordAgeRefusal,
   refuseMinimumAge,
 } from "@xos/data/consent";
@@ -83,13 +83,9 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
-  const target = holdsFactor ? secondFactorRedirect(next, "") : next;
-  // Someone who confirmed the earlier age of 16 answers again at 18 (migration 6155).
-  redirect(
-    ((await minimumAgeOutdated(db))
-      ? `/auth/age?next=${encodeURIComponent(target)}`
-      : target) as Route,
-  );
+  if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
+  // Likewise anyone who has not answered at 18: an earlier 16, or a provider's account (ADR 0156).
+  redirect(((await owesAgeAnswer(db)) ? `/auth/age?next=${encodeURIComponent(next)}` : next) as Route);
 }
 
 /** The terms box was ticked; account creation needs it (Section 14.4, finding A59-025). */
@@ -113,21 +109,26 @@ async function stopSignUpIfUnderAge(form: FormData): Promise<void> {
 }
 
 /**
- * An answer of under 18 from someone already signed in, whose account a provider or an earlier rule
- * made: the account closes (app.refuse_minimum_age) and the session goes with it.
+ * An answer of under 18 from someone already signed in, whose account a provider or an earlier rule made. It closes the
+ * account, so one radio button never does that alone: /auth/age says what closing means and asks them to confirm
+ * (closeUnderAgeAccount), and lets them go back to `back`.
  */
-async function stopAccountIfUnderAge(form: FormData): Promise<void> {
+async function stopAccountIfUnderAge(form: FormData, back: string): Promise<void> {
   if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  redirect(`/auth/age?under=1&next=${encodeURIComponent(back)}` as Route);
+}
+
+/**
+ * The person confirmed they are under 18: the account closes (app.refuse_minimum_age) and the session goes with it. An
+ * account that cannot close yet stays, so every session it has ends, and it is asked again at its next sign-in.
+ */
+export async function closeUnderAgeAccount(): Promise<FormState> {
   const db = await createServerSupabase();
   const refused = await refuseMinimumAge(db, "Gateway");
-  if (!refused.ok)
-    throw new Error(`The refusal was not recorded: ${JSON.stringify(refused.error)}`);
-  await db.auth.signOut({ scope: "local" });
-  redirect(
-    refused.data.outcome === "Account Held"
-      ? "/auth/age-refused?outcome=held"
-      : "/auth/age-refused?outcome=closed",
-  );
+  if (!refused.ok) return { error: "unexpected" };
+  const held = refused.data.outcome === "Account Held";
+  await db.auth.signOut({ scope: held ? "global" : "local" });
+  redirect(`/auth/age-refused?outcome=${held ? "held" : "closed"}`);
 }
 
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
@@ -264,8 +265,8 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
  * finding A59-025). The account exists already, so the acceptance goes straight to the log.
  */
 export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<FormState> {
-  await stopAccountIfUnderAge(form);
   const next = safeNext(form.get("next"), HOME);
+  await stopAccountIfUnderAge(form, `/auth/terms?next=${encodeURIComponent(next)}`);
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
@@ -290,12 +291,12 @@ export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<F
 }
 
 /**
- * The age question on its own, for someone who confirmed the earlier age of 16 (/auth/age). They answer
- * once, and go on to where they were going.
+ * The age question on its own (/auth/age), for anyone who has not answered at 18. They answer once,
+ * and go on to where they were going.
  */
 export async function answerAgeQuestion(_: FormState, form: FormData): Promise<FormState> {
-  await stopAccountIfUnderAge(form);
   const next = safeNext(form.get("next"), HOME);
+  await stopAccountIfUnderAge(form, next);
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);

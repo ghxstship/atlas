@@ -7,7 +7,7 @@ import {
   confirmMinimumAge,
   MINIMUM_AGE,
   minimumAgeConfirmed,
-  minimumAgeOutdated,
+  owesAgeAnswer,
   parseLegalStanding,
   readLegalStanding,
   recordAiChoice,
@@ -105,12 +105,17 @@ describe("18 or older", () => {
     expect(ageMetadata("Gateway")).toEqual({ age_confirmed: "18", signup_surface: "Gateway" });
   });
 
-  it("tells a confirmation under the earlier rule from none, and treats a failure as neither", async () => {
+  it("owes an answer only when the server says none was given, and lets a failed read through", async () => {
     const { db } = fakeClient({
-      "rpc:minimum_age_outdated": [okResponse(true), errorResponse("42501", "not signed in")],
+      "rpc:minimum_age_confirmed": [
+        okResponse(false),
+        okResponse(true),
+        errorResponse("42501", "not signed in"),
+      ],
     });
-    expect(await minimumAgeOutdated(db)).toBe(true);
-    expect(await minimumAgeOutdated(db)).toBe(false);
+    expect(await owesAgeAnswer(db)).toBe(true);
+    expect(await owesAgeAnswer(db)).toBe(false);
+    expect(await owesAgeAnswer(db)).toBe(false);
   });
 
   it("closes the account of someone who answers under 18, and says why when it cannot", async () => {
@@ -174,6 +179,7 @@ describe("what a sign-in owes", () => {
           worker_terms_apply: false,
           ai_choice: "Allowed",
           ai_disclosure_version: "2026-11-06",
+          closing_blocked: true,
         }),
         errorResponse("42501", "not signed in"),
       ],
@@ -186,6 +192,7 @@ describe("what a sign-in owes", () => {
         workerTermsApply: false,
         aiChoice: "Allowed",
         aiDisclosureVersion: "2026-11-06",
+        closingBlocked: true,
       },
     });
     expect((await readLegalStanding(db)).ok).toBe(false);
@@ -195,6 +202,7 @@ describe("what a sign-in owes", () => {
       workerTermsApply: true,
       aiChoice: null,
       aiDisclosureVersion: null,
+      closingBlocked: false,
     });
   });
 

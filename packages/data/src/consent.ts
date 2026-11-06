@@ -159,17 +159,11 @@ export function ageMetadata(surface: AgeSurface): {
   return { age_confirmed: AGE_OLD_ENOUGH, signup_surface: surface };
 }
 
-/** Whether the signed-in person has confirmed they are 18 or older. */
+/** Whether the signed-in person has confirmed they are 18 or older. A confirmation at 16 does not count. */
 export async function minimumAgeConfirmed(db: XosClient): Promise<Result<boolean>> {
   const { data, error } = await db.rpc("minimum_age_confirmed");
   if (error) return fail(toDataError(error));
   return ok(data === true);
-}
-
-/** Whether they confirmed 16 under the earlier rule and have not answered at 18 (migration 6155). */
-export async function minimumAgeOutdated(db: XosClient): Promise<boolean> {
-  const { data, error } = await db.rpc("minimum_age_outdated");
-  return !error && data === true;
 }
 
 /** Records the signed-in person's confirmation (app.confirm_minimum_age); the first one stands. */
@@ -197,9 +191,9 @@ export type AgeRefusal =
     };
 
 /**
- * The signed-in person answered that they are under 18 (app.refuse_minimum_age, migration 6155): the
- * account goes, and the refusal is recorded with nothing that identifies them. After it the session
- * has no sign-in behind it, so the caller only forgets it on this device.
+ * The signed-in person answered that they are under 18 and confirmed it (app.refuse_minimum_age, migration 6155): the
+ * account goes, with what XOS itself holds about them, and the refusal is recorded with nothing that names them. After
+ * it the session has no sign-in behind it. An account that is held keeps its sign-in, so the caller ends every session.
  */
 export async function refuseMinimumAge(
   db: XosClient,
@@ -218,6 +212,15 @@ export async function refuseMinimumAge(
   return ok({
     outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed",
   });
+}
+
+/**
+ * Whether a signed-in request still owes the age question, so a shell's proxy sends it to /auth/age first (ADR 0156). A
+ * failed read lets it through: the database still refuses joining an org and AI features until the answer is recorded.
+ */
+export async function owesAgeAnswer(db: XosClient): Promise<boolean> {
+  const age = await minimumAgeConfirmed(db);
+  return age.ok && !age.data;
 }
 
 /**
@@ -248,6 +251,8 @@ export interface LegalStanding {
   readonly aiChoice: AiChoice | null;
   /** The version of the words shown with that choice. */
   readonly aiDisclosureVersion: string | null;
+  /** A legal hold, an open shift or being an only owner would stop this account closing now. */
+  readonly closingBlocked: boolean;
 }
 
 export function parseLegalStanding(raw: Record<string, unknown>): LegalStanding {
@@ -260,6 +265,7 @@ export function parseLegalStanding(raw: Record<string, unknown>): LegalStanding 
     workerTermsApply: raw["worker_terms_apply"] !== false,
     aiChoice: choice === "Allowed" || choice === "Declined" ? choice : null,
     aiDisclosureVersion: typeof version === "string" ? version : null,
+    closingBlocked: raw["closing_blocked"] === true,
   };
 }
 

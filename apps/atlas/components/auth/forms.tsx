@@ -2,11 +2,14 @@
 
 import { AGE_OLD_ENOUGH, AGE_UNDER } from "@xos/data/consent";
 import { slugFromName } from "@xos/data/slug";
+import type { Route } from "next";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   acceptInvitation,
   answerAgeQuestion,
+  closeUnderAgeAccount,
   createOrganizationAction,
   signInWithEmail,
   signUpWithEmail,
@@ -262,7 +265,7 @@ export function OrganizationForm({
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
-  /** The person has not confirmed they are 18 or older yet (a first Google sign-in). */
+  /** The person has not confirmed they are 18 or older yet (a first provider sign-in). */
   askAge?: boolean;
 }) {
   const t = useAuthCopy();
@@ -343,7 +346,7 @@ export function OrganizationForm({
   );
 }
 
-/** The age question on its own, for someone who confirmed the earlier age of 16 (/auth/age). */
+/** The age question on its own, for anyone who has not answered at 18 (/auth/age). */
 export function AgeQuestionForm({ next }: { next: string }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);
@@ -358,6 +361,29 @@ export function AgeQuestionForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <AgeConfirmation id="age-question" state={state} />
       <Submit pending={pending}>{t("ageQuestion.submit")}</Submit>
+    </form>
+  );
+}
+
+/**
+ * What an answer of under 18 does to an existing account, before it does it: closing cannot be undone, so an adult who
+ * chose the wrong answer gets to go back (ADR 0156). No field: the page's whole question is this one button.
+ */
+export function AgeUnderConfirmForm({ back }: { back: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(closeUnderAgeAccount, INITIAL);
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <Button type="submit" variant="danger" loading={pending} className="w-full">
+        {t("ageQuestion.under.confirm")}
+      </Button>
+      <Link
+        href={`/auth/age?next=${encodeURIComponent(back)}` as Route}
+        className="text-center text-text-13 text-accent-text underline"
+      >
+        {t("ageQuestion.under.back")}
+      </Link>
     </form>
   );
 }
