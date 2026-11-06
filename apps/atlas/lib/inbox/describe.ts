@@ -74,6 +74,7 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.weather_alerts": "site-ops/weather",
   "app.occupancy_counters": "site-ops/occupancy",
   invoices: "finance/invoices",
+  quote_versions: "finance/quotes",
   "app.invoices": "finance/invoices",
   incidents: "safety/incidents",
   "app.incidents": "safety/incidents",

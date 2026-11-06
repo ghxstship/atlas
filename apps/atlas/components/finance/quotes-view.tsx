@@ -24,7 +24,6 @@ import {
   SendQuoteButton,
   SigningLinkButton,
 } from "./quote-client";
-import { RecordCollab } from "./record";
 import { CLIENT_QUOTE_STATE } from "./quote-states";
 
 /**
@@ -294,7 +293,6 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                 ])}
               />
             </Section>
-            <RecordCollab ctx={ctx} table="app.quotes" id={q.id} canUpload={canWrite} />
           </>
         ),
       };
