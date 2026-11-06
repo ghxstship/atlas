@@ -521,3 +521,21 @@ kinds:
         test: supabase/tests/2694_allocation_cascades.test.sql
       - emitter: supabase/migrations/2694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/2694_allocation_cascades.test.sql
+  # Crew onboarding and recruitment (B10: 2992, 2994). A registrant receives them through private.party_org_ids (2995),
+  # and an engaged person through their engagement.
+  - kind: crew_registration.decided
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2992_crew_registrations.sql#private.decide_crew_registration
+        test: supabase/tests/2992_crew_registrations.test.sql
+  - kind: crew_registration.invited
+    category: opportunities
+    channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/2992_crew_registrations.sql#app.invite_to_registration_page
+        test: supabase/tests/2992_crew_registrations.test.sql
+  - kind: engagement_document.sent
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2994_engagement_document_batches.sql#app.send_engagement_document_batch
+        test: supabase/tests/2994_engagement_document_batches.test.sql

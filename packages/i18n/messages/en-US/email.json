@@ -340,6 +340,22 @@
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
       }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} approved your registration} other {{orgName} did not select you this time}}",
+        "body": "{outcome, select, approved {You are on the crew list for {title}. Watch Explore for work from {orgName}.} other {Thank you for registering on {title}. You can register again when the page opens.}}"
+      },
+      "invited": {
+        "subject": "{orgName} invites you to register: {title}",
+        "body": "Open the page in Gateway to register with {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} sent you {title} to sign",
+        "body": "Read it in Gateway and sign it with your name, or decline it with a reason."
+      }
     }
   },
   "notification": {
@@ -410,6 +426,8 @@
     "accountSubject": "{inviterName} invites you to {accountName} on XOS",
     "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
     "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
-    "action": "Sign in to Gateway"
+    "action": "Sign in to Gateway",
+    "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
+    "poolRole": "Role: {jobTitle}"
   }
 }

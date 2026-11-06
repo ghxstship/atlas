@@ -950,4 +950,40 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
       body: "kinds.allocation.withdrawn.body",
     },
   },
+  {
+    kind: "crew_registration.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.crew_registration.decided.subject",
+      body: "kinds.crew_registration.decided.body",
+    },
+  },
+  {
+    kind: "crew_registration.invited",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.crew_registration.invited.subject",
+      body: "kinds.crew_registration.invited.body",
+    },
+  },
+  {
+    kind: "engagement_document.sent",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.engagement_document.sent.subject",
+      body: "kinds.engagement_document.sent.body",
+    },
+  },
 ];

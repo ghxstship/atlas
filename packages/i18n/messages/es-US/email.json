@@ -340,6 +340,22 @@
         "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
         "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
       }
+    },
+    "crew_registration": {
+      "decided": {
+        "subject": "{outcome, select, approved {{orgName} aprobó tu registro} other {{orgName} no te seleccionó esta vez}}",
+        "body": "{outcome, select, approved {Estás en la lista de equipo de {title}. Revisa Explorar para ver trabajos de {orgName}.} other {Gracias por registrarte en {title}. Puedes registrarte de nuevo cuando la página abra.}}"
+      },
+      "invited": {
+        "subject": "{orgName} te invita a registrarte: {title}",
+        "body": "Abre la página en Gateway para registrarte con {orgName}."
+      }
+    },
+    "engagement_document": {
+      "sent": {
+        "subject": "{orgName} te envió {title} para firmar",
+        "body": "Léelo en Gateway y fírmalo con tu nombre, o recházalo con un motivo."
+      }
     }
   },
   "notification": {
@@ -410,6 +426,8 @@
     "accountSubject": "{inviterName} te invita a {accountName} en XOS",
     "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
     "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
-    "action": "Iniciar sesión en Gateway"
+    "action": "Iniciar sesión en Gateway",
+    "poolSubject": "{inviterName} te invita a unirte a la lista de equipo de {orgName}",
+    "poolRole": "Rol: {jobTitle}"
   }
 }
