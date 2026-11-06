@@ -284,7 +284,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "expenses",
     select:
-      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,deleted_at",
+      "id,org_id,budget_line_id,submitter_person_id,description,incurred_on,amount_minor,currency_code,expense_state,created_at,is_reimbursable,credit_of_expense_id,deleted_at",
     personColumn: "submitter_person_id",
     map: (r) => (r["deleted_at"] ? {} : { ...r, amount_minor: Number(r["amount_minor"]) }),
   },

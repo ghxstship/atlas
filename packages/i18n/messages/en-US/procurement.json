@@ -398,6 +398,12 @@
     "asset_lot_insufficient": "Not enough of this item is on hand at that venue.",
     "goods_return_immutable": "A return keeps its purchase order, returner and reason.",
     "hire_period_order": "The hire must end after it starts.",
+    "po_instalments_exceed_order": "The schedule would go beyond the order's total of lines, approved changes, tax and shipping.",
+    "po_instalment_invoiced": "A billed instalment keeps its amount. Unlink the bill first.",
+    "po_instalment_invoice": "Link a live payable bill from the order's vendor, on its project and in its currency, that is not matched to another order.",
+    "po_instalment_immutable": "An instalment stays on its purchase order.",
+    "po_instalment_order_state": "A Closed order only links a bill to an unbilled instalment or removes one, and a Canceled order changes nothing.",
+    "po_line_engagement_project": "Choose a live act on the order's project.",
     "need_request_project": "A need takes requests of its own project.",
     "need_request_not_asset": "Only a request for equipment consolidates onto a need.",
     "need_request_state": "A Declined or Withdrawn request does not consolidate onto a need.",
@@ -587,6 +593,45 @@
     "receivedVenue": "The venue it came into",
     "note": "Condition or carrier",
     "record": "Record return"
+  },
+  "schedule": {
+    "title": "Payment schedule",
+    "empty": "No payment schedule yet. Add a deposit and a balance when the terms call for them.",
+    "add": "Add instalment",
+    "remove": "Remove instalment {n}",
+    "link": "Link a bill to instalment {n}",
+    "label": "Instalment",
+    "due": "Due",
+    "amount": "Amount",
+    "bill": "Bill",
+    "paid": "Paid",
+    "statusLabel": "Status",
+    "scheduled": "Scheduled",
+    "orderTotal": "Order total",
+    "unscheduled": "Unscheduled",
+    "over": "An approved change has taken the order's total below this schedule. Remove or change an instalment that has no bill.",
+    "withheld": "Withheld",
+    "unnumbered": "Unnumbered bill",
+    "status": {
+      "Scheduled": "Scheduled",
+      "Invoiced": "Invoiced",
+      "Partpaid": "Part paid",
+      "Paid": "Paid"
+    },
+    "lookAlike": {
+      "title": "Possible duplicate",
+      "body": "This looks like {count} other {count, plural, one {order} other {orders}}. Check before you approve or send it.",
+      "open": "Open look-alike {n}"
+    },
+    "lineAct": {
+      "title": "Line {n}: for an act",
+      "column": "For an act",
+      "field": "For an act",
+      "none": "No act",
+      "save": "Save",
+      "set": "Set act for line {n}",
+      "unnamed": "Unnamed party"
+    }
   },
   "needs": {
     "title": "Needs",

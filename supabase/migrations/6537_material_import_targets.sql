@@ -444,7 +444,6 @@ begin
       order by g.created_at
       limit 1;
     end if;
-<<<<<<< here
   elsif v_job.target_code = 'pool_invitations' then
     -- Email inside the row's pool, pending only: a claimed, declined or revoked invitation never matches.
     if p_keys ? 'email' and p_keys ? 'talent_pool_id' then
@@ -452,7 +451,8 @@ begin
       where i.org_id = v_job.org_id and i.talent_pool_id = (p_keys ->> 'talent_pool_id')::uuid
         and i.email = lower(btrim(p_keys ->> 'email'))
         and i.claimed_at is null and i.declined_at is null and i.revoked_at is null and i.deleted_at is null
-=======
+      limit 1;
+    end if;
   elsif v_job.target_code = 'procurement_needs' then
     if p_keys ? 'description' then
       select n.id into v_id from app.procurement_needs n
@@ -466,7 +466,6 @@ begin
       select l.id into v_id from app.po_lines l
       where l.purchase_order_id = v_job.purchase_order_id and l.deleted_at is null
         and l.line_number = (p_keys ->> 'line_number')::integer
->>>>>>> package
       limit 1;
     end if;
   end if;

@@ -17,14 +17,14 @@ import {
   listSettlements,
 } from "@xos/data/settlements";
 import { getNode } from "@xos/ia";
-import Link from "next/link";
-import type { Route } from "next";
-import { withQuery, type FinancePage } from "@/lib/finance/context";
+import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { applyPaymentAction, saveSettlementLineAction } from "@/app/[org]/finance/actions";
+import { ActCostsTab } from "./act-costs-tab";
+import { AllInCost } from "./all-in-cost";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
 import { ApplyPaymentForm } from "./forms-apply-payment-form";
@@ -36,54 +36,30 @@ import { InlineActionButton } from "./kit-inline-action-button";
 import { LineDeleteButton } from "./kit-line-delete-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
+import { PaymentsDueTab } from "./payments-due-tab";
+import { PaymentTabs } from "./payments-tabs";
+import { ReimbursementsTab } from "./reimbursements-tab";
 import { RecordActivity, RecordCollab } from "./record";
 
 /**
  * Finance > Payments (Section 4.5.5): payments made and received, applied to invoices so billed and
- * paid to date count each payment once (invariant 16), and the settlements of engagements beside them
- * (Section 4.5.8 Settlement). Approval never goes to the person who recorded the payment or, for a
+ * paid to date count each payment once (invariant 16), the settlements of engagements beside them
+ * (Section 4.5.8 Settlement), what is due, reimbursements and the cost of each act (B12). Approval never goes to the person who recorded the payment or, for a
  * payable, to anyone who created the vendor or edited its bank details (Section 8.2).
  */
 export async function PaymentsView({ page }: { page: FinancePage }) {
-  return page.query.extra["tab"] === "settlements" ? (
-    <SettlementsTab page={page} />
-  ) : (
-    <PaymentsTab page={page} />
-  );
-}
-
-function Tabs({
-  page,
-  active,
-  t,
-}: {
-  page: FinancePage;
-  active: "payments" | "settlements";
-  t: (k: string) => string;
-}) {
-  return (
-    <nav
-      aria-label={t("finance.payments.tabs")}
-      className="flex gap-8 border-b border-border-subtle text-text-13"
-    >
-      {(["payments", "settlements"] as const).map((tab) => (
-        <Link
-          key={tab}
-          href={
-            withQuery(page, {
-              tab: tab === "payments" ? null : tab,
-              peek: null,
-              state: null,
-            }) as Route
-          }
-          aria-current={active === tab ? "page" : undefined}
-          className="-mb-px border-b-2 border-transparent px-4 py-6 text-text-secondary aria-[current=page]:border-accent aria-[current=page]:text-text-primary"
-        >
-          {t(`finance.payments.tab.${tab}`)}
-        </Link>
-      ))}
-    </nav>
-  );
+  switch (page.query.extra["tab"]) {
+    case "settlements":
+      return <SettlementsTab page={page} />;
+    case "due":
+      return <PaymentsDueTab page={page} />;
+    case "reimbursements":
+      return <ReimbursementsTab page={page} />;
+    case "act-costs":
+      return <ActCostsTab page={page} />;
+    default:
+      return <PaymentsTab page={page} />;
+  }
 }
 
 async function PaymentsTab({ page }: { page: FinancePage }) {
@@ -108,7 +84,14 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
     empty,
   };
   if (!access.can("finance.payment.read")) {
-    return <FinanceCollection {...base} canCreate={false} refusal="finance.payment.read" />;
+    return (
+      <FinanceCollection
+        {...base}
+        canCreate={false}
+        above={<PaymentTabs page={page} active="payments" t={t} />}
+        refusal="finance.payment.read"
+      />
+    );
   }
   const db = ctx.viewer.db;
   const [payments, counterparties, invoices] = await Promise.all([
@@ -263,7 +246,7 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
       canCreate={canWrite}
       count={shown.length}
       states={PAYMENT_STATES.map((s) => ({ value: s, label: c.state("payment", s) }))}
-      above={<Tabs page={page} active="payments" t={t} />}
+      above={<PaymentTabs page={page} active="payments" t={t} />}
       columns={[
         { key: "paid", label: t("finance.payments.fields.paidOn") },
         { key: "party", label: t("finance.payments.fields.counterparty"), wrap: true },
@@ -325,7 +308,14 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
     empty,
   };
   if (!access.can("finance.invoice.read")) {
-    return <FinanceCollection {...base} canCreate={false} refusal="finance.invoice.read" />;
+    return (
+      <FinanceCollection
+        {...base}
+        canCreate={false}
+        above={<PaymentTabs page={page} active="settlements" t={t} />}
+        refusal="finance.invoice.read"
+      />
+    );
   }
   const db = ctx.viewer.db;
   const scope = { orgId: ctx.org.id, projectId: page.project?.id ?? null };
@@ -409,6 +399,12 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
               {t("finance.settlements.awaitingParty")}
             </p>
           ) : null}
+          <AllInCost
+            ctx={ctx}
+            projectId={peek.projectId}
+            projectKey={projectKey.get(peek.projectId) ?? null}
+            engagementId={peek.engagementId}
+          />
           <Section id="settlement-lines" title={t("finance.settlements.lines")}>
             {lines.ok && lines.data.length > 0 ? (
               <SimpleTable
@@ -482,7 +478,7 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
       canCreate={canWrite}
       count={shown.length}
       states={SETTLEMENT_STATES.map((s) => ({ value: s, label: c.state("settlement", s) }))}
-      above={<Tabs page={page} active="settlements" t={t} />}
+      above={<PaymentTabs page={page} active="settlements" t={t} />}
       columns={[
         { key: "key", label: t("finance.common.key"), type: "code" },
         { key: "title", label: t("finance.settlements.fields.title"), wrap: true },

@@ -11,6 +11,7 @@ import {
   unassignRosterShift,
   verifyRosterTraining,
   addPerDiems,
+  clearPerDiemPayment,
   awardOpenShift,
   decideShiftClaim,
   withdrawShiftClaim,
@@ -1066,6 +1067,15 @@ export async function addPerDiemsAction(_: State, form: FormData): Promise<State
   });
   if (!result.ok) return failed(t, result.error);
   return done(ctx.org.slug, result, t);
+}
+
+export async function clearPerDiemPaymentAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return { error: t("crew.errors.notFound") };
+  const why = reason.safeParse(form.get("reason"));
+  if (!why.success) return invalid(t, { reason: "crew.errors.reason" });
+  return done(ctx.org.slug, await clearPerDiemPayment(db, { id: id.data, reason: why.data }), t);
 }
 
 /** Removes one per diem (a soft delete under the per diem write policy). */

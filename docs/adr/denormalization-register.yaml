@@ -906,6 +906,18 @@ restated:
     parent: xpms.std_enumeration.is_default
     kind: own
     note: The org's default for the domain; copied from the Standard Library value when the org adopts it, then the org's to change (migration 1612).
+  - column: app.expenses.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: Vendor paid; the optional engagement names the act the cost is for, not who was paid (migration 6547, B12).
+  - column: app.expenses.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: The budget's currency (`private.guard_expense`); the engagement's is the currency of its agreed rate (migration 6547, B12).
+  - column: app.expenses.currency_code
+    parent: app.expense_reimbursements.currency_code
+    kind: own
+    note: The budget's currency; `app.record_expense_reimbursement` settles expenses of one currency in it (migration 6540, B12).
   - column: app.feed_posts.department_code
     parent: app.groups.department_code
     kind: own
@@ -1331,6 +1343,10 @@ restated:
     parent: app.budget_lines.unit_price_minor
     kind: own
     note: Price ordered, in the order currency.
+  - column: app.po_payment_instalments.due_on
+    parent: app.invoices.due_on
+    kind: own
+    note: When the instalment falls due on the schedule; the linked bill's own due date can differ and wins in the payments-due ledger (migration 6543, B12).
   - column: app.poll_votes.poll_id
     parent: app.poll_options.poll_id
     kind: finding

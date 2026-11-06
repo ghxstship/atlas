@@ -307,6 +307,7 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       acquisitionKind: "Purchase" as const,
       hireStartsAt: null,
       hireEndsAt: null,
+      engagementId: null,
     })),
     totals: { unpricedCount: 1, linesTotalMinor: null, approvedChangesMinor: 50_000 },
   },

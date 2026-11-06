@@ -39,6 +39,7 @@ import {
 import { RecordHistory } from "@/components/history/record-history";
 import { ContractIntakeEntry } from "@/components/aurora/entry/intake-entry";
 import { IntakeRequestsAction } from "@/components/projects/outside-access/intake-requests-action";
+import { AllInCost } from "@/components/finance/all-in-cost";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -799,6 +800,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           />
         ) : null}
       </Section>
+      <AllInCost ctx={ctx} projectId={e.projectId} projectKey={e.projectKey} engagementId={e.id} />
       <Section id="engagement-reengage" title={t("engagements.reengagement")}>
         {canPool && poolOptions.length > 0 && (e.personId || e.accountId) ? (
           <ActionForm

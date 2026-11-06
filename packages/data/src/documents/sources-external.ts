@@ -98,6 +98,7 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       acquisitionKind: "Purchase" as const,
       hireStartsAt: null,
       hireEndsAt: null,
+      engagementId: null,
     }));
     const number = po.po_number ?? 0;
     return ok({

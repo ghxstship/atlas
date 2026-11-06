@@ -259,12 +259,16 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
   if (amount === "invalid" || amount === null || amount <= 0) return inputError("amount");
   const counterparty = optionalId.safeParse(f["counterpartyId"] ?? "");
   if (!counterparty.success) return inputError("counterpartyId");
+  const engagement = optionalId.safeParse(f["engagementId"] ?? "");
+  if (!engagement.success) return inputError("engagementId");
   const common = {
     counterpartyId: counterparty.data,
     description: description.data,
     incurredOn: incurredOn.data,
     amountMinor: amount,
     currency: code.data,
+    isReimbursable: f["isReimbursable"] === "on",
+    engagementId: engagement.data,
   };
   if (f["id"]) {
     const id = z.uuid().safeParse(f["id"]);

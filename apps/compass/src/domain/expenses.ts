@@ -36,6 +36,34 @@ export interface ExpenseRow {
   readonly currency_code: string;
   readonly expense_state: string;
   readonly created_at?: string | null;
+  /** Paid out of the person's pocket (6540). */
+  readonly is_reimbursable?: boolean | null;
+  /** The charge this credit refunds; a finance user's own credit shows as one. */
+  readonly credit_of_expense_id?: string | null;
+}
+
+/** Where a reimbursable expense stands, from its state alone. */
+export type ReimbursementStatus = "recorded" | "owed" | "paid" | "notOwed";
+
+/**
+ * A reimbursable expense's status for the person who paid it: Recorded while Proposed, Owed to you once approved, Paid to
+ * you once reimbursed, Not owed when Rejected or Canceled. Null when the expense is not reimbursable. A crew member cannot
+ * read finance's credits, so a charge credited to nothing can still read Owed to you (6541).
+ */
+export function reimbursementStatusOf(
+  row: Pick<ExpenseRow, "is_reimbursable" | "expense_state">,
+): ReimbursementStatus | null {
+  if (!row.is_reimbursable) return null;
+  switch (row.expense_state) {
+    case "Proposed":
+      return "recorded";
+    case "Approved":
+      return "owed";
+    case "Paid":
+      return "paid";
+    default:
+      return "notOwed";
+  }
 }
 
 /**
@@ -164,6 +192,8 @@ export interface ExpenseDraft {
   readonly description: string;
   readonly amount: string;
   readonly incurredOn: string;
+  /** "I paid this myself": off unless the person turns it on. */
+  readonly isReimbursable?: boolean;
 }
 
 export type DraftProblem = "line" | "description" | "amount" | "date" | "future";
@@ -377,6 +407,8 @@ export interface ReceiptSave {
   readonly capturedAt: string | null;
   /** The Aurora suggestion whose fields the person confirmed, if Aurora read the receipt. */
   readonly suggestionId: string | null;
+  /** "I paid this myself" (6542). */
+  readonly isReimbursable?: boolean;
 }
 
 /** The field-media object a receipt photo is stored as: under the budget line's org and project (1490). */
@@ -390,7 +422,8 @@ export function receiptPath(
 /**
  * Queues the expense with its receipt. The uploader stores the photo (local_uri, storage_path) before it calls
  * app.submit_expense_receipt through app.apply_sync_mutation, so a replay files it once; the optimistic row shows
- * at once in the person's list.
+ * at once in the person's list. p_is_reimbursable goes only when the switch is on, so the common case never carries
+ * an argument an older server would refuse (sync_argument_unknown).
  */
 export function buildReceiptSave(
   save: ReceiptSave,
@@ -416,6 +449,7 @@ export function buildReceiptSave(
       p_capture_source: save.captureSource,
       p_captured_at: save.capturedAt,
       p_ai_suggestion_id: save.suggestionId,
+      ...(save.isReimbursable ? { p_is_reimbursable: true } : {}),
       storage_path: path,
       local_uri: save.localUri,
     },
@@ -431,6 +465,8 @@ export function buildReceiptSave(
       currency_code: save.line.currency_code,
       expense_state: "Proposed",
       created_at: new Date(nowMs).toISOString(),
+      is_reimbursable: save.isReimbursable ?? false,
+      credit_of_expense_id: null,
     },
   };
 }

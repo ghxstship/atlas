@@ -26,7 +26,10 @@ import {
   listInvoiceMatches,
   listPayableInvoices,
   listPoChangeOrders,
+  listLinkableBills,
+  listPoInstalments,
   listPoLines,
+  listPurchaseOrderDuplicates,
   listProjectOptions,
   listPurchaseOrders,
   listRfqResponses,
@@ -44,6 +47,8 @@ import {
   recordGoodsReceipt,
   recordGoodsReturn,
   recordRfqResponse,
+  addPoInstalment,
+  setPoLineEngagement,
   removePoLine,
   removeRfqInvitation,
   resolveInvoiceMatch,
@@ -55,6 +60,7 @@ import {
   type RfqResponse,
 } from "../src/procurement.ts";
 import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
+import { fakeClient } from "./fake-client.ts";
 
 const project = { project_key: "NWL", name: "Summer" };
 const vendor = { counterparty: { counterparty_name: "Harbor Audio" } };
@@ -1124,5 +1130,114 @@ describe("catalog", () => {
       },
     ]);
     expect((await deleteVendorProduct(db, "vp1")).ok).toBe(true);
+  });
+});
+
+describe("payment schedule (6543)", () => {
+  it("reads instalments with withheld columns left null and the totals beside them", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:po_instalment_schedule": [
+        okResponse([
+          {
+            instalment_id: "i1",
+            instalment_number: 1,
+            label: "Deposit",
+            due_on: "2027-06-01",
+            amount_minor: 5000,
+            currency_code: "USD",
+            invoice_id: "b1",
+            invoice_number: null,
+            invoice_total_minor: null,
+            paid_minor: null,
+            scheduled_minor: null,
+            status: "Invoiced",
+            is_invoice_withheld: true,
+            is_payment_withheld: true,
+            schedule_total_minor: 5000,
+            order_total_minor: null,
+          },
+        ]),
+      ],
+    });
+    const result = await listPoInstalments(db, "po1");
+    expect(result.ok && result.data[0]).toMatchObject({
+      invoiceId: "b1",
+      invoiceNumber: null,
+      paidMinor: null,
+      status: "Invoiced",
+      isPaymentWithheld: true,
+      orderTotalMinor: null,
+    });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_purchase_order_id: "po1" });
+  });
+
+  it("numbers a new instalment after the live ones", async () => {
+    const { db, calls } = fakeClient({
+      "from:po_payment_instalments": [
+        okResponse({ instalment_number: 2 }),
+        okResponse({ id: "i3" }),
+      ],
+    });
+    const result = await addPoInstalment(db, {
+      purchaseOrderId: "po1",
+      label: " Balance ",
+      dueOn: "2027-07-01",
+      amountMinor: 900,
+    });
+    expect(result).toEqual({ ok: true, data: { id: "i3" } });
+    expect(calls[1]?.steps.find(([name]) => name === "insert")?.[1][0]).toEqual({
+      purchase_order_id: "po1",
+      instalment_number: 3,
+      label: "Balance",
+      due_on: "2027-07-01",
+      amount_minor: 900,
+    });
+  });
+
+  it("offers only bills the guard accepts: not matched elsewhere and not linked already", async () => {
+    const { db } = fakeClient({
+      "from:vendors": [okResponse({ counterparty_id: "c1" })],
+      "from:invoices": [
+        okResponse([
+          { id: "free", invoice_number: "B-1" },
+          { id: "elsewhere", invoice_number: "B-2" },
+          { id: "linked", invoice_number: "B-3" },
+        ]),
+      ],
+      "from:invoice_matches": [okResponse([{ invoice_id: "elsewhere" }])],
+      "from:po_payment_instalments": [okResponse([{ invoice_id: "linked" }])],
+    });
+    const result = await listLinkableBills(db, {
+      id: "po1",
+      projectId: "p1",
+      vendorId: "v1",
+      currencyCode: "USD",
+    });
+    expect(result).toEqual({ ok: true, data: [{ id: "free", number: "B-1" }] });
+  });
+
+  it("names a line's act and reads look-alike orders as warnings", async () => {
+    const { db, calls } = fakeClient({
+      "from:po_lines": [okResponse([{ id: "l1" }])],
+      "rpc:purchase_order_duplicate_candidates": [
+        okResponse([
+          {
+            purchase_order_id: "po1",
+            candidate_id: "po2",
+            same_vendor: false,
+            total_delta_minor: 50,
+            day_gap: 3,
+          },
+        ]),
+      ],
+    });
+    expect(await setPoLineEngagement(db, "l1", "e1")).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps.find(([name]) => name === "update")?.[1][0]).toEqual({
+      engagement_id: "e1",
+    });
+    const found = await listPurchaseOrderDuplicates(db, "po1");
+    expect(found.ok && found.data).toEqual([
+      { candidateId: "po2", sameVendor: false, totalDeltaMinor: 50, dayGap: 3 },
+    ]);
   });
 });

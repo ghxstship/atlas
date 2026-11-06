@@ -9,6 +9,7 @@ import {
   amountText,
   applyProposal,
   buildReceiptSave,
+  reimbursementStatusOf,
   draftProblems,
   formatMoney,
   isIsoDay,
@@ -601,5 +602,51 @@ describe("expense copy", () => {
       expect(typeof (copy["aurora"] as Record<string, string>)[s], s).toBe("string");
     expect(all.compass.queue.summary["expenseReceipt"]).toMatch(/\{description\}/);
     expect(typeof all.compass.queue.kinds["expenses"]).toBe("string");
+  });
+});
+
+describe("an expense the person paid themselves (6542)", () => {
+  const save = (isReimbursable?: boolean) =>
+    buildReceiptSave(
+      {
+        personId: "person-1",
+        line: line(),
+        description: "Ice and water",
+        amountMinor: 4250,
+        incurredOn: "2027-06-10",
+        localUri: "file:///cache/receipt.jpg",
+        captureSource: "Camera",
+        capturedAt: "2027-06-10T22:00:00Z",
+        suggestionId: null,
+        ...(isReimbursable === undefined ? {} : { isReimbursable }),
+      },
+      Date.parse("2027-06-10T22:01:00Z"),
+      () => "exp-1",
+    );
+
+  it("sends the argument only when the switch is on, so an older server never refuses the common case", () => {
+    expect(save(true).payload).toMatchObject({ p_is_reimbursable: true });
+    expect(save(false).payload).not.toHaveProperty("p_is_reimbursable");
+    expect(save().payload).not.toHaveProperty("p_is_reimbursable");
+  });
+
+  it("marks the row it shows at once", () => {
+    expect(save(true).optimistic).toMatchObject({
+      is_reimbursable: true,
+      credit_of_expense_id: null,
+    });
+    expect(save().optimistic).toMatchObject({ is_reimbursable: false });
+  });
+
+  it("reads where it stands from its state alone, and nothing for an ordinary expense", () => {
+    const status = (expense_state: string, is_reimbursable = true) =>
+      reimbursementStatusOf({ expense_state, is_reimbursable });
+    expect(status("Proposed")).toBe("recorded");
+    expect(status("Approved")).toBe("owed");
+    expect(status("Paid")).toBe("paid");
+    expect(status("Rejected")).toBe("notOwed");
+    expect(status("Canceled")).toBe("notOwed");
+    expect(status("Approved", false)).toBeNull();
+    expect(reimbursementStatusOf({ expense_state: "Paid", is_reimbursable: null })).toBeNull();
   });
 });

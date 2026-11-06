@@ -398,6 +398,12 @@
     "asset_lot_insufficient": "No hay suficiente de este artículo en ese lugar.",
     "goods_return_immutable": "Una devolución conserva su orden de compra, quien la hizo y su motivo.",
     "hire_period_order": "El alquiler debe terminar después de empezar.",
+    "po_instalments_exceed_order": "El calendario superaría el total de la orden: líneas, cambios aprobados, impuestos y envío.",
+    "po_instalment_invoiced": "Una cuota facturada conserva su importe. Desvincula primero la factura.",
+    "po_instalment_invoice": "Vincula una factura por pagar vigente del proveedor de la orden, de su proyecto y en su moneda, que no esté conciliada con otra orden.",
+    "po_instalment_immutable": "Una cuota sigue en su orden de compra.",
+    "po_instalment_order_state": "Una orden cerrada solo vincula una factura a una cuota sin factura o la quita, y una orden cancelada no cambia.",
+    "po_line_engagement_project": "Elige un acto vigente del proyecto de la orden.",
     "need_request_project": "Una necesidad solo admite solicitudes de su propio proyecto.",
     "need_request_not_asset": "Solo una solicitud de equipo se consolida en una necesidad.",
     "need_request_state": "Una solicitud rechazada o retirada no se consolida en una necesidad.",
@@ -587,6 +593,45 @@
     "receivedVenue": "El lugar al que ingresó",
     "note": "Estado o transportista",
     "record": "Registrar devolución"
+  },
+  "schedule": {
+    "title": "Calendario de pagos",
+    "empty": "Todavía no hay calendario de pagos. Agrega un anticipo y un saldo cuando las condiciones lo pidan.",
+    "add": "Agregar cuota",
+    "remove": "Quitar la cuota {n}",
+    "link": "Vincular una factura a la cuota {n}",
+    "label": "Cuota",
+    "due": "Vence",
+    "amount": "Importe",
+    "bill": "Factura",
+    "paid": "Pagado",
+    "statusLabel": "Estado",
+    "scheduled": "Programado",
+    "orderTotal": "Total de la orden",
+    "unscheduled": "Sin programar",
+    "over": "Un cambio aprobado dejó el total de la orden por debajo de este calendario. Quita o cambia una cuota sin factura.",
+    "withheld": "Oculto",
+    "unnumbered": "Factura sin número",
+    "status": {
+      "Scheduled": "Programado",
+      "Invoiced": "Facturado",
+      "Partpaid": "Pago parcial",
+      "Paid": "Pagado"
+    },
+    "lookAlike": {
+      "title": "Posible duplicado",
+      "body": "Se parece a {count} {count, plural, one {orden} other {órdenes}}. Revisa antes de aprobarla o enviarla.",
+      "open": "Abrir la orden parecida {n}"
+    },
+    "lineAct": {
+      "title": "Línea {n}: para un acto",
+      "column": "Para un acto",
+      "field": "Para un acto",
+      "none": "Sin acto",
+      "save": "Guardar",
+      "set": "Asignar acto a la línea {n}",
+      "unnamed": "Parte sin nombre"
+    }
   },
   "needs": {
     "title": "Necesidades",

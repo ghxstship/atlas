@@ -177,6 +177,14 @@
     "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
     "sod_roster_training": "A person cannot verify their own training. Ask someone else to verify it.",
     "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet.",
+    "per_diem_payment_rpc": "A per diem is marked paid from Finance > Payments.",
+    "per_diem_paid_locked": "A paid per diem stays as it was paid. Clear its payment first.",
+    "per_diem_payment_batch": "Mark 1 to 500 per diems paid at a time.",
+    "per_diem_payment_date": "Give the date the per diems were paid.",
+    "per_diem_payment_reason": "Say why the payment is cleared, in up to 500 characters.",
+    "per_diem_already_paid": "One of these per diems is already paid.",
+    "per_diem_not_paid": "This per diem has no payment to clear.",
+    "sod_reimbursement_payee": "You cannot record a reimbursement or a per diem payment to yourself. Ask another finance person.",
     "shift_reconfirm_answered": "This shift was already confirmed, or nobody is asking any more.",
     "shift_no_show_self": "You cannot mark yourself as a no-show. Tell your supervisor.",
     "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
@@ -962,8 +970,13 @@
       "to": "Last day",
       "amount": "Amount per day",
       "currency": "Currency",
-      "day": "Day"
-    }
+      "day": "Day",
+      "paidOn": "Paid on",
+      "paidReference": "Payment reference"
+    },
+    "clearPayment": "Clear payment",
+    "clearPaymentHelp": "Use this when the payment was recorded in error. The per diem reads as unpaid again, and your reason stays in the audit log.",
+    "paidOnLine": "Paid {day}"
   },
   "communication": {
     "changedFields": "Changed since then: {fields}",

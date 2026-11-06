@@ -211,6 +211,7 @@
       "direction": "Choose payable or receivable.",
       "endBeforeStart": "The end date must be on or after the start date.",
       "engagementId": "Choose an engagement.",
+      "expenseIds": "Choose at least one expense.",
       "eventScope": "An Event cost center needs the event scope it belongs to.",
       "file": "Choose a file to upload.",
       "fileSize": "Files can be up to 50 MB.",
@@ -222,6 +223,7 @@
       "name": "Enter a name.",
       "number": "Invoice numbers are up to 100 characters.",
       "oneSide": "Each line takes either a debit or a credit, not both and not neither.",
+      "perDiemIds": "Choose at least one per diem.",
       "periodId": "Choose the accounting period.",
       "projectId": "Choose a project.",
       "quantity": "Enter a quantity of zero or more.",
@@ -346,7 +348,33 @@
     "deliverable_fee_fixed": "An accepted milestone keeps its fee.",
     "deliverable_fee_currency": "Set the engagement's currency before pricing its milestones.",
     "sod_document_creator": "Your organization does not let the person who created a document approve it. Ask another approver.",
-    "sod_change_order_requester_steps": "Your organization does not let the requester of a change order decide any step of its approval. Ask another approver."
+    "sod_change_order_requester_steps": "Your organization does not let the requester of a change order decide any step of its approval. Ask another approver.",
+    "expense_credit_original": "A credit is against a live approved or paid expense of this organization that is not itself a credit.",
+    "expense_credit_line": "A credit posts to the budget line of the expense it credits.",
+    "expense_credit_exceeds": "Credits on this expense would go beyond its amount. Lower this one or cancel another.",
+    "expense_credit_reimbursed": "This expense was reimbursed to the person who paid it, so a refund on it is theirs.",
+    "expense_credit_immutable": "A credit stays against the expense it credits and keeps its vendor.",
+    "expense_credit_posted": "An approved credit has posted its reversal, so it stays out of Trash.",
+    "expense_credit_original_unposted": "The expense this credit is against has no posted entry to reverse.",
+    "expense_credit_engagement": "A credit follows the expense it credits and names no act of its own.",
+    "expense_engagement_project": "Choose a live act on this budget's project.",
+    "expense_reimbursable_locked": "Whether an expense is reimbursable changes only while it is proposed.",
+    "expense_reimbursement_rpc": "An expense is reimbursed by recording its reimbursement on Finance > Payments.",
+    "expense_reimbursed_locked": "A reimbursed expense keeps what it was for and stays out of Trash. Void the reimbursement first.",
+    "expense_has_credits": "An expense with credits stays out of Trash while they stand. Cancel or reject them first.",
+    "expense_paid_final": "A paid expense stays paid. Void its reimbursement to reopen it.",
+    "expense_reimbursement_use_rpc": "A reimbursable expense is paid by recording its reimbursement.",
+    "expense_reimbursement_batch": "A reimbursement settles 1 to 200 expenses.",
+    "expense_reimbursement_date": "Give the date the money moved.",
+    "expense_reimbursement_expense": "Reimburse live, approved, reimbursable expenses this person filed and is still owed.",
+    "expense_reimbursement_currency": "A reimbursement settles expenses in one currency.",
+    "expense_reimbursement_pending_credit": "A credit waits for approval on one of these expenses. Decide it first.",
+    "expense_reimbursement_void_reason": "Say why the reimbursement is voided, in up to 500 characters.",
+    "expense_reimbursement_voided": "This reimbursement is already voided.",
+    "sod_reimbursement_payee": "You cannot record a reimbursement or a per diem payment to yourself. Ask another finance person.",
+    "per_diem_payment_batch": "Mark 1 to 500 per diems paid at a time.",
+    "per_diem_payment_date": "Give the date the per diems were paid.",
+    "per_diem_already_paid": "One of these per diems is already paid."
   },
   "collab": {
     "attachments": "Attachments",
@@ -522,7 +550,34 @@
     },
     "kind": "Expense",
     "loadError": "The expenses could not load. Try again.",
-    "ownExpense": "You submitted this expense, so someone else approves it."
+    "ownExpense": "You submitted this expense, so someone else approves it.",
+    "credit": "Credit",
+    "creditTitle": "Credit: {description}",
+    "creditSentence": "A refund or vendor credit against this expense. It takes the expense's budget line, currency and vendor.",
+    "recordCredit": "Record credit",
+    "credited": "Credited",
+    "pendingCredits": "Pending credits",
+    "net": "Net",
+    "credits": "Credits",
+    "openOriginal": "Credit of {description}",
+    "refundReceived": "Refund received",
+    "refundReason": "Refund received from the vendor.",
+    "paidMyself": "I paid this myself",
+    "forAct": "For an act",
+    "forActNone": "No act",
+    "reimbursement": "Reimbursement",
+    "openReimbursements": "Open reimbursements",
+    "status": {
+      "Recorded": "Recorded",
+      "Owed": "Owed",
+      "Paid": "Paid",
+      "Notowed": "Not owed"
+    },
+    "duplicate": {
+      "title": "Possible duplicate",
+      "body": "This looks like {count} other {count, plural, one {expense} other {expenses}}. Check before you approve or pay.",
+      "open": "Open expense"
+    }
   },
   "changeOrders": {
     "addLine": "Add line",
@@ -629,12 +684,20 @@
     "noApplications": "Not applied to any invoice yet.",
     "tab": {
       "payments": "Payments",
-      "settlements": "Settlements"
+      "settlements": "Settlements",
+      "due": "Due",
+      "reimbursements": "Reimbursements",
+      "actCosts": "Act costs"
     },
-    "tabs": "Payments and settlements",
+    "tabs": "Payments sections",
     "unapplied": "Not yet applied",
     "unnumbered": "Unnumbered invoice",
-    "individualPayee": "{name} (individual)"
+    "individualPayee": "{name} (individual)",
+    "notice": {
+      "reimbursementRecorded": "Reimbursement recorded. XOS records this payment. It moves no money.",
+      "reimbursementVoided": "Reimbursement voided. Its expenses are owed again.",
+      "perDiemsPaid": "Per diem payment recorded. XOS records this payment. It moves no money."
+    }
   },
   "journal": {
     "addLine": "Add line",
@@ -827,6 +890,117 @@
       "address": "Address",
       "payments": "Payments",
       "amount": "Paid in year"
+    }
+  },
+  "due": {
+    "empty": "Nothing is owed right now.",
+    "emptyAction": "Go to Finance",
+    "loadError": "What is due could not load. Try again.",
+    "summary": "Totals by when they are due",
+    "recordOnly": "XOS records this payment. It moves no money.",
+    "perDiemOn": "Per diem for {day}",
+    "unpricedCount": "Unpriced ({count} without a price)",
+    "billedOffsetHelp": "Bills already claim part of this, so only the rest is listed here.",
+    "buckets": {
+      "overdue": "Overdue",
+      "thisWeek": "This week",
+      "later": "Later",
+      "undated": "No due date"
+    },
+    "fields": {
+      "bucket": "When",
+      "due": "Due",
+      "kind": "Kind",
+      "payee": "Payee",
+      "what": "What",
+      "scheduled": "Scheduled",
+      "billedOffset": "Claimed by bills"
+    },
+    "kinds": {
+      "invoice": "Bill",
+      "instalment": "Instalment",
+      "settlement": "Settlement",
+      "per_diem": "Per diem",
+      "reimbursement": "Reimbursement",
+      "expense": "Expense"
+    },
+    "open": {
+      "invoice": "Open bill",
+      "instalment": "Open payment schedule",
+      "settlement": "Open settlement",
+      "reimbursement": "Open reimbursements",
+      "expense": "Open expense",
+      "perDiem": "Open per diem"
+    },
+    "markPaid": {
+      "title": "Mark per diems paid",
+      "perDiems": "Per diems"
+    }
+  },
+  "reimbursements": {
+    "empty": "Nobody has paid for anything themselves yet.",
+    "emptyAction": "Go to Finance",
+    "loadError": "The reimbursements could not load. Try again.",
+    "kind": "Reimbursements",
+    "countAndAmount": "{count} · {amount}",
+    "record": "Record reimbursement",
+    "recordIn": "Record reimbursement in {currency}",
+    "show": "Show reimbursements",
+    "void": "Void reimbursement",
+    "voidSentence": "Say why this reimbursement was recorded in error. Its expenses are owed again.",
+    "status": {
+      "Owed": "Owed",
+      "NotOwed": "Not owed"
+    },
+    "fields": {
+      "payee": "Payee",
+      "recorded": "Recorded",
+      "owed": "Owed",
+      "paid": "Paid",
+      "lastPaid": "Last paid"
+    },
+    "sheet": {
+      "expenses": "Expenses to reimburse",
+      "netTotal": "Net total",
+      "pendingNote": "{count, plural, one {# expense has a credit waiting for approval, so it is not selected. Decide the credit first.} other {# expenses have a credit waiting for approval, so they are not selected. Decide the credits first.}}"
+    },
+    "history": {
+      "title": "Reimbursements recorded",
+      "empty": "No reimbursements recorded for this person yet.",
+      "standing": "Recorded",
+      "voided": "Voided: {reason}"
+    }
+  },
+  "actCosts": {
+    "pickProject": "Pick a project to see what its acts cost.",
+    "emptyAction": "Go to Finance",
+    "empty": "No costs are attributed to this project's acts yet.",
+    "loadError": "The act costs could not load. Try again.",
+    "kind": "Act cost",
+    "allIn": "All-in cost",
+    "open": "Open act costs",
+    "items": "What it is made of",
+    "noCurrency": "No currency",
+    "unpricedTotal": "Unpriced ({count} without a price)",
+    "noFee": "No fee billed or settled yet; this total leaves it out.",
+    "partyNoFee": "{party} (no fee yet)",
+    "partly": "A bill counts only the part above the act's settlements in that currency, so a settled fee is not counted twice.",
+    "fields": {
+      "party": "Act",
+      "pricedTotal": "Priced total",
+      "component": "Part",
+      "item": "Item",
+      "counted": "Counted"
+    },
+    "components": {
+      "settlement": "Settlement",
+      "invoice": "Bills",
+      "travel": "Travel",
+      "lodging": "Lodging",
+      "perDiem": "Per diems",
+      "hospitality": "Hospitality",
+      "expense": "Expenses",
+      "purchaseOrder": "Purchase orders"
     }
   }
 }

@@ -378,6 +378,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0148](0148-crew-coverage-positions-and-scheduling-policy.md)       | Crew Coverage, Project Positions and Scheduling Policy                           | Accepted |
 | [0149](0149-account-free-crew-access-registration-and-generated-agreements.md) | Account-Free Crew Access, Registration and Generated Agreements                  | Proposed |
 | [0150](0150-delivery-windows-and-sealed-quote-chasing.md)           | Delivery Windows as Dock Slots, Sealed Quote Chasing, Requested Allocations on Needs | Proposed |
+| [0151](0151-payables-credits-reimbursements-and-act-costs.md)       | Payables, Credits, Reimbursements and Act Costs                                  | Accepted |
 | [0153](0153-event-types-setup-completeness-and-project-copy.md)                 | Event Types, Setup Completeness and Copying a Past Project                            | Accepted |
 | [0154](0154-aurora-intake-recorded-answers-restricted-fees-open-suggestions.md) | Aurora Intake: Answers Recorded for a Recipient, Restricted Fees and Open Suggestions | Proposed |
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)                    | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place      | Proposed |
