@@ -191,7 +191,8 @@ wired differently: the webhook carries metadata only, and it is signed instead o
    `RESEND_RECEIVING_API_KEY` (the full-access key) and `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech`. Set
    `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech` on the `atlas` Vercel project too, so Project Settings shows each
    project's full inbox address, and redeploy Atlas. Migration 1651 and the `inbound-email` function ship with the
-   release (Deploy order).
+   release (Deploy order). `inbound-email` is redeployed with the B15 release, which keeps a project inbox message's
+   full text so that forwarded mail can be read.
 6. Check: create a project inbox in Atlas (Project Settings, Project inbox) and forward one message to it from an
    address that signs with DKIM, such as Gmail. In Resend, the webhook's message shows a 200 answer with an
    `inbound_message_id`; in Supabase, Storage, `inbound-mail` holds `<org id>/resend/<email id>.eml`; in Atlas, the message is on
