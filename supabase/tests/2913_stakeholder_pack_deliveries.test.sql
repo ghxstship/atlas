@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(19);
+select plan(35);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -118,6 +118,72 @@ select ok((select paused_at is not null from app.stakeholder_pack_schedules wher
   'a schedule whose next slot falls after the pack''s expiry is paused');
 select is(pg_temp.try('carol', format($$select app.set_stakeholder_pack_schedule(%L, 'Weekly', %s::smallint, 1::smallint, null, 'UTC')$$,
   pg_temp.k('pack'), pg_temp.v('hour')))), 'stakeholder_pack_schedule_past_expiry', 'a schedule whose first slot falls after the expiry is refused');
+
+-- The org's suppression list -------------------------------------------------------------------------------------------
+select pg_temp.as_user('carol');
+insert into k values ('pack2', app.create_stakeholder_pack(pg_temp.id('prj_a'), 'Second pack', now() + interval '30 days'), null);
+insert into k select 'p2a', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('pack2'), 'Tia Supplier', 'tia@supplier.test') r;
+insert into k select 'p2b', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('pack2'), 'Bo Bounce', 'bo@supplier.test') r;
+insert into k select 'p2c', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('pack2'), 'Ada Open', 'ada@supplier.test') r;
+select pg_temp.as_platform();
+insert into app.suppression_list (org_id, channel, address, reason) values
+  (pg_temp.id('org_a'), 'Email', 'tia@supplier.test', 'Unsubscribe'),
+  (pg_temp.id('org_a'), 'Email', 'bo@supplier.test', 'Hard Bounce');
+select pg_temp.as_user('carol');
+insert into k values ('sent2', null, app.send_stakeholder_pack(pg_temp.k('pack2'))::text);
+select pg_temp.as_platform();
+select is(pg_temp.v('sent2'), '1', 'a send skips an address unsubscribed from another pack of the org, and a Hard Bounce');
+select is((select count(*)::int from app.stakeholder_pack_deliveries where recipient_id = pg_temp.k('p2a')), 0, 'nothing is queued for the unsubscribed address');
+select pg_temp.as_user('carol');
+select app.set_stakeholder_pack_schedule(pg_temp.k('pack2'), 'Daily', pg_temp.v('hour')::smallint, null, null, 'UTC');
+select pg_temp.as_platform();
+update app.stakeholder_pack_schedules set next_run_at = now() - interval '1 minute' where stakeholder_pack_id = pg_temp.k('pack2');
+select is(app.queue_due_pack_schedules(), 1, 'the scheduler skips them too');
+-- A row added after a delivery was queued marks it Skipped, with the reason.
+insert into app.suppression_list (org_id, channel, address, reason) values (pg_temp.id('org_a'), 'Email', 'ada@supplier.test', 'Complaint');
+select is((select count(*)::int from app.mint_stakeholder_pack_link(pg_temp.latest('p2c'))), 0, 'minting for a suppressed address answers nothing');
+select is((select delivery_status || ': ' || last_error from app.stakeholder_pack_deliveries where id = pg_temp.latest('p2c')),
+  'Skipped: The address is on the organization''s suppression list.', 'and the delivery says why');
+
+-- A retried attempt's link -----------------------------------------------------------------------------------------------------
+select pg_temp.as_user('carol');
+insert into k values ('pack3', app.create_stakeholder_pack(pg_temp.id('prj_a'), 'Third pack', now() + interval '30 days'), null);
+insert into k select 'p3', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('pack3'), 'Rae Retry', 'rae@supplier.test') r;
+select app.send_stakeholder_pack(pg_temp.k('pack3'));
+select pg_temp.as_platform();
+select is((select org_id from private.stakeholder_pack_links l where l.recipient_id = pg_temp.k('p3') limit 1), null, 'no link before minting');
+select count(*) from app.mint_stakeholder_pack_link(pg_temp.latest('p3'));
+select is((select org_id from private.stakeholder_pack_links l where l.recipient_id = pg_temp.k('p3') limit 1), pg_temp.id('org_a'), 'a minted link carries the org');
+select ok((select (m.email ? 'time_zone') from app.mint_stakeholder_pack_link(pg_temp.latest('p3')) m), 'the email data names the zone to show the expiry in');
+select app.finish_stakeholder_pack_delivery(pg_temp.latest('p3'), false, null, 'Provider down', true);
+select is((select delivery_status from app.stakeholder_pack_deliveries where id = pg_temp.latest('p3')), 'Queued', 'a failed attempt that will retry stays Queued');
+select is((select count(*)::int from private.stakeholder_pack_links l where l.recipient_id = pg_temp.k('p3') and l.revoked_at is null), 0, 'and leaves no working link');
+
+-- Retiring what a pack held ------------------------------------------------------------------------------------------------------
+select pg_temp.as_user('carol');
+insert into k values ('old', app.create_stakeholder_pack(pg_temp.id('prj_a'), 'Old pack', now() + interval '1 day'), null);
+insert into k select 'old_r', r.recipient_id, r.access_code from app.add_stakeholder_pack_recipient(pg_temp.k('old'), 'Old Recipient', 'old@supplier.test') r;
+select pg_temp.as_platform();
+select is(private.retire_ended_stakeholder_packs(), 0, 'a pack that ended within the year is kept');
+alter table app.stakeholder_packs disable trigger user;
+update app.stakeholder_packs set expires_at = now() - interval '13 months' where id = pg_temp.k('old');
+alter table app.stakeholder_packs enable trigger user;
+select is(private.retire_ended_stakeholder_packs(), 1, 'one year after a pack ended the job takes it');
+select ok((select deleted_at is not null from app.stakeholder_packs where id = pg_temp.k('old'))
+  and (select deleted_at is not null from app.stakeholder_pack_recipients where id = pg_temp.k('old_r')),
+  'the pack and its recipients are soft-deleted');
+alter table app.stakeholder_packs disable trigger user;
+alter table app.stakeholder_pack_recipients disable trigger user;
+update app.stakeholder_pack_recipients set deleted_at = now() - interval '13 months' where id = pg_temp.k('old_r');
+update app.stakeholder_packs set deleted_at = now() - interval '13 months' where id = pg_temp.k('old');
+alter table app.stakeholder_pack_recipients enable trigger user;
+alter table app.stakeholder_packs enable trigger user;
+select private.purge_table('app.stakeholder_pack_recipients');
+select private.purge_table('app.stakeholder_packs');
+select ok(not exists (select 1 from app.stakeholder_packs where id = pg_temp.k('old'))
+  and not exists (select 1 from app.stakeholder_pack_recipients where id = pg_temp.k('old_r')),
+  'and purged after their retention, so a non-user''s name and email go');
+select ok(exists (select 1 from cron.job where jobname = 'xos_retire_ended_stakeholder_packs'), 'the job runs daily');
 
 select * from finish();
 rollback;

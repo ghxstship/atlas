@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(37);
+select plan(52);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -167,9 +167,11 @@ select pg_temp.anon('198.51.100.7');
 select pg_temp.put('ticket', null, (select f.ticket from api_public.stakeholder_pack_file(pg_temp.v('t1'), array[pg_temp.v('g1')], pg_temp.k('item_file'), '198.51.100.7') f));
 select pg_temp.as_platform();
 select matches(pg_temp.v('ticket'), '^xdlt_[0-9a-f]{64}$', 'a file item issues a download ticket');
-select ok((select count(*) from app.file_access_log where object_path = pg_temp.v('plan.pdf') and action = 'Download' and person_id is null) = 1
+select ok((select count(*) from app.file_access_log where object_path = pg_temp.v('plan.pdf') and action = 'Share Link Opened' and person_id is null and not watermarked) = 1
   and (select count(*) from app.stakeholder_pack_events where recipient_id = pg_temp.k('r1') and action = 'Downloaded') = 1,
-  'and logs Downloaded in the pack and Download, with no person, in the file access log');
+  'and logs Downloaded in the pack and Share Link Opened, with no person, in the file access log');
+select is((select org_id from private.file_download_tickets where ticket_hash = extensions.digest(pg_temp.v('ticket'), 'sha256')), pg_temp.id('org_a'),
+  'the ticket is stamped with the org of its attachment version');
 select is((select count(*)::int from app.consume_file_download_ticket(pg_temp.v('ticket'))), 1, 'the file-download function honors the ticket');
 select is((select count(*)::int from app.consume_file_download_ticket(pg_temp.v('ticket'))), 0, 'once');
 
@@ -232,6 +234,52 @@ select ok(pg_temp.v('unsub')::jsonb ->> 'status' = 'ok'
   and (select count(*) from app.stakeholder_pack_events where recipient_id = pg_temp.k('r1') and action = 'Unsubscribed') = 1,
   'a one-click unsubscribe stops the emails and logs Unsubscribed');
 select is(pg_temp.pack(pg_temp.v('t4'), pg_temp.v('g4')) ->> 'status', 'ok', 'the pack still opens after unsubscribing');
+select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'cleo@client.test' and reason = 'Unsubscribe' and category_code is null), 1,
+  'the address goes on the org''s suppression list');
+select ok(private.pack_email_suppressed(pg_temp.id('org_a'), 'cleo@client.test'), 'so the org''s other packs stop mailing it');
+select pg_temp.anon('198.51.100.7');
+select api_public.unsubscribe_stakeholder_pack(pg_temp.v('t1:unsubscribe'), '198.51.100.7');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.suppression_list where org_id = pg_temp.id('org_a') and address = 'cleo@client.test' and reason = 'Unsubscribe'), 1,
+  'a repeat changes nothing');
+select pg_temp.put('f2', null, pg_temp.failures()::text);
+select pg_temp.anon('198.51.100.7');
+select is(api_public.unsubscribe_stakeholder_pack('xpku_' || repeat('3', 64), '198.51.100.7') ->> 'reason', 'pack_link_invalid', 'the confirm page refuses an unknown token');
+select pg_temp.as_platform();
+select is(pg_temp.failures(), pg_temp.v('f2')::int + 1, 'and counts a failure');
+select pg_temp.put('f3', null, pg_temp.failures()::text);
+select is(app.unsubscribe_pack_by_token('xpku_' || repeat('3', 64)), false, 'one-click answers false for an unknown token');
+select is(pg_temp.failures(), pg_temp.v('f3')::int, 'and counts no failure, since the reaching address is the function''s own');
+select is(app.unsubscribe_pack_by_token(pg_temp.v('t1:unsubscribe')), true, 'one-click answers true for a known token, idempotently');
+select ok(not has_function_privilege('anon', 'app.unsubscribe_pack_by_token(text)', 'execute'), 'anon cannot execute the one-click call');
+
+-- Reads refuse a read-only transaction -------------------------------------------------------------------------------------
+create function pg_temp.read_only(p_sql text) returns text
+language plpgsql as $$
+begin
+  begin
+    perform set_config('transaction_read_only', 'on', true);
+    execute p_sql;
+  exception when others then
+    perform set_config('transaction_read_only', 'off', true);
+    return sqlstate;
+  end;
+  perform set_config('transaction_read_only', 'off', true);
+  return 'ran';
+end $$;
+select pg_temp.anon('198.51.100.7');
+select is(pg_temp.read_only(format($$select api_public.stakeholder_pack(%L, array[%L], null)$$, pg_temp.v('t4'), pg_temp.v('g4'))), '25006', 'a read-only read of the pack is refused');
+select is(pg_temp.read_only(format($$select api_public.stakeholder_pack_item(%L, array[%L], %L, null)$$, pg_temp.v('t4'), pg_temp.v('g4'), pg_temp.k('item_live'))), '25006', 'and of a live item');
+select pg_temp.as_platform();
+
+-- A newer version that is not clean makes the item unavailable -----------------------------------------------------------------
+select pg_temp.as_user('carol');
+select pg_temp.as_platform();
+insert into app.attachment_versions (attachment_id, version_number, object_name, filename, content_type, size_bytes, scan_status)
+select v.attachment_id, v.version_number + 1, v.object_name || '-2', v.filename, v.content_type, v.size_bytes, 'Pending'
+from app.attachment_versions v where v.attachment_id = pg_temp.k('plan.pdf') order by v.version_number desc limit 1;
+select is((private.pack_file_version(pg_temp.k('plan.pdf'))).id, null, 'a newer Pending version means no current clean version');
+select is(pg_temp.pack(pg_temp.v('t4'), pg_temp.v('g4')) -> 'items' -> 1 ->> 'available', 'false', 'so the file item reads unavailable rather than serving the older file');
 select pg_temp.as_user('carol');
 select app.revoke_stakeholder_pack_recipient(pg_temp.k('r1'));
 select pg_temp.as_platform();

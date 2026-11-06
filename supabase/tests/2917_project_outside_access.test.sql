@@ -106,7 +106,7 @@ select ok((select count(*) = 0 from information_schema.columns where table_schem
 
 -- Who sees what --------------------------------------------------------------------------------------------------------
 select ok(not ('Pack recipient' = any (pg_temp.sources('frank'))), 'a field member without projects.settings.write sees no pack recipient');
-select ok(not ('Intake link' = any (pg_temp.sources('gina'))) or true, 'each source''s policy decides');
+select ok(not ('Form link' = any (coalesce(pg_temp.sources('frank'), '{}'))), 'nor a form link: each source''s own policy decides');
 select is(pg_temp.sources('xavier'), null, 'a member of another org sees nothing');
 select is(pg_temp.sources('ivy'), null, 'an external party sees nothing');
 

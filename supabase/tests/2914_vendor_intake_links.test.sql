@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(23);
+select plan(26);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -152,6 +152,27 @@ select ok(pg_temp.v('read') not like '%Audio vendors for the summer%' and pg_tem
   and not (pg_temp.v('read')::jsonb ? 'rate_minor'), 'never the note or the rate');
 select is((select count(*)::int from app.consume_file_download_ticket(pg_temp.v('ticket'))), 1,
   'the pinned agreement downloads once by ticket');
+select ok(exists (select 1 from app.file_access_log l where l.action = 'Share Link Opened' and l.person_id is null and l.object_path = pg_temp.v('msa')),
+  'and logs Share Link Opened with no person');
+select pg_temp.as_anon();
+select is((select array_agg(x order by x) from jsonb_object_keys(pg_temp.v('read')::jsonb) x),
+  array['agreement', 'collect_invoice', 'collect_payout', 'collect_tax_form', 'end_date', 'full', 'instructions', 'meta', 'role_title', 'role_type', 'start_date', 'status', 'title'],
+  'the read answers its exact key set, never the org''s id');
+create function pg_temp.read_only_read() returns text
+language plpgsql as $$
+begin
+  begin
+    perform set_config('transaction_read_only', 'on', true);
+    perform api_public.vendor_intake(split_part(pg_temp.v('audio'), ' ', 1), pg_temp.v('grant'), null);
+  exception when others then
+    perform set_config('transaction_read_only', 'off', true);
+    return sqlstate;
+  end;
+  perform set_config('transaction_read_only', 'off', true);
+  return 'ran';
+end $$;
+select is(pg_temp.read_only_read(), '25006', 'a read-only read is refused');
+select pg_temp.as_platform();
 
 -- Regenerating, locking and revoking -----------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
