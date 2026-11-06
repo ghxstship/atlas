@@ -1,29 +1,32 @@
 -- 6150_offered_territories.sql
--- Launch offers XOS in the United States only (ADR 0160, legal review issue 3). GDPR Recital 23 names currency and
--- language as signs of an intent to offer, so a closed territory's prices and languages stay switched off, and no
--- organization starts outside an offered territory, without deleting anything that opens the territory later.
+-- Launch offers XOS in the United States only (ADR 0160, issue 3 of the AI legal audit; no attorney has reviewed it). GDPR
+-- Recital 23 names currency and language as signs of an intent to offer, so a closed territory's prices and languages
+-- stay switched off, and no organization starts outside an offered territory, without deleting anything that opens the
+-- territory later.
 --   * private.territories is the one source of truth: each territory's countries, price book currencies and languages,
 --     and whether it is offered. Only the United States is, by default. An operator opens or closes one in the console;
 --     no code changes. Every change lands in app.platform_operator_actions with the operator and the reason.
---   * app.organizations.country_code records the country the organization's creator states. Nothing asks a person's
---     location and nothing reads an IP address: being invited to work for an organization is not being offered XOS, so
---     invitations and every signed-in surface stay as they are.
+--   * app.organizations.country_code records the country the organization's creator states, and only that. Nothing asks a
+--     person's location and nothing reads an IP address: being invited to work for an organization is not being offered
+--     XOS, so invitations and every signed-in surface stay as they are.
 --   * private.territory_exceptions lets an operator allow one organization outside an offered territory, on the record
 --     of a signed contract. It is for one owner email and one country, and it is used once.
---   * app.create_organization, app.create_client_organization and app.subscribe_external_account, the three ways an
---     organization starts using Atlas, gain a country and refuse territory_not_offered. Gateway's company accounts carry
---     no plan and are not gated here; one that starts Atlas is, through app.subscribe_external_account.
---   * API v1 stays additive: p_country_code is optional and defaults to US, documented as the caller's statement.
---     Existing organizations keep working with no recorded country; console_orgs_outside_territories lists them.
--- Recreated from their latest definitions in 1612: app.create_organization, app.create_client_organization,
--- app.subscribe_external_account.
+--   * app.create_organization, app.subscribe_external_account, app.create_external_account and
+--     app.create_client_organization, the ways a customer's organization starts, gain a country and refuse
+--     territory_not_offered. A partner cannot use an exception: an exception is the named person's, and only that person
+--     signed in can use it.
+--   * API v1 stays additive, so p_country_code stays optional. A caller who omits it stated nothing and the row says so:
+--     country_code stays null and console_orgs_outside_territories lists the organization for a person to review.
+--   * A partner's price for a client cannot be set in a closed territory's currency (private.guard_partner_price_currency).
+-- Recreated from their latest definitions: app.create_organization, app.create_client_organization and
+-- app.subscribe_external_account from 1612, and app.create_external_account from 2630.
 
 -- The organization's country -------------------------------------------------------------------------------------------
 
 alter table app.organizations add column country_code text;
 alter table app.organizations add constraint organizations_country_code_format
   check (country_code is null or country_code ~ '^[A-Z]{2}$');
-comment on column app.organizations.country_code is 'ISO 3166-1 alpha-2 country the organization''s creator stated at signup, which decides whether XOS is offered to it (private.territories). Null for an organization from before the question, a Gateway company account that does not use Atlas, a counterparty or a sandbox. Not a person''s location, and never read from an IP address.';
+comment on column app.organizations.country_code is 'ISO 3166-1 alpha-2 country the organization''s creator stated, which decides whether XOS is offered to it (private.territories). Null when nobody stated one: an organization from before the question, a caller of the API or the database functions who omitted it, a counterparty or a sandbox. Not a person''s location, and never read from an IP address.';
 
 -- Territories ----------------------------------------------------------------------------------------------------------
 
@@ -226,6 +229,44 @@ comment on function app.org_checkout_currency(uuid) is 'The currency Stripe Chec
 revoke all on function app.org_checkout_currency(uuid) from public, anon;
 grant execute on function app.org_checkout_currency(uuid) to authenticated, service_role;
 
+-- Partner prices ---------------------------------------------------------------------------------------------------------
+
+create or replace function private.currency_offered(p_currency text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_currency = 'USD' or exists (
+    select 1 from private.territory_currencies c
+    join private.territories t on t.code = c.territory_code
+    where c.currency_code = p_currency and t.offered
+  );
+$$;
+comment on function private.currency_offered(text) is 'Whether a price may be set in a currency now: USD always, otherwise a currency of an offered territory.';
+revoke all on function private.currency_offered(text) from public, anon, authenticated;
+
+create or replace function private.guard_partner_price_currency()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (tg_op = 'INSERT' or new.currency_code is distinct from old.currency_code)
+     and not private.currency_offered(new.currency_code) then
+    perform private.refuse('partner_price_currency_not_offered', 'Set this price in a currency XOS is offered in.');
+  end if;
+  return new;
+end;
+$$;
+comment on function private.guard_partner_price_currency() is 'A partner''s price for a client cannot be set in a closed territory''s currency (ADR 0160). A price already in one stays as it is, and can change its amount, until the partner moves it to an offered currency.';
+revoke all on function private.guard_partner_price_currency() from public, anon, authenticated;
+
+create trigger t41_guard_partner_price_currency before insert or update on app.partner_client_prices
+  for each row execute function private.guard_partner_price_currency();
+
 -- Exceptions -----------------------------------------------------------------------------------------------------------
 
 create table private.territory_exceptions (
@@ -258,7 +299,7 @@ create index territory_exceptions_granted_by_idx on private.territory_exceptions
 create index territory_exceptions_revoked_by_idx on private.territory_exceptions (revoked_by);
 create index territory_exceptions_org_id_idx on private.territory_exceptions (org_id);
 
-comment on table private.territory_exceptions is 'A recorded exception that allows one organization outside an offered territory, for a signed contract (ADR 0160). An operator names the first Owner''s email, the country and the contract; the org that person starts uses it once. Revoked once, never edited. Written only by the console RPCs and the org creation RPCs.';
+comment on table private.territory_exceptions is 'A recorded exception that allows one organization outside an offered territory, for a signed contract (ADR 0160). An operator names the first Owner''s email, the country and the contract; the org that person starts, signed in with that confirmed email, uses it once. A company account and its later start in Atlas each need one. Revoked once, never edited. Written only by the console RPCs and the org creation RPCs.';
 comment on column private.territory_exceptions.id is 'Exception id.';
 comment on column private.territory_exceptions.owner_email is 'Email of the person who will be the organization''s first Owner, in lower case.';
 comment on column private.territory_exceptions.country_code is 'Country the organization is allowed in.';
@@ -277,19 +318,22 @@ alter table private.territory_exceptions enable row level security;
 revoke all on private.territory_exceptions from public, anon, authenticated;
 grant select on private.territory_exceptions to service_role;
 
--- The check the three org creation paths make ----------------------------------------------------------------------------
+-- The check org creation makes -------------------------------------------------------------------------------------------
 
 create or replace function private.territory_clearance(p_country text, p_owner_email text)
 returns uuid
 language plpgsql
-stable
+volatile
 security definer
 set search_path = ''
 as $$
 declare
   v_exception uuid;
 begin
-  if p_country is null or p_country !~ '^[A-Z]{2}$' then
+  if p_country is null then
+    return null;
+  end if;
+  if p_country !~ '^[A-Z]{2}$' then
     perform private.refuse('organization_country_invalid', 'Choose the country the organization is established in.');
   end if;
   if private.country_offered(p_country) then
@@ -297,15 +341,16 @@ begin
   end if;
   select e.id into v_exception
   from private.territory_exceptions e
-  where e.owner_email = lower(btrim(p_owner_email)) and e.country_code = p_country
-    and e.used_at is null and e.revoked_at is null;
+  where e.owner_email = p_owner_email and e.country_code = p_country
+    and e.used_at is null and e.revoked_at is null
+  for update;
   if v_exception is null then
     perform private.refuse('territory_not_offered', 'XOS is not offered to organizations in this country.');
   end if;
   return v_exception;
 end;
 $$;
-comment on function private.territory_clearance(text, text) is 'Whether an organization may start in a country: null when the country is in an offered territory, the id of the open exception naming this owner and country, or a refusal (territory_not_offered, organization_country_invalid). The caller marks an exception used once the org exists.';
+comment on function private.territory_clearance(text, text) is 'Whether an organization may start in a country: null when no country was stated or it is in an offered territory, the id of the open exception naming this email and country, locked until the transaction ends so two callers cannot share it, or a refusal (territory_not_offered, organization_country_invalid). The caller passes only a confirmed email of the signed-in person, or null, and marks an exception used once the org exists.';
 revoke all on function private.territory_clearance(text, text) from public, anon, authenticated;
 
 create or replace function private.use_territory_exception(p_exception uuid, p_org uuid)
@@ -316,31 +361,23 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_exception is not null then
-    update private.territory_exceptions e set org_id = p_org, used_at = now()
-    where e.id = p_exception and e.used_at is null and e.revoked_at is null;
+  if p_exception is null then
+    return;
+  end if;
+  update private.territory_exceptions e set org_id = p_org, used_at = now()
+  where e.id = p_exception and e.used_at is null and e.revoked_at is null;
+  if not found then
+    perform private.refuse('territory_not_offered', 'XOS is not offered to organizations in this country.');
   end if;
 end;
 $$;
-comment on function private.use_territory_exception(uuid, uuid) is 'Marks an exception used by the org created under it, so it allows one organization. A no-op without an exception.';
+comment on function private.use_territory_exception(uuid, uuid) is 'Marks an exception used by the org created under it, so it allows one organization, and refuses territory_not_offered if it is already gone. A no-op without an exception.';
 revoke all on function private.use_territory_exception(uuid, uuid) from public, anon, authenticated;
-
-create or replace function private.my_confirmed_email()
-returns text
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select lower(u.email) from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null;
-$$;
-comment on function private.my_confirmed_email() is 'The signed-in person''s email once confirmed, in lower case; an exception only ever matches an address the person proved they hold.';
-revoke all on function private.my_confirmed_email() from public, anon, authenticated;
 
 -- Org creation, from 1612 ------------------------------------------------------------------------------------------------
 
 drop function app.create_organization(text, text);
-create function app.create_organization(p_name text, p_slug text, p_country_code text default 'US')
+create function app.create_organization(p_name text, p_slug text, p_country_code text default null)
 returns uuid
 language plpgsql
 volatile
@@ -368,7 +405,7 @@ begin
   return v_org;
 end;
 $$;
-comment on function app.create_organization(text, text, text) is 'Creates an organization with the signed-in person as its Owner, in one transaction, in the country they state; omitted, the caller states the United States. A country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0160). It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7), and receives its editable copy of the XOS Standard Library (Section 7.2). Returns the org id.';
+comment on function app.create_organization(text, text, text) is 'Creates an organization with the signed-in person as its Owner, in one transaction, in the country they state. A country outside the offered territories is refused territory_not_offered unless an exception names this person''s confirmed email and that country (ADR 0160). A caller who omits the country stated nothing: the org records no country and appears in app.console_orgs_outside_territories. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7), and receives its editable copy of the XOS Standard Library (Section 7.2). Returns the org id.';
 revoke all on function app.create_organization(text, text, text) from public, anon;
 grant execute on function app.create_organization(text, text, text) to authenticated, service_role;
 
@@ -379,7 +416,7 @@ create function app.create_client_organization(
   p_slug text,
   p_owner_email text,
   p_plan_code text default 'access',
-  p_country_code text default 'US'
+  p_country_code text default null
 )
 returns table (org_id uuid, invite_id uuid, invite_token text)
 language plpgsql
@@ -392,17 +429,16 @@ declare
   v_org uuid;
   v_token text := private.issue_invite_token();
   v_invite uuid;
-  v_exception uuid;
 begin
   if not private.has_capability(p_partner_org_id, 'org.partner.manage') then
     raise exception using errcode = '42501', message = 'org.partner.manage is required in the partner org';
   end if;
-  v_exception := private.territory_clearance(p_country_code, p_owner_email);
+  -- An exception is the named person's own: a partner naming their email cannot use it.
+  perform private.territory_clearance(p_country_code, null);
   perform private.assert_org_slug_available(p_slug);
   insert into app.organizations (name, slug, parent_org_id, country_code)
   values (btrim(p_name), p_slug, p_partner_org_id, p_country_code)
   returning id into v_org;
-  perform private.use_territory_exception(v_exception, v_org);
   perform private.create_subscription(v_org, p_plan_code);
   insert into app.invites (org_id, email, role_id, token_hash, expires_at, invited_by, partner_bootstrap)
   values (v_org, lower(btrim(p_owner_email)), private.system_role_id('owner'), private.invite_token_hash(v_token),
@@ -412,12 +448,12 @@ begin
   return query select v_org, v_invite, v_token;
 end;
 $$;
-comment on function app.create_client_organization(uuid, text, text, text, text, text) is 'Partner console (Section 4.6.1): creates a client org under the partner on the given plan, in the country the partner states (omitted, the United States), with its editable copy of the XOS Standard Library (Section 7.2), and an Owner invite for the client. A country outside the offered territories is refused territory_not_offered unless an exception names the client''s Owner and country (ADR 0160). Partner staff gain no access to the client org. The token is returned once.';
+comment on function app.create_client_organization(uuid, text, text, text, text, text) is 'Partner console (Section 4.6.1): creates a client org under the partner on the given plan, in the country the partner states, with its editable copy of the XOS Standard Library (Section 7.2), and an Owner invite for the client. A country outside the offered territories is refused territory_not_offered, and an exception does not help: only the person it names, signed in, can use it (ADR 0160). A caller who omits the country stated nothing, and the org records none. Partner staff gain no access to the client org. The token is returned once.';
 revoke all on function app.create_client_organization(uuid, text, text, text, text, text) from public, anon;
 grant execute on function app.create_client_organization(uuid, text, text, text, text, text) to authenticated, service_role;
 
 drop function app.subscribe_external_account(uuid);
-create function app.subscribe_external_account(p_account_id uuid, p_country_code text default 'US')
+create function app.subscribe_external_account(p_account_id uuid, p_country_code text default null)
 returns uuid
 language plpgsql
 volatile
@@ -426,18 +462,20 @@ set search_path = ''
 as $$
 declare
   v_person uuid := private.require_person();
+  v_country text;
   v_exception uuid;
 begin
   if p_account_id is null
      or p_account_id not in (select private.my_account_ids(array['Account Owner']::app.account_role[])) then
     raise exception using errcode = '42501', message = 'only the account''s Account Owner subscribes it';
   end if;
-  perform 1 from app.organizations o where o.id = p_account_id and o.deleted_at is null for update;
+  select coalesce(p_country_code, o.country_code) into v_country
+  from app.organizations o where o.id = p_account_id and o.deleted_at is null for update;
   if exists (select 1 from app.subscriptions s where s.org_id = p_account_id and s.deleted_at is null) then
     perform private.refuse('account_already_subscribed', 'This company already uses Atlas; open it from the organization switcher.');
   end if;
-  v_exception := private.territory_clearance(p_country_code, private.my_confirmed_email());
-  update app.organizations o set country_code = p_country_code where o.id = p_account_id;
+  v_exception := private.territory_clearance(v_country, private.my_confirmed_email());
+  update app.organizations o set country_code = v_country where o.id = p_account_id;
   perform private.use_territory_exception(v_exception, p_account_id);
   perform private.start_trial(p_account_id, private.trial_plan(), private.org_window_end(p_account_id, private.trial_days()),
     'External account started using Atlas: a 14-day Pro trial with no card.');
@@ -453,9 +491,47 @@ begin
   return p_account_id;
 end;
 $$;
-comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country they state (omitted, the United States); a country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0160). Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
+comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country they state, or the one on its record if they omit it; a country outside the offered territories is refused territory_not_offered unless an exception names this person''s confirmed email and that country (ADR 0160), and the exception that created a company account is already used. Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
 revoke all on function app.subscribe_external_account(uuid, text) from public, anon;
 grant execute on function app.subscribe_external_account(uuid, text) to authenticated, service_role;
+
+-- A Gateway company account, from 2630 ---------------------------------------------------------------------------------
+-- A company account carries no plan or billing, but it is an organization with a public page, started by whoever signs in,
+-- so the same gate applies. Working for an organization is untouched: people need no company account to accept an invitation.
+
+drop function app.create_external_account(text, text, text);
+create function app.create_external_account(
+  p_name text,
+  p_slug text,
+  p_organization_type text default 'For-Profit',
+  p_country_code text default null
+)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.require_person();
+  v_exception uuid := private.territory_clearance(p_country_code, private.my_confirmed_email());
+  v_account uuid;
+  v_membership uuid;
+begin
+  perform private.assert_org_slug_available(p_slug);
+  insert into app.organizations (name, slug, organization_type, country_code)
+  values (btrim(p_name), p_slug, p_organization_type, p_country_code)
+  returning id into v_account;
+  perform private.use_territory_exception(v_exception, v_account);
+  insert into app.account_memberships (org_id, person_id, accepted_at) values (v_account, v_person, now()) returning id into v_membership;
+  insert into app.account_membership_roles (account_membership_id, account_role, granted_by)
+  values (v_membership, 'Account Owner', null);
+  return v_account;
+end;
+$$;
+comment on function app.create_external_account(text, text, text, text) is 'Creates an external account (Section 4.4.1): an organization without a subscription, with the signed-in person as its Account Owner, their membership accepted at once (R4), in the country they state. A country outside the offered territories is refused territory_not_offered unless an exception names this person''s confirmed email and that country (ADR 0160). A caller who omits the country stated nothing: the account records none and appears in app.console_orgs_outside_territories. Returns the organization id.';
+revoke all on function app.create_external_account(text, text, text, text) from public, anon;
+grant execute on function app.create_external_account(text, text, text, text) to authenticated, service_role;
 
 -- The console ------------------------------------------------------------------------------------------------------------
 
@@ -733,7 +809,7 @@ revoke all on function app.console_revoke_territory_exception(uuid, text) from p
 grant execute on function app.console_revoke_territory_exception(uuid, text) to authenticated;
 
 create or replace function app.console_orgs_outside_territories()
-returns table (id uuid, name text, slug text, country_code text, exception_contract text)
+returns table (id uuid, name text, slug text, country_code text, uses_atlas boolean, exception_contract text)
 language plpgsql
 stable
 security definer
@@ -743,15 +819,17 @@ begin
   perform private.require_platform_operator('tenants.read');
   return query
   select o.id, o.name, o.slug, o.country_code,
+    exists (select 1 from app.subscriptions s where s.org_id = o.id and s.deleted_at is null),
     (select e.contract_reference from private.territory_exceptions e where e.org_id = o.id order by e.used_at desc limit 1)
   from app.organizations o
   where o.deleted_at is null
-    and exists (select 1 from app.subscriptions s where s.org_id = o.id and s.deleted_at is null)
+    and (exists (select 1 from app.subscriptions s where s.org_id = o.id and s.deleted_at is null)
+      or exists (select 1 from app.account_memberships m where m.org_id = o.id and m.deleted_at is null))
     and not exists (select 1 from app.sandbox_orgs sb where sb.org_id = o.id)
     and not private.country_offered(o.country_code)
   order by o.name;
 end;
 $$;
-comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas whose stated country is outside the offered territories or was never recorded, with the contract of an exception when one let them in (tenants.read). The list a person reviews; nothing acts on it.';
+comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none, with the contract of an exception when one let them in (tenants.read). A counterparty row nobody belongs to is not one of them. The list a person reviews; nothing acts on it.';
 revoke all on function app.console_orgs_outside_territories() from public, anon;
 grant execute on function app.console_orgs_outside_territories() to authenticated;
