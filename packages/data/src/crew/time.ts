@@ -537,16 +537,22 @@ export async function getTimesheet(db: XosClient, id: string): Promise<Result<Ti
   if (!sheet.ok) return sheet;
   if (approvals.error) return fail(toDataError(approvals.error));
   if (ledger.error) return fail(toDataError(ledger.error));
-  const end = new Date(`${row.period_end}T00:00:00Z`);
-  end.setUTCDate(end.getUTCDate() + 1);
+  // The period's local days on the project, the same bounds the worked minutes use (6060).
+  const { data: bounds, error: boundsError } = await db
+    .from("timesheet_hours")
+    .select("period_starts_at, period_ends_at")
+    .eq("timesheet_id", id)
+    .maybeSingle();
+  if (boundsError) return fail(toDataError(boundsError));
+  if (!bounds?.period_starts_at || !bounds.period_ends_at) return fail({ kind: "not-found" });
   const entries = await listTimeEntries(db, {
     orgId: row.org_id,
     projectId: row.project_id,
     ...(row.membership_id ? { membershipId: row.membership_id } : {}),
     ...(row.engagement_id ? { engagementId: row.engagement_id } : {}),
     ...(row.roster_entry_id ? { rosterEntryId: row.roster_entry_id } : {}),
-    from: `${row.period_start}T00:00:00Z`,
-    to: end.toISOString(),
+    from: bounds.period_starts_at,
+    to: bounds.period_ends_at,
   });
   if (!entries.ok) return entries;
   return ok({
