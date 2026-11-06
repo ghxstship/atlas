@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   CHECKS,
@@ -364,6 +366,24 @@ describe("runChecks", () => {
     };
     const results = await runChecks([throwing], { env: {}, region: "us-east" });
     expect(results[0]).toMatchObject({ status: "fail", detail: "error_rangeerror" });
+  });
+});
+
+describe("runbook links", () => {
+  it("point at a section that exists, since every alert carries one", () => {
+    const runbook = readFileSync(
+      fileURLToPath(new URL("../../runbooks/incident-response.md", import.meta.url)),
+      "utf8",
+    );
+    const anchors = [...runbook.matchAll(/^#{2,3} (.+)$/gm)].map((match) =>
+      (match[1] ?? "")
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, "")
+        .replace(/ /g, "-"),
+    );
+    for (const definition of CHECKS) {
+      expect(anchors, definition.id).toContain(definition.runbook.split("#")[1]);
+    }
   });
 });
 
