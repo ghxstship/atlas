@@ -1,355 +1,343 @@
 "use client";
 
-import type {
-  AuroraCandidate,
-  AuroraItineraryFlag,
-  AuroraProblem,
-  AuroraSuggestion,
-} from "@xos/ai/client";
-import { checkItinerary, localInstant, type ItineraryLine } from "@xos/ai/itinerary";
+import type { AuroraIntakeOptions, AuroraOpenProposal, AuroraProblem } from "@xos/ai/client";
+import { isAreaTimeZone, matchExact, normalizePersonName } from "@xos/ai/intake";
+import { zonedInstant } from "@xos/ai/lists";
 import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import type { ItineraryEntryProps } from "./intake-entry";
 import {
+  atConcurrency,
   fieldOf,
   fileSource,
-  InboxPicker,
+  FileStatusList,
   MAX_FILE_BYTES,
   MAX_INTAKE_FILES,
   ProblemAlert,
   textOf,
+  toMajorText,
+  toMinor,
   useRequestsLeft,
+  type FileStatus,
 } from "./intake-shared";
-import type { ItineraryIntakeEntryProps } from "./intake-entry";
 import {
   AiGenerated,
   AiPanel,
   AvailabilityNotice,
   LiveRegion,
+  SentList,
   useAurora,
   useEntryT,
 } from "./shared";
 
 interface Row {
-  readonly suggestionId: string;
-  readonly include: boolean;
+  readonly id: string;
+  readonly keep: boolean;
   readonly passenger: string;
   readonly personId: string;
-  readonly candidates: readonly AuroraCandidate[];
-  readonly travelMode: string;
+  readonly mode: string;
+  readonly operator: string;
   readonly service: string;
-  readonly departsFrom: string;
-  readonly departsLocal: string;
-  readonly departsZone: string;
-  readonly arrivesAtPlace: string;
-  readonly arrivesLocal: string;
-  readonly arrivesZone: string;
-  readonly flags: readonly AuroraItineraryFlag["type"][];
-  /** The traveler already has this segment live (same service and departure), as the apply would refuse it. */
-  readonly booked: boolean;
+  readonly confirmation: string;
+  readonly price: string;
+  readonly currency: string;
+  readonly from: string;
+  readonly fromLocal: string;
+  readonly fromZone: string;
+  readonly to: string;
+  readonly toLocal: string;
+  readonly toZone: string;
+  readonly confidence: number | null;
   readonly excerpt: string;
+  readonly yearInferred: boolean;
 }
 
-type Phase =
-  | { readonly kind: "pick" }
-  | { readonly kind: "reading"; readonly done: number; readonly total: number }
-  | { readonly kind: "review"; readonly batchId: string; readonly model: string | null }
-  | { readonly kind: "added"; readonly count: number };
+type Status = "ready" | "needsTraveler" | "needsDetails" | "checkZone" | "alreadyBooked";
 
-function rowOf(
-  s: AuroraSuggestion,
-  candidates: readonly AuroraCandidate[],
-  flags: AuroraItineraryFlag["type"][],
-): Row {
-  const best = candidates[0];
+const rowOf = (p: AuroraOpenProposal, personId: string): Row => {
+  const currency = textOf(p, "currency_code");
+  const price = textOf(p, "price_minor");
   return {
-    suggestionId: s.id,
-    // A row repeating another of the batch is left out until the person keeps it; one the traveler
-    // already has is left out once the booked check finds it.
-    include: !flags.includes("duplicate_in_batch"),
-    passenger: textOf(s, "passenger_name"),
-    personId: best?.person_id ?? "",
-    candidates,
-    travelMode: textOf(s, "travel_mode") || "Flight",
-    service: textOf(s, "service_identifier"),
-    departsFrom: textOf(s, "departs_from"),
-    departsLocal: textOf(s, "departs_local"),
-    departsZone: textOf(s, "departs_time_zone"),
-    arrivesAtPlace: textOf(s, "arrives_at_place"),
-    arrivesLocal: textOf(s, "arrives_local"),
-    arrivesZone: textOf(s, "arrives_time_zone"),
-    flags,
-    booked: false,
+    id: p.id,
+    keep: true,
+    passenger: textOf(p, "passenger_name"),
+    personId,
+    mode: textOf(p, "travel_mode"),
+    operator: textOf(p, "operator_name"),
+    service: textOf(p, "service_identifier"),
+    confirmation: textOf(p, "confirmation_identifier"),
+    price: price === "" ? "" : toMajorText(Number(price), currency || "USD"),
+    currency,
+    from: textOf(p, "departs_from"),
+    fromLocal: textOf(p, "departs_local"),
+    fromZone: textOf(p, "departs_time_zone"),
+    to: textOf(p, "arrives_at_place"),
+    toLocal: textOf(p, "arrives_local"),
+    toZone: textOf(p, "arrives_time_zone"),
+    confidence: fieldOf(p, "departs_local")?.confidence ?? fieldOf(p, "departs_from")?.confidence ?? null,
     excerpt:
-      fieldOf(s, "departs_local")?.source_excerpt ??
-      fieldOf(s, "passenger_name")?.source_excerpt ??
-      "",
+      fieldOf(p, "departs_local")?.source_excerpt ?? fieldOf(p, "departs_from")?.source_excerpt ?? "",
+    yearInferred: textOf(p, "year_inferred") === "true",
   };
-}
+};
 
-const lineOf = (r: Row): ItineraryLine => ({
-  passengerName: r.passenger,
-  travelMode: r.travelMode,
-  serviceIdentifier: r.service || null,
-  departsFrom: r.departsFrom,
-  departsLocal: r.departsLocal || null,
-  departsTimeZone: r.departsZone || null,
-  arrivesAtPlace: r.arrivesAtPlace,
-  arrivesLocal: r.arrivesLocal || null,
-  arrivesTimeZone: r.arrivesZone || null,
-});
+const instantOf = (local: string, zone: string): string | null => {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(local);
+  if (!match || !isAreaTimeZone(zone)) return null;
+  return zonedInstant(match[1] as string, match[2] as string, zone);
+};
+
+const zoneKey = (place: string, zone: string) => `${place}|${zone}`;
 
 /**
- * Import itineraries with Aurora (B15, parity gap G-59). The person picks up to 25 files and verified
- * project inbox messages; each is read as one metered request into an intake batch, and the preview
- * lists one row per proposed segment with its traveler, zones, times, checks and excerpt. The
- * traveler always comes from the person: a candidate is a hint. "Add segments" files the kept rows
- * under the Travel fulfillment in one transaction; Discard closes the batch and rejects them all.
+ * Read Itineraries (B15, parity gap G-59). The person picks up to 25 files; each is one metered request
+ * about the project, and an intake is its open suggestions, so reopening the panel resumes the review.
+ * Each printed name maps to a traveler once, each proposed zone is confirmed once, and a person is
+ * preselected only on one exact match. "Add {n} Segments" writes the kept lines in one transaction;
+ * untouched lines stay open.
  */
 export function ItineraryIntakeDialog({
   projectId,
   fulfillmentId,
-  people,
-  inbox,
   open,
   onOpenChange,
-}: ItineraryIntakeEntryProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
+}: ItineraryEntryProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useEntryT();
   const id = useId();
   const router = useRouter();
   const { client, availability, check } = useAurora("extraction", open);
   const left = useRequestsLeft(client, open);
   const [files, setFiles] = useState<File[]>([]);
-  const [messages, setMessages] = useState<string[]>([]);
-  const [phase, setPhase] = useState<Phase>({ kind: "pick" });
-  const [rows, setRows] = useState<Row[]>([]);
+  const [statuses, setStatuses] = useState<FileStatus[]>([]);
+  const [reading, setReading] = useState(false);
+  const [options, setOptions] = useState<AuroraIntakeOptions | null>(null);
+  const [rows, setRows] = useState<Row[] | null>(null);
+  const [confirmed, setConfirmed] = useState<ReadonlySet<string>>(new Set());
+  const [correcting, setCorrecting] = useState<{ id: string; step: 0 | 1 | 2 } | null>(null);
+  const [added, setAdded] = useState<number | null>(null);
   const [problem, setProblem] = useState<AuroraProblem | null>(null);
+  const [dropNote, setDropNote] = useState("");
   const [announcement, setAnnouncement] = useState("");
-  const total = files.length + messages.length;
-  const tooBig = files.some((f) => f.size > MAX_FILE_BYTES);
-  const ready = availability.kind === "ready";
+  const [model, setModel] = useState<string | null>(null);
 
-  const read = async () => {
-    setProblem(null);
-    const started = await client.startIntake({
+  const travelerOf = (name: string, opts: AuroraIntakeOptions) =>
+    matchExact(
+      normalizePersonName(name),
+      opts.travelers.map((c) => ({
+        id: c.person_id,
+        normalized: normalizePersonName(c.display_name),
+      })),
+    ) ?? "";
+
+  /** The open lines become the review: a reload lands here without another request. */
+  const load = async (opts: AuroraIntakeOptions) => {
+    const open = await client.openProposals({
       project_id: projectId,
-      kind: "Itineraries",
-      file_count: total,
-      fulfillment_id: fulfillmentId,
+      operation_id: "travelSegments.create",
     });
-    if (!started.ok) return setProblem(started.problem);
-    const batchId = started.data.id;
-    const found: {
-      suggestionId: string;
-      candidates: AuroraCandidate[];
-      flags: AuroraItineraryFlag["type"][];
-    }[] = [];
-    let model: string | null = null;
-    const sources = [
-      ...messages.map((m) => ({ inbound_message_id: m })),
-      ...files.map((f) => ({ file: f })),
-    ];
-    for (const [i, source] of sources.entries()) {
-      setPhase({ kind: "reading", done: i, total: sources.length });
-      setAnnouncement(t("intake.reading", { done: i + 1, total: sources.length }));
-      const result = await client.extract({
-        kind: "itinerary",
-        intake_batch_id: batchId,
-        ...("file" in source ? await fileSource(source.file) : source),
-      });
-      if (!result.ok) {
-        setProblem(result.problem);
-        continue;
-      }
-      model = result.data.model ?? model;
-      const answer = result.data.answer;
-      result.data.suggestions.forEach((s, line) => {
-        found.push({
-          suggestionId: s.suggestion_id,
-          candidates: (answer?.candidates ?? []).filter((c) => c.name_index === line + 1),
-          flags: (answer?.checks ?? []).filter((f) => f.line === line).map((f) => f.type),
-        });
-      });
-    }
-    const batch = await client.getIntake(batchId);
-    if (!batch.ok) return setProblem(batch.problem);
+    if (!open.ok) return setProblem(open.problem);
+    const fresh = open.data.data.map((p) => rowOf(p, travelerOf(textOf(p, "passenger_name"), opts)));
+    // A line matching a live segment or an earlier line of the batch starts unchecked.
+    const seen = new Set(
+      opts.segments.map((s) => `${s.person_id}|${s.service_identifier ?? ""}|${Date.parse(s.departs_at)}`),
+    );
     setRows(
-      found.flatMap((f) => {
-        const s = batch.data.suggestions.find((x) => x.id === f.suggestionId);
-        return s ? [rowOf(s, f.candidates, f.flags)] : [];
+      fresh.map((r) => {
+        const at = instantOf(r.fromLocal, r.fromZone);
+        const key = `${r.personId}|${r.service}|${at ? Date.parse(at) : ""}`;
+        const repeats = r.personId !== "" && at !== null && seen.has(key);
+        if (r.personId !== "" && at !== null) seen.add(key);
+        return repeats ? { ...r, keep: false } : r;
       }),
     );
-    setPhase({ kind: "review", batchId, model });
-    setAnnouncement(t("intake.itineraries.ready"));
   };
 
-  // Live checks on every edit: an arrival before its departure and a repeated segment. The airport
-  // check needs the database's codes, so it keeps the flag the server set.
-  const live = useMemo(() => {
-    const included = rows.map(lineOf);
-    const flags = checkItinerary(
-      included,
-      new Set(
-        included.flatMap((l) =>
-          [l.departsFrom ?? "", l.arrivesAtPlace ?? ""].flatMap(
-            (p) => p.match(/\b[A-Z]{3}\b/g) ?? [],
-          ),
-        ),
-      ),
-    );
-    return rows.map((r, i) => {
-      const own = flags
-        .filter((f) => f.line === i && f.type !== "unknown_airport" && f.type !== "inferred_zone")
-        .map((f) => f.type);
-      const kept = r.flags.filter(
-        (f) => f === "unknown_airport" || f === "inferred_zone" || f === "inferred_year",
-      );
-      return [...new Set([...kept, ...own])];
-    });
-  }, [rows]);
-
-  const instantsOf = (r: Row) => ({
-    departsAt: localInstant(r.departsLocal || null, r.departsZone || null),
-    arrivesAt: localInstant(r.arrivesLocal || null, r.arrivesZone || null),
-  });
-
-  // Already booked: whenever a row's traveler, service or departure changes, ask which rows the traveler
-  // already has as a live segment, and leave each such row out the first time it is found, so one repeat
-  // never refuses the whole batch. The person may keep a row again; the apply still decides.
-  const batchId = phase.kind === "review" ? phase.batchId : null;
-  const checkable = rows.map((r) => ({
-    person_id: r.personId,
-    service_identifier: r.service.trim() || null,
-    departs_at: instantsOf(r).departsAt,
-  }));
-  const checkKey = JSON.stringify(checkable);
-  const leftOut = useRef(new Set<string>());
   useEffect(() => {
-    if (!batchId) return;
-    const asked = checkable
-      .map((row, i) => ({ row, i }))
-      .filter(({ row }) => row.person_id && row.service_identifier && row.departs_at);
+    if (!open) return;
     let live = true;
-    const timer = setTimeout(() => {
-      if (asked.length === 0) {
-        setRows((current) => current.map((r) => (r.booked ? { ...r, booked: false } : r)));
-        return;
-      }
-      void client
-        .checkItineraries(
-          batchId,
-          asked.map(({ row }) => row),
-        )
-        .then((result) => {
-          if (!live || !result.ok) return;
-          const booked = new Set(result.data.booked.map((n) => asked[n - 1]?.i));
-          setRows((current) =>
-            current.map((r, i) => {
-              const isBooked = booked.has(i);
-              const key = JSON.stringify(checkable[i]);
-              if (isBooked && !leftOut.current.has(key)) {
-                leftOut.current.add(key);
-                return { ...r, booked: true, include: false };
-              }
-              return r.booked === isBooked ? r : { ...r, booked: isBooked };
-            }),
-          );
-        });
-    }, 300);
+    void client.intakeOptions({ kind: "itinerary", project_id: projectId }).then(async (o) => {
+      if (!live) return;
+      if (!o.ok) return setProblem(o.problem);
+      setOptions(o.data);
+      const resumed = await client.openProposals({
+        project_id: projectId,
+        operation_id: "travelSegments.create",
+      });
+      if (live && resumed.ok && resumed.data.data.length > 0) await load(o.data);
+    });
     return () => {
       live = false;
-      clearTimeout(timer);
     };
-    // checkKey stands for the rows' traveler, service and departure; the rest of a row never changes the answer.
+    // The panel mounts fresh per opening; project and client do not change while open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batchId, checkKey, client]);
-  const kept = rows.filter((r) => r.include);
-  const invalid = kept.some((r) => {
-    const at = instantsOf(r);
-    return (
-      !r.personId ||
-      !at.departsAt ||
-      !r.departsFrom.trim() ||
-      !r.arrivesAtPlace.trim() ||
-      !r.arrivesZone
-    );
-  });
+  }, [open, client, projectId]);
 
-  const add = async (batchId: string) => {
+  const read = async () => {
+    if (!options) return;
     setProblem(null);
-    const result = await client.applyItineraries(
-      batchId,
-      kept.map((r) => {
-        const at = instantsOf(r);
-        const person = people.find((p) => p.personId === r.personId);
-        const candidate = r.candidates.find((c) => c.person_id === r.personId);
-        const engagement = candidate?.engagement_id ?? person?.engagementId ?? null;
+    setReading(true);
+    setStatuses(files.map(() => "waiting"));
+    const notes: string[] = [];
+    await atConcurrency(files, 2, async (file, i) => {
+      setStatuses((s) => s.map((v, j) => (j === i ? "reading" : v)));
+      setAnnouncement(t("intake.fileReading", { name: file.name }));
+      const result = await client.extract({
+        kind: "itinerary",
+        project_id: projectId,
+        ...(await fileSource(file)),
+      });
+      const ok = result.ok && result.data.outcome === "answer";
+      if (result.ok && result.data.model) setModel(result.data.model);
+      if (result.ok && result.data.answer) {
+        for (const d of result.data.answer.dropped ?? []) {
+          notes.push(t(`intake.itinerary.dropped.${d.reason}`, { file: file.name, line: d.line }));
+        }
+        if (result.data.answer.too_many) {
+          notes.push(t("intake.tooManyDropped", { file: file.name, count: result.data.answer.too_many }));
+        }
+      } else if (!result.ok) {
+        setProblem(result.problem);
+      }
+      setStatuses((s) => s.map((v, j) => (j === i ? (ok ? "read" : "failed") : v)));
+    });
+    setDropNote(notes.join(" "));
+    await load(options);
+    setReading(false);
+    setAnnouncement(t("intake.itinerary.ready"));
+  };
+
+  const set = (rowId: string, patch: Partial<Row>) =>
+    setRows((current) => current?.map((r) => (r.id === rowId ? { ...r, ...patch } : r)) ?? null);
+
+  const travelers = useMemo(() => {
+    const byPerson = new Map<string, { label: string; engagementId: string | null }>();
+    for (const c of options?.travelers ?? []) {
+      const known = byPerson.get(c.person_id);
+      byPerson.set(c.person_id, {
+        label: c.display_name,
+        // The engagement is filled only when the person has exactly one on the project.
+        engagementId:
+          known === undefined
+            ? c.engagement_id
+            : known.engagementId === c.engagement_id
+              ? c.engagement_id
+              : (known.engagementId ?? c.engagement_id),
+      });
+    }
+    return [...byPerson.entries()].map(([value, v]) => ({ value, ...v }));
+  }, [options]);
+
+  const zones = useMemo(() => {
+    const out = new Map<string, { place: string; zone: string }>();
+    for (const r of rows ?? []) {
+      out.set(zoneKey(r.from, r.fromZone), { place: r.from, zone: r.fromZone });
+      out.set(zoneKey(r.to, r.toZone), { place: r.to, zone: r.toZone });
+    }
+    return [...out.values()].filter((z) => z.place !== "");
+  }, [rows]);
+
+  const names = useMemo(
+    () => [...new Set((rows ?? []).map((r) => r.passenger).filter((n) => n !== ""))],
+    [rows],
+  );
+
+  const liveSegments = useMemo(
+    () =>
+      new Set(
+        (options?.segments ?? []).map(
+          (s) => `${s.person_id}|${s.service_identifier ?? ""}|${Date.parse(s.departs_at)}`,
+        ),
+      ),
+    [options],
+  );
+
+  const statusOf = (r: Row): Status => {
+    const at = instantOf(r.fromLocal, r.fromZone);
+    if (r.personId !== "" && at && liveSegments.has(`${r.personId}|${r.service}|${Date.parse(at)}`)) {
+      return "alreadyBooked";
+    }
+    if (r.personId === "") return "needsTraveler";
+    if (r.mode === "" || r.fromLocal === "" || r.from === "" || r.to === "") return "needsDetails";
+    if (
+      !confirmed.has(zoneKey(r.from, r.fromZone)) ||
+      !confirmed.has(zoneKey(r.to, r.toZone)) ||
+      !isAreaTimeZone(r.fromZone) ||
+      !isAreaTimeZone(r.toZone)
+    ) {
+      return "checkZone";
+    }
+    return "ready";
+  };
+
+  const kept = (rows ?? []).filter((r) => r.keep);
+  const allReady = kept.length > 0 && kept.every((r) => statusOf(r) === "ready");
+
+  const add = async () => {
+    setProblem(null);
+    const result = await client.applyItinerary({
+      project_id: projectId,
+      fulfillment_id: fulfillmentId,
+      items: kept.map((r) => {
+        const engagement = travelers.find((p) => p.value === r.personId)?.engagementId ?? null;
+        const priceMinor = r.price === "" ? null : toMinor(r.price, r.currency || "USD");
         return {
-          suggestion_id: r.suggestionId,
+          suggestion_id: r.id,
           values: {
             person_id: r.personId,
             ...(engagement ? { engagement_id: engagement } : {}),
-            travel_mode: r.travelMode,
-            departs_from: r.departsFrom,
-            departs_at: at.departsAt,
-            departs_time_zone: r.departsZone,
-            arrives_at_place: r.arrivesAtPlace,
-            ...(at.arrivesAt ? { arrives_at: at.arrivesAt } : {}),
-            arrives_time_zone: r.arrivesZone,
-            ...(r.service ? { service_identifier: r.service } : {}),
+            travel_mode: r.mode,
+            operator_name: r.operator,
+            service_identifier: r.service,
+            confirmation_identifier: r.confirmation,
+            departs_from: r.from,
+            departs_at: instantOf(r.fromLocal, r.fromZone),
+            departs_time_zone: r.fromZone,
+            arrives_at_place: r.to,
+            arrives_at: instantOf(r.toLocal, r.toZone),
+            arrives_time_zone: r.toZone,
+            price_minor: priceMinor,
+            currency_code: priceMinor === null ? null : r.currency,
           },
         };
       }),
-    );
+    });
     if (!result.ok) return setProblem(result.problem);
-    setPhase({ kind: "added", count: result.data.written.length });
-    setAnnouncement(t("intake.itineraries.added", { count: result.data.written.length }));
+    setAdded(result.data.written.length);
+    setAnnouncement(t("intake.itinerary.added", { count: result.data.written.length }));
     router.refresh();
   };
 
-  const discard = async (batchId: string) => {
-    await client.closeIntake(batchId);
+  const rejectAll = async () => {
+    await Promise.all((rows ?? []).map((r) => client.reject(r.id, t("intake.rejectReason"))));
     onOpenChange(false);
   };
 
-  const set = (i: number, patch: Partial<Row>) =>
-    setRows((current) => current.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const options = (r: Row) => [
-    { value: "", label: t("intake.itineraries.pickTraveler") },
-    ...r.candidates.map((c) => ({
-      value: c.person_id ?? "",
-      label: t("intake.candidate", { name: c.full_name ?? "" }),
-    })),
-    ...people
-      .filter((p) => !r.candidates.some((c) => c.person_id === p.personId))
-      .map((p) => ({ value: p.personId, label: p.label })),
-  ];
+  const editing = correcting ? (rows ?? []).find((r) => r.id === correcting.id) : undefined;
+  const totalLeft = left?.left ?? null;
+  const tooBig = files.some((f) => f.size > MAX_FILE_BYTES);
 
   return (
     <>
       <LiveRegion message={announcement} />
       <AiPanel
-        title={t("intake.itineraries.title")}
+        title={t("intake.itinerary.title")}
         open={open}
         onOpenChange={onOpenChange}
         footer={
-          phase.kind === "review" ? (
-            <>
-              <Button variant="ghost" onClick={() => void discard(phase.batchId)}>
-                {t("discard")}
-              </Button>
-              <Button
-                variant="primary"
-                disabled={kept.length === 0 || invalid}
-                onClick={() => void add(phase.batchId)}
-              >
-                {t("intake.itineraries.add", { count: kept.length })}
-              </Button>
-            </>
-          ) : phase.kind === "added" ? (
+          added !== null ? (
             <Button variant="primary" onClick={() => onOpenChange(false)}>
               {t("close")}
             </Button>
+          ) : rows !== null ? (
+            <>
+              <Button variant="ghost" onClick={() => void rejectAll()}>
+                {t("intake.rejectAll")}
+              </Button>
+              <Button variant="primary" disabled={!allReady} onClick={() => void add()}>
+                {t("intake.itinerary.add", { count: kept.length })}
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" onClick={() => onOpenChange(false)}>
@@ -358,17 +346,18 @@ export function ItineraryIntakeDialog({
               <Button
                 variant="primary"
                 icon="Sparkles"
-                loading={phase.kind === "reading"}
+                loading={reading}
                 disabled={
-                  !ready ||
-                  total === 0 ||
-                  total > MAX_INTAKE_FILES ||
+                  availability.kind !== "ready" ||
+                  files.length === 0 ||
+                  files.length > MAX_INTAKE_FILES ||
                   tooBig ||
-                  phase.kind === "reading"
+                  reading ||
+                  options === null
                 }
                 onClick={() => void read()}
               >
-                {t("intake.read", { count: total })}
+                {t("send")}
               </Button>
             </>
           )
@@ -376,7 +365,9 @@ export function ItineraryIntakeDialog({
       >
         <AvailabilityNotice availability={availability} onRetry={() => void check()} />
         <ProblemAlert t={t} problem={problem} />
-        {phase.kind === "pick" || phase.kind === "reading" ? (
+        {added !== null ? (
+          <InlineAlert tone="success">{t("intake.itinerary.added", { count: added })}</InlineAlert>
+        ) : rows === null ? (
           <div className="flex flex-col gap-12">
             <label className="flex flex-col gap-4 text-text-13" htmlFor={`${id}-files`}>
               <span className="font-medium">{t("intake.files")}</span>
@@ -391,120 +382,222 @@ export function ItineraryIntakeDialog({
                 {t("intake.filesHelp", { max: MAX_INTAKE_FILES })}
               </span>
             </label>
-            <InboxPicker t={t} messages={inbox} picked={messages} onChange={setMessages} multiple />
-            <p className="m-0 text-text-12 text-text-secondary" data-testid="intake-allowance">
-              {left === null
-                ? t("intake.allowanceLoading")
-                : left.left === null
-                  ? t("intake.allowanceUnlimited", { count: total })
-                  : t("intake.allowance", { count: total, left: left.left })}
-            </p>
-            {total > MAX_INTAKE_FILES ? (
-              <InlineAlert tone="warning">
-                {t("intake.tooMany", { max: MAX_INTAKE_FILES })}
-              </InlineAlert>
+            {files.length > MAX_INTAKE_FILES ? (
+              <InlineAlert tone="warning">{t("intake.tooMany", { max: MAX_INTAKE_FILES })}</InlineAlert>
             ) : null}
             {tooBig ? <InlineAlert tone="warning">{t("intake.tooBig")}</InlineAlert> : null}
-            <p className="m-0 text-text-12 text-text-secondary">{t("intake.itineraries.sent")}</p>
-            {phase.kind === "reading" ? (
-              <p role="status" className="m-0 text-text-13 text-text-secondary">
-                {t("intake.reading", { done: phase.done + 1, total: phase.total })}
-              </p>
-            ) : null}
+            <SentList
+              items={[
+                { label: t("intake.sentKind"), value: t("intake.itinerary.kind") },
+                {
+                  label: t("intake.sentFiles"),
+                  value: files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
+                },
+                { label: t("extract.sentNothingElse"), value: t("extract.nothingElse") },
+              ]}
+            />
+            <p className="m-0 text-text-12 text-text-secondary" data-testid="intake-allowance">
+              {totalLeft === null
+                ? t("intake.usesUnlimited", { n: files.length })
+                : t("intake.uses", { n: files.length, left: totalLeft })}
+            </p>
+            <p className="m-0 text-text-12 text-text-secondary">{t("intake.keepsNothing")}</p>
+            {statuses.length > 0 ? <FileStatusList t={t} files={files} statuses={statuses} /> : null}
           </div>
-        ) : null}
-        {phase.kind === "review" ? (
+        ) : editing && correcting ? (
           <div className="flex flex-col gap-12">
-            <AiGenerated model={phase.model} />
-            <p className="m-0 text-text-12 text-text-secondary">{t("intake.itineraries.review")}</p>
-            {rows.length === 0 ? (
-              <InlineAlert tone="info">{t("intake.nothingRead")}</InlineAlert>
-            ) : null}
-            <ul
-              className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
-              aria-label={t("intake.itineraries.rows")}
-            >
-              {rows.map((r, i) => (
-                <li
-                  key={r.suggestionId}
-                  className="flex flex-col gap-8 py-8"
-                  data-testid="itinerary-row"
-                >
-                  <Checkbox
-                    label={t("intake.itineraries.include", {
-                      passenger: r.passenger || t("intake.unread"),
-                      from: r.departsFrom,
-                      to: r.arrivesAtPlace,
-                    })}
-                    checked={r.include}
-                    onChange={(e) => set(i, { include: e.currentTarget.checked })}
-                  />
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    <Select
-                      label={t("intake.itineraries.traveler")}
-                      value={r.personId}
-                      options={options(r)}
-                      error={r.include && !r.personId ? t("intake.required") : ""}
-                      onChange={(e) => set(i, { personId: e.target.value })}
-                    />
-                    <Input
-                      label={t("intake.itineraries.departsLocal")}
-                      type="datetime-local"
-                      value={r.departsLocal}
-                      onChange={(e) => set(i, { departsLocal: e.target.value })}
-                    />
-                    <Input
-                      label={t("intake.itineraries.departsZone")}
-                      value={r.departsZone}
-                      onChange={(e) => set(i, { departsZone: e.target.value })}
-                    />
-                    <Input
-                      label={t("intake.itineraries.departsFrom")}
-                      value={r.departsFrom}
-                      onChange={(e) => set(i, { departsFrom: e.target.value })}
-                    />
-                    <Input
-                      label={t("intake.itineraries.arrivesLocal")}
-                      type="datetime-local"
-                      value={r.arrivesLocal}
-                      onChange={(e) => set(i, { arrivesLocal: e.target.value })}
-                    />
-                    <Input
-                      label={t("intake.itineraries.arrivesZone")}
-                      value={r.arrivesZone}
-                      onChange={(e) => set(i, { arrivesZone: e.target.value })}
-                    />
-                  </div>
-                  <span className="flex flex-wrap gap-4">
-                    {r.booked ? (
-                      <Tag tone="warning">{t("intake.itineraries.flags.already_booked")}</Tag>
-                    ) : null}
-                    {(live[i] ?? []).map((f) => (
-                      <Tag
-                        key={f}
-                        tone={
-                          f === "inferred_zone" || f === "inferred_year" ? "neutral" : "warning"
-                        }
-                      >
-                        {t(`intake.itineraries.flags.${f}`)}
-                      </Tag>
-                    ))}
-                  </span>
-                  {r.excerpt ? (
-                    <p className="m-0 text-text-12 text-text-secondary">
-                      {t("intake.excerpt", { excerpt: r.excerpt })}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+            <h3 className="m-0 text-text-13 font-semibold">
+              {t(`intake.itinerary.steps.${correcting.step}`)}
+            </h3>
+            {correcting.step === 0 ? (
+              <>
+                <Select
+                  id={`${id}-mode`}
+                  label={t("intake.itinerary.mode")}
+                  value={editing.mode}
+                  options={[
+                    { value: "", label: t("intake.choose") },
+                    { value: "Flight", label: t("intake.itinerary.flight") },
+                    { value: "Ground", label: t("intake.itinerary.ground") },
+                  ]}
+                  onChange={(e) => set(editing.id, { mode: e.target.value })}
+                />
+                <Input id={`${id}-op`} label={t("intake.itinerary.operator")} value={editing.operator} onChange={(e) => set(editing.id, { operator: e.target.value })} />
+                <Input id={`${id}-svc`} label={t("intake.itinerary.service")} value={editing.service} onChange={(e) => set(editing.id, { service: e.target.value })} />
+                <Input id={`${id}-cnf`} label={t("intake.itinerary.confirmation")} value={editing.confirmation} onChange={(e) => set(editing.id, { confirmation: e.target.value })} />
+                <Input id={`${id}-prc`} label={t("intake.itinerary.price")} inputMode="decimal" value={editing.price} onChange={(e) => set(editing.id, { price: e.target.value })} />
+                <Input id={`${id}-cur`} label={t("intake.itinerary.currency")} value={editing.currency} onChange={(e) => set(editing.id, { currency: e.target.value.toUpperCase() })} />
+              </>
+            ) : correcting.step === 1 ? (
+              <>
+                <Input id={`${id}-from`} label={t("intake.itinerary.place")} value={editing.from} onChange={(e) => set(editing.id, { from: e.target.value })} />
+                <Input id={`${id}-fromAt`} type="datetime-local" label={t("intake.itinerary.localTime")} value={editing.fromLocal} onChange={(e) => set(editing.id, { fromLocal: e.target.value })} />
+                <Input id={`${id}-fromZ`} label={t("intake.itinerary.zone")} value={editing.fromZone} onChange={(e) => set(editing.id, { fromZone: e.target.value })} />
+              </>
+            ) : (
+              <>
+                <Input id={`${id}-to`} label={t("intake.itinerary.place")} value={editing.to} onChange={(e) => set(editing.id, { to: e.target.value })} />
+                <Input id={`${id}-toAt`} type="datetime-local" label={t("intake.itinerary.localTime")} value={editing.toLocal} onChange={(e) => set(editing.id, { toLocal: e.target.value })} />
+                <Input id={`${id}-toZ`} label={t("intake.itinerary.zone")} value={editing.toZone} onChange={(e) => set(editing.id, { toZone: e.target.value })} />
+              </>
+            )}
+            <div className="flex flex-wrap gap-8">
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setCorrecting(
+                    correcting.step === 2
+                      ? null
+                      : { id: correcting.id, step: (correcting.step + 1) as 1 | 2 },
+                  )
+                }
+              >
+                {correcting.step === 2 ? t("intake.done") : t("intake.next")}
+              </Button>
+            </div>
           </div>
-        ) : null}
-        {phase.kind === "added" ? (
-          <InlineAlert tone="success">
-            {t("intake.itineraries.added", { count: phase.count })}
-          </InlineAlert>
-        ) : null}
+        ) : (
+          <div className="flex flex-col gap-12">
+            <AiGenerated model={model} />
+            {dropNote ? <InlineAlert tone="warning">{dropNote}</InlineAlert> : null}
+            <p className="m-0 text-text-12 text-text-secondary">{t("intake.itinerary.review")}</p>
+            {names.length > 0 ? (
+              <section className="flex flex-col gap-8" aria-label={t("intake.itinerary.travelersTitle")}>
+                <h3 className="m-0 text-text-13 font-semibold">{t("intake.itinerary.travelersTitle")}</h3>
+                {names.map((name) => (
+                  <Select
+                    key={name}
+                    id={`${id}-map-${name}`}
+                    label={t("intake.itinerary.printedAs", { name })}
+                    value={(rows ?? []).find((r) => r.passenger === name)?.personId ?? ""}
+                    options={[
+                      { value: "", label: t("intake.choose") },
+                      ...travelers.map((p) => ({ value: p.value, label: p.label })),
+                    ]}
+                    onChange={(e) =>
+                      setRows(
+                        (current) =>
+                          current?.map((r) =>
+                            r.passenger === name ? { ...r, personId: e.target.value } : r,
+                          ) ?? null,
+                      )
+                    }
+                  />
+                ))}
+              </section>
+            ) : null}
+            {zones.length > 0 ? (
+              <section className="flex flex-col gap-8" aria-label={t("intake.itinerary.zonesTitle")}>
+                <h3 className="m-0 text-text-13 font-semibold">{t("intake.itinerary.zonesTitle")}</h3>
+                <p className="m-0 text-text-12 text-text-secondary">{t("intake.itinerary.checkZone")}</p>
+                {zones.map((z) => {
+                  const key = zoneKey(z.place, z.zone);
+                  return (
+                    <div key={key} className="flex flex-wrap items-end gap-8">
+                      <Input
+                        id={`${id}-zone-${key}`}
+                        label={t("intake.itinerary.zoneOf", { place: z.place })}
+                        value={z.zone}
+                        error={z.zone !== "" && !isAreaTimeZone(z.zone) ? t("intake.itinerary.badZone") : ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setRows(
+                            (current) =>
+                              current?.map((r) => ({
+                                ...r,
+                                fromZone: r.from === z.place && r.fromZone === z.zone ? value : r.fromZone,
+                                toZone: r.to === z.place && r.toZone === z.zone ? value : r.toZone,
+                              })) ?? null,
+                          );
+                        }}
+                      />
+                      <Checkbox
+                        label={t("intake.itinerary.confirmZone")}
+                        checked={confirmed.has(key)}
+                        disabled={!isAreaTimeZone(z.zone)}
+                        onChange={(e) => {
+                          const on = e.currentTarget.checked;
+                          setConfirmed((c) => {
+                            const next = new Set(c);
+                            if (on) next.add(key);
+                            else next.delete(key);
+                            return next;
+                          });
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </section>
+            ) : null}
+            <div className="overflow-x-auto">
+              <table role="grid" aria-label={t("intake.itinerary.linesTitle")} className="w-full text-text-13">
+                <thead>
+                  <tr className="text-left">
+                    <th scope="col">{t("intake.keep")}</th>
+                    <th scope="col">{t("intake.itinerary.traveler")}</th>
+                    <th scope="col">{t("intake.itinerary.route")}</th>
+                    <th scope="col">{t("intake.confidence")}</th>
+                    <th scope="col">{t("intake.excerpt")}</th>
+                    <th scope="col">{t("intake.status")}</th>
+                    <th scope="col">{t("intake.correct")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(rows ?? []).map((r) => {
+                    const status = statusOf(r);
+                    return (
+                      <tr key={r.id} data-testid="itinerary-row" className="align-top">
+                        <td>
+                          <Checkbox
+                            label={t("intake.keepLine", { name: r.passenger || r.from })}
+                            checked={r.keep}
+                            onChange={(e) => set(r.id, { keep: e.currentTarget.checked })}
+                          />
+                        </td>
+                        <td>
+                          <Select
+                            id={`${id}-p-${r.id}`}
+                            label={t("intake.itinerary.traveler")}
+                            value={r.personId}
+                            options={[
+                              { value: "", label: t("intake.choose") },
+                              ...travelers.map((p) => ({ value: p.value, label: p.label })),
+                            ]}
+                            onChange={(e) => set(r.id, { personId: e.target.value })}
+                          />
+                        </td>
+                        <td>
+                          <span className="flex flex-col gap-2">
+                            <span>{t("intake.itinerary.routeLine", { from: r.from || "-", to: r.to || "-" })}</span>
+                            <span className="text-text-12 text-text-secondary">
+                              {r.fromLocal} {r.fromZone} / {r.toLocal} {r.toZone}
+                            </span>
+                            {r.yearInferred ? (
+                              <span className="text-text-12 text-text-secondary">{t("intake.itinerary.yearInferred")}</span>
+                            ) : null}
+                          </span>
+                        </td>
+                        <td>{r.confidence === null ? "" : t("extract.confidence", { percent: Math.round(r.confidence * 100) })}</td>
+                        <td className="text-text-12 text-text-secondary">{r.excerpt}</td>
+                        <td>
+                          <Tag tone={status === "ready" ? "success" : "warning"}>
+                            {t(`intake.itinerary.status.${status}`)}
+                          </Tag>
+                        </td>
+                        <td>
+                          <Button variant="ghost" size="sm" onClick={() => setCorrecting({ id: r.id, step: 0 })}>
+                            {t("intake.correct")}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </AiPanel>
     </>
   );

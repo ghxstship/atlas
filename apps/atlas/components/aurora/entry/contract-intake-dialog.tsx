@@ -1,265 +1,338 @@
 "use client";
 
 import type {
-  AuroraCandidate,
-  AuroraContractGroup,
+  AuroraAppliedContracts,
+  AuroraContractItem,
+  AuroraIntakeOptions,
+  AuroraOpenProposal,
   AuroraProblem,
-  AuroraSuggestion,
 } from "@xos/ai/client";
-import { groupByAct } from "@xos/ai/intake";
-import { Button, Checkbox, InlineAlert, Select, Tag } from "@xos/ui";
+import { matchExact, normalizeAct, normalizePersonName } from "@xos/ai/intake";
+import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import Link from "next/link";
+import type { Route } from "next";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { attachContractFileAction } from "./contract-intake-actions";
 import type { ContractIntakeEntryProps } from "./intake-entry";
 import {
+  atConcurrency,
+  fieldOf,
   fileSource,
+  FileStatusList,
   formatMinor,
   MAX_FILE_BYTES,
   MAX_INTAKE_FILES,
+  minorOf,
   ProblemAlert,
   textOf,
+  toMajorText,
+  toMinor,
   useRequestsLeft,
+  type FileStatus,
 } from "./intake-shared";
 import {
   AiGenerated,
   AiPanel,
   AvailabilityNotice,
   LiveRegion,
+  SentList,
   useAurora,
   useEntryT,
 } from "./shared";
 
-type FileKind = "contract" | "intake_rider";
-
-interface Picked {
-  readonly file: File;
-  readonly kind: FileKind;
-}
-
-/** One file's read: a contract, or a rider with its lines. */
-interface Item {
-  readonly act: string;
-  readonly contract: AuroraSuggestion | null;
-  readonly rider: AuroraSuggestion | null;
-  readonly lines: readonly AuroraSuggestion[];
-  readonly candidates: readonly AuroraCandidate[];
-}
+/** The pay basis a fee printed as a total can be carried on: agreed_rate_minor is per unit. */
+const FLAT_FEE = "Flat Fee";
+/** XOS-ENG-4: vendor-supplied labor names the vendor, so it is offered only for a counterparty. */
+const VENDOR_SUPPLIED = "VENDOR_SUPPLIED";
 
 interface Group {
+  readonly key: string;
   readonly act: string;
-  readonly include: boolean;
-  readonly items: readonly Item[];
-  readonly personId: string;
-  readonly counterpartyId: string;
-  readonly bookedId: string | null;
+  readonly documents: readonly AuroraOpenProposal[];
+  readonly keep: boolean;
+  /** kind:id of the chosen party, or "". */
+  readonly party: string;
+  readonly engagementId: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  /** The rate typed, in major units. */
+  readonly fee: string;
+  readonly currency: string;
 }
 
-type Phase =
-  | { readonly kind: "pick" }
-  | { readonly kind: "reading"; readonly done: number; readonly total: number }
-  | { readonly kind: "review"; readonly batchId: string; readonly model: string | null }
-  | { readonly kind: "booked"; readonly engagements: number; readonly riders: number };
+type Status = "ready" | "needsParty" | "needsStartDate" | "alreadyBooked" | "other";
 
-const statusOf = (g: Group): "booked" | "new" | "party" | "error" => {
-  if (g.bookedId) return "booked";
-  const contract = g.items.find((i) => i.contract)?.contract;
-  if (!g.personId && !g.counterpartyId) return "party";
-  if (!contract || textOf(contract, "start_date") === "") return "error";
-  return "new";
+const typeOf = (p: AuroraOpenProposal) => textOf(p, "document_type") || "Other";
+
+const groupDocuments = (proposals: readonly AuroraOpenProposal[]) => {
+  const groups = new Map<string, AuroraOpenProposal[]>();
+  for (const p of proposals) {
+    const act = textOf(p, "act_name");
+    // A document with no act is its own group.
+    const key = normalizeAct(act) || `document:${p.id}`;
+    groups.set(key, [...(groups.get(key) ?? []), p]);
+  }
+  return [...groups.entries()];
 };
 
 /**
- * Import contracts and riders with Aurora (B15, parity gap G-177), following P3's import review.
- * Each file is read as one metered request into an intake batch; the rows are grouped by act. An
- * act already booked on the project takes its riders; a new act becomes an Artist engagement at
- * Onboarding with the party the person picks and the role, classification, pay basis and
- * arrangement they set for the batch, never proposed (ADR 0154). The fee shows only to someone who
- * may see pay rates. "Book acts" writes every kept act in one transaction, or nothing.
+ * Read Contracts and Riders (B15, parity gap G-177). Files stay in the browser until they are added.
+ * The review groups documents by act, and a party is preselected only on one exact match; Aurora
+ * creates no person, account or counterparty. The terms come from one rate card choice, and a fee
+ * printed as a total prefills only on a Flat Fee row. "Add {n} Bookings" writes in one transaction,
+ * then each file still in memory attaches to its document row, a contract's as Restricted.
  */
 export function ContractIntakeDialog({
-  projectId,
-  terms,
-  readsPayroll,
+  projects,
+  importHref,
   open,
   onOpenChange,
 }: ContractIntakeEntryProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useEntryT();
-  const locale = useLocale();
   const id = useId();
+  const locale = useLocale();
   const router = useRouter();
+  const params = useParams<{ org: string }>();
   const { client, availability, check } = useAurora("extraction", open);
   const left = useRequestsLeft(client, open);
-  const [picked, setPicked] = useState<Picked[]>([]);
-  // One canon rate card row for the whole batch, so the four always name a row that exists.
-  const [term, setTerm] = useState(terms[0]?.value ?? "");
-  const [role = "", classification = "", payBasis = "", arrangement = ""] = term.split("|");
-  const [phase, setPhase] = useState<Phase>({ kind: "pick" });
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [projectId, setProjectId] = useState(projects.length === 1 ? (projects[0]?.id ?? "") : "");
+  const [options, setOptions] = useState<AuroraIntakeOptions | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [statuses, setStatuses] = useState<FileStatus[]>([]);
+  const [reading, setReading] = useState(false);
+  const [groups, setGroups] = useState<Group[] | null>(null);
+  const [termKey, setTermKey] = useState("");
+  const [correcting, setCorrecting] = useState<string | null>(null);
   const [problem, setProblem] = useState<AuroraProblem | null>(null);
+  const [applied, setApplied] = useState<AuroraAppliedContracts | null>(null);
+  const [uploads, setUploads] = useState<Record<string, "attached" | "failed" | "pending">>({});
   const [announcement, setAnnouncement] = useState("");
-  const ready = availability.kind === "ready";
-  const tooBig = picked.some((p) => p.file.size > MAX_FILE_BYTES);
+  const [model, setModel] = useState<string | null>(null);
+  const [dropNote, setDropNote] = useState("");
+  // Bytes stay here until a document is added; a resumed review has lost them and offers Attach File.
+  const held = useRef(new Map<string, File>());
 
-  const read = async () => {
-    setProblem(null);
-    const started = await client.startIntake({
-      project_id: projectId,
-      kind: "Contracts and Riders",
-      file_count: picked.length,
+  const partiesFor = (opts: AuroraIntakeOptions) =>
+    opts.parties.map((p) => ({
+      id: `${p.kind}:${p.id}`,
+      normalized: p.kind === "person" ? normalizePersonName(p.name) : normalizeAct(p.name),
+    }));
+
+  const load = async (opts: AuroraIntakeOptions, project: string) => {
+    const proposals = await client.openProposals({
+      project_id: project,
+      operation_id: "engagements.createFromContract",
     });
-    if (!started.ok) return setProblem(started.problem);
-    const batchId = started.data.id;
-    const reads: { kind: FileKind; ids: string[]; candidates: AuroraCandidate[] }[] = [];
-    let model: string | null = null;
-    for (const [i, p] of picked.entries()) {
-      setPhase({ kind: "reading", done: i, total: picked.length });
-      setAnnouncement(t("intake.reading", { done: i + 1, total: picked.length }));
-      const result = await client.extract({
-        kind: p.kind,
-        intake_batch_id: batchId,
-        ...(await fileSource(p.file)),
-      });
-      if (!result.ok) {
-        setProblem(result.problem);
-        continue;
-      }
-      model = result.data.model ?? model;
-      reads.push({
-        kind: p.kind,
-        ids: result.data.suggestions.map((s) => s.suggestion_id),
-        candidates: [...(result.data.answer?.candidates ?? [])],
-      });
-    }
-    const batch = await client.getIntake(batchId);
-    if (!batch.ok) return setProblem(batch.problem);
-    const byId = new Map(batch.data.suggestions.map((s) => [s.id, s]));
-    const items: Item[] = reads.flatMap((r) => {
-      const [first, ...rest] = r.ids
-        .map((x) => byId.get(x))
-        .filter((s): s is NonNullable<typeof s> => s !== undefined);
-      if (!first) return [];
-      return [
-        {
-          act: textOf(first, "act_name"),
-          contract: r.kind === "contract" ? first : null,
-          rider: r.kind === "intake_rider" ? first : null,
-          lines: r.kind === "intake_rider" ? rest : [],
-          candidates: r.candidates,
-        },
-      ];
-    });
+    if (!proposals.ok) return setProblem(proposals.problem);
+    const candidates = partiesFor(opts);
     setGroups(
-      groupByAct(items, (i) => i.act).map((g) => {
-        const candidates = g.items.flatMap((i) => i.candidates);
-        const booked =
-          candidates.find((c) => c.candidate_kind === "engagement")?.candidate_id ?? null;
+      groupDocuments(proposals.data.data).map(([key, documents]) => {
+        const lead = documents.find((d) => typeOf(d) === "Contract") ?? documents[0];
+        const act = lead ? textOf(lead, "act_name") : "";
+        const contract = documents.find((d) => typeOf(d) === "Contract");
         return {
-          act: g.label || t("intake.unread"),
-          include: true,
-          items: g.items,
-          personId: candidates.find((c) => c.candidate_kind === "person")?.candidate_id ?? "",
-          counterpartyId:
-            candidates.find((c) => c.candidate_kind === "counterparty")?.candidate_id ?? "",
-          bookedId: booked,
+          key,
+          act,
+          documents,
+          keep: documents.some((d) => typeOf(d) !== "Other"),
+          party: matchExact(normalizeAct(act), candidates) ?? "",
+          engagementId: "",
+          startDate: contract ? textOf(contract, "start_date") : "",
+          endDate: contract ? textOf(contract, "end_date") : "",
+          fee: "",
+          currency: contract ? textOf(contract, "agreed_rate_currency_code") : "",
         };
       }),
     );
-    setPhase({ kind: "review", batchId, model });
-    setAnnouncement(t("intake.contracts.ready"));
   };
 
-  const kept = groups.filter(
-    (g) => g.include && statusOf(g) !== "party" && statusOf(g) !== "error",
-  );
-  const book = async (batchId: string) => {
+  useEffect(() => {
+    if (!open || projectId === "") return;
+    let live = true;
+    void client.intakeOptions({ kind: "contract", project_id: projectId }).then(async (o) => {
+      if (!live) return;
+      if (!o.ok) return setProblem(o.problem);
+      setOptions(o.data);
+      const resumed = await client.openProposals({
+        project_id: projectId,
+        operation_id: "engagements.createFromContract",
+      });
+      if (live && resumed.ok && resumed.data.data.length > 0) await load(o.data, projectId);
+    });
+    return () => {
+      live = false;
+    };
+    // The client does not change while the panel is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, client, projectId]);
+
+  const read = async () => {
+    if (!options) return;
     setProblem(null);
-    const payload: AuroraContractGroup[] = kept.map((g) => {
-      const contract = g.items.find((i) => i.contract)?.contract;
-      const riders = g.items
-        .filter((i) => i.rider)
-        .map((i) => ({
-          header_suggestion_id: i.rider?.id ?? "",
-          line_suggestion_ids: i.lines.map((l) => l.id),
-        }));
+    setReading(true);
+    setStatuses(files.map(() => "waiting"));
+    const notes: string[] = [];
+    await atConcurrency(files, 2, async (file, i) => {
+      setStatuses((s) => s.map((v, j) => (j === i ? "reading" : v)));
+      setAnnouncement(t("intake.fileReading", { name: file.name }));
+      const result = await client.extract({
+        kind: "contract",
+        project_id: projectId,
+        ...(await fileSource(file)),
+      });
+      const suggestion = result.ok ? result.data.suggestions[0]?.suggestion_id : undefined;
+      if (suggestion) held.current.set(suggestion, file);
+      if (result.ok && result.data.model) setModel(result.data.model);
+      if (!result.ok) setProblem(result.problem);
+      if (result.ok && result.data.outcome === "failed") {
+        notes.push(t("intake.tooManyLines", { file: file.name }));
+      }
+      setStatuses((s) => s.map((v, j) => (j === i ? (suggestion ? "read" : "failed") : v)));
+    });
+    setDropNote(notes.join(" "));
+    await load(options, projectId);
+    setReading(false);
+    setAnnouncement(t("intake.contract.ready"));
+  };
+
+  const rateCards = useMemo(() => options?.rate_cards ?? [], [options]);
+  const keyOf = (c: AuroraIntakeOptions["rate_cards"][number]) =>
+    [c.role_code, c.worker_classification, c.pay_basis, c.arrangement].join("|");
+  const term = rateCards.find((c) => keyOf(c) === termKey);
+  const flatFee = term?.pay_basis === FLAT_FEE;
+
+  const partyOf = (g: Group) => options?.parties.find((p) => `${p.kind}:${p.id}` === g.party);
+
+  const statusOf = (g: Group): Status => {
+    // A rider-only group of someone who may not add riders has nothing to add, as an Other document does.
+    if (
+      !g.documents.some(
+        (d) => typeOf(d) === "Contract" || (typeOf(d) === "Rider" && options?.can_write_riders),
+      )
+    ) {
+      return "other";
+    }
+    if (g.party === "") return "needsParty";
+    if ((partyOf(g)?.engagement_ids.length ?? 0) > 0) return "alreadyBooked";
+    if (g.startDate === "") return "needsStartDate";
+    return "ready";
+  };
+
+  const canBook = (g: Group) => {
+    const status = statusOf(g);
+    const booked = partyOf(g)?.engagement_ids ?? [];
+    if (status === "alreadyBooked") return booked.length === 1 || g.engagementId !== "";
+    return status === "ready" && term !== undefined && termAllowed(g);
+  };
+  const termAllowed = (g: Group) =>
+    term?.worker_classification !== VENDOR_SUPPLIED || partyOf(g)?.kind === "counterparty";
+
+  const set = (key: string, patch: Partial<Group>) =>
+    setGroups((current) => current?.map((g) => (g.key === key ? { ...g, ...patch } : g)) ?? null);
+
+  const kept = (groups ?? []).filter((g) => g.keep);
+  const ready = kept.length > 0 && kept.every(canBook);
+
+  /** A fee printed as a total prefills only on a Flat Fee row; otherwise the person types a rate. */
+  const printedFee = (g: Group) => {
+    const contract = g.documents.find((d) => typeOf(d) === "Contract");
+    return contract ? minorOf(contract, "agreed_rate_minor") : null;
+  };
+
+  const attach = async (documentId: string, type: string, file: File, suggestionId: string) => {
+    setUploads((u) => ({ ...u, [suggestionId]: "pending" }));
+    const form = new FormData();
+    form.set("org", params.org);
+    form.set("engagementDocumentId", documentId);
+    form.set("documentType", type);
+    form.set("file", file);
+    const result = await attachContractFileAction(form).catch(() => ({ ok: false }));
+    setUploads((u) => ({ ...u, [suggestionId]: result.ok ? "attached" : "failed" }));
+  };
+
+  const add = async () => {
+    setProblem(null);
+    const items: AuroraContractItem[] = kept.map((g) => {
+      const party = partyOf(g);
+      const riders = g.documents.some((d) => typeOf(d) === "Rider") && options?.can_write_riders;
+      const attachOnly = (party?.engagement_ids.length ?? 0) > 0;
+      const currency = g.currency.trim().toUpperCase();
+      const feeMinor =
+        options?.fee_visible && !attachOnly && g.fee.trim() !== ""
+          ? toMinor(g.fee, currency || "USD")
+          : null;
       return {
-        act_name: g.act,
-        engagement: g.bookedId
-          ? { mode: "existing" as const, engagement_id: g.bookedId }
+        // A rider the person may not add is left out of the group rather than refused.
+        suggestion_ids: g.documents
+          .filter((d) => typeOf(d) === "Contract" || (typeOf(d) === "Rider" && riders))
+          .map((d) => d.id),
+        party:
+          party?.kind === "person"
+            ? { person_id: party.id }
+            : { counterparty_id: party?.id ?? "" },
+        ...(g.engagementId ? { engagement_id: g.engagementId } : {}),
+        ...(attachOnly || !term
+          ? {}
           : {
-              mode: "new" as const,
-              ...(contract ? { contract_suggestion_id: contract.id } : {}),
-              values: {
-                ...(g.personId ? { person_id: g.personId } : {}),
-                ...(g.counterpartyId ? { counterparty_id: g.counterpartyId } : {}),
-                role_code: role,
-                worker_classification: classification,
-                pay_basis: payBasis,
-                arrangement,
-              },
-            },
-        riders,
+              role_code: term.role_code,
+              worker_classification: term.worker_classification,
+              pay_basis: term.pay_basis,
+              arrangement: term.arrangement,
+              start_date: g.startDate,
+              ...(g.endDate ? { end_date: g.endDate } : {}),
+            }),
+        ...(feeMinor !== null ? { agreed_rate_minor: feeMinor, currency_code: currency } : {}),
+        create_riders: Boolean(riders),
       };
     });
-    const result = await client.applyContracts(batchId, payload);
+    const result = await client.applyContractIntake({ project_id: projectId, items });
     if (!result.ok) return setProblem(result.problem);
-    setPhase({ kind: "booked", engagements: result.data.engagements, riders: result.data.riders });
-    setAnnouncement(
-      t("intake.contracts.booked", { count: result.data.engagements, riders: result.data.riders }),
-    );
+    setApplied(result.data);
+    setAnnouncement(t("intake.contract.added", { count: result.data.engagements.length }));
+    const documents = result.data.engagements.flatMap((e) => e.documents);
+    await atConcurrency(documents, 2, async (d) => {
+      const file = held.current.get(d.suggestion_id);
+      if (file && d.engagement_document_id) {
+        await attach(d.engagement_document_id, d.document_type, file, d.suggestion_id);
+      }
+    });
     router.refresh();
   };
 
-  const set = (i: number, patch: Partial<Group>) =>
-    setGroups((current) => current.map((g, j) => (j === i ? { ...g, ...patch } : g)));
-  const choices = (g: Group, kind: "person" | "counterparty") => [
-    {
-      value: "",
-      label: t(kind === "person" ? "intake.contracts.noPerson" : "intake.contracts.noAccount"),
-    },
-    ...g.items
-      .flatMap((i) => i.candidates)
-      .filter(
-        (c, k, all) =>
-          c.candidate_kind === kind &&
-          all.findIndex((x) => x.candidate_id === c.candidate_id) === k,
-      )
-      .map((c) => ({
-        value: c.candidate_id ?? "",
-        label: t("intake.candidate", { name: c.name ?? "" }),
-      })),
-  ];
+  const rejectAll = async () => {
+    await Promise.all(
+      (groups ?? []).flatMap((g) => g.documents.map((d) => client.reject(d.id, t("intake.rejectReason")))),
+    );
+    onOpenChange(false);
+  };
+
+  const editing = correcting ? (groups ?? []).find((g) => g.key === correcting) : undefined;
+  const tooBig = files.some((f) => f.size > MAX_FILE_BYTES);
+  const totalLeft = left?.left ?? null;
 
   return (
     <>
       <LiveRegion message={announcement} />
       <AiPanel
-        title={t("intake.contracts.title")}
+        title={t("intake.contract.title")}
         open={open}
         onOpenChange={onOpenChange}
         footer={
-          phase.kind === "review" ? (
-            <>
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  void client.closeIntake(phase.batchId).then(() => onOpenChange(false))
-                }
-              >
-                {t("discard")}
-              </Button>
-              <Button
-                variant="primary"
-                disabled={kept.length === 0 || term === ""}
-                onClick={() => void book(phase.batchId)}
-              >
-                {t("intake.contracts.book", { count: kept.length })}
-              </Button>
-            </>
-          ) : phase.kind === "booked" ? (
+          applied ? (
             <Button variant="primary" onClick={() => onOpenChange(false)}>
               {t("close")}
             </Button>
+          ) : groups !== null ? (
+            <>
+              <Button variant="ghost" onClick={() => void rejectAll()}>
+                {t("intake.rejectAll")}
+              </Button>
+              <Button variant="primary" disabled={!ready} onClick={() => void add()}>
+                {t("intake.contract.add", { count: kept.length })}
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" onClick={() => onOpenChange(false)}>
@@ -268,17 +341,18 @@ export function ContractIntakeDialog({
               <Button
                 variant="primary"
                 icon="Sparkles"
-                loading={phase.kind === "reading"}
+                loading={reading}
                 disabled={
-                  !ready ||
-                  picked.length === 0 ||
-                  picked.length > MAX_INTAKE_FILES ||
+                  availability.kind !== "ready" ||
+                  files.length === 0 ||
+                  files.length > MAX_INTAKE_FILES ||
                   tooBig ||
-                  phase.kind === "reading"
+                  reading ||
+                  options === null
                 }
                 onClick={() => void read()}
               >
-                {t("intake.read", { count: picked.length })}
+                {t("send")}
               </Button>
             </>
           )
@@ -286,8 +360,60 @@ export function ContractIntakeDialog({
       >
         <AvailabilityNotice availability={availability} onRetry={() => void check()} />
         <ProblemAlert t={t} problem={problem} />
-        {phase.kind === "pick" || phase.kind === "reading" ? (
+        {applied ? (
+          <div className="flex flex-col gap-8" data-testid="contract-added">
+            <InlineAlert tone="success">
+              {t("intake.contract.added", { count: applied.engagements.length })}
+            </InlineAlert>
+            <ul className="m-0 flex list-none flex-col gap-8 p-0">
+              {applied.engagements.flatMap((e) =>
+                e.documents.flatMap((d) =>
+                  d.engagement_document_id
+                    ? [
+                        <li key={d.suggestion_id} className="flex flex-wrap items-center gap-8 text-text-13">
+                          <Tag tone="neutral">{t(`intake.contract.type.${d.document_type}`)}</Tag>
+                          {uploads[d.suggestion_id] ? (
+                            <Tag tone={uploads[d.suggestion_id] === "failed" ? "danger" : "success"}>
+                              {t(`intake.contract.upload.${uploads[d.suggestion_id] ?? "pending"}`)}
+                            </Tag>
+                          ) : null}
+                          {uploads[d.suggestion_id] !== "attached" &&
+                          uploads[d.suggestion_id] !== "pending" ? (
+                            <label className="flex flex-col gap-4 text-text-12">
+                              <span>{t("intake.contract.attachFile")}</span>
+                              <input
+                                type="file"
+                                accept="application/pdf,text/plain,image/png,image/jpeg,image/webp"
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  if (file && d.engagement_document_id) {
+                                    void attach(d.engagement_document_id, d.document_type, file, d.suggestion_id);
+                                  }
+                                }}
+                              />
+                            </label>
+                          ) : null}
+                        </li>,
+                      ]
+                    : [],
+                ),
+              )}
+            </ul>
+          </div>
+        ) : groups === null ? (
           <div className="flex flex-col gap-12">
+            {projects.length > 1 ? (
+              <Select
+                id={`${id}-project`}
+                label={t("intake.contract.project")}
+                value={projectId}
+                options={[
+                  { value: "", label: t("intake.choose") },
+                  ...projects.map((p) => ({ value: p.id, label: p.label })),
+                ]}
+                onChange={(e) => setProjectId(e.target.value)}
+              />
+            ) : null}
             <label className="flex flex-col gap-4 text-text-13" htmlFor={`${id}-files`}>
               <span className="font-medium">{t("intake.files")}</span>
               <input
@@ -295,141 +421,213 @@ export function ContractIntakeDialog({
                 type="file"
                 multiple
                 accept="application/pdf,text/plain,image/png,image/jpeg,image/webp"
-                onChange={(e) =>
-                  setPicked(
-                    [...(e.target.files ?? [])].map((file) => ({
-                      file,
-                      kind: /rider/i.test(file.name) ? "intake_rider" : "contract",
-                    })),
-                  )
-                }
+                onChange={(e) => setFiles([...(e.target.files ?? [])])}
               />
               <span className="text-text-secondary">
                 {t("intake.filesHelp", { max: MAX_INTAKE_FILES })}
               </span>
             </label>
-            {picked.map((p, i) => (
-              <Select
-                key={`${p.file.name}-${i}`}
-                label={t("intake.contracts.fileKind", { name: p.file.name })}
-                value={p.kind}
-                options={[
-                  { value: "contract", label: t("intake.contracts.kinds.contract") },
-                  { value: "intake_rider", label: t("intake.contracts.kinds.intake_rider") },
-                ]}
-                onChange={(e) =>
-                  setPicked((all) =>
-                    all.map((x, j) => (j === i ? { ...x, kind: e.target.value as FileKind } : x)),
-                  )
-                }
-              />
-            ))}
-            <Select
-              label={t("intake.contracts.defaults")}
-              value={term}
-              options={terms.map((x) => ({ value: x.value, label: x.label }))}
-              onChange={(e) => setTerm(e.target.value)}
-            />
-            <p className="m-0 text-text-12 text-text-secondary">
-              {t("intake.contracts.defaultsHelp")}
-            </p>
-            <p className="m-0 text-text-12 text-text-secondary" data-testid="intake-allowance">
-              {left === null
-                ? t("intake.allowanceLoading")
-                : left.left === null
-                  ? t("intake.allowanceUnlimited", { count: picked.length })
-                  : t("intake.allowance", { count: picked.length, left: left.left })}
-            </p>
-            <p className="m-0 text-text-12 text-text-secondary">
-              {readsPayroll ? t("intake.contracts.sentFee") : t("intake.contracts.sentNoFee")}
-            </p>
-            {phase.kind === "reading" ? (
-              <p role="status" className="m-0 text-text-13 text-text-secondary">
-                {t("intake.reading", { done: phase.done + 1, total: phase.total })}
-              </p>
+            {files.length > MAX_INTAKE_FILES ? (
+              <InlineAlert tone="warning">{t("intake.tooMany", { max: MAX_INTAKE_FILES })}</InlineAlert>
             ) : null}
+            {tooBig ? <InlineAlert tone="warning">{t("intake.tooBig")}</InlineAlert> : null}
+            <SentList
+              items={[
+                { label: t("intake.sentKind"), value: t("intake.contract.kind") },
+                {
+                  label: t("intake.sentFiles"),
+                  value: files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
+                },
+                { label: t("extract.sentNothingElse"), value: t("extract.nothingElse") },
+              ]}
+            />
+            <p className="m-0 text-text-12 text-text-secondary" data-testid="intake-allowance">
+              {totalLeft === null
+                ? t("intake.usesUnlimited", { n: files.length })
+                : t("intake.uses", { n: files.length, left: totalLeft })}
+            </p>
+            <p className="m-0 text-text-12 text-text-secondary">{t("intake.keepsNothing")}</p>
+            {statuses.length > 0 ? <FileStatusList t={t} files={files} statuses={statuses} /> : null}
           </div>
-        ) : null}
-        {phase.kind === "review" ? (
+        ) : editing ? (
           <div className="flex flex-col gap-12">
-            <AiGenerated model={phase.model} />
-            <p className="m-0 text-text-12 text-text-secondary">{t("intake.contracts.review")}</p>
-            <ul
-              className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
-              aria-label={t("intake.contracts.rows")}
-            >
-              {groups.map((g, i) => {
+            <h3 className="m-0 text-text-13 font-semibold">{editing.act || t("intake.contract.noAct")}</h3>
+            <Input id={`${id}-start`} type="date" label={t("intake.contract.startDate")} value={editing.startDate} onChange={(e) => set(editing.key, { startDate: e.target.value })} />
+            <Input id={`${id}-end`} type="date" label={t("intake.contract.endDate")} value={editing.endDate} onChange={(e) => set(editing.key, { endDate: e.target.value })} />
+            {options?.fee_visible ? (
+              <>
+                <Input
+                  id={`${id}-fee`}
+                  label={t("intake.contract.fee")}
+                  inputMode="decimal"
+                  value={editing.fee}
+                  help={flatFee ? "" : t("intake.contract.feeHint")}
+                  onChange={(e) => set(editing.key, { fee: e.target.value })}
+                />
+                <Input
+                  id={`${id}-currency`}
+                  label={t("intake.contract.currency")}
+                  value={editing.currency}
+                  onChange={(e) => set(editing.key, { currency: e.target.value.toUpperCase() })}
+                />
+              </>
+            ) : null}
+            <div>
+              <Button variant="secondary" onClick={() => setCorrecting(null)}>
+                {t("intake.done")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-12">
+            <AiGenerated model={model} />
+            {dropNote ? <InlineAlert tone="warning">{dropNote}</InlineAlert> : null}
+            <p className="m-0 text-text-12 text-text-secondary">{t("intake.contract.review")}</p>
+            <Select
+              id={`${id}-term`}
+              label={t("intake.contract.terms")}
+              value={termKey}
+              help={t("intake.contract.termsHelp")}
+              options={[
+                { value: "", label: t("intake.choose") },
+                ...rateCards.map((c) => ({
+                  value: keyOf(c),
+                  label: t("intake.contract.termLabel", {
+                    role: c.role_name,
+                    classification: c.worker_classification_label,
+                    basis: c.pay_basis,
+                    arrangement: c.arrangement,
+                  }),
+                })),
+              ]}
+              onChange={(e) => {
+                const next = e.target.value;
+                setTermKey(next);
+                const chosen = rateCards.find((c) => keyOf(c) === next);
+                // Only a Flat Fee row carries the printed total; any other basis clears it.
+                setGroups(
+                  (current) =>
+                    current?.map((g) => {
+                      const printed = printedFee(g);
+                      const currency = g.currency || "USD";
+                      return {
+                        ...g,
+                        fee:
+                          chosen?.pay_basis === FLAT_FEE && printed !== null
+                            ? toMajorText(printed, currency)
+                            : "",
+                      };
+                    }) ?? null,
+                );
+              }}
+            />
+            {options?.fee_visible && term && !flatFee ? (
+              <InlineAlert tone="info">{t("intake.contract.feeHint")}</InlineAlert>
+            ) : null}
+            <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("intake.contract.groups")}>
+              {(groups ?? []).map((g) => {
                 const status = statusOf(g);
-                const contract = g.items.find((x) => x.contract)?.contract ?? null;
-                const fee = contract ? textOf(contract, "fee_minor") : "";
-                const currency = contract ? textOf(contract, "currency_code") || "USD" : "USD";
+                const party = partyOf(g);
+                const printed = printedFee(g);
                 return (
                   <li
-                    key={`${g.act}-${i}`}
-                    className="flex flex-col gap-8 py-8"
+                    key={g.key}
                     data-testid="contract-group"
+                    className="flex flex-col gap-8 rounded-control border border-border-subtle p-8"
                   >
-                    <span className="flex flex-wrap items-center gap-8">
+                    <div className="flex flex-wrap items-center gap-8">
                       <Checkbox
-                        label={g.act}
-                        checked={g.include}
-                        onChange={(e) => set(i, { include: e.currentTarget.checked })}
+                        label={t("intake.keepLine", { name: g.act || t("intake.contract.noAct") })}
+                        checked={g.keep}
+                        disabled={status === "other"}
+                        onChange={(e) => set(g.key, { keep: e.currentTarget.checked })}
                       />
-                      <Tag
-                        tone={
-                          status === "new" ? "accent" : status === "booked" ? "neutral" : "warning"
-                        }
-                      >
-                        {t(`intake.contracts.status.${status}`)}
+                      <Tag tone={status === "ready" || status === "alreadyBooked" ? "success" : "warning"}>
+                        {t(`intake.contract.status.${status}`)}
                       </Tag>
-                    </span>
-                    <span className="text-text-12 text-text-secondary">
-                      {[
-                        t("intake.contracts.dates", {
-                          start: (contract && textOf(contract, "start_date")) || t("intake.unread"),
-                          end: (contract && textOf(contract, "end_date")) || t("intake.unread"),
-                        }),
-                        ...(readsPayroll && contract
-                          ? [
-                              t("intake.contracts.fee", {
-                                fee: fee
-                                  ? formatMinor(Number(fee), currency, locale)
-                                  : t("intake.unread"),
-                              }),
-                            ]
-                          : []),
-                        t("intake.contracts.riders", {
-                          count: g.items.filter((x) => x.rider).length,
-                        }),
-                      ].join(" · ")}
-                    </span>
-                    {g.bookedId ? null : (
-                      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                        <Select
-                          label={t("intake.contracts.person")}
-                          value={g.personId}
-                          options={choices(g, "person")}
-                          onChange={(e) => set(i, { personId: e.target.value })}
-                        />
-                        <Select
-                          label={t("intake.contracts.account")}
-                          value={g.counterpartyId}
-                          options={choices(g, "counterparty")}
-                          onChange={(e) => set(i, { counterpartyId: e.target.value })}
-                        />
-                      </div>
+                    </div>
+                    {status === "other" ? null : (
+                      <Select
+                        id={`${id}-party-${g.key}`}
+                        label={t("intake.contract.party")}
+                        value={g.party}
+                        options={[
+                          { value: "", label: t("intake.choose") },
+                          ...(options?.parties ?? []).map((p) => ({
+                            value: `${p.kind}:${p.id}`,
+                            label: p.name,
+                          })),
+                        ]}
+                        onChange={(e) => set(g.key, { party: e.target.value, engagementId: "" })}
+                      />
                     )}
+                    {status === "needsParty" && importHref ? (
+                      <Link className="text-text-12 underline" href={importHref as Route}>
+                        {t("intake.contract.importCounterparties")}
+                      </Link>
+                    ) : null}
+                    {status === "alreadyBooked" ? (
+                      <>
+                        <p className="m-0 text-text-12 text-text-secondary">{t("intake.contract.attachOnly")}</p>
+                        {(party?.engagement_ids.length ?? 0) > 1 ? (
+                          <Select
+                            id={`${id}-engagement-${g.key}`}
+                            label={t("intake.contract.chooseBooking")}
+                            value={g.engagementId}
+                            options={[
+                              { value: "", label: t("intake.choose") },
+                              ...(party?.engagement_ids ?? []).map((value, i) => ({
+                                value,
+                                label: t("intake.contract.bookingN", { n: i + 1 }),
+                              })),
+                            ]}
+                            onChange={(e) => set(g.key, { engagementId: e.target.value })}
+                          />
+                        ) : null}
+                      </>
+                    ) : null}
+                    {term?.worker_classification === VENDOR_SUPPLIED && party?.kind === "person" ? (
+                      <InlineAlert tone="warning">{t("intake.contract.vendorNeedsCounterparty")}</InlineAlert>
+                    ) : null}
+                    <dl className="m-0 flex flex-col gap-4 text-text-12">
+                      {g.documents.map((d) => (
+                        <div key={d.id} className="flex flex-col gap-2">
+                          <dt className="flex flex-wrap items-center gap-4">
+                            <Tag tone="neutral">{t(`intake.contract.type.${typeOf(d)}`)}</Tag>
+                            <span>{textOf(d, "title")}</span>
+                          </dt>
+                          <dd className="m-0 text-text-secondary">
+                            {t("intake.contract.dates", {
+                              start: textOf(d, "start_date") || "-",
+                              end: textOf(d, "end_date") || "-",
+                            })}
+                            {" "}
+                            {fieldOf(d, "start_date")?.source_excerpt ?? ""}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {options?.fee_visible && printed !== null ? (
+                      <p className="m-0 text-text-12 text-text-secondary" data-testid="printed-fee">
+                        {t("intake.contract.printedFee", {
+                          fee: formatMinor(printed, g.currency || "USD", locale),
+                        })}
+                      </p>
+                    ) : null}
+                    {options?.fee_visible && g.fee !== "" ? (
+                      <p className="m-0 text-text-12">{t("intake.contract.rate", { rate: g.fee })}</p>
+                    ) : null}
+                    <div>
+                      <Button variant="ghost" size="sm" onClick={() => setCorrecting(g.key)}>
+                        {t("intake.correct")}
+                      </Button>
+                    </div>
                   </li>
                 );
               })}
             </ul>
           </div>
-        ) : null}
-        {phase.kind === "booked" ? (
-          <InlineAlert tone="success">
-            {t("intake.contracts.booked", { count: phase.engagements, riders: phase.riders })}
-          </InlineAlert>
-        ) : null}
+        )}
       </AiPanel>
     </>
   );

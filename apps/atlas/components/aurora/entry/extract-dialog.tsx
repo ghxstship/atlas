@@ -27,6 +27,12 @@ type Media = (typeof MEDIA)[number];
 
 /** Each kind's header operation and line operation, as the extraction proposes them. */
 const LINE_OPERATION = "rfqResponseLines.create";
+/**
+ * An invoice's lines are not filled into the form: they stay open for the invoice's detail. They are
+ * not the header, not loaded here, and not in the form's suggestion fields, and they are rejected on
+ * Discard or when a new reading replaces this one.
+ */
+const DEFERRED_OPERATION = "invoiceLines.create";
 
 interface Line {
   readonly id: string;
@@ -45,8 +51,14 @@ type Phase =
       readonly model: string | null;
       readonly header: AuroraSuggestion;
       readonly lines: readonly AuroraSuggestion[];
-      /** A receipt's items against its printed total (B15), read-only. */
+      /** Values shown but never proposed (B15): a vendor, a printed subtotal and tax. */
+      readonly read: AuroraExtraction["read"] | null;
+      /** A receipt's items, in the answer only. */
+      readonly items: AuroraExtraction["line_items"] | null;
+      /** Lines against the printed total (B15), read-only. */
       readonly tieOut: AuroraExtraction["tie_out"] | null;
+      /** An invoice's lines, left open for its detail. */
+      readonly deferred: readonly string[];
     };
 
 async function toBase64(file: File): Promise<string> {
@@ -101,13 +113,15 @@ export function ExtractDialog({
   ensureRows,
   form,
   filled,
+  deferred,
   onFilled,
   open,
   onOpenChange,
 }: ExtractEntryProps & {
   form: () => HTMLFormElement | null;
   filled: readonly string[];
-  onFilled: (ids: readonly string[]) => void;
+  deferred: readonly string[];
+  onFilled: (ids: readonly string[], deferred: readonly string[]) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -150,8 +164,13 @@ export function ExtractDialog({
       setAnnouncement(outcomeAnnouncement(outcome, t, ""));
       return;
     }
+    const deferredIds = outcome.suggestions
+      .filter((s) => s.operation_id === DEFERRED_OPERATION)
+      .map((s) => s.suggestion_id);
     const loaded = await Promise.all(
-      outcome.suggestions.map((s) => client.suggestion(s.suggestion_id)),
+      outcome.suggestions
+        .filter((s) => s.operation_id !== DEFERRED_OPERATION)
+        .map((s) => client.suggestion(s.suggestion_id)),
     );
     const suggestions = loaded.flatMap((r) => (r.ok ? [r.data] : []));
     const header = suggestions.find((s) => s.operation_id !== LINE_OPERATION);
@@ -190,7 +209,10 @@ export function ExtractDialog({
       model: outcome.model,
       header,
       lines: lineSuggestions,
+      read: outcome.answer.read ?? null,
+      items: outcome.answer.line_items ?? null,
       tieOut: outcome.answer.tie_out ?? null,
+      deferred: deferredIds,
     });
     setAnnouncement(t("extract.ready"));
   };
@@ -216,10 +238,11 @@ export function ExtractDialog({
     const kept = [phase.header.id, ...chosen.map((l) => l.id)];
     const dropped = [
       ...filled.filter((s) => !kept.includes(s)),
+      ...deferred,
       ...lines.filter((l) => !kept.includes(l.id)).map((l) => l.id),
     ];
     await reject(dropped, t("extract.rejectReason"));
-    onFilled(kept);
+    onFilled(kept, phase.deferred);
     onOpenChange(false);
     setAnnouncement(
       missing.length > 0
@@ -230,7 +253,10 @@ export function ExtractDialog({
 
   const discard = async () => {
     if (phase.kind === "review") {
-      await reject([phase.header.id, ...phase.lines.map((l) => l.id)], t("extract.discardReason"));
+      await reject(
+        [phase.header.id, ...phase.lines.map((l) => l.id), ...phase.deferred],
+        t("extract.discardReason"),
+      );
     }
     onOpenChange(false);
     setAnnouncement(t("extract.discarded"));
@@ -274,19 +300,15 @@ export function ExtractDialog({
         }
       >
         <AvailabilityNotice availability={availability} onRetry={() => void check()} />
-        {phase.kind === "review" && phase.tieOut ? (
-          <p className="m-0 text-text-12 text-text-secondary" data-testid="receipt-tie-out">
-            {phase.tieOut.status === "ties"
-              ? t("intake.tieOut.ties")
-              : phase.tieOut.status === "incomplete"
-                ? t("intake.tieOut.incomplete")
-                : t("intake.tieOut.residual", {
-                    amount: majorUnits(
-                      phase.tieOut.totalResidualMinor ?? 0,
-                      valueOf(fieldOf(phase.header, "currency_code")) || null,
-                    ),
-                  })}
-          </p>
+        {phase.kind === "review" ? (
+          <ReadValues
+            t={t}
+            currency={valueOf(fieldOf(phase.header, "currency_code")) || null}
+            read={phase.read}
+            items={phase.items}
+            tieOut={phase.tieOut}
+            deferredCount={phase.deferred.length}
+          />
         ) : null}
         {phase.kind === "review" ? (
           <Review
@@ -338,11 +360,65 @@ export function ExtractDialog({
                 {t("extract.reading")}
               </p>
             ) : null}
-            {phase.kind === "failed" ? <OutcomeNotice outcome={phase.outcome} /> : null}
+            {phase.kind === "failed" ? (
+              phase.outcome.kind === "failed" ? (
+                <InlineAlert tone="danger">{t("extract.tooManyLines")}</InlineAlert>
+              ) : (
+                <OutcomeNotice outcome={phase.outcome} />
+              )
+            ) : null}
           </div>
         )}
       </AiPanel>
     </>
+  );
+}
+
+/** What the reading shows but never proposes: printed values, a receipt's items and the tie-out. */
+function ReadValues({
+  t,
+  currency,
+  read,
+  items,
+  tieOut,
+  deferredCount,
+}: {
+  t: Translate;
+  currency: string | null;
+  read: AuroraExtraction["read"] | null;
+  items: AuroraExtraction["line_items"] | null;
+  tieOut: AuroraExtraction["tie_out"] | null;
+  deferredCount: number;
+}) {
+  const money = (minor: number | null) => (minor === null ? "" : majorUnits(minor, currency));
+  const vendor = read?.["vendor_name"];
+  return (
+    <div className="flex flex-col gap-4 text-text-12 text-text-secondary" data-testid="extract-read">
+      {vendor ? <p className="m-0">{t("extract.vendor", { name: String(vendor.value) })}</p> : null}
+      {tieOut ? (
+        <p className="m-0" data-testid="receipt-tie-out">
+          {tieOut.status === "not_checkable"
+            ? t("intake.invoiceLines.notCheckable")
+            : t("intake.invoiceLines.tieOut", {
+                printed: money(tieOut.printedTotalMinor),
+                computed: money(tieOut.computedTotalMinor),
+                residual: money(tieOut.residualMinor),
+              })}
+        </p>
+      ) : null}
+      {items && items.length > 0 ? (
+        <ul className="m-0 flex list-disc flex-col gap-2 ps-16">
+          {items.map((item, i) => (
+            <li key={i}>
+              {item.description ?? ""} {money(item.amount_minor)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {deferredCount > 0 ? (
+        <p className="m-0">{t("extract.linesLater", { count: deferredCount })}</p>
+      ) : null}
+    </div>
   );
 }
 

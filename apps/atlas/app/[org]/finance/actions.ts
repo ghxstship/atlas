@@ -404,12 +404,17 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   const custom = await customFieldsOf(ctx, "app.invoices", form);
   const problem = Object.entries(custom.fieldErrors ?? {})[0];
   if (problem) return inputError(...problem);
+  // The total a document printed, filled by Aurora in one hidden field (B15): never a visible field.
+  const printed = f["printedTotal"]
+    ? finance.parseMoney(f["printedTotal"], exponentOf(await getExponents(ctx), code.data))
+    : null;
   const result = await finance.createInvoice(ctx.viewer.db, ctx.org.id, {
     ...dates,
     projectId: project.data,
     counterpartyId: counterparty.data,
     direction: direction.data,
     currency: code.data,
+    printedTotalMinor: typeof printed === "number" ? printed : null,
   });
   if (result.ok) await custom.save(result.data.id);
   // A form Aurora filled from a document closes its suggestions with the invoice written (A95).

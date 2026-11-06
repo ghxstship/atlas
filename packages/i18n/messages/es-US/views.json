@@ -514,7 +514,14 @@
       "reserved_quantity": "Reservado",
       "issued_quantity": "Entregado",
       "returned_quantity": "Devuelto",
-      "decline_reason": "Motivo del rechazo"
+      "decline_reason": "Motivo del rechazo",
+      "printed_total_minor": "Total impreso",
+      "body": "Texto",
+      "source_kind": "Fuente",
+      "inbound_message_id": "Mensaje",
+      "file_name": "Nombre del archivo",
+      "source_excerpt": "Texto de la fuente",
+      "advance_submission_id": "Respuesta"
     }
   }
 }

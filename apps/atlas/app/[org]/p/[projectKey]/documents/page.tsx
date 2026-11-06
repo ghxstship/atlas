@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { GovernanceDraftEntry } from "@/components/aurora/entry/answers-entry";
 import { DocumentsSection } from "@/components/knowledge/documents";
 import { ProjectInboxSection } from "@/components/projects/project-inbox";
 import { requireNode } from "@/lib/shell/require-node";
@@ -20,23 +19,14 @@ export default async function Page({
   if (!project) notFound();
   const search = await searchParams;
   const path = nodeHref("project.documents", routeParams) ?? "/";
-  const canWrite = project.capabilities.has("knowledge.document.write");
   return (
     <>
-      {canWrite ? (
-        <GovernanceDraftEntry
-          org={project.org.org.slug}
-          projectId={project.project.id}
-          projectKey={project.project.key}
-          projectName={project.project.name}
-        />
-      ) : null}
       <DocumentsSection
         ctx={ctx}
         path={path}
         search={search}
         projectId={project.project.id}
-        canWriteProject={canWrite}
+        canWriteProject={project.capabilities.has("knowledge.document.write")}
       />
       <ProjectInboxSection ctx={project} showAll={search["inbox"] === "all"} path={path} />
     </>

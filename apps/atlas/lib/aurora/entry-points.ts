@@ -38,16 +38,16 @@ export const AI_ENTRY_POINTS: Readonly<Record<AiFeature, readonly EntryPoint[]>>
       test: "apps/atlas/e2e/a95-ai-entry-points.spec.ts",
     },
     {
-      consumer: "apps/atlas/components/aurora/entry/intake-entry.tsx#ItineraryIntakeEntry",
-      test: "apps/atlas/e2e/b15-itinerary-intake.spec.ts",
+      consumer: "apps/atlas/components/aurora/entry/intake-entry.tsx#ItineraryEntry",
+      test: "apps/atlas/e2e/b15-aurora-intake.spec.ts",
     },
     {
       consumer: "apps/atlas/components/aurora/entry/intake-entry.tsx#ContractIntakeEntry",
-      test: "apps/atlas/e2e/b15-contract-intake.spec.ts",
+      test: "apps/atlas/e2e/b15-aurora-intake.spec.ts",
     },
     {
       consumer: "apps/atlas/components/aurora/entry/intake-entry.tsx#InvoiceLinesEntry",
-      test: "apps/atlas/e2e/b15-invoice-lines.spec.ts",
+      test: "apps/atlas/e2e/b15-aurora-intake.spec.ts",
     },
   ],
   drafting: [
@@ -60,12 +60,8 @@ export const AI_ENTRY_POINTS: Readonly<Record<AiFeature, readonly EntryPoint[]>>
       test: "apps/atlas/e2e/p6-drafted-lists.spec.ts",
     },
     {
-      consumer: "apps/atlas/components/aurora/entry/answers-entry.tsx#AdvanceAnswersEntry",
-      test: "apps/atlas/e2e/b15-advance-answers.spec.ts",
-    },
-    {
-      consumer: "apps/atlas/components/aurora/entry/answers-entry.tsx#GovernanceDraftEntry",
-      test: "apps/atlas/e2e/b15-governance-drafts.spec.ts",
+      consumer: "apps/atlas/components/aurora/entry/intake-entry.tsx#AdvanceDraftEntry",
+      test: "apps/atlas/e2e/b15-aurora-intake.spec.ts",
     },
   ],
   summaries: [

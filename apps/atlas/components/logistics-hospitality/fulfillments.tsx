@@ -11,7 +11,6 @@ import {
   type FulfillmentDetail,
   type FulfillmentState,
 } from "@xos/data/hospitality";
-import { listDraftSources } from "@xos/data/ai";
 import { findIdByKey, instantToLocal, listCounterpartyOptions } from "@xos/data/logistics";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
@@ -29,7 +28,7 @@ import {
   transitionFulfillmentAction,
   updateFulfillmentAction,
 } from "@/app/[org]/hospitality/actions";
-import { ItineraryIntakeEntry } from "@/components/aurora/entry/intake-entry";
+import { ItineraryEntry } from "@/components/aurora/entry/intake-entry";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { projectPeople, projectPeopleNames, projectPersonLabel } from "@/lib/people/project-people";
 import { nodeHref } from "@/lib/shell/sitemap";
@@ -87,12 +86,6 @@ export async function guestOptions(scope: PageScope, projectId: string) {
   return (await projectPeople(scope.ctx, projectId))
     .map((p) => ({ value: p.personId, label: projectPersonLabel(t, p, tc("unnamed")) }))
     .sort((a, b) => a.label.localeCompare(b.label));
-}
-
-/** Verified project inbox mail Aurora may read (B15); empty for anyone who cannot read the inbox. */
-async function draftSources(scope: PageScope, projectId: string) {
-  const sources = await listDraftSources(scope.ctx.viewer.db, projectId);
-  return sources.ok ? sources.data : [];
 }
 
 /** Names of a project's members and engaged people by person id, for guest and traveller names. */
@@ -695,18 +688,7 @@ async function FulfillmentRecord({
 
       {travel?.ok ? (
         <Section id={`travel-${f.id}`} title={t("fulfillments.travel.title")}>
-          {canWrite && !closed ? (
-            <ItineraryIntakeEntry
-              projectId={f.projectId}
-              fulfillmentId={f.id}
-              people={(await projectPeople(scope.ctx, f.projectId)).map((p) => ({
-                personId: p.personId,
-                label: guests.find((g) => g.value === p.personId)?.label ?? p.fullName,
-                engagementId: p.engagementId,
-              }))}
-              inbox={await draftSources(scope, f.projectId)}
-            />
-          ) : null}
+          {canWrite && !closed ? <ItineraryEntry projectId={f.projectId} fulfillmentId={f.id} /> : null}
           {travel.data.length === 0 ? (
             <p className="m-0 text-text-13 text-text-secondary">{t("fulfillments.travel.empty")}</p>
           ) : (

@@ -744,7 +744,8 @@
     "score": "Score",
     "mitigation": "Mitigation",
     "baseline_locked_at": "Locked into a baseline",
-    "title": "{kind} details"
+    "title": "{kind} details",
+    "body": "Text"
   },
   "quickAdd": {
     "label": "Quick add a record",

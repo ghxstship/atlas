@@ -25,6 +25,8 @@ import { InvoiceForm } from "./forms-invoice-form";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldList } from "@/lib/custom-fields/server";
+import { getInvoiceTieOut, listInvoiceLineProposals } from "@xos/data/ai";
+import { InlineAlert } from "@/components/ui";
 import { InvoiceLinesEntry } from "@/components/aurora/entry/intake-entry";
 import { InvoiceLineForm } from "./forms-invoice-line-form";
 import { RecordPaymentForm } from "./forms-record-payment-form";
@@ -151,11 +153,18 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const peek = query.peek ? invoices.data.find((i) => i.id === query.peek) : undefined;
   let detail: RecordDetail | null = null;
   if (peek) {
-    const [lines, ledger, budgetLines] = await Promise.all([
+    const [lines, ledger, budgetLines, tieOut, openLines] = await Promise.all([
       listInvoiceLines(db, peek.id),
       listTransitions(db, "invoice_state_transitions", peek.id),
       listBudgetLineRefs(db, { orgId: ctx.org.id, projectId: peek.projectId }),
+      getInvoiceTieOut(db, peek.id),
+      // B15: the asker's open lines of this invoice, while it can still take them.
+      peek.state === "Proposed" && canWrite && ctx.viewer.personId
+        ? listInvoiceLineProposals(db, peek.id, ctx.viewer.personId)
+        : Promise.resolve(null),
     ]);
+    const tieOutRow = tieOut.ok ? tieOut.data : null;
+    const hasOpenLines = openLines?.ok === true && openLines.data.length > 0;
     const editable = peek.state === "Proposed" && canWrite;
     detail = {
       kindLabel: t(`finance.invoices.kind.${peek.direction}`),
@@ -211,6 +220,15 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                 : "finance.invoices.postsWhenApproved",
             )}
           </p>
+          {tieOutRow?.residual_minor ? (
+            <InlineAlert tone="warning" data-testid="invoice-residual">
+              {t("finance.invoices.residual", {
+                printed: c.money(tieOutRow.printed_total_minor, peek.currency),
+                computed: c.money(tieOutRow.computed_total_minor, peek.currency),
+                residual: c.money(tieOutRow.residual_minor, peek.currency),
+              })}
+            </InlineAlert>
+          ) : null}
           <Section id="invoice-lines" title={t("finance.invoices.lines")}>
             {lines.ok && lines.data.length > 0 ? (
               <SimpleTable
@@ -246,16 +264,23 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                 {editable ? t("finance.invoices.noLines") : t("finance.invoices.noLinesRead")}
               </p>
             )}
-            {editable && peek.direction === "Payable" && budgetLines.ok ? (
+            {editable && budgetLines.ok && hasOpenLines ? (
               <InvoiceLinesEntry
                 invoiceId={peek.id}
                 currencyCode={peek.currency}
-                lastLineNumber={lines.ok ? Math.max(0, ...lines.data.map((l) => l.lineNumber)) : 0}
+                printedTotalMinor={tieOutRow?.printed_total_minor ?? null}
+                existingLines={
+                  lines.ok
+                    ? lines.data.map((l) => ({
+                        quantity: l.quantity,
+                        unitPriceMinor: l.unitPriceMinor,
+                      }))
+                    : []
+                }
                 budgetLines={budgetLines.data.map((l) => ({
                   value: l.id,
                   label: `${l.budgetName} · ${l.lineNumber} ${l.description}`,
                 }))}
-                taxRates={[]}
               />
             ) : null}
             {editable && budgetLines.ok ? (

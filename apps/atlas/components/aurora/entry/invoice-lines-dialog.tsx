@@ -1,63 +1,46 @@
 "use client";
 
-import type {
-  AuroraExtraction,
-  AuroraLineHistory,
-  AuroraProblem,
-  AuroraSuggestion,
-} from "@xos/ai/client";
-import { computeTieOut, priceVariance, VARIANCE_BADGE } from "@xos/ai/tieout";
-import { Button, Checkbox, InlineAlert, Input, Select, Tag } from "@xos/ui";
+import type { AuroraLineHistory, AuroraOpenProposal, AuroraProblem } from "@xos/ai/client";
+import { tieOut } from "@xos/ai/intake";
+import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import type { InvoiceLinesEntryProps } from "./intake-entry";
-import { fileSource, formatMinor, MAX_FILE_BYTES, ProblemAlert, textOf } from "./intake-shared";
 import {
-  AiGenerated,
-  AiPanel,
-  AvailabilityNotice,
-  LiveRegion,
-  useAurora,
-  useEntryT,
-} from "./shared";
+  fieldOf,
+  formatMinor,
+  minorOf,
+  ProblemAlert,
+  textOf,
+  toMajorText,
+  toMinor,
+} from "./intake-shared";
+import { AiGenerated, AiPanel, LiveRegion, useEntryT, useAurora } from "./shared";
 
 interface Row {
-  readonly suggestionId: string;
-  readonly include: boolean;
+  readonly id: string;
+  readonly keep: boolean;
   readonly description: string;
   readonly quantity: string;
-  /** Unit price in minor units as text, "" when unpriced. */
   readonly unitPrice: string;
   readonly budgetLineId: string;
-  readonly taxRateId: string;
-  readonly history: readonly AuroraLineHistory[];
   readonly excerpt: string;
 }
 
-type Phase =
-  | { readonly kind: "pick" }
-  | { readonly kind: "reading" }
-  | { readonly kind: "review"; readonly model: string | null; readonly answer: AuroraExtraction }
-  | { readonly kind: "added"; readonly count: number; readonly stopped: string | null };
-
-const minor = (text: string) =>
-  text.trim() === "" || !/^-?\d+$/.test(text.trim()) ? null : Number(text.trim());
-
 /**
- * Read lines from a document (B15, parity gap G-225). Aurora reads a Proposed payable invoice's
- * lines into proposals; the person sets each line's budget line (empty until they choose it, never
- * proposed), sees the vendor's earlier lines as hints with a variance badge, and a tie-out of the
- * lines against the printed totals recomputed on every edit. A residual must be acknowledged, an
- * advisory check only (ADR 0154). "Add lines" confirms the kept lines one by one after the
- * invoice's last line, through aiSuggestions.confirm, stopping at the first refusal.
+ * Review Lines from the Document (B15, parity gap G-225). The asker's open line suggestions of this
+ * invoice, with the live tie-out recalculated on every edit and each vendor's last billed line as a
+ * hint. A budget line is never preselected: "Use This Budget Line" fills the select only on a click.
+ * With a nonzero residual, adding needs "I checked the difference". The residual never blocks the
+ * invoice afterward; it is a warning.
  */
 export function InvoiceLinesDialog({
   invoiceId,
   currencyCode,
-  lastLineNumber,
+  printedTotalMinor,
+  existingLines,
   budgetLines,
-  taxRates,
   open,
   onOpenChange,
 }: InvoiceLinesEntryProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -65,116 +48,89 @@ export function InvoiceLinesDialog({
   const id = useId();
   const locale = useLocale();
   const router = useRouter();
-  const { client, availability, check } = useAurora("extraction", open);
-  const [file, setFile] = useState<File | null>(null);
-  const [phase, setPhase] = useState<Phase>({ kind: "pick" });
+  const { client } = useAurora("extraction", open);
   const [rows, setRows] = useState<Row[]>([]);
-  const [acknowledged, setAcknowledged] = useState(false);
+  const [history, setHistory] = useState<readonly AuroraLineHistory[]>([]);
+  const [checked, setChecked] = useState(false);
   const [problem, setProblem] = useState<AuroraProblem | null>(null);
+  const [added, setAdded] = useState<number | null>(null);
   const [announcement, setAnnouncement] = useState("");
-  const ready = availability.kind === "ready";
 
-  const read = async () => {
-    if (!file) return;
-    setProblem(null);
-    setPhase({ kind: "reading" });
-    const result = await client.extract({
-      kind: "invoice_lines",
-      invoice_id: invoiceId,
-      ...(await fileSource(file)),
-    });
-    if (!result.ok || result.data.answer === null) {
-      if (!result.ok) setProblem(result.problem);
-      return setPhase({ kind: "pick" });
-    }
-    const answer = result.data.answer;
-    const stored: AuroraSuggestion[] = [];
-    for (const s of result.data.suggestions) {
-      const read = await client.suggestion(s.suggestion_id);
-      if (read.ok) stored.push(read.data);
-    }
-    setRows(
-      stored.map((s, i) => ({
-        suggestionId: s.id,
-        include: true,
-        description: textOf(s, "description"),
-        quantity: textOf(s, "quantity"),
-        unitPrice: textOf(s, "unit_price_minor"),
-        budgetLineId: "",
-        taxRateId: "",
-        history: (answer.history ?? []).filter((h) => h.description_index === i + 1),
-        excerpt: s.proposed_fields.find((f) => f.source_excerpt)?.source_excerpt ?? "",
-      })),
-    );
-    setPhase({ kind: "review", model: result.data.model, answer });
-    setAnnouncement(t("intake.invoiceLines.ready"));
-  };
-
-  const printed = phase.kind === "review" ? (phase.answer.check ?? {}) : {};
-  const num = (path: string) => {
-    const v = printed[path]?.value;
-    return typeof v === "number" ? v : null;
-  };
-  const kept = rows.filter((r) => r.include);
-  // Recomputed on every edit, with the same rounding as private.extended_minor.
-  const tie = useMemo(
-    () =>
-      computeTieOut({
-        lines: kept.map((r) => ({
-          quantity: r.quantity.trim() === "" ? null : r.quantity,
-          unitPriceMinor: minor(r.unitPrice),
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    void client.invoiceLineProposals(invoiceId).then(async (r) => {
+      if (!live) return;
+      if (!r.ok) return setProblem(r.problem);
+      const proposals: readonly AuroraOpenProposal[] = r.data.data;
+      setRows(
+        proposals.map((p) => ({
+          id: p.id,
+          keep: true,
+          description: textOf(p, "description"),
+          quantity: textOf(p, "quantity"),
+          unitPrice: toMajorText(minorOf(p, "unit_price_minor"), currencyCode),
+          budgetLineId: "",
+          excerpt: fieldOf(p, "unit_price_minor")?.source_excerpt ?? "",
         })),
-        printed: {
-          subtotal: num("printed_subtotal_minor"),
-          tax: num("printed_tax_minor"),
-          shipping: num("printed_shipping_minor"),
-          total: num("printed_total_minor"),
-        },
+      );
+      const descriptions = proposals.map((p) => textOf(p, "description")).filter((d) => d !== "");
+      if (descriptions.length === 0) return;
+      const past = await client.lineHistory(invoiceId, descriptions.slice(0, 50));
+      if (live && past.ok) setHistory(past.data.data);
+    });
+    return () => {
+      live = false;
+    };
+  }, [open, client, invoiceId, currencyCode]);
+
+  const set = (rowId: string, patch: Partial<Row>) =>
+    setRows((current) => current.map((r) => (r.id === rowId ? { ...r, ...patch } : r)));
+
+  const kept = rows.filter((r) => r.keep);
+  // The panel's tie-out equals app.invoice_tie_out after saving: the invoice's own lines plus the kept
+  // ones, with printed tax already a line of its own.
+  const result = useMemo(
+    () =>
+      tieOut({
+        lines: [
+          ...existingLines,
+          ...kept.map((r) => ({
+            quantity: r.quantity === "" ? 1 : r.quantity,
+            unitPriceMinor: r.unitPrice === "" ? null : toMinor(r.unitPrice, currencyCode),
+          })),
+        ],
+        printedTotalMinor,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- printed changes only with the phase
-    [rows, phase],
+    [existingLines, kept, printedTotalMinor, currencyCode],
   );
-  const residual = tie.totalResidualMinor !== null && tie.totalResidualMinor !== 0;
-  const missingQuantity = kept.some(
-    (r) => r.quantity.trim() === "" || Number.isNaN(Number(r.quantity)),
-  );
-  const currencyFlag =
-    phase.kind === "review" && (phase.answer.tie_out?.flags ?? []).includes("currency_mismatch");
+  const money = (minor: number | null) => formatMinor(minor, currencyCode, locale);
+  const needsCheck = result.status === "residual";
+  const historyOf = (row: Row) => {
+    const position =
+      rows.filter((r) => r.description !== "").findIndex((r) => r.id === row.id) + 1;
+    return history.filter((h) => h.description_index === position);
+  };
 
   const add = async () => {
     setProblem(null);
-    let added = 0;
-    let stopped: string | null = null;
-    for (const [k, r] of kept.entries()) {
-      const result = await client.confirm(r.suggestionId, t("intake.invoiceLines.reason"), {
-        invoice_id: invoiceId,
-        line_number: lastLineNumber + k + 1,
-        description: r.description.trim(),
-        quantity: Number(r.quantity),
-        unit_price_minor: minor(r.unitPrice),
-        ...(r.budgetLineId ? { budget_line_id: r.budgetLineId } : {}),
-        ...(r.taxRateId ? { tax_rate_id: r.taxRateId } : {}),
-      });
-      if (!result.ok) {
-        setProblem(result.problem);
-        stopped = r.description;
-        break;
-      }
-      added += 1;
-    }
-    if (stopped === null) {
-      for (const r of rows.filter((x) => !x.include))
-        await client.reject(r.suggestionId, t("intake.invoiceLines.leftOut"));
-    }
-    setPhase({ kind: "added", count: added, stopped });
-    setAnnouncement(t("intake.invoiceLines.added", { count: added }));
-    if (added > 0) router.refresh();
+    const applied = await client.applyInvoiceLines({
+      invoice_id: invoiceId,
+      items: kept.map((r) => ({
+        suggestion_id: r.id,
+        values: {
+          description: r.description,
+          quantity: r.quantity === "" ? 1 : Number(r.quantity),
+          unit_price_minor: r.unitPrice === "" ? null : toMinor(r.unitPrice, currencyCode),
+          ...(r.budgetLineId ? { budget_line_id: r.budgetLineId } : {}),
+        },
+      })),
+    });
+    if (!applied.ok) return setProblem(applied.problem);
+    setAdded(applied.data.written.length);
+    setAnnouncement(t("intake.invoiceLines.added", { count: applied.data.written.length }));
+    router.refresh();
   };
-
-  const set = (i: number, patch: Partial<Row>) =>
-    setRows((all) => all.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const money = (value: number | null) =>
-    value === null ? t("intake.unread") : formatMinor(value, currencyCode, locale);
 
   return (
     <>
@@ -184,20 +140,7 @@ export function InvoiceLinesDialog({
         open={open}
         onOpenChange={onOpenChange}
         footer={
-          phase.kind === "review" ? (
-            <>
-              <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                {t("discard")}
-              </Button>
-              <Button
-                variant="primary"
-                disabled={kept.length === 0 || missingQuantity || (residual && !acknowledged)}
-                onClick={() => void add()}
-              >
-                {t("intake.invoiceLines.add", { count: kept.length })}
-              </Button>
-            </>
-          ) : phase.kind === "added" ? (
+          added !== null ? (
             <Button variant="primary" onClick={() => onOpenChange(false)}>
               {t("close")}
             </Button>
@@ -208,182 +151,95 @@ export function InvoiceLinesDialog({
               </Button>
               <Button
                 variant="primary"
-                icon="Sparkles"
-                loading={phase.kind === "reading"}
-                disabled={
-                  !ready || !file || (file?.size ?? 0) > MAX_FILE_BYTES || phase.kind === "reading"
-                }
-                onClick={() => void read()}
+                disabled={kept.length === 0 || (needsCheck && !checked)}
+                onClick={() => void add()}
               >
-                {t("send")}
+                {t("intake.invoiceLines.add")}
               </Button>
             </>
           )
         }
       >
-        <AvailabilityNotice availability={availability} onRetry={() => void check()} />
         <ProblemAlert t={t} problem={problem} />
-        {phase.kind === "pick" || phase.kind === "reading" ? (
+        {added !== null ? (
+          <InlineAlert tone="success">{t("intake.invoiceLines.added", { count: added })}</InlineAlert>
+        ) : (
           <div className="flex flex-col gap-12">
-            <label className="flex flex-col gap-4 text-text-13" htmlFor={`${id}-file`}>
-              <span className="font-medium">{t("intake.file")}</span>
-              <input
-                id={`${id}-file`}
-                type="file"
-                accept="application/pdf,text/plain,image/png,image/jpeg,image/webp"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </label>
-            <p className="m-0 text-text-12 text-text-secondary">{t("intake.invoiceLines.sent")}</p>
-          </div>
-        ) : null}
-        {phase.kind === "review" ? (
-          <div className="flex flex-col gap-12">
-            <AiGenerated model={phase.model} />
-            <p className="m-0 text-text-12 text-text-secondary">
-              {t("intake.invoiceLines.review")}
-            </p>
-            {currencyFlag ? (
-              <InlineAlert tone="warning">
-                {t("intake.tieOut.currencyMismatch", { currency: currencyCode })}
-              </InlineAlert>
-            ) : null}
-            <ul
-              className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
-              aria-label={t("intake.invoiceLines.rows")}
+            <AiGenerated model={null} />
+            <p
+              className="m-0 text-text-13"
+              data-testid="invoice-tie-out"
+              role="status"
+              aria-live="polite"
             >
-              {rows.map((r, i) => {
-                const reference = r.history[0];
-                const variance = priceVariance(
-                  minor(r.unitPrice),
-                  reference?.unit_price_minor ?? null,
-                );
-                return (
-                  <li
-                    key={r.suggestionId}
-                    className="flex flex-col gap-8 py-8"
-                    data-testid="invoice-line-row"
-                  >
-                    <Checkbox
-                      label={r.description || t("intake.unread")}
-                      checked={r.include}
-                      onChange={(e) => set(i, { include: e.currentTarget.checked })}
+              {result.status === "not_checkable"
+                ? t("intake.invoiceLines.notCheckable")
+                : t("intake.invoiceLines.tieOut", {
+                    printed: money(result.printedTotalMinor),
+                    computed: money(result.computedTotalMinor),
+                    residual: money(result.residualMinor),
+                  })}
+            </p>
+            {needsCheck ? (
+              <Checkbox
+                label={t("intake.invoiceLines.checked")}
+                checked={checked}
+                onChange={(e) => setChecked(e.currentTarget.checked)}
+              />
+            ) : null}
+            <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("intake.invoiceLines.lines")}>
+              {rows.map((r, i) => (
+                <li
+                  key={r.id}
+                  data-testid="invoice-line-row"
+                  className="flex flex-col gap-8 rounded-control border border-border-subtle p-8"
+                >
+                  <Checkbox
+                    label={t("intake.keepLine", { name: r.description || String(i + 1) })}
+                    checked={r.keep}
+                    onChange={(e) => set(r.id, { keep: e.currentTarget.checked })}
+                  />
+                  <Input id={`${id}-d-${r.id}`} label={t("extract.lineDescription", { n: i + 1 })} width="100%" value={r.description} onChange={(e) => set(r.id, { description: e.target.value })} />
+                  <div className="flex flex-wrap gap-8">
+                    <Input id={`${id}-q-${r.id}`} label={t("extract.lineQuantity")} inputMode="decimal" value={r.quantity} onChange={(e) => set(r.id, { quantity: e.target.value })} />
+                    <Input id={`${id}-p-${r.id}`} label={t("extract.lineUnitPrice")} inputMode="decimal" value={r.unitPrice} onChange={(e) => set(r.id, { unitPrice: e.target.value })} />
+                    <Select
+                      id={`${id}-b-${r.id}`}
+                      label={t("intake.invoiceLines.budgetLine")}
+                      value={r.budgetLineId}
+                      options={[{ value: "", label: t("intake.choose") }, ...budgetLines]}
+                      onChange={(e) => set(r.id, { budgetLineId: e.target.value })}
                     />
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                      <Input
-                        label={t("intake.invoiceLines.description")}
-                        value={r.description}
-                        onChange={(e) => set(i, { description: e.target.value })}
-                      />
-                      <Input
-                        label={t("intake.invoiceLines.quantity")}
-                        inputMode="decimal"
-                        value={r.quantity}
-                        error={
-                          r.include && r.quantity.trim() === ""
-                            ? t("intake.invoiceLines.quantityRequired")
-                            : ""
-                        }
-                        onChange={(e) => set(i, { quantity: e.target.value })}
-                      />
-                      <Input
-                        label={t("intake.invoiceLines.unitPrice", { currency: currencyCode })}
-                        inputMode="numeric"
-                        help={t("intake.invoiceLines.unitPriceHelp")}
-                        value={r.unitPrice}
-                        onChange={(e) => set(i, { unitPrice: e.target.value })}
-                      />
-                      <Select
-                        label={t("intake.invoiceLines.budgetLine")}
-                        value={r.budgetLineId}
-                        options={[
-                          { value: "", label: t("intake.invoiceLines.noBudgetLine") },
-                          ...budgetLines,
-                        ]}
-                        onChange={(e) => set(i, { budgetLineId: e.target.value })}
-                      />
-                      {taxRates.length > 0 ? (
-                        <Select
-                          label={t("intake.invoiceLines.taxRate")}
-                          value={r.taxRateId}
-                          options={[
-                            { value: "", label: t("intake.invoiceLines.noTaxRate") },
-                            ...taxRates,
-                          ]}
-                          onChange={(e) => set(i, { taxRateId: e.target.value })}
-                        />
+                  </div>
+                  {r.excerpt ? (
+                    <p className="m-0 text-text-12 text-text-secondary">{t("extract.source", { excerpt: r.excerpt })}</p>
+                  ) : null}
+                  {historyOf(r).map((h, n) => (
+                    <div key={n} className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary" data-testid="vendor-history">
+                      <span>
+                        {h.budget_line_name
+                          ? t("intake.invoiceLines.lastBilledCoded", {
+                              price: formatMinor(h.unit_price_minor, h.currency_code, locale),
+                              invoice: h.invoice_number ?? "",
+                              line: h.budget_line_name,
+                            })
+                          : t("intake.invoiceLines.lastBilled", {
+                              price: formatMinor(h.unit_price_minor, h.currency_code, locale),
+                              invoice: h.invoice_number ?? "",
+                            })}
+                      </span>
+                      {h.budget_line_id ? (
+                        <Button variant="ghost" size="sm" onClick={() => set(r.id, { budgetLineId: h.budget_line_id ?? "" })}>
+                          {t("intake.invoiceLines.useBudgetLine")}
+                        </Button>
                       ) : null}
                     </div>
-                    {r.history.map((h) => (
-                      <p
-                        key={`${h.source}-${h.reference}-${h.line_number}`}
-                        className="m-0 text-text-12 text-text-secondary"
-                      >
-                        {h.source === "invoice"
-                          ? t("intake.invoiceLines.historyInvoice", {
-                              price: money(h.unit_price_minor),
-                              reference: h.reference ?? "",
-                              date: h.issued_on ?? "",
-                            })
-                          : t("intake.invoiceLines.historyOrder", {
-                              reference: h.reference ?? "",
-                              line: h.line_number,
-                              quantity: h.quantity,
-                              price: money(h.unit_price_minor),
-                            })}
-                      </p>
-                    ))}
-                    {variance !== null && variance >= VARIANCE_BADGE ? (
-                      <Tag tone="warning">
-                        {t("intake.invoiceLines.variance", { percent: Math.round(variance * 100) })}
-                      </Tag>
-                    ) : null}
-                    {r.excerpt ? (
-                      <p className="m-0 text-text-12 text-text-secondary">
-                        {t("intake.excerpt", { excerpt: r.excerpt })}
-                      </p>
-                    ) : null}
-                  </li>
-                );
-              })}
+                  ))}
+                </li>
+              ))}
             </ul>
-            <div
-              className="flex flex-col gap-4 rounded-8 border border-border-subtle p-12"
-              data-testid="tie-out"
-              role="group"
-              aria-label={t("intake.tieOut.title")}
-            >
-              <span className="text-text-13 font-medium">{t("intake.tieOut.title")}</span>
-              <span className="text-text-13">
-                {t("intake.tieOut.lines", { amount: money(tie.linesMinor) })}
-              </span>
-              <span className="text-text-13">
-                {t("intake.tieOut.printed", { amount: money(num("printed_total_minor")) })}
-              </span>
-              <span className="text-text-13" data-testid="tie-out-status">
-                {tie.status === "ties"
-                  ? t("intake.tieOut.ties")
-                  : tie.status === "incomplete"
-                    ? t("intake.tieOut.incomplete")
-                    : t("intake.tieOut.residual", { amount: money(tie.totalResidualMinor) })}
-              </span>
-              {residual ? (
-                <Checkbox
-                  label={t("intake.tieOut.acknowledge")}
-                  checked={acknowledged}
-                  onChange={(e) => setAcknowledged(e.currentTarget.checked)}
-                />
-              ) : null}
-            </div>
           </div>
-        ) : null}
-        {phase.kind === "added" ? (
-          <InlineAlert tone={phase.stopped ? "warning" : "success"}>
-            {phase.stopped
-              ? t("intake.invoiceLines.stopped", { count: phase.count, line: phase.stopped })
-              : t("intake.invoiceLines.added", { count: phase.count })}
-          </InlineAlert>
-        ) : null}
+        )}
       </AiPanel>
     </>
   );

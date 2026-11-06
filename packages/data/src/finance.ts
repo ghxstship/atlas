@@ -1345,6 +1345,7 @@ export async function createExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
+        printed_total_minor: input.printedTotalMinor ?? null,
       })
       .select("id")
       .single(),
@@ -1805,6 +1806,8 @@ export interface InvoiceInput {
   readonly issuedOn: string | null;
   readonly dueOn: string | null;
   readonly currency: string;
+  /** The total the document printed, when Aurora read one (B15). */
+  readonly printedTotalMinor?: number | null;
 }
 
 export async function createInvoice(
@@ -1834,7 +1837,7 @@ export async function createInvoice(
 export async function updateInvoice(
   db: XosClient,
   id: string,
-  input: Pick<InvoiceInput, "number" | "issuedOn" | "dueOn">,
+  input: Pick<InvoiceInput, "number" | "issuedOn" | "dueOn" | "printedTotalMinor">,
 ): Promise<Result<null>> {
   return done(
     db
@@ -1843,6 +1846,10 @@ export async function updateInvoice(
         invoice_number: input.number?.trim() || null,
         issued_on: input.issuedOn,
         due_on: input.dueOn,
+        // An absent value leaves the stored total unchanged.
+        ...(input.printedTotalMinor === undefined
+          ? {}
+          : { printed_total_minor: input.printedTotalMinor }),
       })
       .eq("id", id),
   );

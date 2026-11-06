@@ -671,6 +671,15 @@ const IntakeOptions = z
         }),
       )
       .meta({ description: "An itinerary: who the passengers may be. Names only.", example: [] }),
+    segments: z
+      .array(
+        z.object({
+          person_id: fields.ref("traveler"),
+          service_identifier: orNull(fields.text("Flight or service number.", "GA 100", 40)),
+          departs_at: fields.instant("Departure."),
+        }),
+      )
+      .meta({ description: "An itinerary: the project's live segments.", example: [] }),
     parties: z
       .array(
         z.object({

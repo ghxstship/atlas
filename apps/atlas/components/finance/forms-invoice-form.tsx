@@ -54,8 +54,10 @@ export function InvoiceForm({
               issued_on: { name: "issuedOn" },
               due_on: { name: "dueOn" },
               currency_code: { name: "currency" },
+              printed_total_minor: { name: "printedTotal", as: "money" },
             }}
           />
+          <input type="hidden" name="printedTotal" defaultValue="" />
           {projectId ? (
             <input type="hidden" name="projectId" value={projectId} />
           ) : (

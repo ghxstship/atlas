@@ -514,7 +514,14 @@
       "reserved_quantity": "Held",
       "issued_quantity": "Issued",
       "returned_quantity": "Returned",
-      "decline_reason": "Decline reason"
+      "decline_reason": "Decline reason",
+      "printed_total_minor": "Printed total",
+      "body": "Text",
+      "source_kind": "Source",
+      "inbound_message_id": "Message",
+      "file_name": "File name",
+      "source_excerpt": "Source text",
+      "advance_submission_id": "Answer"
     }
   }
 }

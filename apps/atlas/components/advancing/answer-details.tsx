@@ -1,5 +1,5 @@
 import type { AnswerFile, AnswerLine } from "@xos/data/advancing";
-import type { AnswerDraft } from "@xos/data/ai";
+import type { AnswerSource } from "@xos/data/ai";
 import type { Route } from "next";
 import Link from "next/link";
 import type { Translate } from "@/lib/shell/translate";
@@ -140,25 +140,28 @@ export function AnswerDetails({
 }
 
 /**
- * The provenance of an answer recorded on the party's behalf from an Aurora draft (B15, ADR 0154):
- * the AI label, who recorded it, and the mail's subject when the reader may read that message, "a
- * project inbox message" otherwise, or the file it was read from.
+ * Where an answer recorded from an Aurora draft came from (B15, ADR 0154 D1), for anyone who reads the
+ * packet: the source with its excerpt, and who accepted the draft. Verified only means the sender's
+ * DKIM passed, so mail names its sender when the reader may read that message.
  */
-export function DraftedNote({ draft, t }: { draft: AnswerDraft | undefined; t: Translate }) {
-  if (!draft) return null;
-  const source = draft.fromMessage
-    ? (draft.messageSubject ?? t("advancing.answers.drafted.inboxMessage"))
-    : (draft.fileName ?? "");
+export function AnswerSourceNote({ source, t }: { source: AnswerSource | undefined; t: Translate }) {
+  if (!source) return null;
+  const from =
+    source.sourceKind === "File"
+      ? (source.fileName ?? "")
+      : t("advancing.answers.source.projectInbox");
   return (
-    <p
-      className="m-0 flex flex-wrap items-center gap-8 text-text-12 text-text-secondary"
-      data-testid="drafted-answer-note"
-    >
-      <Tag tone="accent">{t("advancing.answers.drafted.label")}</Tag>
-      {t("advancing.answers.drafted.recorded", {
-        person: draft.recorderName ?? t("advancing.answers.drafted.someone"),
-        source,
-      })}
-    </p>
+    <div className="flex flex-col gap-4 text-text-12 text-text-secondary" data-testid="answer-source">
+      <p className="m-0">{t("advancing.answers.source.recordedFrom", { from })}</p>
+      {source.fromAddress ? (
+        <p className="m-0">{t("advancing.answers.source.sender", { from: source.fromAddress })}</p>
+      ) : null}
+      <blockquote className="m-0 border-l border-border-subtle pl-8">{source.excerpt}</blockquote>
+      <p className="m-0">
+        {t("advancing.answers.source.acceptedBy", {
+          name: source.accepterName ?? t("advancing.answers.source.someone"),
+        })}
+      </p>
+    </div>
   );
 }

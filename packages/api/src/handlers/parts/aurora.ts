@@ -1076,6 +1076,13 @@ export function auroraHandlers(
           fee_visible: false,
           can_write_riders: false,
           travelers: unwrap(await itineraryTravelerCandidates(context.db, query.project_id)),
+          segments: await run<Row[]>(
+            from(context.db, "travel_segments")
+              .select("person_id, service_identifier, departs_at")
+              .eq("project_id", query.project_id)
+              .is("deleted_at", null)
+              .limit(1000),
+          ),
           parties: [],
           rate_cards: [],
         });
@@ -1085,6 +1092,7 @@ export function auroraHandlers(
         fee_visible: scope.fee_visible === true,
         can_write_riders: scope.can_write_riders === true,
         travelers: [],
+        segments: [],
         parties: options.parties,
         rate_cards: options.rate_cards,
       });

@@ -572,7 +572,8 @@
     "paymentAmountHint": "Déjalo en blanco para pagar todo el saldo.",
     "paymentReferenceHint": "La referencia de la remesa de tu banco o proveedor de pagos.",
     "payee": "Beneficiario",
-    "individual": "Individual"
+    "individual": "Individual",
+    "residual": "Total impreso {printed}. Las líneas suman {computed}. Diferencia {residual}. Esto no bloquea la aprobación."
   },
   "payments": {
     "applications": "Aplicado a facturas",

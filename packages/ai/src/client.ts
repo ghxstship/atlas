@@ -199,6 +199,12 @@ export interface AuroraIntakeOptions {
     readonly display_name: string;
     readonly source: "Member" | "Engagement" | "Roster";
   }[];
+  /** An itinerary: the project's live segments, so a repeated line starts unchecked. */
+  readonly segments: readonly {
+    readonly person_id: string;
+    readonly service_identifier: string | null;
+    readonly departs_at: string;
+  }[];
   readonly parties: readonly {
     readonly kind: "counterparty" | "person";
     readonly id: string;
