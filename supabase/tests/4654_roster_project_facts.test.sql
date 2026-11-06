@@ -46,12 +46,14 @@ select throws_ok(format($$insert into app.roster_uniform_sizes (roster_entry_id)
 -- Classification, AI, retention, read-only, Trash --------------------------------------------------------------------------
 select is((select count(*)::int from private.column_classifications
   where table_name in ('app.roster_travel_requests', 'app.roster_uniform_sizes', 'app.roster_vehicles') and classification = 'Confidential'),
-  23, 'every value column of the three tables is Confidential');
+  22, 'every value column of the three tables is Confidential, but for the meal preference (ADR 0164)');
+select is((select classification::text from private.column_classifications
+  where table_name = 'app.roster_travel_requests' and column_name = 'meal_preference'), 'Restricted', 'which is Restricted');
 select is((select count(*)::int from information_schema.columns c
   where c.table_schema = 'app' and c.table_name in ('roster_travel_requests', 'roster_uniform_sizes', 'roster_vehicles')
     and c.column_name not in ('id', 'org_id', 'roster_entry_id', 'deleted_at', 'created_at', 'created_by', 'updated_at', 'updated_by')
     and not exists (select 1 from private.column_classifications k
-      where k.table_name = 'app.' || c.table_name and k.column_name = c.column_name and k.classification = 'Confidential')),
+      where k.table_name = 'app.' || c.table_name and k.column_name = c.column_name and k.classification in ('Confidential', 'Restricted'))),
   0, 'no value column is left unclassified');
 select is((select count(*)::int from private.ai_excluded_tables
   where table_name in ('app.roster_travel_requests', 'app.roster_uniform_sizes', 'app.roster_vehicles')), 3, 'no AI feature reads them');

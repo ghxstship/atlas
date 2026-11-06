@@ -185,8 +185,7 @@ test("ADR 0164: the company attests before a member's meal preference, and canno
     await drawer.getByRole("button", { name: "Enter for Demo Staff One" }).click();
 
     // No field before the attestation, and the rest of the form works without it.
-    await drawer.getByRole("combobox", { name: "Arriving at" }).fill("MIA");
-    await page.getByRole("option", { name: /\(MIA\)/ }).click();
+    await drawer.getByLabel("Arrival date").fill("2027-06-03");
     await drawer.getByRole("button", { name: "More fields" }).click();
     await expect(drawer.getByLabel("Meal preference", { exact: true })).toHaveCount(0);
     await drawer.getByRole("button", { name: "Add a meal preference for this person" }).click();
