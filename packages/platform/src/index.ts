@@ -264,6 +264,7 @@ export {
   PUNCH_KINDS,
   PlatformDbError,
   billingStore,
+  stripeCancellationStore,
   inboundStore,
   isPlatformEmailKind,
   kioskPunch,

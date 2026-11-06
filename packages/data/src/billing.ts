@@ -214,7 +214,11 @@ export async function requestPlanEnd(
   db: XosClient,
   input: { readonly orgId: string; readonly livemode: boolean },
 ): Promise<
-  Result<{ readonly cancellationId: string; readonly stripeSubscriptionId: string; readonly state: StripeCancellationState }>
+  Result<{
+    readonly cancellationId: string;
+    readonly stripeSubscriptionId: string;
+    readonly state: StripeCancellationState;
+  }>
 > {
   const { data, error } = await db.rpc("request_plan_end", {
     p_org_id: input.orgId,
@@ -222,7 +226,8 @@ export async function requestPlanEnd(
   });
   if (error) return fail(toDataError(error));
   const row = data[0];
-  if (row === undefined) return fail({ kind: "unexpected", message: "request_plan_end returned no row" });
+  if (row === undefined)
+    return fail({ kind: "unexpected", message: "request_plan_end returned no row" });
   return ok({
     cancellationId: row.cancellation_id,
     stripeSubscriptionId: row.stripe_subscription_id,

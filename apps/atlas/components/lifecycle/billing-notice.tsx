@@ -52,7 +52,9 @@ export async function BillingLifecycleNotice({
     ) : !s.billingState && billing.open && !billing.awaiting && s.trialPlan ? (
       <div>
         <Link
-          href={`/${ctx.org.slug}/settings/billing-and-plan?review=${s.trialPlan}#renewal-review` as Route}
+          href={
+            `/${ctx.org.slug}/settings/billing-and-plan?review=${s.trialPlan}#renewal-review` as Route
+          }
           className="inline-flex h-control-md w-fit items-center rounded-control bg-accent px-12 text-text-13 font-medium text-accent-text-on hover:bg-accent-hover"
         >
           {action}

@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
  */
 const PINNED = {
   version: "2026-11-06",
-  sha256: "PIN",
+  sha256: "b65cbbe17d7e822bdd7deeccb4ed0e68bafbee0ca13580b2a36fb162fbb6eecf",
 };
 
 function renewal(locale: "en-US" | "es-US") {

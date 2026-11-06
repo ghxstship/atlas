@@ -1,9 +1,5 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
-import {
-  getBillingAccount,
-  getStripeCancellations,
-  type BillingAccount,
-} from "@xos/data/billing";
+import { getBillingAccount, getStripeCancellations, type BillingAccount } from "@xos/data/billing";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -47,18 +43,19 @@ export default async function BillingSettingsPage({
   const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const search = await searchParams;
   const billing = billingStatus();
-  const [subscription, seats, account, t, tp, translate, format, word, zone, cancellations] = await Promise.all([
-    getSubscription(ctx.viewer.db, ctx.org.id),
-    getSeatUsage(ctx.viewer.db, ctx.org.id),
-    billing.open ? getBillingAccount(ctx.viewer.db, ctx.org.id, billing.livemode) : null,
-    getTranslations("shell.settings.billing"),
-    getTranslations("shell.plans"),
-    getTranslate(),
-    getFormatter(),
-    renewalWording(),
-    getOrgTimeZone(ctx),
-    getStripeCancellations(ctx.viewer.db, ctx.org.id),
-  ]);
+  const [subscription, seats, account, t, tp, translate, format, word, zone, cancellations] =
+    await Promise.all([
+      getSubscription(ctx.viewer.db, ctx.org.id),
+      getSeatUsage(ctx.viewer.db, ctx.org.id),
+      billing.open ? getBillingAccount(ctx.viewer.db, ctx.org.id, billing.livemode) : null,
+      getTranslations("shell.settings.billing"),
+      getTranslations("shell.plans"),
+      getTranslate(),
+      getFormatter(),
+      renewalWording(),
+      getOrgTimeZone(ctx),
+      getStripeCancellations(ctx.viewer.db, ctx.org.id),
+    ]);
   if (!subscription.ok) {
     throw new Error(`Cannot read the subscription: ${JSON.stringify(subscription.error)}`);
   }
@@ -90,7 +87,7 @@ export default async function BillingSettingsPage({
           zone,
         })
       : null;
-  const ending = cancellations.ok && cancellations.data.length > 0;
+  const ending = cancellations.ok && cancellations.data.some((c) => c.mode === "At Period End");
   const name = (code: string) => translate(`shell.plans.${code}.name`);
   const usd = (minor: number) =>
     format.number(minor / 100, {

@@ -1007,6 +1007,18 @@ export const sponsorAssetKind = ["Logo", "Artwork", "Copy", "Video", "Other"] as
 export const sponsorAssetSource = ["Org Supplied", "Sponsor Supplied"] as const;
 /** app.staffing_basis */
 export const staffingBasis = ["Ratio", "Fixed", "Declared"] as const;
+/** app.stripe_cancel_mode */
+export const stripeCancelMode = ["Immediately", "At Period End"] as const;
+/** app.stripe_cancel_source */
+export const stripeCancelSource = [
+  "Organization Canceled",
+  "Organization Deleted",
+  "Plan Ended",
+  "Stripe Portal",
+  "Reconciliation",
+] as const;
+/** app.stripe_cancellation_state */
+export const stripeCancellationState = ["Queued", "Accepted", "Withdrawn"] as const;
 /** app.submittal_kind */
 export const submittalKind = [
   "Shop Drawing",

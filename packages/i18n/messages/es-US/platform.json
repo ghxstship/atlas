@@ -662,7 +662,12 @@
         "trial_ending": "La prueba termina pronto",
         "trial_ended": "La prueba terminó",
         "paused": "Organización en pausa",
-        "resumed": "Organización reanudada"
+        "resumed": "Organización reanudada",
+        "purchase_confirmed": "Plan confirmado",
+        "renewal_reminder": "Plan próximo a renovarse",
+        "cancellation_confirmed": "Suscripción cancelada",
+        "plan_ending": "Plan por terminar",
+        "cancellation_delayed": "Cancelación aún sin confirmar"
       },
       "comment": {
         "created": "Nuevo comentario"

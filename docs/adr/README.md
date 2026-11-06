@@ -108,7 +108,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
 | [0138](0138-approval-rules-signed-out-decisions-and-reminders.md)   | Approval Rules, Signed-Out Decisions by Emailed Code, and Approval Reminders     | Proposed |
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
-| [0161](0161-stripe-cancellation-and-auto-renewal.md)                 | Stopping Stripe and the Auto-Renewal Terms                                       | Proposed |
+| [0161](0161-stripe-cancellation-and-auto-renewal.md)                | Stopping Stripe and the Auto-Renewal Terms                                       | Proposed |
 | [0140](0140-site-plan-states-drawings-annotations-and-signage.md)   | Site Plan States, Drawings, Annotations and the Signage Register                 | Accepted |
 | [0144][adr-0144]                                                    | Travel, Lodging, Ground Transport and Local Contacts                             | Accepted |
 | [0145](0145-change-tracking.md)                                     | Change Tracking Is Computed From the Ledger Against One Instant per Person       | Accepted |

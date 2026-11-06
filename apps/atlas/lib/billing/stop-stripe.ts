@@ -1,6 +1,6 @@
 import "server-only";
 import type { XosClient } from "@xos/data";
-import { getStripeCancellations } from "@xos/data/billing";
+import { getStripeCancellations, type StripeCancelMode } from "@xos/data/billing";
 import { billingConfigured, createStripeClient, sendStripeCancel } from "@xos/platform/billing";
 import { atlasBillingEnv } from "@/lib/billing/stripe";
 import { observability } from "@/lib/observability";
@@ -44,17 +44,19 @@ export async function askStripeToStopNow(db: XosClient, orgId: string): Promise<
  */
 export async function stripeHasStopped(
   stripeSubscriptionId: string,
-  mode: "Immediately" | "At Period End",
+  mode: StripeCancelMode,
 ): Promise<boolean> {
   const billing = atlasBillingEnv();
   if (!billingConfigured(billing)) return false;
   try {
     const stripe = await createStripeClient(billing);
-    const read = stripe.subscriptions.retrieve(stripeSubscriptionId).then((subscription) =>
-      mode === "Immediately"
-        ? subscription.status === "canceled"
-        : subscription.cancel_at_period_end || subscription.cancel_at !== null,
-    );
+    const read = stripe.subscriptions
+      .retrieve(stripeSubscriptionId)
+      .then((subscription) =>
+        mode === "Immediately"
+          ? subscription.status === "canceled"
+          : subscription.cancel_at_period_end || subscription.cancel_at !== null,
+      );
     const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3_000));
     return await Promise.race([read, timeout]);
   } catch {

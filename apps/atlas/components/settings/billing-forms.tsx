@@ -5,11 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import {
-  endPlanAction,
-  openBillingPortalAction,
-  startCheckoutAction,
-} from "@/lib/billing/actions";
+import { endPlanAction, openBillingPortalAction, startCheckoutAction } from "@/lib/billing/actions";
 import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform/state";
 import type { Database } from "@xos/data/database.types";
 
@@ -173,7 +169,9 @@ export function EndPlanForm({ org, label }: { org: string; label: string }) {
       </div>
       <div aria-live="polite">
         {state.rule || state.error ? <Outcome state={state} /> : null}
-        {state.ok ? <p className="m-0 text-text-13 text-text-secondary">{t("endPlan.sent")}</p> : null}
+        {state.ok ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("endPlan.sent")}</p>
+        ) : null}
       </div>
     </form>
   );

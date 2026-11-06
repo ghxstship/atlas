@@ -23,8 +23,7 @@ export async function StripeCancellationNotice({ ctx }: { ctx: OrgContext }) {
   const notices = await Promise.all(
     cancellations.data.map(async (c) => ({
       cancellation: c,
-      stopped:
-        c.state === "Accepted" || (await stripeHasStopped(c.stripeSubscriptionId, c.mode)),
+      stopped: c.state === "Accepted" || (await stripeHasStopped(c.stripeSubscriptionId, c.mode)),
     })),
   );
   return (

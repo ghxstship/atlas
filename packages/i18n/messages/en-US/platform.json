@@ -662,7 +662,12 @@
         "trial_ending": "Trial ending soon",
         "trial_ended": "Trial ended",
         "paused": "Organization paused",
-        "resumed": "Organization resumed"
+        "resumed": "Organization resumed",
+        "purchase_confirmed": "Plan confirmed",
+        "renewal_reminder": "Plan renewing soon",
+        "cancellation_confirmed": "Subscription canceled",
+        "plan_ending": "Plan ending",
+        "cancellation_delayed": "Cancellation not confirmed yet"
       },
       "comment": {
         "created": "New comment"

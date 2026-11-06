@@ -1,5 +1,6 @@
 import "server-only";
 import { dateIn } from "@xos/data/calendar";
+import type { BillingInterval } from "@xos/data/billing";
 import { firstChargeOn, stripeTrialEnd } from "@xos/platform/billing";
 import { createHash } from "node:crypto";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -12,7 +13,7 @@ import { PLANS } from "@/lib/plans.generated";
  */
 export interface RenewalTerms {
   readonly planCode: string;
-  readonly interval: "Monthly" | "Annual";
+  readonly interval: BillingInterval;
   readonly amountMinor: number;
   readonly price: string;
   readonly nextChargeOn: string;
@@ -22,7 +23,7 @@ export interface RenewalTerms {
 
 export type RenewalWording = (input: {
   readonly planCode: string;
-  readonly interval: "Monthly" | "Annual";
+  readonly interval: BillingInterval;
   readonly trialEndsAt: string | null;
   readonly zone: string | null;
   readonly now?: Date;

@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(21);
+select plan(31);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -23,6 +23,7 @@ create function pg_temp.consent(p_amount bigint, p_interval app.billing_interval
 language sql as $$
   select app.record_renewal_consent(pg_temp.id('org_n'), 'core', p_interval, p_amount, 'USD', p_date, '2026-11-06', 'en-US', p_statement, p_initials, true) $$;
 
+select pg_temp.as_platform();
 select ok(not has_table_privilege('authenticated', 'private.billing_renewal_consents', 'select'), 'nobody reads consents directly');
 
 -- What is refused --------------------------------------------------------------------------------------------------------
@@ -80,6 +81,21 @@ select is(private.run_billing_renewal_reminders(now()), 0, 'a subscription bough
 select is(private.run_billing_renewal_reminders(now() + interval '31 days' - interval '29 days' * 0), 0, 'and nothing past its renewal date is reminded');
 update app.stripe_subscription_links set created_at = now() - interval '335 days' where stripe_subscription_id in ('sub_H4rb', 'sub_N0rth');
 select is(private.run_billing_renewal_reminders(now()), 1, 'only the annual plan is reminded, 30 days ahead');
+select results_eq($$select message_args ->> 'plan', message_args ->> 'price', (message_args ->> 'renewsOn') is not null from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_b') limit 1$$,
+  $$values ('Team'::text, '1,490.00 USD'::text, true)$$, 'with the plan, the amount Stripe charges and the date');
+select is((select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_a')), 0, 'never a monthly plan');
+select is(private.run_billing_renewal_reminders(now()), 0, 'and once per term');
+select ok(exists (select 1 from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb' and amount_text = '1,490.00 USD'), 'with proof of notice');
+delete from private.billing_renewal_reminders;
+select pg_temp.as_service();
+select app.note_stripe_subscription_terms('sub_H4rb', now() + interval '29 days', null, null, now() + interval '1 minute');
+select pg_temp.as_platform();
+select is(private.run_billing_renewal_reminders(now()), 0, 'a plan already ending gets no reminder');
+
+-- Retention -----------------------------------------------------------------------------------------------------------
+select is(private.run_billing_evidence_retention(now() + interval '6 years'), 0, 'evidence is kept for 7 years');
+select ok(private.run_billing_evidence_retention(now() + interval '7 years 1 day') >= 1, 'and swept after');
+select is((select count(*)::integer from private.billing_renewal_consents where id = pg_temp.id('consent_n')), 0, 'consents included');
 
 select * from finish();
 rollback;

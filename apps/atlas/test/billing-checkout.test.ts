@@ -350,8 +350,8 @@ describe("billing once the key is set", () => {
   });
 
   it("opens no Checkout until the Owner agrees: nothing is ticked for them", async () => {
-    const { agree: _agree, ...rest } = Object.fromEntries(choose) as Record<string, string>;
-    expect(await startCheckoutAction({}, form(rest))).toMatchObject({
+    const unticked = form({ org: "n", plan: "core", interval: "Monthly", hash: HASH });
+    expect(await startCheckoutAction({}, unticked)).toMatchObject({
       rule: "renewal_consent_required",
     });
     expect(platform.startPlanCheckout).not.toHaveBeenCalled();
@@ -436,7 +436,10 @@ describe("billing once the key is set", () => {
       currentPeriodEnd: "2026-12-01T00:00:00Z",
     };
     expect(ofType(await page(), EndPlanForm)).toHaveLength(1);
-    data.getStripeCancellations.mockResolvedValueOnce({ ok: true, data: [{ id: "c-1" }] });
+    data.getStripeCancellations.mockResolvedValueOnce({
+      ok: true,
+      data: [{ id: "c-1", mode: "At Period End" }],
+    });
     expect(ofType(await page(), EndPlanForm)).toEqual([]);
   });
 

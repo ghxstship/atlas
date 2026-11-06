@@ -55999,47 +55999,62 @@ export type Database = {
       stripe_subscription_links: {
         Row: {
           billing_interval: Database["app"]["Enums"]["billing_interval"];
+          cancel_at: string | null;
           created_at: string;
           created_by: string | null;
+          currency_code: string | null;
           current_period_end: string | null;
           deleted_at: string | null;
           id: string;
           livemode: boolean;
           org_id: string;
+          recurring_amount_minor: number | null;
           stripe_customer_id: string;
+          stripe_ended_at: string | null;
           stripe_subscription_id: string;
           subscription_id: string;
+          terms_event_at: string | null;
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
           billing_interval: Database["app"]["Enums"]["billing_interval"];
+          cancel_at?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string | null;
           current_period_end?: string | null;
           deleted_at?: string | null;
           id?: string;
           livemode: boolean;
           org_id: string;
+          recurring_amount_minor?: number | null;
           stripe_customer_id: string;
+          stripe_ended_at?: string | null;
           stripe_subscription_id: string;
           subscription_id: string;
+          terms_event_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
           billing_interval?: Database["app"]["Enums"]["billing_interval"];
+          cancel_at?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string | null;
           current_period_end?: string | null;
           deleted_at?: string | null;
           id?: string;
           livemode?: boolean;
           org_id?: string;
+          recurring_amount_minor?: number | null;
           stripe_customer_id?: string;
+          stripe_ended_at?: string | null;
           stripe_subscription_id?: string;
           subscription_id?: string;
+          terms_event_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -71282,6 +71297,17 @@ export type Database = {
           paid_through_stripe: boolean;
         }[];
       };
+      billing_alerts_to_send: {
+        Args: { p_limit?: number };
+        Returns: {
+          alert_id: string;
+          alert_kind: string;
+          detail: string;
+          raised_at: string;
+          stripe_subscription_id: string;
+          subject_org_id: string;
+        }[];
+      };
       billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_member: { Args: { p_membership_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
@@ -71742,6 +71768,15 @@ export type Database = {
           recipient_person_id: string;
         }[];
       };
+      claim_stripe_cancellations: {
+        Args: { p_limit?: number; p_livemode: boolean; p_worker: string };
+        Returns: {
+          attempt: number;
+          cancel_mode: Database["app"]["Enums"]["stripe_cancel_mode"];
+          cancellation_id: string;
+          stripe_subscription_id: string;
+        }[];
+      };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -71899,6 +71934,20 @@ export type Database = {
           starts_at: string;
         }[];
       };
+      console_billing_alerts: {
+        Args: { p_limit?: number };
+        Returns: {
+          alert_id: string;
+          alert_kind: string;
+          detail: string;
+          occurrences: number;
+          org_name: string;
+          raised_at: string;
+          sent_at: string;
+          stripe_subscription_id: string;
+          subject_org_id: string;
+        }[];
+      };
       console_clear_flag_override: {
         Args: { p_override_id: string; p_reason: string };
         Returns: string;
@@ -71990,6 +72039,10 @@ export type Database = {
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
+      console_resolve_billing_alert: {
+        Args: { p_alert_id: string; p_reason: string };
+        Returns: string;
+      };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
@@ -72900,6 +72953,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      finish_stripe_cancellation: {
+        Args: { p_accepted: boolean; p_error?: string; p_id: string; p_stripe_status?: string };
+        Returns: Database["app"]["Enums"]["stripe_cancellation_state"];
+      };
       finish_stripe_event: {
         Args: { p_error?: string; p_stripe_event_row_id: string };
         Returns: undefined;
@@ -73157,6 +73214,7 @@ export type Database = {
         };
         Returns: string;
       };
+      mark_billing_alert_sent: { Args: { p_alert_id: string }; Returns: undefined };
       mark_communicated: {
         Args: { p_note?: string; p_subject_ids: string[]; p_subject_table: string };
         Returns: number;
@@ -73587,6 +73645,27 @@ export type Database = {
           ends_on: string;
           starts_on: string;
         }[];
+      };
+      note_stripe_charge: {
+        Args: {
+          p_amount_minor: number;
+          p_billing_reason: string;
+          p_currency_code: string;
+          p_paid_at: string;
+          p_stripe_invoice_id: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: boolean;
+      };
+      note_stripe_subscription_terms: {
+        Args: {
+          p_amount_minor: number;
+          p_cancel_at: string;
+          p_currency_code: string;
+          p_event_created_at: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: boolean;
       };
       notify_import_finished: {
         Args: { p_import_batch_id: string; p_import_job_id: string; p_review_url: string };
@@ -74120,6 +74199,17 @@ export type Database = {
         Returns: string;
       };
       reconcile_project: { Args: { p_note?: string; p_project_id: string }; Returns: string };
+      reconcile_stripe_subscription: {
+        Args: {
+          p_event_created_at: string;
+          p_livemode: boolean;
+          p_org_id: string;
+          p_stripe_customer_id: string;
+          p_stripe_status: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: string;
+      };
       record_addon_purchase_from_stripe: {
         Args: {
           p_addon_code: string;
@@ -74490,6 +74580,22 @@ export type Database = {
       record_recent_view: {
         Args: { p_org_id: string; p_subject_id: string; p_subject_table: string };
         Returns: boolean;
+      };
+      record_renewal_consent: {
+        Args: {
+          p_amount_minor: number;
+          p_billing_interval: Database["app"]["Enums"]["billing_interval"];
+          p_currency_code: string;
+          p_initials: string;
+          p_livemode: boolean;
+          p_locale: string;
+          p_next_charge_on: string;
+          p_org_id: string;
+          p_plan_code: string;
+          p_statement: string;
+          p_text_version: string;
+        };
+        Returns: string;
       };
       record_rfq_response: {
         Args: {
@@ -74898,6 +75004,14 @@ export type Database = {
       request_org_deletion: {
         Args: { p_confirm_name: string; p_org_id: string; p_reason: string };
         Returns: string;
+      };
+      request_plan_end: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: {
+          cancellation_id: string;
+          cancellation_state: Database["app"]["Enums"]["stripe_cancellation_state"];
+          stripe_subscription_id: string;
+        }[];
       };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
       request_warehouse_delivery: { Args: { p_destination_id: string }; Returns: string };
@@ -75800,6 +75914,25 @@ export type Database = {
       store_warehouse_credential: {
         Args: { p_destination_id: string; p_secret: string };
         Returns: undefined;
+      };
+      stripe_cancellation_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          accepted_at: string;
+          cancel_mode: Database["app"]["Enums"]["stripe_cancel_mode"];
+          cancellation_id: string;
+          cancellation_state: Database["app"]["Enums"]["stripe_cancellation_state"];
+          ends_at: string;
+          requested_at: string;
+          source: Database["app"]["Enums"]["stripe_cancel_source"];
+          stripe_subscription_id: string;
+        }[];
+      };
+      stripe_checkouts_to_close: {
+        Args: { p_livemode: boolean };
+        Returns: {
+          stripe_checkout_session_id: string;
+        }[];
       };
       submit_advance_answer: {
         Args: {
@@ -77055,6 +77188,14 @@ export type Database = {
       sponsor_asset_kind: "Logo" | "Artwork" | "Copy" | "Video" | "Other";
       sponsor_asset_source: "Org Supplied" | "Sponsor Supplied";
       staffing_basis: "Ratio" | "Fixed" | "Declared";
+      stripe_cancel_mode: "Immediately" | "At Period End";
+      stripe_cancel_source:
+        | "Organization Canceled"
+        | "Organization Deleted"
+        | "Plan Ended"
+        | "Stripe Portal"
+        | "Reconciliation";
+      stripe_cancellation_state: "Queued" | "Accepted" | "Withdrawn";
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
       subscription_pause_end:
@@ -83787,6 +83928,15 @@ export const Constants = {
       sponsor_asset_kind: ["Logo", "Artwork", "Copy", "Video", "Other"],
       sponsor_asset_source: ["Org Supplied", "Sponsor Supplied"],
       staffing_basis: ["Ratio", "Fixed", "Declared"],
+      stripe_cancel_mode: ["Immediately", "At Period End"],
+      stripe_cancel_source: [
+        "Organization Canceled",
+        "Organization Deleted",
+        "Plan Ended",
+        "Stripe Portal",
+        "Reconciliation",
+      ],
+      stripe_cancellation_state: ["Queued", "Accepted", "Withdrawn"],
       submittal_kind: [
         "Shop Drawing",
         "Product Data",

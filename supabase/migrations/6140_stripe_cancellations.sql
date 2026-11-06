@@ -603,13 +603,16 @@ begin
     from private.stripe_cancellations c
     left join app.stripe_subscription_links l on l.stripe_subscription_id = c.stripe_subscription_id
     where c.subject_org_id = p_org_id and c.cancellation_state in ('Queued', 'Accepted')
-      and (c.cancel_mode = 'Immediately' or l.stripe_ended_at is null)
-      and (c.cancellation_state = 'Queued' or c.source <> 'Reconciliation' or c.cancel_mode = 'At Period End')
+      and case
+        when c.cancellation_state = 'Queued' then true
+        when c.cancel_mode = 'At Period End' then l.stripe_ended_at is null
+        else private.org_read_only_reason(p_org_id) in ('canceled', 'deletion')
+      end
     order by c.requested_at desc;
 end;
 $$;
 
-comment on function app.stripe_cancellation_status(uuid) is 'Where the org''s Stripe cancels stand, for Billing and Plan and the Danger zone (org.billing.read or org.organization.delete, 42501 otherwise): newest first, leaving out plans a customer renewed and subscriptions Stripe ended on its own. Only the service role moves a cancel, so these rows are what Stripe has actually said.';
+comment on function app.stripe_cancellation_status(uuid) is 'Where the org''s Stripe cancels stand, for Billing and Plan and the Danger zone (org.billing.read or org.organization.delete, 42501 otherwise): newest first: every cancel still queued, a plan ending at period end until it ends, and an immediate cancel Stripe accepted while the org is canceled or waiting to be deleted, so an org that came back and bought a plan again reads as paying. Only the service role moves a cancel, so these rows are what Stripe has actually said.';
 revoke all on function app.stripe_cancellation_status(uuid) from public, anon;
 grant execute on function app.stripe_cancellation_status(uuid) to authenticated, service_role;
 

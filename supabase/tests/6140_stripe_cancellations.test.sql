@@ -180,10 +180,11 @@ select ok(exists (select 1 from private.billing_alerts where alert_kind = 'delet
 update private.stripe_cancellations set requested_at = now() - interval '16 minutes' where stripe_subscription_id = 'sub_H4rb' and cancel_mode = 'Immediately';
 select is(private.run_stripe_cancellation_watch(now()), 1, 'a cancel left queued 15 minutes is reported even if the worker never ran');
 select is(pg_temp.notices('billing.cancellation_delayed', 'org_b'), 1, 'to the owners');
+insert into world select 'cancel_b', c.id from private.stripe_cancellations c where c.stripe_subscription_id = 'sub_H4rb' and c.cancel_mode = 'Immediately';
 select pg_temp.as_service();
 select results_eq($$select stripe_subscription_id from app.claim_stripe_cancellations('worker-1', false, 10) where stripe_subscription_id = 'sub_H4rb'$$,
   $$values ('sub_H4rb'::text)$$, 'the worker picks it up');
-select is(app.finish_stripe_cancellation((select c.id from private.stripe_cancellations c where c.stripe_subscription_id = 'sub_H4rb' and c.cancel_mode = 'Immediately'), true, 'missing')::text,
+select is(app.finish_stripe_cancellation(pg_temp.id('cancel_b'), true, 'missing')::text,
   'Accepted', 'a subscription Stripe no longer has is accepted');
 select pg_temp.as_platform();
 select is(private.schedule_deletions(now() + interval '9 days'), 1, 'and now deletion goes on');

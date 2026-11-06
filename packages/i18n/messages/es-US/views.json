@@ -660,7 +660,11 @@
       "drawing_page": "Página del PDF",
       "image_height_px": "Alto de la imagen (px)",
       "image_width_px": "Ancho de la imagen (px)",
-      "calibration_by": "Punto de escala B, y"
+      "calibration_by": "Punto de escala B, y",
+      "stripe_ended_at": "Terminada en Stripe",
+      "cancel_at": "Termina en Stripe el",
+      "terms_event_at": "Condiciones actualizadas por Stripe",
+      "recurring_amount_minor": "Importe recurrente"
     }
   },
   "liveLink": {

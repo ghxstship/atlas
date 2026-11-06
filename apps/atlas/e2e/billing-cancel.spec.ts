@@ -4,11 +4,7 @@ import { expect as baseExpect, test } from "./engine-test";
 import { orgIdOf, serviceClient, stepUp } from "./a79-support";
 import { startFakeStripe, type FakeStripe } from "./fake-stripe";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
-import {
-  createStripeClient,
-  readBillingEnv,
-  runStripeCancellations,
-} from "@xos/platform/billing";
+import { createStripeClient, readBillingEnv, runStripeCancellations } from "@xos/platform/billing";
 import { stripeCancellationStore, supabaseDb } from "@xos/platform";
 
 /**
@@ -98,9 +94,7 @@ test("the agreement is recorded, and ending a plan stops the renewal with one bu
 }) => {
   test.setTimeout(180_000);
   const { slug, subscription } = await paidOrg(page, "endplan");
-  await expect
-    .poll(() => noticesOf(slug))
-    .toContain("billing.purchase_confirmed");
+  await expect.poll(() => noticesOf(slug)).toContain("billing.purchase_confirmed");
   await expectAccessible(page);
 
   await expect(page.getByText(/You will not be charged again/)).toBeVisible();
@@ -178,7 +172,9 @@ test("when Stripe is unreachable the org is canceled, the page tells the truth, 
   await expect.poll(() => noticesOf(slug)).toContain("billing.cancellation_confirmed");
 });
 
-test("deleting an org cancels Stripe, and recovering it leaves the paid plan ended", async ({ page }) => {
+test("deleting an org cancels Stripe, and recovering it leaves the paid plan ended", async ({
+  page,
+}) => {
   test.setTimeout(180_000);
   const { slug, name, email, subscription } = await paidOrg(page, "deleteorg");
   await stepUp(page, email);
