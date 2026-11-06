@@ -118,8 +118,8 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report and B8's guest pass.
-    expect(DOCUMENT_KINDS).toHaveLength(17);
+    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report, B8's guest pass and B10's generated agreement.
+    expect(DOCUMENT_KINDS).toHaveLength(18);
     expect(DOCUMENT_KINDS).toEqual(
       expect.arrayContaining([
         "purchase-order",

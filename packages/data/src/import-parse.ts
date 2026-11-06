@@ -250,6 +250,15 @@ export const FIELD_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   note: ["notes", "comment", "access"],
   scope_node_id: ["show", "night", "scope"],
   counterparty_id: ["list", "company", "onlistof", "sponsor", "client"],
+  // Freelancer lists (B10), in both languages.
+  email: ["mail", "emailaddress", "correo"],
+  pool_name: ["pool", "crewlist", "lista"],
+  invitee_name: ["name", "fullname", "nombre"],
+  work_phone: ["phone", "mobile", "cell", "telefono", "celular"],
+  role: ["jobtitle", "position", "puesto", "rol"],
+  rate: ["dayrate", "hourlyrate", "tarifa"],
+  rate_currency: ["currency", "moneda"],
+  rate_type: ["basis", "paybasis"],
 };
 
 /** The target field a header names by its own name or a synonym; a header of only '#' is the cue number. */
@@ -461,3 +470,9 @@ export function proposeTarget(
   }
   return { targetCode: best?.code ?? null, fromPlaybook: false };
 }
+
+// Rates (B10) -----------------------------------------------------------------------------------------------------
+
+/** How a file writes amounts: the four formats an uploader chooses from. It sets the separators only. */
+export const NUMBER_FORMATS = ["comma-dot", "dot-comma", "space-comma", "apostrophe-dot"] as const;
+export type NumberFormat = (typeof NUMBER_FORMATS)[number];

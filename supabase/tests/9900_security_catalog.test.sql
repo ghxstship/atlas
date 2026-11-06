@@ -71,7 +71,7 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
+$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'), ('crew_access_accept_shift'), ('crew_access_shifts'), ('registration_page'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
@@ -107,7 +107,7 @@ select set_eq($$
   where c.relkind in ('v', 'm') and n.nspname = 'app'
     and not coalesce(c.reloptions::text[] && array['security_invoker=true', 'security_invoker=on'], false)
 $$, $$values ('advance_allocation_status'), ('ai_never_send'), ('allocation_holders'), ('application_board'), ('asset_reservation_conflicts'), ('asset_unit_hire'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
-  ('comment_subjects'), ('consent_purposes'), ('crew_ratings'), ('crew_removals'), ('crew_responses'), ('crew_shift_hours'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
+  ('comment_subjects'), ('consent_purposes'), ('crew_ratings'), ('crew_removals'), ('crew_responses'), ('crew_shift_hours'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'), ('crew_access_link_list'), ('crew_registration_list'), ('engagement_document_text_list'), ('pool_member_names'), ('pool_member_rate_list'), ('talent_pool_invitation_list'),
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
   ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),

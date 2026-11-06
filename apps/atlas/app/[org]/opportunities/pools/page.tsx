@@ -4,6 +4,12 @@ import {
   type PoolMember,
   type TalentPool,
 } from "@xos/data/opportunities";
+import {
+  listPoolInvitations,
+  listPoolMemberRates,
+  type PoolInvitation,
+} from "@xos/data/pool-invitations";
+import { readOrgLanguage } from "@xos/data/settings";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +23,8 @@ import {
   TemplateCollection,
 } from "@/components/opportunities/ui";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
-import { enumKey } from "@/lib/opportunities/format";
+import { importLinkHref } from "@/lib/imports/import-link";
+import { enumKey, formatMoney } from "@/lib/opportunities/format";
 import {
   knownParties,
   must,
@@ -28,7 +35,10 @@ import {
 import {
   addPoolMemberAction,
   createPoolAction,
+  invitePoolMemberAction,
+  reissuePoolInvitationAction,
   removePoolMemberAction,
+  revokePoolInvitationAction,
   setStandingAction,
 } from "../actions";
 import * as enums from "@xos/data/enums";
@@ -36,7 +46,9 @@ import * as enums from "@xos/data/enums";
 /**
  * Pools (Section 4.4.3, Section 4.4.4 stage 9 re-engagement): the org's talent and vendor pools with Preferred and
  * Approved members, who may see Pool opportunities early, and the internal Do Not Engage flag, which needs a reason and
- * a review date and never reaches any external surface.
+ * a review date and never reaches any external surface. A Talent pool also invites people by email or from a file (B10):
+ * Invitations are for pool managers only, because they hold the contact details of people who never joined, and every
+ * standing rate is masked without the payroll capability.
  */
 export default async function PoolsPage({
   params,
@@ -195,12 +207,35 @@ async function PoolRecord({
   pool: TalentPool;
   canWrite: boolean;
 }) {
-  const { ctx, t } = page;
-  const [members, parties] = await Promise.all([
+  const { ctx, t, locale } = page;
+  const talent = pool.kind === "Talent";
+  const [members, parties, rates, invitations, orgLanguage] = await Promise.all([
     listPoolMembers(ctx.viewer.db, pool.id),
     canWrite ? knownParties(ctx) : Promise.resolve([]),
+    listPoolMemberRates(ctx.viewer.db, pool.id),
+    canWrite && talent ? listPoolInvitations(ctx.viewer.db, pool.id) : Promise.resolve(null),
+    readOrgLanguage(ctx.viewer.db, ctx.org.id),
   ]);
   const rows = must(members, "pool members");
+  const rateOf = new Map(must(rates, "pool member rates").map((r) => [r.memberId, r]));
+  const invited = invitations ? must(invitations, "pool invitations") : [];
+  const importHref = talent
+    ? importLinkHref(ctx.org.slug, ctx.nav, canWrite, {
+        target: "pool_invitations",
+        poolId: pool.id,
+      })
+    : null;
+  const rateText = (r: {
+    rateMinor: number | null;
+    currency: string | null;
+    rateType: string | null;
+    isMasked: boolean;
+  }) =>
+    r.isMasked
+      ? t("pools.invitations.masked")
+      : r.rateMinor !== null && r.currency
+        ? `${formatMoney(locale, r.rateMinor, r.currency)}${r.rateType ? ` · ${t(`pools.invitations.rateTypes.${enumKey(r.rateType)}`)}` : ""}`
+        : "";
   const wanted = pool.kind === "Talent" ? "person" : "org";
   const candidates = parties.filter(
     (p) =>
@@ -225,53 +260,216 @@ async function PoolRecord({
       <Section id="pool-members" title={t("pools.members", { count: rows.length })}>
         {rows.length === 0 ? <Muted>{t("pools.noMembers")}</Muted> : null}
         <ul className="m-0 flex list-none flex-col gap-8 p-0">
-          {rows.map((m) => (
-            <li
-              key={m.id}
-              className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-8">
-                <span className="font-medium">{m.name ?? t("pools.unnamed")}</span>
-                <Tag
-                  tone={
-                    m.standing === "Do Not Engage"
-                      ? "danger"
-                      : m.standing === "Preferred"
-                        ? "success"
-                        : "neutral"
-                  }
-                >
-                  {t(`standings.${enumKey(m.standing)}`)}
-                </Tag>
-              </div>
-              {m.standing === "Do Not Engage" ? (
-                <p className="m-0 text-text-secondary">
-                  {t("pools.dneDetail", { reason: m.reason ?? "", date: m.reviewOn ?? "" })}
-                </p>
-              ) : null}
-              {canWrite ? (
-                <div className="flex flex-wrap items-end gap-12">
-                  <ActionForm
-                    action={setStandingAction}
-                    hidden={{ org: ctx.org.slug, memberId: m.id }}
-                    inline
-                    fields={standingFields(page, m)}
-                    submitLabel={t("pools.setStanding")}
-                  />
-                  <ActionForm
-                    action={removePoolMemberAction}
-                    hidden={{ org: ctx.org.slug, memberId: m.id }}
-                    fields={[]}
-                    inline
-                    submitLabel={t("remove")}
-                    variant="danger"
-                  />
+          {rows.map((m) => {
+            const memberRate = rateOf.get(m.id);
+            return (
+              <li
+                key={m.id}
+                className="flex flex-col gap-8 rounded-card border border-border-subtle p-8 text-text-13"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-8">
+                  <span className="font-medium">{m.name ?? t("pools.unnamed")}</span>
+                  <Tag
+                    tone={
+                      m.standing === "Do Not Engage"
+                        ? "danger"
+                        : m.standing === "Preferred"
+                          ? "success"
+                          : "neutral"
+                    }
+                  >
+                    {t(`standings.${enumKey(m.standing)}`)}
+                  </Tag>
                 </div>
-              ) : null}
-            </li>
-          ))}
+                {memberRate ? (
+                  <p className="m-0 text-text-secondary">
+                    {t("pools.invitations.memberRate", { rate: rateText(memberRate) })}
+                  </p>
+                ) : null}
+                {m.standing === "Do Not Engage" ? (
+                  <p className="m-0 text-text-secondary">
+                    {t("pools.dneDetail", { reason: m.reason ?? "", date: m.reviewOn ?? "" })}
+                  </p>
+                ) : null}
+                {canWrite ? (
+                  <div className="flex flex-wrap items-end gap-12">
+                    <ActionForm
+                      action={setStandingAction}
+                      hidden={{ org: ctx.org.slug, memberId: m.id }}
+                      inline
+                      fields={standingFields(page, m)}
+                      submitLabel={t("pools.setStanding")}
+                    />
+                    <ActionForm
+                      action={removePoolMemberAction}
+                      hidden={{ org: ctx.org.slug, memberId: m.id }}
+                      fields={[]}
+                      inline
+                      submitLabel={t("remove")}
+                      variant="danger"
+                    />
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       </Section>
+      {canWrite && talent ? (
+        <Section
+          id="pool-invitations"
+          title={t("pools.invitations.title", { count: invited.length })}
+        >
+          {importHref ? (
+            <div>
+              <ButtonLink href={importHref} variant="secondary">
+                {t("pools.invitations.import")}
+              </ButtonLink>
+            </div>
+          ) : null}
+          {invited.length === 0 ? <Muted>{t("pools.invitations.empty")}</Muted> : null}
+          {invited.length > 0 ? (
+            <Table
+              caption={t("pools.invitations.caption")}
+              rowKey={(i) => i.id}
+              rows={invited}
+              columns={[
+                { key: "email", label: t("fields.email"), cell: (i: PoolInvitation) => i.email },
+                {
+                  key: "label",
+                  label: t("pools.invitations.label"),
+                  cell: (i: PoolInvitation) => i.label ?? "",
+                },
+                {
+                  key: "role",
+                  label: t("fields.roleCode"),
+                  cell: (i: PoolInvitation) => i.jobTitle ?? i.roleCode ?? "",
+                },
+                {
+                  key: "rate",
+                  label: t("pools.invitations.rate"),
+                  cell: (i: PoolInvitation) => rateText(i),
+                },
+                {
+                  key: "sent",
+                  label: t("pools.invitations.sent"),
+                  cell: (i: PoolInvitation) =>
+                    i.sentAt
+                      ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                          new Date(i.sentAt),
+                        )
+                      : "",
+                },
+                {
+                  key: "expires",
+                  label: t("pools.invitations.expires"),
+                  cell: (i: PoolInvitation) =>
+                    i.expiresAt
+                      ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                          new Date(i.expiresAt),
+                        )
+                      : "",
+                },
+                {
+                  key: "status",
+                  label: t("pools.invitations.status"),
+                  cell: (i: PoolInvitation) => (
+                    <Tag
+                      tone={
+                        i.status === "Pending"
+                          ? "accent"
+                          : i.status === "Claimed"
+                            ? "success"
+                            : "neutral"
+                      }
+                    >
+                      {t(`pools.invitations.statuses.${enumKey(i.status)}`)}
+                    </Tag>
+                  ),
+                },
+                {
+                  key: "actions",
+                  label: t("pools.invitations.actions"),
+                  cell: (i: PoolInvitation) =>
+                    i.status === "Pending" || i.status === "Expired" ? (
+                      <div className="flex flex-wrap gap-8">
+                        <ActionForm
+                          action={reissuePoolInvitationAction}
+                          hidden={{ org: ctx.org.slug, id: i.id }}
+                          fields={[]}
+                          inline
+                          submitLabel={t("pools.invitations.reissue")}
+                        />
+                        <ActionForm
+                          action={revokePoolInvitationAction}
+                          hidden={{ org: ctx.org.slug, id: i.id }}
+                          fields={[]}
+                          inline
+                          variant="danger"
+                          submitLabel={t("pools.invitations.revoke")}
+                        />
+                      </div>
+                    ) : null,
+                },
+              ]}
+            />
+          ) : null}
+          <ActionForm
+            action={invitePoolMemberAction}
+            hidden={{ org: ctx.org.slug, poolId: pool.id }}
+            title={t("pools.invitations.invite")}
+            fields={[
+              { name: "email", label: t("fields.email"), kind: "email", required: true },
+              {
+                name: "label",
+                label: t("pools.invitations.label"),
+                kind: "text",
+                help: t("pools.invitations.labelHelp"),
+              },
+              {
+                name: "workPhone",
+                label: t("pools.invitations.workPhone"),
+                kind: "text",
+                help: t("pools.invitations.workPhoneHelp"),
+              },
+              {
+                name: "roleCode",
+                label: t("fields.roleCode"),
+                kind: "text",
+                help: t("postings.roleCodeHelp"),
+              },
+              {
+                name: "rate",
+                label: t("pools.invitations.rate"),
+                kind: "text",
+                help: t("pools.invitations.rateHelp", {
+                  example: new Intl.NumberFormat(orgLanguage ?? "en-US", {
+                    minimumFractionDigits: 2,
+                  }).format(1234.5),
+                }),
+              },
+              {
+                name: "note",
+                label: t("pools.invitations.note"),
+                kind: "text",
+                help: t("pools.invitations.noteHelp"),
+              },
+              {
+                name: "validFor",
+                label: t("pools.invitations.validFor"),
+                kind: "select",
+                defaultValue: "30",
+                options: ["7", "14", "30"].map((d) => ({
+                  value: d,
+                  label: t("pools.invitations.validDays", { days: Number(d) }),
+                })),
+              },
+            ]}
+            submitLabel={t("pools.invitations.send")}
+            successLabel={t("pools.invitations.sentDone")}
+          />
+        </Section>
+      ) : null}
       {canWrite ? (
         <Section id="pool-add" title={t("pools.add")}>
           {candidates.length === 0 ? (

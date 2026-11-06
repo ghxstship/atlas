@@ -162,13 +162,6 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
-  // A127 one-tap email links and push actions.
-  "notification_action_used",
-  "notification_action_expired",
-  "notification_action_not_yours",
-  "notification_action_invalid",
-  "notification_action_reason",
-  "notification_action_elsewhere",
   // P5 badge photos (5822): the holder records a photo from their own folder while they hold a live credential.
   "credential_photo_path",
   "credential_photo_no_credential",
@@ -205,6 +198,11 @@ export const KNOWN_REFUSALS = [
   "no_show_id_conflict",
   "shift_held_for_position",
   "shift_reconfirm_answered",
+  // B10: a generated document signs with the hash of its text, a registration withdraws once, an invitation answers once.
+  "document_text_sign_with_hash",
+  "registration_not_withdrawable",
+  "invitation_closed",
+  "invitation_not_yours",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

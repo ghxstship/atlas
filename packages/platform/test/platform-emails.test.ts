@@ -118,6 +118,44 @@ describe("platform emails", () => {
     expect(finished).toEqual([["e4", true, "recorded-1", null]]);
   });
 
+  it("sends a pool invitation that names the org and the role, never the pool, in both languages (B10)", async () => {
+    for (const [locale, subject, role] of [
+      ["en-US", "Victor Osei invites you to join the Northwind Live crew list", "Role: Rigger"],
+      [
+        "es-US",
+        "Victor Osei te invita a unirte a la lista de equipo de Northwind Live",
+        "Rol: Rigger",
+      ],
+    ] as const) {
+      const transport = new RecordingTransport();
+      const { s } = store([
+        {
+          id: "e5",
+          template: "party_invitation",
+          to: "nell@touring.test",
+          locale,
+          args: {
+            kind: "pool",
+            inviter_name: "Victor Osei",
+            org_name: "Northwind Live",
+            job_title: "Rigger",
+            expires_at: "2027-06-01T12:00:00Z",
+          },
+        },
+      ]);
+      const summary = await dispatchPlatformEmails(s, transport, {
+        ...OPTIONS,
+        gatewayUrl: "https://gateway.xos.test",
+      });
+      expect(summary.sent).toBe(1);
+      const [invitation] = transport.sent;
+      expect(invitation?.subject).toBe(subject);
+      expect(invitation?.html).toContain(role);
+      expect(invitation?.text ?? "").not.toMatch(/\bpool\b/i);
+      expect(invitation?.html).not.toMatch(/\bpool\b/i);
+    }
+  });
+
   it("records a failure instead of dropping it", async () => {
     const { s, finished } = store([
       {

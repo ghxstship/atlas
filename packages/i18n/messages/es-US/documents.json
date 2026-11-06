@@ -23,7 +23,8 @@
     "document-book": "Libro",
     "site-plan": "Plano del sitio",
     "signage-build-sheet": "Hoja de montaje de señalización",
-    "radio-handout": "Hoja de radios"
+    "radio-handout": "Hoja de radios",
+    "engagement-document": "Acuerdo generado"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -312,7 +313,8 @@
       "Signed": "Firmado",
       "Superseded": "Reemplazado",
       "Expired": "Vencido",
-      "Canceled": "Cancelado"
+      "Canceled": "Cancelado",
+      "Executed": "Ejecutado"
     }
   },
   "deletionCertificate": {
@@ -761,6 +763,14 @@
       "Revoked": "Revocada",
       "Declined": "Rechazada",
       "Withdrawn": "Retirada"
+    }
+  },
+  "engagementDocument": {
+    "text": "Texto del acuerdo",
+    "kinds": {
+      "Agreement": "Acuerdo",
+      "StatementofWork": "Declaración de trabajo",
+      "NonDisclosureAgreement": "Acuerdo de confidencialidad"
     }
   },
   "guestPass": {

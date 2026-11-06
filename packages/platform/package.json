@@ -25,6 +25,7 @@
     "@xos/ia": "workspace:*",
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
+    "libphonenumber-js": "1.13.14",
     "stripe": "23.0.0",
     "zod": "4.6.6"
   },

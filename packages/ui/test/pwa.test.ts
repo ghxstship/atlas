@@ -206,6 +206,7 @@ describe("the service worker's offline pages", () => {
       await sw.navigate("/onboard/xvin_123"),
       await sw.navigate("/forms/xfrm_123"),
       await sw.navigate("/share/pack/xpkl_123"),
+      await sw.navigate("/shifts/xcrw_123"),
       await sw.navigate("/northwind/home?token=abc"),
       await sw.navigate("/northwind/home?_rsc=1"),
       await sw.subresource("/northwind/home"),

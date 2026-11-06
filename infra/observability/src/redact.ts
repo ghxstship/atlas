@@ -151,7 +151,7 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
     replace: (_m, scheme) => `${scheme} ${REDACTED}`,
   },
   { pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g, replace: "[api-key]" },
-  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_...,
+  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_..., /shifts/xcrw_...,
   // /auth/invite/xinv_...), and request logs keep the path. Calendar feeds, join links, agreements
   // and SCIM tokens share the shape. A69-012: so do share links (/share/xshr_...), their download
   // tickets (xdlt_), kiosk device keys (xkio_), subprocessor notice links (xspn_, xspu_) and
@@ -163,7 +163,7 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xcch|xcgr|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,

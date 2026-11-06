@@ -149,6 +149,21 @@ export interface DocumentDataMap {
   };
   /** An approved guest's pass (B8, G-68): no credential, a pass code the door scans. */
   "guest-pass": { readonly project: DocumentProject; readonly guest: GuestPass };
+  /** A generated engagement document with its stored text and signature (B10, ADR 0149 decision 4). */
+  "engagement-document": {
+    readonly project: DocumentProject | null;
+    readonly document: {
+      readonly id: string;
+      readonly title: string;
+      readonly kind: string;
+      readonly state: string;
+      readonly body: string;
+      readonly signedName: string | null;
+      readonly signedAt: string | null;
+      readonly sha256: string | null;
+      readonly createdAt: string;
+    };
+  };
 }
 
 /** The day's schedule a day sheet prints from version 3 (B7). */
@@ -349,6 +364,10 @@ export const DESCRIBE: {
     issuedAt: d.debrief?.completedAt ?? generatedAt.toISOString(),
   }),
   "guest-pass": (d) => ({ recordKey: d.guest.passCode, issuedAt: d.guest.decidedAt }),
+  "engagement-document": (d) => ({
+    recordKey: keyed(d.project?.key ?? "", `DOC-${d.document.id.slice(0, 8)}`),
+    issuedAt: d.document.signedAt ?? d.document.createdAt,
+  }),
 };
 
 /** A book's record key: the project key and the first eight characters of the book's id (B7). */
@@ -1623,6 +1642,38 @@ export const TEMPLATES: TemplateRegistry = {
           },
           { kind: "heading", text: t("agreementCertificate.text") },
           { kind: "paragraph", text: agreement.body },
+        ],
+      }),
+    },
+  ],
+  "engagement-document": [
+    {
+      version: 1,
+      effectiveFrom: V1,
+      build: ({ project, document }, { t, f }) => ({
+        title: document.title,
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("agreementCertificate.signature"),
+            fields: [
+              field(
+                t("agreementCertificate.kind"),
+                t(`engagementDocument.kinds.${keyOf(document.kind)}`),
+              ),
+              field(t("common.project"), project ? projectLabel(project) : t("common.none")),
+              field(t("common.state"), t(`agreementCertificate.states.${keyOf(document.state)}`)),
+              field(t("agreementCertificate.signedName"), document.signedName ?? t("common.none")),
+              field(t("agreementCertificate.signedAt"), f.dateTime(document.signedAt)),
+              field(t("agreementCertificate.hash"), document.sha256 ?? t("common.none")),
+            ],
+          },
+          { kind: "paragraph", text: t("agreementCertificate.statement") },
+          { kind: "heading", text: t("engagementDocument.text") },
+          ...document.body
+            .split(/\n{2,}/)
+            .filter((part) => part.trim() !== "")
+            .map((text) => ({ kind: "paragraph" as const, text })),
         ],
       }),
     },

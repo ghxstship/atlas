@@ -11,6 +11,7 @@ import {
   sheetLayout,
   suggestWithSources,
   type DataRow,
+  type NumberFormat,
   type PlaybookColumn,
   type PlaybookSheet,
   type Sheet,
@@ -49,7 +50,7 @@ import type { Database } from "./database.types.ts";
  * Cues and guest list entries (P3, 5800 to 5802) import into the running order or project the import names: every
  * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
  * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview.
+ * the uploader's mapping preview. Pool invitations (B10) load import-pool-target.ts, only for that target.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
@@ -85,12 +86,33 @@ export interface ImportJobRecord {
   readonly projectId?: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId?: string | null;
+  /** The pool a pool invitation import puts rows without a pool name into (B10). */
+  readonly talentPoolId?: string | null;
+  /** How the file writes amounts (B10). */
+  readonly numberFormat?: NumberFormat;
+  /** Who created the import: the inviter of its pool invitations (B10). */
+  readonly createdBy?: string | null;
 }
 
 /** Where a cue or guest list import writes (P3): its running order or its project. */
 export interface ImportDestination {
   readonly runOfShow?: RunOfShowContext;
   readonly project?: { readonly id: string };
+  readonly pools?: PoolInvitationContext;
+}
+
+/** What validating a pool invitation row needs (B10). */
+export interface PoolInvitationContext {
+  /** The import's own pool, for rows without a pool name. */
+  readonly talentPoolId: string | null;
+  readonly numberFormat: NumberFormat;
+  /** True when the import's creator holds payroll org-wide (app.import_job_can_write_rates). */
+  readonly canWriteRates: boolean;
+  /** The org's language setting, whose region is the default phone region. */
+  readonly language: string | null;
+  /** The org's base currency, for a bare currency symbol or a rate with no currency. */
+  readonly baseCurrency: string | null;
+  readonly exponents: ReadonlyMap<string, number>;
 }
 
 /** What validating a cue needs from its running order. */
@@ -195,6 +217,10 @@ export interface ImportStore {
     before: Row | null;
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;
+  /** Marks a Valid row Skipped with the reason, and writes nothing (B10). */
+  skipRow(rowId: string, reason: string): Promise<void>;
+  /** Adds a reason to a row that was written, such as a rate left as it was (B10). */
+  noteRow(rowId: string, reason: string): Promise<void>;
   finishBatch(batchId: string): Promise<void>;
   /** The org's slug, the first segment of its Atlas paths. */
   orgSlug(orgId: string): Promise<string | null>;
@@ -241,6 +267,14 @@ export interface TargetLookups {
   nextCuePosition(runOfShowId: string): Promise<number>;
   /** True when the cue was already called; an import never rewrites a called cue (C11). */
   cueCalled(id: string): Promise<boolean>;
+  /** A live Talent pool of the org by name, trimmed and case-insensitive; null for none or two (B10). */
+  talentPoolIdByName(orgId: string, name: string): Promise<string | null>;
+  /** A Roles Library code by the code itself or a job title; null for none or two (B10). */
+  roleCode(codeOrTitle: string): Promise<string | null>;
+  /** What the import's pool invitation rows are checked against (B10). */
+  poolInvitationContext(job: ImportJobRecord): Promise<PoolInvitationContext>;
+  /** A pending pool invitation's expiry and whether it holds a rate; null when it is gone (B10). */
+  poolInvitation(id: string): Promise<{ expiresAt: string; hasRate: boolean } | null>;
 }
 
 export interface ImportJobResult {
@@ -508,6 +542,20 @@ export async function validateRow(
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "pool_invitations": {
+      // Loaded only for this target, which keeps import-run's boot under its ceiling.
+      const { checkPoolInvitationRow } = await import("./import-pool-target.ts");
+      await checkPoolInvitationRow({
+        orgId,
+        raw,
+        columnOf,
+        pools: destination.pools,
+        lookups,
+        values,
+        issues,
+      });
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
@@ -520,8 +568,14 @@ export async function validateRow(
   const fuzzy =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries";
-  const nameField = targetCode === "guest_list_entries" ? "guest_name" : "name";
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations";
+  const nameField =
+    targetCode === "guest_list_entries"
+      ? "guest_name"
+      : targetCode === "pool_invitations"
+        ? "invitee_name"
+        : "name";
   const matchName = fuzzy ? text(nameField).trim() : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -538,8 +592,12 @@ export async function validateRow(
   };
 }
 
-/** Targets whose imports name a running order or a project (P3). */
-const DESTINATION_TARGETS: ReadonlySet<string> = new Set(["cues", "guest_list_entries"]);
+/** Targets matched through app.import_strong_key_match (P3, B10). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+]);
 
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
@@ -562,6 +620,11 @@ function destinationStrongKeys(targetCode: string, values: Row): Record<string, 
     const guest_name = name.trim().toLowerCase();
     return show === null ? { guest_name } : { guest_name, scope_node_id: show };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null ? {} : { email, talent_pool_id: pool };
+  }
   return null;
 }
 
@@ -570,6 +633,7 @@ const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
 };
 
 /**
@@ -611,6 +675,9 @@ async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { project: { id: job.projectId } };
+  }
+  if (job.targetCode === "pool_invitations") {
+    return { pools: await store.lookups.poolInvitationContext(job) };
   }
   return {};
 }
@@ -916,6 +983,17 @@ async function commit(
     }
     try {
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        const { commitPoolMatch } = await import("./import-pool-target.ts");
+        await commitPoolMatch({
+          store,
+          batchId,
+          valid,
+          values: updateChanges(job.targetCode, checked.values),
+          refuse: (message) => new ImportWriteError(message),
+        });
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
@@ -942,7 +1020,11 @@ async function commit(
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1000));
+      // Someone who declined within 12 months is not invited again, which is not a failure of the row. A pool refusal keeps
+      // its code alone, so the wizard says it in the reader's language.
+      const pool = /^(pool_invitation_[a-z_]+):/.exec(error.message)?.[1];
+      if (pool === "pool_invitation_declined") await store.skipRow(valid.id, pool);
+      else await store.refuseRow(valid.id, pool ?? error.message.slice(0, 1000));
     }
   }
   await store.finishBatch(batchId);
@@ -958,6 +1040,7 @@ function updateChanges(targetCode: string, values: Row): Row {
     counterparties: ["name"],
     cues: ["run_of_show_id", "project_id", "position"],
     guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    pool_invitations: ["talent_pool_id", "email", "invited_by"],
   };
   const keep = kept[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
@@ -977,6 +1060,10 @@ async function createValues(store: ImportStore, job: ImportJobRecord, values: Ro
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return { ...values, invited_by: job.createdBy };
   }
   return values;
 }
@@ -1070,6 +1157,7 @@ const TABLES: Readonly<Record<string, string>> = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
 };
 
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
@@ -1114,6 +1202,17 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     const { error } = await query;
     if (error) throw new Error(`${what}: ${error.message}`);
   };
+  const setRow = (rowId: string, values: Row) =>
+    exec(app.from("import_row_results").update(values).eq("id", rowId), "import_row_results");
+  const poolStore = async () =>
+    (await import("./import-pool-target.ts")).poolLookups({
+      app,
+      canon,
+      call,
+      one,
+      onlyMatch,
+      text,
+    });
   const lookups: TargetLookups = {
     async counterpartyTypeExists(type) {
       return (
@@ -1319,6 +1418,10 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       const row = await one(app.from("cues").select("called_at").eq("id", id), "cues");
       return typeof row?.["called_at"] === "string";
     },
+    talentPoolIdByName: async (o, n) => (await poolStore()).talentPoolIdByName(o, n),
+    roleCode: async (v) => (await poolStore()).roleCode(v),
+    poolInvitationContext: async (j) => (await poolStore()).poolInvitationContext(j),
+    poolInvitation: async (id) => (await poolStore()).poolInvitation(id),
     async update(targetCode, id, values) {
       const table = TABLES[targetCode];
       if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1358,7 +1461,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1379,6 +1482,9 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: (optional("number_format") as NumberFormat | null) ?? "comma-dot",
+            createdBy: optional("created_by"),
           }
         : null;
     },
@@ -1651,6 +1757,8 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         "import_row_results",
       );
     },
+    skipRow: (rowId, reason) => setRow(rowId, { row_state: "Skipped", reason }),
+    noteRow: (rowId, reason) => setRow(rowId, { reason }),
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
     },

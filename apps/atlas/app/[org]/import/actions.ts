@@ -1,5 +1,6 @@
 "use server";
 
+import { NUMBER_FORMATS, type NumberFormat } from "@xos/data/import-parse";
 import {
   cancelImport,
   checkImportUpload,
@@ -34,17 +35,36 @@ import { getTranslate } from "@/lib/shell/translate";
 
 const TARGET = z.string().regex(/^[a-z][a-z0-9_]{1,60}$/);
 
-/** The destination fields of a form: at most a running order or a project, each a uuid. Null when malformed. */
-function destinationOf(
-  form: FormData,
-): { runOfShowId: string | null; projectId: string | null } | null {
-  const runOfShow = field(form, "runOfShow");
-  const project = field(form, "project");
+/**
+ * The destination fields of a form: at most a running order or a project, each a uuid, and for a pool invitation import
+ * its optional pool and number format (B10). Null when malformed.
+ */
+function destinationOf(form: FormData): {
+  runOfShowId: string | null;
+  projectId: string | null;
+  talentPoolId: string | null;
+  numberFormat: NumberFormat | null;
+} | null {
   const parsed = z
-    .object({ runOfShow: z.uuid().nullable(), project: z.uuid().nullable() })
-    .safeParse({ runOfShow: runOfShow || null, project: project || null });
+    .object({
+      runOfShow: z.uuid().nullable(),
+      project: z.uuid().nullable(),
+      pool: z.uuid().nullable(),
+      numberFormat: z.enum(NUMBER_FORMATS).nullable(),
+    })
+    .safeParse({
+      runOfShow: field(form, "runOfShow") || null,
+      project: field(form, "project") || null,
+      pool: field(form, "pool") || null,
+      numberFormat: field(form, "numberFormat") || null,
+    });
   if (!parsed.success || (parsed.data.runOfShow && parsed.data.project)) return null;
-  return { runOfShowId: parsed.data.runOfShow, projectId: parsed.data.project };
+  return {
+    runOfShowId: parsed.data.runOfShow,
+    projectId: parsed.data.project,
+    talentPoolId: parsed.data.pool,
+    numberFormat: parsed.data.numberFormat,
+  };
 }
 
 export async function createImportAction(

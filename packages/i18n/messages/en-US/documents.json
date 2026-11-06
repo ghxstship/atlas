@@ -23,7 +23,8 @@
     "document-book": "Book",
     "site-plan": "Site plan",
     "signage-build-sheet": "Signage build sheet",
-    "radio-handout": "Radio hand-out"
+    "radio-handout": "Radio hand-out",
+    "engagement-document": "Generated agreement"
   },
   "facts": {
     "recordKey": "Record key",
@@ -312,7 +313,8 @@
       "Signed": "Signed",
       "Superseded": "Superseded",
       "Expired": "Expired",
-      "Canceled": "Canceled"
+      "Canceled": "Canceled",
+      "Executed": "Executed"
     }
   },
   "deletionCertificate": {
@@ -761,6 +763,14 @@
       "Revoked": "Revoked",
       "Declined": "Declined",
       "Withdrawn": "Withdrawn"
+    }
+  },
+  "engagementDocument": {
+    "text": "Agreement text",
+    "kinds": {
+      "Agreement": "Agreement",
+      "StatementofWork": "Statement of work",
+      "NonDisclosureAgreement": "Non-disclosure agreement"
     }
   },
   "guestPass": {

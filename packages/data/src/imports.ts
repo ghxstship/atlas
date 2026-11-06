@@ -13,7 +13,7 @@ import {
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
 import type { Database } from "./database.types.ts";
-import { parsePasted, rowsToCsv } from "./import-parse.ts";
+import { parsePasted, rowsToCsv, type NumberFormat } from "./import-parse.ts";
 
 /**
  * The import wizard's side of imports (A36 on A18's 0530 and A36's 1061; Section 4.6.2): upload a
@@ -137,17 +137,24 @@ export function importObjectPath(personId: string, uploadId: string, ext: string
   return `${personId}/${uploadId}.${ext}`;
 }
 
-/** Where a cue or guest list import writes: one of the two, as its target names (P3). */
+/**
+ * Where a cue or guest list import writes: one of the two, as its target names (P3). A pool invitation import names an
+ * optional pool and how its file writes amounts (B10), fixed once the import exists.
+ */
 export interface ImportDestinationInput {
   readonly projectId?: string | null;
   readonly runOfShowId?: string | null;
+  readonly talentPoolId?: string | null;
+  readonly numberFormat?: NumberFormat | null;
 }
 
-/** The destination columns of a new import; an org-wide target sends neither. */
+/** The destination columns of a new import; an org-wide target sends none of them. */
 function destinationColumns(input: ImportDestinationInput): Record<string, string> {
   return {
     ...(input.projectId ? { project_id: input.projectId } : {}),
     ...(input.runOfShowId ? { run_of_show_id: input.runOfShowId } : {}),
+    ...(input.talentPoolId ? { talent_pool_id: input.talentPoolId } : {}),
+    ...(input.numberFormat ? { number_format: input.numberFormat } : {}),
   };
 }
 
@@ -233,6 +240,8 @@ export async function createPastedImport(
     contentType: "text/csv",
     projectId: input.projectId ?? null,
     runOfShowId: input.runOfShowId ?? null,
+    talentPoolId: input.talentPoolId ?? null,
+    numberFormat: input.numberFormat ?? null,
   });
 }
 
@@ -599,12 +608,14 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
       suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
+    // A written row is listed only when it carries a note, such as a rate left as it was.
     issues: results.data
       .filter(
         (r) =>
           r["row_state"] === "Invalid" ||
           r["row_state"] === "Refused" ||
-          r["row_state"] === "Skipped",
+          r["row_state"] === "Skipped" ||
+          (r["row_state"] === "Written" && strOrNull(r["reason"]) !== null),
       )
       .map((r) => ({
         id: str(r["id"]),
@@ -751,7 +762,10 @@ async function destinationLabel(
   return ok(null);
 }
 
-/** Display names of merge candidates, read as the caller: venues by name, counterparties by company, guests by name. */
+/**
+ * Display names of merge candidates, read as the caller: venues by name, counterparties by company, guests by name, pool
+ * invitations by the org's label or address (B10), pool members through app.pool_member_names.
+ */
 async function candidateNames(
   db: XosClient,
   reviews: readonly Raw[],
@@ -762,6 +776,35 @@ async function candidateNames(
   const venues = ids("app.venues");
   const counterparties = ids("app.counterparties");
   const guests = ids("app.guest_list_entries");
+  const invitations = ids("app.talent_pool_invitations");
+  const members = ids("app.pool_members");
+  if (invitations.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("talent_pool_invitations")
+        .select("id, invitee_name, email")
+        .in("id", invitations),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      names.set(
+        str(r["id"]),
+        typeof r["invitee_name"] === "string" ? r["invitee_name"] : str(r["email"]),
+      );
+    }
+  }
+  if (members.length > 0) {
+    const result = await rows(
+      untyped(db)
+        .from("pool_member_names")
+        .select("pool_member_id, full_name")
+        .in("pool_member_id", members),
+    );
+    if (!result.ok) return result;
+    for (const r of result.data) {
+      if (typeof r["full_name"] === "string") names.set(str(r["pool_member_id"]), r["full_name"]);
+    }
+  }
   if (guests.length > 0) {
     const result = await rows(
       untyped(db).from("guest_list_entries").select("id, guest_name").in("id", guests),

@@ -924,7 +924,7 @@ Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both 
 One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks, sign in only as the synthetic account and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
 
 **Mask bearer tokens in the log drains (OWNER, finding A69-012).** Vercel's request log records every path, and some
-paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/auth/invite/` and `/ical/`. The app's redactor never
+paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/shifts/`, `/auth/invite/` and `/ical/`. The app's redactor never
 sees that log, so each Better Stack source that receives a drain (Vercel's and Supabase's) masks the tokens before it
 stores anything. In Better Stack, open the source, then Transformations, and add this VRL (approved by the owner on
 2026-10-24):
@@ -933,8 +933,8 @@ stores anything. In Better Stack, open the source, then Transformations, and add
 # A69-012: a bearer token in a request path or a prefixed secret never reaches the log store.
 . = map_values(., recursive: true) -> |v| {
   if is_string(v) {
-    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
-    replace(s, r'(?i)(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
+    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|shifts|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
+    replace(s, r'(?i)(?:xadv|xagr|xcal|xcrw|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
   } else {
     v
   }

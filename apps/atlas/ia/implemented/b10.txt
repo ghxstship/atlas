@@ -1,0 +1,3 @@
+# B10: crew access links and registration pages (RRR-234).
+crew.access-links
+opportunities.registration-pages

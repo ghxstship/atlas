@@ -1006,6 +1006,11 @@ export async function ShiftsCollection(props: {
           {t("crew.scheduling.polls.ask")}
         </ButtonLink>
       ) : null}
+      {node === "project.crew" && crew.project ? (
+        <ButtonLink href={`/${crew.slug}/crew/access-links?project=${crew.project.id}`} size="sm">
+          {t("crew.crewAccess.fromCrewTab")}
+        </ButtonLink>
+      ) : null}
       {projects.length > 0 && templateList.length > 0 ? (
         <ButtonLink href={withParams(base, search, { template: "1" })} size="sm">
           {t("crew.scheduling.fromTemplate.open")}

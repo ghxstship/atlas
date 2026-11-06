@@ -595,7 +595,7 @@ export async function listAccountInvitations(
 
 /** An invitation waiting for the caller, matched by their confirmed email. */
 export interface PendingInvitation {
-  readonly kind: "account" | "roster";
+  readonly kind: "account" | "roster" | "pool";
   readonly id: string;
   readonly accountName: string | null;
   readonly orgName: string | null;
@@ -613,7 +613,10 @@ export async function myPendingInvitations(db: XosClient): Promise<Result<Pendin
   return ok(
     ((data ?? []) as Database["app"]["Functions"]["my_pending_invitations"]["Returns"]).flatMap(
       (r) =>
-        (r.invitation_kind !== "account" && r.invitation_kind !== "roster") || !r.invitation_id
+        (r.invitation_kind !== "account" &&
+          r.invitation_kind !== "roster" &&
+          r.invitation_kind !== "pool") ||
+        !r.invitation_id
           ? []
           : [
               {
@@ -633,10 +636,13 @@ export async function myPendingInvitations(db: XosClient): Promise<Result<Pendin
   );
 }
 
-/** Accepts or declines an invitation; returns the membership (account) or entry (roster) id, null on a decline. */
+/**
+ * Accepts or declines an invitation; returns the membership (account), entry (roster) or pool member (pool) id, null on a
+ * decline.
+ */
 export async function respondPartyInvitation(
   db: XosClient,
-  kind: "account" | "roster",
+  kind: "account" | "roster" | "pool",
   invitationId: string,
   accept: boolean,
 ): Promise<Result<string | null>> {

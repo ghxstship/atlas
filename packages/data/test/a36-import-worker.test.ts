@@ -73,6 +73,17 @@ function lookups(writes: Row[]): TargetLookups {
     counterpartyIdByName: async () => null,
     destinationKeyMatch: async () => null,
     nextCuePosition: async () => 1,
+    talentPoolIdByName: async () => null,
+    roleCode: async () => null,
+    poolInvitationContext: async () => ({
+      talentPoolId: null,
+      numberFormat: "comma-dot",
+      canWriteRates: false,
+      language: null,
+      baseCurrency: null,
+      exponents: new Map(),
+    }),
+    poolInvitation: async () => null,
     cueCalled: async () => false,
   };
 }
@@ -225,6 +236,8 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId, before: input.before };
     },
+    async skipRow() {},
+    async noteRow() {},
     async refuseRow(rowId, reason) {
       const r = rows.find((x) => x.id === rowId);
       if (r) {

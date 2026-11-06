@@ -8,7 +8,7 @@
 import type { Database } from "../database.types.ts";
 /**
  * The record documents: the twelve of Section 11.9, then the radio hand-out (R7, ADR 0031 amendment), the parity
- * kinds (B1: the site plan and the signage build sheet) the wrap-up report (B7, ADR 0146) and the guest pass (B8).
+ * kinds (B1: the site plan and the signage build sheet) the wrap-up report (B7, ADR 0146), the guest pass (B8) and generated agreements (B10).
  */
 export const DOCUMENT_KINDS = [
   "purchase-order",
@@ -28,6 +28,7 @@ export const DOCUMENT_KINDS = [
   "signage-build-sheet",
   "wrap-up-report",
   "guest-pass",
+  "engagement-document",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -134,6 +135,8 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "wrap-up-report": "Internal",
   "document-book": "Internal",
   "guest-pass": "Internal",
+  // A generated agreement can hold the rate; a reader of a masked text gets 404 before it renders.
+  "engagement-document": "Confidential",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",

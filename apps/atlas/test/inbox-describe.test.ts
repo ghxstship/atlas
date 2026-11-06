@@ -245,6 +245,22 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     reopened: "yes",
   },
   "shift.no_show": { title: "Stagehand", startsAt: "2026-11-03T14:00:00Z" },
+  "crew_registration.decided": {
+    orgName: "Northwind Live",
+    title: "Summer Crew",
+    outcome: "approved",
+    gatewayPath: "/join/northwind-live/summer-crew",
+  },
+  "crew_registration.invited": {
+    orgName: "Northwind Live",
+    title: "Summer Crew",
+    gatewayPath: "/join/northwind-live/summer-crew",
+  },
+  "engagement_document.sent": {
+    orgName: "Northwind Live",
+    title: "Crew Agreement",
+    gatewayPath: "/work/engagements/ENG-1/documents",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
   // P8 (6123): the poll's project and days.

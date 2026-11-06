@@ -124,6 +124,7 @@ describe("atlas sitemap", () => {
     expect(pages("crew")).toEqual([
       "Schedule",
       "Shifts",
+      "Crew Access Links",
       "Swaps",
       "Shortages",
       "Positions",
@@ -137,7 +138,7 @@ describe("atlas sitemap", () => {
     ]);
     expect(pages("finance")).toHaveLength(11); // with Year-End (A43, A38-006)
     expect(pages("safety")).toHaveLength(7);
-    expect(pages("opportunities")).toHaveLength(8);
+    expect(pages("opportunities")).toHaveLength(9);
     expect(pages("canon")).toHaveLength(10);
     expect(pages("reports").at(-1)).toBe("Report Builder");
     expect(pages("activity")).toEqual(["Org Activity Feed", "Audit Log"]);
@@ -179,6 +180,8 @@ describe("atlas sitemap", () => {
       "/{org}/r/{recordKey}",
       "/{org}/views/{viewId}",
       "/{org}/settings/members",
+      "/{org}/crew/access-links",
+      "/{org}/opportunities/registration-pages",
       "/{org}/me/profile",
       "/advance/{token}",
       "/sign/{token}",

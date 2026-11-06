@@ -174,7 +174,9 @@
       "roster_shift_not_assigned": "Nadie de tu equipo tiene este turno.",
       "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
       "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
-      "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción."
+      "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró."
     }
   },
   "common": {
@@ -1362,6 +1364,17 @@
       "advancingLead": "Responsable de avance",
       "member": "Miembro"
     },
+    "registrationPageState": {
+      "draft": "Borrador",
+      "open": "Abierta",
+      "closed": "Cerrada"
+    },
+    "crewRegistrationState": {
+      "submitted": "Enviado",
+      "approved": "Aprobado",
+      "declined": "Rechazado",
+      "withdrawn": "Retirado"
+    },
     "advanceSectionKind": {
       "text": "Texto",
       "file": "Archivo",
@@ -1771,7 +1784,8 @@
         "from": "De {name}",
         "expires": "Abierta hasta {date}",
         "accept": "Aceptar",
-        "decline": "Rechazar"
+        "decline": "Rechazar",
+        "pool": "{org} te invita a unirte a su lista de equipo"
       },
       "membership": {
         "title": "Confirma tu membresía en {account}",
@@ -2032,7 +2046,22 @@
     "expires": "Vence",
     "signedByLink": "Firmados por enlace",
     "signedOn": "Firmado el {date} por {name}",
-    "tax": "Formularios fiscales"
+    "tax": "Formularios fiscales",
+    "readAndSign": {
+      "textLabel": "Texto de {title}",
+      "formLabel": "Firmar {title}",
+      "name": "Escribe tu nombre completo para firmar",
+      "nameHelp": "Tu nombre escrito es tu firma sobre este texto exacto.",
+      "sign": "Firmar",
+      "masked": "Este texto contiene una tarifa que tu representación no cubre."
+    },
+    "decline": {
+      "open": "Rechazar",
+      "formLabel": "Rechazar {title}",
+      "reason": "Por qué rechazas",
+      "reasonHelp": "Hasta 450 caracteres. La organización lo lee.",
+      "submit": "Rechazar documento"
+    }
   },
   "tokens": {
     "code": "Código de acceso",
@@ -2101,6 +2130,30 @@
       "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
       "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "crew_access_token_invalid": "Este enlace ya no funciona. Pide uno nuevo a tu jefe de equipo.",
+      "crew_access_token_expired": "Este enlace venció. Pide uno nuevo a tu jefe de equipo.",
+      "crew_access_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a tu jefe de equipo.",
+      "crew_access_access_code": "Ese código no coincide. Revisa los seis dígitos que te dieron e inténtalo de nuevo.",
+      "crew_access_not_working": "Este enlace ya no funciona porque el trabajo terminó. Avisa a tu jefe de equipo si es un error.",
+      "crew_access_read_only": "Esta organización es de solo lectura por ahora, así que aquí no se pueden aceptar turnos. Avisa a tu jefe de equipo.",
+      "crew_access_shift_not_yours": "Ese turno no está en este enlace. Recarga la página.",
+      "crew_access_shift_state": "Ese turno ya no se puede aceptar. Recarga la página para ver su estado.",
+      "registration_page_closed": "Esta página de registro no está abierta.",
+      "registration_rate_limited": "Demasiados registros en la última hora. Inténtalo más tarde.",
+      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tener 16 años o más, hazlo primero en tu cuenta.",
+      "registration_answer_required": "Responde todas las preguntas obligatorias.",
+      "registration_answer_unknown": "Esta página cambió. Recárgala y responde de nuevo.",
+      "registration_answer_length": "Limita cada respuesta a 4,000 caracteres.",
+      "registration_duplicate": "Ya estás registrado en esta página.",
+      "profile_share_not_yours": "Ese perfil compartido no es tuyo. Recarga e inténtalo de nuevo.",
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró.",
+      "registration_phone": "Ese no es un número de teléfono. Incluye el código de país, por ejemplo +13105550100.",
+      "document_text_missing": "Este documento no tiene texto para firmar aquí. Fírmalo como se envió.",
+      "document_text_masked": "Este texto contiene una tarifa que tu representación no cubre, así que solo la persona contratada puede responder.",
+      "document_text_hash": "El texto cambió desde que lo abriste. Léelo de nuevo y luego firma.",
+      "document_decline_reason": "Di por qué rechazas, en un máximo de 450 caracteres.",
+      "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
+      "document_text_signed": "Este texto ya se firmó.",
       "advance_upload_type": "Ese tipo de archivo no se acepta. Sube un archivo PDF, JPEG, PNG, HEIC, WebP, CSV, XLSX o DOCX.",
       "advance_upload_size": "Ese archivo pesa más de 25 MB. Sube uno más pequeño.",
       "advance_upload_limit": "Esta sección ya tiene en camino todos los archivos que admite. Envía menos archivos o vuelve a intentarlo en 15 minutos.",
@@ -2165,6 +2218,18 @@
       "form_answer_length": "Una respuesta es demasiado larga. Acórtala y envía de nuevo.",
       "org_read_only": "Esta organización no recibe respuestas nuevas en este momento.",
       "guest_email_format": "Escribe una dirección de correo para el invitado, o déjala vacía."
+    },
+    "crewShifts": {
+      "title": "Mis turnos",
+      "codeLabel": "Abre tus turnos",
+      "codeHelp": "El código de seis dígitos que te dieron con este enlace.",
+      "intro": "{name}, estos son tus turnos en {project}.",
+      "empty": "No hay turnos en los próximos 14 días.",
+      "accept": "Aceptar turno",
+      "accepted": "Turno aceptado. Tu jefe de equipo ya lo ve.",
+      "noRole": "Equipo",
+      "forget": "Olvidar este código",
+      "signIn": "Inicia sesión para ver todo tu trabajo"
     }
   },
   "settings": {
@@ -2540,7 +2605,8 @@
       "invitationAccount": "{account} te invita a su cuenta de empresa",
       "invitationRoster": "{party} te invita a su equipo para {project}",
       "accept": "Aceptar",
-      "decline": "Rechazar"
+      "decline": "Rechazar",
+      "invitationPool": "{org} te invita a unirte a su lista de equipo"
     },
     "actionLink": {
       "title": "Confirmar desde el correo",
@@ -2838,6 +2904,47 @@
       "nothingToUndo": "No hay nada que deshacer.",
       "nothingToRedo": "No hay nada que rehacer.",
       "dismiss": "Descartar"
+    }
+  },
+  "registration": {
+    "metaTitle": "Registro de equipo",
+    "closed": "Esta página de registro no está abierta.",
+    "minimumAge": "Debes tener {age} años o más.",
+    "signedOut": "Regístrate o inicia sesión para continuar. Tu cuenta sigue siendo tuya.",
+    "signUp": "Crear cuenta",
+    "signIn": "Ya tengo una cuenta",
+    "formLabel": "Registrarse",
+    "stepQuestions": "Preguntas {n}",
+    "stepConfirm": "Confirmar",
+    "phone": "Teléfono de trabajo",
+    "phoneHelp": "Con el código de país, o un número de tu país. Se guarda en tu configuración.",
+    "ageConfirm": "Tengo {age} años o más",
+    "share": "Compartir de tu perfil",
+    "shareHelp": "Opcional. Solo las secciones que elijas, solo con esta organización.",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Registrarme",
+    "refused": "No se pudo guardar tu registro. Revísalo e inténtalo de nuevo.",
+    "answerRequired": "Responde todas las preguntas obligatorias de este paso.",
+    "withdraw": "Retirar",
+    "state": {
+      "Submitted": "Te registraste. La organización lo revisa a continuación.",
+      "Approved": "Te aprobaron. Revisa Explorar para ver trabajo de esta organización."
+    },
+    "states": {
+      "Submitted": "Enviado",
+      "Approved": "Aprobado"
+    },
+    "sections": {
+      "headline": "Titular",
+      "bio": "Biografía",
+      "pronouns": "Pronombres",
+      "location": "Ubicación",
+      "skills": "Habilidades",
+      "certifications": "Certificaciones",
+      "rates": "Tarifas",
+      "languages": "Idiomas",
+      "links": "Enlaces"
     }
   },
   "publicForm": {

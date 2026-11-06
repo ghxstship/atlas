@@ -11,6 +11,7 @@ const RUN = "0192a000-0000-7000-8000-000000000001";
 const PROJECT = "0192a000-0000-7000-8000-000000000002";
 const CUES: ImportDestination = { target: "cues", runOfShowId: RUN };
 const GUESTS: ImportDestination = { target: "guest_list_entries", projectId: PROJECT };
+const POOL = "0192a000-0000-7000-8000-000000000003";
 const SEES_IMPORT = ["owner", "admin", "manager", "member"] as const;
 const NO_IMPORT = ["collaborator", "field", "viewer"] as const;
 
@@ -24,6 +25,10 @@ describe("import links", () => {
       );
       expect(importLinkHref("demo", nav, true, GUESTS)).toBe(
         `/demo/import?target=guest_list_entries&project=${PROJECT}`,
+      );
+      // B10: the Pools page's Import people link carries the pool.
+      expect(importLinkHref("demo", nav, true, { target: "pool_invitations", poolId: POOL })).toBe(
+        `/demo/import?target=pool_invitations&pool=${POOL}`,
       );
     },
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { parsePasted } from "@xos/data/import-parse";
+import { NUMBER_FORMATS, parsePasted } from "@xos/data/import-parse";
 import type {
   ColumnSample,
   ImportDestinationKind,
@@ -117,6 +117,41 @@ function DestinationSelect({
 /** How many pasted rows the live preview shows. */
 const PASTE_PREVIEW_ROWS = 5;
 
+/** The pool invitation target's own fields (B10): how the file writes amounts, and the pool for rows without one. */
+function PoolInvitationFields({
+  pools,
+  pool,
+  onPool,
+}: {
+  pools: readonly { id: string; label: string }[];
+  pool: string;
+  onPool: (id: string) => void;
+}) {
+  const t = usePlatformT();
+  return (
+    <>
+      <Select
+        name="numberFormat"
+        label={t("imports.numberFormat.label")}
+        help={t("imports.numberFormat.help")}
+        value="comma-dot"
+        options={NUMBER_FORMATS.map((f) => ({ value: f, label: t(`imports.numberFormat.${f}`) }))}
+      />
+      <Select
+        name="pool"
+        label={t("imports.new.destinationPool")}
+        help={t("imports.new.destinationPoolHelp")}
+        value={pool}
+        options={[
+          { value: "", label: t("imports.new.destinationPoolNone") },
+          ...pools.map((o) => ({ value: o.id, label: o.label })),
+        ]}
+        onChange={(e) => onPool(e.target.value)}
+      />
+    </>
+  );
+}
+
 /** The pasted rows the preview shows: the header row and the first rows with text. */
 function pastedPreview(text: string): string[][] {
   return parsePasted(text)
@@ -131,6 +166,7 @@ export function ImportList({
   targets,
   destinations = {},
   initial,
+  pools = [],
   googleSheets = false,
   imports,
 }: {
@@ -140,6 +176,8 @@ export function ImportList({
   destinations?: Readonly<Record<string, TargetDestinations>>;
   /** The target and destination a link preselects (?target=, ?runOfShow= or ?project=). */
   initial?: { target: string; destination: string | null } | undefined;
+  /** The live Talent pools a pool invitation import may name (B10). */
+  pools?: readonly { id: string; label: string }[];
   /** The imports.google_sheets flag: offer a Google Sheets link next to a file (A83). */
   googleSheets?: boolean;
   imports: readonly (ImportSummary & { when: string })[];
@@ -155,6 +193,11 @@ export function ImportList({
     return initial && start && known ? { [initial.target]: start } : {};
   });
   const [pasted, setPasted] = useState("");
+  const [pool, setPool] = useState(
+    initial?.target === "pool_invitations" && pools.some((o) => o.id === initial.destination)
+      ? (initial.destination ?? "")
+      : "",
+  );
   const preview = pastedPreview(pasted);
   const open = (state: PlatformActionState) => {
     if (state.id) router.push(`${pathname}?import=${state.id}` as Route);
@@ -178,6 +221,9 @@ export function ImportList({
         value={picked[target]}
         onChange={(id) => setPicked((prev) => ({ ...prev, [target]: id }))}
       />
+      {target === "pool_invitations" ? (
+        <PoolInvitationFields pools={pools} pool={pool} onPool={setPool} />
+      ) : null}
     </>
   );
   return (
@@ -497,9 +543,12 @@ function SheetsSection({
               : sheet.proposedFromPlaybook
                 ? t("imports.sheets.fromPlaybook", { target: t(`imports.targets.${proposed}`) })
                 : t(`imports.targets.${proposed}`);
-          const choices = targets.includes(proposed ?? "")
-            ? [proposed as string, ...targets.filter((code) => code !== proposed)]
-            : targets;
+          // Pool invitations need a number format and a pool, which only the upload asks for: read with neither, a European
+          // sheet's rates would all fail. That sheet goes in through its own upload.
+          const sheetTargets = targets.filter((code) => code !== "pool_invitations");
+          const choices = sheetTargets.includes(proposed ?? "")
+            ? [proposed as string, ...sheetTargets.filter((code) => code !== proposed)]
+            : sheetTargets;
           return (
             <li
               key={sheet.id}
@@ -796,6 +845,11 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                     percent: Math.round(r.similarity * 100),
                   })}
                 </p>
+                {r.decision === "Pending" && detail.targetCode === "pool_invitations" ? (
+                  <p className="m-0 text-text-12 text-text-secondary">
+                    {t("imports.duplicates.poolHelp")}
+                  </p>
+                ) : null}
                 {r.decision === "Pending" ? (
                   <div className="flex flex-wrap gap-8">
                     <ActionForm
@@ -818,7 +872,9 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                   <p className="m-0 text-text-12 text-text-secondary">
                     {t(
                       r.decision === "Merged"
-                        ? "imports.duplicates.merged"
+                        ? detail.targetCode === "pool_invitations"
+                          ? "imports.duplicates.mergedPool"
+                          : "imports.duplicates.merged"
                         : "imports.duplicates.kept",
                     )}
                   </p>
@@ -859,7 +915,7 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
                         }),
                       )
                       .join("; ")
-                  : (i.reason ?? ""),
+                  : reasonText(t, i.reason ?? ""),
             }))}
           />
         )}
@@ -887,6 +943,14 @@ function ReviewStep({ org, detail }: { org: string; detail: ImportDetail }) {
       </section>
     </div>
   );
+}
+
+/** A row's reason: codes the catalog knows are said in the reader's language, and anything else is shown as written. */
+function reasonText(t: ReturnType<typeof usePlatformT>, reason: string): string {
+  const codes = reason.split(", ");
+  return codes.every((code) => t.has(`imports.issueCodes.${code}`))
+    ? codes.map((code) => t(`imports.issueCodes.${code}`)).join("; ")
+    : reason;
 }
 
 function issueText(t: ReturnType<typeof usePlatformT>, code: string): string {

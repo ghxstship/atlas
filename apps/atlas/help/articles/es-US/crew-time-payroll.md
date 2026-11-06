@@ -17,6 +17,7 @@ nodes:
     crew.payroll-exports,
     crew.time-off,
     crew.per-diems,
+    crew.access-links,
     project.crew,
   ]
 order: 51
@@ -61,3 +62,11 @@ El descanso mínimo y las horas máximas por día y por semana en Ajustes > Prog
 ## Tipos de descanso
 
 Ajustes > Tiempo y asistencia define los descansos, cada uno pagado o sin pagar. Un descanso pagado es tiempo trabajado, así que sus minutos no se restan de las horas y aparecen como Descanso pagado junto a Descanso. Compass pregunta qué descanso cuando hay dos o más tipos. Una organización sin tipos funciona como antes.
+
+## Enlaces de acceso del equipo
+
+Algunas personas del equipo nunca abren la app. Un enlace de acceso muestra a una persona sus propios turnos en un proyecto en Gateway, sin iniciar sesión, y le permite aceptar su propio turno publicado. Abre Enlaces de acceso del equipo, elige Emitir enlaces, elige el proyecto y las personas, y cuánto duran los enlaces, de 1 hora a 30 días.
+
+Cada persona recibe un enlace y un código de 6 dígitos, que se muestran una sola vez. Cópialos o imprime una tarjeta ahora, porque no se vuelven a mostrar. Una tarjeta impresa lleva el código solo si marcas la casilla; déjala sin marcar para enviar el código por otra vía, así una tarjeta perdida no abre nada.
+
+Un enlace se cierra cuando la persona deja de trabajar en el proyecto, cuando elimina su cuenta o cuando lo revocas. Cinco códigos incorrectos lo bloquean, y emitirlo de nuevo lo reemplaza. Un enlace no muestra tarifas, notas ni turnos de otras personas, y nadie puede registrar tiempo ni rechazar con él. Para estar en un turno, una persona debe haber aceptado algo una vez, como una membresía, una contratación o un lugar en el equipo.

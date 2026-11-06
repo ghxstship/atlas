@@ -841,3 +841,170 @@ export async function unsubscribeGuestEmail(
   if (error) return fail(toDataError(error));
   return ok(typeof data === "string" ? data : null);
 }
+
+// Crew access links (B10, 6520) -----------------------------------------------------------------------------------
+
+export interface CrewAccessShift {
+  readonly id: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly timeZone: string;
+  readonly jobTitle: string | null;
+  readonly showName: string | null;
+  readonly venueName: string | null;
+  readonly venueStreetAddress: string | null;
+  readonly venueLocality: string | null;
+  readonly state: string;
+}
+
+export interface CrewAccessPage {
+  readonly refused: false;
+  /** For the custom-domain check only; never rendered. */
+  readonly orgId: string;
+  readonly orgSlug: string;
+  readonly orgName: string;
+  readonly personName: string | null;
+  readonly projectName: string;
+  readonly linkExpiresAt: string;
+  readonly shifts: readonly CrewAccessShift[];
+}
+
+interface CrewAccessRow {
+  refusal: string | null;
+  reason: string | null;
+  org_id: string | null;
+  org_slug: string | null;
+  org_name: string | null;
+  person_name: string | null;
+  project_name: string | null;
+  link_expires_at: string | null;
+  shift_id: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  time_zone: string | null;
+  job_title: string | null;
+  scope_node_name: string | null;
+  venue_name: string | null;
+  venue_street_address: string | null;
+  venue_locality: string | null;
+  shift_state: string | null;
+}
+
+/** A worker's shifts through a crew access link and its code (api_public.crew_access_shifts). */
+export async function openCrewShifts(
+  db: XosClient,
+  input: { readonly token: string; readonly accessCode: string },
+): Promise<Result<CrewAccessPage | TokenRefusal>> {
+  const result = await rows<CrewAccessRow>(db, "crew_access_shifts", {
+    p_token: input.token,
+    p_access_code: input.accessCode,
+  });
+  if (!result.ok) return result;
+  const head = result.data[0];
+  const refused = refusalOf(head);
+  if (refused || !head)
+    return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
+  return ok({
+    refused: false,
+    orgId: head.org_id ?? "",
+    orgSlug: head.org_slug ?? "",
+    orgName: head.org_name ?? "",
+    personName: head.person_name,
+    projectName: head.project_name ?? "",
+    linkExpiresAt: head.link_expires_at ?? "",
+    shifts: result.data.flatMap((r) =>
+      r.shift_id && r.starts_at && r.ends_at && r.time_zone && r.shift_state
+        ? [
+            {
+              id: r.shift_id,
+              startsAt: r.starts_at,
+              endsAt: r.ends_at,
+              timeZone: r.time_zone,
+              jobTitle: r.job_title,
+              showName: r.scope_node_name,
+              venueName: r.venue_name,
+              venueStreetAddress: r.venue_street_address,
+              venueLocality: r.venue_locality,
+              state: r.shift_state,
+            },
+          ]
+        : [],
+    ),
+  });
+}
+
+/** The one write of a crew access link: the worker accepts their own Published shift. */
+export async function acceptCrewShift(
+  db: XosClient,
+  input: { readonly token: string; readonly accessCode: string; readonly shiftId: string },
+): Promise<Result<{ refused: false; state: string } | TokenRefusal>> {
+  const result = await rows<{
+    refusal: string | null;
+    reason: string | null;
+    shift_state: string | null;
+  }>(db, "crew_access_accept_shift", {
+    p_token: input.token,
+    p_access_code: input.accessCode,
+    p_shift_id: input.shiftId,
+  });
+  if (!result.ok) return result;
+  const row = result.data[0];
+  const refused = refusalOf(row);
+  if (refused || !row?.shift_state)
+    return ok(refused ?? { refused: true, reason: "crew_access_token_invalid" });
+  return ok({ refused: false, state: row.shift_state });
+}
+
+// Registration pages (B10, 6521) -----------------------------------------------------------------------------------
+
+export interface PublicRegistrationPage {
+  readonly refused: false;
+  /** For the custom-domain check only; never rendered. */
+  readonly orgId: string;
+  readonly orgName: string;
+  readonly title: string;
+  readonly intro: string | null;
+  readonly minimumAge: number;
+  readonly questions: readonly {
+    readonly id: string;
+    readonly prompt: string;
+    readonly isRequired: boolean;
+  }[];
+}
+
+/** An Open registration page for anyone; a closed page, a dead pool and a flagged caller refuse alike. */
+export async function getPublicRegistrationPage(
+  db: XosClient,
+  input: { readonly orgSlug: string; readonly pageSlug: string },
+): Promise<Result<PublicRegistrationPage | TokenRefusal>> {
+  const result = await rows<{
+    refusal: string | null;
+    reason: string | null;
+    org_id: string | null;
+    org_name: string | null;
+    title: string | null;
+    intro: string | null;
+    minimum_age: number | null;
+    question_id: string | null;
+    prompt: string | null;
+    is_required: boolean | null;
+    sort_order: number | null;
+  }>(db, "registration_page", { p_org_slug: input.orgSlug, p_page_slug: input.pageSlug });
+  if (!result.ok) return result;
+  const head = result.data[0];
+  const refused = refusalOf(head);
+  if (refused || !head) return ok(refused ?? { refused: true, reason: "registration_page_closed" });
+  return ok({
+    refused: false,
+    orgId: head.org_id ?? "",
+    orgName: head.org_name ?? "",
+    title: head.title ?? "",
+    intro: head.intro,
+    minimumAge: head.minimum_age ?? 16,
+    questions: result.data.flatMap((q) =>
+      q.question_id && q.prompt
+        ? [{ id: q.question_id, prompt: q.prompt, isRequired: q.is_required === true }]
+        : [],
+    ),
+  });
+}

@@ -710,3 +710,21 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/6222_advancing_notices.sql#private.notify_credential_revoked
         test: supabase/tests/6222_advancing_notices.test.sql
+  # Crew onboarding and recruitment (B10: 6522, 6524). A registrant receives them through private.party_org_ids (6525),
+  # and an engaged person through their engagement.
+  - kind: crew_registration.decided
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/6522_crew_registrations.sql#private.decide_crew_registration
+        test: supabase/tests/6522_crew_registrations.test.sql
+  - kind: crew_registration.invited
+    category: opportunities
+    channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/6522_crew_registrations.sql#app.invite_to_registration_page
+        test: supabase/tests/6522_crew_registrations.test.sql
+  - kind: engagement_document.sent
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/6524_engagement_document_batches.sql#app.send_engagement_document_batch
+        test: supabase/tests/6524_engagement_document_batches.test.sql

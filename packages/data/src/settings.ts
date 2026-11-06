@@ -69,6 +69,14 @@ export async function resolveSettings(
   );
 }
 
+/** The org's locale.language setting, or null when it cannot be read. It says how the org writes numbers and phones. */
+export async function readOrgLanguage(db: XosClient, orgId: string): Promise<string | null> {
+  const settings = await resolveSettings(db, { orgId });
+  if (!settings.ok) return null;
+  const value = settings.data.get("locale.language")?.value;
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
 /**
  * The time zone dates resolve in for the signed-in person in an org: its locale.time_zone setting,
  * UTC when unset, unknown or unreadable, the same calendar Atlas pages use (A71). The Aurora API reads
