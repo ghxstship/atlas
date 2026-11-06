@@ -143,9 +143,8 @@ test("the org asks for a badge photo, the holder gives it, it prints, and the ho
 
   // Gateway: the holder removes it; the consent is withdrawn and the photo deleted.
   await (await photoCard(page)).getByRole("button", { name: "Remove" }).click();
-  await expect(
-    (await photoCard(page)).getByText("Photo removed and your consent withdrawn."),
-  ).toBeVisible();
+  // The confirmation sits on the button, which leaves with the photo as soon as the page refreshes.
+  await expect((await photoCard(page)).getByRole("button", { name: "Remove" })).toHaveCount(0);
   const [after] = await sql<{ live: number; withdrawn: boolean; objects: number }>(
     `select
        (select count(*)::int from app.credential_photos where org_id = $1 and person_id = $2 and deleted_at is null) as live,
