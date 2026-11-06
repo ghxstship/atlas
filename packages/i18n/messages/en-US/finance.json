@@ -963,6 +963,7 @@
       "title": "Title",
       "engagement": "Client engagement",
       "engagementHelp": "Required to send. Lists Client engagements of the budget's project.",
+      "currentEngagement": "Current client engagement",
       "validUntil": "Valid until",
       "validUntilHelp": "Blank is 30 days from today on the project's calendar.",
       "terms": "Notes and terms",

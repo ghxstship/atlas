@@ -622,7 +622,7 @@
       },
       "hours": "{hours} h"
     },
-    "laborOtherCurrency": "{count} {count, plural, one {registro de mano de obra} other {registros de mano de obra}} en otra moneda se cuentan aquí y quedan fuera de Real."
+    "laborOtherCurrency": "{count} {count, plural, one {registro de mano de obra} other {registros de mano de obra}} en otra moneda {count, plural, one {se cuenta} other {se cuentan}} aquí y {count, plural, one {queda} other {quedan}} fuera de Real."
   },
   "expenses": {
     "create": "Gasto nuevo",
@@ -963,6 +963,7 @@
       "title": "Título",
       "engagement": "Contratación del cliente",
       "engagementHelp": "Obligatoria para enviar. Muestra las contrataciones de cliente del proyecto del presupuesto.",
+      "currentEngagement": "Contratación actual del cliente",
       "validUntil": "Válida hasta",
       "validUntilHelp": "En blanco son 30 días a partir de hoy en el calendario del proyecto.",
       "terms": "Notas y términos",

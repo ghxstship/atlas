@@ -47,6 +47,7 @@ vi.mock("@xos/data/quotes", () => ({
 
 const { quoteSigningLinkAction, saveQuoteDraftAction, sendQuoteAction } =
   await import("@/app/[org]/finance/quote-actions");
+const { withCurrentEngagement } = await import("@/lib/finance/quote-options");
 
 const VERSION = "0192f1e2-7c3a-7b4d-9e8f-000000000001";
 const QUOTE = "0192f1e2-7c3a-7b4d-9e8f-000000000002";
@@ -202,5 +203,25 @@ describe("saveQuoteDraftAction", () => {
     const result = await saveQuoteDraftAction({}, draft());
     expect(result.error).toMatchObject({ rule: "quote_client_engagement" });
     expect(state.draft).not.toHaveBeenCalled();
+  });
+});
+
+describe("withCurrentEngagement", () => {
+  const listed = [{ value: "e1", label: "Coral Group" }];
+
+  it("adds the engagement a Draft holds when the options do not list it, so a save keeps it", () => {
+    expect(withCurrentEngagement(listed, "e9", "Harbor Co")).toEqual([
+      { value: "e9", label: "Harbor Co" },
+      ...listed,
+    ]);
+    // The people picker refused or failed: the Draft's client still shows.
+    expect(withCurrentEngagement([], "e9", "Harbor Co")).toEqual([
+      { value: "e9", label: "Harbor Co" },
+    ]);
+  });
+
+  it("changes nothing when it is listed, or when the Draft holds none", () => {
+    expect(withCurrentEngagement(listed, "e1", "Coral Group")).toEqual(listed);
+    expect(withCurrentEngagement(listed, null, "unused")).toEqual(listed);
   });
 });

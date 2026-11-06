@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
+import { withCurrentEngagement } from "@/lib/finance/quote-options";
 import { sitemap } from "@/lib/shell/sitemap";
 import { declineQuoteAction, withdrawQuoteAction } from "@/app/[org]/finance/quote-actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
@@ -234,9 +235,13 @@ export async function QuotesView({ page }: { page: FinancePage }) {
                   engagements={
                     everSent
                       ? null
-                      : clientOptions
-                          .filter((e) => e.projectId === q.projectId)
-                          .map(({ value, label }) => ({ value, label }))
+                      : withCurrentEngagement(
+                          clientOptions
+                            .filter((e) => e.projectId === q.projectId)
+                            .map(({ value, label }) => ({ value, label })),
+                          q.engagementId,
+                          q.clientName ?? t("finance.quotes.fields.currentEngagement"),
+                        )
                   }
                   validUntil={draft.validUntil}
                   terms={draft.terms}
