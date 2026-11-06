@@ -188,3 +188,11 @@ The baseline is set from the merged build of train 8, with the rule of decision 
 pages still over 200 KB: of 326 pages, 214 hold a ceiling. 96 pages were past A144's numbers or had none and took
 measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 200 KB lost theirs. From here ceilings
 only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
+
+The first CI run of `budget:js -- --served` on this train found Crew Shifts at 204 KB and Budgets at 208 KB of 200 KB:
+scripts fetched after hydration, which the build manifests cannot show. They are now 196 KB and 200 KB (204,582 of
+204,800 bytes), with no limit raised. The shell's key handler loads with the first key press, which first-load code
+holds and answers (`first-press.ts`); the system banners' code loads when the route returns a banner; the saved views
+menu's items load when someone reaches for the menu; and the browser carries each view's code and saved type rather
+than the view registry. Budgets still fetches the Realtime client (18.9 KB) on arrival because the list and the grid are
+live, so it has about 200 bytes to spare, and anything added to that page needs a matching cut.
