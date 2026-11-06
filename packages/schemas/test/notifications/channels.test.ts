@@ -23,7 +23,6 @@ function kind(name: string, category: string, channels: readonly NotificationCha
     pushCategory: null,
     quietHoursBypass: null,
     channels,
-    copy: { subject: `kinds.${name}.subject`, body: `kinds.${name}.body` },
   } satisfies KindDefinition;
 }
 

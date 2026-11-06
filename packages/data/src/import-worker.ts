@@ -28,30 +28,18 @@ import {
 import type { Database } from "./database.types.ts";
 
 /**
- * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
- * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
- *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
- *     the import Mapped for the person to confirm
- *   * validate: checks every row against the target (required fields, canon values, references by name),
- *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
- *     to the fuzzy match (0.85, merge review), and marks the import Validated
- *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
- *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
- *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
- *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
- * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
- * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
- * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
- * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
- * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
- * database queues detection on the Clean verdict, and every step checks again before reading.
- * When validation or a commit finishes, the person who started or committed the import is sent import.finished
- * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
- * Cues and guest list entries (P3, 5800 to 5802) import into the running order or project the import names: every
- * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
- * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
- * the uploader's mapping preview. Pool invitations (B10) load import-pool-target.ts, only for that target.
- * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's report.run worker:
+ *   * detect: records a spreadsheet's sheets and columns with suggestions (a saved profile, the Playbook column map, header
+ *     similarity), and marks the import Mapped for the person to confirm
+ *   * validate: checks every row against the target, records row states and per-cell issues, matches strong keys exactly,
+ *     sends name plus address to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened, recorded with the batch id
+ *   * fetch (A83): saves a Google Sheets link to the imports bucket through the org's Drive connection, to be scanned
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed. A spreadsheet is parsed
+ * only once its virus scan is Clean (owner decision 10, migration 1240). A finished step sends import.finished (A104, 2051).
+ * Cues and guest list entries (P3, 5800 to 5802) stay inside the running order or project the import names, and a row that
+ * repeats an earlier row is Invalid. Pool invitations (B10), needs and order lines (B11) and budget lines (B13) load their
+ * own target modules.
  */
 
 export const IMPORT_JOB_KINDS = [
@@ -466,51 +454,6 @@ export function importGuestEmail(value: string): string | null {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 320 ? email : null;
 }
 
-/** The longest text of the B11 targets, by target (the column checks of 0331 and 6531). */
-const MATERIAL_MAX_LENGTH: Readonly<Record<string, number>> = {
-  description: 500,
-  note: 1000,
-};
-
-const QUANTITY = /^\d+(?:[.,]\d+)?$/;
-const LOCAL_DATE = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(?::\d{2})?)?$/;
-
-function positiveQuantity(value: string): number | null {
-  const v = value.trim();
-  if (!QUANTITY.test(v)) return null;
-  const n = Number(v.replace(",", "."));
-  return n > 0 ? n : null;
-}
-
-/** The offset of a time zone at an instant, in milliseconds. */
-function zoneOffsetMs(utcMs: number, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  }).formatToParts(new Date(utcMs));
-  const of = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-  return (
-    Date.UTC(of("year"), of("month") - 1, of("day"), of("hour"), of("minute"), of("second")) - utcMs
-  );
-}
-
-/** A date or date and time typed in a project's time zone, as an instant; null when it does not read. */
-export function zonedInstant(value: string, timeZone: string): string | null {
-  const hit = LOCAL_DATE.exec(value.trim());
-  if (!hit) return null;
-  const local = Date.parse(`${hit[1]}T${hit[2] ?? "00:00"}:00Z`);
-  if (Number.isNaN(local)) return null;
-  // Twice, so a local time beside a clock change settles on the offset it falls in.
-  const first = local - zoneOffsetMs(local, timeZone);
-  return new Date(local - zoneOffsetMs(first, timeZone)).toISOString();
-}
-
 /**
  * Checks one row against its target; cell issues name the column and an issue code from the catalogs. A cue or guest
  * list row is checked inside its destination (P3): the running order's show date, time zone and venue, or the project.
@@ -554,13 +497,6 @@ export async function validateRow(
     const v = text(field).trim();
     if (!v) return;
     if (v.length > (MAX_LENGTH[field] ?? 200))
-      issues.push({ columnIndex: columnOf(field), issue: "too_long" });
-    else values[field] = v;
-  };
-  const materialBounded = (field: string) => {
-    const v = text(field).trim();
-    if (!v) return;
-    if (v.length > (MATERIAL_MAX_LENGTH[field] ?? 200))
       issues.push({ columnIndex: columnOf(field), issue: "too_long" });
     else values[field] = v;
   };
@@ -669,162 +605,38 @@ export async function validateRow(
       });
       break;
     }
-    case "procurement_needs": {
-      const projectId = destination.project?.id ?? null;
-      materialBounded("description");
-      materialBounded("note");
-      await set("quantity", (v) => positiveQuantity(v), "invalid_quantity");
-      await set("unit_basis", (v) => lookups.unitExists(v), "unknown_unit");
-      await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
-      const zone = projectId ? await lookups.projectTimeZone(projectId) : "UTC";
-      const from = text("needed_from") ? zonedInstant(text("needed_from"), zone) : null;
-      const to = text("needed_to") ? zonedInstant(text("needed_to"), zone) : null;
-      if (text("needed_from") && from === null)
-        issues.push({ columnIndex: columnOf("needed_from"), issue: "invalid_time" });
-      if (text("needed_to") && to === null)
-        issues.push({ columnIndex: columnOf("needed_to"), issue: "invalid_time" });
-      if (from && to && to <= from)
-        issues.push({ columnIndex: columnOf("needed_to"), issue: "invalid_time" });
-      if ((text("needed_from") !== "") !== (text("needed_to") !== ""))
-        issues.push({
-          columnIndex: columnOf(text("needed_from") ? "needed_to" : "needed_from"),
-          issue: "required",
-        });
-      if (from && to) values["needed_during"] = `[${from},${to})`;
-      if (destination.jobId && issues.length === 0) {
-        const explicit = values["asset_class_id"] !== undefined;
-        const match = explicit
-          ? null
-          : await lookups.materialMatch(destination.jobId, null, text("description"));
-        if (match?.assetClassId) values["asset_class_id"] = match.assetClassId;
-        materialMatch = explicit || match ? "Matched" : "Unmatched";
-      }
-      break;
-    }
+    case "procurement_needs":
     case "po_lines": {
-      materialBounded("description");
-      await set("quantity", (v) => positiveQuantity(v), "invalid_quantity");
-      await set(
-        "line_number",
-        (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
-        "invalid_position",
-      );
-      await set("unit_basis", (v) => lookups.unitExists(v), "unknown_unit");
-      await set("element_id", (v) => lookups.elementExists(v), "unknown_element");
-      await set(
-        "unit_price_minor",
-        (v) => (INTEGER.test(v) && Number(v) >= 0 ? Number(v) : null),
-        "invalid_amount",
-      );
-      if (destination.jobId && issues.length === 0) {
-        const match = await lookups.materialMatch(
-          destination.jobId,
-          text("vendor_sku") || null,
-          text("description"),
-        );
-        if (match?.elementId && values["element_id"] === undefined)
-          values["element_id"] = match.elementId;
-        // A vendor's price fills only a blank one, and only in the order's currency.
-        if (match && match.unitPriceMinor !== null && values["unit_price_minor"] === undefined) {
-          if (match.currencyCode === match.orderCurrencyCode)
-            values["unit_price_minor"] = match.unitPriceMinor;
-          else matchNote = "price_currency_differs";
-        }
-        materialMatch = match || values["element_id"] !== undefined ? "Matched" : "Unmatched";
-      }
+      // Loaded only for these targets, which keeps import-run's boot under its ceiling.
+      const { checkMaterialRow } = await import("./import-material-target.ts");
+      const found = await checkMaterialRow({
+        targetCode,
+        orgId,
+        destination,
+        lookups,
+        text,
+        set,
+        columnOf,
+        values,
+        issues,
+      });
+      materialMatch = found.materialMatch;
+      matchNote = found.matchNote;
       break;
     }
     case "budget_lines": {
-      const budget = destination.budget;
-      const exponent = budget?.exponent ?? 2;
-      bounded("description");
-      // Canon units are exact lower-case aliases, so Day and day are one unit and hrs is a per-cell reason, never a
-      // foreign key message at commit.
-      await set(
-        "unit_basis",
-        async (v) => {
-          const unit = v.trim().toLowerCase();
-          return (await lookups.unitExists(unit)) ? unit : null;
-        },
-        "unknown_unit",
-      );
-      await set("urid", (v) => lookups.uridExists(v), "unknown_urid");
-      await set(
-        "line_number",
-        (v) => (/^\d{1,6}$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null),
-        "invalid_line_number",
-      );
-      await set("quantity", (v) => nonNegative(v), "invalid_quantity");
-      // The word Unpriced clears a price. A blank cell says nothing here: a new line takes the defaults in
-      // createValues, where its price is NULL and never zero (S3.7-02), and an update leaves the value alone.
-      const price = text("unit_price").trim();
-      if (price.toLowerCase() === "unpriced") {
-        values["unit_price_minor"] = null;
-      } else if (price !== "") {
-        const minor = minorUnits(price, exponent);
-        if (minor === null)
-          issues.push({ columnIndex: columnOf("unit_price"), issue: "invalid_price" });
-        else values["unit_price_minor"] = minor;
-      }
-      const type = text("line_type").trim();
-      if (type !== "") {
-        const known = BUDGET_LINE_TYPES.find((k) => k.toLowerCase() === type.toLowerCase());
-        if (known) values["line_type"] = known;
-        else issues.push({ columnIndex: columnOf("line_type"), issue: "invalid_line_type" });
-      }
-      await set(
-        "cost_center",
-        (v) => lookups.costCenterId(orgId, v),
-        "unknown_cost_center",
-        "cost_center_id",
-      );
-      await set("element_id", (v) => lookups.elementExists(v.trim()), "unknown_element");
-      for (const [field, kind, issue] of [
-        ["grade_code", "grade", "unknown_grade"],
-        ["phase_code", "phase", "unknown_phase"],
-        ["tier_code", "tier", "unknown_tier"],
-      ] as const) {
-        await set(
-          field,
-          async (v) => ((await lookups.canonCodeExists(kind, v.trim())) ? v.trim() : null),
-          issue,
-        );
-      }
-      const declared = text("xyz").trim().toUpperCase();
-      if (declared !== "") {
-        if (declared === "X" || declared === "Y" || declared === "Z") {
-          values["xyz"] = declared;
-          values["xyz_basis"] = "Declared";
-        } else issues.push({ columnIndex: columnOf("xyz"), issue: "invalid_xyz" });
-      } else if (text("urid")) {
-        const tag = await lookups.uridXyz(text("urid"));
-        if (tag) {
-          values["xyz"] = tag;
-          values["xyz_basis"] = "Category";
-        } else issues.push({ columnIndex: columnOf("urid"), issue: "xyz_required" });
-      }
-      await set(
-        "markup_percent",
-        (v) => {
-          const n = Number(v.trim().replace(/%$/, ""));
-          return Number.isFinite(n) && n >= 0 && n <= 1000 ? Math.round(n * 100) : null;
-        },
-        "invalid_markup",
-        "markup_bp",
-      );
-      await set(
-        "client_unit_price",
-        (v) => minorUnits(v.trim(), exponent),
-        "invalid_price",
-        "client_unit_price_minor",
-      );
-      const excluded = text("excluded_from_quote").trim().toLowerCase();
-      if (excluded !== "") {
-        if (["true", "yes", "1"].includes(excluded)) values["excluded_from_quote"] = true;
-        else if (["false", "no", "0"].includes(excluded)) values["excluded_from_quote"] = false;
-        else
-          issues.push({ columnIndex: columnOf("excluded_from_quote"), issue: "invalid_boolean" });
-      }
+      const { checkBudgetLineRow } = await import("./import-budget-target.ts");
+      await checkBudgetLineRow({
+        destination,
+        lookups,
+        text,
+        set,
+        bounded,
+        orgId,
+        columnOf,
+        values,
+        issues,
+      });
       break;
     }
     default:
@@ -873,22 +685,6 @@ const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
   "po_lines",
   "budget_lines",
 ]);
-
-const BUDGET_LINE_TYPES = ["Cost", "Labor", "Fee", "Contingency"] as const;
-
-/** A number of at least zero, or null. */
-function nonNegative(text: string): number | null {
-  const cleaned = text.trim().replace(/,/g, "");
-  if (cleaned === "") return null;
-  const n = Number(cleaned);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-/** Major units of a currency as integer minor units, half away from zero; null when it is no amount. */
-function minorUnits(text: string, exponent: number): number | null {
-  const n = nonNegative(text.replace(/^\s*[$€£¥]/u, ""));
-  return n === null ? null : Math.round(n * 10 ** exponent);
-}
 
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
@@ -1863,49 +1659,12 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       return (typeof row?.["line_number"] === "number" ? row["line_number"] : 0) + 1;
     },
     async budgetLineTag(id) {
-      const line = await one(
-        app.from("budget_lines").select("urid, xyz_basis").eq("id", id),
-        "budget_lines",
-      );
-      if (!line) return null;
-      return {
-        urid: text(line, "urid"),
-        xyzBasis: typeof line["xyz_basis"] === "string" ? line["xyz_basis"] : null,
-      };
+      const { readBudgetLineTag } = await import("./import-budget-target.ts");
+      return readBudgetLineTag(app, one, id);
     },
     async budgetDestination(budgetId) {
-      const budget = await one(
-        app.from("budgets").select("currency_code").eq("id", budgetId).is("deleted_at", null),
-        "budgets",
-      );
-      if (!budget) return null;
-      const [currency, last] = await Promise.all([
-        one(
-          app
-            .from("currencies")
-            .select("minor_unit_exponent")
-            .eq("currency_code", budget["currency_code"]),
-          "currencies",
-        ),
-        one(
-          app
-            .from("budget_lines")
-            .select("line_number")
-            .eq("budget_id", budgetId)
-            .is("deleted_at", null)
-            .order("line_number", { ascending: false })
-            .limit(1),
-          "budget_lines",
-        ),
-      ]);
-      return {
-        id: budgetId,
-        exponent:
-          typeof currency?.["minor_unit_exponent"] === "number"
-            ? currency["minor_unit_exponent"]
-            : 2,
-        maxLineNumber: typeof last?.["line_number"] === "number" ? last["line_number"] : 0,
-      };
+      const { readBudgetDestination } = await import("./import-budget-target.ts");
+      return readBudgetDestination(app, one, budgetId);
     },
     async nextCuePosition(runOfShowId) {
       const row = await one(

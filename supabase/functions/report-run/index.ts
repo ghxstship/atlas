@@ -91,6 +91,7 @@ serve(async (request) => {
     copy: await reportDeliveryCopy("en-US"),
     worker,
   });
+  const { runPackDeliveries, supabasePackDeliveryStore } = await loadPackDeliveries();
   const packs = await runPackDeliveries({
     store: supabasePackDeliveryStore(client),
     mailer,

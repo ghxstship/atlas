@@ -35,6 +35,7 @@ const CORE_ONLY: readonly string[] = [
   "email-unsubscribe",
   "file-download",
   "fx-rates-ecb",
+  "weather-feed",
 ];
 
 /**
@@ -53,7 +54,18 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
-  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
+  "guest-email": {
+    boot: [],
+    lazy: [
+      "@react-email/components",
+      "intl-messageformat",
+      "pdfkit",
+      "react/jsx-runtime",
+      "resend",
+      "zod",
+    ],
+  },
+  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "libphonenumber-js"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -64,7 +76,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
-    lazy: ["exceljs", "pdfkit", "resend"],
+    lazy: ["pdfkit", "resend"],
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -75,11 +87,12 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: [],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend", "zod"],
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "wallet-pass": { boot: [], lazy: [] },
+  "weather-feed": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
 
@@ -103,6 +116,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
   // above that.
+  "guest-email": 132,
   "import-run": 134,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
@@ -148,6 +162,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
   // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
   "wallet-pass": 133,
+  "weather-feed": 64,
   "webhook-dispatch": 70,
 };
 

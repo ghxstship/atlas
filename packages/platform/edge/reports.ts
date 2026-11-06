@@ -32,11 +32,8 @@ export {
 
 export { READ_REPLICA_ENV, readReplicaUrl } from "../../data/src/read-replica.ts";
 
-export {
-  PACK_DELIVER_JOB,
-  runPackDeliveries,
-  supabasePackDeliveryStore,
-} from "../../data/src/stakeholder-packs.ts";
+/** The pack.deliver worker, loaded when a run reaches it, so report-run's boot stays inside its budget. */
+export const loadPackDeliveries = () => import("../../data/src/stakeholder-packs.ts");
 
 type Tree = { readonly [key: string]: Tree | string };
 

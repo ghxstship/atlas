@@ -1,8 +1,8 @@
+import { zonedInstant } from "../src/import-material-target.ts";
 import { describe, expect, it } from "vitest";
 import {
   markInFileDuplicates,
   validateRow,
-  zonedInstant,
   type ImportDestination,
   type MappedColumn,
   type MaterialMatch,

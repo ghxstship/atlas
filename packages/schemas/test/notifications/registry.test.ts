@@ -70,10 +70,6 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       category: "approvals",
       emailTemplate: "notification",
       pushCategory: "approval_request",
-      copy: {
-        subject: "kinds.approval.requested.subject",
-        body: "kinds.approval.requested.body",
-      },
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
     // P9: a reminder offers Approve and Reject on the lock screen as the request does; the access code goes by email.

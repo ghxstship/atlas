@@ -49,10 +49,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.mention.created.subject",
-      body: "kinds.mention.created.body",
-    },
   },
   {
     kind: "assignment.created",
@@ -61,10 +57,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.assignment.created.subject",
-      body: "kinds.assignment.created.body",
-    },
   },
   {
     kind: "approval.requested",
@@ -73,10 +65,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: "approval_request",
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.approval.requested.subject",
-      body: "kinds.approval.requested.body",
-    },
   },
   {
     kind: "agent.change_proposed",
@@ -85,10 +73,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Push"],
-    copy: {
-      subject: "kinds.agent.change_proposed.subject",
-      body: "kinds.agent.change_proposed.body",
-    },
   },
   {
     kind: "approval.decided",
@@ -97,10 +81,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.approval.decided.subject",
-      body: "kinds.approval.decided.body",
-    },
   },
   {
     kind: "rfq.quote_reminder",
@@ -109,10 +89,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email"],
-    copy: {
-      subject: "kinds.rfq.quote_reminder.subject",
-      body: "kinds.rfq.quote_reminder.body",
-    },
   },
   {
     kind: "rfq.not_awarded",
@@ -121,10 +97,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email"],
-    copy: {
-      subject: "kinds.rfq.not_awarded.subject",
-      body: "kinds.rfq.not_awarded.body",
-    },
   },
   {
     kind: "approval.reminder",
@@ -133,10 +105,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: "approval_request",
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.approval.reminder.subject",
-      body: "kinds.approval.reminder.body",
-    },
   },
   {
     kind: "approval.link_code",
@@ -145,10 +113,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email"],
-    copy: {
-      subject: "kinds.approval.link_code.subject",
-      body: "kinds.approval.link_code.body",
-    },
   },
   {
     kind: "comment.created",
@@ -157,10 +121,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.comment.created.subject",
-      body: "kinds.comment.created.body",
-    },
   },
   {
     kind: "shift.assigned",
@@ -169,10 +129,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.shift.assigned.subject",
-      body: "kinds.shift.assigned.body",
-    },
   },
   {
     kind: "shift.changed",
@@ -181,10 +137,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.shift.changed.subject",
-      body: "kinds.shift.changed.body",
-    },
   },
   {
     kind: "availability.requested",
@@ -193,10 +145,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.availability.requested.subject",
-      body: "kinds.availability.requested.body",
-    },
   },
   {
     kind: "shift.reconfirm",
@@ -205,10 +153,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.shift.reconfirm.subject",
-      body: "kinds.shift.reconfirm.body",
-    },
   },
   {
     kind: "shift.reconfirm_declined",
@@ -217,10 +161,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.shift.reconfirm_declined.subject",
-      body: "kinds.shift.reconfirm_declined.body",
-    },
   },
   {
     kind: "shift.no_show",
@@ -229,10 +169,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.shift.no_show.subject",
-      body: "kinds.shift.no_show.body",
-    },
   },
   {
     kind: "event.invited",
@@ -241,10 +177,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.event.invited.subject",
-      body: "kinds.event.invited.body",
-    },
   },
   {
     kind: "invoice.approved",
@@ -253,10 +185,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.invoice.approved.subject",
-      body: "kinds.invoice.approved.body",
-    },
   },
   {
     kind: "invoice.submitted",
@@ -265,10 +193,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.invoice.submitted.subject",
-      body: "kinds.invoice.submitted.body",
-    },
   },
   {
     kind: "invoice.scheduled",
@@ -277,10 +201,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.invoice.scheduled.subject",
-      body: "kinds.invoice.scheduled.body",
-    },
   },
   {
     kind: "invoice.paid",
@@ -289,10 +209,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.invoice.paid.subject",
-      body: "kinds.invoice.paid.body",
-    },
   },
   {
     kind: "quote.accepted",
@@ -301,10 +217,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.quote.accepted.subject",
-      body: "kinds.quote.accepted.body",
-    },
   },
   {
     kind: "incident.reported",
@@ -313,10 +225,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.incident.reported.subject",
-      body: "kinds.incident.reported.body",
-    },
   },
   {
     kind: "occupancy.threshold",
@@ -325,10 +233,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.occupancy.threshold.subject",
-      body: "kinds.occupancy.threshold.body",
-    },
   },
   {
     kind: "weather.alert",
@@ -337,10 +241,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.weather.alert.subject",
-      body: "kinds.weather.alert.body",
-    },
   },
   {
     kind: "weather.warning",
@@ -349,10 +249,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.weather.warning.subject",
-      body: "kinds.weather.warning.body",
-    },
   },
   {
     kind: "weather.hold",
@@ -361,10 +257,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.weather.hold.subject",
-      body: "kinds.weather.hold.body",
-    },
   },
   {
     kind: "weather.all_clear",
@@ -373,10 +265,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.weather.all_clear.subject",
-      body: "kinds.weather.all_clear.body",
-    },
   },
   {
     kind: "account.security_changed",
@@ -385,10 +273,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.account.security_changed.subject",
-      body: "kinds.account.security_changed.body",
-    },
   },
   {
     kind: "account.recovery_code_used",
@@ -397,10 +281,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.account.recovery_code_used.subject",
-      body: "kinds.account.recovery_code_used.body",
-    },
   },
   {
     kind: "account.session_signed_out",
@@ -409,10 +289,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.account.session_signed_out.subject",
-      body: "kinds.account.session_signed_out.body",
-    },
   },
   {
     kind: "account.work_details_moved",
@@ -421,10 +297,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.account.work_details_moved.subject",
-      body: "kinds.account.work_details_moved.body",
-    },
   },
   {
     kind: "billing.payment_failed",
@@ -433,10 +305,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.payment_failed.subject",
-      body: "kinds.billing.payment_failed.body",
-    },
   },
   {
     kind: "billing.read_only",
@@ -445,10 +313,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.read_only.subject",
-      body: "kinds.billing.read_only.body",
-    },
   },
   {
     kind: "access.break_glass_started",
@@ -457,10 +321,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.access.break_glass_started.subject",
-      body: "kinds.access.break_glass_started.body",
-    },
   },
   {
     kind: "billing.trial_ending",
@@ -469,10 +329,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.trial_ending.subject",
-      body: "kinds.billing.trial_ending.body",
-    },
   },
   {
     kind: "billing.trial_ended",
@@ -481,10 +337,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.trial_ended.subject",
-      body: "kinds.billing.trial_ended.body",
-    },
   },
   {
     kind: "billing.paused",
@@ -493,10 +345,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.paused.subject",
-      body: "kinds.billing.paused.body",
-    },
   },
   {
     kind: "billing.resumed",
@@ -505,10 +353,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.billing.resumed.subject",
-      body: "kinds.billing.resumed.body",
-    },
   },
   {
     kind: "organization.deletion_requested",
@@ -517,10 +361,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.deletion_requested.subject",
-      body: "kinds.organization.deletion_requested.body",
-    },
   },
   {
     kind: "organization.deletion_recovered",
@@ -529,10 +369,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.deletion_recovered.subject",
-      body: "kinds.organization.deletion_recovered.body",
-    },
   },
   {
     kind: "organization.ownership_offered",
@@ -541,10 +377,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.ownership_offered.subject",
-      body: "kinds.organization.ownership_offered.body",
-    },
   },
   {
     kind: "organization.ownership_accepted",
@@ -553,10 +385,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.ownership_accepted.subject",
-      body: "kinds.organization.ownership_accepted.body",
-    },
   },
   {
     kind: "organization.ownership_declined",
@@ -565,10 +393,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.ownership_declined.subject",
-      body: "kinds.organization.ownership_declined.body",
-    },
   },
   {
     kind: "organization.white_label_reverting",
@@ -577,10 +401,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.white_label_reverting.subject",
-      body: "kinds.organization.white_label_reverting.body",
-    },
   },
   {
     kind: "organization.white_label_reverted",
@@ -589,10 +409,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.organization.white_label_reverted.subject",
-      body: "kinds.organization.white_label_reverted.body",
-    },
   },
   {
     kind: "partner.client_left",
@@ -601,10 +417,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.partner.client_left.subject",
-      body: "kinds.partner.client_left.body",
-    },
   },
   {
     kind: "listing.moderated",
@@ -613,10 +425,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.listing.moderated.subject",
-      body: "kinds.listing.moderated.body",
-    },
   },
   {
     kind: "listing_report.decided",
@@ -625,10 +433,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.listing_report.decided.subject",
-      body: "kinds.listing_report.decided.body",
-    },
   },
   {
     kind: "moderation_appeal.decided",
@@ -637,10 +441,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.moderation_appeal.decided.subject",
-      body: "kinds.moderation_appeal.decided.body",
-    },
   },
   {
     kind: "content_report.filed",
@@ -649,10 +449,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.filed.subject",
-      body: "kinds.content_report.filed.body",
-    },
   },
   {
     kind: "content_report.overdue",
@@ -661,10 +457,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.overdue.subject",
-      body: "kinds.content_report.overdue.body",
-    },
   },
   {
     kind: "content_report.decided",
@@ -673,10 +465,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.decided.subject",
-      body: "kinds.content_report.decided.body",
-    },
   },
   {
     kind: "content.removed",
@@ -685,10 +473,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content.removed.subject",
-      body: "kinds.content.removed.body",
-    },
   },
   {
     kind: "report.delivered",
@@ -697,10 +481,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Push"],
-    copy: {
-      subject: "kinds.report.delivered.subject",
-      body: "kinds.report.delivered.body",
-    },
   },
   {
     kind: "import.finished",
@@ -709,10 +489,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.import.finished.subject",
-      body: "kinds.import.finished.body",
-    },
   },
   {
     kind: "export.ready",
@@ -721,10 +497,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.export.ready.subject",
-      body: "kinds.export.ready.body",
-    },
   },
   {
     kind: "automation.notice",
@@ -733,10 +505,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.automation.notice.subject",
-      body: "kinds.automation.notice.body",
-    },
   },
   {
     kind: "automation.failed",
@@ -745,10 +513,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.automation.failed.subject",
-      body: "kinds.automation.failed.body",
-    },
   },
   {
     kind: "automation.paused",
@@ -757,10 +521,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.automation.paused.subject",
-      body: "kinds.automation.paused.body",
-    },
   },
   {
     kind: "message.received",
@@ -769,10 +529,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.message.received.subject",
-      body: "kinds.message.received.body",
-    },
   },
   {
     kind: "announcement.posted",
@@ -781,10 +537,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.announcement.posted.subject",
-      body: "kinds.announcement.posted.body",
-    },
   },
   {
     kind: "survey.opened",
@@ -793,10 +545,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.survey.opened.subject",
-      body: "kinds.survey.opened.body",
-    },
   },
   {
     kind: "recognition.received",
@@ -805,10 +553,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.recognition.received.subject",
-      body: "kinds.recognition.received.body",
-    },
   },
   {
     kind: "training.assigned",
@@ -817,10 +561,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.training.assigned.subject",
-      body: "kinds.training.assigned.body",
-    },
   },
   {
     kind: "help_request.assigned",
@@ -829,10 +569,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.help_request.assigned.subject",
-      body: "kinds.help_request.assigned.body",
-    },
   },
   {
     kind: "credential_photo.requested",
@@ -841,10 +577,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.credential_photo.requested.subject",
-      body: "kinds.credential_photo.requested.body",
-    },
   },
   {
     kind: "guest.arrived",
@@ -853,10 +585,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.guest.arrived.subject",
-      body: "kinds.guest.arrived.body",
-    },
   },
   {
     kind: "opportunity.matched",
@@ -865,10 +593,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "Push"],
-    copy: {
-      subject: "kinds.opportunity.matched.subject",
-      body: "kinds.opportunity.matched.body",
-    },
   },
   {
     kind: "offer.sent",
@@ -877,10 +601,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "Push"],
-    copy: {
-      subject: "kinds.offer.sent.subject",
-      body: "kinds.offer.sent.body",
-    },
   },
   {
     kind: "vendor_intake.submitted",
@@ -889,10 +609,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email"],
-    copy: {
-      subject: "kinds.vendor_intake.submitted.subject",
-      body: "kinds.vendor_intake.submitted.body",
-    },
   },
   {
     kind: "onboarding.item_expiring",
@@ -901,10 +617,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.onboarding.item_expiring.subject",
-      body: "kinds.onboarding.item_expiring.body",
-    },
   },
   {
     kind: "certification.expiring",
@@ -913,10 +625,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.certification.expiring.subject",
-      body: "kinds.certification.expiring.body",
-    },
   },
   {
     kind: "document.expiring",
@@ -925,10 +633,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.document.expiring.subject",
-      body: "kinds.document.expiring.body",
-    },
   },
   {
     kind: "roster_entry.invited",
@@ -937,10 +641,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.invited.subject",
-      body: "kinds.roster_entry.invited.body",
-    },
   },
   {
     kind: "roster_entry.returned",
@@ -949,10 +649,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.returned.subject",
-      body: "kinds.roster_entry.returned.body",
-    },
   },
   {
     kind: "roster_entry.declined",
@@ -961,10 +657,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.declined.subject",
-      body: "kinds.roster_entry.declined.body",
-    },
   },
   {
     kind: "roster_entry.project_facts_entered",
@@ -973,10 +665,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.project_facts_entered.subject",
-      body: "kinds.roster_entry.project_facts_entered.body",
-    },
   },
   {
     kind: "engagement.roster_lock_changed",
@@ -985,10 +673,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.engagement.roster_lock_changed.subject",
-      body: "kinds.engagement.roster_lock_changed.body",
-    },
   },
   {
     kind: "advance_answer.recorded",
@@ -997,10 +681,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.advance_answer.recorded.subject",
-      body: "kinds.advance_answer.recorded.body",
-    },
   },
   {
     kind: "allocation.decided",
@@ -1009,10 +689,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.allocation.decided.subject",
-      body: "kinds.allocation.decided.body",
-    },
   },
   {
     kind: "allocation.assigned",
@@ -1021,10 +697,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.allocation.assigned.subject",
-      body: "kinds.allocation.assigned.body",
-    },
   },
   {
     kind: "allocation.issued",
@@ -1033,10 +705,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.allocation.issued.subject",
-      body: "kinds.allocation.issued.body",
-    },
   },
   {
     kind: "allocation.withdrawn",
@@ -1045,10 +713,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.allocation.withdrawn.subject",
-      body: "kinds.allocation.withdrawn.body",
-    },
   },
   {
     kind: "accommodation_block.release_due",
@@ -1057,10 +721,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.accommodation_block.release_due.subject",
-      body: "kinds.accommodation_block.release_due.body",
-    },
   },
   {
     kind: "transfer.assigned",
@@ -1069,10 +729,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.transfer.assigned.subject",
-      body: "kinds.transfer.assigned.body",
-    },
   },
   {
     kind: "advance_packet.reminder",
@@ -1081,10 +737,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.advance_packet.reminder.subject",
-      body: "kinds.advance_packet.reminder.body",
-    },
   },
   {
     kind: "advance_submission.returned",
@@ -1093,10 +745,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.advance_submission.returned.subject",
-      body: "kinds.advance_submission.returned.body",
-    },
   },
   {
     kind: "submittal.returned",
@@ -1105,10 +753,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.submittal.returned.subject",
-      body: "kinds.submittal.returned.body",
-    },
   },
   {
     kind: "roster_entry.removed",
@@ -1117,10 +761,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.removed.subject",
-      body: "kinds.roster_entry.removed.body",
-    },
   },
   {
     kind: "roster_entry.facts_requested",
@@ -1129,10 +769,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.facts_requested.subject",
-      body: "kinds.roster_entry.facts_requested.body",
-    },
   },
   {
     kind: "roster_entry.share_revoked",
@@ -1141,10 +777,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.roster_entry.share_revoked.subject",
-      body: "kinds.roster_entry.share_revoked.body",
-    },
   },
   {
     kind: "credential.revoked",
@@ -1153,10 +785,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.credential.revoked.subject",
-      body: "kinds.credential.revoked.body",
-    },
   },
   {
     kind: "crew_registration.decided",
@@ -1165,10 +793,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.crew_registration.decided.subject",
-      body: "kinds.crew_registration.decided.body",
-    },
   },
   {
     kind: "crew_registration.invited",
@@ -1177,10 +801,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "Push"],
-    copy: {
-      subject: "kinds.crew_registration.invited.subject",
-      body: "kinds.crew_registration.invited.body",
-    },
   },
   {
     kind: "engagement_document.sent",
@@ -1189,10 +809,6 @@ var NOTIFICATION_KINDS = [
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.engagement_document.sent.subject",
-      body: "kinds.engagement_document.sent.body",
-    },
   },
 ];
 //#endregion
