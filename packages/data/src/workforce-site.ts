@@ -1035,7 +1035,7 @@ export const MUSTER_LIMIT = 5000;
 /**
  * The muster list of a project, optionally one zone, read as the caller: scan rows need the project's scan log, clock-in
  * rows its time entries, guest rows the guest list, and their door and plus-ones the door check-ins. The view names
- * zones, categories, people and parties itself (private.presence_person_name, 2971), so an export carries the same names.
+ * zones, categories, people and parties itself (private.presence_person_names, 2971), so an export carries the same names.
  */
 export async function listMuster(
   db: XosClient,

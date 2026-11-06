@@ -17,6 +17,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { CollectionPage } from "@/components/platform/collection-page";
 import { CollectionViews } from "@/components/views/collection-views";
+import { MusterLastRead } from "./muster-last-read";
 import { MusterRefresh } from "./muster-refresh";
 import { PrintButton } from "./print-button";
 import { ProjectPicker, chosenProject, orgPickers, workforceCopy } from "./shared";
@@ -71,15 +72,11 @@ export async function MusterSection({
   const db = ctx.viewer.db;
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   const access = await musterAccess(db, project.id);
-  if (!access.ok || (!access.data.scans && !access.data.clockIns && !access.data.guests)) {
+  if (access.ok && !access.data.scans && !access.data.clockIns && !access.data.guests) {
     return (
       <CollectionPage header={<PageHeader title={title} />}>
         {picker}
-        {access.ok ? (
-          <EmptyRefresh icon="Lock" sentence={t("muster.noAccess")} />
-        ) : (
-          <ErrorPanel what={t("muster.what")} />
-        )}
+        <EmptyRefresh icon="Lock" sentence={t("muster.noAccess")} />
       </CollectionPage>
     );
   }
@@ -91,12 +88,24 @@ export async function MusterSection({
   ]);
   const zoneList = zones.ok ? zones.data : [];
   const zoneId = zoneList.some((z) => z.id === zoneParam) ? (zoneParam ?? null) : null;
-  const rows = await listMuster(db, { projectId: project.id, zoneId });
-  if (!rows.ok) {
+  const rows = access.ok ? await listMuster(db, { projectId: project.id, zoneId }) : access;
+  const staleNote = t("muster.stale");
+  // A read that fails keeps the last list on screen, in the same place in the page, and the next refresh replaces it.
+  if (!access.ok || !rows.ok) {
     return (
       <CollectionPage header={<PageHeader title={title} />}>
-        {picker}
-        <ErrorPanel what={t("muster.what")} />
+        <MusterLastRead
+          failed
+          note={staleNote}
+          fallback={
+            <>
+              {picker}
+              <ErrorPanel what={t("muster.what")} />
+            </>
+          }
+        >
+          {null}
+        </MusterLastRead>
       </CollectionPage>
     );
   }
@@ -144,171 +153,173 @@ export async function MusterSection({
 
   return (
     <CollectionPage header={<PageHeader title={title} />}>
-      <div className="flex flex-wrap items-end justify-between gap-16 print:hidden">
-        <div className="flex flex-wrap items-end gap-16">
-          {picker}
-          <form method="get" action={path} className="flex flex-wrap items-end gap-8">
-            <input type="hidden" name="project" value={project.id} />
-            <div className="flex flex-col gap-4">
-              <label htmlFor="muster-zone" className="text-label-13 font-medium">
-                {t("muster.zone")}
-              </label>
-              <select
-                id="muster-zone"
-                name="zone"
-                defaultValue={zoneId ?? ""}
-                className="h-control-md max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-13"
-              >
-                <option value="">{t("muster.allZones")}</option>
-                {zoneList.map((z) => (
-                  <option key={z.id} value={z.id}>
-                    {z.code} · {z.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="h-control-md rounded-control border border-border-control bg-bg-surface px-12 text-text-13 font-medium"
-            >
-              {t("site.show")}
-            </button>
-          </form>
-        </div>
-        <div className="flex flex-wrap items-center gap-8">
-          <MusterRefresh
-            updated={t("muster.updated", { time: since(new Date().toISOString()) })}
-            pauseLabel={t("muster.pause")}
-            resumeLabel={t("muster.resume")}
-          />
-          <PrintButton label={t("muster.print")} />
-        </div>
-      </div>
-      <div className="print:hidden">
-        <CollectionViews
-          label={t("muster.views")}
-          value={view}
-          options={VIEWS.map((v) => ({ value: v, label: t(`muster.view.${v}`) }))}
-        />
-      </div>
-      <p className="m-0 text-text-13 text-text-secondary">{t("muster.what")}</p>
-      {hidden.length > 0 ? (
-        <ul
-          aria-label={t("muster.hiddenLabel")}
-          className="m-0 flex list-disc flex-col gap-2 pl-20 text-text-13"
-        >
-          {hidden.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      ) : null}
-      {cutShort ? (
-        <InlineAlert tone="warning">
-          {t("muster.truncated", { count: format.number(MUSTER_LIMIT) })}
-        </InlineAlert>
-      ) : null}
-      <p className="m-0 hidden text-text-13 print:block">
-        {project.key} {project.name} · {since(new Date().toISOString())}
-      </p>
-      {groups.length === 0 ? (
-        <EmptyRefresh icon="Users" sentence={t("muster.empty")} />
-      ) : (
-        groups.map((g) => (
-          <section
-            key={g.zoneId ?? "doors"}
-            aria-labelledby={`muster-${g.zoneId ?? "doors"}`}
-            className="flex flex-col gap-8 print:break-inside-avoid-page"
-          >
-            <h2 id={`muster-${g.zoneId ?? "doors"}`} className="m-0 text-text-14 font-semibold">
-              {zoneLabel(g.zoneId)} ·{" "}
-              {t("muster.zoneCount", {
-                count: g.rows.reduce((n, r) => n + 1 + (r.plusOnes ?? 0), 0),
-              })}
-            </h2>
-            {view === "list" ? (
-              <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0 text-text-13">
-                {g.rows.map((r, i) => (
-                  <li
-                    key={`${r.personId ?? r.guestName ?? ""}-${r.enteredAt}-${i}`}
-                    className="flex flex-col gap-2 py-6 print:break-inside-avoid"
-                  >
-                    <span className="font-semibold">{r.name ?? t("someone")}</span>
-                    <span className="text-text-secondary">
-                      {[
-                        place(r),
-                        since(r.enteredAt),
-                        t(`muster.sources.${SOURCE_KEY[r.source]}`),
-                        category(r),
-                        r.partyName ?? "",
-                        r.plusOnes ? t("muster.plusOnesLine", { count: r.plusOnes }) : "",
-                      ]
-                        .filter((part) => part !== "")
-                        .join(" · ")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-text-13">
-                  <caption className="sr-only">{zoneLabel(g.zoneId)}</caption>
-                  <thead className="[display:table-header-group]">
-                    <tr className="border-b border-border-subtle">
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.name")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.zone")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.since")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.source")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.category")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.party")}
-                      </th>
-                      <th scope="col" className="py-6 pr-12 font-semibold">
-                        {t("muster.plusOnes")}
-                      </th>
-                      <th scope="col" className="py-6 font-semibold">
-                        {t("muster.door")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {g.rows.map((r, i) => (
-                      <tr
-                        key={`${r.personId ?? r.guestName ?? ""}-${r.enteredAt}-${i}`}
-                        className="border-b border-border-subtle print:break-inside-avoid"
-                      >
-                        <th scope="row" className="py-6 pr-12 font-normal">
-                          {r.name ?? t("someone")}
-                        </th>
-                        <td className="py-6 pr-12">{place(r)}</td>
-                        <td className="py-6 pr-12">{since(r.enteredAt)}</td>
-                        <td className="py-6 pr-12">
-                          {t(`muster.sources.${SOURCE_KEY[r.source]}`)}
-                        </td>
-                        <td className="py-6 pr-12">{category(r)}</td>
-                        <td className="py-6 pr-12">{r.partyName ?? ""}</td>
-                        <td className="py-6 pr-12 tabular-nums">
-                          {r.plusOnes ? `+${r.plusOnes}` : ""}
-                        </td>
-                        <td className="py-6">{r.door ?? ""}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      <MusterLastRead failed={false} note={staleNote} fallback={null}>
+        <div className="flex flex-wrap items-end justify-between gap-16 print:hidden">
+          <div className="flex flex-wrap items-end gap-16">
+            {picker}
+            <form method="get" action={path} className="flex flex-wrap items-end gap-8">
+              <input type="hidden" name="project" value={project.id} />
+              <div className="flex flex-col gap-4">
+                <label htmlFor="muster-zone" className="text-label-13 font-medium">
+                  {t("muster.zone")}
+                </label>
+                <select
+                  id="muster-zone"
+                  name="zone"
+                  defaultValue={zoneId ?? ""}
+                  className="h-control-md max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-13"
+                >
+                  <option value="">{t("muster.allZones")}</option>
+                  {zoneList.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.code} · {z.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
-          </section>
-        ))
-      )}
+              <button
+                type="submit"
+                className="h-control-md rounded-control border border-border-control bg-bg-surface px-12 text-text-13 font-medium"
+              >
+                {t("site.show")}
+              </button>
+            </form>
+          </div>
+          <div className="flex flex-wrap items-center gap-8">
+            <MusterRefresh
+              updated={t("muster.updated", { time: since(new Date().toISOString()) })}
+              pauseLabel={t("muster.pause")}
+              resumeLabel={t("muster.resume")}
+            />
+            <PrintButton label={t("muster.print")} />
+          </div>
+        </div>
+        <div className="print:hidden">
+          <CollectionViews
+            label={t("muster.views")}
+            value={view}
+            options={VIEWS.map((v) => ({ value: v, label: t(`muster.view.${v}`) }))}
+          />
+        </div>
+        <p className="m-0 text-text-13 text-text-secondary">{t("muster.what")}</p>
+        {hidden.length > 0 ? (
+          <ul
+            aria-label={t("muster.hiddenLabel")}
+            className="m-0 flex list-disc flex-col gap-2 pl-20 text-text-13"
+          >
+            {hidden.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : null}
+        {cutShort ? (
+          <InlineAlert tone="warning">
+            {t("muster.truncated", { count: format.number(MUSTER_LIMIT) })}
+          </InlineAlert>
+        ) : null}
+        <p className="m-0 hidden text-text-13 print:block">
+          {project.key} {project.name} · {since(new Date().toISOString())}
+        </p>
+        {groups.length === 0 ? (
+          <EmptyRefresh icon="Users" sentence={t("muster.empty")} />
+        ) : (
+          groups.map((g) => (
+            <section
+              key={g.zoneId ?? "doors"}
+              aria-labelledby={`muster-${g.zoneId ?? "doors"}`}
+              className="flex flex-col gap-8 print:break-inside-avoid-page"
+            >
+              <h2 id={`muster-${g.zoneId ?? "doors"}`} className="m-0 text-text-14 font-semibold">
+                {zoneLabel(g.zoneId)} ·{" "}
+                {t("muster.zoneCount", {
+                  count: g.rows.reduce((n, r) => n + 1 + (r.plusOnes ?? 0), 0),
+                })}
+              </h2>
+              {view === "list" ? (
+                <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0 text-text-13">
+                  {g.rows.map((r, i) => (
+                    <li
+                      key={`${r.personId ?? r.guestName ?? ""}-${r.enteredAt}-${i}`}
+                      className="flex flex-col gap-2 py-6 print:break-inside-avoid"
+                    >
+                      <span className="font-semibold">{r.name ?? t("someone")}</span>
+                      <span className="text-text-secondary">
+                        {[
+                          place(r),
+                          since(r.enteredAt),
+                          t(`muster.sources.${SOURCE_KEY[r.source]}`),
+                          category(r),
+                          r.partyName ?? "",
+                          r.plusOnes ? t("muster.plusOnesLine", { count: r.plusOnes }) : "",
+                        ]
+                          .filter((part) => part !== "")
+                          .join(" · ")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-text-13">
+                    <caption className="sr-only">{zoneLabel(g.zoneId)}</caption>
+                    <thead className="[display:table-header-group]">
+                      <tr className="border-b border-border-subtle">
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.name")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.zone")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.since")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.source")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.category")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.party")}
+                        </th>
+                        <th scope="col" className="py-6 pr-12 font-semibold">
+                          {t("muster.plusOnes")}
+                        </th>
+                        <th scope="col" className="py-6 font-semibold">
+                          {t("muster.door")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.rows.map((r, i) => (
+                        <tr
+                          key={`${r.personId ?? r.guestName ?? ""}-${r.enteredAt}-${i}`}
+                          className="border-b border-border-subtle print:break-inside-avoid"
+                        >
+                          <th scope="row" className="py-6 pr-12 font-normal">
+                            {r.name ?? t("someone")}
+                          </th>
+                          <td className="py-6 pr-12">{place(r)}</td>
+                          <td className="py-6 pr-12">{since(r.enteredAt)}</td>
+                          <td className="py-6 pr-12">
+                            {t(`muster.sources.${SOURCE_KEY[r.source]}`)}
+                          </td>
+                          <td className="py-6 pr-12">{category(r)}</td>
+                          <td className="py-6 pr-12">{r.partyName ?? ""}</td>
+                          <td className="py-6 pr-12 tabular-nums">
+                            {r.plusOnes ? `+${r.plusOnes}` : ""}
+                          </td>
+                          <td className="py-6">{r.door ?? ""}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          ))
+        )}
+      </MusterLastRead>
     </CollectionPage>
   );
 }

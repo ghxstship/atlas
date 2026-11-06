@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { insideNow } from "../src/credentials.ts";
+import { credentialReviews, insideNow } from "../src/credentials.ts";
 import {
   getWeatherFeedBoard,
   guestByPassCode,
@@ -26,6 +26,7 @@ describe("Inside now", () => {
             zone_id: "z2",
             credential_category_id: "c1",
             engagement_id: "e1",
+            party_name: "Bayside Audio",
             inside: 3,
             last_entry_at: "2027-06-04T20:00:00Z",
           },
@@ -33,6 +34,7 @@ describe("Inside now", () => {
             zone_id: "z2",
             credential_category_id: "c2",
             engagement_id: null,
+            party_name: null,
             inside: 1,
             last_entry_at: "2027-06-04T20:10:00Z",
           },
@@ -40,6 +42,7 @@ describe("Inside now", () => {
             zone_id: "z1",
             credential_category_id: "c1",
             engagement_id: "e1",
+            party_name: "Bayside Audio",
             inside: 2,
             last_entry_at: "2027-06-04T19:00:00Z",
           },
@@ -63,10 +66,6 @@ describe("Inside now", () => {
           { id: "c2", project_id: "p", code: "VIP", name: "VIP" },
         ]),
       ],
-      "from:engagements": [
-        okResponse([{ id: "e1", person_id: null, counterparty: { name: "Bayside Audio" } }]),
-      ],
-      "rpc:person_names": [okResponse([])],
     });
     const result = await insideNow(db, { orgId: "o", projectId: "p", venueId: "v" });
     expect(result.ok).toBe(true);
@@ -83,6 +82,8 @@ describe("Inside now", () => {
       { id: null, label: null, inside: 1 },
     ]);
     expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "p"]]);
+    // The team comes from the view: a field reader holds the scan log without opportunities.engagement.read.
+    expect(calls.some((c) => c.target.includes("engagements"))).toBe(false);
   });
 
   it("reads nothing more when nobody is inside", async () => {
@@ -92,6 +93,49 @@ describe("Inside now", () => {
       data: [],
     });
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe("the accreditation checks of the Issued page", () => {
+  const review = (id: string) => ({
+    credential_id: id,
+    holder_source: "Member",
+    other_badges_on_project: 0,
+    same_name_on_project: 0,
+    duplicate_live: false,
+    missing_requirements: 0,
+    booked_elsewhere: false,
+  });
+
+  it("reads every credential a batch at a time, so nothing past the first 500 goes unchecked", async () => {
+    const ids = Array.from({ length: 1203 }, (_, i) => `c${i}`);
+    const { db, calls } = fakeClient({
+      "rpc:credential_review": [
+        okResponse(ids.slice(0, 500).map(review)),
+        okResponse(ids.slice(500, 1000).map(review)),
+        okResponse(ids.slice(1000).map(review)),
+      ],
+    });
+    const result = await credentialReviews(db, ids);
+    expect(result.ok && result.data.size).toBe(1203);
+    expect(calls).toHaveLength(3);
+  });
+
+  it("asks nothing for no credentials, and fails whole when a batch fails", async () => {
+    const empty = fakeClient({});
+    expect(await credentialReviews(empty.db, [])).toEqual({ ok: true, data: new Map() });
+    expect(empty.calls).toHaveLength(0);
+    const ids = Array.from({ length: 501 }, (_, i) => `c${i}`);
+    const { db } = fakeClient({
+      "rpc:credential_review": [
+        okResponse(ids.slice(0, 500).map(review)),
+        {
+          data: null,
+          error: { code: "57014", message: "canceling statement due to statement timeout" },
+        },
+      ],
+    });
+    expect((await credentialReviews(db, ids)).ok).toBe(false);
   });
 });
 

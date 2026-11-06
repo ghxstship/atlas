@@ -103,7 +103,11 @@ export async function WeatherSection({
   const canConfigure = ctx.capabilities.has("safety.emergency_code.write");
   const canRecord = ctx.role !== "viewer";
   const when = (d: string) =>
-    format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
+    format.dateTime(new Date(d), {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: project.timeZone,
+    });
   const active = board.data.alerts.filter((a) => a.clearedAt === null);
   const roleName = (code: string) => {
     const r = roles.ok ? roles.data.find((x) => x.code === code) : undefined;
@@ -255,7 +259,11 @@ export async function WeatherSection({
               ]}
               rows={feed.forecast.map((p) => ({
                 id: p.startsAt,
-                time: format.dateTime(new Date(p.startsAt), { weekday: "short", hour: "numeric" }),
+                time: format.dateTime(new Date(p.startsAt), {
+                  weekday: "short",
+                  hour: "numeric",
+                  timeZone: project.timeZone,
+                }),
                 temperature:
                   p.temperatureF === null
                     ? ""

@@ -27,6 +27,8 @@ export function GuestEmailTrigger(props: {
 }) {
   const t = useCopy("advancing.guests.email");
   const [open, setOpen] = useState(false);
+  // A dialog that has sent starts again when it closes: an Invitation is often followed by a Pass.
+  const [round, setRound] = useState(0);
   const loaded = useOnDemand(dialog, open);
   return (
     <>
@@ -39,7 +41,17 @@ export function GuestEmailTrigger(props: {
       >
         {t("action")}
       </Button>
-      {loaded ? <loaded.GuestEmailDialog {...props} open={open} onOpenChange={setOpen} /> : null}
+      {loaded ? (
+        <loaded.GuestEmailDialog
+          key={round}
+          {...props}
+          open={open}
+          onOpenChange={(next, sent) => {
+            setOpen(next);
+            if (!next && sent) setRound((r) => r + 1);
+          }}
+        />
+      ) : null}
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { Button, Dialog, InlineAlert, Input, MultiSelect, Select, Textarea } from "@xos/ui";
 import type { GuestEmailKind } from "@xos/data/advancing";
 import { useActionState, useId, useMemo, useState } from "react";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
@@ -8,12 +8,16 @@ import { sendGuestEmailAction, type GuestEmailState } from "./guest-actions";
 import type { EmailableGuest } from "./guest-email-types";
 import { useCopy } from "./use-copy";
 
+/** The most guests one send takes (guest_email_batch, 2975). */
+const BATCH_LIMIT = 500;
+
 /**
- * Email guests (B8, gap G-71, app.queue_guest_emails): the guests to email, chosen in the dialog, then an invitation,
- * their pass (the A6 guest-pass PDF attached) or a message with a subject and text, in English or Spanish. The dialog
- * says how many will be skipped before it sends; the database also suppresses addresses on the org's list, and the
- * counts it answers say so. Every guest email carries the unsubscribe link and the postal address. Loaded on demand by
- * GuestEmailTrigger on its first hover, focus or click, so the guest list carries none of its code.
+ * Email guests (B8, gap G-71, app.queue_guest_emails): every guest or the ones chosen, then an invitation, their pass
+ * (the A6 guest-pass PDF attached) or a message with a subject and text, in English or Spanish. A list past the batch
+ * limit starts on the first 500 who can get this kind and says so. The dialog says how many will be skipped before it
+ * sends; the database also suppresses addresses on the org's list, and the counts it answers say so. Every guest email
+ * carries the unsubscribe link and the postal address. Loaded on demand by GuestEmailTrigger on its first hover, focus
+ * or click, so the guest list carries none of its code; the trigger starts it again after a send.
  */
 export function GuestEmailDialog({
   org,
@@ -33,19 +37,30 @@ export function GuestEmailDialog({
   kinds: readonly GuestEmailKind[];
   locale: "en-US" | "es-US";
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  /** Whether to show it, and whether this dialog has sent, so a later opening starts again for the next send. */
+  onOpenChange: (open: boolean, sent: boolean) => void;
 }) {
   const t = useCopy("advancing.guests.email");
   const errors = useCopy("advancing.errors");
   const common = useCopy("advancing.common");
   const formId = useId();
   const [kind, setKind] = useState<GuestEmailKind>("Invitation");
-  const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(guests.map((g) => g.id)));
+  const [audience, setAudience] = useState<"all" | "chosen">("all");
+  const [chosen, setChosen] = useState<readonly string[]>([]);
   const [state, run, pending] = useActionState<GuestEmailState, FormData>(sendGuestEmailAction, {});
   const skipOf = (g: EmailableGuest) => (kind === "Pass" ? g.skip.pass : g.skip.any);
-  const selected = guests.filter((g) => chosen.has(g.id));
+  // Those who can get this kind first, so a list past the batch limit does not spend the send on skipped guests.
+  const everyone = [...guests].sort(
+    (a, b) => Number(skipOf(a) !== null) - Number(skipOf(b) !== null),
+  );
+  const selected =
+    audience === "all"
+      ? everyone.slice(0, BATCH_LIMIT)
+      : guests.filter((g) => chosen.includes(g.id));
+  const overLimit = audience === "chosen" && selected.length > BATCH_LIMIT;
   const skipped = selected.filter((g) => skipOf(g) !== null).length;
   const sending = selected.length - skipped;
+  const close = (next: boolean) => onOpenChange(next, state.ok === true);
   const preview = useMemo(
     () => t(`previews.${kind}`, { project: projectName }),
     [kind, projectName, t],
@@ -55,10 +70,10 @@ export function GuestEmailDialog({
       title={t("title")}
       description={t("what")}
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={close}
       actions={
         <>
-          <Button variant="secondary" type="button" onClick={() => onOpenChange(false)}>
+          <Button variant="secondary" type="button" onClick={() => close(false)}>
             {common("cancel")}
           </Button>
           <Button
@@ -66,7 +81,7 @@ export function GuestEmailDialog({
             type="submit"
             form={formId}
             loading={pending}
-            disabled={sending === 0 || state.ok === true}
+            disabled={sending === 0 || overLimit || state.ok === true}
           >
             {t("confirm", { count: sending })}
           </Button>
@@ -148,34 +163,39 @@ export function GuestEmailDialog({
             {preview}
           </p>
         </section>
-        <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-          <legend className="text-text-13 font-semibold">{t("recipients")}</legend>
-          <ul className="m-0 flex list-none flex-col gap-4 p-0">
-            {guests.map((g) => {
+        <Select
+          id={`${formId}-audience`}
+          label={t("audience")}
+          value={audience}
+          onChange={(event) => setAudience(event.target.value === "chosen" ? "chosen" : "all")}
+          options={[
+            { value: "all", label: t("audienceAll", { count: guests.length }) },
+            { value: "chosen", label: t("audienceChosen") },
+          ]}
+        />
+        {audience === "chosen" ? (
+          <MultiSelect
+            id={`${formId}-guests`}
+            label={t("recipients")}
+            value={[...chosen]}
+            onChange={setChosen}
+            options={guests.map((g) => {
               const skip = skipOf(g);
-              return (
-                <li key={g.id}>
-                  <Checkbox
-                    id={`${formId}-${g.id}`}
-                    label={
-                      skip ? `${g.name} (${t(`skipReasons.${skip.replace(/ /g, "")}`)})` : g.name
-                    }
-                    checked={chosen.has(g.id)}
-                    onChange={(event) => {
-                      const checked = event.target.checked;
-                      setChosen((prev) => {
-                        const next = new Set(prev);
-                        if (checked) next.add(g.id);
-                        else next.delete(g.id);
-                        return next;
-                      });
-                    }}
-                  />
-                </li>
-              );
+              return {
+                value: g.id,
+                label: skip ? `${g.name} (${t(`skipReasons.${skip.replace(/ /g, "")}`)})` : g.name,
+              };
             })}
-          </ul>
-        </fieldset>
+          />
+        ) : null}
+        {audience === "all" && guests.length > BATCH_LIMIT ? (
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("batchFirst", { count: BATCH_LIMIT })}
+          </p>
+        ) : null}
+        {overLimit ? (
+          <InlineAlert tone="warning">{t("batchOver", { count: BATCH_LIMIT })}</InlineAlert>
+        ) : null}
         {skipped > 0 ? (
           <p className="m-0 text-text-13 text-text-secondary" role="status">
             {t("willSkip", { count: skipped })}

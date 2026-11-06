@@ -56,6 +56,7 @@ import {
 } from "@/lib/credentials/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
+import { InlineAlert } from "@/components/collection-kit/ui";
 import { CredentialBadge } from "./client";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { CollectionPage } from "@/components/platform/collection-page";
@@ -134,7 +135,8 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   const listed = unwrap(all, "issued credentials").filter(
     (c) => !statusFilter || credentialStatus(c, now) === statusFilter,
   );
-  // The accreditation checks of the listed credentials, in one call (2973); the page still lists without them.
+  // The accreditation checks of the listed credentials (2973). The page still lists without them, says so, and does not
+  // filter on them, because an empty Needs attention would read as nothing needing attention.
   const reviewResult = await credentialReviews(
     page.ctx.viewer.db,
     listed.map((c) => c.id),
@@ -142,12 +144,13 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   const reviews: ReadonlyMap<string, CredentialReview> = reviewResult.ok
     ? reviewResult.data
     : new Map();
-  const issued = attention
-    ? listed.filter((c) => {
-        const r = reviews.get(c.id);
-        return r !== undefined && needsAttention(r);
-      })
-    : listed;
+  const issued =
+    attention && reviewResult.ok
+      ? listed.filter((c) => {
+          const r = reviews.get(c.id);
+          return r !== undefined && needsAttention(r);
+        })
+      : listed;
   const categoryList = unwrap(categories, "credential categories");
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
@@ -320,6 +323,9 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           },
         ]}
       />
+      {reviewResult.ok ? null : (
+        <InlineAlert tone="warning">{t("credentials.checks.unavailable")}</InlineAlert>
+      )}
       {creating && canIssue ? (
         page.project ? (
           <IssueForm page={page} project={page.project} categories={categoryList} />

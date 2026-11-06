@@ -1,6 +1,6 @@
 import type { XosClient } from "./client.ts";
 import type { Database } from "./database.types.ts";
-import { fillPersonNames, personNames } from "./person-names.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -1106,14 +1106,32 @@ export function needsAttention(review: CredentialReview): boolean {
   );
 }
 
-/** The review rows of the listed credentials (at most 500, a page's worth), in one call. */
+/** The most credentials one call of app.credential_review answers (2973). */
+const REVIEW_BATCH = 500;
+
+/**
+ * The review rows of the listed credentials, however many, a batch at a time: a project can issue thousands of badges,
+ * and a check missing past the first batch would read as nothing needing attention. Any batch failing fails the whole.
+ */
 export async function credentialReviews(
   db: XosClient,
   credentialIds: readonly string[],
 ): Promise<Result<Map<string, CredentialReview>>> {
-  if (credentialIds.length === 0) return ok(new Map());
+  const reviews = new Map<string, CredentialReview>();
+  for (let start = 0; start < credentialIds.length; start += REVIEW_BATCH) {
+    const batch = await credentialReviewBatch(db, credentialIds.slice(start, start + REVIEW_BATCH));
+    if (!batch.ok) return batch;
+    for (const [id, review] of batch.data) reviews.set(id, review);
+  }
+  return ok(reviews);
+}
+
+async function credentialReviewBatch(
+  db: XosClient,
+  credentialIds: readonly string[],
+): Promise<Result<Map<string, CredentialReview>>> {
   const { data, error } = await db.rpc("credential_review", {
-    p_credential_ids: [...credentialIds].slice(0, 500),
+    p_credential_ids: [...credentialIds],
   });
   if (error) return fail(toDataError(error));
   const rows = (data ?? []) as {
@@ -1185,6 +1203,8 @@ export interface ZoneCount {
   readonly zoneId: string;
   readonly credentialCategoryId: string | null;
   readonly engagementId: string | null;
+  /** The engagement's account, else its person, from the view: a reader of the scan log need not read engagements. */
+  readonly partyName: string | null;
   readonly inside: number;
   readonly lastEntryAt: string | null;
 }
@@ -1195,13 +1215,14 @@ export async function zoneCountsLive(
 ): Promise<Result<ZoneCount[]>> {
   const { data, error } = await db
     .from("zone_counts_live")
-    .select("zone_id, credential_category_id, engagement_id, inside, last_entry_at")
+    .select("zone_id, credential_category_id, engagement_id, party_name, inside, last_entry_at")
     .eq("project_id", projectId);
   if (error) return fail(toDataError(error));
   const rows = (data ?? []) as {
     zone_id: string;
     credential_category_id: string | null;
     engagement_id: string | null;
+    party_name: string | null;
     inside: number;
     last_entry_at: string | null;
   }[];
@@ -1210,6 +1231,7 @@ export async function zoneCountsLive(
       zoneId: r.zone_id,
       credentialCategoryId: r.credential_category_id,
       engagementId: r.engagement_id,
+      partyName: r.party_name,
       inside: r.inside,
       lastEntryAt: r.last_entry_at,
     })),
@@ -1271,30 +1293,11 @@ export async function insideNow(
   ]);
   if (!zones.ok) return zones;
   if (!categories.ok) return categories;
-  const engagementIds = [
-    ...new Set(counts.data.flatMap((c) => (c.engagementId ? [c.engagementId] : []))),
-  ];
-  const teams = new Map<string, string>();
-  if (engagementIds.length > 0) {
-    const { data, error } = await untyped(db)
-      .from("engagements")
-      .select("id, person_id, counterparty:counterparties(name)")
-      .in("id", engagementIds);
-    if (error) return fail(toDataError(error));
-    const rows = (data ?? []) as unknown as {
-      id: string;
-      person_id: string | null;
-      counterparty: { name: string | null } | null;
-    }[];
-    const names = await personNames(
-      db,
-      rows.map((r) => r.person_id),
-    );
-    for (const r of rows) {
-      const label = r.counterparty?.name ?? (r.person_id ? names.get(r.person_id) : undefined);
-      if (label) teams.set(r.id, label);
-    }
-  }
+  const teams = new Map(
+    counts.data.flatMap((c) =>
+      c.engagementId && c.partyName ? [[c.engagementId, c.partyName] as const] : [],
+    ),
+  );
   const categoryLabels = new Map(categories.data.map((c) => [c.id, `${c.code} · ${c.name}`]));
   const byZone = new Map<string, ZoneCount[]>();
   for (const c of counts.data) byZone.set(c.zoneId, [...(byZone.get(c.zoneId) ?? []), c]);

@@ -25,6 +25,7 @@ import { overrideScanAction, recordScanAction } from "@/lib/credentials/actions"
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { ScanIntakeQueue } from "./scan-intake";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { InlineAlert } from "@/components/collection-kit/ui";
 import { InsideNow } from "./inside-now";
 import { ResultChip } from "./scan-rows";
 
@@ -67,16 +68,14 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
         )
       : [];
   const timeZone = page.project?.timeZone;
+  // The counts are the top of the page, not the page: if they cannot be read, the scan log below still stands.
   const inside =
     page.project && can(page, "credentials.scan_log.read")
-      ? unwrap(
-          await insideNow(page.ctx.viewer.db, {
-            orgId: page.ctx.org.id,
-            projectId: page.project.id,
-            venueId: page.project.venueId,
-          }),
-          "insideNow",
-        )
+      ? await insideNow(page.ctx.viewer.db, {
+          orgId: page.ctx.org.id,
+          projectId: page.project.id,
+          venueId: page.project.venueId,
+        })
       : null;
   // Denied In scans a supervisor may still let in: under 15 minutes old and not overridden yet (2970).
   const overridden = new Set(
@@ -172,13 +171,16 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
           },
         ]}
       />
-      {inside && page.project ? (
+      {inside?.ok && page.project ? (
         <InsideNow
           org={page.ctx.org.slug}
           projectKey={page.project.key}
-          initial={{ zones: inside, at: new Date().toISOString() }}
+          initial={{ zones: inside.data, at: new Date().toISOString() }}
           timeZone={page.project.timeZone}
         />
+      ) : null}
+      {inside && !inside.ok ? (
+        <InlineAlert tone="warning">{t("credentials.insideNow.unavailable")}</InlineAlert>
       ) : null}
       {canScan && page.project && zones.length > 0 ? (
         <RecordSection id="scan-desk" title={t("credentials.scans.deskHeading")}>
