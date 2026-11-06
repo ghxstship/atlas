@@ -97,6 +97,10 @@ create table app.sensitive_data_consents (
     references private.sensitive_notice_versions (category, notice_version)
 );
 
+-- Withdrawing stays possible while an org is canceled and read-only (GDPR Article 7(3)).
+insert into private.read_only_exempt_tables (table_name, rationale) values
+  ('app.sensitive_data_consents', 'A person withdraws consent at any time, also while the org is read-only; a new attestation is refused by its RPC.');
+
 create index sensitive_data_consents_person_id_idx on app.sensitive_data_consents (person_id);
 create index sensitive_data_consents_account_id_idx on app.sensitive_data_consents (account_id);
 create index sensitive_data_consents_guest_list_entry_id_idx on app.sensitive_data_consents (guest_list_entry_id);

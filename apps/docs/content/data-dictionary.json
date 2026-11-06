@@ -67471,7 +67471,7 @@
           "type": "timestamp with time zone"
         },
         {
-          "comment": "When a value from before consent was recorded started waiting for it; the daily job clears it 30 days later (6163).",
+          "comment": "When a value from before consent was recorded started waiting for it; the daily job clears it 30 days after telling the person (6163).",
           "name": "awaiting_since",
           "nullable": true,
           "references": null,

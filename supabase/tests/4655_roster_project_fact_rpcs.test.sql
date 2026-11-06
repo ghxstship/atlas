@@ -123,6 +123,34 @@ select pg_temp.as_user('victor');
 select lives_ok(pg_temp.vehicle('e_mo'), 'the Account Owner enters mo''s vehicle once the project allows it');
 select pg_temp.as_platform();
 select is(pg_temp.notified('mo', 'roster_entry.project_facts_entered', 'e_mo'), 1, 'mo is notified');
+-- ADR 0164: a meal preference needs the company's attestation, and the person is told and removes it.
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegetarian')$$, pg_temp.id('e_mo')),
+  'sensitive_consent_required:%', 'the company enters no meal preference without an attestation');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true)$$, pg_temp.id('e_mo')),
+  'sensitive_attestation_required:%', 'and the attestation needs both statements');
+select lives_ok(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'the company attests');
+select ok(app.roster_meal_consent_stands(pg_temp.id('e_mo')), 'so the form shows the field');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegetarian')$$, pg_temp.id('e_mo')),
+  'and the company enters it');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications n where n.recipient_person_id = pg_temp.id('mo') and n.kind = 'account.sensitive_data_attested'), 1,
+  'the person is told');
+select pg_temp.as_user('mo');
+select is((select count(*)::int from app.sensitive_entries_about_me()), 1, 'she sees the attestation');
+select lives_ok($$select app.remove_sensitive_entry((select consent_id from app.sensitive_entries_about_me()))$$, 'and removes it');
+select pg_temp.as_platform();
+select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'the value goes with it');
+select pg_temp.as_user('mo');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
+select app.withdraw_sensitive_consent('Dietary and Allergies');
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'sensitive_person_withdrew:%', 'a person who withdrew is not attested back in');
+select pg_temp.as_platform();
+update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.id('e_mo');
+
 select pg_temp.as_user('pia');
 select lives_ok(pg_temp.vehicle('e_mo', 'Toyota'), 'the Advancing Lead corrects it');
 select pg_temp.as_platform();

@@ -15,6 +15,12 @@ derived:
     reason: Compass PowerSync filters rows by project without a join (Section 13)
     adr: "0022"
   - objects:
+      - app.guest_care_needs.project_id
+    source: "`app.guest_list_entries.project_id`"
+    refresh: Written from the guest entry by `app.set_guest_care_needs`; a guest stays on its project
+    reason: The project's read policy and the read of a project's guest needs need no join
+    adr: "0164"
+  - objects:
       - app.live_links.project_id
     source: "`app.run_of_show.project_id`"
     refresh: Stamped by trigger for a Display link; a link never changes what it shows (3780)
@@ -341,6 +347,12 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.guest_care_needs.accessibility_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6162).
+  - column: app.guest_care_needs.dietary_needs
+    kind: reviewed
+    note: A set of fixed enum values, never joined on; a free-text note carries the rest (migration 6162).
   - column: app.mcp_connectors.default_scopes
     kind: reviewed
     note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).
@@ -852,6 +864,10 @@ restated:
     parent: app.projects.archived_at
     kind: own
     note: When the group was archived.
+  - column: app.guest_care_needs.project_id
+    parent: app.guest_list_entries.project_id
+    kind: registered
+    note: Written from the guest entry by `app.set_guest_care_needs`, so the project's read policy needs no join (ADR 0164).
   - column: app.guest_list_entries.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -1378,6 +1394,26 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Venue of a standing venue or show node, not the project's primary venue.
+  - column: app.sensitive_data_consents.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the data is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.account_id
+    parent: app.sensitive_data_consents.account_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact and goes when it does, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.guest_list_entry_id
+    parent: app.sensitive_data_consents.guest_list_entry_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person the field is about; on a guest entry, person_id names whose list the guest is on, a different person (ADR 0164).
+  - column: app.sensitive_field_records.person_id
+    parent: app.sensitive_data_consents.person_id
+    kind: own
+    note: The subject of the field; the consent is a separate fact, and a value from before consent has none (ADR 0164).
   - column: app.service_accounts.person_id
     parent: app.memberships.person_id
     kind: finding
@@ -2103,6 +2139,12 @@ tenant_exceptions:
   - table: app.profile_section_visibility
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.sensitive_data_consents
+    kind: person-owned
+    note: Evidence of consent, written only by the database, keyed by the person, company or guest it is about; it is withdrawn, never deleted, and has no soft delete (ADR 0164).
+  - table: app.sensitive_field_records
+    kind: person-owned
+    note: The field-level record of sensitive data, written only by the database and holding no value (ADR 0164).
   - table: app.shortcut_bindings
     kind: person-owned
     note: Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).

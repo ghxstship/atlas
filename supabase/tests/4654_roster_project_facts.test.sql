@@ -66,6 +66,9 @@ select is((select count(*)::int from private.trash_excluded_tables
 
 -- Reads and writes ----------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('kai');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'mia', 'MIA', '2027-06-01', '2027-06-04', 'Aisle', 'Vegetarian', true, true, null)$$,
+  pg_temp.id('e_kai')), 'sensitive_consent_required:%', 'a meal preference needs her consent (ADR 0164)');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
 select lives_ok(format($$select app.save_roster_travel_request(%L, 'mia', 'MIA', '2027-06-01', '2027-06-04', 'Aisle', 'Vegetarian', true, true, null)$$,
   pg_temp.id('e_kai')), 'kai saves a travel request');
 select lives_ok(format($$select app.save_roster_vehicle(%L, 'Ford', 'Transit', 'White', 'abc 12-34', 'us-fl')$$, pg_temp.id('e_kai')),
