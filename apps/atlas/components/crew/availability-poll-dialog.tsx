@@ -58,7 +58,6 @@ export function AvailabilityPollDialog({
   const ready =
     projectId !== "" && title.trim() !== "" && days.length > 0 && !tooMany && picked.length > 0;
 
-
   const send = () =>
     start(async () => {
       const result = await sendAvailabilityPollAction(org, {
