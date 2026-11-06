@@ -129,16 +129,12 @@ comment on table private.age_refusals is 'Each time someone answered that they a
 comment on column private.age_refusals.id is 'Refusal id (UUID v7).';
 comment on column private.age_refusals.surface is 'Where the person answered: Atlas, Gateway or Compass.';
 comment on column private.age_refusals.minimum_age is 'The minimum age the person answered they do not meet.';
-comment on column private.age_refusals.outcome is 'No Account: answered before any account existed. Account Removed: an account with no org behind it was removed entirely. Account Closed: an account with org records was deleted as app.delete_my_account does, and orgs keep the records the law requires. Account Held: a legal hold, an open shift or being the only owner stops deletion, so the sign-in stays and is asked again.';
+comment on column private.age_refusals.outcome is 'No Account: answered before any account existed. Account Removed: an account with no org behind it and nothing written was removed entirely. Account Closed: the account was deleted as app.delete_my_account does, and orgs keep the records the law requires. Account Held: a legal hold, an open shift or being the only owner stops deletion, so the sign-in stays and is asked again.';
 comment on column private.age_refusals.refused_at is 'When the person answered. Set by the database.';
 
 alter table private.age_refusals enable row level security;
 revoke all on private.age_refusals from public, anon, authenticated;
 grant select on private.age_refusals to service_role;
-
-insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
-  ('private.age_refusals', 'Age', 'refused_at', interval '7 years', 'Delete', 'Evidence the age rule was applied, kept under the general rule. The rows identify no one.')
-on conflict (table_name) do nothing;
 
 create or replace function api_public.record_age_refusal(p_surface text)
 returns boolean
@@ -195,23 +191,31 @@ begin
     return jsonb_build_object('outcome', 'Account Held', 'reason', v_blocker ->> 'code', 'org_name', v_blocker ->> 'org_name');
   end if;
 
+  v_email := (select lower(u.email) from auth.users u where u.id = v_uid);
+
   -- A person some org has records about: those records stay as the law requires, so the deletion runs as it always does.
   if exists (select 1 from private.person_related_org_ids(v_person)) then
-    v_email := (select lower(u.email) from auth.users u where u.id = v_uid);
     perform app.delete_my_account(v_email);
     insert into private.age_refusals (surface, outcome) values (p_surface, 'Account Closed');
     return jsonb_build_object('outcome', 'Account Closed');
   end if;
 
-  -- No org behind the account: nothing has to stay, so neither the sign-in nor the person remains.
-  delete from auth.users where id = v_uid;
-  delete from app.people where id = v_person;
+  -- No org behind the account: nothing has to stay, so neither the sign-in nor the person remains. Something the person
+  -- wrote before answering (an earlier acceptance, a profile) can still hold the row, and then the deletion runs as usual.
+  begin
+    delete from auth.users where id = v_uid;
+    delete from app.people where id = v_person;
+  exception when foreign_key_violation or restrict_violation then
+    perform app.delete_my_account(v_email);
+    insert into private.age_refusals (surface, outcome) values (p_surface, 'Account Closed');
+    return jsonb_build_object('outcome', 'Account Closed');
+  end;
   insert into private.age_refusals (surface, outcome) values (p_surface, 'Account Removed');
   return jsonb_build_object('outcome', 'Account Removed');
 end;
 $$;
 
-comment on function app.refuse_minimum_age(text) is 'The signed-in person answered that they are under 18 (Section 14.3, 14.9). An account with no org behind it is removed entirely. One with org records is deleted as app.delete_my_account does, so orgs keep what the law requires and learn only of an erasure. A legal hold, an open shift or being the only owner stops deletion, and the answer names why. Each case records one row in private.age_refusals, which identifies no one. Refuses an account that has already confirmed 18.';
+comment on function app.refuse_minimum_age(text) is 'The signed-in person answered that they are under 18 (Section 14.3, 14.9). An account with no org behind it and nothing written is removed entirely. Otherwise it is deleted as app.delete_my_account does, so orgs keep what the law requires and learn only of an erasure. A legal hold, an open shift or being the only owner stops deletion, and the answer names why. Each case records one row in private.age_refusals, which identifies no one. Refuses an account that has already confirmed 18.';
 revoke all on function app.refuse_minimum_age(text) from public, anon;
 grant execute on function app.refuse_minimum_age(text) to authenticated, service_role;
 

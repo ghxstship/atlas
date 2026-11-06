@@ -1,6 +1,11 @@
 # ADR 0156: One Minimum Age of 18, Compass First Sign-In Acceptance and the AI Choice
 
-Status: Proposed. These calls were made by AI under the owner's instruction to choose the most future-proof, legally defensible option. No attorney has reviewed them.
+- Status: Proposed
+- Date: 2026-11-06
+- Decider: AI, under the owner's instruction to choose the most future-proof, legally defensible option. No attorney has reviewed these calls.
+- Addresses: legal issue 4 (RRR-248)
+- Migrations: 6155 (range 6155 to 6159)
+- Amends: ADR 0033 decision 54 (the minimum age of 16)
 
 ## Context
 

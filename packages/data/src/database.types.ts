@@ -73207,6 +73207,7 @@ export type Database = {
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
+      minimum_age_outdated: { Args: Record<PropertyKey, never>; Returns: boolean };
       mint_approval_link_code: { Args: { p_delivery_id: string }; Returns: string };
       mint_notification_action_tokens: {
         Args: { p_delivery_id: string };
@@ -73331,6 +73332,7 @@ export type Database = {
           source: Database["app"]["Enums"]["credential_photo_source"];
         }[];
       };
+      my_legal_standing: { Args: Record<PropertyKey, never>; Returns: Json };
       my_mandatory_reads: {
         Args: { p_org_id: string };
         Returns: {
@@ -74133,6 +74135,15 @@ export type Database = {
         };
         Returns: string;
       };
+      record_ai_choice: {
+        Args: {
+          p_choice: string;
+          p_client_ip?: unknown;
+          p_disclosure_version: string;
+          p_surface: string;
+        };
+        Returns: string;
+      };
       record_asset_custody: {
         Args: {
           p_asset_unit_id: string;
@@ -74665,6 +74676,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      refuse_minimum_age: { Args: { p_surface: string }; Returns: Json };
       regenerate_live_link: {
         Args: { p_live_link_id: string };
         Returns: {

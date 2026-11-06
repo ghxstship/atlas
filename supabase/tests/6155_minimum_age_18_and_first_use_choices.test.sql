@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(46);
+select plan(48);
 
 create function pg_temp.sign_up(p_key text, p_email text, p_meta jsonb) returns void
 language plpgsql as $$
@@ -80,6 +80,24 @@ select is((select count(*)::int from auth.users where id = pg_temp.id('minor_use
 select is((select count(*)::int from app.people where id = pg_temp.id('minor')), 0, 'and so is the person');
 select is((select count(*)::int from private.age_refusals where outcome = 'Account Removed' and surface = 'Compass'), 1,
   'one anonymous row records it');
+
+-- An account that wrote something before answering: the row stays with no name, and the sign-in goes.
+select pg_temp.sign_up('wrote', 'wrote@age18.test', '{"full_name": "Wren Wrote"}');
+select pg_temp.as_user('wrote');
+select app.record_legal_acceptances(null, array['worker-terms'], array['1.0.0-draft']);
+select is(app.refuse_minimum_age('Gateway') ->> 'outcome', 'Account Closed', 'an account that wrote something closes as a deletion does');
+select pg_temp.as_platform();
+select is((select count(*)::int from auth.users where id = pg_temp.id('wrote_user')), 0, 'its sign-in is gone');
+select ok((select full_name is null from app.people where id = pg_temp.id('wrote')), 'and it keeps no name');
+
+-- A legal hold, an open shift or being the only owner stops deletion: the answer says why, and the person stays uncounted as 18.
+select pg_temp.sign_up('owner', 'owner@age18.test', '{"full_name": "Olive Owner"}');
+select pg_temp.as_user('owner');
+select app.create_organization('Olive Owns', 'olive-owns-age18');
+select is(app.refuse_minimum_age('Atlas') ->> 'outcome', 'Account Held', 'the only owner of an org cannot be deleted by this question');
+select is(app.refuse_minimum_age('Atlas') ->> 'reason', 'account_delete_sole_owner', 'and the answer says why');
+select pg_temp.as_platform();
+select is((select count(*)::int from auth.users where id = pg_temp.id('owner_user')), 1, 'the sign-in stays');
 
 select pg_temp.as_user('adult');
 select throws_ok($$select app.refuse_minimum_age('Atlas')$$, 'XR001', null, 'an account that confirmed 18 cannot be closed by this question');

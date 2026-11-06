@@ -10,6 +10,7 @@
  */
 import type { AuroraClient, AuroraProblem } from "@xos/ai/client";
 import { uuidv7, type MutationInput } from "@xos/sync";
+import type { AiChoiceState } from "./legalGate";
 
 /** A budget line as the picker shows it (source budget_lines): no amounts. */
 export interface BudgetLineRow {
