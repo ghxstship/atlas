@@ -6,14 +6,15 @@ import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { revealSharedPassportAction } from "@/lib/work-details/actions";
 import { WorkDetailsForm } from "./form";
-import { CategoryBlock, categoryBody, workDetailLabel } from "./shared-categories";
+import { CategoryBlock, MedicalBlock, categoryBody, workDetailLabel } from "./shared-categories";
 
 /**
  * The engaging org's view of what the engagement's person shared (Section 4.5.6 item 10): only the
  * categories the person shared with this engagement, only while it is open, and only those the
  * viewer's project capabilities cover. The passport number stays masked; a holder of the
- * government-id capability reveals it with a reason. Each view is logged in the person's access log
- * and the org's audit ledger by app.shared_work_details.
+ * government-id capability reveals it with a reason. Allergies are Restricted (R6a): only a holder
+ * of data.restricted.read.medical on the project reads them, here and in the Medical block. Each view
+ * is logged in the person's access log and the org's audit ledger by app.shared_work_details.
  */
 
 const P = "workDetails";
@@ -58,11 +59,14 @@ export async function SharedWorkDetailsSection({
             {t(`${P}.org.description`, { name })}
           </p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-8">
-            {shared.data.categories.map((c) => (
-              <CategoryBlock key={c} title={workDetailLabel(wd, "categories", c)}>
-                {categoryBody(c, shared.data, wd, (e164) => formatPhone(e164, region))}
-              </CategoryBlock>
-            ))}
+            {shared.data.categories
+              .filter((c) => c !== "Uniform Sizes")
+              .map((c) => (
+                <CategoryBlock key={c} title={workDetailLabel(wd, "categories", c)}>
+                  {categoryBody(c, shared.data, wd, (e164) => formatPhone(e164, region))}
+                </CategoryBlock>
+              ))}
+            <MedicalBlock d={shared.data} t={wd} />
           </div>
           {shared.data.passport?.passportNumberMasked &&
           ctx.capabilities.has("data.restricted.read.government_id") ? (

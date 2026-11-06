@@ -1,4 +1,5 @@
 import type { Engagement } from "@xos/data/gateway";
+import type { ExternalRoleType as SitemapRoleType } from "@xos/ia";
 
 /**
  * What an engagement's state means for its tabs (Section 8.7 time box). Operational records open
@@ -7,6 +8,11 @@ import type { Engagement } from "@xos/data/gateway";
  */
 
 type State = Engagement["state"];
+
+/** Sitemap role type keys for the stored external role types. */
+export function sitemapRoleType(stored: Engagement["roleType"]): SitemapRoleType {
+  return stored.toLowerCase().replace(/\s+/g, "-") as SitemapRoleType;
+}
 
 /** A row of the engagement Overview's property card. */
 export type OverviewRow =

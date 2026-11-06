@@ -141,21 +141,26 @@ export interface CredentialCategory {
   readonly projectKey: string;
   readonly code: string;
   readonly name: string;
+  /** Access for a badge, Parking for a parking pass (R7, 2691). */
+  readonly kind: CredentialCategoryKind;
   /** Credentials of this category that are not revoked. */
   readonly activeCount: number;
 }
+
+export type CredentialCategoryKind = "Access" | "Parking";
 
 interface CategoryRow {
   id: string;
   project_id: string;
   code: string;
   name: string;
+  category_kind: CredentialCategoryKind | null;
   project: { project_key: string } | null;
   credentials: { revoked_at: string | null; deleted_at: string | null }[] | null;
 }
 
 const CATEGORY_COLUMNS =
-  "id, project_id, code, name, project:projects!credential_categories_project_id_fkey(project_key), credentials(revoked_at, deleted_at)";
+  "id, project_id, code, name, category_kind, project:projects!credential_categories_project_id_fkey(project_key), credentials(revoked_at, deleted_at)";
 
 function toCategory(row: CategoryRow): CredentialCategory {
   return {
@@ -164,6 +169,7 @@ function toCategory(row: CategoryRow): CredentialCategory {
     projectKey: row.project?.project_key ?? "",
     code: row.code,
     name: row.name,
+    kind: row.category_kind === "Parking" ? "Parking" : "Access",
     activeCount: (row.credentials ?? []).filter((c) => c.revoked_at === null && !c.deleted_at)
       .length,
   };
@@ -206,6 +212,8 @@ export async function getCredentialCategory(
 export interface CategoryInput {
   readonly code: string;
   readonly name: string;
+  /** Left out, a new category is Access and an edit keeps the kind. */
+  readonly kind?: CredentialCategoryKind | undefined;
 }
 
 /** Category codes are capitals, digits and hyphens, at most 16 characters (migration 0352). */
@@ -222,6 +230,7 @@ export async function createCredentialCategory(
       project_id: input.projectId,
       code: input.code.trim().toUpperCase(),
       name: input.name.trim(),
+      ...(input.kind ? { category_kind: input.kind } : {}),
     })
     .select("id")
     .single();
@@ -236,7 +245,11 @@ export async function updateCredentialCategory(
 ): Promise<Result<null>> {
   const { data, error } = await db
     .from("credential_categories")
-    .update({ code: input.code.trim().toUpperCase(), name: input.name.trim() })
+    .update({
+      code: input.code.trim().toUpperCase(),
+      name: input.name.trim(),
+      ...(input.kind ? { category_kind: input.kind } : {}),
+    })
     .eq("id", id)
     .is("deleted_at", null)
     .select("id");

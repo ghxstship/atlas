@@ -257,6 +257,22 @@ const crewRoster = source("app.roster_entry_people", [
   "project_id",
 ]);
 
+// R7: what each party and person is given, read from the computed status (no prices).
+const allocations = source("app.advance_allocation_status", [
+  "item_name",
+  "kind",
+  "quantity",
+  "display_status",
+  "allocation_state",
+  "origin",
+  "needed_time_zone",
+  "reserved_quantity",
+  "issued_quantity",
+  "returned_quantity",
+  "decline_reason",
+  "project_id",
+]);
+
 const custody = source("app.asset_custody", [
   "created_at",
   "asset_unit_id",
@@ -480,6 +496,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "activity/feed": activity,
 
   "advancing/crew": crewRoster,
+  "advancing/allocations": allocations,
   "advancing/packets": packets,
   "advancing/reconciliation": reconciliations,
   "advancing/riders": riders,
@@ -777,6 +794,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     reconciliation: inProject(reconciliations),
     guests: inProject(guests),
     crew: inProject(crewRoster),
+    allocations: inProject(allocations),
     submissions,
   }),
   "project/assets": inProject(custody),

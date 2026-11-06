@@ -3,12 +3,15 @@ import { Constants, type Database, type Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Work Details (Section 4.5.6 item 10, migration 1340, A78): a person's uniform sizes, dietary and
- * accessibility needs, travel profile, emergency contacts and loyalty programs, and the per-engagement
- * consent that shares chosen categories with the engaging org. Every read and write runs as the
- * caller: the owner reads and writes their own rows, an engaging org reads only what was shared
- * through app.shared_work_details, and the passport number is never read except through an audited
- * reveal. Refusals come back as typed errors.
+ * Work Details (Section 4.5.6 item 10, migration 1340, A78): a person's dietary and accessibility
+ * needs, passport details, emergency contacts and loyalty programs, and the per-engagement consent
+ * that shares chosen categories with the engaging org. Every read and write runs as the caller: the
+ * owner reads and writes their own rows, an engaging org reads only what was shared through
+ * app.shared_work_details, and the passport number is never read except through an audited reveal.
+ * Allergies are Restricted (R6a, 2663): an org reads them only with data.restricted.read.medical on
+ * the project, and every such read is logged. Uniform sizes and travel preferences left the profile
+ * in R6a (2664); productions ask for them per roster entry (roster-facts.ts). Refusals come back as
+ * typed errors.
  */
 
 type Enums = Database["app"]["Enums"];
@@ -21,6 +24,10 @@ export type LoyaltyProgramKind = Enums["loyalty_program_kind"];
 
 export const WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
   Constants.app.Enums.work_detail_category;
+/** The categories a person can share: all but Uniform Sizes, retired in R6a (2664) and kept for the access log. */
+export const SHAREABLE_WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
+  WORK_DETAIL_CATEGORIES.filter((c) => c !== "Uniform Sizes");
+/** Garment sizes and seat preferences are asked per roster entry since R6a (roster-facts.ts). */
 export const GARMENT_LETTER_SIZES: readonly GarmentLetterSize[] =
   Constants.app.Enums.garment_letter_size;
 export const DIETARY_NEEDS: readonly DietaryNeed[] = Constants.app.Enums.dietary_need;
@@ -44,6 +51,11 @@ export const WORK_DETAIL_RULES = [
   "work_detail_share_categories",
   "work_detail_not_shared",
   "org_read_only",
+  // R6a (2664): uniform sizes and travel preferences are entered per roster entry now.
+  "work_detail_field_moved",
+  "work_detail_category_retired",
+  // R6a (2664): Contact is shared with at least one other category.
+  "work_detail_share_contact_alone",
 ] as const;
 
 /**
@@ -76,6 +88,26 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "work_details.share_revoked": "shareRevoked",
   "work_details.viewed": "viewed",
   "work_details.erased": "erased",
+  // R6a: the one-time removal of uniform sizes and travel preferences (2664), and a Restricted allergy read (2663).
+  "work_details.fields_removed": "fieldsRemoved",
+  "allergies.viewed": "allergiesViewed",
+  // Project facts on a roster entry (R5, 2654 to 2657).
+  "roster_travel_requests.insert": "travelSaved",
+  "roster_travel_requests.update": "travelSaved",
+  "roster_travel_requests.delete": "travelCleared",
+  "roster_uniform_sizes.insert": "uniformSaved",
+  "roster_uniform_sizes.update": "uniformSaved",
+  "roster_uniform_sizes.delete": "uniformCleared",
+  "roster_vehicles.insert": "vehicleSaved",
+  "roster_vehicles.update": "vehicleSaved",
+  "roster_vehicles.delete": "vehicleCleared",
+  "project_facts.viewed": "projectFactsViewed",
+  "project_facts.counted": "projectFactsCounted",
+  "project_facts.expired": "projectFactsExpired",
+  "project_facts.erased": "projectFactsErased",
+  // A catering's roster counts (R7, 2695): one row per person counted.
+  "dietary_needs.counted": "dietaryNeedsCounted",
+  "allergies.counted": "allergiesCounted",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */
@@ -84,16 +116,6 @@ export function workDetailLogKey(action: string): string {
 }
 
 // Work details --------------------------------------------------------------------------------------
-
-export interface UniformSizes {
-  readonly shirtSize: GarmentLetterSize | null;
-  readonly jacketSize: GarmentLetterSize | null;
-  readonly pantsSize: string | null;
-  readonly shoeSize: string | null;
-  readonly gloveSize: GarmentLetterSize | null;
-  readonly hatSize: string | null;
-  readonly uniformNotes: string | null;
-}
 
 export interface DietaryDetails {
   readonly dietaryNeeds: readonly DietaryNeed[];
@@ -104,12 +126,6 @@ export interface DietaryDetails {
 export interface AccessibilityDetails {
   readonly accessibilityNeeds: readonly AccessibilityNeed[];
   readonly accessibilityNotes: string | null;
-}
-
-export interface TravelPreferences {
-  readonly seatPreference: SeatPreference | null;
-  readonly mealPreference: string | null;
-  readonly homeAirport: string | null;
 }
 
 export interface PassportDetails {
@@ -123,35 +139,23 @@ export interface PassportDetails {
   readonly passportName: string | null;
 }
 
-export interface WorkDetails
-  extends UniformSizes, DietaryDetails, AccessibilityDetails, TravelPreferences, PassportDetails {
+export interface WorkDetails extends DietaryDetails, AccessibilityDetails, PassportDetails {
   readonly id: string;
   readonly personId: string;
   readonly updatedAt: string;
 }
 
 const DETAIL_COLUMNS =
-  "id, person_id, shirt_size, jacket_size, pants_size, shoe_size, glove_size, hat_size, uniform_notes, dietary_needs, allergies, dietary_notes, accessibility_needs, accessibility_notes, seat_preference, meal_preference, home_airport, passport_number_last4, passport_issuing_country, passport_expires_on, passport_name, updated_at";
+  "id, person_id, dietary_needs, dietary_notes, accessibility_needs, accessibility_notes, passport_number_last4, passport_issuing_country, passport_expires_on, passport_name, updated_at";
 
 type DetailRow = Pick<
   Database["app"]["Tables"]["person_work_details"]["Row"],
   | "id"
   | "person_id"
-  | "shirt_size"
-  | "jacket_size"
-  | "pants_size"
-  | "shoe_size"
-  | "glove_size"
-  | "hat_size"
-  | "uniform_notes"
   | "dietary_needs"
-  | "allergies"
   | "dietary_notes"
   | "accessibility_needs"
   | "accessibility_notes"
-  | "seat_preference"
-  | "meal_preference"
-  | "home_airport"
   | "passport_number_last4"
   | "passport_issuing_country"
   | "passport_expires_on"
@@ -159,26 +163,17 @@ type DetailRow = Pick<
   | "updated_at"
 >;
 
-function toWorkDetails(r: DetailRow): WorkDetails {
+/** The row with its allergies, which the owner reads through app.my_allergies (Restricted, R6a). */
+function toWorkDetails(r: DetailRow, allergies: string | null): WorkDetails {
   return {
     id: r.id,
     personId: r.person_id,
     updatedAt: r.updated_at,
-    shirtSize: r.shirt_size,
-    jacketSize: r.jacket_size,
-    pantsSize: r.pants_size,
-    shoeSize: r.shoe_size,
-    gloveSize: r.glove_size,
-    hatSize: r.hat_size,
-    uniformNotes: r.uniform_notes,
     dietaryNeeds: r.dietary_needs,
-    allergies: r.allergies,
+    allergies,
     dietaryNotes: r.dietary_notes,
     accessibilityNeeds: r.accessibility_needs,
     accessibilityNotes: r.accessibility_notes,
-    seatPreference: r.seat_preference,
-    mealPreference: r.meal_preference,
-    homeAirport: r.home_airport,
     passportNumber: null,
     passportNumberLast4: r.passport_number_last4,
     passportNumberMasked: r.passport_number_last4 !== null,
@@ -186,6 +181,13 @@ function toWorkDetails(r: DetailRow): WorkDetails {
     passportExpiresOn: r.passport_expires_on,
     passportName: r.passport_name,
   };
+}
+
+/** The owner's allergies: the Restricted column is never selected directly (Section 8.3). */
+async function myAllergies(db: XosClient): Promise<Result<string | null>> {
+  const { data, error } = await db.rpc("my_allergies");
+  if (error) return fail(toDataError(error));
+  return ok(data ?? null);
 }
 
 /** The signed-in person's work details, or null before they record any. */
@@ -196,34 +198,25 @@ export async function getMyWorkDetails(db: XosClient): Promise<Result<WorkDetail
     .is("deleted_at", null)
     .maybeSingle();
   if (error) return fail(toDataError(error));
-  return ok(data ? toWorkDetails(data as DetailRow) : null);
+  if (!data) return ok(null);
+  const allergies = await myAllergies(db);
+  if (!allergies.ok) return allergies;
+  return ok(toWorkDetails(data as DetailRow, allergies.data));
 }
 
 /** Fields the owner writes directly; the passport number goes through `setMyPassportNumber`. */
 export type WorkDetailsPatch = Partial<
-  UniformSizes &
-    DietaryDetails &
+  DietaryDetails &
     AccessibilityDetails &
-    TravelPreferences &
     Omit<PassportDetails, "passportNumber" | "passportNumberLast4" | "passportNumberMasked">
 >;
 
 const PATCH_COLUMNS: Readonly<Record<keyof WorkDetailsPatch, string>> = {
-  shirtSize: "shirt_size",
-  jacketSize: "jacket_size",
-  pantsSize: "pants_size",
-  shoeSize: "shoe_size",
-  gloveSize: "glove_size",
-  hatSize: "hat_size",
-  uniformNotes: "uniform_notes",
   dietaryNeeds: "dietary_needs",
   allergies: "allergies",
   dietaryNotes: "dietary_notes",
   accessibilityNeeds: "accessibility_needs",
   accessibilityNotes: "accessibility_notes",
-  seatPreference: "seat_preference",
-  mealPreference: "meal_preference",
-  homeAirport: "home_airport",
   passportIssuingCountry: "passport_issuing_country",
   passportExpiresOn: "passport_expires_on",
   passportName: "passport_name",
@@ -248,7 +241,9 @@ export async function saveMyWorkDetails(
     .select(DETAIL_COLUMNS)
     .single();
   if (error) return fail(toDataError(error));
-  return ok(toWorkDetails(data as DetailRow));
+  const allergies = await myAllergies(db);
+  if (!allergies.ok) return allergies;
+  return ok(toWorkDetails(data as DetailRow, allergies.data));
 }
 
 /** Sets or clears (null) the signed-in person's passport number; the database encrypts it. */
@@ -575,13 +570,30 @@ export interface SharedWorkDetails {
   /** Shared categories the viewer's project capabilities cover; the others come back null. */
   readonly readable: readonly WorkDetailCategory[];
   readonly emergencyContacts: readonly SharedEmergencyContact[] | null;
-  readonly uniform: UniformSizes | null;
-  /** allergiesOnFile says whether allergies are recorded when allergies comes back masked (null). */
-  readonly dietary: (DietaryDetails & { readonly allergiesOnFile: boolean }) | null;
+  /** The person's verified sign-in email and phone (R6a), when Contact is readable. */
+  readonly contact: SharedContact | null;
+  /**
+   * allergiesOnFile says whether allergies are recorded; allergiesMasked that they are and the reader
+   * does not hold data.restricted.read.medical on the project (R6a), so allergies is null.
+   */
+  readonly dietary:
+    | (DietaryDetails & { readonly allergiesOnFile: boolean; readonly allergiesMasked: boolean })
+    | null;
+  /** The Restricted medical read (R6a): present when Dietary Needs is shared and the reader holds the medical capability. */
+  readonly medical: SharedMedicalNeeds | null;
   readonly accessibility: AccessibilityDetails | null;
-  readonly travel:
-    (TravelPreferences & { loyaltyPrograms: readonly SharedLoyaltyProgram[] }) | null;
+  /** The travel profile is loyalty programs since R6a. */
+  readonly travel: { readonly loyaltyPrograms: readonly SharedLoyaltyProgram[] } | null;
   readonly passport: PassportDetails | null;
+}
+
+export interface SharedContact {
+  readonly email: string | null;
+  readonly phone: string | null;
+}
+
+export interface SharedMedicalNeeds {
+  readonly allergies: string | null;
 }
 
 type JsonObject = { readonly [key: string]: Json | undefined };
@@ -596,8 +608,9 @@ const list = <T>(v: Json | undefined): T[] => (Array.isArray(v) ? (v as unknown 
 /** Parses the jsonb app.shared_work_details returns into camel case. */
 export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
   const d = obj(raw) ?? {};
-  const uniform = obj(d["uniform"]);
+  const contact = obj(d["contact"]);
   const dietary = obj(d["dietary"]);
+  const medical = obj(d["medical"]);
   const accessibility = obj(d["accessibility"]);
   const travel = obj(d["travel"]);
   const passport = obj(d["passport"]);
@@ -624,26 +637,18 @@ export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
           };
         })
       : null,
-    uniform: uniform
-      ? {
-          shirtSize: str(uniform["shirt_size"]) as GarmentLetterSize | null,
-          jacketSize: str(uniform["jacket_size"]) as GarmentLetterSize | null,
-          pantsSize: str(uniform["pants_size"]),
-          shoeSize: str(uniform["shoe_size"]),
-          gloveSize: str(uniform["glove_size"]) as GarmentLetterSize | null,
-          hatSize: str(uniform["hat_size"]),
-          uniformNotes: str(uniform["uniform_notes"]),
-        }
-      : null,
+    contact: contact ? { email: str(contact["email"]), phone: str(contact["phone"]) } : null,
     dietary: dietary
       ? {
           dietaryNeeds: list<DietaryNeed>(dietary["dietary_needs"]),
           allergies: str(dietary["allergies"]),
           allergiesOnFile:
             dietary["allergies_on_file"] === true || str(dietary["allergies"]) !== null,
+          allergiesMasked: dietary["allergies_masked"] === true,
           dietaryNotes: str(dietary["dietary_notes"]),
         }
       : null,
+    medical: medical ? { allergies: str(medical["allergies"]) } : null,
     accessibility: accessibility
       ? {
           accessibilityNeeds: list<AccessibilityNeed>(accessibility["accessibility_needs"]),
@@ -652,9 +657,6 @@ export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
       : null,
     travel: travel
       ? {
-          seatPreference: str(travel["seat_preference"]) as SeatPreference | null,
-          mealPreference: str(travel["meal_preference"]),
-          homeAirport: str(travel["home_airport"]),
           loyaltyPrograms: list<JsonObject>(travel["loyalty_programs"]).map((l) => ({
             programKind: str(l["program_kind"]) as LoyaltyProgramKind,
             programName: str(l["program_name"]) ?? "",

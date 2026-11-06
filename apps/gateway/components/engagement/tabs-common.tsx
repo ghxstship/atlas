@@ -38,6 +38,11 @@ import {
 } from "./forms";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { AccountTeamSection } from "./tabs-roster";
+import {
+  AssignedToYouSection,
+  RosterMemberDocuments,
+  RosterMemberOverview,
+} from "./tabs-roster-member";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { MySharingPanel } from "@/components/settings/work-details";
@@ -54,6 +59,10 @@ const STAGE_FOR_STATE: Record<string, number> = {
 };
 
 export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) {
+  // A person on the party's roster sees their own call, parking, gear and items (R8).
+  if (view.roleType === "roster-member") {
+    return <RosterMemberOverview view={view} t={t} locale={locale} engagementKey={engagementKey} />;
+  }
   const e = view.engagement;
   const rows = overviewRows(view.roleType);
   const [documents, onboarding, given, approvals, entitlements] = await Promise.all([
@@ -198,6 +207,8 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             stages={STAGE_KEYS.map((k) => ({ label: t(`gateway.engagement.overview.stage.${k}`) }))}
           />
         </Section>
+        {/* What is assigned to the viewer on their own roster entry, such as a self entry (R8). */}
+        <AssignedToYouSection view={view} t={t} locale={locale} />
         {/* The account's assigned members (R4): only its Owner and Admin see this. */}
         <AccountTeamSection view={view} t={t} />
         {/* Work Details shared with this engagement, with consent (A78); only the engaged person sees it. */}
@@ -255,6 +266,12 @@ export async function DocumentsTab({
   engagementKey,
   kinds,
 }: TabProps & { kinds?: readonly EngagementDocumentKind[] }) {
+  // A person on the party's roster keeps their own documents and certifications here (R8).
+  if (view.roleType === "roster-member") {
+    return (
+      <RosterMemberDocuments view={view} t={t} locale={locale} engagementKey={engagementKey} />
+    );
+  }
   const docs = await listEngagementDocuments(view.ctx.db, view.engagement.id);
   if (!docs.ok) return <RegionError />;
   const shown = kinds ? docs.data.filter((d) => kinds.includes(d.kind)) : docs.data;

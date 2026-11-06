@@ -34,6 +34,7 @@ export * from "./gateway-marketplace.ts";
 export * from "./gateway-operations.ts";
 export * from "./gateway-conversations.ts";
 export * from "./gateway-public.ts";
+export * from "./gateway-allocations.ts";
 
 /**
  * Gateway repository (Section 4.4, Section 4.5.8): the external party's engagements, documents,
@@ -69,10 +70,12 @@ export interface Engagement {
   readonly areas: readonly EngagementArea[];
   /** IANA time zone of the project: the calendar the engagement's dates follow (1390). */
   readonly projectTimeZone: string;
+  /** Names lock (R5, 2656): after this instant the company side names no new crew; null means no lock. */
+  readonly rosterLocksAt: string | null;
 }
 
 const ENGAGEMENT_COLUMNS =
-  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone";
+  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone, roster_locks_at";
 
 function toEngagement(row: ExternalRow<"engagements">): Engagement {
   const id = req(row.id, "engagements.id");
@@ -97,6 +100,7 @@ function toEngagement(row: ExternalRow<"engagements">): Engagement {
     state: req(row.engagement_state, "engagements.engagement_state"),
     areas: (row.areas ?? []) as EngagementArea[],
     projectTimeZone: req(row.project_time_zone, "engagements.project_time_zone"),
+    rosterLocksAt: row.roster_locks_at,
   };
 }
 

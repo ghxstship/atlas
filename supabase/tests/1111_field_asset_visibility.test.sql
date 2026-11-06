@@ -19,12 +19,15 @@ with x as (insert into app.asset_units (asset_class_id, asset_tag) values (pg_te
 insert into app.asset_identifiers (asset_unit_id, scheme, value) values
   (pg_temp.id('u_proj'), 'gtin14', '09501101530003'),
   (pg_temp.id('u_shelf'), 'serial', 'SN-104');
+-- Custody rows are fixtures written by the platform; signed-in users write custody only through the scan (R7, 2692).
+select pg_temp.as_platform();
 insert into app.asset_custody (asset_unit_id, venue_id, project_id, created_at) values
   (pg_temp.id('u_proj'), pg_temp.id('venue_a'), pg_temp.id('prj_a'), now() - interval '2 hours'),
   (pg_temp.id('u_other'), pg_temp.id('venue_a'), pg_temp.id('prj_a2'), now() - interval '2 hours'),
   (pg_temp.id('u_moved'), pg_temp.id('venue_a'), pg_temp.id('prj_a'), now() - interval '2 hours');
 insert into app.asset_custody (asset_unit_id, custodian_membership_id) values (pg_temp.id('u_mine'), pg_temp.id('frank@org_a'));
 insert into app.asset_custody (asset_unit_id, venue_id, project_id) values (pg_temp.id('u_moved'), pg_temp.id('venue_a'), pg_temp.id('prj_a2'));
+select pg_temp.as_user('carol');
 
 select is((select count(*)::int from app.asset_units where asset_class_id = pg_temp.id('cls')), 5, 'a Manager reads every unit of the org');
 

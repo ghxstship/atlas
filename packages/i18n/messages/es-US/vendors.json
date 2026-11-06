@@ -233,7 +233,8 @@
     "usage": "Dónde se usa",
     "dueOn": "Se necesita para",
     "revision": "Revisión {revision}",
-    "add": "Agregar recurso"
+    "add": "Agregar recurso",
+    "sponsorSupplied": "Enviado por el patrocinador"
   },
   "deliveries": {
     "title": "Entregas y pruebas",

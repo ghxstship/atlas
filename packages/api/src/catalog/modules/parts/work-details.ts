@@ -1,9 +1,13 @@
 /**
- * Work Details (A78, migration 1340, Section 4.5.6 item 10): a person's uniform sizes, dietary and
- * accessibility needs, travel profile, emergency contacts and loyalty programs, the per-engagement
- * consent that shares chosen categories with the engaging org, what that org reads, and the
- * person's access log. catalog/modules/identity.ts spreads these into the Identity additions, with
- * the correction that adds the Section 15 given and family names to people.
+ * Work Details (A78, migration 1340, Section 4.5.6 item 10): a person's dietary and accessibility
+ * needs, passport details, emergency contacts and loyalty programs, the per-engagement consent that
+ * shares chosen categories with the engaging org, what that org reads, and the person's access log.
+ * catalog/modules/identity.ts spreads these into the Identity additions, with the correction that
+ * adds the Section 15 given and family names to people. R6a (2663, 2664) retires the uniform size
+ * and travel preference fields, which v1 keeps as always null, makes allergies Restricted, and adds
+ * the Contact category. Every change here is an addition: a new value in a response enum is a
+ * breaking change under gate 20, so v1's WorkDetailCategory keeps its six values and Contact travels
+ * as share_contact, contact_shared, contact and includes_contact (ADR 0105).
  */
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
@@ -12,6 +16,7 @@ import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
 import { itemAction, itemQuery, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { ProjectFactKind } from "./roster-project-facts.ts";
 
 const label = (id: string, values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ id, description, example: values[0] });
@@ -26,7 +31,7 @@ const Category = label(
     "Travel Profile",
     "Passport",
   ],
-  "A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.",
+  "A category of work details shared with an engaging org on its own. The person's own contact (R6a) is shared with share_contact rather than as a category. Uniform Sizes is retired: sizes are entered per roster entry (projectFacts), and sharing it is refused with 422 work_detail_category_retired. Travel Profile is the loyalty programs; Passport is the passport details.",
 );
 const GarmentSize = label(
   "GarmentLetterSize",
@@ -83,31 +88,39 @@ const airport = z
   .regex(/^[A-Z]{3}$/)
   .meta({ description: "IATA airport code.", example: "MIA" });
 
+/** The ten profile fields R6a retired (2664): v1 keeps them, always null. */
+const RETIRED =
+  "Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).";
+const retired = (schema: z.ZodType) => orNull(schema).meta({ description: RETIRED });
+/** A retired field of a shared read: always null since R6a. */
+const SHARED_RETIRED = "Retired: always null; entered per roster entry since R6a.";
+const sharedRetired = (schema: z.ZodType) => orNull(schema).meta({ description: SHARED_RETIRED });
+
 const WorkDetails = editDefinition(
   defineResource({
     name: "WorkDetails",
     table: "app.person_work_details",
     description:
-      "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).",
+      "The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).",
     base: "global",
     serverSet: ["person_id", "passport_number_last4"],
     restricted: ["passport_number"],
     immutable: ["person_id"],
     fields: {
       person_id: fields.ref("person the work details belong to; always the caller"),
-      shirt_size: orNull(GarmentSize),
-      jacket_size: orNull(GarmentSize),
-      pants_size: shortText("Pants size as the person writes it.", "32x32", 20),
-      shoe_size: shortText("Shoe size with its system.", "US 10.5", 20),
-      glove_size: orNull(GarmentSize),
-      hat_size: shortText("Hat size as the person writes it.", "7 1/4", 20),
-      uniform_notes: shortText("Anything else about fit.", "Prefers a relaxed cut.", 500),
+      shirt_size: retired(GarmentSize),
+      jacket_size: retired(GarmentSize),
+      pants_size: shortText(RETIRED, "32x32", 20),
+      shoe_size: shortText(RETIRED, "US 10.5", 20),
+      glove_size: retired(GarmentSize),
+      hat_size: shortText(RETIRED, "7 1/4", 20),
+      uniform_notes: shortText(RETIRED, "Prefers a relaxed cut.", 500),
       dietary_needs: z
         .array(DietaryNeed)
         .max(9)
         .meta({ description: "Dietary needs, each once, in enum order.", example: ["Vegan"] }),
       allergies: shortText(
-        "Allergies in the person's words, with how severe.",
+        "Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.",
         "Peanuts, severe",
         500,
       ),
@@ -124,9 +137,9 @@ const WorkDetails = editDefinition(
         "Needs a seat near the stage door.",
         1000,
       ),
-      seat_preference: orNull(SeatPreference),
-      meal_preference: shortText("Preferred in-flight meal.", "Vegetarian (VGML)", 100),
-      home_airport: orNull(airport),
+      seat_preference: retired(SeatPreference),
+      meal_preference: shortText(RETIRED, "Vegetarian (VGML)", 100),
+      home_airport: retired(airport),
       passport_number: orNull(
         z.string().min(5).max(30).meta({
           description:
@@ -215,7 +228,8 @@ const WorkDetailShare = editDefinition(
         .min(1)
         .max(6)
         .meta({
-          description: "Categories shared.",
+          description:
+            "Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.",
           example: ["Dietary Needs", "Emergency Contacts"],
         }),
       shared_at: fields.instant("When the share was given."),
@@ -227,7 +241,28 @@ const WorkDetailShare = editDefinition(
       ),
     },
   }),
-  { nullable: ["created_by", "updated_by"] },
+  {
+    nullable: ["created_by", "updated_by"],
+    add: {
+      // R6a's Contact category: v1's category enum is frozen, so it has its own fields.
+      contact_shared: {
+        schema: fields.bool(
+          "The share names the person's own contact: their verified sign-in email and phone (R6a).",
+          false,
+        ),
+      },
+      share_contact: {
+        schema: z.boolean().meta({
+          description:
+            "Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.",
+          example: true,
+        }),
+        create: "optional",
+        update: true,
+        read: false,
+      },
+    },
+  },
 );
 
 const WorkDetailEvent = defineResource({
@@ -243,17 +278,26 @@ const WorkDetailEvent = defineResource({
     org_id: orNull(fields.ref("org whose member acted or whose share changed")),
     engagement_id: orNull(fields.ref("engagement of a share, read or reveal")),
     roster_entry_id: orNull(fields.ref("roster entry of a share, read or reveal (R4)")),
+    fact_kinds: z.array(ProjectFactKind).meta({
+      description:
+        "Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.",
+      example: ["Travel"],
+    }),
     action: z
       .string()
       .regex(/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/)
       .meta({
         description:
-          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.",
+          "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, work_details.fields_removed, allergies.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
         example: "work_details.viewed",
       }),
     categories: z
       .array(Category)
       .meta({ description: "Categories the act covered.", example: ["Dietary Needs"] }),
+    includes_contact: fields.bool(
+      "The act covered the person's own contact, shared since R6a outside the category list.",
+      false,
+    ),
     changed_columns: z.array(z.string()).meta({
       description: "Columns an owner change touched, never their values.",
       example: ["allergies"],
@@ -330,24 +374,37 @@ const SharedWorkDetails = z
       .meta({ description: "Categories the person shared.", example: ["Dietary Needs"] }),
     readable: z.array(Category).meta({
       description:
-        "Shared categories the caller's project capabilities cover; the others come back null.",
+        "Shared categories the caller's project capabilities cover; the others come back null. The person's contact is readable when contact is not null.",
       example: ["Dietary Needs"],
     }),
     emergency_contacts: orNull(z.array(sharedContact)),
+    contact: orNull(
+      z
+        .object({
+          email: orNull(fields.email("The person's verified sign-in email.")),
+          phone: orNull(fields.phone("The person's verified sign-in phone.")),
+        })
+        .meta({
+          id: "SharedContact",
+          description:
+            "The person's own contact as an engaging org reads it (R6a): only verified sign-in addresses, null when none is verified. Read by engagement and safety readers, and by the company.",
+        }),
+    ),
     uniform: orNull(
       z
         .object({
-          shirt_size: orNull(GarmentSize),
-          jacket_size: orNull(GarmentSize),
-          pants_size: orNull(str("Pants size.", "32x32")),
-          shoe_size: orNull(str("Shoe size.", "US 10.5")),
-          glove_size: orNull(GarmentSize),
-          hat_size: orNull(str("Hat size.", "7 1/4")),
-          uniform_notes: orNull(str("Fit notes.", "Prefers a relaxed cut.")),
+          shirt_size: sharedRetired(GarmentSize),
+          jacket_size: sharedRetired(GarmentSize),
+          pants_size: orNull(str(SHARED_RETIRED, "32x32")),
+          shoe_size: orNull(str(SHARED_RETIRED, "US 10.5")),
+          glove_size: sharedRetired(GarmentSize),
+          hat_size: orNull(str(SHARED_RETIRED, "7 1/4")),
+          uniform_notes: orNull(str(SHARED_RETIRED, "Prefers a relaxed cut.")),
         })
         .meta({
           id: "SharedUniformSizes",
-          description: "Uniform sizes as an engaging org reads them.",
+          description:
+            "Uniform sizes as an engaging org read them before R6a. Always null now: no live share names Uniform Sizes, and sizes are read per roster entry (projectFacts).",
         }),
     ),
     dietary: orNull(
@@ -356,9 +413,13 @@ const SharedWorkDetails = z
           dietary_needs: z.array(DietaryNeed),
           allergies: orNull(
             str(
-              "Allergies; null when masked for the reader (a company reader never reads them).",
+              "Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.",
               "Peanuts, severe",
             ),
+          ),
+          allergies_masked: fields.bool(
+            "Allergies are recorded and withheld from this reader (R6a).",
+            false,
           ),
           allergies_on_file: fields.bool("Whether allergies are recorded, even when masked.", true),
           dietary_notes: orNull(str("Other dietary notes.", "No pork.")),
@@ -366,6 +427,17 @@ const SharedWorkDetails = z
         .meta({
           id: "SharedDietaryNeeds",
           description: "Dietary needs as an engaging org reads them.",
+        }),
+    ),
+    medical: orNull(
+      z
+        .object({
+          allergies: orNull(str("Allergies, unmasked.", "Peanuts, severe")),
+        })
+        .meta({
+          id: "SharedMedicalNeeds",
+          description:
+            "The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed.",
         }),
     ),
     accessibility: orNull(
@@ -384,9 +456,9 @@ const SharedWorkDetails = z
     travel: orNull(
       z
         .object({
-          seat_preference: orNull(SeatPreference),
-          meal_preference: orNull(str("Preferred in-flight meal.", "Vegetarian (VGML)")),
-          home_airport: orNull(airport),
+          seat_preference: sharedRetired(SeatPreference),
+          meal_preference: orNull(str(SHARED_RETIRED, "Vegetarian (VGML)")),
+          home_airport: sharedRetired(airport),
           loyalty_programs: z.array(
             z
               .object({
@@ -402,7 +474,8 @@ const SharedWorkDetails = z
         })
         .meta({
           id: "SharedTravelProfile",
-          description: "The travel profile as an engaging org reads it.",
+          description:
+            "The travel profile as an engaging org reads it: the loyalty programs since R6a.",
         }),
     ),
     passport: orNull(
@@ -427,7 +500,7 @@ const SharedWorkDetails = z
   .meta({
     id: "SharedWorkDetails",
     description:
-      "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked.",
+      "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a).",
   });
 
 export const workDetailResources: readonly ResourceSpec[] = [
@@ -460,14 +533,14 @@ export const workDetailResources: readonly ResourceSpec[] = [
       itemQuery("details", {
         summary: "Read what the share's person shared",
         description:
-          "For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger.",
+          "For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement and safety readers for the person's contact, hospitality readers for the rest), through `app.shared_work_details`. Allergies are Restricted: a holder of data.restricted.read.medical on the project reads them, in dietary and in medical (the medical read, also without hospitality.fulfillment.read); anyone else reads them masked (allergies_masked). Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Every read is logged in the person's access log and the org's audit ledger, and every unmasked allergy read also as allergies.viewed.",
         rpc: "app.shared_work_details",
         response: SharedWorkDetails,
       }),
       itemAction("revealPassport", {
         summary: "Reveal a shared passport number",
         description:
-          "For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value.",
+          "For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Allergies, the other Restricted value, come back through details for medical readers (data.restricted.read.medical), logged on every read.",
         rpc: "app.reveal_shared_passport_number",
         body: PassportRevealRequest,
         response: PassportReveal,

@@ -273,6 +273,7 @@ describe("roster", () => {
           dietary: {
             dietary_needs: ["Vegetarian"],
             allergies: null,
+            allergies_masked: true,
             allergies_on_file: true,
             dietary_notes: null,
           },
@@ -286,6 +287,7 @@ describe("roster", () => {
       dietaryNeeds: ["Vegetarian"],
       allergies: null,
       allergiesOnFile: true,
+      allergiesMasked: true,
       dietaryNotes: null,
     });
   });

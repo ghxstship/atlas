@@ -605,3 +605,162 @@ export function gateScanTitle(verdict: string, detail: string | null | undefined
   const named = detail?.trim();
   return named ? `${verdict} · ${named}` : verdict;
 }
+
+// Receiving against an order (R7a) -------------------------------------------------------------------------
+
+/** An open line of an Approved or Sent order, as the Receive against an order sheet lists it. */
+export interface ReceivableLine {
+  readonly poLineId: string;
+  readonly lineNumber: number;
+  readonly description: string;
+  /** Ordered less received (app.po_line_supply); the sheet never offers more. */
+  readonly open: number;
+  /** The ordered element has an asset class: scanned codes become the units' asset tags. */
+  readonly serialized: boolean;
+}
+
+export interface ReceivableOrder {
+  readonly purchaseOrderId: string;
+  readonly poNumber: number;
+  readonly vendorName: string | null;
+  readonly lines: readonly ReceivableLine[];
+}
+
+/** What the sheet has counted so far: tags per serialized line, quantities for the rest. */
+export interface ReceiveSheet {
+  readonly order: ReceivableOrder;
+  /** The serialized line scanned codes go to. */
+  readonly activeLineId: string | null;
+  readonly tags: Readonly<Record<string, readonly string[]>>;
+  readonly quantities: Readonly<Record<string, number>>;
+}
+
+/** The orders the sheet offers, from REST rows read online under RLS: open lines only, orders with one or more. */
+export function receivableOrders(
+  orders: readonly {
+    id: string;
+    po_number: number;
+    po_state: string;
+    vendor_name: string | null;
+  }[],
+  lines: readonly {
+    id: string;
+    purchase_order_id: string;
+    line_number: number;
+    description: string;
+    element_id: string | null;
+  }[],
+  supply: readonly { po_line_id: string; quantity_ordered: number; quantity_received: number }[],
+  classElements: readonly string[],
+): ReceivableOrder[] {
+  const progress = new Map(supply.map((s) => [s.po_line_id, s]));
+  const stocked = new Set(classElements);
+  return orders
+    .filter((o) => o.po_state === "Approved" || o.po_state === "Sent")
+    .map((o) => ({
+      purchaseOrderId: o.id,
+      poNumber: o.po_number,
+      vendorName: o.vendor_name,
+      lines: lines
+        .filter((l) => l.purchase_order_id === o.id)
+        .map((l) => {
+          const s = progress.get(l.id);
+          return {
+            poLineId: l.id,
+            lineNumber: l.line_number,
+            description: l.description,
+            open: s ? Math.max(0, s.quantity_ordered - s.quantity_received) : 0,
+            serialized: l.element_id !== null && stocked.has(l.element_id),
+          };
+        })
+        .filter((l) => l.open > 0)
+        .sort((a, b) => a.lineNumber - b.lineNumber),
+    }))
+    .filter((o) => o.lines.length > 0)
+    .sort((a, b) => a.poNumber - b.poNumber);
+}
+
+export function startReceiveSheet(order: ReceivableOrder): ReceiveSheet {
+  return {
+    order,
+    activeLineId: order.lines.find((l) => l.serialized)?.poLineId ?? null,
+    tags: {},
+    quantities: {},
+  };
+}
+
+/**
+ * A scanned code fills the tag list of the chosen serialized line: once per code, never past the line's open
+ * quantity. Returns the same sheet when the code is a repeat, no serialized line is chosen or the line is full.
+ */
+export function addScannedTag(sheet: ReceiveSheet, raw: string): ReceiveSheet {
+  const line = sheet.order.lines.find((l) => l.poLineId === sheet.activeLineId);
+  const tag = raw.trim().toUpperCase();
+  if (!line?.serialized || tag === "") return sheet;
+  const taken = Object.values(sheet.tags).some((tags) => tags.includes(tag));
+  const current = sheet.tags[line.poLineId] ?? [];
+  if (taken || current.length >= line.open) return sheet;
+  return { ...sheet, tags: { ...sheet.tags, [line.poLineId]: [...current, tag] } };
+}
+
+export function removeScannedTag(sheet: ReceiveSheet, poLineId: string, tag: string): ReceiveSheet {
+  const current = sheet.tags[poLineId] ?? [];
+  return { ...sheet, tags: { ...sheet.tags, [poLineId]: current.filter((t) => t !== tag) } };
+}
+
+/** A stepper sets the quantity of a line that is not serialized, between 0 and its open quantity. */
+export function setReceiveQuantity(
+  sheet: ReceiveSheet,
+  poLineId: string,
+  quantity: number,
+): ReceiveSheet {
+  const line = sheet.order.lines.find((l) => l.poLineId === poLineId);
+  if (!line || line.serialized) return sheet;
+  const next = Math.min(Math.max(0, Math.round(quantity)), line.open);
+  return { ...sheet, quantities: { ...sheet.quantities, [poLineId]: next } };
+}
+
+/** The lines the sheet would receive: tags of serialized lines, quantities of the rest; empty lines left out. */
+export function receiveSheetLines(
+  sheet: ReceiveSheet,
+): { po_line_id: string; quantity: number; asset_tags?: string[] }[] {
+  return sheet.order.lines.flatMap((l) => {
+    if (l.serialized) {
+      const tags = [...(sheet.tags[l.poLineId] ?? [])];
+      return tags.length > 0
+        ? [{ po_line_id: l.poLineId, quantity: tags.length, asset_tags: tags }]
+        : [];
+    }
+    const quantity = sheet.quantities[l.poLineId] ?? 0;
+    return quantity > 0 ? [{ po_line_id: l.poLineId, quantity }] : [];
+  });
+}
+
+/**
+ * Queues the sheet as one receipt event for app.receive_goods (R7a 2681), replayed through
+ * app.apply_sync_mutation: the mutation id is the event id, so a replay after a reconnect answers duplicate and
+ * records nothing twice. Null when the sheet counted nothing.
+ */
+export function buildOrderReceipt(
+  sheet: ReceiveSheet,
+  note: string | null,
+  nowMs: number,
+  newId: (ms: number) => string = uuidv7,
+): MutationInput | null {
+  const lines = receiveSheetLines(sheet);
+  if (lines.length === 0) return null;
+  const id = newId(nowMs);
+  return {
+    op: "rpc",
+    target: "app.receive_goods",
+    table: "goods_receipts",
+    rowId: id,
+    payload: {
+      p_event_id: id,
+      p_purchase_order_id: sheet.order.purchaseOrderId,
+      p_lines: lines,
+      p_note: note?.trim() ? note.trim() : null,
+    },
+    policy: "append",
+  };
+}

@@ -46,6 +46,7 @@ export {
   PropertyList,
   Select,
   Skeleton,
+  StateChip,
   StatTile,
   Tag,
   TemplateAuth,

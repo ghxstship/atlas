@@ -89,6 +89,8 @@ export const HELP_SCREENS: Readonly<Record<string, string>> = {
   "/settlement": "settlement",
   "/reports": "reports",
   "/proof-of-performance": "proof-of-performance",
+  "/project-details": "project-details",
+  "/project-details/[entryId]": "project-details",
   "/r/[recordKey]": "record",
   "/e/[engagementKey]": "engagement",
   "/more/aurora": "aurora",

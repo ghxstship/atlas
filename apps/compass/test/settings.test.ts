@@ -12,11 +12,13 @@ import {
 } from "../src/domain/kiosk";
 import {
   claimRuleOf,
+  COMPASS_SETTING_KEYS,
   compassValuesFromRows,
   formatDistance,
   hapticsOn,
   kioskRules,
   languageOf,
+  keepsPhotoLocation,
   NO_VALUES,
   requiresGeofence,
   scheduleZone,
@@ -201,6 +203,14 @@ describe("org rules on the device", () => {
     expect(requiresGeofence(NO_VALUES, 1)).toBe(true);
     expect(requiresGeofence(values({ "time.geofence_required": false }), 1)).toBe(false);
     expect(requiresGeofence(NO_VALUES, 0)).toBe(false);
+  });
+
+  it("keeps a photo's location only while the org turns media.keep_photo_location on", () => {
+    expect(keepsPhotoLocation(NO_VALUES)).toBe(false);
+    expect(keepsPhotoLocation(values({ "media.keep_photo_location": false }))).toBe(false);
+    expect(keepsPhotoLocation(values({ "media.keep_photo_location": true }))).toBe(true);
+    // The device keeps the key from the resolve, so the rule reaches it.
+    expect(COMPASS_SETTING_KEYS).toContain("media.keep_photo_location");
   });
 
   it("reads the kiosk rules (time.kiosk_enabled, time.photo_on_punch)", () => {
