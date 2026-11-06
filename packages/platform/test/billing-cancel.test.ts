@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { createServer } from "node:http";
+import type { AddressInfo, Socket } from "node:net";
 import Stripe from "stripe";
 import { describe, expect, it } from "vitest";
 import { loadPlanRegistry } from "@xos/schemas/plans";
@@ -397,6 +399,31 @@ describe("runStripeCancellations", () => {
       getMaxNetworkRetries: () => number;
     };
     expect(plain.getMaxNetworkRetries()).toBe(2);
+  });
+
+  it("counts a Stripe that never answers as a failure within the limit, rather than waiting on it", async () => {
+    const sockets: Socket[] = [];
+    const server = createServer(() => undefined);
+    server.on("connection", (socket) => sockets.push(socket));
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const { port } = server.address() as AddressInfo;
+      const env = readBillingEnv({
+        STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+        STRIPE_API_URL: `http://127.0.0.1:${String(port)}`,
+      });
+      const client = await createStripeClient(env, undefined, {
+        timeoutMs: 100,
+        maxNetworkRetries: 0,
+      });
+      const started = Date.now();
+      const outcome = await sendStripeCancel(client, IMMEDIATE);
+      expect(outcome.accepted).toBe(false);
+      expect(Date.now() - started).toBeLessThan(5_000);
+    } finally {
+      for (const socket of sockets) socket.destroy();
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 
   it("expires Checkout sessions on an org that is ending, and leaves one just paid to reconciliation", async () => {
