@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(77);
+select plan(103);
 
 create function pg_temp.sign_up(p_key text, p_email text, p_meta jsonb) returns void
 language plpgsql as $$
@@ -70,6 +70,14 @@ select throws_like($$insert into app.account_memberships (org_id, person_id) val
 select pg_temp.as_platform();
 select throws_like($$select pg_temp.join_org('bob', 'org_a', 'fresh', 'field')$$,
   'minimum_age_unconfirmed%', 'nor accept an invitation');
+select pg_temp.sign_up('added', 'added@age18.test', '{"full_name": "Ann Added"}');
+insert into app.account_memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('added'));
+insert into world select 'added_membership', m.id from app.account_memberships m where m.person_id = pg_temp.id('added');
+select pg_temp.as_user('added');
+select throws_like($$select app.accept_account_membership(pg_temp.id('added_membership'))$$,
+  'minimum_age_unconfirmed%', 'nor confirm a company account membership someone else added');
+select ok(app.confirm_minimum_age('Gateway') is not null, 'once they have answered');
+select lives_ok($$select app.accept_account_membership(pg_temp.id('added_membership'))$$, 'they can confirm it');
 select pg_temp.as_platform();
 select lives_ok($$select pg_temp.provision('worker', 'org_a')$$,
   'a provisioning service can still add them: the person is asked before their first page');
@@ -149,6 +157,43 @@ select is(app.refuse_minimum_age('Compass') ->> 'outcome', 'Account Removed', 'a
 select pg_temp.as_platform();
 select is((select count(*)::int from auth.users where id = pg_temp.id('noemail_user')), 0, 'and is gone');
 
+-- With org records its erasure entry needs an address, so it holds a placeholder and says so.
+select pg_temp.sign_up('noemailorg', 'noemailorg@age18.test', '{"full_name": "Noa Noemail"}');
+select pg_temp.provision('noemailorg', 'org_a');
+update auth.users set email = null where id = pg_temp.id('noemailorg_user');
+select pg_temp.as_user('noemailorg');
+select is(app.refuse_minimum_age('Gateway') ->> 'outcome', 'Account Closed', 'a sign-in with no email address and org records closes');
+select pg_temp.as_platform();
+select ok((select subject_email like 'closed-%@example.invalid' and details like '%placeholder%' from app.dsar_requests
+  where subject_person_id = pg_temp.id('noemailorg')), 'and the org''s erasure entry says its address is a placeholder');
+
+-- What a signed-in person leaves on a common path, with no org: none of it keeps the account from going, and none stays.
+select pg_temp.sign_up('browsed', 'browsed@age18.test', '{"full_name": "Bea Browsed"}');
+select pg_temp.as_user('browsed');
+select api_public.record_cookie_consent('visitor-browsed-age18-0001', null, true, false, false, 'cookie-policy 1.0.0-draft', true);
+select app.send_feedback('Atlas', 'The page is hard to find.', '/home', null, null, null, null);
+select app.open_account_support_request('Question', 'A question', 'What can I do here?');
+select pg_temp.as_anon();
+select api_public.record_cookie_consent('visitor-anonymous-age18-01', null, true, false, false, 'cookie-policy 1.0.0-draft', true);
+select pg_temp.as_platform();
+insert into app.shortcut_bindings (person_id, shell, shortcut_id, keys) values (pg_temp.id('browsed'), 'Atlas', 'go.home', 'g h');
+insert into app.person_emergency_contacts (person_id, full_name, relationship, phone_e164) values (pg_temp.id('browsed'), 'Bo Browsed', 'Parent', '+13055550100');
+insert into app.blocks (person_id, blocked_person_id, blocked_urn) values (pg_temp.id('dave'), pg_temp.id('browsed'), 'urn:xpms:person:' || pg_temp.id('browsed'));
+select is((select count(*)::int from app.cookie_consent_events where person_id = pg_temp.id('browsed')), 1, 'a signed-in cookie choice names the person');
+select is((select count(*)::int from app.privacy_signals where person_id = pg_temp.id('browsed')), 1, 'and so does a browser''s opt-out signal');
+select pg_temp.as_user('browsed');
+select is(app.refuse_minimum_age('Atlas') ->> 'outcome', 'Account Removed', 'an account that used the site with no org is still removed, not left nameless');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.people where id = pg_temp.id('browsed')), 0, 'the person is gone');
+select is((select count(*)::int from app.cookie_consent_events where person_id = pg_temp.id('browsed') or created_by = pg_temp.id('browsed')), 0, 'and their cookie choices');
+select is((select count(*)::int from app.privacy_signals where person_id = pg_temp.id('browsed') or created_by = pg_temp.id('browsed')), 0, 'and their opt-out signals');
+select is((select count(*)::int from app.feedback_submissions where person_id = pg_temp.id('browsed')), 0, 'and their feedback');
+select is((select count(*)::int from private.account_support_requests where person_id = pg_temp.id('browsed')), 0, 'and their support requests');
+select is((select count(*)::int from app.shortcut_bindings where person_id = pg_temp.id('browsed')), 0, 'and their settings');
+select is((select count(*)::int from app.person_emergency_contacts where person_id = pg_temp.id('browsed')), 0, 'and their work details');
+select is((select count(*)::int from app.blocks where blocked_person_id = pg_temp.id('browsed')), 0, 'and blocks that name them');
+select is((select count(*)::int from app.cookie_consent_events where person_id is null), 1, 'a visitor who never signed in is untouched');
+
 -- A legal hold, an open shift or being the only owner stops deletion: the answer says why, and the person is listed.
 select pg_temp.sign_up('owner', 'owner@age18.test', '{"full_name": "Olive Owner", "age_confirmed": "18", "signup_surface": "Atlas"}');
 select pg_temp.as_user('owner');
@@ -160,6 +205,7 @@ select is((app.my_legal_standing() ->> 'closing_blocked')::boolean, true, 'Compa
 select is(app.refuse_minimum_age('Atlas') ->> 'outcome', 'Account Held', 'the only owner of an org cannot be deleted by this question');
 select is(app.refuse_minimum_age('Gateway') ->> 'reason', 'account_delete_sole_owner', 'and the answer says why');
 select pg_temp.as_platform();
+select is((select count(*)::int from private.age_refusals where outcome = 'Account Held'), 1, 'answering again does not count the person twice');
 select is((select count(*)::int from auth.users where id = pg_temp.id('owner_user')), 1, 'the sign-in stays');
 select results_eq($$select surface, reason from private.age_refusal_holds where person_id = pg_temp.id('owner')$$,
   $$values ('Gateway'::text, 'account_delete_sole_owner'::text)$$, 'and one row tells the platform team which account to finish closing');
@@ -179,6 +225,8 @@ select is((app.my_legal_standing() ->> 'closing_blocked')::boolean, false, 'once
 select is(app.refuse_minimum_age('Atlas') ->> 'outcome', 'Account Closed', 'answering again closes the account');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.age_refusal_holds where person_id = pg_temp.id('owner')), 0, 'and the hold goes');
+select is((select count(*)::int from private.age_refusals where outcome = 'Account Closed' and surface = 'Atlas'), 0,
+  'and closing later adds no second row for the same person');
 
 -- A person who deletes their account in Settings while held comes off the list.
 select pg_temp.sign_up('heldout', 'heldout@age18.test', '{"full_name": "Hal Heldout"}');
@@ -223,6 +271,35 @@ select is(app.my_legal_standing() ->> 'ai_disclosure_version', '2026-11-06', 'th
 select ok((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a'))) > 0, 'and the latest choice stands');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.ai_disclosure_choices where person_id = pg_temp.id('dave')), 2, 'each choice stays in the log');
+
+-- An API key acts as its service account, a person row with no age to give and no screen to answer on. It keeps Aurora,
+-- and the frozen API keeps what it did before this rule.
+select pg_temp.as_user('bob');
+insert into world select 'bot_account', app.create_service_account(pg_temp.id('org_a'), 'Aurora Bot', pg_temp.system_role('member'));
+select pg_temp.as_platform();
+insert into world select 'bot_user', s.user_id from app.service_accounts s where s.id = pg_temp.id('bot_account');
+insert into world select 'bot', s.person_id from app.service_accounts s where s.id = pg_temp.id('bot_account');
+select is((select count(*)::int from private.age_confirmations where person_id = pg_temp.id('bot')), 0, 'a service account has no age answer');
+select pg_temp.as_user('bot');
+select ok((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a'))) > 0, 'but an API key still sees the org''s AI features');
+select lives_ok($$select app.ai_begin_request(pg_temp.id('org_a'), 'assistant', 'test-model')$$, 'and its Aurora request is not refused for age');
+select throws_ok($$select app.refuse_minimum_age('Atlas')$$, 'XR001', null, 'and nothing can close it by this question');
+select pg_temp.as_platform();
+update app.service_accounts set deleted_at = now() where id = pg_temp.id('bot_account');
+select ok(not private.minimum_age_met(pg_temp.id('bot')), 'a retired service account passes nothing');
+
+-- Support screenshots: only the owner removes one, as a closure after an answer of under 18 has to.
+select pg_temp.as_user('dave');
+insert into storage.objects (bucket_id, name) values ('support-screenshots', pg_temp.id('dave')::text || '/age18.png');
+set local storage.allow_delete_query = 'true';
+select pg_temp.as_user('erin');
+delete from storage.objects where bucket_id = 'support-screenshots';
+select pg_temp.as_platform();
+select is((select count(*)::int from storage.objects where bucket_id = 'support-screenshots' and name like '%/age18.png'), 1, 'someone else cannot remove a support screenshot');
+select pg_temp.as_user('dave');
+delete from storage.objects where bucket_id = 'support-screenshots' and name like '%/age18.png';
+select pg_temp.as_platform();
+select is((select count(*)::int from storage.objects where bucket_id = 'support-screenshots' and name like '%/age18.png'), 0, 'its owner can');
 
 select * from finish();
 rollback;
