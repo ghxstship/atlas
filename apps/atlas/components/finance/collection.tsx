@@ -107,6 +107,7 @@ export function FinanceCollection({
   if (refusal) {
     return (
       <TemplateCollection header={header}>
+        {above}
         <RefusalPanel capability={refusal} href={`/${page.ctx.org.slug}/home`} />
       </TemplateCollection>
     );
@@ -114,6 +115,7 @@ export function FinanceCollection({
   if (error) {
     return (
       <TemplateCollection header={header}>
+        {above}
         <ErrorPanel sentence={error} />
       </TemplateCollection>
     );

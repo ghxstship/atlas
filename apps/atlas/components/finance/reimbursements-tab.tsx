@@ -48,8 +48,10 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
       secondary: true,
     },
   };
+  // A refusal keeps the tabs: the viewer may read Payments or Settlements.
+  const tabs = <PaymentTabs page={page} active="reimbursements" t={t} />;
   if (!(await canReadReimbursements(db, ctx.org.id))) {
-    return <FinanceCollection {...base} refusal="finance.payment.read" />;
+    return <FinanceCollection {...base} above={tabs} refusal="finance.payment.read" />;
   }
   const projectId = page.project?.id ?? null;
   const [balances, canRecord] = await Promise.all([
@@ -57,7 +59,9 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
     canRecordPayments(db, ctx.org.id),
   ]);
   if (!balances.ok) {
-    return <FinanceCollection {...base} error={t("finance.reimbursements.loadError")} />;
+    return (
+      <FinanceCollection {...base} above={tabs} error={t("finance.reimbursements.loadError")} />
+    );
   }
   const me = ctx.viewer.person?.id ?? null;
   const nameOf = (b: { payeeName: string | null }) =>
@@ -128,7 +132,7 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
             </ButtonLink>
           ) : null}
           <ButtonLink
-            href={withQuery(page, { payee: peeked.payeePersonId, peek: null })}
+            href={withQuery(page, { payee: peeked.payeePersonId, peek: null, notice: null })}
             variant="ghost"
             size="sm"
           >
@@ -238,7 +242,7 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
       count={shown.length}
       above={
         <>
-          <PaymentTabs page={page} active="reimbursements" t={t} />
+          {tabs}
           <PaymentsNotice page={page} t={t} />
           {history}
           {payee

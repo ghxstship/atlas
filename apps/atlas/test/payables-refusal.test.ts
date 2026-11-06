@@ -71,5 +71,7 @@ describe("payables tabs for a reader without the capabilities", () => {
   ])("%s shows the refusal panel and reads nothing else", async (_name, Tab, capability) => {
     const element = await Tab({ page });
     expect(element.props).toMatchObject({ refusal: capability, rows: [], canCreate: false });
+    // The tabs stay, so the reader reaches the sections they can read.
+    expect(element.props.above).toBeTruthy();
   });
 });

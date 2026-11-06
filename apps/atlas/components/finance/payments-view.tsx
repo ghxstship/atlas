@@ -83,7 +83,14 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
     empty,
   };
   if (!access.can("finance.payment.read")) {
-    return <FinanceCollection {...base} canCreate={false} refusal="finance.payment.read" />;
+    return (
+      <FinanceCollection
+        {...base}
+        canCreate={false}
+        above={<PaymentTabs page={page} active="payments" t={t} />}
+        refusal="finance.payment.read"
+      />
+    );
   }
   const db = ctx.viewer.db;
   const [payments, counterparties, invoices] = await Promise.all([
@@ -300,7 +307,14 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
     empty,
   };
   if (!access.can("finance.invoice.read")) {
-    return <FinanceCollection {...base} canCreate={false} refusal="finance.invoice.read" />;
+    return (
+      <FinanceCollection
+        {...base}
+        canCreate={false}
+        above={<PaymentTabs page={page} active="settlements" t={t} />}
+        refusal="finance.invoice.read"
+      />
+    );
   }
   const db = ctx.viewer.db;
   const scope = { orgId: ctx.org.id, projectId: page.project?.id ?? null };

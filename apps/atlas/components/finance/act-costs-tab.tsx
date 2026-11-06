@@ -63,14 +63,14 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
   const above = <PaymentTabs page={page} active="act-costs" t={t} />;
   if (!project) return <FinanceCollection {...base} above={above} />;
   if (!(await canReadEngagementCosts(db, project.id))) {
-    return <FinanceCollection {...base} refusal="finance.invoice.read" />;
+    return <FinanceCollection {...base} above={above} refusal="finance.invoice.read" />;
   }
   const [costs, counterparties] = await Promise.all([
     listEngagementCosts(db, { projectId: project.id }),
     listCounterparties(db, ctx.org.id),
   ]);
   if (!costs.ok || !counterparties.ok) {
-    return <FinanceCollection {...base} error={t("finance.actCosts.loadError")} />;
+    return <FinanceCollection {...base} above={above} error={t("finance.actCosts.loadError")} />;
   }
   const partyName = new Map(counterparties.data.map((p) => [p.id, p.name ?? ""]));
   const names = await personNames(

@@ -56,16 +56,19 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
       secondary: true,
     },
   };
+  // A refusal keeps the tabs: the viewer may read Payments or Settlements.
+  const tabs = <PaymentTabs page={page} active="due" t={t} />;
   // Decided by the same five capabilities the ledger checks: any reach of one is not enough.
   if (!(await canReadPaymentsDue(db, ctx.org.id))) {
-    return <FinanceCollection {...base} refusal="finance.payment.read" />;
+    return <FinanceCollection {...base} above={tabs} refusal="finance.payment.read" />;
   }
   const [due, weekStart, canRecord] = await Promise.all([
     listPaymentsDue(db, { orgId: ctx.org.id, projectId: page.project?.id ?? null }),
     getOrgWeekStart(ctx),
     canRecordPayments(db, ctx.org.id),
   ]);
-  if (!due.ok) return <FinanceCollection {...base} error={t("finance.due.loadError")} />;
+  if (!due.ok)
+    return <FinanceCollection {...base} above={tabs} error={t("finance.due.loadError")} />;
   const me = ctx.viewer.person?.id ?? null;
 
   const bucketOf = (d: PaymentDue) => paymentDueBucket(d.dueOn, d.projectToday, weekStart);
@@ -137,7 +140,12 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
       case "settlement":
         return {
           label: t("finance.due.open.settlement"),
-          href: withQuery(page, { tab: "settlements", peek: d.sourceId, state: null }),
+          href: withQuery(page, {
+            tab: "settlements",
+            peek: d.sourceId,
+            state: null,
+            notice: null,
+          }),
         };
       case "reimbursement":
         return d.payeePersonId
@@ -148,6 +156,7 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
                 payee: d.payeePersonId,
                 peek: null,
                 state: null,
+                notice: null,
               }),
             }
           : null;
@@ -257,7 +266,7 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
       states={PAYMENT_DUE_BUCKETS.map((b) => ({ value: b, label: bucketLabel(b) }))}
       above={
         <>
-          <PaymentTabs page={page} active="due" t={t} />
+          {tabs}
           <PaymentsNotice page={page} t={t} />
           {summary.length > 0 ? (
             <SimpleTable
