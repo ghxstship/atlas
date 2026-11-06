@@ -202,12 +202,23 @@ describe("the signed-in requester", () => {
             invoice_ready: true,
             invoice_used: false,
             created_at: "x",
+            viewer_can_withdraw: false,
+            viewer_can_submit_invoice: null,
           },
         ]),
       ],
     });
     expect(await listMyIntakeRequests(db)).toMatchObject({
-      data: [{ id: "r", state: "Approved", invoiceReady: true, engagementId: "e" }],
+      data: [
+        {
+          id: "r",
+          state: "Approved",
+          invoiceReady: true,
+          engagementId: "e",
+          viewerCanWithdraw: false,
+          viewerCanSubmitInvoice: false,
+        },
+      ],
     });
   });
 });

@@ -11,7 +11,8 @@ import type { Translate } from "@/lib/shell/translate";
 /**
  * Requests you sent (B2, ADR 0141): Gateway Home's card over api_external.my_vendor_intake_requests. Server-rendered,
  * since /home is a key page: nothing new loads in the browser beyond the shared ActionButton. Only the view's
- * allowlisted columns are read; the card stays away until there is a request.
+ * allowlisted columns are read; the card stays away until there is a request. Each control shows only when the view says
+ * its RPC would take it from this reader.
  */
 export async function IntakeRequestsCard({
   db,
@@ -47,7 +48,7 @@ export async function IntakeRequestsCard({
             {r.decisionReason ? (
               <span className="text-text-13 text-text-secondary">{r.decisionReason}</span>
             ) : null}
-            {r.state === "Pending" ? (
+            {r.viewerCanWithdraw ? (
               <span>
                 <ActionButton
                   action={withdrawIntakeAction.bind(null, r.id)}
@@ -56,13 +57,17 @@ export async function IntakeRequestsCard({
                 />
               </span>
             ) : null}
-            {r.invoiceReady ? (
+            {r.viewerCanSubmitInvoice ? (
               <span>
                 <ActionButton
                   action={submitIntakeInvoiceAction.bind(null, r.id)}
                   label={t("gateway.home.intake.submitInvoice")}
                   variant="secondary"
                 />
+              </span>
+            ) : r.invoiceReady ? (
+              <span className="text-text-13 text-text-secondary">
+                {t("gateway.home.intake.invoiceWaits")}
               </span>
             ) : null}
           </li>

@@ -495,7 +495,7 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
   const agreement = selfBilling.data.find((a) => a.is_active);
   const intake = await listMyIntakeRequests(view.ctx.db);
   const intakeInvoice = intake.ok
-    ? intake.data.find((r) => r.engagementId === e.id && r.invoiceReady)
+    ? intake.data.find((r) => r.engagementId === e.id && r.viewerCanSubmitInvoice)
     : undefined;
   const currency = e.rateCurrency ?? "USD";
   const today = view.today;

@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(64);
+select plan(69);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -216,8 +216,10 @@ select is(pg_temp.try('art', format($$select app.submit_vendor_intake(%L, %L, nu
 select pg_temp.as_user('victor');
 select is((select count(*)::int from app.vendor_intake_requests), 0, 'the requester cannot read the table directly');
 select is((select count(*)::int from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), 1, 'the requester reads their request through the view');
+select is((select viewer_can_withdraw from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), true, 'the requester may withdraw a waiting request');
 select pg_temp.as_user('fiona');
 select is((select count(*)::int from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), 1, 'the account''s Finance member reads it');
+select is((select viewer_can_withdraw from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), false, 'the account''s Finance member sees no withdraw: app.withdraw_vendor_intake takes only the requester');
 select pg_temp.as_user('sam');
 select is((select count(*)::int from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), 0, 'an Account Member does not');
 select pg_temp.as_user('quinn');
@@ -225,7 +227,7 @@ select is((select count(*)::int from api_external.my_vendor_intake_requests wher
 select pg_temp.as_platform();
 select is((select array_agg(column_name::text order by column_name::text) from information_schema.columns
   where table_schema = 'api_external' and table_name = 'my_vendor_intake_requests'),
-  array['created_at','decision_reason','engagement_id','id','invoice_ready','invoice_used','org_name','project_name','request_state','title'],
+  array['created_at','decision_reason','engagement_id','id','invoice_ready','invoice_used','org_name','project_name','request_state','title','viewer_can_submit_invoice','viewer_can_withdraw'],
   'the view is column-allowlisted');
 select is((select count(*)::int from private.column_classifications c
   where c.classification = 'Restricted' and c.table_name in ('app.vendor_intake_links', 'app.vendor_intake_requests', 'app.stakeholder_packs',
@@ -310,13 +312,18 @@ select is((select count(*)::int from app.onboarding_items i join app.onboarding_
   'a reference laundered into a bank number after submit leaves its item unsubmitted');
 
 -- The first invoice ----------------------------------------------------------------------------------------------------
+select pg_temp.as_user('victor');
+select is((select invoice_ready and not viewer_can_submit_invoice from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), true,
+  'the draft is ready, but no screen offers it while the money area is closed');
 select is(pg_temp.try('victor', format($$select app.submit_intake_invoice(%L)$$, pg_temp.k('r_v'))), '42501', 'the money area is closed during onboarding');
 select pg_temp.as_user('carol');
 insert into app.onboarding_verifications (onboarding_item_id, outcome)
 select i.id, 'Passed' from app.onboarding_items i where i.engagement_id = pg_temp.k('eng_v') and i.deleted_at is null;
 select app.transition_engagement(pg_temp.k('eng_v'), 'Onboarding', 'Active', 'Onboarded.');
 select pg_temp.as_user('victor');
+select is((select viewer_can_submit_invoice from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), true, 'after Active the screen offers it');
 select pg_temp.put('inv', app.submit_intake_invoice(pg_temp.k('r_v')), null);
+select is((select viewer_can_submit_invoice from api_external.my_vendor_intake_requests where id = pg_temp.k('r_v')), false, 'once used, it does not');
 select pg_temp.as_platform();
 select is((select invoice_state::text || '/' || currency_code from app.invoices where id = pg_temp.k('inv')), 'Proposed/USD', 'after Active the draft becomes one Proposed invoice in its currency');
 select is(pg_temp.try('victor', format($$select app.submit_intake_invoice(%L)$$, pg_temp.k('r_v'))), 'intake_invoice_used', 'a second call answers intake_invoice_used');

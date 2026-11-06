@@ -2181,6 +2181,8 @@ export type Database = {
           project_name: string | null;
           request_state: Database["app"]["Enums"]["join_request_state"] | null;
           title: string | null;
+          viewer_can_submit_invoice: boolean | null;
+          viewer_can_withdraw: boolean | null;
         };
         ComputedFields: never;
         Relationships: [

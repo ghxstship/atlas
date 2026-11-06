@@ -565,6 +565,10 @@ export interface MyIntakeRequest {
   readonly invoiceReady: boolean;
   readonly invoiceUsed: boolean;
   readonly createdAt: string;
+  /** The reader sent this request and it still waits: who app.withdraw_vendor_intake accepts. */
+  readonly viewerCanWithdraw: boolean;
+  /** The draft is ready and the money area is open to the reader: what app.submit_engagement_invoice checks. */
+  readonly viewerCanSubmitInvoice: boolean;
 }
 
 type ExternalFrom = {
@@ -584,7 +588,7 @@ export async function listMyIntakeRequests(db: XosClient): Promise<Result<MyInta
     .schema("api_external")
     .from("my_vendor_intake_requests")
     .select(
-      "id, org_name, project_name, title, request_state, decision_reason, engagement_id, invoice_ready, invoice_used, created_at",
+      "id, org_name, project_name, title, request_state, decision_reason, engagement_id, invoice_ready, invoice_used, created_at, viewer_can_withdraw, viewer_can_submit_invoice",
     )
     .order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
@@ -599,6 +603,8 @@ export async function listMyIntakeRequests(db: XosClient): Promise<Result<MyInta
     invoice_ready: boolean;
     invoice_used: boolean;
     created_at: string;
+    viewer_can_withdraw: boolean | null;
+    viewer_can_submit_invoice: boolean | null;
   }[];
   return ok(
     rows.map((r) => ({
@@ -612,6 +618,8 @@ export async function listMyIntakeRequests(db: XosClient): Promise<Result<MyInta
       invoiceReady: r.invoice_ready,
       invoiceUsed: r.invoice_used,
       createdAt: r.created_at,
+      viewerCanWithdraw: r.viewer_can_withdraw === true,
+      viewerCanSubmitInvoice: r.viewer_can_submit_invoice === true,
     })),
   );
 }

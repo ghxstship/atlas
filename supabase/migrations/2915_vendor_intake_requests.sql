@@ -171,16 +171,26 @@ create view api_external.my_vendor_intake_requests as
 select r.id, o.name as org_name, p.name as project_name, l.title, r.request_state, r.decision_reason, r.engagement_id,
   (r.request_state = 'Approved' and r.invoice_draft is not null and r.invoice_id is null) as invoice_ready,
   r.invoice_id is not null as invoice_used,
-  r.created_at
+  r.created_at,
+  -- What the reader may do now, the checks app.withdraw_vendor_intake and app.submit_engagement_invoice make, so a screen
+  -- shows no control its RPC would refuse. The view runs as its owner, so it can call the private helper.
+  (r.request_state = 'Pending' and r.requested_by = (select private.current_person_id())) as viewer_can_withdraw,
+  (r.request_state = 'Approved' and r.invoice_draft is not null and r.invoice_id is null and e.id is not null
+    and private.engagement_area_open(e.id, e.person_id, e.counterparty_id, e.role_type, e.engagement_state, 'money')
+    and case when e.counterparty_id is null then e.person_id = (select private.current_person_id())
+      else e.counterparty_id in (select c.id from app.counterparties c
+        where c.organization_id in (select private.my_account_ids(array['Account Owner', 'Account Admin', 'Account Finance']::app.account_role[])))
+      end) as viewer_can_submit_invoice
 from app.vendor_intake_requests r
 join app.vendor_intake_links l on l.id = r.vendor_intake_link_id
 join app.organizations o on o.id = r.org_id
 join app.projects p on p.id = r.project_id
+left join app.engagements e on e.id = r.engagement_id and e.deleted_at is null
 where r.deleted_at is null
   and (r.requested_by = (select private.current_person_id())
     or r.account_id in (select private.my_account_ids(array['Account Owner', 'Account Admin', 'Account Finance']::app.account_role[])));
 
-comment on view api_external.my_vendor_intake_requests is 'The signed-in person''s own vendor intake requests (ADR 0141; Section 8.7): those they sent, and those of accounts where they are Account Owner, Admin or Finance. Column-allowlisted: the org and project names, the link''s title, the state, the decline reason, the engagement once approved, and whether the stored first invoice is ready to submit or already used. Never the tax form, payout reference or the team''s note.';
+comment on view api_external.my_vendor_intake_requests is 'The signed-in person''s own vendor intake requests (ADR 0141; Section 8.7): those they sent, and those of accounts where they are Account Owner, Admin or Finance. Column-allowlisted: the org and project names, the link''s title, the state, the decline reason, the engagement once approved, whether the stored first invoice is ready to submit or already used, and what the reader may do now. Never the tax form, payout reference or the team''s note.';
 comment on column api_external.my_vendor_intake_requests.id is 'Request.';
 comment on column api_external.my_vendor_intake_requests.org_name is 'Org the request was sent to.';
 comment on column api_external.my_vendor_intake_requests.project_name is 'Project of the intake link.';
@@ -191,6 +201,8 @@ comment on column api_external.my_vendor_intake_requests.engagement_id is 'Engag
 comment on column api_external.my_vendor_intake_requests.invoice_ready is 'True when an approved request still holds its first invoice draft, unsent.';
 comment on column api_external.my_vendor_intake_requests.invoice_used is 'True once the draft was submitted as an invoice.';
 comment on column api_external.my_vendor_intake_requests.created_at is 'When the request was sent.';
+comment on column api_external.my_vendor_intake_requests.viewer_can_withdraw is 'True when the reader sent this request and it still waits, which is who app.withdraw_vendor_intake accepts.';
+comment on column api_external.my_vendor_intake_requests.viewer_can_submit_invoice is 'True when the stored first invoice is ready and app.submit_engagement_invoice would take it from the reader now: the engagement''s money area is open to them, and they are the person engaged or the account''s Owner, Admin or Finance member.';
 revoke all on api_external.my_vendor_intake_requests from public, anon;
 grant select on api_external.my_vendor_intake_requests to authenticated, service_role;
 revoke select on api_external.my_vendor_intake_requests from xos_backup;
