@@ -128,6 +128,86 @@ test.describe("18 or older", () => {
   });
 });
 
+test.describe("18 or older, for an account with no answer", () => {
+  test("is asked before any page, and one answer never closes the account", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    const email = testEmail("noanswer", id);
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Nia Noanswer");
+    await page.locator("#signup-email").fill(email);
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.locator("#signup-age").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.waitForURL("**/auth/organization");
+    // The account as a provider, single sign-on or a rule from before the question leaves it: no answer at all.
+    const [person] = await localSql<{ person: string; user_id: string }>(
+      `select p.id as person, u.id as user_id from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+      [email],
+    );
+    await localSql(`delete from private.age_confirmations where person_id = $1`, [person?.person]);
+
+    await page.goto("/");
+    await page.waitForURL((url) => url.pathname === "/auth/age");
+    await expectAccessible(page);
+    await page.locator("#age-question-under").check();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get("under") === "1");
+    await expect(page.getByRole("heading", { name: "Confirm your answer" })).toBeVisible();
+    await expectAccessible(page);
+    const [kept] = await localSql<{ n: string }>(
+      `select count(*)::text as n from auth.users where email = $1`,
+      [email],
+    );
+    expect(kept?.n).toBe("1");
+
+    // Going back is how an adult who chose wrongly recovers.
+    await page.getByRole("link", { name: "Go back", exact: true }).click();
+    await page.waitForURL((url) => url.pathname === "/auth/age" && !url.searchParams.has("under"));
+    await page.locator("#age-question-under").check();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get("under") === "1");
+    await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
+    await page.waitForURL((url) => url.pathname === "/auth/age-refused");
+    await expect(page.getByText(/XOS keeps only a monthly count/)).toBeVisible();
+
+    const [left] = await localSql<{ users: string; people: string }>(
+      `select (select count(*) from auth.users where id = $1)::text as users,
+              (select count(*) from app.people where id = $2)::text as people`,
+      [person?.user_id, person?.person],
+    );
+    expect(left).toEqual({ users: "0", people: "0" });
+    await context.close();
+  });
+
+  test("answering 18 or older carries on where they were going", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    const email = testEmail("lateanswer", id);
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Lee Late");
+    await page.locator("#signup-email").fill(email);
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.locator("#signup-age").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.waitForURL("**/auth/organization");
+    await createOrganization(page, { name: `Late ${id}`, slug: `late-${id}` });
+    await localSql(
+      `delete from private.age_confirmations c using app.people p, auth.users u
+        where c.person_id = p.id and p.user_id = u.id and u.email = $1`,
+      [email],
+    );
+    await page.goto(`/late-${id}/home`);
+    await page.waitForURL((url) => url.pathname === "/auth/age");
+    await page.locator("#age-question").check();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL(`**/late-${id}/home`);
+    await context.close();
+  });
+});
+
 // Share links ---------------------------------------------------------------------------------------
 
 /** A 2 by 2 PNG, enough for the renderer to embed. */

@@ -4,7 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Button, InlineAlert } from "@/components/ui";
-import { gatewayLegalDocument } from "@/lib/auth/legal";
+import { askedInGateway, gatewayLegalDocument } from "@/lib/auth/legal";
 import { acceptPersonalLegalChangeAction } from "@/lib/legal/reacceptance-actions";
 
 /**
@@ -17,7 +17,7 @@ import { acceptPersonalLegalChangeAction } from "@/lib/legal/reacceptance-action
 export async function ReacceptancePrompt({ db }: { db: XosClient }) {
   const listed = await listPendingReacceptances(db, null);
   if (!listed.ok) return null;
-  const pending = { data: listed.data.filter((p) => gatewayLegalDocument(p.documentSlug)?.accept) };
+  const pending = { data: askedInGateway(listed.data) };
   if (pending.data.length === 0) return null;
   const [t, locale] = await Promise.all([getTranslations("compliance.reacceptance"), getLocale()]);
   const long = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" });

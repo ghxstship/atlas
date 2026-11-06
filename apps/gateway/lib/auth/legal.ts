@@ -39,6 +39,16 @@ export function gatewayLegalDocument(slug: string): GatewayLegalDocument | undef
   return GATEWAY_LEGAL_DOCUMENTS.find((d) => d.slug === slug);
 }
 
+/**
+ * The announced changes Gateway asks about: documents it publishes and asks people to accept. The Mobile EULA is Compass's
+ * to ask (ADR 0156), and Gateway has no page for it, so accepting here would record text the person could not read.
+ */
+export function askedInGateway<T extends { readonly documentSlug: string }>(
+  changes: readonly T[],
+): T[] {
+  return changes.filter((c) => gatewayLegalDocument(c.documentSlug)?.accept);
+}
+
 export interface Acceptance {
   readonly slug: string;
   readonly version: string;

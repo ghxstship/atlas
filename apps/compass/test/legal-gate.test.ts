@@ -8,6 +8,7 @@ import {
   acceptancesOf,
   AI_DISCLOSURE_VERSION,
   aiChoiceState,
+  askedInCompass,
   decideGate,
   heldReason,
   legalNeeds,
@@ -37,6 +38,7 @@ const standing = (over: Partial<LegalStanding> = {}): LegalStanding => ({
   workerTermsApply: false,
   aiChoice: null,
   aiDisclosureVersion: null,
+  closingBlocked: false,
   ...over,
 });
 
@@ -80,6 +82,21 @@ describe("what a sign-in owes", () => {
     const needs = legalNeeds(standing(), [change({ required: true })]);
     expect(owesNothing(needs)).toBe(false);
     expect(acceptancesOf(needs)).toEqual([{ slug: "mobile-eula", version: "2.0.0" }]);
+  });
+});
+
+describe("announced changes", () => {
+  it("asks only about Compass's own documents, which it can name and link", () => {
+    expect(
+      askedInCompass([
+        change(),
+        change({ documentSlug: "worker-terms" }),
+        change({ documentSlug: "privacy-policy" }),
+      ]).map((c) => c.documentSlug),
+    ).toEqual(["mobile-eula", "worker-terms"]);
+    expect(
+      legalNeeds(standing(), [change({ documentSlug: "privacy-policy", required: true })]).changes,
+    ).toEqual([]);
   });
 });
 
@@ -277,6 +294,27 @@ describe("the documents and the words", () => {
     expect(ai["provider"]).toMatch(/third-party AI provider/);
     expect(ai["sent"]).toMatch(/questions/);
     expect(ai["sent"]).toMatch(/receipt photos/);
+  });
+});
+
+describe("the Maestro fixtures", () => {
+  const dir = new URL("../.maestro/", import.meta.url).pathname;
+  const flows = readdirSync(`${dir}flows`).map((f) => readFileSync(`${dir}flows/${f}`, "utf8"));
+
+  it("answer what a first sign-in asks, or walk the questions themselves", () => {
+    for (const script of readdirSync(`${dir}scripts`)) {
+      const body = readFileSync(`${dir}scripts/${script}`, "utf8");
+      if (!body.includes("/auth/v1/signup")) continue;
+      const walksThem = flows
+        .filter((flow) => flow.includes(`scripts/${script}`))
+        .every(
+          (flow) =>
+            flow.includes("first-sign-in-answers") || flow.includes("legal-gate-age-under"),
+        );
+      const answersThem =
+        body.includes('age_confirmed: "18"') && body.includes('"record_legal_acceptances"');
+      expect(answersThem || walksThem, `${script} stops at the first sign-in step`).toBe(true);
+    }
   });
 });
 
