@@ -296,7 +296,11 @@ export function SpreadsheetGrid({
                     "text-center text-text-11 text-text-tertiary bg-bg-surface tabular-nums",
                   )}
                 >
-                  {ri < rows.length ? ri + 1 : <span aria-label={t("grid.newRow")}>+</span>}
+                  {ri < rows.length ? (
+                    ri + 1
+                  ) : (
+                    <span aria-label={t("grid.newRow")}>{t("grid.newRowMark")}</span>
+                  )}
                 </td>
                 {columns.map((c, ci) => {
                   const on = sel[0] === ri && sel[1] === ci;

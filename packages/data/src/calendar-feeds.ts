@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { XosClient } from "./client.ts";
 import type { CueCallKind } from "./cue-calls.ts";
 import { writeICalendar, type ICalEvent, type ICalEventStatus } from "./ical.ts";
@@ -40,13 +41,7 @@ export function webcalUrl(url: string): string {
 }
 
 /** What a feed serves (app.calendar_feed_source). */
-export const CALENDAR_FEED_SOURCES = [
-  "Shifts",
-  "Meetings",
-  "Milestones",
-  "Deadlines",
-  "Cues",
-] as const;
+export const CALENDAR_FEED_SOURCES = enums.calendarFeedSource;
 export type CalendarFeedSource = (typeof CALENDAR_FEED_SOURCES)[number];
 
 /** The sources a feed without saved sources serves: the 4.0 set. */

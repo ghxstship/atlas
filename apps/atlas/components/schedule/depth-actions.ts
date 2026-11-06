@@ -1,5 +1,7 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
+import type { Database } from "@xos/data/database.types";
 import {
   moveProjectAnchor,
   setProjectAnchor,
@@ -250,7 +252,7 @@ export async function saveDayTemplateItemAction(
   input: {
     id?: string;
     templateId: string;
-    kind: "Record" | "Cue";
+    kind: Database["app"]["Enums"]["day_template_item_kind"];
     sortOrder: number;
     name: string;
     recordKind: string | null;
@@ -266,7 +268,7 @@ export async function saveDayTemplateItemAction(
     .object({
       id: z.uuid().optional(),
       templateId: z.uuid(),
-      kind: z.enum(["Record", "Cue"]),
+      kind: z.enum(Constants.app.Enums.day_template_item_kind),
       sortOrder: z.number().int().min(1).max(500),
       name: z.string().trim().min(1).max(200),
       recordKind: z.string().max(40).nullable(),
@@ -348,11 +350,16 @@ export async function listDayItemsAction(
 /** The Undo toast of an application: what it created goes to Trash. */
 export async function undoDayTemplateApplicationAction(
   org: string,
-  created: { kind: "Record" | "Cue"; createdId: string | null }[],
+  created: { kind: Database["app"]["Enums"]["day_template_item_kind"]; createdId: string | null }[],
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
-    .array(z.object({ kind: z.enum(["Record", "Cue"]), createdId: z.uuid().nullable() }))
+    .array(
+      z.object({
+        kind: z.enum(Constants.app.Enums.day_template_item_kind),
+        createdId: z.uuid().nullable(),
+      }),
+    )
     .max(500)
     .safeParse(created);
   if (!parsed.success) return invalid();

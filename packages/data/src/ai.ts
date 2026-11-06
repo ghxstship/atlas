@@ -833,7 +833,7 @@ export async function recordDraftedAdvanceAnswer(
 /** Where an advance answer recorded from an Aurora draft came from. */
 export interface AnswerSource {
   readonly submissionId: string;
-  readonly sourceKind: "Project Inbox" | "File";
+  readonly sourceKind: Database["app"]["Enums"]["advance_answer_source_kind"];
   readonly fileName: string | null;
   readonly excerpt: string;
   /** The sender of the mail, only when the reader may read that message. */

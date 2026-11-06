@@ -230,7 +230,8 @@
     "row": "Fila",
     "newRow": "Fila nueva",
     "hintAppend": "Las flechas y Tab mueven, Intro edita y baja, y escribir en la última fila agrega una fila. Pegar desde una hoja de cálculo llena el rango.",
-    "cellError": "Fila {row}, {column}: {message}"
+    "cellError": "Fila {row}, {column}: {message}",
+    "newRowMark": "+"
   },
   "help": {
     "ask": "Haga una pregunta sobre esta página",
@@ -600,7 +601,8 @@
     "detail": "{row}, {col}: {state}. {detail}",
     "none": "{row}, {col}: no se pide",
     "select": "Seleccionar {row}",
-    "legend": "Qué significa cada estado"
+    "legend": "Qué significa cada estado",
+    "noneMark": "-"
   },
   "recordStates": {
     "proposed": "Propuesto",

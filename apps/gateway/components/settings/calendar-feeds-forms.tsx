@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Button, Checkbox, Dialog, InlineAlert, Input } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
@@ -17,7 +18,7 @@ import {
  * new link is shown once with a copy button and a webcal link that opens the device's calendar app.
  */
 
-const SOURCES = ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"] as const;
+const SOURCES = enums.calendarFeedSource;
 const DEFAULT_SOURCES = ["Shifts", "Meetings", "Milestones", "Deadlines"];
 
 /** A feed's name and content fields, shared by Add and Edit. */

@@ -1,5 +1,6 @@
 "use client";
 
+import type * as enums from "@xos/data/enums";
 import { Button, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { undoStack } from "@xos/ui/undo";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,7 @@ type Option = { readonly value: string; readonly label: string };
 export interface BookValues {
   readonly id: string;
   readonly name: string;
-  readonly kind: "Tour Book" | "Production Book";
+  readonly kind: (typeof enums.documentBookKind)[number];
   readonly startsOn: string | null;
   readonly endsOn: string | null;
   readonly sections: readonly string[];

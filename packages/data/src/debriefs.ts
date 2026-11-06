@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { XosClient } from "./client.ts";
 import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -10,19 +11,10 @@ import { untyped } from "./untyped.ts";
  * with Aurora and reviewed by them.
  */
 
-export const DEBRIEF_AREAS = [
-  "Schedule",
-  "Budget",
-  "Safety",
-  "Audience",
-  "Sustainability",
-  "Crew",
-  "Vendors",
-  "Other",
-] as const;
+export const DEBRIEF_AREAS = enums.debriefArea;
 export type DebriefArea = (typeof DEBRIEF_AREAS)[number];
 
-export const DEBRIEF_ITEM_KINDS = ["Went Well", "To Improve", "Action"] as const;
+export const DEBRIEF_ITEM_KINDS = enums.debriefItemKind;
 export type DebriefItemKind = (typeof DEBRIEF_ITEM_KINDS)[number];
 
 /** Catalog slugs of the areas and kinds, for copy keys. */

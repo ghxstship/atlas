@@ -1,3 +1,4 @@
+import { Constants } from "@xos/data/database.types";
 import { countBookDocuments, listDocumentBooks } from "@xos/data/documents/books";
 import {
   BOOK_SECTION_KINDS,
@@ -54,7 +55,7 @@ function editorLabels(t: Translate, name: string | null): BookEditorLabels {
     moveDown: t(`${P}.moveDown`),
     save: t(`${P}.save`),
     cancel: t(`${P}.cancel`),
-    kinds: (["Tour Book", "Production Book"] as const).map((k) => ({
+    kinds: Constants.app.Enums.document_book_kind.map((k) => ({
       value: k,
       label: t(`${P}.kinds.${keyOf(k)}`),
     })),

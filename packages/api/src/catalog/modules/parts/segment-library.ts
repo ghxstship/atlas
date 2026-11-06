@@ -82,7 +82,7 @@ const SegmentLibraryCueCall = editDefinition(
     fields: {
       segment_library_cue_id: fields.ref("library cue the call belongs to"),
       call_kind: z
-        .enum(["Audio", "Lighting", "Video", "Special Effects", "Stage"])
+        .enum(Constants.app.Enums.cue_call_kind)
         .meta({ description: "Department making the call.", example: "Lighting" }),
       instruction: fields.text("What the department does on the cue.", "LX 40 GO.", 2000),
     },

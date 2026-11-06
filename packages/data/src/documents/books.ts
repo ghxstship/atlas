@@ -1,3 +1,4 @@
+import type { Database } from "../database.types.ts";
 import type { XosClient } from "../client.ts";
 import { listBeos } from "../hospitality.ts";
 import { listIncidents } from "../incidents.ts";
@@ -30,7 +31,7 @@ import {
  * cannot open is left out and counted. Day sheets and call sheets go in only once published. Server only.
  */
 
-export type DocumentBookKind = "Tour Book" | "Production Book";
+export type DocumentBookKind = Database["app"]["Enums"]["document_book_kind"];
 
 export interface DocumentBook {
   readonly id: string;

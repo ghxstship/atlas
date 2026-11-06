@@ -1137,7 +1137,7 @@ const WeatherHold = defineResource({
   immutable: ["project_id", "hazard", "weather_alert_id", "weather_warning_id", "message"],
   fields: {
     project_id: fields.ref("project"),
-    hazard: orNull(label(["Wind", "Lightning", "Heat"], "Hazard the hold is for.")),
+    hazard: orNull(label(Constants.app.Enums.weather_hazard, "Hazard the hold is for.")),
     weather_alert_id: orNull(fields.ref("weather alert that prompted it")),
     weather_warning_id: orNull(fields.ref("official warning that prompted it")),
     message: fields.text(

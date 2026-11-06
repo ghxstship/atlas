@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import {
   deleteDocumentBook,
   restoreDocumentBook,
@@ -40,7 +41,7 @@ const Book = z.object({
   projectKey: z.string().min(1).max(40),
   bookId: z.uuid().nullable(),
   name: z.string().max(200),
-  kind: z.enum(["Tour Book", "Production Book"]),
+  kind: z.enum(Constants.app.Enums.document_book_kind),
   startsOn: day.nullable(),
   endsOn: day.nullable(),
   sections: z.array(z.enum(BOOK_SECTION_KINDS)).max(BOOK_SECTION_KINDS.length),

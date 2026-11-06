@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import type { DayType } from "./schedule-days.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -19,7 +20,7 @@ export interface DayTemplate {
   readonly updatedAt: string;
 }
 
-export type DayTemplateItemKind = "Record" | "Cue";
+export type DayTemplateItemKind = Database["app"]["Enums"]["day_template_item_kind"];
 
 export interface DayTemplateItem {
   readonly id: string;

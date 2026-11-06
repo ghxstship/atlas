@@ -1,5 +1,6 @@
 "use client";
 
+import * as enums from "@xos/data/enums";
 import { Button, Checkbox, Dialog, InlineAlert, Input, MultiSelect, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
@@ -23,7 +24,7 @@ import { useKeepInput } from "@/components/collection-kit/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 type Option = { readonly value: string; readonly label: string };
 
-const SOURCES = ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"] as const;
+const SOURCES = enums.calendarFeedSource;
 const DEFAULT_SOURCES = ["Shifts", "Meetings", "Milestones", "Deadlines"];
 
 /** What the audience and show department pickers offer (people, teams, departments, departments of a show). */

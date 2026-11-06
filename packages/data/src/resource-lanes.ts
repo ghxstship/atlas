@@ -1,4 +1,3 @@
-import { personNames } from "./person-names.ts";
 import type { XosClient } from "./client.ts";
 import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";

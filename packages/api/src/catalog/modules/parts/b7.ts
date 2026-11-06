@@ -4,6 +4,7 @@
  * unchanged; a feed's configuration has its own item action and query. catalog/modules/platform.ts and
  * catalog/modules/projects.ts spread these; handlers/parts/b7.ts serves them.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
@@ -11,8 +12,8 @@ import { editDefinition, orNull } from "../../correct.ts";
 import { collectionAction, itemAction, itemQuery, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
 
-const SOURCES = ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"] as const;
-const CALL_KINDS = ["Audio", "Lighting", "Video", "Special Effects", "Stage"] as const;
+const SOURCES = Constants.app.Enums.calendar_feed_source;
+const CALL_KINDS = Constants.app.Enums.cue_call_kind;
 
 const feedName = orNull(
   fields.text(
@@ -185,19 +186,10 @@ const ProjectDebriefItem = audited(
     fields: {
       debrief_id: fields.ref("debrief the point belongs to"),
       area: z
-        .enum([
-          "Schedule",
-          "Budget",
-          "Safety",
-          "Audience",
-          "Sustainability",
-          "Crew",
-          "Vendors",
-          "Other",
-        ])
+        .enum(Constants.app.Enums.debrief_area)
         .meta({ description: "Area of the project the point is about.", example: "Safety" }),
       item_kind: z
-        .enum(["Went Well", "To Improve", "Action"])
+        .enum(Constants.app.Enums.debrief_item_kind)
         .meta({ description: "Kind of point.", example: "Action" }),
       body: fields.text("The point.", "Add a second spotter on the downstage truss.", 2000),
       position: fields.int("Order in the debrief, from 1; the next free one when omitted.", 1, 1),

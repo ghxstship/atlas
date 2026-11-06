@@ -230,7 +230,8 @@
     "row": "Row",
     "newRow": "New row",
     "hintAppend": "Arrow keys and Tab move, Enter edits and moves down, and typing in the last row adds a row. Paste from a spreadsheet fills the range.",
-    "cellError": "Row {row}, {column}: {message}"
+    "cellError": "Row {row}, {column}: {message}",
+    "newRowMark": "+"
   },
   "help": {
     "ask": "Ask a question about this page",
@@ -600,7 +601,8 @@
     "detail": "{row}, {col}: {state}. {detail}",
     "none": "{row}, {col}: not asked",
     "select": "Select {row}",
-    "legend": "What each state means"
+    "legend": "What each state means",
+    "noneMark": "-"
   },
   "recordStates": {
     "proposed": "Proposed",

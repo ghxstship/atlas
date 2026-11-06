@@ -520,7 +520,7 @@ describe("the portal's cue editor", () => {
             ? { ...c, calls: [{ kind: "Lighting" as const, instruction: "LX 42 GO" }] }
             : c,
         ),
-      }),
+      } as unknown as typeof portalRun),
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>

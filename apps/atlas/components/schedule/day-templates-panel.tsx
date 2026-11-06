@@ -1,5 +1,6 @@
 "use client";
 
+import type * as enums from "@xos/data/enums";
 import type { DayTemplate, DayTemplateItem } from "@xos/data/day-templates";
 import { minuteClock } from "@xos/data/day-templates";
 import { Button, IconButton, Input, Link, Select } from "@xos/ui";
@@ -37,7 +38,7 @@ export function DayTemplatesPanel({
 }) {
   const t = useCopy("schedule");
   const { pending, error, run } = useAction();
-  const [kind, setKind] = useState<"Record" | "Cue">("Record");
+  const [kind, setKind] = useState<(typeof enums.dayTemplateItemKind)[number]>("Record");
   const [name, setName] = useState("");
   const [recordKind, setRecordKind] = useState("Task");
   const [time, setTime] = useState("");

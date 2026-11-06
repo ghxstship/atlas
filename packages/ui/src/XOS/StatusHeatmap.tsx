@@ -130,7 +130,7 @@ export function StatusHeatmap({
                       ) : null}
                     </span>
                   ) : (
-                    <span className="text-text-secondary">-</span>
+                    <span className="text-text-secondary">{t("heatmap.noneMark")}</span>
                   );
                   return (
                     <td

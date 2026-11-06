@@ -10,8 +10,6 @@ import {
   type CredentialCategory,
   type Zone,
 } from "@xos/data/credentials";
-import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
-import { printSizesFor } from "@xos/data/documents/model";
 import { listCertifications } from "@xos/data/people";
 import { listTrainingCourses } from "@xos/data/workforce-training";
 import type { Route } from "next";

@@ -462,7 +462,7 @@ export function teamClockState(
 export function primaryTeamPunch(
   selected: readonly string[],
   state: ReadonlyMap<string, "in" | "out">,
-): "In" | "Out" {
+): Database["app"]["Enums"]["scan_direction"] {
   return selected.some((shiftId) => state.get(shiftId) === "in") ? "Out" : "In";
 }
 

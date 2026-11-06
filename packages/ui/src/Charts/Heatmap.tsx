@@ -75,7 +75,7 @@ export function Heatmap({
                     {cell?.over ? <Icon name="TriangleAlert" size={12} /> : null}
                     <span>{cell?.text ?? ""}</span>
                     {cell?.over && !onCellActivate ? (
-                      <span className="sr-only">{`, ${cell.over}`}</span>
+                      <span className="sr-only">{cell.over}</span>
                     ) : null}
                   </span>
                 );

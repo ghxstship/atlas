@@ -1,3 +1,4 @@
+import type { Database } from "../database.types.ts";
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
 import type { GuestPass } from "../advancing.ts";
 import type { RadioHandoutLine } from "../allocations.ts";
@@ -181,7 +182,7 @@ export interface BookCoverData {
   readonly book: {
     readonly id: string;
     readonly name: string;
-    readonly kind: "Tour Book" | "Production Book";
+    readonly kind: Database["app"]["Enums"]["document_book_kind"];
     readonly startsOn: string | null;
     readonly endsOn: string | null;
     readonly sections: readonly BookSectionKind[];
