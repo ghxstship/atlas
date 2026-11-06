@@ -46,7 +46,11 @@ test("an organization outside an offered territory is not created, and the page 
   await expect(
     page.getByText("XOS is not offered in your organization's country (Germany)", { exact: false }),
   ).toBeVisible();
-  await expect(page.getByText("open your invitation", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("you do not need to create one: open your invitation", { exact: false }),
+  ).toBeVisible();
+  // Signing up says nothing about where an invitation works: that would imply availability abroad.
+  await expect(page.getByText("wherever you are", { exact: false })).toHaveCount(0);
   await expect(page).toHaveURL(/\/auth\/organization/);
   // What the person typed stays, and the database holds nothing.
   await expect(page.getByLabel("Organization name", { exact: true })).toHaveValue(`Vogel ${id}`);
