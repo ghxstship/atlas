@@ -99,6 +99,7 @@ are deleted when the entry is removed or declined, and 90 days after the project
 - A hospitality reader who planned from dietary lists now sees counts, or needs the catering lead role on the project.
 - Org readers with only `vendors.vendor.read` no longer see shared certifications.
 - `private.looks_sensitive` will sometimes refuse an innocent door note; the message says what to do.
-- Form builder questions (public forms, onboarding items, application questions) can still ask for this data in a free label. Nothing
-  here reads those labels; see the follow-ups in the release notes.
+- Form builder questions (public forms, onboarding items, application questions) and other free text (BEO notes, advance answers) can
+  still hold this data. Nothing here reads them; the Acceptable Use Policy says not to.
+- An import's uploaded file and its parsed rows can hold a column nobody mapped until the import's retention ends.
 - An evidence file already uploaded stays in storage until the row purge runs, the known gap in the Retention Policy.
