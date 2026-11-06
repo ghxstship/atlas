@@ -561,7 +561,9 @@ export async function showcallerWrite(
     readonly clientAddress: string | null;
     readonly write: ShowcallerWrite;
   },
-): Promise<Result<{ readonly refused: false } | ShowcallerRefused>> {
+): Promise<
+  Result<{ readonly refused: false; readonly updatedAt: string | null } | ShowcallerRefused>
+> {
   if (!SHOWCALLER_TOKEN.test(input.token)) {
     return ok({ refused: true, reason: "showcaller_link_invalid" });
   }
@@ -578,7 +580,11 @@ export async function showcallerWrite(
   const body = (data ?? {}) as Record<string, unknown>;
   return ok(
     body["status"] === "ok"
-      ? { refused: false }
+      ? {
+          refused: false,
+          // A save answers the cue's new version, so a retry after a later refusal is not its own stale save.
+          updatedAt: typeof body["updated_at"] === "string" ? body["updated_at"] : null,
+        }
       : { refused: true, reason: parseShowcallerRefusal(body["reason"]) },
   );
 }

@@ -508,6 +508,65 @@ describe("the portal's cue editor", () => {
     );
   });
 
+  it("leaves a call someone else saved while the editor was open alone", async () => {
+    const user = userEvent.setup();
+    const view = renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    view.rerender(
+      portalTree({
+        ...portalRun,
+        cues: portalRun.cues.map((c) =>
+          c.id === "cue-1"
+            ? { ...c, calls: [{ kind: "Lighting" as const, instruction: "LX 42 GO" }] }
+            : c,
+        ),
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(portal.write).toHaveBeenCalledWith(
+        "xscl_token",
+        expect.objectContaining({ op: "save", cueId: "cue-1" }),
+      ),
+    );
+    await waitFor(() => expect(document.getElementById("portal-label-cue-1")).toBeNull());
+    expect(portal.write).not.toHaveBeenCalledWith(
+      "xscl_token",
+      expect.objectContaining({ op: "calls" }),
+    );
+  });
+
+  it("retries after a refused call against its own save, with the refusal in the editor", async () => {
+    const user = userEvent.setup();
+    portal.write
+      .mockImplementationOnce((async () => ({
+        ok: true as const,
+        updatedAt: "2027-03-13T18:09:00Z",
+      })) as never)
+      .mockImplementationOnce((async () => ({
+        ok: false as const,
+        reason: "showcaller_cue_changed",
+      })) as never);
+    renderPortal();
+    await user.click(screen.getByRole("button", { name: "Edit House to Half" }));
+    const editor = screen.getByRole("group", { name: /House to Half/ });
+    await user.click(screen.getByRole("tab", { name: "Calls" }));
+    await user.type(document.getElementById("portal-call-lighting-cue-1") as HTMLElement, "LX 1");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await within(editor).findByText(/Someone changed this cue since you opened it/);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(portal.write).toHaveBeenLastCalledWith(
+        "xscl_token",
+        expect.objectContaining({ op: "calls", cueId: "cue-1" }),
+      ),
+    );
+    expect(portal.write).toHaveBeenCalledWith(
+      "xscl_token",
+      expect.objectContaining({ op: "save", expectedUpdatedAt: "2027-03-13T18:09:00Z" }),
+    );
+  });
+
   it("keeps the editor open and shows the refusal when the cue changed", async () => {
     const user = userEvent.setup();
     portal.write.mockImplementationOnce((async () => ({

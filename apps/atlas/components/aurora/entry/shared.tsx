@@ -78,11 +78,9 @@ export type Outcome<A> =
       readonly kind: "answer";
       readonly answer: A;
       readonly model: string | null;
-      /** The logged request, which a drafted list is confirmed by. */
+      /** The logged request (app.ai_requests): a drafted list is confirmed by it, and a saved draft names it (B7). */
       readonly requestId: string | null;
       readonly suggestions: readonly AuroraProposalSummary[];
-      /** The app.ai_requests row of the call, so a saved draft can name it (B7). */
-      readonly requestId: string | null;
     }
   | { readonly kind: "no-answer"; readonly missing: string }
   | { readonly kind: "failed" }
@@ -99,7 +97,6 @@ export function outcomeOf<A>(call: AuroraCall<AuroraApiResult<A>>): Outcome<A> {
     model: result.model,
     requestId: result.request_id,
     suggestions: result.suggestions,
-    requestId: result.request_id,
   };
 }
 

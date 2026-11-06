@@ -67,7 +67,9 @@ export function ShiftDropIsland({
           busy.current = false;
           return;
         }
-        const there = ranked.candidates.find((c) => c.membershipId === membershipId);
+        const there = ranked.candidates.find(
+          (c) => c.kind === "member" && c.membershipId === membershipId,
+        );
         if (!there || there.conflict) {
           setAnnouncement(
             t(there ? "laneConflict" : "dropNotRanked", { name, shift: shift.label }),

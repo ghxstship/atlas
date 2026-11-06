@@ -64,9 +64,13 @@ export function CueEditor({
   const [duration, setDuration] = useState(
     cue.durationSeconds === null ? "" : String(cue.durationSeconds),
   );
-  const initial = Object.fromEntries(
-    CUE_CALL_KINDS.map((k) => [k, calls.find((c) => c.kind === k)?.instruction ?? ""]),
-  ) as Record<CueCallKind, string>;
+  // Frozen when the editor opens, like the typed values: a call someone else saves meanwhile is neither sent nor undone.
+  const [initial] = useState(
+    () =>
+      Object.fromEntries(
+        CUE_CALL_KINDS.map((k) => [k, calls.find((c) => c.kind === k)?.instruction ?? ""]),
+      ) as Record<CueCallKind, string>,
+  );
   const [instructions, setInstructions] = useState(initial);
   const [segment, setSegment] = useState(cue.segment ?? "");
   // Null until the person picks: the color shown follows the segment typed, and only a pick is written.

@@ -3,9 +3,12 @@
 import type { RecordReview as Review } from "@xos/data/work";
 import { Button, Select, Switch, Tag, Textarea } from "@xos/ui";
 import { useState } from "react";
-import { updateRecordAction } from "./actions";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
-import { decideReviewAction, requestReviewAction } from "./review-actions";
+import {
+  decideReviewAction,
+  requestReviewAction,
+  setRecordRequiresReviewAction,
+} from "./review-actions";
 
 /**
  * A record's review (B14, G-268; ADR 0153 D5): the Requires review switch, the latest review with its state and
@@ -71,7 +74,7 @@ export function RecordReview({
         checked={requiresReview}
         disabled={!canWrite || flag.pending || (requiresReview && !canClearFlag)}
         onChange={(e) =>
-          flag.run(() => updateRecordAction(org, recordId, { requiresReview: e.target.checked }))
+          flag.run(() => setRecordRequiresReviewAction(org, recordId, e.target.checked))
         }
       />
       <p className="m-0 text-text-12 text-text-secondary">

@@ -674,7 +674,6 @@ export function RunBody({
   importHref = null,
   calls = [],
   department = null,
-  importHref = null,
   segmentColors = {},
   fieldChips = {},
   hasCueFields = false,
@@ -703,8 +702,6 @@ export function RunBody({
   calls?: readonly CueCall[];
   /** The department chosen in the URL (`dept=`), or null for every department. */
   department?: CueCallKind | null;
-  /** The import wizard preselected on this running order (P3); null when the viewer cannot import cues here. */
-  importHref?: string | null;
   /** Segment colors of the running order, by segment name lowercased and trimmed (app.run_segment_colors). */
   segmentColors?: Readonly<Record<string, SegmentColor>>;
   /** Crew-audience custom values by cue id, as chips (ADR 0142). */

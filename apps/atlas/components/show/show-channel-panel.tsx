@@ -24,7 +24,7 @@ const CHAT_PACING = { batchMs: 150, minIntervalMs: 500, maxIntervalMs: 2_000 } a
  * in. runs.tsx imports it statically, since it renders on arrival in live mode. It asks app.show_channel_status what to offer (group
  * visibility hides a group from people outside it), shows the last 50 messages and the unread count, and rereads
  * them through a server action whenever Realtime reports a change to the conversation's messages, so the running
- * order's page itself never refreshes for a message and P2's live hold is untouched.
+ * order's page itself never refreshes for a message and P2's live hold is untouched (the composer is free of it).
  *
  * The panel sits beside the showcaller console, not in it, and the show keys answer only in the console, so no key
  * pressed here calls or stands by a cue: S, J or Space typed in the composer are letters, and the shell leaves typing
@@ -155,6 +155,8 @@ export function ShowChannelPanel({ org, projectId }: { org: string; projectId: s
             </ol>
           )}
           <form
+            // The draft lives in state, so a refresh keeps it: typing must not hold live mode's cue updates.
+            data-live-refresh-free
             className="flex flex-col gap-8"
             action={send}
             onSubmit={(e) => {

@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import type { ActionResult } from "@/components/work/action-result";
 import { fromLocalInput, toLocalInput } from "@/components/work/format";
-import { portalWriteAction } from "@/lib/showcaller/actions";
+import { portalWriteAction, type PortalWriteResult } from "@/lib/showcaller/actions";
 import { clockChannelName } from "@/lib/showcaller/clock-channel";
 import { CueFormTabs } from "./cue-form-tabs";
 import { ShowcallerConsole, type ShowcallerTransport } from "./showcaller-console";
@@ -93,12 +93,17 @@ function fieldText(
   field: ShowcallerField,
   format: ReturnType<typeof useFormatter>,
   t: Translate,
+  timeZone: string,
 ): string {
   if (field.choiceLabel !== null) return field.choiceLabel;
   if (field.boolean !== null) return field.boolean ? t("yes") : t("no");
   if (field.number !== null) return format.number(field.number);
   if (field.timestamp !== null)
-    return format.dateTime(new Date(field.timestamp), { dateStyle: "medium", timeStyle: "short" });
+    return format.dateTime(new Date(field.timestamp), {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone,
+    });
   if (field.date !== null)
     return format.dateTime(new Date(`${field.date}T00:00:00Z`), {
       dateStyle: "medium",
@@ -112,21 +117,24 @@ function PortalCueEditor({
   cue,
   timeZone,
   showDate,
-  write,
+  send,
   onClose,
 }: {
   cue: ShowcallerCue;
   timeZone: string;
   showDate: string;
-  write: (w: ShowcallerWrite) => Promise<boolean>;
+  send: (w: ShowcallerWrite) => Promise<PortalWriteResult>;
   onClose: () => void;
 }) {
   const t = useTranslations("compliance.showcallerPortal") as unknown as Translate;
   const show = useTranslations("show") as unknown as Translate;
   const [pending, start] = useTransition();
   // The version the fields below started from. The console's live refresh hands this editor a newer cue while it stays
-  // open, and sending that one would overwrite the change it carries (showcaller_cue_changed never fires).
-  const [openedAt] = useState(cue.updatedAt);
+  // open, and sending that one would overwrite the change it carries (showcaller_cue_changed never fires). This editor's
+  // own save moves it on, so a retry after the calls were refused is not stale against itself.
+  const [openedAt, setOpenedAt] = useState(cue.updatedAt);
+  // A refusal shows here in the editor, on every tab, not above the console where it would be off screen.
+  const [refused, setRefused] = useState<ShowcallerRefusal | "unexpected" | null>(null);
   const [label, setLabel] = useState(cue.label);
   const [planned, setPlanned] = useState(
     cue.plannedAt ? toLocalInput(cue.plannedAt, timeZone).slice(11, 16) : "",
@@ -138,14 +146,19 @@ function PortalCueEditor({
   const [segment, setSegment] = useState(cue.segment ?? "");
   const [description, setDescription] = useState(cue.description ?? "");
   const [script, setScript] = useState(cue.script ?? "");
-  const initial = Object.fromEntries(
-    CUE_CALL_KINDS.map((k) => [k, cue.calls.find((c) => c.kind === k)?.instruction ?? ""]),
-  ) as Record<CueCallKind, string>;
+  // Frozen when the editor opens, like the typed values: a call someone else saves meanwhile is neither sent nor undone.
+  const [initial] = useState(
+    () =>
+      Object.fromEntries(
+        CUE_CALL_KINDS.map((k) => [k, cue.calls.find((c) => c.kind === k)?.instruction ?? ""]),
+      ) as Record<CueCallKind, string>,
+  );
   const [calls, setCalls] = useState(initial);
   const day = cue.plannedAt ? toLocalInput(cue.plannedAt, timeZone).slice(0, 10) : showDate;
   const submit = () =>
     start(async () => {
-      const saved = await write({
+      setRefused(null);
+      const saved = await send({
         op: "save",
         cueId: cue.id,
         expectedUpdatedAt: openedAt,
@@ -159,18 +172,24 @@ function PortalCueEditor({
           script: script === "" ? null : script,
         },
       });
-      if (!saved) return;
+      if (!saved.ok) {
+        setRefused(saved.reason);
+        return;
+      }
+      if (saved.updatedAt) setOpenedAt(saved.updatedAt);
       const changed = Object.fromEntries(
         CUE_CALL_KINDS.filter((k) => calls[k].trim() !== initial[k].trim()).map((k) => [
           k,
           calls[k].trim() === "" ? null : calls[k].trim(),
         ]),
       );
-      if (
-        Object.keys(changed).length > 0 &&
-        !(await write({ op: "calls", cueId: cue.id, calls: changed }))
-      )
-        return;
+      if (Object.keys(changed).length > 0) {
+        const sent = await send({ op: "calls", cueId: cue.id, calls: changed });
+        if (!sent.ok) {
+          setRefused(sent.reason);
+          return;
+        }
+      }
       onClose();
     });
   return (
@@ -189,6 +208,15 @@ function PortalCueEditor({
     >
       <CueFormTabs
         label={show("cues.editing", { label: cue.label })}
+        alert={
+          refused ? (
+            <InlineAlert
+              tone={refused !== "unexpected" && showcallerLinkGone(refused) ? "danger" : "warning"}
+            >
+              {t(`refusals.${refused}`)}
+            </InlineAlert>
+          ) : null
+        }
         saving={pending}
         canSave={label.trim() !== ""}
         saveLabel={show("cues.save")}
@@ -314,10 +342,14 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
     return () => channel.close();
   }, [token, run, meta]);
 
-  const write = async (w: ShowcallerWrite): Promise<boolean> => {
-    setRefusal(null);
+  const send = async (w: ShowcallerWrite): Promise<PortalWriteResult> => {
     const result = await portalWriteAction(token, w);
     router.refresh();
+    return result;
+  };
+  const write = async (w: ShowcallerWrite): Promise<boolean> => {
+    setRefusal(null);
+    const result = await send(w);
     if (!result.ok) {
       setRefusal(result.reason);
       return false;
@@ -454,7 +486,7 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
                     cue={c}
                     timeZone={meta.timeZone}
                     showDate={meta.showDate}
-                    write={write}
+                    send={send}
                     onClose={() => setEditing(null)}
                   />
                 </li>
@@ -490,7 +522,10 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
                     <span className="flex flex-wrap gap-4">
                       {c.fields.map((f) => (
                         <Tag key={f.key} {...(f.colorKey ? { swatch: f.colorKey } : {})}>
-                          {t("fieldValue", { label: f.label, value: fieldText(f, format, t) })}
+                          {t("fieldValue", {
+                            label: f.label,
+                            value: fieldText(f, format, t, meta.timeZone),
+                          })}
                         </Tag>
                       ))}
                     </span>
@@ -588,6 +623,7 @@ export function ShowcallerPortal({ token, run }: { token: string; run: Showcalle
           date: format.dateTime(new Date(meta.expiresAt), {
             dateStyle: "medium",
             timeStyle: "short",
+            timeZone: meta.timeZone,
           }),
         })}
       </p>

@@ -28,11 +28,14 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 function LinkRow({
   org,
   link,
+  timeZone,
   onChanged,
   onRegenerated,
 }: {
   org: string;
   link: ShowcallerLink;
+  /** The running order's zone: a link's expiry is a local time there. */
+  timeZone: string;
   onChanged: () => void;
   onRegenerated: (created: CreatedShowcallerLinkView) => void;
 }) {
@@ -43,7 +46,7 @@ function LinkRow({
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const date = (iso: string) =>
-    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone });
   const act = () =>
     start(async () => {
       setError(null);
@@ -245,6 +248,7 @@ export function ShowcallerLinkDialog({
                   key={l.id}
                   org={org}
                   link={l}
+                  timeZone={run.timeZone}
                   onChanged={refresh}
                   onRegenerated={setCreated}
                 />

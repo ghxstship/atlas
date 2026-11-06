@@ -109,6 +109,11 @@ test("an outside showcaller calls and edits one running order with a link and it
 
   // Nudge the remaining plan and edit an uncalled cue and its Lighting call.
   await guest.getByRole("button", { name: "Nudge +1 min" }).click();
+  // Wait for the nudge to land: an editor opened before it would hold the old version, and rightly be refused.
+  await expect(guest.getByRole("listitem").filter({ hasText: "Walk-in Music Out" })).toContainText(
+    /8:01|20:01/,
+    { timeout: 20_000 },
+  );
   await guest.getByRole("button", { name: "Edit Walk-in Music Out" }).click();
   const editor = guest.getByRole("group", { name: "Edit cue Walk-in Music Out" });
   await editor.getByLabel("Cue", { exact: true }).fill("Walk-in Music Fade");

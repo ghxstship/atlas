@@ -401,7 +401,6 @@ export async function DocumentsSection({
         { key: "updated", label: t("documents.updated") },
       ]}
       rows={rows}
-      filters={<ArchivedFilter id="documents-archived" />}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
@@ -412,85 +411,84 @@ export async function DocumentsSection({
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "documents")}
       bulk={bulk}
       filters={
-        documentTypes.length > 0 || required.length > 0 ? (
-          <div className="flex flex-col gap-8">
-            {required.length > 0 ? (
-              <section aria-labelledby="required-documents" className="flex flex-col gap-6">
-                <h2 id="required-documents" className="m-0 text-text-13 font-semibold">
-                  {t("documentTypes.requiredTitle")}
-                </h2>
-                <p className="m-0 text-text-12 text-text-secondary">
-                  {t("documentTypes.requiredSummary", {
-                    requiredMet: summarizeSetup(required).required.met,
-                    requiredTotal: summarizeSetup(required).required.total,
-                    recommendedMet: summarizeSetup(required).recommended.met,
-                    recommendedTotal: summarizeSetup(required).recommended.total,
-                  })}
-                </p>
-                <ul className="m-0 flex list-none flex-wrap gap-6 p-0">
-                  {required.map((r) => (
-                    <li key={r.requirementId} className="flex items-center gap-6 text-text-12">
-                      <span>
-                        {t("documentTypes.requiredLine", {
-                          label: r.label,
-                          state: r.satisfied ? t("documentTypes.met") : t("documentTypes.missing"),
-                          requirement:
-                            r.requirement === "Required"
-                              ? t("documentTypes.required")
-                              : t("documentTypes.recommended"),
-                          gate: r.requiredByGate,
+        <div className="flex flex-col gap-8">
+          <ArchivedFilter id="documents-archived" />
+          {required.length > 0 ? (
+            <section aria-labelledby="required-documents" className="flex flex-col gap-6">
+              <h2 id="required-documents" className="m-0 text-text-13 font-semibold">
+                {t("documentTypes.requiredTitle")}
+              </h2>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("documentTypes.requiredSummary", {
+                  requiredMet: summarizeSetup(required).required.met,
+                  requiredTotal: summarizeSetup(required).required.total,
+                  recommendedMet: summarizeSetup(required).recommended.met,
+                  recommendedTotal: summarizeSetup(required).recommended.total,
+                })}
+              </p>
+              <ul className="m-0 flex list-none flex-wrap gap-6 p-0">
+                {required.map((r) => (
+                  <li key={r.requirementId} className="flex items-center gap-6 text-text-12">
+                    <span>
+                      {t("documentTypes.requiredLine", {
+                        label: r.label,
+                        state: r.satisfied ? t("documentTypes.met") : t("documentTypes.missing"),
+                        requirement:
+                          r.requirement === "Required"
+                            ? t("documentTypes.required")
+                            : t("documentTypes.recommended"),
+                        gate: r.requiredByGate,
+                      })}
+                    </span>
+                    {!r.satisfied && canWrite && r.documentTypeId ? (
+                      <KitLink
+                        size="sm"
+                        href={withQuery(path, state, {
+                          create: "1",
+                          createType: r.documentTypeId,
                         })}
-                      </span>
-                      {!r.satisfied && canWrite && r.documentTypeId ? (
-                        <KitLink
-                          size="sm"
-                          href={withQuery(path, state, {
-                            create: "1",
-                            createType: r.documentTypeId,
-                          })}
-                        >
-                          {t("documentTypes.addMissing", { type: r.label })}
-                        </KitLink>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-            {documentTypes.length > 0 ? (
-              <nav
-                aria-label={t("documentTypes.filter")}
-                className="flex flex-wrap items-center gap-6 text-text-12"
-              >
-                <span className="text-text-secondary">{t("documentTypes.filter")}:</span>
-                <KitLink
-                  size="sm"
-                  variant={typeFilter === null ? "primary" : "ghost"}
-                  href={allTypesHref}
-                >
-                  {t("documentTypes.allTypes")}
-                </KitLink>
-                {documentTypes.map((x) => (
-                  <KitLink
-                    key={x.id}
-                    size="sm"
-                    variant={typeFilter === x.id ? "primary" : "ghost"}
-                    href={withQuery(path, state, { docType: x.id })}
-                  >
-                    {x.name}
-                  </KitLink>
+                      >
+                        {t("documentTypes.addMissing", { type: r.label })}
+                      </KitLink>
+                    ) : null}
+                  </li>
                 ))}
+              </ul>
+            </section>
+          ) : null}
+          {documentTypes.length > 0 ? (
+            <nav
+              aria-label={t("documentTypes.filter")}
+              className="flex flex-wrap items-center gap-6 text-text-12"
+            >
+              <span className="text-text-secondary">{t("documentTypes.filter")}:</span>
+              <KitLink
+                size="sm"
+                variant={typeFilter === null ? "primary" : "ghost"}
+                href={allTypesHref}
+              >
+                {t("documentTypes.allTypes")}
+              </KitLink>
+              {documentTypes.map((x) => (
                 <KitLink
+                  key={x.id}
                   size="sm"
-                  variant={typeFilter === "none" ? "primary" : "ghost"}
-                  href={withQuery(path, state, { docType: "none" })}
+                  variant={typeFilter === x.id ? "primary" : "ghost"}
+                  href={withQuery(path, state, { docType: x.id })}
                 >
-                  {t("documentTypes.untyped")}
+                  {x.name}
                 </KitLink>
-              </nav>
-            ) : null}
-          </div>
-        ) : undefined
+              ))}
+              <KitLink
+                size="sm"
+                variant={typeFilter === "none" ? "primary" : "ghost"}
+                href={withQuery(path, state, { docType: "none" })}
+              >
+                {t("documentTypes.untyped")}
+              </KitLink>
+            </nav>
+          ) : null}
+        </div>
       }
     >
       {drawer}

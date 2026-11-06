@@ -9,6 +9,7 @@ import {
   decideRecordReview,
   REVIEW_DECISIONS,
   requestRecordReview,
+  updateRecord,
   type ReviewDecision,
 } from "@xos/data/work";
 import { revalidatePath } from "next/cache";
@@ -81,6 +82,20 @@ export async function reviewFileVersionAction(
     .safeParse(input);
   if (!parsed.success) return invalid();
   const result = await reviewAttachmentVersion(ctx.viewer.db, parsed.data);
+  if (!result.ok) return failed(result.error);
+  revalidatePath(`/${org}`, "layout");
+  return done(null);
+}
+
+/** Whether a record needs a review before Complete; turning it off needs projects.settings.write (record_review_flag_locked). */
+export async function setRecordRequiresReviewAction(
+  org: string,
+  recordId: string,
+  requiresReview: boolean,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!z.uuid().safeParse(recordId).success) return invalid();
+  const result = await updateRecord(ctx.viewer.db, recordId, { requiresReview });
   if (!result.ok) return failed(result.error);
   revalidatePath(`/${org}`, "layout");
   return done(null);

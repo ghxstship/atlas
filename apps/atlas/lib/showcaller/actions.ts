@@ -21,7 +21,8 @@ import { publicDb, SHOWCALLER_GRANT_COOKIE, visitorAddress } from "./public";
  */
 
 export type PortalWriteResult =
-  { readonly ok: true } | { readonly ok: false; readonly reason: ShowcallerRefusal | "unexpected" };
+  | { readonly ok: true; readonly updatedAt: string | null }
+  | { readonly ok: false; readonly reason: ShowcallerRefusal | "unexpected" };
 
 const id = z.uuid();
 const text = (max: number) => z.string().max(max);
@@ -79,5 +80,7 @@ export async function portalWriteAction(
     });
     return { ok: false, reason: "unexpected" };
   }
-  return result.data.refused ? { ok: false, reason: result.data.reason } : { ok: true };
+  return result.data.refused
+    ? { ok: false, reason: result.data.reason }
+    : { ok: true, updatedAt: result.data.updatedAt };
 }

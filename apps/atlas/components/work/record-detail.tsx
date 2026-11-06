@@ -196,7 +196,9 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
     rememberView(ctx, "records", record.id),
   ]);
-  const versionIds = conversation.attachments.flatMap((a) => a.versions.map((v) => v.id));
+  const versionIds = conversation.ok
+    ? conversation.data.attachments.flatMap((a) => a.versions.map((v) => v.id))
+    : [];
   const canWrite = caps.has("work.record.write") && !record.deletedAt;
   const [reviews, fileReviews, reviewers] = await Promise.all([
     record.kind === "Approval"
