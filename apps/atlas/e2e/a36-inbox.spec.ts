@@ -173,14 +173,14 @@ test("reject from the Inbox: the first press opens the dialog, by button and by 
 
     await row.getByRole("button", { name: "Reject", exact: true }).click();
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByLabel("Reason")).toBeFocused();
+    await expect(dialog.getByLabel("Reason", { exact: true })).toBeFocused();
     await admin.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
 
     await row.focus();
     await admin.keyboard.press("r");
     await expect(dialog).toBeVisible();
-    await dialog.getByLabel("Reason").fill("Not this vendor.");
+    await dialog.getByLabel("Reason", { exact: true }).fill("Not this vendor.");
     await dialog.getByRole("button", { name: "Reject", exact: true }).click();
     await expect(dialog).toBeHidden();
     await expect(admin.getByText("1 item handled this visit.")).toBeVisible();
