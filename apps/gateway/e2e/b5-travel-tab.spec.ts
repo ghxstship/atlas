@@ -4,8 +4,8 @@ import { DEMO, expectAccessible, signIn, sql, uniqueId } from "./support";
 
 /**
  * B5 (ADR 0144): the crew Travel and Lodging tab shows the person's ground transport (driver, vehicle, pickup and
- * drop-off) from api_external.my_transfers and the project's Shared local contacts with tel: and mailto: links from
- * api_external.local_contacts. An Internal contact never shows. The fixture is an Active crew engagement for the demo
+ * drop-off) from api_external.my_transfers, on its pickup day in the itinerary (B6, ADR 0145), and the project's
+ * Shared local contacts with tel: and mailto: links from api_external.local_contacts. An Internal contact never shows. The fixture is an Active crew engagement for the demo
  * crew person, a transfer they ride, and two contacts; it is canceled and removed afterwards.
  */
 test("B5: ground transport and Shared local contacts on Travel and Lodging", async ({ page }) => {
@@ -67,8 +67,12 @@ test("B5: ground transport and Shared local contacts on Travel and Lodging", asy
       "crew@example.com",
       `/work/engagements/${toDisplayKey("engagement", id)}/travel-and-lodging`,
     );
-    await expect(page.getByRole("heading", { name: "Ground transport" })).toBeVisible();
+    // The transfer takes its pickup day in the whole-stay itinerary (B6), named as ground transport.
+    await expect(page.getByRole("heading", { name: "Your stay" })).toBeVisible();
     await expect(page.getByText(`Airport Door ${run} to Crew Hotel`)).toBeVisible();
+    await expect(
+      page.getByRole("listitem").filter({ hasText: `Airport Door ${run} to Crew Hotel` }),
+    ).toContainText("Ground transport");
     await expect(page.getByRole("heading", { name: "Local contacts" })).toBeVisible();
     await expect(page.getByText(`Harbor Cars ${run}`)).toBeVisible();
     await expect(page.getByRole("link", { name: "dispatch@harbor-cars.test" })).toHaveAttribute(

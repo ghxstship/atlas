@@ -139,7 +139,8 @@ describe("drives", () => {
 });
 
 describe("ground transport on travel and lodging", () => {
-  it("lists the person's transfers on the project", () => {
+  // B6 made Travel and lodging a day-grouped itinerary: a transfer sits on its pickup day, never marked as changed.
+  it("lists the person's transfers on the project, on their pickup day", () => {
     const page = EXTERNAL_PAGES["travel-and-lodging"];
     expect(page.tables).toContain("my_transfers");
     const sections = page.build({
@@ -153,8 +154,10 @@ describe("ground transport on travel and lodging", () => {
       zoneOf: () => "America/New_York",
       todayOf: () => "2027-06-01",
     });
-    const ground = sections.find((s) => s.id === "ground");
-    expect(ground?.items[0]?.title).toBe("MIA → Crew Hotel");
-    expect(ground?.items[0]?.tag?.key).toBe("gateway.enums.transferStatus.assigned");
+    const day = sections.find((s) => s.id === "day-2027-06-02");
+    expect(day?.items[0]?.id).toBe("transfer-t1");
+    expect(day?.items[0]?.title).toBe("MIA → Crew Hotel");
+    expect(day?.items[0]?.tag?.key).toBe("gateway.enums.transferStatus.assigned");
+    expect(day?.items[0]?.changed).toBeUndefined();
   });
 });

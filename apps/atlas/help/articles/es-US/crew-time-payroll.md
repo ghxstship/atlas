@@ -24,6 +24,8 @@ order: 51
 
 Los turnos se abren como un programa de recursos en Atlas, con personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass. Los intercambios requieren aprobación.
 
+XOS avisa a la persona de un turno publicado cuando se le asigna y cuando cambian sus horas. Otros cambios, como un rol nuevo, una cancelación o la vuelta a Borrador, no se anuncian, así que el turno muestra **Requiere revisión** con el número de cambios desde el aviso. La vista rápida del turno muestra cómo y cuándo se le avisó por última vez (por notificación, al aceptar el turno o con su marca) y qué cambió desde entonces. Después de avisarle, elija **Marcar como comunicado**; con **Revisión** en **Requiere revisión**, puede marcar todos los turnos de la lista a la vez.
+
 Quien planifica puede crear un turno en borrador con una línea en el campo de agregar rápido, como "#tramoyista @dana ~NWS-S01 viernes 8am-4pm": `#` nombra el rol, `@` la persona (sin ella, el turno queda abierto), `~` el alcance y la fecha su llamada y su fin. Sin hora de fin, un turno dura ocho horas.
 
 ## Registros de tiempo y hojas de horas

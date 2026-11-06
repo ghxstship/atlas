@@ -60,6 +60,7 @@ select pg_temp.as_platform();
 select is((select num_nonnulls(membership_id, engagement_id, roster_entry_id) || ':' || roster_entry_id::text from app.shifts where id = pg_temp.id('slot_1')),
   '1:' || pg_temp.id('e_stella')::text, 'the shift names the entry and no longer the engagement');
 select is(pg_temp.notified('stella', 'shift.assigned', 'slot_1'), 1, 'Stella is told the shift is hers');
+select is(private.shift_assignee(pg_temp.id('slot_1')), pg_temp.id('stella'), 'Needs review (B6, 5951) holds her as the person on the shift');
 select is((select array_agg(scope_value) from private.sync_scope_grants where person_user_id = pg_temp.id('stella_user') and scope_key = 'rosterEntryIds'),
   array[pg_temp.id('e_stella')::text], 'and her sync scopes were refreshed');
 

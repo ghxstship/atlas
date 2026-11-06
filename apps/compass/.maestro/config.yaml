@@ -43,6 +43,7 @@ executionOrder:
     - roster-member-today
     - clock-team
     - crew-external-work
+    - itinerary-changes
     - project-details
     - profile-credentials
     - vendor-external-scan
