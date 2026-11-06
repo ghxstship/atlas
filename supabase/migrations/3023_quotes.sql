@@ -136,6 +136,8 @@ create table app.quote_versions (
   accepted_at timestamptz,
   accepted_by uuid references app.people (id),
   accepted_name text,
+  sent_title text,
+  sent_client_name text,
   deleted_at timestamptz,
   constraint quote_versions_number_positive check (version_number > 0),
   constraint quote_versions_terms_length check (terms is null or char_length(btrim(terms)) between 1 and 4000),
@@ -144,7 +146,9 @@ create table app.quote_versions (
     and (content_sha256 is null) = (quote_version_state = 'Draft')
     and (engagement_document_id is null) = (quote_version_state = 'Draft')
     and (sent_at is null) = (quote_version_state = 'Draft')
-    and (sent_by is null) = (quote_version_state = 'Draft')),
+    and (sent_by is null) = (quote_version_state = 'Draft')
+    and (sent_title is null) = (quote_version_state = 'Draft')
+    and (sent_client_name is null) = (quote_version_state = 'Draft')),
   constraint quote_versions_accepted check ((accepted_at is null) = (quote_version_state <> 'Accepted')),
   constraint quote_versions_hash_format check (content_sha256 is null or content_sha256 ~ '^[0-9a-f]{64}$'),
   constraint quote_versions_accepted_name_length check (accepted_name is null or char_length(btrim(accepted_name)) between 1 and 200)
@@ -188,7 +192,9 @@ call private.describe('app.quote_versions', 'Versions of a quote (ADR 0152). A D
   'sent_by', 'Person who sent it; they are told when it is accepted.',
   'accepted_at', 'When the client''s signature accepted it; set exactly when Accepted.',
   'accepted_by', 'Person who signed while signed in to Gateway; NULL when signed through a link.',
-  'accepted_name', 'Name of the signer: the name typed on the signing link, or the signed-in person''s name.'
+  'accepted_name', 'Name of the signer, frozen at signature: the name typed on the signing link, or the signed-in person''s name.',
+  'sent_title', 'Quote title frozen at send: what the fingerprint hashes and the client signs. app.quotes.title applies to the next Draft. NULL exactly while Draft.',
+  'sent_client_name', 'Client party name frozen at send, so a later rename never changes what was signed. NULL exactly while Draft.'
 ]);
 
 call private.install_lifecycle('app.quote_versions', 'quote_version_id', 'quote_version_state', 'quote_version', 'Draft',
@@ -213,13 +219,19 @@ begin
   if new.quote_id <> old.quote_id or new.version_number <> old.version_number then
     perform private.refuse('quote_rpc_only', 'A quote version keeps its quote and number.');
   end if;
+  -- A soft-deleted Draft of an accepted quote stays deleted, and nothing else moves after acceptance.
+  if not private.in_trusted_operation('quote_acceptance')
+     and exists (select 1 from app.quote_versions v where v.quote_id = new.quote_id and v.quote_version_state = 'Accepted') then
+    perform private.refuse('quote_accepted_locked', 'This quote was accepted, so it can''t change. Record changes as a change order.');
+  end if;
   if (new.valid_until <> old.valid_until or new.terms is distinct from old.terms) and old.quote_version_state <> 'Draft' then
     perform private.refuse(case when old.quote_version_state = 'Accepted' then 'quote_accepted_locked' else 'quote_not_draft' end,
       'Only a Draft version is edited; start a new version to change a sent quote.');
   end if;
   if (new.budget_version_id is distinct from old.budget_version_id or new.content_sha256 is distinct from old.content_sha256
       or new.engagement_document_id is distinct from old.engagement_document_id or new.sent_at is distinct from old.sent_at
-      or new.sent_by is distinct from old.sent_by) and not private.in_trusted_operation('quote_send') then
+      or new.sent_by is distinct from old.sent_by or new.sent_title is distinct from old.sent_title
+      or new.sent_client_name is distinct from old.sent_client_name) and not private.in_trusted_operation('quote_send') then
     perform private.refuse('quote_rpc_only', 'A version is frozen by Send quote.');
   end if;
   if (new.accepted_at is distinct from old.accepted_at or new.accepted_by is distinct from old.accepted_by
@@ -233,7 +245,7 @@ begin
   return new;
 end;
 $$;
-comment on function private.guard_quote_version() is 'Quote versions: created only inside the quote RPCs and numbered per quote; valid_until, terms and deleted_at change only while Draft (quote_not_draft, or quote_accepted_locked once accepted); the frozen columns change only inside quote_send, the acceptance columns only inside quote_acceptance (quote_rpc_only).';
+comment on function private.guard_quote_version() is 'Quote versions: created only inside the quote RPCs and numbered per quote; once any version of the quote is Accepted nothing changes outside quote_acceptance (quote_accepted_locked); valid_until, terms and deleted_at change only while Draft (quote_not_draft); the frozen columns, sent_title and sent_client_name included, change only inside quote_send, the acceptance columns only inside quote_acceptance (quote_rpc_only).';
 revoke all on function private.guard_quote_version() from public, anon, authenticated;
 create trigger t40_guard_quote_version before insert or update on app.quote_versions
   for each row execute function private.guard_quote_version();
@@ -315,13 +327,11 @@ declare
 begin
   if tg_op = 'INSERT' then
     if new.document_kind = 'Quote' and not private.in_trusted_operation('quote_send') then
-      perform private.refuse('quote_kind_send_only', 'A Quote document is created by sending a quote version.');
+      perform private.refuse('quote_document_locked', 'A Quote document follows its quote; change the quote instead.');
     end if;
     return new;
   end if;
-  if (new.document_kind = 'Quote') <> (old.document_kind = 'Quote') and not private.in_trusted_operation('quote_send') then
-    perform private.refuse('quote_kind_send_only', 'A Quote document is created by sending a quote version.');
-  end if;
+  -- A change of kind never reaches here: t40 private.guard_engagement_document (0700) refuses it first.
   if old.document_kind <> 'Quote' then
     return new;
   end if;
@@ -331,13 +341,15 @@ begin
   end if;
   if new.engagement_document_state <> old.engagement_document_state
      and not (old.engagement_document_state = 'Sent' and new.engagement_document_state = 'Signed')
+     and not (old.engagement_document_state = 'Signed' and new.engagement_document_state = 'Executed'
+              and private.in_trusted_operation('quote_acceptance'))
      and not v_in_quote then
     perform private.refuse('quote_document_locked', 'A Quote document follows its quote; change the quote instead.');
   end if;
   return new;
 end;
 $$;
-comment on function private.guard_quote_document() is 'Engagement documents of kind Quote (3022): inserted, or changed to or from Quote, only inside quote_send (quote_kind_send_only). A Quote document''s title, expiry, file and deletion change only inside quote_send, and its state only by the client''s Sent to Signed (either signing path) or inside quote_send, quote_withdraw or quote_decline (quote_document_locked).';
+comment on function private.guard_quote_document() is 'Engagement documents of kind Quote (3022): inserted only inside quote_send. A Quote document''s title, expiry, file and deletion change only inside quote_send, and its state only by the client''s Sent to Signed (either signing path), Signed to Executed inside quote_acceptance (no countersignature), or inside quote_send, quote_withdraw or quote_decline. Anything else refuses quote_document_locked. A change of kind is refused earlier by t40 (engagement_document_immutable).';
 revoke all on function private.guard_quote_document() from public, anon, authenticated;
 create trigger t45_guard_quote_document before insert or update on app.engagement_documents
   for each row execute function private.guard_quote_document();
@@ -407,7 +419,8 @@ revoke all on function private.quote_version_project(uuid) from public, anon, au
 
 -- The canonical client-facing content of a captured version (ADR 0152 publishes the form): the jsonb text of the quote
 -- key, version number, title, client name, currency, valid until, terms, the included lines ordered by line number and
--- the total. jsonb output orders keys deterministically, so the same content always gives the same text.
+-- the total. jsonb output orders keys deterministically, so the same content always gives the same text. Title and client
+-- read the values frozen at send, so a later retitle or rename never changes the recomputed text.
 create or replace function private.quote_canonical_content(p_quote_version_id uuid, p_budget_version_id uuid)
 returns text
 language sql
@@ -418,8 +431,8 @@ as $$
   select jsonb_build_object(
     'quote', private.quote_key(q.id),
     'version_number', v.version_number,
-    'title', q.title,
-    'client', private.quote_party_name(q.engagement_id, b.project_id),
+    'title', coalesce(v.sent_title, q.title),
+    'client', coalesce(v.sent_client_name, private.quote_party_name(q.engagement_id, b.project_id)),
     'currency', bv.currency_code,
     'valid_until', v.valid_until,
     'terms', v.terms,
@@ -555,6 +568,7 @@ declare
   v_capture uuid;
   v_hash text;
   v_document uuid;
+  v_client text;
   v_earlier record;
   v_reason text := coalesce(nullif(btrim(coalesce(p_reason, '')), ''), 'Sent to the client.');
 begin
@@ -574,7 +588,9 @@ begin
     perform private.refuse('quote_not_draft', 'Only a Draft version is sent.');
   end if;
   select e.* into v_engagement from app.engagements e where e.id = v_quote.engagement_id and e.deleted_at is null;
-  if v_engagement.id is null or v_engagement.role_type <> 'Client' or v_engagement.engagement_state in ('Canceled', 'Complete') then
+  v_client := private.quote_party_name(v_engagement.id, v_project);
+  if v_engagement.id is null or v_engagement.role_type <> 'Client' or v_engagement.engagement_state in ('Canceled', 'Complete')
+     or v_client is null then
     perform private.refuse('quote_client_engagement', 'Choose an open Client engagement of the project to send the quote to.');
   end if;
   if v_version.valid_until < private.project_today(v_project) then
@@ -593,8 +609,9 @@ begin
   v_hash := encode(extensions.digest(private.quote_canonical_content(v_version.id, v_capture), 'sha256'), 'hex');
 
   perform private.begin_trusted_operation('quote_send');
-  insert into app.engagement_documents (engagement_id, document_kind, title, expires_on)
-  values (v_engagement.id, 'Quote', format('Quote %s v%s', v_key, v_version.version_number), v_version.valid_until)
+  -- No expires_on: valid_until is the only expiry, and 1463 would remind the client about a signed quote.
+  insert into app.engagement_documents (engagement_id, document_kind, title)
+  values (v_engagement.id, 'Quote', format('Quote %s v%s', v_key, v_version.version_number))
   returning id into v_document;
   perform private.transition_lifecycle('engagement_document', 'app.engagement_documents', 'engagement_document_state',
     'app.engagement_document_state_transitions', 'engagement_document_id', v_document, 'Proposed', 'Sent', v_reason);
@@ -619,7 +636,8 @@ begin
   -- Draft to Sent and the frozen columns in one statement: the frozen check pairs them with the state.
   perform private.begin_trusted_operation('quote_version_transition');
   update app.quote_versions v set quote_version_state = 'Sent', budget_version_id = v_capture, content_sha256 = v_hash,
-    engagement_document_id = v_document, sent_at = now(), sent_by = private.current_person_id()
+    engagement_document_id = v_document, sent_at = now(), sent_by = private.current_person_id(),
+    sent_title = v_quote.title, sent_client_name = v_client
   where v.id = v_version.id and v.quote_version_state = 'Draft';
   perform private.end_trusted_operation('quote_version_transition');
   insert into app.quote_version_state_transitions (quote_version_id, from_state, to_state, reason)
@@ -629,7 +647,7 @@ begin
   return query select v_document, v_hash;
 end;
 $$;
-comment on function app.send_quote_version(uuid, text) is 'Send quote (S14.5-01, ADR 0152): in one transaction captures a Quote budget version, fixes the SHA-256 of the canonical client-facing content, creates the Quote engagement document (Sent, expiring on valid until), supersedes earlier sent versions (their documents canceled and links revoked) and moves the Draft to Sent. Needs finance.budget.approve. Refuses quote_accepted_locked, quote_not_draft, quote_client_engagement (no open Client engagement), quote_valid_until (in the past), quote_no_lines and quote_unpriced_lines. The signing link is issued afterwards with app.issue_engagement_document_token. Returns the document id and the fingerprint.';
+comment on function app.send_quote_version(uuid, text) is 'Send quote (S14.5-01, ADR 0152): in one transaction captures a Quote budget version, fixes the SHA-256 of the canonical client-facing content, creates the Quote engagement document (Sent, with no expires_on: valid_until is the only expiry), freezes the title and client name, supersedes earlier sent versions (their documents canceled and links revoked) and moves the Draft to Sent. Needs finance.budget.approve. Refuses quote_accepted_locked, quote_not_draft, quote_client_engagement (no open Client engagement), quote_valid_until (in the past), quote_no_lines and quote_unpriced_lines. The signing link is issued afterwards with app.issue_engagement_document_token. Returns the document id and the fingerprint.';
 revoke all on function app.send_quote_version(uuid, text) from public, anon;
 grant execute on function app.send_quote_version(uuid, text) to authenticated, service_role;
 
@@ -712,8 +730,8 @@ grant execute on function app.decline_quote_version(uuid, text) to authenticated
 
 create view app.quote_statuses with (security_invoker = true) as
 select q.id as quote_id, q.org_id, b.project_id, q.budget_id, q.engagement_id,
-  p.project_key || '-Q-' || q.quote_number::text as quote_key, q.title,
-  private.quote_client_name(q.engagement_id, b.project_id) as client_name,
+  p.project_key || '-Q-' || q.quote_number::text as quote_key, coalesce(cur.sent_title, q.title) as title,
+  coalesce(cur.sent_client_name, private.quote_client_name(q.engagement_id, b.project_id)) as client_name,
   cur.id as current_version_id, cur.version_number as current_version_number,
   case when cur.quote_version_state = 'Sent' and cur.valid_until < private.project_today(b.project_id) then 'Expired'
        else cur.quote_version_state::text end as display_state,
@@ -744,8 +762,8 @@ call private.describe('app.quote_statuses', 'One row per live quote with its dis
   'budget_id', 'Budget the quote prices from.',
   'engagement_id', 'Client engagement the quote is for.',
   'quote_key', 'Display key, <project key>-Q-<number>.',
-  'title', 'Quote title.',
-  'client_name', 'Who the quote is for: the engagement''s person or counterparty, else the project''s client.',
+  'title', 'Title of the current version: frozen once sent, else the quote''s.',
+  'client_name', 'Who the current version is for: frozen once sent, else the engagement''s person or counterparty, else the project''s client.',
   'current_version_id', 'The latest sent version, else the Draft.',
   'current_version_number', 'Its number.',
   'display_state', 'Draft, Sent, Expired, Accepted, Declined, Withdrawn or Superseded.',
@@ -765,6 +783,52 @@ begin
   if exists (select 1 from pg_catalog.pg_roles r where r.rolname = 'xos_backup') then
     revoke select on app.quote_statuses from xos_backup;
   end if;
+end;
+$$;
+
+-- 10. A budget under a sent quote stays ---------------------------------------------------------------------------------
+
+create or replace function private.guard_budget_sent_quote()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.deleted_at is not null and old.deleted_at is null
+     and exists (select 1 from app.quotes q join app.quote_versions v on v.quote_id = q.id
+                 where q.budget_id = new.id and v.quote_version_state <> 'Draft') then
+    perform private.refuse('budget_has_sent_quote', 'A quote was sent from this budget, so the budget is kept.');
+  end if;
+  return new;
+end;
+$$;
+comment on function private.guard_budget_sent_quote() is 'Budgets: a budget with a quote version past Draft is never soft-deleted (budget_has_sent_quote); the capture it sent is the record of what the client saw.';
+revoke all on function private.guard_budget_sent_quote() from public, anon, authenticated;
+create trigger t41_guard_budget_sent_quote before update of deleted_at on app.budgets
+  for each row execute function private.guard_budget_sent_quote();
+
+-- 11. Live list ----------------------------------------------------------------------------------------------------------
+
+-- /finance/quotes shows an acceptance without a reload (S11.7-10). Realtime checks each change against the subscriber's
+-- read policy, as 2170 and 2811.
+do $$
+declare
+  v_table record;
+begin
+  if not exists (select 1 from pg_catalog.pg_publication where pubname = 'supabase_realtime') then
+    return;
+  end if;
+  for v_table in
+    select t.table_name from (values ('quotes'), ('quote_versions')) as t (table_name)
+  loop
+    if not exists (
+      select 1 from pg_catalog.pg_publication_tables p
+      where p.pubname = 'supabase_realtime' and p.schemaname = 'app' and p.tablename = v_table.table_name
+    ) then
+      execute format('alter publication supabase_realtime add table app.%I', v_table.table_name);
+    end if;
+  end loop;
 end;
 $$;
 

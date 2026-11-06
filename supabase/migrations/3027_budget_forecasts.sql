@@ -11,15 +11,17 @@
 --   * EFC = actual + remaining commitment + ETC; forward exposure = remaining commitment + ETC; variance at completion
 --     = current budget - EFC.
 -- NULL-aware: an unpriced line without an entered ETC has a NULL EFC; an entered ETC makes EFC known even on an unpriced
--- line, while variance at completion stays NULL. With no entered ETC, EFC = max(current budget, committed, actual),
+-- line (not an unknown commitment), while variance at completion stays NULL. With no entered ETC, EFC = max(current budget, committed, actual),
 -- which agrees with the canon Playbook FORECAST rule max(budget, committed). A reader who cannot read the project's
--- purchase orders sees every forecast figure blank (P4's silence rule), never a partial number. The totals add the
+-- purchase orders, expenses or change orders sees every forecast figure blank (P4's silence rule), never a partial
+-- number: the views run as the reader, so a missing capability would otherwise shrink the sum. The totals add the
 -- approved change order lines with no budget line, as both current budget and ETC, so total EFC reconciles with
 -- app.budget_revised_totals (0480). Forecasts do not replace the gate 3 baseline the final cost report compares against.
 
 create view app.budget_line_forecasts with (security_invoker = true) as
 select f.budget_line_id, f.budget_id, f.project_id, f.currency_code,
-  f.current_budget_minor, f.actual_minor,
+  case when f.is_withheld then null else f.current_budget_minor end as current_budget_minor,
+  case when f.is_withheld then null else f.actual_minor end as actual_minor,
   case when f.is_withheld then null else f.committed_minor end as committed_minor,
   case when f.is_withheld then null else f.remaining_commitment_minor end as remaining_commitment_minor,
   case when f.is_withheld then null else f.etc_minor end as etc_minor,
@@ -32,7 +34,8 @@ select f.budget_line_id, f.budget_id, f.project_id, f.currency_code,
 from (
   select r.*,
     coalesce(r.entered_etc_minor,
-      greatest(r.current_budget_minor - r.actual_minor - r.remaining_commitment_minor, 0)) as etc_minor,
+      case when r.current_budget_minor is null or r.remaining_commitment_minor is null then null
+           else greatest(r.current_budget_minor - r.actual_minor - r.remaining_commitment_minor, 0) end) as etc_minor,
     case when r.entered_etc_minor is not null then 'Entered' else 'Derived' end as etc_source
   from (
     select bl.id as budget_line_id, b.id as budget_id, b.project_id, b.currency_code,
@@ -41,9 +44,12 @@ from (
         as current_budget_minor,
       a.actual_minor::bigint as actual_minor,
       c.committed_minor,
-      greatest(c.committed_minor - a.actual_minor, 0)::bigint as remaining_commitment_minor,
+      case when c.committed_minor is null then null else greatest(c.committed_minor - a.actual_minor, 0) end::bigint
+        as remaining_commitment_minor,
       bl.etc_minor as entered_etc_minor,
-      coalesce(c.is_committed_withheld, true) as is_withheld
+      coalesce(c.is_committed_withheld, true)
+        or b.project_id not in (select private.project_ids_with('finance.expense.read'))
+        or b.project_id not in (select private.project_ids_with('finance.change_order.read')) as is_withheld
     from app.budget_lines bl
     join app.budgets b on b.id = bl.budget_id
     join app.budget_line_amounts a on a.budget_line_id = bl.id
@@ -58,7 +64,7 @@ from (
   ) r
 ) f;
 
-call private.describe('app.budget_line_forecasts', 'Forecast of every live line of a live budget (G-205, ADR 0152), derived and never stored: current budget, Actual (3026), Committed (2810), remaining commitment, estimate to complete, estimated final cost, forward exposure and variance at completion. NULL-aware; every forecast figure is NULL for a reader who cannot read the project''s purchase orders.', array[
+call private.describe('app.budget_line_forecasts', 'Forecast of every live line of a live budget (G-205, ADR 0152), derived and never stored: current budget, Actual (3026), Committed (2810), remaining commitment, estimate to complete, estimated final cost, forward exposure and variance at completion. NULL-aware; every forecast figure is NULL for a reader who cannot read the project''s purchase orders, expenses or change orders.', array[
   'budget_line_id', 'Budget line.',
   'budget_id', 'Budget of the line.',
   'project_id', 'Project of the budget.',
@@ -67,19 +73,19 @@ call private.describe('app.budget_line_forecasts', 'Forecast of every live line 
   'actual_minor', 'Actual: approved and paid expenses plus approved crew time (app.budget_line_amounts).',
   'committed_minor', 'Committed by approved purchase orders (app.budget_line_commitments); NULL when withheld.',
   'remaining_commitment_minor', 'Committed less actual, never below zero: spend is taken to consume commitments first. NULL when Committed is.',
-  'etc_minor', 'Estimate to complete: the entered value, else current budget less actual less remaining commitment, never below zero.',
+  'etc_minor', 'Estimate to complete: the entered value, else current budget less actual less remaining commitment, never below zero; NULL when no value is entered and current budget or remaining commitment is unknown.',
   'etc_source', 'Entered when a person entered the ETC, Derived otherwise.',
   'efc_minor', 'Estimated final cost: actual plus remaining commitment plus ETC; NULL when any is.',
   'forward_exposure_minor', 'Spend still to come: remaining commitment plus ETC.',
   'variance_at_completion_minor', 'Current budget less estimated final cost; NULL when either is.',
-  'is_withheld', 'True when the reader cannot read the project''s purchase orders: every forecast figure is then NULL.'
+  'is_withheld', 'True when the reader cannot read the project''s purchase orders, expenses or change orders: every forecast figure is then NULL, never a partial number.'
 ]);
 
 create view app.budget_forecast_totals with (security_invoker = true) as
 select b.id as budget_id, b.project_id, b.currency_code,
-  case when bool_or(f.current_budget_minor is null) then null
+  case when bool_or(f.is_withheld) or bool_or(f.current_budget_minor is null) then null
        else coalesce(sum(f.current_budget_minor), 0) + u.unallocated_minor end::bigint as current_budget_minor,
-  coalesce(sum(f.actual_minor), 0)::bigint as actual_minor,
+  case when bool_or(f.is_withheld) then null else coalesce(sum(f.actual_minor), 0) end::bigint as actual_minor,
   case when bool_or(f.is_withheld) or bool_or(f.committed_minor is null and f.budget_line_id is not null) then null
        else coalesce(sum(f.committed_minor), 0) end::bigint as committed_minor,
   case when bool_or(f.is_withheld) or bool_or(f.remaining_commitment_minor is null and f.budget_line_id is not null) then null

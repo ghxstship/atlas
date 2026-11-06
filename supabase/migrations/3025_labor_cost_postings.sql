@@ -17,13 +17,17 @@
 --     ledger, as app.calculate_payroll_run resolves it, A134 2271); an engaged individual's or an agency's Hourly
 --     engagement at the precedence of app.engagement_resolved (1624): the agreed rate, else the org rate card line in
 --     force, else the canon rate card. Day Rate, Flat Fee and Salary post minutes with no rate: unpriced, never zero.
+--     The engagement's role may be NULL (1624), so rate cards match on the engagement's role, else the posted role.
 --     Members' minutes are split into Regular, Overtime and Double Time by private.split_work_minutes (1384) within the
 --     timesheet; external and agency workers bill their own overtime and post Regular. Payroll stays authoritative;
 --     holiday pay (2270, 2271) is not posted. A missing rate never refuses an approval.
 --   * Visibility: rate_minor is Restricted (data.restricted.read.payroll) and never selectable by signed-in callers, as
 --     payroll lines (0362). Per-person rows need crew.timesheet.read; cost by team needs data.restricted.read.payroll;
 --     the per-line aggregate is Internal and shows to finance.budget.read readers in Actual (3026), as the journal's
---     payroll aggregates do (0362).
+--     payroll aggregates do (0362). The table's rows and the team totals are crew.timesheet.read only, so a budget
+--     reader never sees minutes beside a line's Actual.
+--   * shift_budget_line_posted: a crew planner cannot move posted Actuals; a change of line on a shift with standing
+--     posted time needs finance.budget.write on the project.
 -- No table becomes Trash-eligible: the postings are an Age ledger.
 
 -- 1. Enums -------------------------------------------------------------------------------------------------------------
@@ -31,7 +35,7 @@
 create type app.labor_segment as enum ('Regular', 'Overtime', 'Double Time');
 comment on type app.labor_segment is 'Part of worked time a labour posting covers: Regular, Overtime or Double Time (private.split_work_minutes).';
 create type app.labor_team_kind as enum ('Own Team', 'Agency', 'Engaged');
-comment on type app.labor_team_kind is 'Who worked the posted time: the org''s Own Team (members), an Agency''s staff (a roster entry of its Staff engagement) or an Engaged individual.';
+comment on type app.labor_team_kind is 'Who worked the posted time: the org''s Own Team (members), an Agency (a roster entry of an engagement with a counterparty) or an Engaged individual.';
 create type app.labor_rate_source as enum ('Pay Rate', 'Engagement Rate', 'Rate Card');
 comment on type app.labor_rate_source is 'Where a posted rate came from: the member''s pay rate ledger, the engagement''s agreed rate, or a rate card (the org''s, else the canon''s).';
 
@@ -51,6 +55,15 @@ as $$
 declare
   v_line record;
 begin
+  -- Actual follows the live shift's line, so moving a line under posted time moves finance's numbers.
+  if tg_op = 'UPDATE' and new.budget_line_id is distinct from old.budget_line_id
+     and not private.can_on_project(new.project_id, 'finance.budget.write')
+     and exists (select 1 from app.labor_cost_postings l
+                 join app.timesheet_approvals a on a.id = l.timesheet_approval_id and a.voided_at is null
+                 join app.timesheets t on t.id = a.timesheet_id and t.deleted_at is null
+                 where l.shift_id = new.id) then
+    perform private.refuse('shift_budget_line_posted', 'Approved time on this shift is already on the budget, so moving it needs finance.budget.write.');
+  end if;
   if new.budget_line_id is null or (tg_op = 'UPDATE' and new.budget_line_id is not distinct from old.budget_line_id
                                     and new.project_id = old.project_id) then
     return new;
@@ -67,7 +80,7 @@ begin
   return new;
 end;
 $$;
-comment on function private.guard_shift_budget_line() is 'Shifts: the budget line a shift posts to is a live Labor line (shift_budget_line_labor) of a live budget of the shift''s own project (shift_budget_line_project). Separate from private.guard_shift.';
+comment on function private.guard_shift_budget_line() is 'Shifts: the budget line a shift posts to is a live Labor line (shift_budget_line_labor) of a live budget of the shift''s own project (shift_budget_line_project), and moving it off a shift with standing posted time needs finance.budget.write on the project (shift_budget_line_posted). Separate from private.guard_shift.';
 revoke all on function private.guard_shift_budget_line() from public, anon, authenticated;
 create trigger t42_guard_shift_budget_line before insert or update of budget_line_id, project_id on app.shifts
   for each row execute function private.guard_shift_budget_line();
@@ -270,8 +283,7 @@ call private.describe('app.labor_cost_postings', 'Approved crew time costed at t
 
 call private.install_policies('app.labor_cost_postings',
   $$timesheet_approval_id in (select a.id from app.timesheet_approvals a join app.timesheets t on t.id = a.timesheet_id
-    where t.project_id in (select private.project_ids_with('crew.timesheet.read'))
-       or t.project_id in (select private.project_ids_with('finance.budget.read')))$$);
+    where t.project_id in (select private.project_ids_with('crew.timesheet.read')))$$);
 -- The rate is never selectable directly, as payroll lines (0362); the views mask it.
 revoke select, insert, update, delete on app.labor_cost_postings from authenticated;
 grant select (id, org_id, timesheet_approval_id, shift_id, role_code, work_date, minutes, segment, multiplier, rate_source,
@@ -324,7 +336,7 @@ begin
   select l.rate_minor, c.currency_code into v_card
   from app.rate_card_lines l join app.rate_cards c on c.id = l.rate_card_id
   where l.org_id = v_engagement.org_id and l.deleted_at is null and c.deleted_at is null
-    and l.role_code = v_engagement.role_code and l.worker_classification = v_engagement.worker_classification
+    and l.role_code = coalesce(v_engagement.role_code, p_role_code) and l.worker_classification = v_engagement.worker_classification
     and l.pay_basis = v_engagement.pay_basis and l.arrangement = v_engagement.arrangement
     and c.effective_from <= p_work_date and (c.effective_to is null or c.effective_to >= p_work_date)
   order by c.effective_from desc, c.created_at desc
@@ -335,7 +347,7 @@ begin
   end if;
   select rc.standard_rate_minor, rc.currency_code into v_canon
   from xpms.rate_card rc
-  where rc.role_code = v_engagement.role_code and rc.worker_classification = v_engagement.worker_classification
+  where rc.role_code = coalesce(v_engagement.role_code, p_role_code) and rc.worker_classification = v_engagement.worker_classification
     and rc.pay_basis = v_engagement.pay_basis and rc.arrangement = v_engagement.arrangement
   limit 1;
   if v_canon.standard_rate_minor is not null then
@@ -394,8 +406,8 @@ begin
     from app.time_entries e
     left join app.shifts sh on sh.id = e.shift_id
     where e.membership_id = v_sheet.membership_id and e.project_id = v_sheet.project_id and e.deleted_at is null
-      and e.clock_out is not null and e.clock_in >= v_sheet.period_start::timestamptz
-      and e.clock_in < (v_sheet.period_end + 1)::timestamptz;
+      and e.clock_out is not null
+      and (e.clock_in at time zone v_project.time_zone)::date between v_sheet.period_start and v_sheet.period_end;
 
     with split as (
       select s.*, e.shift_id
@@ -438,7 +450,7 @@ begin
         and e.membership_id is null
         and e.engagement_id is not distinct from v_sheet.engagement_id
         and e.roster_entry_id is not distinct from v_sheet.roster_entry_id
-        and e.clock_in >= v_sheet.period_start::timestamptz and e.clock_in < (v_sheet.period_end + 1)::timestamptz
+        and (e.clock_in at time zone v_project.time_zone)::date between v_sheet.period_start and v_sheet.period_end
     ), grouped as (
       select x.shift_id, x.role_code, x.work_date, sum(x.minutes)::integer as minutes
       from entries x group by x.shift_id, x.role_code, x.work_date
@@ -456,7 +468,7 @@ begin
   return v_count;
 end;
 $$;
-comment on function private.post_timesheet_labor(uuid) is 'Posts a standing timesheet approval''s time (G-133): the live, clocked-out time entries of the timesheet''s worker on its project inside its period, as app.calculate_payroll_run selects them (2271), with minutes = clock span less breaks and the work date on the project''s calendar. A member''s minutes go through pg_temp.work_minutes (2271''s columns and payroll.week_start rule) and private.split_work_minutes into Regular, Overtime and Double Time within this timesheet; with no jurisdiction or wage-hour rule they post Regular. External and agency time posts Regular at 1. Rows group by shift, role, work date and segment, at private.labor_rate_in_force; a missing rate posts unpriced and never refuses the approval. Returns the rows posted.';
+comment on function private.post_timesheet_labor(uuid) is 'Posts a standing timesheet approval''s time (G-133): the live, clocked-out time entries of the timesheet''s worker on its project whose clock-in falls inside its period on the project''s calendar, with minutes = clock span less breaks and the work date on the project''s calendar. A member''s minutes go through pg_temp.work_minutes (2271''s columns and payroll.week_start rule) and private.split_work_minutes into Regular, Overtime and Double Time within this timesheet; with no jurisdiction or wage-hour rule they post Regular. External and agency time posts Regular at 1. Rows group by shift, role, work date and segment, at private.labor_rate_in_force; a missing rate posts unpriced and never refuses the approval. Returns the rows posted.';
 revoke all on function private.post_timesheet_labor(uuid) from public, anon, authenticated;
 
 create or replace function private.post_timesheet_labor_on_approval()
@@ -484,8 +496,10 @@ select l.id as posting_id, l.org_id, t.project_id, t.id as timesheet_id, l.shift
   coalesce((select m.person_id from app.memberships m where m.id = t.membership_id),
            (select g.person_id from app.engagements g where g.id = t.engagement_id),
            (select r.person_id from private.roster_people r where r.roster_entry_id = t.roster_entry_id)) as person_id,
-  case when t.membership_id is not null then 'Own Team' when t.roster_entry_id is not null then 'Agency' else 'Engaged' end::app.labor_team_kind
-    as team_kind,
+  case when t.membership_id is not null then 'Own Team'
+       when (select g.counterparty_id from app.engagement_roster_entries r join app.engagements g on g.id = r.engagement_id
+             where r.id = t.roster_entry_id) is not null then 'Agency'
+       else 'Engaged' end::app.labor_team_kind as team_kind,
   (select g.counterparty_id from app.engagement_roster_entries r join app.engagements g on g.id = r.engagement_id
    where r.id = t.roster_entry_id) as team_counterparty_id,
   l.role_code, l.work_date, l.minutes, l.segment, l.multiplier, l.rate_minor, l.rate_source, l.currency_code::text as currency_code,
@@ -495,7 +509,7 @@ join app.timesheet_approvals a on a.id = l.timesheet_approval_id and a.voided_at
 join app.timesheets t on t.id = a.timesheet_id and t.deleted_at is null
 left join app.shifts sh on sh.id = l.shift_id and sh.deleted_at is null;
 
-comment on view private.labor_postings_standing is 'Labour postings of standing approvals (voided_at NULL) of live timesheets, with the worker (as private.worker_person_id resolves it), the team (Own Team for a member, Agency with the Staff engagement''s counterparty for a roster entry, Engaged for an engagement), the live shift''s budget line and the derived amount, round(minutes / 60 times multiplier times rate) as payroll_line_amounts derives it (0362). Read only by the labour views, which filter and mask it.';
+comment on view private.labor_postings_standing is 'Labour postings of standing approvals (voided_at NULL) of live timesheets, with the worker (as private.worker_person_id resolves it), the team (Own Team for a member, Agency with the counterparty for a roster entry whose engagement has one, otherwise Engaged), the live shift''s budget line and the derived amount, round(minutes / 60 times multiplier times rate) as payroll_line_amounts derives it (0362). Read only by the labour views, which filter and mask it.';
 revoke all on private.labor_postings_standing from public, anon, authenticated;
 
 create view app.budget_line_labor_totals as
@@ -554,10 +568,9 @@ from private.labor_postings_standing s
 left join app.counterparties c on c.id = s.team_counterparty_id
 left join app.organizations o on o.id = c.organization_id
 where s.project_id in (select private.project_ids_with('crew.timesheet.read'))
-   or s.project_id in (select private.project_ids_with('finance.budget.read'))
 group by s.org_id, s.project_id, s.team_kind, s.team_counterparty_id, o.name, s.currency_code;
 
-call private.describe('app.labor_posting_team_totals', 'Approved crew time per project, team and currency (S7.4-07): own team, each agency by name and engaged individuals side by side, for readers who hold crew.timesheet.read or finance.budget.read on the project. Cost by team shows only with data.restricted.read.payroll, as the Labor report masks payroll run amounts; amounts are never summed across currencies.', array[
+call private.describe('app.labor_posting_team_totals', 'Approved crew time per project, team and currency (S7.4-07): own team, each agency by name and engaged individuals side by side, for readers who hold crew.timesheet.read on the project: hours beside a line's Actual would give a rate to a reader who holds only finance.budget.read. Cost by team shows only with data.restricted.read.payroll, as the Labor report masks payroll run amounts; amounts are never summed across currencies.', array[
   'org_id', 'Org.', 'project_id', 'Project.', 'team_kind', 'Own Team, Agency or Engaged.',
   'team_counterparty_id', 'The agency, for Agency rows.', 'team_name', 'The agency''s name.',
   'currency_code', 'Currency of the rates summed; NULL for the unpriced minutes.', 'minutes', 'Minutes posted.',

@@ -52,12 +52,18 @@ begin
   end if;
   select t.destination into v_destination from private.import_targets t where t.code = new.target_code;
   if v_destination is null then
-    if new.project_id is not null or new.run_of_show_id is not null or new.budget_id is not null then
-      perform private.refuse('import_destination_unexpected', 'This target imports into the whole organization; it names no running order, project or budget.');
+    if new.project_id is not null or new.run_of_show_id is not null then
+      perform private.refuse('import_destination_unexpected', 'This target imports into the whole organization; it names no running order or project.');
+    end if;
+    if new.budget_id is not null then
+      perform private.refuse('import_destination_unexpected', 'This target imports into the whole organization; it names no budget.');
     end if;
   elsif v_destination = 'run_of_show_id' then
-    if new.project_id is not null or new.budget_id is not null then
-      perform private.refuse('import_destination_unexpected', 'A cue import names a running order, not a project or a budget.');
+    if new.project_id is not null then
+      perform private.refuse('import_destination_unexpected', 'A cue import names a running order, not a project.');
+    end if;
+    if new.budget_id is not null then
+      perform private.refuse('import_destination_unexpected', 'A cue import names a running order, not a budget.');
     end if;
     if new.run_of_show_id is null then
       perform private.refuse('import_destination_required', 'Choose the running order the rows go into.');
@@ -76,8 +82,11 @@ begin
       perform private.refuse('import_destination_unknown', 'The budget does not exist or was deleted.');
     end if;
   else
-    if new.run_of_show_id is not null or new.budget_id is not null then
-      perform private.refuse('import_destination_unexpected', 'A guest list import names a project, not a running order or a budget.');
+    if new.run_of_show_id is not null then
+      perform private.refuse('import_destination_unexpected', 'A guest list import names a project, not a running order.');
+    end if;
+    if new.budget_id is not null then
+      perform private.refuse('import_destination_unexpected', 'A guest list import names a project, not a budget.');
     end if;
     if new.project_id is null then
       perform private.refuse('import_destination_required', 'Choose the project the rows go into.');

@@ -53,7 +53,8 @@ select is(
    where table_schema = 'api_external' and table_name = 'quote_versions'),
   array['id', 'quote_id', 'quote_key', 'title', 'project_id', 'project_name', 'version_number', 'quote_version_state',
         'valid_until', 'terms', 'currency_code', 'total_minor', 'content_sha256', 'sent_at', 'accepted_at', 'accepted_name',
-        'engagement_document_id'],
+        'accepted_email', 'engagement_document_id', 'org_id', 'org_name', 'client_name', 'project_time_zone', 'legal_entity_name',
+        'brand_accent_hex', 'brand_logo_path'],
   'api_external.quote_versions exposes exactly the client-facing columns');
 select is(
   (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
@@ -97,6 +98,24 @@ select is((select refusal from api_public.token_sign_document((select token from
 select pg_temp.as_platform();
 select is((select quote_version_state::text from app.quote_versions where id = pg_temp.id('q1v1')), 'Accepted', 'the version is Accepted');
 select is((select accepted_name from app.quote_versions where id = pg_temp.id('q1v1')), 'Cleo M. Marsh', 'with the typed name');
+select is((select engagement_document_state::text from app.engagement_documents where id = pg_temp.id('doc1')), 'Executed',
+  'the document moves Signed to Executed: no countersignature on a quote');
+select is((select reason from app.engagement_document_state_transitions where engagement_document_id = pg_temp.id('doc1') and to_state = 'Executed'),
+  'Accepted quote: no countersignature.', 'with its reason');
+select ok((select reason like '%through a signing link.' from app.engagement_document_state_transitions
+           where engagement_document_id = pg_temp.id('doc1') and to_state = 'Signed'),
+  '0769 words a link signature with the fixed ending the acceptance trigger reads');
+select pg_temp.as_user('cleo');
+select is((select accepted_email from api_external.quote_versions where id = pg_temp.id('q1v1')), 'cleo@coral-group.test',
+  'the view reads the email the link went to from the used token');
+select ok(pg_temp.id('doc1') not in (select private.my_profile_engagement_document_ids()), 'an accepted quote is off the Compass Profile');
+select pg_temp.as_user('carol');
+select is((select accepted_email from app.quote_acceptance(pg_temp.id('q1v1'))), 'cleo@coral-group.test',
+  'app.quote_acceptance gives a budget reader the same email');
+select pg_temp.as_user('frank');
+select throws_ok(format($$select * from app.quote_acceptance('%s')$$, pg_temp.id('q1v1')), '42501', null,
+  'app.quote_acceptance needs finance.budget.read');
+select pg_temp.as_platform();
 select ok((select accepted_at is not null and accepted_by is null from app.quote_versions where id = pg_temp.id('q1v1')),
   'accepted_at is set; nobody was signed in');
 select ok((select deleted_at is not null from app.quote_versions where id = pg_temp.id('q1v2')),
@@ -120,15 +139,40 @@ select is((select display_state from app.quote_statuses where quote_id = pg_temp
 
 -- Signed-in acceptance ---------------------------------------------------------------------------------------------------
 select pg_temp.as_user('cleo');
-select is((select (r ->> 'changed')::boolean from private_bulk.r), false, 'Gateway bulk signing skips a quote')
-  from (select null::jsonb) x,
-  lateral (select null::jsonb as r) private_bulk
-  where false;
+select is((app.bulk_update_my_engagement_documents(jsonb_build_array(jsonb_build_object('id', pg_temp.id('doc2'),
+    'set', jsonb_build_object('engagement_document_state', 'Signed'))), false) ->> 'changed')::int,
+  0, 'Gateway bulk signing skips a quote');
+select pg_temp.as_platform();
+select is((select engagement_document_state::text from app.engagement_documents where id = pg_temp.id('doc2')), 'Sent', 'it stays unsigned');
+select pg_temp.as_user('cleo');
 select lives_ok(format($$select app.sign_engagement_document('%s', 'Signed in Gateway.')$$, pg_temp.id('doc2')),
   'the client signs the second quote signed in');
 select pg_temp.as_platform();
 select is((select accepted_by from app.quote_versions where id = pg_temp.id('q2v1')), pg_temp.id('cleo'), 'accepted_by is that person');
 select is((select accepted_name from app.quote_versions where id = pg_temp.id('q2v1')), 'Cleo Marsh', 'with their name');
+select pg_temp.as_user('cleo');
+select is((select accepted_email from api_external.quote_versions where id = pg_temp.id('q2v1')), null::text, 'and no email: signed in');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications where kind = 'quote.accepted' and subject_id = pg_temp.id('q2v1')
+           and recipient_person_id = pg_temp.id('carol')), 1, 'quote.accepted reaches the sender once');
+select is((select engagement_document_state::text from app.engagement_documents where id = pg_temp.id('doc2')), 'Executed', 'the document is Executed');
+select is((select coalesce(sum(v.documents_in_flight), 0)::int from (select count(*) filter (where d.engagement_document_state in ('Sent', 'Signed')) as documents_in_flight
+           from app.engagement_documents d where d.id in (pg_temp.id('doc1'), pg_temp.id('doc2'))) v), 0, 'accepted quotes are out of documents in flight');
+
+-- A signature through a link from a browser with a session (C10): the typed name wins and the sender is told once.
+select pg_temp.as_user('carol');
+insert into world select 'q4', app.create_quote(pg_temp.id('bud'), 'Fourth stage', pg_temp.id('eng_client'));
+insert into world select 'doc4', s.engagement_document_id
+  from app.send_quote_version((select id from app.quote_versions where quote_id = pg_temp.id('q4')), 'Sent.') s;
+insert into tok select 'd', t.token_id, t.token, t.access_code from app.issue_engagement_document_token(pg_temp.id('doc4'), 'other@coral-group.test') t;
+select pg_temp.as_user('ivy');
+select is((select refusal from api_public.token_sign_document((select token from tok where key = 'd'),
+  (select access_code from tok where key = 'd'), 'Typed Person')), null::text, 'a signed-in browser signs through the link');
+select pg_temp.as_platform();
+select is((select accepted_name || '/' || coalesce(accepted_by::text, 'none') from app.quote_versions where quote_id = pg_temp.id('q4')),
+  'Typed Person/none', 'accepted_name is the typed name and accepted_by is cleared');
+select is((select count(*)::int from app.notifications n where n.kind = 'quote.accepted' and n.recipient_person_id = pg_temp.id('carol')
+           and n.subject_id = (select id from app.quote_versions where quote_id = pg_temp.id('q4'))), 1, 'the sender is told once');
 
 -- Expiry -----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -147,6 +191,19 @@ select throws_ok(format($$select app.sign_engagement_document('%s', 'Too late.')
 select pg_temp.as_platform();
 select is((select engagement_document_state::text from app.engagement_documents where id = pg_temp.id('doc3')), 'Sent',
   'and the refusal leaves the document unsigned');
+
+-- A closed engagement refuses acceptance (C13).
+select pg_temp.as_user('carol');
+insert into world select 'q5', app.create_quote(pg_temp.id('bud'), 'Fifth stage', pg_temp.id('eng_client'));
+insert into world select 'doc5', s.engagement_document_id
+  from app.send_quote_version((select id from app.quote_versions where quote_id = pg_temp.id('q5')), 'Sent.') s;
+select pg_temp.as_platform();
+update app.engagements set deleted_at = now() where id = pg_temp.id('eng_client');
+select throws_ok(format($$select private.transition_lifecycle('engagement_document', 'app.engagement_documents', 'engagement_document_state',
+    'app.engagement_document_state_transitions', 'engagement_document_id', '%s', 'Sent', 'Signed', 'Signed.')$$, pg_temp.id('doc5')),
+  'XR001', 'quote_client_engagement: This quote''s client engagement is closed, so it can no longer be accepted.',
+  'a deleted engagement refuses acceptance');
+update app.engagements set deleted_at = null where id = pg_temp.id('eng_client');
 
 select * from finish();
 rollback;

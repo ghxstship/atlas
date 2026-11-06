@@ -91,8 +91,15 @@ select is((select count(*)::int from app.budget_version_lines l join app.quote_v
            where q.id = pg_temp.id('qv1') and not l.excluded_from_quote), 2, 'whose lines on the quote are frozen');
 select is((select engagement_document_state::text || '/' || document_kind::text from app.engagement_documents where id = pg_temp.id('doc1')),
   'Sent/Quote', 'a Quote engagement document is Sent');
-select is((select d.expires_on from app.engagement_documents d where d.id = pg_temp.id('doc1')),
-  (select valid_until from app.quote_versions where id = pg_temp.id('qv1')), 'and expires on valid until');
+select is((select d.expires_on from app.engagement_documents d where d.id = pg_temp.id('doc1')), null::date,
+  'with no expires_on: valid_until is the only expiry, so 1463 reminds no one');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.engagement_documents d where d.id = pg_temp.id('doc1')
+           and d.expires_on is not null and d.engagement_document_state in ('Signed', 'Executed')), 0,
+  'and it is no document.expiring candidate');
+select pg_temp.as_user('carol');
+select is((select sent_title || '/' || sent_client_name from app.quote_versions where id = pg_temp.id('qv1')),
+  'Summer Series production/Cleo Marsh', 'the title and client name are frozen at send');
 select is((select sent_by from app.quote_versions where id = pg_temp.id('qv1')), pg_temp.id('carol'), 'the sender comes from the session');
 select pg_temp.as_platform();
 select is((select content_sha256 from app.quote_versions where id = pg_temp.id('qv1')),
@@ -102,6 +109,23 @@ select is((select content_sha256 from app.quote_versions where id = pg_temp.id('
 select ok((select private.quote_canonical_content(pg_temp.id('qv1'), budget_version_id)::jsonb
            from app.quote_versions where id = pg_temp.id('qv1')) @> '{"client": "Cleo Marsh", "total_minor": 55000}'::jsonb,
   'the canonical content names the client and the total of the lines on the quote (2 x 125.00 + 300.00)');
+select ok((select private.quote_canonical_content(pg_temp.id('qv1'), budget_version_id)::jsonb
+           from app.quote_versions where id = pg_temp.id('qv1')) ?& array['quote', 'version_number', 'title', 'client', 'currency', 'valid_until', 'terms', 'lines', 'total_minor'],
+  'the canonical text carries key, version, title, client, currency, valid until, terms, lines and total');
+
+-- A rename after Send changes nothing the client signs (C2).
+select pg_temp.as_user('carol');
+update app.quotes set title = 'Retitled after send' where id = pg_temp.id('q');
+select pg_temp.as_platform();
+update app.people set full_name = 'Cleo Renamed' where id = pg_temp.id('cleo');
+select is((select content_sha256 from app.quote_versions where id = pg_temp.id('qv1')),
+  encode(extensions.digest(private.quote_canonical_content(pg_temp.id('qv1'),
+    (select budget_version_id from app.quote_versions where id = pg_temp.id('qv1'))), 'sha256'), 'hex'),
+  'a retitled quote and a renamed client still recompute to the fingerprint');
+update app.people set full_name = 'Cleo Marsh' where id = pg_temp.id('cleo');
+select pg_temp.as_user('cleo');
+select is((select title from api_external.quote_versions where id = pg_temp.id('qv1')), 'Summer Series production',
+  'the external title is unchanged');
 select pg_temp.as_user('carol');
 update app.budget_lines set unit_price_minor = 99999 where id = pg_temp.id('l1');
 select is((select client_total_minor from app.quote_statuses where quote_id = pg_temp.id('q')), 55000::bigint,
@@ -117,13 +141,15 @@ select throws_ok(format($$update app.quotes set engagement_id = null where id = 
 
 -- The Quote document is locked ------------------------------------------------------------------------------------------------
 select throws_ok(format($$insert into app.engagement_documents (engagement_id, document_kind, title) values ('%s', 'Quote', 'By hand')$$,
-  pg_temp.id('eng_client')), 'XR001', 'quote_kind_send_only: A Quote document is created by sending a quote version.',
+  pg_temp.id('eng_client')), 'XR001', 'quote_document_locked: A Quote document follows its quote; change the quote instead.',
   'a Quote document is never created by hand');
 with d as (insert into app.engagement_documents (engagement_id, document_kind, title) values (pg_temp.id('eng_client'), 'Rider', 'Client rider') returning id)
   insert into world select 'rider', id from d;
 select pg_temp.as_platform();
-select throws_ok(format($$update app.engagement_documents set document_kind = 'Quote' where id = '%s'$$, pg_temp.id('rider')), 'XR001', null,
-  'no document becomes a Quote');
+select throws_ok(format($$update app.engagement_documents set document_kind = 'Quote' where id = '%s'$$, pg_temp.id('rider')), 'XR001',
+  'engagement_document_immutable: A document keeps its engagement and kind.', 'no document becomes a Quote (t40 refuses first)');
+select throws_ok(format($$update app.engagement_documents set document_kind = 'Rider' where id = '%s'$$, pg_temp.id('doc1')), 'XR001',
+  'engagement_document_immutable: A document keeps its engagement and kind.', 'and a Quote document stays one');
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.transition_engagement_document('%s', 'Sent', 'Canceled', 'Canceled by hand.')$$, pg_temp.id('doc1')),
   'XR001', 'quote_document_locked: A Quote document follows its quote; change the quote instead.', 'a Quote document is not canceled by hand');
@@ -132,7 +158,26 @@ select throws_ok(format($$select app.transition_engagement_document('%s', 'Sent'
 select throws_ok(format($$update app.engagement_documents set title = 'Renamed' where id = '%s'$$, pg_temp.id('doc1')),
   'XR001', null, 'nor renamed');
 select throws_ok(format($$update app.engagement_documents set deleted_at = now() where id = '%s'$$, pg_temp.id('doc1')),
-  'XR001', null, 'nor deleted');
+  'XR001', 'quote_document_locked: A Quote document follows its quote; change the quote instead.', 'nor deleted');
+select throws_ok(format($$update app.engagement_documents set expires_on = current_date where id = '%s'$$, pg_temp.id('doc1')),
+  'XR001', 'quote_document_locked: A Quote document follows its quote; change the quote instead.', 'nor given an expiry');
+
+-- The lifecycle's own refusal ---------------------------------------------------------------------------------------------
+select pg_temp.as_platform();
+select throws_ok(format($$select private.transition_lifecycle('quote_version', 'app.quote_versions', 'quote_version_state',
+    'app.quote_version_state_transitions', 'quote_version_id', '%s', 'Draft', 'Accepted', 'Skipping.')$$, pg_temp.id('qv1')),
+  'XR001', 'quote_version_transition_not_allowed: A quote version cannot move from Draft to Accepted.',
+  'a quote version moves only by its rules (quote_version_transition_not_allowed)');
+
+-- A budget under a sent quote stays ------------------------------------------------------------------------------------------
+select pg_temp.as_user('carol');
+select throws_ok(format($$update app.budgets set deleted_at = now() where id = '%s'$$, pg_temp.id('bud')), 'XR001',
+  'budget_has_sent_quote: A quote was sent from this budget, so the budget is kept.', 'a budget with a sent quote is not deleted');
+select pg_temp.as_platform();
+select ok(exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'app' and tablename = 'quotes')
+  and exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'app' and tablename = 'quote_versions'),
+  'quotes and quote versions are in the realtime publication');
+select pg_temp.as_user('carol');
 
 -- Supersede ------------------------------------------------------------------------------------------------------------------
 insert into tok select 'v1', t.token_id, t.token, t.access_code from app.issue_engagement_document_token(pg_temp.id('doc1'), 'cleo@coral-group.test') t;

@@ -7,6 +7,8 @@
 --     that the expense part, the labour part, the unpriced labour minutes and the labour postings in another currency
 --     are appended after it. app.budget_totals, app.budget_revised_totals (0480) and app.budget_line_facts (2810) read
 --     the view and follow without being redefined; their comments say what Actual now holds.
+--   * The labour totals join laterally, so the line filter reaches the grouped view and a budget read never aggregates
+--     every line the reader can see.
 --   * Nothing counts twice: payroll runs post to the journal (0362), and vendor or agency invoices are not in Actual; the
 --     final cost report reads the posted ledger. ADR 0152 notes that an org recording an agency invoice as an expense
 --     would count it twice.
@@ -28,7 +30,9 @@ left join lateral (
   select sum(e.amount_minor) as amount_minor from app.expenses e
   where e.budget_line_id = bl.id and e.deleted_at is null and e.expense_state in ('Approved', 'Paid')
 ) ex on true
-left join app.budget_line_labor_totals lt on lt.budget_line_id = bl.id
+left join lateral (
+  select t.* from app.budget_line_labor_totals t where t.budget_line_id = bl.id
+) lt on true
 where bl.deleted_at is null;
 
 comment on view app.budget_line_amounts is 'Budget line amounts, derived: extended amount (NULL when unpriced, never zero), contingency moved in and out, the GL account (the item''s explicit default, else by class: decision D13 as owner decision 39 reads it) and Actual: approved and paid expenses plus approved crew time at the rate in force (3025).';
