@@ -142,6 +142,27 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // A127 one-tap email links and push actions.
+  "notification_action_used",
+  "notification_action_expired",
+  "notification_action_not_yours",
+  "notification_action_invalid",
+  "notification_action_reason",
+  "notification_action_elsewhere",
+  // P5 badge photos (5822): the holder records a photo from their own folder while they hold a live credential.
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_notice",
+  // P9 signed-out approval links and subject approvals (migrations 5860 and 5861).
+  "approval_link_code_too_soon",
+  "approval_link_locked",
+  "approval_link_email_off",
+  "approval_not_in_review",
+  "approval_not_step_approver",
+  "approval_one_step_per_approver",
+  "approval_subject_beneficiary",
+  "approval_rejection_reason",
+  "sod_approval_requester",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

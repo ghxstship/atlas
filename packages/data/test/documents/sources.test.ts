@@ -277,9 +277,42 @@ describe("loaders read each record as the caller", () => {
         }),
       ],
       "from:projects": [project],
+      "rpc:credential_badge_photos": [
+        okResponse([
+          {
+            credential_id: "c1",
+            holder_person_id: "p",
+            photo_state: "Provided",
+            bucket_id: "credential-photos",
+            photo_path: "org-1/p/photo.jpg",
+            requested_at: null,
+            provided_at: "2026-10-16T00:00:00Z",
+            source: "Holder Upload",
+          },
+        ]),
+      ],
     });
-    const c = await loadDocumentData(credential.db, ORG, "credential-badge", "c1");
+    const downloads: string[] = [];
+    const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]);
+    const withStorage = {
+      ...credential.db,
+      storage: {
+        from: (bucket: string) => ({
+          download: async (path: string) => {
+            downloads.push(`${bucket}:${path}`);
+            return { data: new Blob([jpeg]), error: null };
+          },
+        }),
+      },
+    } as unknown as typeof credential.db;
+    const c = await loadDocumentData(withStorage, ORG, "credential-badge", "c1");
     expect(c.ok && c.data.credential.holderName).toBe("Ana");
+    // The badge photo is read as the caller from the private bucket (P5).
+    expect(c.ok && c.data.photo).toEqual({ bytes: jpeg, source: "Badge" });
+    expect(downloads).toEqual(["credential-photos:org-1/p/photo.jpg"]);
+    expect(credential.calls.find((x) => x.target === "rpc:credential_badge_photos")?.steps).toEqual(
+      [["args", [{ p_credential_ids: ["c1"] }]]],
+    );
 
     const missing = fakeClient({ "from:beos": [okResponse(null)] });
     expect((await loadDocumentData(missing.db, ORG, "beo", "b1")).ok).toBe(false);

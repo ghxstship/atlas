@@ -39,9 +39,11 @@ test("journey 27: import customers, review a fuzzy duplicate, commit and undo th
   // Detect, then map: the wizard suggests Name and Vendor type and skips Notes.
   await runImportWorker();
   await reloadUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-  await expect(page.getByLabel("Column Company")).toHaveValue("name");
-  await expect(page.getByLabel("Column Vendor type")).toHaveValue("counterparty_type");
-  await expect(page.getByLabel("Column Notes")).toHaveValue("");
+  await expect(page.getByLabel("Column Company", { exact: true })).toHaveValue("name");
+  await expect(page.getByLabel("Column Vendor type", { exact: true })).toHaveValue(
+    "counterparty_type",
+  );
+  await expect(page.getByLabel("Column Notes", { exact: true })).toHaveValue("");
   await expectAccessibleInBothThemes(page);
   await page.getByRole("button", { name: "Confirm the mapping" }).click();
   await expect(page.getByText("Checking every row")).toBeVisible();

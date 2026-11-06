@@ -96,6 +96,7 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     expiresAt: new Date("2027-06-01T12:00:00Z"),
     signInUrl: "https://gateway.xos.test/auth/sign-in",
   },
+  approval_link_code: { code: "482913", orgName: "Northwind Live", expiresInMinutes: 10 },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */

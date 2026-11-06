@@ -22,6 +22,7 @@ import {
 // Venues ------------------------------------------------------------------------------------------
 
 const venues = tableResource("venues", {
+  archivable: true,
   aliases: { latitude: "venue_latitude", longitude: "venue_longitude" },
   sortable: [
     "name",

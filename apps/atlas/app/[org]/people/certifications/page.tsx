@@ -81,6 +81,7 @@ export default async function Page({
           state={peopleStateIcon("certificate", status(h))}
           stateLabel={t(`people.certs.status.${status(h)}`)}
           backHref={withParams(base, search, { peek: null, full: null })}
+          historySubject={{ table: "app.certification_holders", id: h.id }}
           actions={
             canVerify ? (
               <ConfirmButton

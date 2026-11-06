@@ -37,9 +37,27 @@
       "notification_channel_outside": "A company sets Email and Push only.",
       "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
       "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
+      "notification_action_used": "This was already handled. Nothing else to do.",
+      "notification_action_expired": "This link has expired. Open the item from Home to act on it.",
+      "notification_action_not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "notification_action_invalid": "This link does not work. Open the item from Home.",
+      "notification_action_elsewhere": "This link opens in Atlas. Use the button in the email to open it there.",
+      "notification_action_reason": "Say why you are rejecting it.",
       "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned.",
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
       "submittal_note_length": "Write a note of 1 to 500 characters.",
+      "approval_link_code_too_soon": "A code was sent a moment ago. Wait a minute, then ask again; at most five are sent an hour.",
+      "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+      "approval_link_email_off": "Your approval emails are turned off, so no code can be sent. Sign in to decide instead.",
+      "approval_not_in_review": "This approval was already decided or withdrawn.",
+      "approval_not_step_approver": "You are not an approver of the step this approval is waiting on.",
+      "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs someone else.",
+      "approval_subject_beneficiary": "This approval is for you, so someone else decides it.",
+      "approval_rejection_reason": "Say why you are rejecting it.",
+      "sod_approval_requester": "You requested this approval, so someone else decides it.",
+      "credential_photo_path": "That photo did not reach your own folder. Upload it again.",
+      "credential_photo_no_credential": "You hold no live credential with this organization, so it takes no badge photo from you.",
+      "credential_photo_notice": "Reload the page to see the current notice, then save your photo again.",
       "roster_closed": "This engagement is complete or canceled, so its roster is closed.",
       "roster_role_type": "This engagement carries no crew roster. Only artist engagements and company engagements of a vendor, contractor, staffing company or sponsor do.",
       "roster_person_not_in_team": "Add people who confirmed their membership in your company, or artists you represent. Invite anyone else by email.",
@@ -305,7 +323,12 @@
     "deliveries": {
       "empty": "No deliveries or dock slots yet. Your dock times appear here once booked.",
       "docks": "Dock slots",
-      "shipments": "Shipments"
+      "shipments": "Shipments",
+      "approval": {
+        "waiting": "Awaiting approval",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
     },
     "submittals": {
       "empty": "No submittals have been requested yet.",
@@ -1503,6 +1526,24 @@
       "rate": "Rate your work with {org}",
       "rateAction": "Rate"
     },
+    "fyi": {
+      "title": "For your information",
+      "empty": "Nothing new. Updates from organizations you work with show up here.",
+      "done": "Done",
+      "snooze": "Snooze",
+      "doneLabel": "Mark {text} done",
+      "snoozeLabel": "Snooze {text} for a day",
+      "keys": "Select an item, then press E for Done or H to snooze it for a day. J and K move between items.",
+      "new": "New",
+      "kinds": {
+        "offerSent": "{orgName} sent you an offer for {title}",
+        "shiftAssigned": "New shift: {title}",
+        "shiftChanged": "Shift changed: {title}",
+        "messageReceived": "New message",
+        "other": "{title}",
+        "untitled": "New update"
+      }
+    },
     "recommended": {
       "title": "Recommended for you",
       "all": "See all",
@@ -1510,8 +1551,6 @@
       "emptyAction": "Set an alert"
     },
     "updates": {
-      "title": "Updates",
-      "new": "New",
       "kinds": {
         "invoiceSubmitted": "{orgName} received invoice {title}",
         "invoiceApproved": "{orgName} approved invoice {title}",
@@ -1521,6 +1560,7 @@
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
         "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
+        "badgePhotoRequested": "{orgName} asks for your badge photo",
         "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
       }
     },
@@ -2224,6 +2264,75 @@
       "accept": "Accept",
       "decline": "Decline"
     },
+    "actionLink": {
+      "title": "Confirm from email",
+      "heading": {
+        "approve": "Approve {title}?",
+        "reject": "Reject {title}?",
+        "accept": "Accept {title}?"
+      },
+      "untitled": "this item",
+      "org": "From {org}. Nothing happens until you confirm.",
+      "signedInAs": "Signed in as {email}.",
+      "confirm": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "accept": "Accept"
+      },
+      "reason": "Why are you rejecting it?",
+      "done": {
+        "approve": "Approved. Nothing else to do.",
+        "reject": "Rejected with your reason.",
+        "accept": "Accepted. The organization takes it from here."
+      },
+      "home": "Go to Home",
+      "state": {
+        "used": "This was already handled. Nothing else to do.",
+        "expired": "This link has expired. Open the item from Home to act on it.",
+        "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+        "elsewhere": "This link opens in Atlas, where your organization's security settings apply. Use the button in the email to open it there.",
+        "invalid": "This link does not work. Open the item from Home."
+      },
+      "signedOut": {
+        "heading": {
+          "approve": "Approve this request from your email",
+          "reject": "Reject this request from your email"
+        },
+        "codeGoesTo": "We email a 6-digit code to {email}.",
+        "signInInstead": "Sign in to decide instead",
+        "state": {
+          "used": "This was already handled. Nothing else to do.",
+          "expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "locked": "Too many wrong codes. This link is locked; sign in to decide."
+        },
+        "codeIntro": "To keep this decision yours, we email you a code first. The request appears once you enter it.",
+        "emailMeACode": "Email me a code",
+        "codeSent": "Code sent. It works for 10 minutes.",
+        "codeLabel": "Code from your email",
+        "codeHelp": "The 6 digits from the email we just sent you.",
+        "showRequest": "Show the request",
+        "sendAgain": "Send a new code",
+        "untitled": "This request",
+        "step": "Step: {step}",
+        "reason": "Why are you rejecting it?",
+        "confirm": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "done": {
+          "approve": "Approved. Nothing else to do.",
+          "reject": "Rejected with your reason."
+        },
+        "outcome": {
+          "approval_link_code_wrong": "That code is wrong or has expired. {attemptsLeft, plural, one {# try left} other {# tries left}} before the link locks.",
+          "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
+          "notification_action_used": "This was already handled. Nothing else to do.",
+          "notification_action_expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
+          "notification_action_invalid": "This link does not work. Sign in to decide.",
+          "notification_action_reason": "Say why you are rejecting it."
+        }
+      }
+    },
     "errors": {
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
       "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
@@ -2449,5 +2558,47 @@
       "nothingToRedo": "Nothing to redo.",
       "dismiss": "Dismiss"
     }
+  },
+  "badgePhotos": {
+    "title": "Badge photos",
+    "lead": "The photo each organization prints on your credential badge.",
+    "none": "No organization holds a live credential for you, so none asks for a badge photo.",
+    "notice": "{org}'s credential staff see this photo, and so does anyone who sees your badge: it prints on it. Choose Remove at any time to take it back; the organization then prints your badge without it.",
+    "noticeVersion": "Notice {version}",
+    "stateLabel": "Photo",
+    "states": {
+      "Provided": "On your badge",
+      "Scanning": "Being checked",
+      "Refused": "Not accepted",
+      "Profile": "Your profile photo",
+      "Requested": "Requested",
+      "Missing": "None yet"
+    },
+    "stateHelp": {
+      "Provided": "Your photo prints on this badge.",
+      "Scanning": "Your photo is being checked and prints in a few minutes.",
+      "Refused": "Your photo did not pass the virus check. Upload another.",
+      "Profile": "You gave no badge photo, so your profile photo prints.",
+      "Requested": "The organization asked for your photo.",
+      "Missing": "Your badge prints without a photo."
+    },
+    "providedOn": "Given {date}",
+    "thumbnailAlt": "Your badge photo for {org}",
+    "upload": "Upload or take photo",
+    "choose": "Choose a photo",
+    "cropHelp": "Drag the photo to choose what shows. The badge prints a 3 by 4 portrait.",
+    "cropLabel": "Crop the photo",
+    "save": "Save photo",
+    "cancel": "Cancel",
+    "saved": "Photo saved. It prints once it is checked, in a few minutes.",
+    "useProfile": "Use my profile photo",
+    "remove": "Remove",
+    "removed": "Photo removed and your consent withdrawn.",
+    "lapsed": "You no longer hold a live credential with {org}, so your badges there print no photo. The organization still keeps this photo until you remove it.",
+    "fileType": "Choose a JPEG or PNG photo.",
+    "fileSize": "That photo is too large. Choose one under 25 MB.",
+    "section": "Badge photos",
+    "sectionLead": "Give the organizations you work with a photo for your credential badge.",
+    "open": "Open badge photos"
   }
 }

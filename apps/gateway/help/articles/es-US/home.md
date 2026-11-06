@@ -23,12 +23,14 @@ Todo lo que espera por ti, cada cosa con su acción en la fila:
 - entrevistas próximas
 - contrataciones por calificar, durante 14 días después de completarse
 
-## Novedades
+## Para tu información
 
-Cuando una organización recibe, aprueba, programa o paga una de tus facturas, los últimos pasos aparecen aquí. Los que no has leído se marcan como Nuevo.
+Novedades que no te piden nada: una organización recibió, aprobó, programó o pagó una de tus facturas, una coincidencia nueva para una búsqueda guardada, un aviso de que algo vence, un turno o una oferta nuevos. Los que no has leído se marcan como Nuevo, y cada uno abre donde le das seguimiento.
+
+Quita cada uno con **Listo**, o **Posponer** para que vuelva en un día. Con el teclado, selecciona un elemento y presiona **E** para Listo o **H** para posponerlo; **J** y **K** pasan de un elemento a otro.
 
 ## Recomendadas para ti
 
 Oportunidades abiertas a las que puedes postular. **Ver todas** abre Explorar. Si no hay ninguna, crea una alerta y Gateway te avisa cuando aparezca.
 
-El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Novedades.
+El selector de vista muestra Inicio como un feed, o como una bandeja con solo Te necesita y Para tu información.

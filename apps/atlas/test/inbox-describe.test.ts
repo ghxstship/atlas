@@ -59,6 +59,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
+  // P9: the reminder sweep and Remind approvers (5862), and the access code of a signed-out link (5861).
+  "approval.reminder": {
+    title: "Pass CR-000123 for Jane Doe",
+    actorName: "Demo Productions",
+    waitingSince: "2026-10-28T09:00:00Z",
+    reminderNumber: "2",
+    reminderLimit: "3",
+  },
+  "approval.link_code": { title: "Pass CR-000123 for Jane Doe", orgName: "Demo Productions" },
   // Notifications about a record carry its key (1600).
   "assignment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
   // A91's automation kinds (1481), as app.send_automation_notice, the failure notice and the pause store them; a
@@ -81,6 +90,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
   "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
+  // P5: app.request_credential_photos (5822) names the org and the Gateway page the item opens.
+  "credential_photo.requested": {
+    orgName: "Demo Productions",
+    gatewayPath: "/profile/badge-photos",
+  },
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },
@@ -189,6 +203,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "organization.white_label_reverted": { plan: "pro", until: "1795000000000" },
   "partner.client_left": { org: "Tidewater Events" },
   // A89: marketplace matches and expiry reminders (1462, 1463).
+  "offer.sent": { title: "Festival Truss Riggers", orgName: "Demo Productions" },
   "opportunity.matched": {
     title: "Festival Truss Riggers",
     orgName: "Demo Productions",
@@ -406,6 +421,26 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
       "/demo/import",
     );
+  });
+
+  it("says how long an approval has waited and which reminder it is (P9, 5862)", () => {
+    const out = describeInboxItem(
+      item("approval.reminder", ARGS["approval.reminder"] ?? {}),
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(out.summary).toBe("Reminder: Pass CR-000123 for Jane Doe is waiting on you");
+    expect(out.detail).toContain("This is reminder 2 of 3.");
+    expect(
+      inboxTarget("demo", { subjectTable: "subject_approvals", kind: "approval.reminder" }),
+    ).toBe("/demo/approvals");
+    // Without when it began to wait, the reminder reads as its label and title.
+    const bare = describeInboxItem(
+      item("approval.reminder", { title: "Radios x4", reminderNumber: "1", reminderLimit: "3" }),
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(bare.detail).toBe("Radios x4");
   });
 
   it("links each item to where it opens", () => {

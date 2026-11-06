@@ -19,6 +19,8 @@ var documents_default$1 = {
   actions: {
     download: "Download PDF",
     downloadA4: "PDF (A4)",
+    size: "Paper size",
+    downloadSize: "Download PDF",
   },
   kinds: {
     "purchase-order": "Purchase order",
@@ -178,6 +180,14 @@ var documents_default$1 = {
       expired: "Expired",
       revoked: "Revoked",
     },
+    photoAlt: "Photo of {name}, the credential holder",
+    noPhoto: "No photo on file",
+    scanAlt: "Entry code for credential {number}",
+    scanCaption: "Scan at entry",
+    scanNoteV2:
+      "Scan the entry code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
+    window: "Valid {from} to {to}",
+    batchTitle: "Credential badges ({count})",
   },
   inspectionReport: {
     title: "Inspection report: {template}",
@@ -490,6 +500,12 @@ var documents_default$1 = {
         "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts.",
     },
   },
+  paper: {
+    letter: "US Letter",
+    a4: "A4",
+    a6: "A6",
+    cr80: "CR80 card",
+  },
   radioHandout: {
     title: "Radio hand-out",
     subtitle: "{project} · {date}",
@@ -524,6 +540,8 @@ var documents_default = {
   actions: {
     download: "Descargar PDF",
     downloadA4: "PDF (A4)",
+    size: "Tamaño de papel",
+    downloadSize: "Descargar PDF",
   },
   kinds: {
     "purchase-order": "Orden de compra",
@@ -683,6 +701,14 @@ var documents_default = {
       expired: "Vencida",
       revoked: "Revocada",
     },
+    photoAlt: "Foto de {name}, titular de la credencial",
+    noPhoto: "No hay foto registrada",
+    scanAlt: "Código de acceso de la credencial {number}",
+    scanCaption: "Escanear en el acceso",
+    scanNoteV2:
+      "Escanee el código de acceso para verificar esta credencial. El escaneo decide el acceso en el momento en que se hace, así que una credencial impresa nunca sobrevive a una revocación. El código del encabezado abre el registro.",
+    window: "Válida del {from} al {to}",
+    batchTitle: "Credenciales ({count})",
   },
   inspectionReport: {
     title: "Informe de inspección: {template}",
@@ -997,6 +1023,12 @@ var documents_default = {
       warning:
         "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal.",
     },
+  },
+  paper: {
+    letter: "Carta (EE. UU.)",
+    a4: "A4",
+    a6: "A6",
+    cr80: "Tarjeta CR80",
   },
   radioHandout: {
     title: "Hoja de radios",

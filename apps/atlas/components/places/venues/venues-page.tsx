@@ -2,7 +2,6 @@ import {
   getVenue,
   listJurisdictions,
   listVenues,
-  type ArchiveFilter,
   type Jurisdiction,
   type Venue,
 } from "@xos/data/places";
@@ -12,6 +11,7 @@ import { getLocationDefaults, NO_LOCATION_DEFAULTS, venueStartValues } from "@xo
 import { regionFromLocale } from "@xos/i18n/formats";
 import type { Route } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getFormatter, getLocale } from "next-intl/server";
 import { addressFormat, addressLines, VENUE_ADDRESS } from "@/lib/address";
 import { requireNode } from "@/lib/shell/require-node";
@@ -26,7 +26,6 @@ import { Collaboration } from "../kit/collaboration";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, QueryDrawer } from "../kit/client";
 import {
-  ArchiveFilter as ArchiveFilterLinks,
   BackLink,
   Collection,
   CollectionEmpty,
@@ -40,14 +39,11 @@ import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archiveOf, legacyArchiveChanges } from "./archive-param";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
-
-function archiveOf(search: Search): ArchiveFilter {
-  const value = param(search, "archive");
-  return value === "archived" || value === "all" ? value : "live";
-}
 
 /**
  * The venue's address in its country's format (Section 15), on one line. The country and state come from
@@ -112,6 +108,8 @@ export async function VenuesPage({
   search: Search;
 }) {
   const ctx = await requireNode(NODE, params);
+  const legacy = legacyArchiveChanges(search);
+  if (legacy) redirect(withQuery(nodeHref(NODE, params) ?? "/", search, legacy) as Route);
   const db = ctx.viewer.db;
   const archive = archiveOf(search);
   const [venues, jurisdictions, t, held, locale, custom] = await Promise.all([
@@ -287,7 +285,7 @@ export async function VenuesPage({
       filters={
         <>
           <SearchBox path={path} search={search} label={t("places.venues.search")} />
-          <ArchiveFilterLinks path={path} search={search} current={archive} t={t} />
+          <ArchivedFilter id="venues-archived" />
         </>
       }
       overlay={overlay}

@@ -21,6 +21,16 @@ const PNG = Buffer.from(
 
 /** Opens a file row's preview and answers the drawer. */
 async function preview(page: Page, row: ReturnType<Page["locator"]>, title: string) {
+  // After a reload the panel hydrates after the shell, and a click before that opens nothing.
+  await expect
+    .poll(
+      () =>
+        row
+          .getByRole("button", { name: "Preview" })
+          .evaluate((el) => Object.keys(el).some((key) => key.startsWith("__reactProps"))),
+      { timeout: 60_000 },
+    )
+    .toBe(true);
   const delivered = page.waitForResponse((r) => /\/files\/[0-9a-f-]{36}$/.test(r.url()));
   await row.getByRole("button", { name: "Preview" }).click();
   const response = await delivered;

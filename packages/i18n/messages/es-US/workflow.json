@@ -3,6 +3,18 @@
     "requesterMayCancel": {
       "label": "Los solicitantes pueden retirar sus aprobaciones",
       "help": "Si está desactivado, solo quienes editan las políticas de aprobación pueden retirar una aprobación en revisión."
+    },
+    "remindersEnabled": {
+      "label": "Recordar a los aprobadores automáticamente",
+      "help": "Si está activado, una aprobación que espera recuerda a los aprobadores de su paso en cada intervalo, hasta el límite."
+    },
+    "reminderIntervalHours": {
+      "label": "Horas entre recordatorios",
+      "help": "De 4 a 168. Se cuentan desde la última vez que se notificó a los aprobadores del paso."
+    },
+    "reminderLimit": {
+      "label": "Recordatorios por paso",
+      "help": "De 1 a 10. Cuentan los recordatorios automáticos y Recordar a los aprobadores."
     }
   },
   "common": {
@@ -47,6 +59,25 @@
     "approval_state_conflict": "Otra persona cambió esta aprobación antes. Actualice la página.",
     "approval_policy_state_conflict": "Otra persona cambió esta política antes. Actualice la página.",
     "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide.",
+    "approval_subject_beneficiary": "Esta aprobación es para usted, así que otra persona la decide.",
+    "approval_cancel_reason": "Indique por qué la retira.",
+    "approval_rule_no_steps": "Agregue al menos un paso antes de activar la regla.",
+    "approval_rule_not_draft": "Solo una regla en Borrador cambia su objeto o filtro. Retírela y agregue una nueva.",
+    "approval_rule_step_not_draft": "Los pasos cambian solo mientras la regla está en Borrador. Retírela y agregue una nueva.",
+    "approval_rule_active_delete": "Retire una regla Activa antes de eliminarla.",
+    "approval_rule_filter_project": "El filtro debe pertenecer a la organización de este proyecto, y una categoría de credencial a este proyecto.",
+    "approval_rule_equipment_pending": "Las reglas de equipo se aplican cuando las solicitudes de equipo vienen de los avances. Mantenga esta regla en Borrador hasta entonces.",
+    "approval_rule_pending": "Esta solicitud espera su regla de aprobación. Apruébela cuando todos los pasos estén aprobados.",
+    "approval_step_engagement": "Elija una contratación de este proyecto que no esté Completa ni Cancelada.",
+    "approval_step_no_approver": "Nadie de los que nombra este paso tiene una cuenta de XOS para recibir correos de aprobación. Invítelos primero a Gateway, o nombre a otro aprobador.",
+    "approval_reminder_too_soon": "Se notificó a los aprobadores hace menos de 4 horas. Intente más tarde.",
+    "approval_reminder_limit": "Ya se enviaron todos los recordatorios que permite este paso.",
+    "approval_link_code_too_soon": "Se envió un código hace un momento. Espere un minuto y vuelva a pedirlo.",
+    "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado.",
+    "approval_link_email_off": "Esta persona tiene desactivados los correos de aprobación, así que no se puede enviar un código.",
+    "subject_approval_rpc_only": "Las aprobaciones se abren y se cierran por su regla, nunca a mano.",
+    "subject_approval_subject": "Una aprobación nombra exactamente un pase, una reserva de muelle o una solicitud de equipo.",
+    "timesheet_rejection_reason": "Indique por qué rechaza la hoja de horas.",
     "trash_not_restorable": "Los elementos de este tipo no se restauran desde la Papelera.",
     "trash_not_deleted": "Este elemento ya no está en la Papelera.",
     "trash_restore_expired": "Su período de retención terminó; se purgará pronto y no puede volver.",
@@ -145,6 +176,33 @@
       "done": "Enviado. Se notificó a los aprobadores del primer paso.",
       "none": "Ningún documento espera aprobación en este momento.",
       "loadError": "No se pudieron cargar los documentos que esperan aprobación. Intente de nuevo."
+    },
+    "reminders": {
+      "lastNotified": "Última notificación {when}",
+      "count": "Recordatorio {sent} de {limit}",
+      "next": "Próximo recordatorio automático {when}",
+      "noMore": "No hay más recordatorios automáticos",
+      "off": "Los recordatorios automáticos están desactivados"
+    },
+    "remind": {
+      "label": "Recordar a los aprobadores",
+      "button": "Recordar a los aprobadores",
+      "done": "Recordatorio enviado a los aprobadores del paso.",
+      "nextAllowed": "Puede volver a recordarles el {when}.",
+      "limitReached": "Ya se enviaron todos los recordatorios que permite este paso."
+    },
+    "subjects": {
+      "Pass": "Pase",
+      "Delivery": "Reserva de muelle",
+      "Equipment": "Solicitud de equipo",
+      "meta": "{project} · solicitada el {when}",
+      "open": {
+        "Pass": "Abrir el pase",
+        "Delivery": "Abrir la reserva de muelle",
+        "Equipment": "Abrir la solicitud"
+      },
+      "approvers": "espera a {names}",
+      "noApprover": "Nadie puede decidir este paso. El solicitante o quien edita la regla puede retirarla."
     }
   },
   "trash": {

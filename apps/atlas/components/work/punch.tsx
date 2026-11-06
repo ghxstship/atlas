@@ -28,6 +28,7 @@ import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 
 /**
  * Work > Punch lists (Section 4.5.5): punch items, each a Task record of subtype Execute titled
@@ -108,17 +109,20 @@ export function PunchCollection({
     />
   );
   const filters = (
-    <Select
-      key={`state-${state}`}
-      id="punch-state"
-      label={t("collection.state")}
-      value={state}
-      options={[
-        { value: "", label: t("collection.allStates") },
-        ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
-      ]}
-      onChange={(e) => go({ state: e.target.value || null })}
-    />
+    <>
+      <Select
+        key={`state-${state}`}
+        id="punch-state"
+        label={t("collection.state")}
+        value={state}
+        options={[
+          { value: "", label: t("collection.allStates") },
+          ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
+        ]}
+        onChange={(e) => go({ state: e.target.value || null })}
+      />
+      <ArchivedFilter id="punch-archived" />
+    </>
   );
 
   let body: ReactNode;

@@ -39,6 +39,12 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.subject_approvals.project_id
+    source: "`app.credentials.project_id` or `app.dock_slots.project_id`, whichever subject the approval has"
+    refresh: Stamped by trigger on insert; changing it is refused (5860)
+    reason: Approvals, the reminder status and the dock schedule filter subject approvals by project without a join to their subject
+    adr: "0138"
+  - objects:
       - app.access_grid.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
@@ -432,6 +438,10 @@ restated:
     parent: app.approval_policies.document_type
     kind: fact
     note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.approval_rules.project_id
+    parent: app.credential_categories.project_id
+    kind: own
+    note: The project the rule gates; a Pass rule's category filter must be of the same project (`private.guard_approval_rule`, 5860).
   - column: app.asset_custody.asset_unit_id
     parent: app.asset_reservations.asset_unit_id
     kind: own
@@ -669,6 +679,10 @@ restated:
     parent: app.time_entry_corrections.reason
     kind: own
     note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credential_photos.person_id
+    parent: app.consent_records.person_id
+    kind: own
+    note: The holder the badge photo shows, required on every row; the consent is set only once a photo is stored, and `app.record_credential_photo` writes it for the same person (P5).
   - column: app.credentials.credential_category_id
     parent: app.advance_allocations.credential_category_id
     kind: own
@@ -721,6 +735,10 @@ restated:
     parent: app.shipments.project_id
     kind: own
     note: The slot's project; the shipment link is optional.
+  - column: app.documents.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the document was archived; it and its project are archived apart (ADR 0085).
   - column: app.email_digest_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
@@ -823,6 +841,10 @@ restated:
     parent: app.import_jobs.sheet_name
     kind: own
     note: One row per sheet of the workbook; the import's is the sheet it reads.
+  - column: app.import_jobs.project_id
+    parent: app.run_of_show.project_id
+    kind: own
+    note: Destination of a guest list import; a cue import names its running order instead and leaves project_id NULL (import_jobs_one_destination).
   - column: app.import_jobs.sheet_name
     parent: app.import_job_sheets.sheet_name
     kind: own
@@ -1151,6 +1173,10 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When project access ends.
+  - column: app.projects.archived_at
+    parent: app.venues.archived_at
+    kind: own
+    note: When the project was archived; it and its venue are archived apart.
   - column: app.projects.jurisdiction_id
     parent: app.venues.jurisdiction_id
     kind: own
@@ -1191,6 +1217,10 @@ restated:
     parent: app.records.time_zone
     kind: own
     note: Zone the rule is evaluated in, set even when the record follows the project's zone.
+  - column: app.records.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the record was archived; it and its project are archived apart (ADR 0085).
   - column: app.records.project_id
     parent: app.scope_nodes.project_id
     kind: own
@@ -1430,6 +1460,18 @@ restated:
     parent: app.sponsor_entitlements.due_on
     kind: own
     note: When the asset is needed; the entitlement's date is when it is owed.
+  - column: app.subject_approvals.project_id
+    parent: app.approval_rules.project_id
+    kind: registered
+    note: Copied from the pass or dock slot by `private.copy_parent_project` (derived entry); the rule matched that project.
+  - column: app.subject_approvals.project_id
+    parent: app.credentials.project_id
+    kind: registered
+    note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.subject_approvals.project_id
+    parent: app.dock_slots.project_id
+    kind: registered
+    note: Copied from the dock slot by `private.copy_parent_project` (derived entry).
   - column: app.submittals.project_id
     parent: app.purchase_orders.project_id
     kind: own
@@ -1596,6 +1638,18 @@ restated:
     parent: app.work_orders.estimated_hours
     kind: own
     note: Hours the bidder estimates.
+  - column: app.work_orders.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the work order was archived; it and its project are archived apart (ADR 0085).
+  - column: app.work_orders.archived_at
+    parent: app.records.archived_at
+    kind: own
+    note: When the work order was archived; it and the record it serves are archived apart (ADR 0085).
+  - column: app.work_orders.archived_by
+    parent: app.records.archived_by
+    kind: own
+    note: Who archived the work order, not who archived the record it serves (ADR 0085).
   - column: app.work_orders.currency_code
     parent: app.work_order_bids.currency_code
     kind: own
@@ -1669,6 +1723,22 @@ restated:
     parent: app.live_links.expires_at
     kind: own
     note: When the device grant stops working, the link's expiry or 7 days after the open, whichever comes first.
+  - column: private.notification_action_codes.delivery_id
+    parent: private.notification_action_tokens.delivery_id
+    kind: own
+    note: The approval.link_code email that carried the code; the token's is the approval request's email.
+  - column: private.notification_action_codes.expires_at
+    parent: private.notification_action_tokens.expires_at
+    kind: own
+    note: A code lives 10 minutes; its link lives 7 days.
+  - column: private.notification_action_codes.revoked_at
+    parent: private.notification_action_tokens.revoked_at
+    kind: own
+    note: When a newer code replaced this one; the link's is when a retried email replaced it.
+  - column: private.notification_action_codes.used_at
+    parent: private.notification_action_tokens.used_at
+    kind: own
+    note: When a decision used the code; the link's is when the notification was acted on.
   - column: private.session_devices.user_agent
     parent: auth.sessions.user_agent
     kind: finding

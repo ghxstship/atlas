@@ -18,6 +18,7 @@ import { requireNode } from "@/lib/shell/require-node";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabPanels } from "./collab";
+import { RecordHistory } from "@/components/history/record-history";
 import type { CollabSubject } from "./collab-actions";
 import { Money } from "./ui";
 
@@ -248,7 +249,10 @@ export async function memberNames(scope: PageScope): Promise<Record<string, stri
   return Object.fromEntries(members.data.map((m) => [m.personId, m.fullName ?? t("unnamed")]));
 }
 
-/** Comments and attachments of one record (Section 19.6), loaded for the peek and the full page. */
+/**
+ * Field history (A131), comments and attachments of one record (Section 19.6), loaded for the peek
+ * and the full page.
+ */
 export async function RecordCollab({
   scope,
   subject,
@@ -269,15 +273,18 @@ export async function RecordCollab({
     throw new Error(`Cannot read attachments: ${JSON.stringify(attachments.error)}`);
   }
   return (
-    <CollabPanels
-      org={scope.ctx.org.slug}
-      subject={subject}
-      threads={threads.data}
-      attachments={attachments.data}
-      names={names}
-      me={scope.ctx.viewer.person?.id ?? null}
-      canPost={canPost}
-    />
+    <>
+      <RecordHistory db={db} table={subject.table} id={subject.id} />
+      <CollabPanels
+        org={scope.ctx.org.slug}
+        subject={subject}
+        threads={threads.data}
+        attachments={attachments.data}
+        names={names}
+        me={scope.ctx.viewer.person?.id ?? null}
+        canPost={canPost}
+      />
+    </>
   );
 }
 

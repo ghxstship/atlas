@@ -2223,7 +2223,15 @@ export class RecordsResource extends $Resource {
    * `GET /records` (operation `records.list`).
    * Requires the capability `work.record.read`.
    */
-  list(params?: $ListParams<Record>, options?: $RequestOptions): Promise<$Page<Record>> {
+  list(
+    params?: $ListParams<Record> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
+    options?: $RequestOptions,
+  ): Promise<$Page<Record>> {
     return this.client.requestPage<Record>($OPERATIONS["records.list"], { query: params }, options);
   }
 
@@ -2238,7 +2246,12 @@ export class RecordsResource extends $Resource {
    * Requires the capability `work.record.read`.
    */
   listAll(
-    params?: $ListAllParams<Record>,
+    params?: $ListAllParams<Record> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<Record, void, undefined> {
     return this.client.paginate<Record>($OPERATIONS["records.list"], { query: params }, options);
@@ -2752,7 +2765,15 @@ export class WorkOrdersResource extends $Resource {
    * `GET /work-orders` (operation `workOrders.list`).
    * Requires the capability `work.work_order.read`.
    */
-  list(params?: $ListParams<WorkOrder>, options?: $RequestOptions): Promise<$Page<WorkOrder>> {
+  list(
+    params?: $ListParams<WorkOrder> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkOrder>> {
     return this.client.requestPage<WorkOrder>(
       $OPERATIONS["workOrders.list"],
       { query: params },
@@ -2771,7 +2792,12 @@ export class WorkOrdersResource extends $Resource {
    * Requires the capability `work.work_order.read`.
    */
   listAll(
-    params?: $ListAllParams<WorkOrder>,
+    params?: $ListAllParams<WorkOrder> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<WorkOrder, void, undefined> {
     return this.client.paginate<WorkOrder>(
@@ -3693,7 +3719,15 @@ export class DocumentsResource extends $Resource {
    * `GET /documents` (operation `documents.list`).
    * Requires the capability `knowledge.document.read`.
    */
-  list(params?: $ListParams<Document>, options?: $RequestOptions): Promise<$Page<Document>> {
+  list(
+    params?: $ListParams<Document> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
+    options?: $RequestOptions,
+  ): Promise<$Page<Document>> {
     return this.client.requestPage<Document>(
       $OPERATIONS["documents.list"],
       { query: params },
@@ -3712,7 +3746,12 @@ export class DocumentsResource extends $Resource {
    * Requires the capability `knowledge.document.read`.
    */
   listAll(
-    params?: $ListAllParams<Document>,
+    params?: $ListAllParams<Document> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<Document, void, undefined> {
     return this.client.paginate<Document>(
@@ -4054,7 +4093,15 @@ export class VenuesResource extends $Resource {
    * `GET /venues` (operation `venues.list`).
    * Requires the capability `places.venue.read`.
    */
-  list(params?: $ListParams<Venue>, options?: $RequestOptions): Promise<$Page<Venue>> {
+  list(
+    params?: $ListParams<Venue> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
+    options?: $RequestOptions,
+  ): Promise<$Page<Venue>> {
     return this.client.requestPage<Venue>($OPERATIONS["venues.list"], { query: params }, options);
   }
 
@@ -4069,7 +4116,12 @@ export class VenuesResource extends $Resource {
    * Requires the capability `places.venue.read`.
    */
   listAll(
-    params?: $ListAllParams<Venue>,
+    params?: $ListAllParams<Venue> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<Venue, void, undefined> {
     return this.client.paginate<Venue>($OPERATIONS["venues.list"], { query: params }, options);
@@ -14913,7 +14965,15 @@ export class VendorsResource extends $Resource {
    * `GET /vendors` (operation `vendors.list`).
    * Requires the capability `vendors.vendor.read`.
    */
-  list(params?: $ListParams<Vendor>, options?: $RequestOptions): Promise<$Page<Vendor>> {
+  list(
+    params?: $ListParams<Vendor> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
+    options?: $RequestOptions,
+  ): Promise<$Page<Vendor>> {
     return this.client.requestPage<Vendor>($OPERATIONS["vendors.list"], { query: params }, options);
   }
 
@@ -14928,7 +14988,12 @@ export class VendorsResource extends $Resource {
    * Requires the capability `vendors.vendor.read`.
    */
   listAll(
-    params?: $ListAllParams<Vendor>,
+    params?: $ListAllParams<Vendor> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<Vendor, void, undefined> {
     return this.client.paginate<Vendor>($OPERATIONS["vendors.list"], { query: params }, options);
@@ -31271,7 +31336,12 @@ export class ObjectsResource extends $Resource {
    */
   list(
     objectKey: string,
-    params?: $ListParams<CustomObjectRecord>,
+    params?: $ListParams<CustomObjectRecord> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): Promise<$Page<CustomObjectRecord>> {
     return this.client.requestPage<CustomObjectRecord>(
@@ -31293,7 +31363,12 @@ export class ObjectsResource extends $Resource {
    */
   listAll(
     objectKey: string,
-    params?: $ListAllParams<CustomObjectRecord>,
+    params?: $ListAllParams<CustomObjectRecord> & {
+      /**
+       * Archived rows: left out when absent, listed with the others with `include`, or listed alone with `only`. Archived rows stay readable by id either way.
+       */
+      readonly archived?: "include" | "only";
+    },
     options?: $RequestOptions,
   ): AsyncGenerator<CustomObjectRecord, void, undefined> {
     return this.client.paginate<CustomObjectRecord>(
@@ -33167,7 +33242,7 @@ export class NotificationsResource extends $Resource {
   /**
    * Act on a notification
    *
-   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), or mark it Done. Only the recipient acts. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /notifications/{id}/act` (operation `notifications.act`).
    * Requires the capability `inbox.notifications.write`.

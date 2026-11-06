@@ -98,7 +98,10 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  "import-run": 120,
+  // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
+  // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
+  // above that.
+  "import-run": 134,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,
@@ -107,27 +110,32 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "kiosk-punch": 64,
   // A138: the email sender reads the org's branding, and its accent check brings the token contrast ratio to
   // boot; 182.3 KB on 2026-10-31 (merge train 2). About 10 percent above that, as for A89 and A90. R5 (4650) and
-  // R7 (4698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches).
+  // R7 (4698) add their notification kinds in both locales (181.6 KB and 186.9 KB on their own branches), and A127
+  // its one-tap email action links, push categories and action copy in both locales (about 3.5 KB; train 6).
   "notification-dispatch": 200,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25. A138's email branding in the shared stores
   // brought it to 215.9 KB on 2026-10-31 (merge train 2); about 10 percent above that. R7: the radio hand-out's
   // document copy in both locales and the four allocation kinds in the shared stores chunk (218.6 KB on its branch).
+  // P9: the shared stores mint an approval link's access code, and the email copy chunks carry the access-code email
+  // and the approval reminder in both locales (about 1.5 KB at boot; train 6).
   "org-lifecycle": 237,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
   // A138's email branding in the shared platform stores brought it to 145.1 KB on 2026-10-31 (merge train 2). R6a
   // (4660, account.work_details_moved) and R7 (4698, the four allocation kinds) add their notices in both locales
-  // (150.1 KB on their branch).
+  // (150.1 KB on their branch). P9: every kind's copy grew by approval.reminder and approval.link_code in both locales
+  // (about 1.4 KB; train 6).
   "sms-webhook": 160,
   "stripe-webhook": 84,
   // The Spanish email copy grew with the advancing notices of R5 to R7 (about 4.7 KB; 115.6 KB in merge train 5);
   // about 10 percent above that.
   "subprocessor-notices": 127,
   "upload-scan": 100,
-  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
-  "wallet-pass": 120,
+  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
+  // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
+  "wallet-pass": 133,
   "webhook-dispatch": 70,
 };
 

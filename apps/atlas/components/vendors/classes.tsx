@@ -18,6 +18,7 @@ import {
 import type { KitRow, ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { emptyFor } from "@/components/collection-kit/empty";
+import { RecordHistory } from "@/components/history/record-history";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
@@ -133,6 +134,7 @@ export async function VendorClasses({
         actions={deleteButton(selected)}
       >
         {editForm(selected)}
+        <RecordHistory db={db} table="app.vendor_classes" id={selected.id} />
       </RecordPage>
     );
   }
@@ -176,6 +178,7 @@ export async function VendorClasses({
         actions={deleteButton(selected)}
       >
         {editForm(selected)}
+        <RecordHistory db={db} table="app.vendor_classes" id={selected.id} />
       </PeekDrawer>
     );
   }

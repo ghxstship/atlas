@@ -43,6 +43,8 @@ export function DependencyEditor({
   const [type, setType] = useState<string>(TYPES[0]);
   const [lag, setLag] = useState("0");
   const byId = new Map(candidates.map((c) => [c.id, c]));
+  // Archived records still name existing dependencies but are not offered for new ones (A124).
+  const choices = candidates.filter((c) => c.archivedAt === null);
   const name = (id: string) => {
     const r = byId.get(id);
     return r ? `${r.key} ${r.title}` : t("dependencies.hidden");
@@ -105,7 +107,7 @@ export function DependencyEditor({
           )}
         </div>
       </div>
-      {canEdit && candidates.length > 0 ? (
+      {canEdit && choices.length > 0 ? (
         <form
           className="flex flex-wrap items-end gap-8"
           onSubmit={(e) => {
@@ -128,7 +130,7 @@ export function DependencyEditor({
             label={t("dependencies.predecessor")}
             value=""
             placeholder={t("dependencies.choose")}
-            options={candidates.map((c) => ({ value: c.id, label: `${c.key} ${c.title}` }))}
+            options={choices.map((c) => ({ value: c.id, label: `${c.key} ${c.title}` }))}
             onChange={(e) => setPredecessor(e.target.value)}
           />
           <Select

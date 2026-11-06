@@ -16,6 +16,7 @@ import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
+import { RecordHistory } from "@/components/history/record-history";
 import {
   capabilitySet,
   loadRecordMeta,
@@ -27,6 +28,7 @@ import {
 } from "@/components/work/load";
 import { engagementOptions } from "@/lib/people/project-people";
 import type { OrgContext } from "@/lib/shell/context";
+import { importLinkHref } from "@/lib/imports/import-link";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -45,17 +47,20 @@ async function collab(ctx: OrgContext, meta: RecordMeta, subject: Subject): Prom
     listAttachments(db, subject),
   ]);
   return (
-    <CollabPanels
-      org={ctx.org.slug}
-      subject={subject}
-      threads={must(threads, "comments")}
-      attachments={must(attachments, "attachments")}
-      names={Object.fromEntries(
-        meta.people.map((p) => [p.personId, p.name ?? t("work.values.unnamed")]),
-      )}
-      me={ctx.viewer.person?.id ?? null}
-      canPost
-    />
+    <>
+      <RecordHistory db={db} table={subject.table} id={subject.id} />
+      <CollabPanels
+        org={ctx.org.slug}
+        subject={subject}
+        threads={must(threads, "comments")}
+        attachments={must(attachments, "attachments")}
+        names={Object.fromEntries(
+          meta.people.map((p) => [p.personId, p.name ?? t("work.values.unnamed")]),
+        )}
+        me={ctx.viewer.person?.id ?? null}
+        canPost
+      />
+    </>
   );
 }
 
@@ -140,6 +145,10 @@ export async function RunsPage({
             draftable={draftable}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
+            importHref={importLinkHref(ctx.org.slug, ctx.nav, canEdit, {
+              target: "cues",
+              runOfShowId: run.data.id,
+            })}
           >
             {param(search, "live") === "1" ? null : (
               <>

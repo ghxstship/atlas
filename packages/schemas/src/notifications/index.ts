@@ -26,6 +26,7 @@ export {
   renderNotificationSeedSql,
 } from "./sql.ts";
 export { NOTIFICATION_REGISTRY_MODULE, renderNotificationRegistryModule } from "./generate.ts";
+export { ACTION_PATH, ACTION_TOKEN, isActionToken } from "./action-token.ts";
 
 /** The registry entry of a kind, or undefined for a kind the registry does not declare. */
 export function notificationKind(kind: string): KindDefinition | undefined {

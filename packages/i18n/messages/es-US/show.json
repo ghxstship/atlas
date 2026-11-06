@@ -150,6 +150,7 @@
     "timeline": "Cronograma",
     "calendar": "Calendario"
   },
+  "importCues": "Importar cues",
   "display": {
     "action": "Pantallas",
     "title": "Pantallas de {name}",

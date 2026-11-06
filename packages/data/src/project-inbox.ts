@@ -174,6 +174,7 @@ export async function listFilingTargets(
     .select("id, title, record_number")
     .eq("project_id", projectId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .order("record_number", { ascending: false })
     .limit(200);
   if (error) return fail(toDataError(error));

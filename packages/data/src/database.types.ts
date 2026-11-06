@@ -4267,6 +4267,13 @@ export type Database = {
             foreignKeyName: "access_scans_credential_id_fkey";
             columns: ["credential_id"];
             isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "access_scans_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
             referencedRelation: "credentials";
             referencedColumns: ["id"];
           },
@@ -8265,6 +8272,408 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      approval_reminders: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          reminder_number: number;
+          sent_at: string;
+          sent_by: string | null;
+          step_order: number | null;
+          subject_id: string;
+          subject_table: string;
+          trigger: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          reminder_number: number;
+          sent_at?: string;
+          sent_by?: string | null;
+          step_order?: number | null;
+          subject_id: string;
+          subject_table: string;
+          trigger: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          reminder_number?: number;
+          sent_at?: string;
+          sent_by?: string | null;
+          step_order?: number | null;
+          subject_id?: string;
+          subject_table?: string;
+          trigger?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "approval_reminders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_reminders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_reminders_sent_by_fkey";
+            columns: ["sent_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_reminders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      approval_rule_state_transitions: {
+        Row: {
+          approval_rule_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["approval_policy_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["approval_policy_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          approval_rule_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["approval_policy_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["approval_policy_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approval_rule_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["approval_policy_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["approval_policy_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "approval_rule_state_transitions_approval_rule_id_fkey";
+            columns: ["approval_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "approval_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      approval_rule_steps: {
+        Row: {
+          approval_rule_id: string;
+          approver_engagement_id: string | null;
+          approver_membership_id: string | null;
+          approver_role_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          signed_out_links: boolean;
+          step_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          approval_rule_id: string;
+          approver_engagement_id?: string | null;
+          approver_membership_id?: string | null;
+          approver_role_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          signed_out_links?: boolean;
+          step_order: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approval_rule_id?: string;
+          approver_engagement_id?: string | null;
+          approver_membership_id?: string | null;
+          approver_role_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          signed_out_links?: boolean;
+          step_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "approval_rule_steps_approval_rule_id_fkey";
+            columns: ["approval_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "approval_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_engagement_id_fkey";
+            columns: ["approver_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_engagement_id_fkey";
+            columns: ["approver_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_engagement_id_fkey";
+            columns: ["approver_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_engagement_id_fkey";
+            columns: ["approver_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_membership_id_fkey";
+            columns: ["approver_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_approver_role_id_fkey";
+            columns: ["approver_role_id"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rule_steps_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      approval_rules: {
+        Row: {
+          asset_class_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          credential_category_id: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          rule_state: Database["app"]["Enums"]["approval_policy_state"];
+          subject: Database["app"]["Enums"]["approval_rule_subject"];
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          rule_state?: Database["app"]["Enums"]["approval_policy_state"];
+          subject: Database["app"]["Enums"]["approval_rule_subject"];
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Update: {
+          asset_class_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          rule_state?: Database["app"]["Enums"]["approval_policy_state"];
+          subject?: Database["app"]["Enums"]["approval_rule_subject"];
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "approval_rules_asset_class_id_fkey";
+            columns: ["asset_class_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "approval_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "approval_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "approval_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "approval_rules_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
             referencedColumns: ["id"];
           },
         ];
@@ -15466,6 +15875,111 @@ export type Database = {
           },
         ];
       };
+      credential_photos: {
+        Row: {
+          consent_record_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          photo_path: string | null;
+          provided_at: string | null;
+          provided_by: string | null;
+          requested_at: string | null;
+          requested_by: string | null;
+          source: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          consent_record_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          photo_path?: string | null;
+          provided_at?: string | null;
+          provided_by?: string | null;
+          requested_at?: string | null;
+          requested_by?: string | null;
+          source?: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          consent_record_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          photo_path?: string | null;
+          provided_at?: string | null;
+          provided_by?: string | null;
+          requested_at?: string | null;
+          requested_by?: string | null;
+          source?: Database["app"]["Enums"]["credential_photo_source"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credential_photos_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_provided_by_fkey";
+            columns: ["provided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_photos_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       credential_vehicles: {
         Row: {
           created_at: string;
@@ -15508,6 +16022,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_vehicles_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: true;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
           },
           {
             foreignKeyName: "credential_vehicles_credential_id_fkey";
@@ -16438,6 +16959,8 @@ export type Database = {
       };
       custom_object_records: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           custom_object_type_id: string;
@@ -16450,6 +16973,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           custom_object_type_id: string;
@@ -16461,6 +16986,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           custom_object_type_id?: string;
@@ -16472,6 +16999,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "custom_object_records_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "custom_object_records_created_by_fkey";
             columns: ["created_by"];
@@ -17929,6 +18463,8 @@ export type Database = {
       };
       documents: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -17942,6 +18478,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -17954,6 +18492,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -17966,6 +18506,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "documents_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "documents_created_by_fkey";
             columns: ["created_by"];
@@ -22839,6 +23386,13 @@ export type Database = {
             foreignKeyName: "guest_check_ins_credential_id_fkey";
             columns: ["credential_id"];
             isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "guest_check_ins_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
             referencedRelation: "credentials";
             referencedColumns: ["id"];
           },
@@ -24187,6 +24741,8 @@ export type Database = {
           mapping_confirmed_at: string | null;
           org_id: string;
           original_filename: string;
+          project_id: string | null;
+          run_of_show_id: string | null;
           sheet_name: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url: string | null;
@@ -24208,6 +24764,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id: string;
           original_filename: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -24228,6 +24786,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id?: string;
           original_filename?: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source?: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -24263,6 +24823,41 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_run_of_show_id_fkey";
+            columns: ["run_of_show_id"];
+            isOneToOne: false;
+            referencedRelation: "run_of_show";
             referencedColumns: ["id"];
           },
           {
@@ -45153,6 +45748,8 @@ export type Database = {
       records: {
         Row: {
           accountable_party_id: string | null;
+          archived_at: string | null;
+          archived_by: string | null;
           blocker_text: string | null;
           created_at: string;
           created_by: string | null;
@@ -45189,6 +45786,8 @@ export type Database = {
         ComputedFields: "record_class" | "record_display_key";
         Insert: {
           accountable_party_id?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           blocker_text?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -45222,6 +45821,8 @@ export type Database = {
         };
         Update: {
           accountable_party_id?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           blocker_text?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -45257,6 +45858,13 @@ export type Database = {
           {
             foreignKeyName: "records_accountable_party_id_fkey";
             columns: ["accountable_party_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_archived_by_fkey";
+            columns: ["archived_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
@@ -53335,6 +53943,248 @@ export type Database = {
           },
         ];
       };
+      subject_approval_decisions: {
+        Row: {
+          approved: boolean;
+          approver_person_id: string;
+          comment: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string;
+          decided_via: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          step_order: number;
+          subject_approval_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          approved: boolean;
+          approver_person_id: string;
+          comment?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string;
+          decided_via: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          step_order: number;
+          subject_approval_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approved?: boolean;
+          approver_person_id?: string;
+          comment?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string;
+          decided_via?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          step_order?: number;
+          subject_approval_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subject_approval_decisions_approver_person_id_fkey";
+            columns: ["approver_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approval_decisions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approval_decisions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approval_decisions_subject_approval_id_fkey";
+            columns: ["subject_approval_id"];
+            isOneToOne: false;
+            referencedRelation: "subject_approval_status";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approval_decisions_subject_approval_id_fkey";
+            columns: ["subject_approval_id"];
+            isOneToOne: false;
+            referencedRelation: "subject_approvals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approval_decisions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      subject_approvals: {
+        Row: {
+          approval_rule_id: string;
+          cancel_reason: string | null;
+          canceled_at: string | null;
+          canceled_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          credential_id: string | null;
+          deleted_at: string | null;
+          dock_slot_id: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          requested_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          approval_rule_id: string;
+          cancel_reason?: string | null;
+          canceled_at?: string | null;
+          canceled_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_id?: string | null;
+          deleted_at?: string | null;
+          dock_slot_id?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          requested_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approval_rule_id?: string;
+          cancel_reason?: string | null;
+          canceled_at?: string | null;
+          canceled_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credential_id?: string | null;
+          deleted_at?: string | null;
+          dock_slot_id?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          requested_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subject_approvals_approval_rule_id_fkey";
+            columns: ["approval_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "approval_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_canceled_by_fkey";
+            columns: ["canceled_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credentials";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_dock_slot_id_fkey";
+            columns: ["dock_slot_id"];
+            isOneToOne: false;
+            referencedRelation: "dock_slots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       submittal_state_transitions: {
         Row: {
           created_at: string;
@@ -59218,6 +60068,8 @@ export type Database = {
       vendors: {
         Row: {
           administrative_area: string | null;
+          archived_at: string | null;
+          archived_by: string | null;
           counterparty_id: string;
           country_code: string | null;
           created_at: string;
@@ -59239,6 +60091,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           administrative_area?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           counterparty_id: string;
           country_code?: string | null;
           created_at?: string;
@@ -59259,6 +60113,8 @@ export type Database = {
         };
         Update: {
           administrative_area?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           counterparty_id?: string;
           country_code?: string | null;
           created_at?: string;
@@ -59278,6 +60134,13 @@ export type Database = {
           vendor_state?: Database["app"]["Enums"]["vendor_state"];
         };
         Relationships: [
+          {
+            foreignKeyName: "vendors_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "vendors_counterparty_id_fkey";
             columns: ["counterparty_id"];
@@ -59324,6 +60187,8 @@ export type Database = {
       };
       venues: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -59344,6 +60209,8 @@ export type Database = {
         };
         ComputedFields: "venue_latitude" | "venue_longitude";
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -59361,6 +60228,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -59378,6 +60247,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "venues_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "venues_created_by_fkey";
             columns: ["created_by"];
@@ -61173,6 +62049,8 @@ export type Database = {
       };
       work_orders: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           awarded_bid_id: string | null;
           bid_due_at: string | null;
           budget_minor: number | null;
@@ -61201,6 +62079,8 @@ export type Database = {
         };
         ComputedFields: "work_order_display_key";
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
           budget_minor?: number | null;
@@ -61227,6 +62107,8 @@ export type Database = {
           zone_id?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
           budget_minor?: number | null;
@@ -61253,6 +62135,13 @@ export type Database = {
           zone_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "work_orders_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "work_orders_awarded_bid_fkey";
             columns: ["awarded_bid_id"];
@@ -61979,6 +62868,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      approval_reminder_status: {
+        Row: {
+          last_notified_at: string | null;
+          next_manual_at: string | null;
+          next_reminder_at: string | null;
+          org_id: string | null;
+          reminder_limit: number | null;
+          reminders_enabled: boolean | null;
+          reminders_sent: number | null;
+          requested_by: string | null;
+          step_order: number | null;
+          subject_id: string | null;
+          subject_table: string | null;
+          waiting_since: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       asset_lot_balances: {
         Row: {
@@ -62712,6 +63619,34 @@ export type Database = {
         };
         Relationships: [];
       };
+      credential_photo_states: {
+        Row: {
+          credential_id: string | null;
+          holder_person_id: string | null;
+          org_id: string | null;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"] | null;
+          provided_at: string | null;
+          requested_at: string | null;
+          source: Database["app"]["Enums"]["credential_photo_source"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "credentials_holder_person_id_fkey";
+            columns: ["holder_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       currencies: {
         Row: {
           currency_code: string | null;
@@ -63368,6 +64303,7 @@ export type Database = {
       import_targets: {
         Row: {
           code: string | null;
+          destination: string | null;
           fuzzy_match: boolean | null;
           sort_order: number | null;
           write_capability: string | null;
@@ -63375,12 +64311,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
         };
         Update: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
@@ -63406,6 +64344,9 @@ export type Database = {
           project_id: string | null;
           read_at: string | null;
           section: string | null;
+          subject_approval_current_step: number | null;
+          subject_approval_state: Database["app"]["Enums"]["approval_state"] | null;
+          subject_approval_subject: Database["app"]["Enums"]["approval_rule_subject"] | null;
           subject_id: string | null;
           subject_reference: string | null;
           subject_table: string | null;
@@ -65895,6 +66836,103 @@ export type Database = {
           },
         ];
       };
+      subject_approval_status: {
+        Row: {
+          approval_rule_id: string | null;
+          approval_state: Database["app"]["Enums"]["approval_state"] | null;
+          cancel_reason: string | null;
+          canceled_at: string | null;
+          created_at: string | null;
+          credential_id: string | null;
+          current_step: number | null;
+          current_step_approver_names: string[] | null;
+          current_step_has_approver: boolean | null;
+          current_step_name: string | null;
+          dock_slot_id: string | null;
+          id: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          requested_by: string | null;
+          rule_name: string | null;
+          step_count: number | null;
+          subject: Database["app"]["Enums"]["approval_rule_subject"] | null;
+          viewer_may_decide: boolean | null;
+          waiting_since: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "subject_approvals_approval_rule_id_fkey";
+            columns: ["approval_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "approval_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_photo_states";
+            referencedColumns: ["credential_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credentials";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_dock_slot_id_fkey";
+            columns: ["dock_slot_id"];
+            isOneToOne: false;
+            referencedRelation: "dock_slots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subject_approvals_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sync_rpcs: {
         Row: {
           description: string | null;
@@ -66404,6 +67442,7 @@ export type Database = {
         Args: { p_reason: string; p_requisition_id: string };
         Returns: boolean;
       };
+      archive_row: { Args: { p_entity: string; p_id: string }; Returns: string };
       asset_class_availability: {
         Args: { p_asset_class_id: string; p_from: string; p_to: string };
         Returns: {
@@ -66685,6 +67724,10 @@ export type Database = {
       cancel_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       cancel_payment: { Args: { p_payment_id: string; p_reason: string }; Returns: string };
       cancel_shift_swap: { Args: { p_reason: string; p_shift_swap_id: string }; Returns: string };
+      cancel_subject_approval: {
+        Args: { p_reason: string; p_subject_approval_id: string };
+        Returns: string;
+      };
       cancel_time_off: {
         Args: {
           p_expected: Database["app"]["Enums"]["time_off_state"];
@@ -67639,6 +68682,19 @@ export type Database = {
           webhook_endpoint_id: string;
         }[];
       };
+      credential_badge_photos: {
+        Args: { p_credential_ids: string[] };
+        Returns: {
+          bucket_id: string;
+          credential_id: string;
+          holder_person_id: string;
+          photo_path: string;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"];
+          provided_at: string;
+          requested_at: string;
+          source: Database["app"]["Enums"]["credential_photo_source"];
+        }[];
+      };
       decide_allocation: {
         Args: {
           p_allocation_id: string;
@@ -67726,6 +68782,10 @@ export type Database = {
         };
         Returns: string;
       };
+      decide_subject_approval: {
+        Args: { p_approved: boolean; p_comment?: string; p_subject_approval_id: string };
+        Returns: string;
+      };
       decide_time_entry_correction: {
         Args: {
           p_correction_id: string;
@@ -67753,6 +68813,7 @@ export type Database = {
       decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
+      decline_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
@@ -68223,8 +69284,30 @@ export type Database = {
         Args: { p_hire_from: string; p_hire_to: string; p_project_id: string };
         Returns: string[];
       };
+      import_column_samples: {
+        Args: { p_import_job_id: string };
+        Returns: {
+          import_job_column_id: string;
+          sample_index: number;
+          sample_value: string;
+        }[];
+      };
+      import_destinations: {
+        Args: { p_include?: string; p_org_id: string; p_target_code: string };
+        Returns: {
+          destination_id: string;
+          label: string;
+          project_id: string;
+          show_date: string;
+        }[];
+      };
       import_detected_sheet: {
-        Args: { p_sheet_id: string; p_target_code: string };
+        Args: {
+          p_project_id?: string;
+          p_run_of_show_id?: string;
+          p_sheet_id: string;
+          p_target_code: string;
+        };
         Returns: string;
       };
       import_dry_run: {
@@ -68238,6 +69321,7 @@ export type Database = {
           updates: number;
         }[];
       };
+      import_strong_key_match: { Args: { p_import_job_id: string; p_keys: Json }; Returns: string };
       inbound_email_org: { Args: { p_local_part: string }; Returns: string };
       integration_inbound_secrets_stored: {
         Args: { p_org_id: string };
@@ -68366,6 +69450,16 @@ export type Database = {
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
+      mint_approval_link_code: { Args: { p_delivery_id: string }; Returns: string };
+      mint_notification_action_tokens: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          action: string;
+          audience: string;
+          expires_at: string;
+          token: string;
+        }[];
+      };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -68452,6 +69546,19 @@ export type Database = {
           unread_count: number;
         }[];
       };
+      my_credential_photos: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          has_profile_photo: boolean;
+          holds_credential: boolean;
+          org_id: string;
+          org_name: string;
+          photo_path: string;
+          photo_state: Database["app"]["Enums"]["credential_photo_state"];
+          provided_at: string;
+          source: Database["app"]["Enums"]["credential_photo_source"];
+        }[];
+      };
       my_mandatory_reads: {
         Args: { p_org_id: string };
         Returns: {
@@ -68475,6 +69582,7 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_notifications_awaiting_answer: { Args: Record<PropertyKey, never>; Returns: string[] };
       my_oauth_access: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -69147,6 +70255,20 @@ export type Database = {
       reactivate_organization: { Args: { p_org_id: string }; Returns: string };
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
+      read_notification_action: {
+        Args: { p_app: string; p_token: string };
+        Returns: {
+          action: string;
+          audience: string;
+          expires_at: string;
+          kind: string;
+          link_state: string;
+          notification_id: string;
+          org_name: string;
+          org_slug: string;
+          title: string;
+        }[];
+      };
       read_warehouse_credential: { Args: { p_destination_id: string }; Returns: string };
       reassign_offboarding_records: {
         Args: { p_offboarding_id: string; p_to_person_id: string };
@@ -69285,6 +70407,18 @@ export type Database = {
         };
         Returns: string;
       };
+      record_credential_photo: {
+        Args: {
+          p_notice_version: string;
+          p_org_id: string;
+          p_photo_path: string;
+          p_source: Database["app"]["Enums"]["credential_photo_source"];
+        };
+        Returns: {
+          credential_photo_id: string;
+          replaced_path: string;
+        }[];
+      };
       record_deletion_certificate_delivered: {
         Args: { p_certificate_id: string; p_message_id: string };
         Returns: undefined;
@@ -69355,6 +70489,10 @@ export type Database = {
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
         Returns: string;
+      };
+      record_import_column_samples: {
+        Args: { p_import_job_id: string; p_samples: Json };
+        Returns: number;
       };
       record_import_row: {
         Args: {
@@ -69768,7 +70906,15 @@ export type Database = {
         Returns: undefined;
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
+      remind_approvers: {
+        Args: { p_subject_id: string; p_subject_table: string };
+        Returns: number;
+      };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      remove_credential_photo: {
+        Args: { p_org_id: string; p_person_id: string };
+        Returns: string[];
+      };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
@@ -69866,6 +71012,13 @@ export type Database = {
           p_record_id: string;
         };
         Returns: string;
+      };
+      request_credential_photos: {
+        Args: { p_credential_ids: string[] };
+        Returns: {
+          credential_id: string;
+          outcome: string;
+        }[];
       };
       request_domain_check: { Args: { p_org_domain_id: string }; Returns: string };
       request_engaged_allocation: {
@@ -70296,6 +71449,19 @@ export type Database = {
         Returns: string;
       };
       scim_user_for_email: { Args: { p_email: string }; Returns: string };
+      search_asset_candidates: {
+        Args: {
+          p_keys: string[];
+          p_limit?: number;
+          p_org_id: string;
+          p_table: string;
+          p_terms: unknown[];
+        };
+        Returns: {
+          id: string;
+          key_match: boolean;
+        }[];
+      };
       search_context: {
         Args: { p_org_id: string };
         Returns: {
@@ -70990,6 +72156,15 @@ export type Database = {
         };
         Returns: string;
       };
+      transition_approval_rule: {
+        Args: {
+          p_approval_rule_id: string;
+          p_expected: Database["app"]["Enums"]["approval_policy_state"];
+          p_next: Database["app"]["Enums"]["approval_policy_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
       transition_asset: {
         Args: {
           p_asset_unit_id: string;
@@ -71265,6 +72440,7 @@ export type Database = {
         Args: { p_id: string; p_note?: string; p_state: string };
         Returns: undefined;
       };
+      unarchive_row: { Args: { p_entity: string; p_id: string }; Returns: string };
       unassign_engagement_member: { Args: { p_assignment_id: string }; Returns: undefined };
       unassign_roster_shift: { Args: { p_reason: string; p_shift_id: string }; Returns: string };
       undo_import_batch: {
@@ -71322,6 +72498,10 @@ export type Database = {
           p_external_version?: string;
           p_local_id: string;
         };
+        Returns: string;
+      };
+      use_notification_action: {
+        Args: { p_app: string; p_comment?: string; p_token: string };
         Returns: string;
       };
       venue_latitude: {
@@ -71417,6 +72597,13 @@ export type Database = {
         Args: { p_document_slug: string; p_document_version: string };
         Returns: boolean;
       };
+      withdraw_my_credential_photos: {
+        Args: { p_org_id?: string };
+        Returns: {
+          org_id: string;
+          photo_path: string;
+        }[];
+      };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       withdraw_roster_entry: {
         Args: { p_reason: string; p_roster_entry_id: string };
@@ -71508,6 +72695,7 @@ export type Database = {
         | "Not Selected";
       approval_decision: "Approved" | "Rejected";
       approval_policy_state: "Draft" | "Active" | "Retired";
+      approval_rule_subject: "Pass" | "Delivery" | "Equipment";
       approval_state: "In Review" | "Approved" | "Rejected" | "Canceled";
       asset_lot_movement_kind: "Count" | "Check Out" | "Check In" | "Receipt" | "Vendor Return";
       asset_scan_action: "check-out" | "check-in" | "transfer";
@@ -71558,6 +72746,9 @@ export type Database = {
       coverage_medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
       coverage_tone: "Positive" | "Neutral" | "Negative";
       credential_category_kind: "Access" | "Parking";
+      credential_photo_source: "Holder Upload" | "Holder Profile Photo";
+      credential_photo_state:
+        "Provided" | "Scanning" | "Refused" | "Profile" | "Requested" | "Missing";
       cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
       custom_data_type:
         | "Text"
@@ -78123,6 +79314,7 @@ export const Constants = {
       ],
       approval_decision: ["Approved", "Rejected"],
       approval_policy_state: ["Draft", "Active", "Retired"],
+      approval_rule_subject: ["Pass", "Delivery", "Equipment"],
       approval_state: ["In Review", "Approved", "Rejected", "Canceled"],
       asset_lot_movement_kind: ["Count", "Check Out", "Check In", "Receipt", "Vendor Return"],
       asset_scan_action: ["check-out", "check-in", "transfer"],
@@ -78179,6 +79371,15 @@ export const Constants = {
       coverage_medium: ["Online", "Print", "Broadcast", "Podcast", "Social"],
       coverage_tone: ["Positive", "Neutral", "Negative"],
       credential_category_kind: ["Access", "Parking"],
+      credential_photo_source: ["Holder Upload", "Holder Profile Photo"],
+      credential_photo_state: [
+        "Provided",
+        "Scanning",
+        "Refused",
+        "Profile",
+        "Requested",
+        "Missing",
+      ],
       cue_call_kind: ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
       custom_data_type: [
         "Text",

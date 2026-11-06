@@ -80,14 +80,17 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0084](0084-record-and-view-shortcut-targets.md)                    | Record and View Shortcuts on Marked Controls, Help Lists from the Registry       | Accepted |
+| [0085](0085-archive-and-unarchive.md)                               | Archive and Unarchive                                                            | Accepted |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
 | [0088](0088-gateway-and-compass-search.md)                          | Search in Gateway and on Compass Today                                           | Accepted |
+| [0090](0090-field-history-coverage.md)                              | Field History for Kind Attributes and Every Record Page                          | Accepted |
 | [0100](0100-crew-roster-and-production-advancing.md)                | Crew Roster and Production Advancing                                             | Accepted |
 | [0101](0101-roster-access-and-account-engagement-assignments.md)    | Roster Access and Account Engagement Assignments                                 | Accepted |
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
 | [0105][adr-0105]                                                    | Allergies Are Restricted; Catering Lead and On-Site Medical Roles Read Them      | Accepted |
+| [0106](0106-one-tap-actions-from-email-and-push.md)                 | One-Tap Actions from Email and Push, and Gateway's For Your Information          | Proposed |
 | [0107](0107-role-lens-in-the-context-switcher.md)                   | The Role Lens in the Context Switcher                                            | Accepted |
 | [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 | [0111](0111-timeline-reschedule-pushes-successors.md)               | A Timeline Reschedule Pushes Successors by What It Adds                          | Accepted |
@@ -103,6 +106,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0122](0122-pseudo-locale-checks-on-every-route.md)                 | Pseudo-Locale Checks on Every Route                                              | Accepted |
 | [0123](0123-database-enums-have-one-home-in-code.md)                | Database Enums Have One Home in Code                                             | Accepted |
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
+| [0138](0138-approval-rules-signed-out-decisions-and-reminders.md)   | Approval Rules, Signed-Out Decisions by Emailed Code, and Approval Reminders     | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

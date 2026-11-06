@@ -1,0 +1,19 @@
+{
+  "section": "Archive",
+  "filter": {
+    "label": "Archived",
+    "exclude": "Hide archived",
+    "include": "Show archived too",
+    "only": "Archived only"
+  },
+  "action": {
+    "archive": "Archive",
+    "unarchive": "Unarchive"
+  },
+  "notice": "Archived on {date}. It stays out of lists and search until it is unarchived.",
+  "errors": {
+    "notFound": "This is no longer available to you, or you cannot archive it. Reload to see it as it is now.",
+    "archive_name_taken": "A live venue already has this name. Rename one of them, then unarchive this one.",
+    "unexpected": "This could not be changed. Try again in a moment."
+  }
+}

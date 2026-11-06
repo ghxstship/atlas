@@ -11,6 +11,7 @@
  *   stores one row per change with every date before and after).
  */
 import type { XosClient } from "@xos/data";
+import { applyArchived, parseArchived, type ArchivedFilter } from "@xos/data/archive";
 import { duplicateRecord, transitionRecord } from "@xos/data/work";
 import { awardWorkOrder, transitionWorkOrder } from "@xos/data/work-orders";
 import type { Components } from "../contract/operations.generated.ts";
@@ -158,9 +159,13 @@ export async function composeRecordKeys(
   });
 }
 
-function liveRecords(db: XosClient) {
+/** Records that are not in Trash; a list leaves archived ones out unless asked (A124). */
+function liveRecords(db: XosClient, archived: ArchivedFilter = "include") {
   const source = aliasedSource(
-    () => ({ select: (c: string) => db.from("records").select(c).is("deleted_at", null) }),
+    () => ({
+      select: (c: string) =>
+        applyArchived(db.from("records").select(c).is("deleted_at", null), archived),
+    }),
     RECORD_ALIASES,
   );
   return {
@@ -478,7 +483,7 @@ export const handlers = defineHandlers("Work", {
   "records.list": async ({ query }, { db }) => {
     const wanted = selectColumns(query.fields, RECORD_FIELDS, "id");
     const page = await listPage<Row>(
-      liveRecords(db),
+      liveRecords(db, parseArchived(query.archived)),
       { ...query, fields: wanted.filter((c) => !derivedField(c)).join(",") },
       { columns: RECORD_COLUMNS, key: "id", defaultOrder: ["created_at"] },
     );
@@ -758,7 +763,11 @@ export const handlers = defineHandlers("Work", {
       await listPage<WorkOrder>(
         aliasedSource(
           () => ({
-            select: (c: string) => db.from("work_orders").select(c).is("deleted_at", null),
+            select: (c: string) =>
+              applyArchived(
+                db.from("work_orders").select(c).is("deleted_at", null),
+                parseArchived(query.archived),
+              ),
           }),
           WORK_ORDER_ALIASES,
         ),

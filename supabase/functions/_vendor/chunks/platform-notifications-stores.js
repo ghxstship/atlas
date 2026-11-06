@@ -91,6 +91,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "approval.reminder",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: "approval_request",
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.approval.reminder.subject",
+      body: "kinds.approval.reminder.body",
+    },
+  },
+  {
+    kind: "approval.link_code",
+    category: "approvals",
+    emailTemplate: "approval_link_code",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email"],
+    copy: {
+      subject: "kinds.approval.link_code.subject",
+      body: "kinds.approval.link_code.body",
+    },
+  },
+  {
     kind: "comment.created",
     category: "comments",
     emailTemplate: "notification",
@@ -655,6 +679,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "credential_photo.requested",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.credential_photo.requested.subject",
+      body: "kinds.credential_photo.requested.body",
+    },
+  },
+  {
     kind: "opportunity.matched",
     category: "opportunities",
     emailTemplate: "notification",
@@ -664,6 +700,18 @@ var NOTIFICATION_KINDS = [
     copy: {
       subject: "kinds.opportunity.matched.subject",
       body: "kinds.opportunity.matched.body",
+    },
+  },
+  {
+    kind: "offer.sent",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.offer.sent.subject",
+      body: "kinds.offer.sent.body",
     },
   },
   {
@@ -864,7 +912,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/4698_notification_kind_seed.sql"
+"supabase/migrations/5869_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

@@ -150,6 +150,7 @@
     "timeline": "Timeline",
     "calendar": "Calendar"
   },
+  "importCues": "Import cues",
   "display": {
     "action": "Display screens",
     "title": "Display screens for {name}",

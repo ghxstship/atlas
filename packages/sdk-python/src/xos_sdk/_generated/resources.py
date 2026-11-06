@@ -2551,6 +2551,7 @@ class RecordsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[Record]:
         """List record rows
@@ -2560,7 +2561,7 @@ class RecordsResource(Resource):
         ``GET /records`` (operation ``records.list``).
         Requires the capability ``work.record.read``.
         """
-        return self._client.request_page(OPERATIONS["records.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["records.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -2569,6 +2570,7 @@ class RecordsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[Record]:
         """List record rows
@@ -2580,7 +2582,7 @@ class RecordsResource(Resource):
         ``GET /records`` (operation ``records.list``).
         Requires the capability ``work.record.read``.
         """
-        return self._client.paginate(OPERATIONS["records.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["records.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -3038,6 +3040,7 @@ class WorkOrdersResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[WorkOrder]:
         """List work order rows
@@ -3047,7 +3050,7 @@ class WorkOrdersResource(Resource):
         ``GET /work-orders`` (operation ``workOrders.list``).
         Requires the capability ``work.work_order.read``.
         """
-        return self._client.request_page(OPERATIONS["workOrders.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["workOrders.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -3056,6 +3059,7 @@ class WorkOrdersResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[WorkOrder]:
         """List work order rows
@@ -3067,7 +3071,7 @@ class WorkOrdersResource(Resource):
         ``GET /work-orders`` (operation ``workOrders.list``).
         Requires the capability ``work.work_order.read``.
         """
-        return self._client.paginate(OPERATIONS["workOrders.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["workOrders.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -3960,6 +3964,7 @@ class DocumentsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[Document]:
         """List document rows
@@ -3969,7 +3974,7 @@ class DocumentsResource(Resource):
         ``GET /documents`` (operation ``documents.list``).
         Requires the capability ``knowledge.document.read``.
         """
-        return self._client.request_page(OPERATIONS["documents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["documents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -3978,6 +3983,7 @@ class DocumentsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[Document]:
         """List document rows
@@ -3989,7 +3995,7 @@ class DocumentsResource(Resource):
         ``GET /documents`` (operation ``documents.list``).
         Requires the capability ``knowledge.document.read``.
         """
-        return self._client.paginate(OPERATIONS["documents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["documents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -4280,6 +4286,7 @@ class VenuesResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[Venue]:
         """List venue rows
@@ -4289,7 +4296,7 @@ class VenuesResource(Resource):
         ``GET /venues`` (operation ``venues.list``).
         Requires the capability ``places.venue.read``.
         """
-        return self._client.request_page(OPERATIONS["venues.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["venues.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -4298,6 +4305,7 @@ class VenuesResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[Venue]:
         """List venue rows
@@ -4309,7 +4317,7 @@ class VenuesResource(Resource):
         ``GET /venues`` (operation ``venues.list``).
         Requires the capability ``places.venue.read``.
         """
-        return self._client.paginate(OPERATIONS["venues.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["venues.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -14426,6 +14434,7 @@ class VendorsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[Vendor]:
         """List vendor rows
@@ -14435,7 +14444,7 @@ class VendorsResource(Resource):
         ``GET /vendors`` (operation ``vendors.list``).
         Requires the capability ``vendors.vendor.read``.
         """
-        return self._client.request_page(OPERATIONS["vendors.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["vendors.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -14444,6 +14453,7 @@ class VendorsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[Vendor]:
         """List vendor rows
@@ -14455,7 +14465,7 @@ class VendorsResource(Resource):
         ``GET /vendors`` (operation ``vendors.list``).
         Requires the capability ``vendors.vendor.read``.
         """
-        return self._client.paginate(OPERATIONS["vendors.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["vendors.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -29265,6 +29275,7 @@ class ObjectsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Page[CustomObjectRecord]:
         """List custom object record rows
@@ -29274,7 +29285,7 @@ class ObjectsResource(Resource):
         ``GET /objects/{object_key}`` (operation ``objects.list``).
         Requires the capability ``work.record.read``.
         """
-        return self._client.request_page(OPERATIONS["objects.list"], path={"object_key": object_key}, query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.request_page(OPERATIONS["objects.list"], path={"object_key": object_key}, query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def list_all(
         self,
@@ -29284,6 +29295,7 @@ class ObjectsResource(Resource):
         fields: FieldsArg = None,
         sort: SortArg = None,
         filter: Optional[Filter] = None,
+        archived: Optional[Literal["include", "only"]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[CustomObjectRecord]:
         """List custom object record rows
@@ -29295,7 +29307,7 @@ class ObjectsResource(Resource):
         ``GET /objects/{object_key}`` (operation ``objects.list``).
         Requires the capability ``work.record.read``.
         """
-        return self._client.paginate(OPERATIONS["objects.list"], path={"object_key": object_key}, query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+        return self._client.paginate(OPERATIONS["objects.list"], path={"object_key": object_key}, query={"limit": limit, "fields": fields, "sort": sort, "filter": filter, "archived": archived}, options=options)
 
     def create(
         self,
@@ -30989,7 +31001,7 @@ class NotificationsResource(Resource):
     ) -> ApiResponse[Notification]:
         """Act on a notification
 
-        Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), or mark it Done. Only the recipient acts. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), accept or decline a published shift or an offer that waits on the applicant (shift.assigned, shift.changed and offer.sent), reply to a message (message.received; the reply is the comment), or mark it Done. Only the recipient acts; approving and rejecting are a member's. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /notifications/{id}/act`` (operation ``notifications.act``).
         Requires the capability ``inbox.notifications.write``.

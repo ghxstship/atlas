@@ -40,6 +40,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/act/{token}":
+    "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0106).",
   "/auth/mfa":
     "Auth template: the second factor after the first, or setting one up an org requires (A77).",
   "/auth/session-ended":
@@ -62,6 +64,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/documents/badges":
+    "Route handler: up to 100 credential badges in one streamed PDF/UA file, on Letter, A4, A6 or CR80 (P5, ADR 0031 amendment).",
   "/{org}/deletion-certificates/{id}":
     "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
   "/{org}/forms/{form}/{id}":

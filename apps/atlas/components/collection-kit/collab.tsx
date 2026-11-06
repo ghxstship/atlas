@@ -1,6 +1,7 @@
 import { listMembers } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
+import { RecordHistory } from "@/components/history/record-history";
 import { Region } from "@/components/shell/region";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
@@ -11,11 +12,14 @@ interface CollabPanelsProps {
   ctx: OrgContext;
   table: string;
   id: string;
+  /** `false` leaves the history to a page that words it with labels of its own. */
+  history?: boolean;
 }
 
 /**
- * The comments and attachments of one A16 row. They fail alone (A143): an error while they load or
- * render, a read that throws included, shows Retry in their place and leaves the record's panel.
+ * The comments and attachments of one A16 row, after the row's field history (A131) when its table has
+ * one. They fail alone (A143): an error while they load or render, a read that throws included, shows
+ * Retry in their place and leaves the record's panel.
  */
 export function CollabPanels(props: CollabPanelsProps) {
   return (
@@ -26,7 +30,7 @@ export function CollabPanels(props: CollabPanelsProps) {
 }
 
 /** Loads the comments and attachments of one A16 row and renders their panels. */
-async function LoadedCollabPanels({ ctx, table, id }: CollabPanelsProps) {
+async function LoadedCollabPanels({ ctx, table, id, history = true }: CollabPanelsProps) {
   const db = ctx.viewer.db;
   const subject = { table, id };
   const [threads, attachments, members, t] = await Promise.all([
@@ -62,12 +66,15 @@ async function LoadedCollabPanels({ ctx, table, id }: CollabPanelsProps) {
     classification: a.classification,
   }));
   return (
-    <CollabClient
-      org={ctx.org.slug}
-      table={table}
-      id={id}
-      comments={comments}
-      attachments={files}
-    />
+    <>
+      {history ? <RecordHistory db={db} table={table} id={id} /> : null}
+      <CollabClient
+        org={ctx.org.slug}
+        table={table}
+        id={id}
+        comments={comments}
+        attachments={files}
+      />
+    </>
   );
 }

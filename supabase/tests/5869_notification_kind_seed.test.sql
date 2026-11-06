@@ -1,4 +1,4 @@
--- 4698_notification_kind_seed.test.sql
+-- 5869_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -32,7 +32,8 @@ select set_eq(
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
-  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true)$$,
+  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true),
+  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(
@@ -74,6 +75,12 @@ select set_eq(
   ('approval.decided', 'Email', 'approvals', 'notification'),
   ('approval.decided', 'SMS', 'approvals', null::text),
   ('approval.decided', 'Push', 'approvals', null::text),
+  ('approval.reminder', 'In App', 'approvals', null::text),
+  ('approval.reminder', 'Email', 'approvals', 'notification'),
+  ('approval.reminder', 'SMS', 'approvals', null::text),
+  ('approval.reminder', 'Push', 'approvals', null::text),
+  ('approval.link_code', 'In App', 'approvals', null::text),
+  ('approval.link_code', 'Email', 'approvals', 'approval_link_code'),
   ('comment.created', 'In App', 'comments', null::text),
   ('comment.created', 'Email', 'comments', 'notification'),
   ('comment.created', 'SMS', 'comments', null::text),
@@ -260,9 +267,16 @@ select set_eq(
   ('help_request.assigned', 'Email', 'assignments', 'notification'),
   ('help_request.assigned', 'SMS', 'assignments', null::text),
   ('help_request.assigned', 'Push', 'assignments', null::text),
+  ('credential_photo.requested', 'In App', 'assignments', null::text),
+  ('credential_photo.requested', 'Email', 'assignments', 'notification'),
+  ('credential_photo.requested', 'SMS', 'assignments', null::text),
+  ('credential_photo.requested', 'Push', 'assignments', null::text),
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('offer.sent', 'In App', 'opportunities', null::text),
+  ('offer.sent', 'Email', 'opportunities', 'notification'),
+  ('offer.sent', 'Push', 'opportunities', null::text),
   ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
   ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
   ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),

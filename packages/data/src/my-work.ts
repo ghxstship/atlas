@@ -55,8 +55,8 @@ interface Row {
 }
 
 /**
- * The person's open records: owned, accountable or assigned through their membership. At most
- * `limit` records (500 by default), soonest due first.
+ * The person's open records: owned, accountable or assigned through their membership, archived
+ * ones left out (A124). At most `limit` records (500 by default), soonest due first.
  */
 export async function listMyWork(
   db: XosClient,
@@ -89,6 +89,7 @@ export async function listMyWork(
     .select(COLUMNS)
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .not("record_state", "in", CLOSED_STATES)
     .or(parties.join(","))
     .order("due_at", { ascending: true, nullsFirst: false })

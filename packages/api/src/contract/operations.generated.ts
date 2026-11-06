@@ -5178,7 +5178,10 @@ export interface Components {
     message_args: Record<string, unknown>;
     archived_at: string | null;
   };
-  NotificationActRequest: { action: "approve" | "reject" | "done"; comment?: string };
+  NotificationActRequest: {
+    action: "approve" | "reject" | "done" | "accept" | "decline" | "reply";
+    comment?: string;
+  };
   NotificationPage: { data: Array<Components["Notification"]>; next_cursor: string | null };
   NotificationPreference: {
     id: string;
@@ -10969,6 +10972,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["RecordPage"] };
@@ -11197,6 +11201,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["WorkOrderPage"] };
@@ -11641,6 +11646,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["DocumentPage"] };
@@ -11794,6 +11800,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["VenuePage"] };
@@ -16600,6 +16607,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["VendorPage"] };
@@ -23281,6 +23289,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["CustomObjectRecordPage"] };

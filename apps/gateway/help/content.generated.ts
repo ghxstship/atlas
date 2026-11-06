@@ -6,6 +6,15 @@ export const HELP_CONTENT: HelpIndex = {
   articles: {
     "en-US": [
       {
+        slug: "approve-from-email",
+        title: "Approve from email",
+        summary:
+          "Decide a request an organization sends you from the email itself, with a code it emails you, without signing in.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
+      {
         slug: "company-danger-zone",
         title: "Company danger zone",
         summary: "Transferring ownership or closing a company account.",
@@ -528,6 +537,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Badge photos",
+        summary:
+          "Give each organization you hold a credential with a photo for your badge, choose your profile photo instead, or take it back.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Your profile",
         summary:
@@ -687,6 +705,15 @@ export const HELP_CONTENT: HelpIndex = {
       },
     ],
     "es-US": [
+      {
+        slug: "approve-from-email",
+        title: "Aprobar desde el correo",
+        summary:
+          "Decide una solicitud que te envía una organización desde el mismo correo, con un código que te envía, sin iniciar sesión.",
+        kind: "workflow",
+        nodes: ["home"],
+        order: 3,
+      },
       {
         slug: "company-danger-zone",
         title: "Zona de peligro de la empresa",
@@ -1219,6 +1246,15 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "workflow",
         nodes: ["explore.opportunity"],
         order: 1,
+      },
+      {
+        slug: "profile-badge-photos",
+        title: "Fotos de credencial",
+        summary:
+          "Da a cada organización con la que tienes una credencial una foto para tu credencial, elige tu foto de perfil o retírala.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
       },
       {
         slug: "profile",

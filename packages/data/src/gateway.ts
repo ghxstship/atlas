@@ -433,7 +433,8 @@ export interface SharedRecord {
 
 /**
  * Records shared with the caller's role type, person or organization on projects where they hold
- * an Active or Closing engagement (api_external.records), by the first date they carry.
+ * an Active or Closing engagement (api_external.records), by the first date they carry. Archived
+ * records are left out by the view (5183).
  */
 export async function listSharedRecords(
   db: XosClient,
