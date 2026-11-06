@@ -468,7 +468,7 @@ export interface BookLayout {
 }
 
 /**
- * Pass 1 of a book (B7): draws the cover, its contents with placeholder page numbers, and every document into a
+ * Pass 1 of a book (B7): draws the cover, its contents with stand-in page numbers, and every document into a
  * counting PDF that is thrown away, and returns where each part starts. The page column is fixed-width, so the real
  * numbers drawn in pass 2 cannot move a line.
  */
@@ -516,7 +516,7 @@ function assertBook(cover: DocumentModel, sections: readonly DocumentModel[], pa
 
 /**
  * A book (B7, ADR 0146 decision 4): the cover with its contents, then each document, in one tagged PDF/UA-1 file.
- * Pass 1 draws everything, the contents with placeholder page numbers, into a counting PDF that is thrown away, to
+ * Pass 1 draws everything, the contents with stand-in page numbers, into a counting PDF that is thrown away, to
  * learn each document's page count; the page column is fixed-width, so the real numbers cannot move a line. Pass 2
  * streams one Document root, the cover Sect with the TOC, then a Sect per document on a new page, each with an
  * outline item and footers that number the whole book ("Page n of N").

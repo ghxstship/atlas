@@ -231,7 +231,8 @@
       "row": "‮ꓤoʍ‬",
       "newRow": "‮Nǝʍ ɹoʍ‬",
       "hintAppend": "‮∀ɹɹoʍ ʞǝʎs ɐup ꓕɐq ɯoʌǝ, Ǝuʇǝɹ ǝpıʇs ɐup ɯoʌǝs poʍu, ɐup ʇʎdıuƃ ıu ʇɥǝ lɐsʇ ɹoʍ ɐpps ɐ ɹoʍ. Ԁɐsʇǝ ɟɹoɯ ɐ sdɹǝɐpsɥǝǝʇ ɟılls ʇɥǝ ɹɐuƃǝ.‬",
-      "cellError": "‮ꓤoʍ {row}, {column}: {message}‬"
+      "cellError": "‮ꓤoʍ {row}, {column}: {message}‬",
+      "newRowMark": "‮+‬"
     },
     "help": {
       "ask": "‮∀sʞ ɐ bnǝsʇıou ɐqonʇ ʇɥıs dɐƃǝ‬",
@@ -504,18 +505,14 @@
       "selectRow": "‮Šéļéçţ {row}‬"
     },
     "timeline": {
+      "bar": "‮{key} {title}, {start} ʇo {end}‬",
+      "controls": "‮ꓤǝsɔɥǝpnlǝ {label}‬",
       "critical": "‮ɔɹıʇıɔɐl dɐʇɥ‬",
       "dependsOn": "‮ꓷǝdǝups ou‬",
       "end": "‮Ǝup‬",
       "key": "‮ꓘǝʎ‬",
-      "milestone": "‮ɯılǝsʇouǝ‬",
-      "record": "‮ꓤǝɔoɹp‬",
-      "start": "‮Sʇɐɹʇ‬",
-      "state": "‮Sʇɐʇǝ‬",
-      "scroll": "‮{label}, pɐʎs‬",
-      "bar": "‮{key} {title}, {start} ʇo {end}‬",
-      "controls": "‮ꓤǝsɔɥǝpnlǝ {label}‬",
       "locked": "‮loɔʞǝp‬",
+      "milestone": "‮ɯılǝsʇouǝ‬",
       "moveHint": "‮∀ɹɹoʍ ʞǝʎs ɯoʌǝ ʇɥǝ qɐɹ ɐ pɐʎ. Sɥıɟʇ ʍıʇɥ ɐu ɐɹɹoʍ ʞǝʎ ɯoʌǝs ıʇs ǝup. Ǝuʇǝɹ ɐddlıǝs ʇɥǝ ɔɥɐuƃǝ, Ǝsɔɐdǝ ɔɐuɔǝls ıʇ.‬",
       "preview": {
         "applied": "‮{key} ɹǝsɔɥǝpnlǝp.‬",
@@ -537,6 +534,10 @@
         "movesNone": "‮No oʇɥǝɹ ɹǝɔoɹp ɯoʌǝs.‬",
         "movesOne": "‮1 snɔɔǝssoɹ ɯoʌǝs: {keys}.‬"
       },
+      "record": "‮ꓤǝɔoɹp‬",
+      "scroll": "‮{label}, pɐʎs‬",
+      "start": "‮Sʇɐɹʇ‬",
+      "state": "‮Sʇɐʇǝ‬",
       "dayTypes": "‮ꓷɐʎ ʇʎdǝs‬",
       "dayWithTypes": "‮{day} ({types})‬",
       "segment": "‮{label} {start} ʇo {end}‬",
@@ -596,7 +597,13 @@
       }
     },
     "heatmap": {
-      "cell": "‮{row}, {column}: {value}‬"
+      "cell": "‮{row}, {column}: {value}‬",
+      "stateCell": "‮{row}, {col}: {state}‬",
+      "detail": "‮{row}, {col}: {state}. {detail}‬",
+      "none": "‮{row}, {col}: ñöţ àšķéð‬",
+      "select": "‮Šéļéçţ {row}‬",
+      "legend": "‮Ŵĥàţ éàçĥ šţàţé ɱéàñš‬",
+      "noneMark": "‮-‬"
     },
     "recordStates": {
       "proposed": "‮Ԁɹodosǝp‬",

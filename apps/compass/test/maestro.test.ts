@@ -36,6 +36,8 @@ const DYNAMIC = [
   "punch-",
   "project-",
   "template-",
+  // B7's feed contents: one switch per source.
+  "settings-feeds-source-",
   "incident-type-",
   "shift-",
   "batch-",

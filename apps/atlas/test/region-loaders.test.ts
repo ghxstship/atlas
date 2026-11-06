@@ -58,6 +58,7 @@ vi.mock("@xos/data/work", () => ({
   replanShift: () => ({ moved: false, endShiftMs: 0 }),
   ...work,
 }));
+vi.mock("@xos/data/anchor", () => ({ getRecordAnchorPinned: async () => ok(false) }));
 vi.mock("@xos/data/field-history", () => ({ getFieldHistory: async () => ok([]) }));
 vi.mock("@xos/data/schedule", () => ({ getActual: async () => ok(null) }));
 vi.mock("@xos/data/work-orders", () => ({ getPunchItemForRecord: async () => ok(null) }));

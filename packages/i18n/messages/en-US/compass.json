@@ -303,7 +303,7 @@
     "settledTitle": "Settled without you",
     "settledScanNotDenied": "The server let this person in when the scan uploaded, so the override you queued was not needed and was not sent.",
     "settledDismiss": "Dismiss",
-    "refusedScanOverrideNotApproved": "This pass is waiting on its approval, so it cannot be let in at the gate."
+    "refusedScanOverrideNotApproved": "This pass is waiting on its approval, so it cannot be let in at the door."
   },
   "today": {
     "title": "Today",

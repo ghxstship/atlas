@@ -35,6 +35,7 @@ const CORE_ONLY: readonly string[] = [
   "email-unsubscribe",
   "file-download",
   "fx-rates-ecb",
+  "weather-feed",
 ];
 
 /**
@@ -71,6 +72,14 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  // B8 (ADR 0147): the guest list email worker; React Email, Resend and, for a Pass email, the guest-pass renderer
+  // with pdfkit load only when an email is sent.
+  "guest-email": {
+    boot: ["intl-messageformat", "zod"],
+    lazy: ["@react-email/components", "pdfkit", "react/jsx-runtime", "resend"],
+  },
+  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
+  "weather-feed": { boot: [], lazy: [] },
   // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
@@ -100,6 +109,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
+  // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
+  // does, came to 120.0 KB on 2026-10-31; about 10 percent of headroom.
+  "guest-email": 132,
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
   // above that.
@@ -148,6 +160,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB). A127's
   // action links in the shared stores (about 2 KB) bring it to 121.1 KB in merge train 6; about 10 percent above that.
   "wallet-pass": 133,
+  "weather-feed": 64,
   "webhook-dispatch": 70,
 };
 

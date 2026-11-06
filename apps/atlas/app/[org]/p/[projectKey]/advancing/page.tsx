@@ -44,11 +44,13 @@ export default async function ProjectAdvancingPage({
   const path = `/${routeParams.org}/p/${routeParams.projectKey}/advancing`;
   const sectionHref = (s: string) => `${path}?section=${s}`;
   const sectionLabel = (s: string) =>
-    s === "guests"
-      ? t("advancing.guests.title")
-      : s === "travel-party"
-        ? t("advancing.travelParty.title")
-        : t(`nav.atlas.pages.advancing.${s}`);
+    s === "progress"
+      ? t("advancing.progress.title")
+      : s === "guests"
+        ? t("advancing.guests.title")
+        : s === "travel-party"
+          ? t("advancing.travelParty.title")
+          : t(`nav.atlas.pages.advancing.${s}`);
   const title = sectionLabel(section);
   return (
     <div className="flex flex-col gap-16 min-w-0">

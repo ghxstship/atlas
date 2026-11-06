@@ -231,7 +231,8 @@
       "row": "[Röw ·]",
       "newRow": "[Ñéw röw ··]",
       "hintAppend": "[Àrröw kéýs àñd Tàb mövé, Éñtér édîts àñd mövés döwñ, àñd týpîñg îñ thé làst röw àdds à röw. Pàsté fröm à spréàdshéét fîlls thé ràñgé. ···············································]",
-      "cellError": "[Röw {row}, {column}: {message} ··········]"
+      "cellError": "[Röw {row}, {column}: {message} ··········]",
+      "newRowMark": "[+ ·]"
     },
     "help": {
       "ask": "[Àsk à qûéstîöñ àböût thîs pàgé ···········]",
@@ -504,18 +505,14 @@
       "selectRow": "[Šéļéçţ {row} ···]"
     },
     "timeline": {
+      "bar": "[{key} {title}, {start} tö {end} ···········]",
+      "controls": "[Résçhédûlé {label} ······]",
       "critical": "[çrîtîçàl pàth ·····]",
       "dependsOn": "[Dépéñds öñ ···]",
       "end": "[Éñd ·]",
       "key": "[Kéý ·]",
-      "milestone": "[mîléstöñé ···]",
-      "record": "[Réçörd ··]",
-      "start": "[Stàrt ·]",
-      "state": "[Stàté ·]",
-      "scroll": "[{label}, dàýs ·····]",
-      "bar": "[{key} {title}, {start} tö {end} ···········]",
-      "controls": "[Résçhédûlé {label} ······]",
       "locked": "[löçkéd ··]",
+      "milestone": "[mîléstöñé ···]",
       "moveHint": "[Àrröw kéýs mövé thé bàr à dàý. Shîft wîth àñ àrröw kéý mövés îts éñd. Éñtér àpplîés thé çhàñgé, Ésçàpé çàñçéls ît. ········································]",
       "preview": {
         "applied": "[{key} résçhédûléd. ······]",
@@ -537,6 +534,10 @@
         "movesNone": "[Nö öthér réçörd mövés. ········]",
         "movesOne": "[1 sûççéssör mövés: {keys}. ·········]"
       },
+      "record": "[Réçörd ··]",
+      "scroll": "[{label}, dàýs ·····]",
+      "start": "[Stàrt ·]",
+      "state": "[Stàté ·]",
       "dayTypes": "[Dàý týpés ···]",
       "dayWithTypes": "[{day} ({types}) ·····]",
       "segment": "[{label} {start} tö {end} ········]",
@@ -596,7 +597,13 @@
       }
     },
     "heatmap": {
-      "cell": "[{row}, {column}: {value} ········]"
+      "cell": "[{row}, {column}: {value} ········]",
+      "stateCell": "[{row}, {col}: {state} ··]",
+      "detail": "[{row}, {col}: {state}. {detail} ···]",
+      "none": "[{row}, {col}: ñöţ àšķéð ······]",
+      "select": "[Šéļéçţ {row} ···]",
+      "legend": "[Ŵĥàţ éàçĥ šţàţé ɱéàñš ·········]",
+      "noneMark": "[- ·]"
     },
     "recordStates": {
       "proposed": "[Þŕöþöšéð ····]",
