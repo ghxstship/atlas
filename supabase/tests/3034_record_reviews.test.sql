@@ -12,7 +12,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(63);
+select plan(64);
 
 create function pg_temp.new_record(p_key text, p_title text, p_review boolean default true) returns uuid
 language plpgsql as $$

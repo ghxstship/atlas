@@ -260,7 +260,6 @@ select is((select time_zone from app.project_days where project_id = pg_temp.id(
   'a project day in the source''s zone lands in the target''s');
 select is((select time_zone from app.project_days where project_id = pg_temp.id('prj_den') and day_on = '2027-07-07'), 'Europe/London',
   'a project day with its own other zone keeps it');
-select pg_temp.as_platform();
 
 -- More than 2000 items.
 insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis)
