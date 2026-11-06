@@ -53,7 +53,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
-  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
+  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "libphonenumber-js"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },

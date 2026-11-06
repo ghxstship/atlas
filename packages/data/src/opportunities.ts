@@ -1690,8 +1690,9 @@ export async function createPool(
 }
 
 /**
- * Members of a pool with names. Person names come from the engagement board, so only people the org has engaged or
- * received an application from are named; pool rows themselves never leave the org (Section 4.4.3).
+ * Members of a pool with names, from app.pool_member_names (B10), so a person who joined by registration or by claiming an
+ * invitation is named as well. A company member's name is its account's. Pool rows themselves never leave the org
+ * (Section 4.4.3); a blank name reads as unnamed.
  */
 export async function listPoolMembers(
   db: XosClient,
@@ -1704,25 +1705,30 @@ export async function listPoolMembers(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
-  const personIds = rows.flatMap((r) => (r.person_id ? [r.person_id] : []));
-  const orgIds = rows.flatMap((r) => (r.organization_id ? [r.organization_id] : []));
   const names = new Map<string, string>();
-  if (personIds.length > 0 || orgIds.length > 0) {
+  const named = await db
+    .from("pool_member_names")
+    .select("pool_member_id, full_name")
+    .eq("talent_pool_id", poolId);
+  if (named.error) return fail(toDataError(named.error));
+  for (const n of named.data ?? []) {
+    if (n.pool_member_id && n.full_name) names.set(n.pool_member_id, n.full_name);
+  }
+  const orgIds = rows.flatMap((r) => (r.organization_id ? [r.organization_id] : []));
+  const accounts = new Map<string, string>();
+  if (orgIds.length > 0) {
     const [engaged, applied] = await Promise.all([
-      db.from("engagement_board").select("person_id, account_id, party_name, account_name"),
-      db
-        .from("application_board")
-        .select("applicant_person_id, applicant_organization_id, applicant_name"),
+      db.from("engagement_board").select("account_id, account_name"),
+      db.from("application_board").select("applicant_organization_id, applicant_name"),
     ]);
     if (engaged.error) return fail(toDataError(engaged.error));
     if (applied.error) return fail(toDataError(applied.error));
     for (const e of engaged.data ?? []) {
-      if (e.person_id && e.party_name) names.set(e.person_id, e.party_name);
-      if (e.account_id && e.account_name) names.set(e.account_id, e.account_name);
+      if (e.account_id && e.account_name) accounts.set(e.account_id, e.account_name);
     }
     for (const a of applied.data ?? []) {
-      const key = a.applicant_person_id ?? a.applicant_organization_id;
-      if (key && a.applicant_name && !names.has(key)) names.set(key, a.applicant_name);
+      if (a.applicant_organization_id && a.applicant_name && !accounts.has(a.applicant_organization_id))
+        accounts.set(a.applicant_organization_id, a.applicant_name);
     }
   }
   return ok(
@@ -1731,7 +1737,7 @@ export async function listPoolMembers(
       poolId: r.talent_pool_id,
       personId: r.person_id,
       organizationId: r.organization_id,
-      name: names.get(r.person_id ?? r.organization_id ?? "") ?? null,
+      name: names.get(r.id) ?? accounts.get(r.organization_id ?? "") ?? null,
       standing: r.standing,
       reason: r.reason,
       reviewOn: r.review_on,

@@ -100,6 +100,21 @@ comment on function app.import_job_can_write_rates(uuid) is 'Import worker API (
 revoke all on function app.import_job_can_write_rates(uuid) from public, anon, authenticated;
 grant execute on function app.import_job_can_write_rates(uuid) to service_role;
 
+create or replace function app.import_job_org_defaults(p_import_job_id uuid)
+returns table (language text, base_currency text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (select v.value_text from private.setting_value(j.org_id, 'locale.language') v), private.org_base_currency(j.org_id)::text
+  from app.import_jobs j where j.id = p_import_job_id and j.deleted_at is null;
+$$;
+
+comment on function app.import_job_org_defaults(uuid) is 'Import worker API (service role): the org''s language setting, whose region is the default phone region, and its base currency, for a bare currency symbol. The worker has no session to read settings through (B10).';
+revoke all on function app.import_job_org_defaults(uuid) from public, anon, authenticated;
+grant execute on function app.import_job_org_defaults(uuid) to service_role;
+
 -- 3. Strong keys (from 2800) -----------------------------------------------------------------------------------------
 
 create or replace function app.import_strong_key_match(p_import_job_id uuid, p_keys jsonb)

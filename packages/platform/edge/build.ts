@@ -44,6 +44,7 @@ export const EDGE_EXTERNALS = [
   "yaml",
   "exceljs",
   "pdfkit",
+  "libphonenumber-js",
 ] as const;
 
 export const FUNCTIONS_DIR = fileURLToPath(

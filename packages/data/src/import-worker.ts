@@ -5,12 +5,15 @@ import {
   durationSeconds,
   headers,
   parseCsv,
+  parseRate,
   plannedAt,
   playbookFieldMap,
   proposeTarget,
+  rateTypeOf,
   sheetLayout,
   suggestWithSources,
   type DataRow,
+  type NumberFormat,
   type PlaybookColumn,
   type PlaybookSheet,
   type Sheet,
@@ -49,6 +52,9 @@ import {
  * lookup, strong-key match and write stays inside it, numbered cues are written before unnumbered ones are appended,
  * a row that repeats an earlier row of the file is Invalid, and detection records three sample cells per column for
  * the uploader's mapping preview.
+ * Pool invitations (B10, 2996) invite an address into a Talent pool and never write a person or a profile: the strong key
+ * is the email inside the row's pool, a pending match is updated with no new email, an expired match is reissued, and a
+ * decided Merged review skips the row. The phone library loads only when a phone column is mapped.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
@@ -84,12 +90,33 @@ export interface ImportJobRecord {
   readonly projectId?: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId?: string | null;
+  /** The pool a pool invitation import puts rows without a pool name into (B10). */
+  readonly talentPoolId?: string | null;
+  /** How the file writes amounts (B10). */
+  readonly numberFormat?: NumberFormat;
+  /** Who created the import: the inviter of its pool invitations (B10). */
+  readonly createdBy?: string | null;
 }
 
 /** Where a cue or guest list import writes (P3): its running order or its project. */
 export interface ImportDestination {
   readonly runOfShow?: RunOfShowContext;
   readonly project?: { readonly id: string };
+  readonly pools?: PoolInvitationContext;
+}
+
+/** What validating a pool invitation row needs (B10). */
+export interface PoolInvitationContext {
+  /** The import's own pool, for rows without a pool name. */
+  readonly talentPoolId: string | null;
+  readonly numberFormat: NumberFormat;
+  /** True when the import's creator holds payroll org-wide (app.import_job_can_write_rates). */
+  readonly canWriteRates: boolean;
+  /** The org's language setting, whose region is the default phone region. */
+  readonly language: string | null;
+  /** The org's base currency, for a bare currency symbol or a rate with no currency. */
+  readonly baseCurrency: string | null;
+  readonly exponents: ReadonlyMap<string, number>;
 }
 
 /** What validating a cue needs from its running order. */
@@ -194,6 +221,10 @@ export interface ImportStore {
     before: Row | null;
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;
+  /** Marks a Valid row Skipped with the reason, and writes nothing (B10). */
+  skipRow(rowId: string, reason: string): Promise<void>;
+  /** Adds a reason to a row that was written, such as a rate left as it was (B10). */
+  noteRow(rowId: string, reason: string): Promise<void>;
   finishBatch(batchId: string): Promise<void>;
   /** The org's slug, the first segment of its Atlas paths. */
   orgSlug(orgId: string): Promise<string | null>;
@@ -240,6 +271,14 @@ export interface TargetLookups {
   nextCuePosition(runOfShowId: string): Promise<number>;
   /** True when the cue was already called; an import never rewrites a called cue (C11). */
   cueCalled(id: string): Promise<boolean>;
+  /** A live Talent pool of the org by name, trimmed and case-insensitive; null for none or two (B10). */
+  talentPoolIdByName(orgId: string, name: string): Promise<string | null>;
+  /** A Roles Library code by the code itself or a job title; null for none or two (B10). */
+  roleCode(codeOrTitle: string): Promise<string | null>;
+  /** What the import's pool invitation rows are checked against (B10). */
+  poolInvitationContext(job: ImportJobRecord): Promise<PoolInvitationContext>;
+  /** A pending pool invitation's expiry and whether it holds a rate; null when it is gone (B10). */
+  poolInvitation(id: string): Promise<{ expiresAt: string; hasRate: boolean } | null>;
 }
 
 export interface ImportJobResult {
@@ -334,6 +373,7 @@ export class UnreadableUploadError extends Error {
 
 const INTEGER = /^-?\d+$/;
 const CURRENCY = /^[A-Z]{3}$/;
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isTimeZone(zone: string): boolean {
@@ -499,6 +539,42 @@ export async function validateRow(
       await set("counterparty_id", (v) => lookups.counterpartyIdByName(orgId, v), "unknown_party");
       break;
     }
+    case "pool_invitations": {
+      const pools = destination.pools;
+      const email = text("email").trim().toLowerCase();
+      if (email) {
+        if (EMAIL.test(email) && email.length <= 320) values["email"] = email;
+        else issues.push({ columnIndex: columnOf("email"), issue: "invalid_email" });
+      }
+      const poolName = text("pool_name").trim();
+      if (poolName) {
+        const pool = await lookups.talentPoolIdByName(orgId, poolName);
+        if (pool) values["talent_pool_id"] = pool;
+        else issues.push({ columnIndex: columnOf("pool_name"), issue: "unknown_pool" });
+      } else if (pools?.talentPoolId) {
+        values["talent_pool_id"] = pools.talentPoolId;
+      } else {
+        issues.push({ columnIndex: columnOf("pool_name"), issue: "pool_required" });
+      }
+      const name = text("invitee_name").trim();
+      if (name.length > 200)
+        issues.push({ columnIndex: columnOf("invitee_name"), issue: "too_long" });
+      else if (name) values["invitee_name"] = name;
+      const note = text("note").trim();
+      if (note.length > 1000) issues.push({ columnIndex: columnOf("note"), issue: "too_long" });
+      else if (note) values["note"] = note;
+      const phone = text("work_phone").trim();
+      if (phone) {
+        // The phone metadata is about 80 KB: it loads only for a file with a phone column.
+        const { regionFromLocale, toE164 } = await import("@xos/i18n/phone");
+        const e164 = toE164(phone, pools?.language ? regionFromLocale(pools.language) : null);
+        if (e164) values["work_phone"] = e164;
+        else issues.push({ columnIndex: columnOf("work_phone"), issue: "invalid_phone" });
+      }
+      await set("role", (v) => lookups.roleCode(v), "unknown_role", "role_code");
+      checkPoolRate(raw, columnOf, pools, values, issues);
+      break;
+    }
     default:
       issues.push({ columnIndex: 0, issue: "target_not_importable" });
   }
@@ -511,8 +587,14 @@ export async function validateRow(
   const fuzzy =
     targetCode === "venues" ||
     targetCode === "counterparties" ||
-    targetCode === "guest_list_entries";
-  const nameField = targetCode === "guest_list_entries" ? "guest_name" : "name";
+    targetCode === "guest_list_entries" ||
+    targetCode === "pool_invitations";
+  const nameField =
+    targetCode === "guest_list_entries"
+      ? "guest_name"
+      : targetCode === "pool_invitations"
+        ? "invitee_name"
+        : "name";
   const matchName = fuzzy ? text(nameField).trim() : "";
   return {
     state: issues.length === 0 ? "Valid" : "Invalid",
@@ -529,8 +611,58 @@ export async function validateRow(
   };
 }
 
-/** Targets whose imports name a running order or a project (P3). */
-const DESTINATION_TARGETS: ReadonlySet<string> = new Set(["cues", "guest_list_entries"]);
+/** A row's standing rate from the rate, rate_currency and rate_type cells, through the import's number format. */
+function checkPoolRate(
+  raw: Readonly<Record<string, { value: string; column: number }>>,
+  columnOf: (field: string) => number,
+  pools: PoolInvitationContext | undefined,
+  values: Row,
+  issues: CellIssue[],
+): void {
+  const rate = raw["rate"]?.value.trim() ?? "";
+  if (!rate) return;
+  const column = columnOf("rate");
+  if (!pools?.canWriteRates) {
+    issues.push({ columnIndex: column, issue: "rate_not_permitted" });
+    return;
+  }
+  const parsed = parseRate(
+    rate,
+    pools.numberFormat,
+    (code) => pools.exponents.get(code),
+    pools.baseCurrency,
+    raw["rate_currency"]?.value ?? null,
+  );
+  if (!parsed.ok) {
+    issues.push({ columnIndex: column, issue: parsed.issue });
+    return;
+  }
+  const cell = raw["rate_type"]?.value.trim() ?? "";
+  const named = cell ? rateTypeOf(cell) : null;
+  if (cell && named === null) {
+    issues.push({ columnIndex: columnOf("rate_type"), issue: "rate_type_required" });
+    return;
+  }
+  if (parsed.basis && named && parsed.basis !== named) {
+    issues.push({ columnIndex: column, issue: "rate_type_conflict" });
+    return;
+  }
+  const basis = parsed.basis ?? named;
+  if (basis === null) {
+    issues.push({ columnIndex: column, issue: "rate_type_required" });
+    return;
+  }
+  values["rate_minor"] = parsed.minor;
+  values["currency_code"] = parsed.currency;
+  values["rate_type"] = basis;
+}
+
+/** Targets matched through app.import_strong_key_match, by the keys of their checked values (P3, B10). */
+const DESTINATION_TARGETS: ReadonlySet<string> = new Set([
+  "cues",
+  "guest_list_entries",
+  "pool_invitations",
+]);
 
 /**
  * The strong keys of a cue or guest row, from its checked values (C9, C10): a cue's position, or without one its
@@ -553,6 +685,11 @@ function destinationStrongKeys(targetCode: string, values: Row): Record<string, 
     const guest_name = name.trim().toLowerCase();
     return show === null ? { guest_name } : { guest_name, scope_node_id: show };
   }
+  if (targetCode === "pool_invitations") {
+    const email = str("email");
+    const pool = str("talent_pool_id");
+    return email === null || pool === null ? {} : { email, talent_pool_id: pool };
+  }
   return null;
 }
 
@@ -561,11 +698,12 @@ const DUPLICATE_COLUMN_FIELD: Readonly<Record<string, string>> = {
   position: "position",
   label: "label",
   guest_name: "guest_name",
+  email: "email",
 };
 
 /**
  * Marks every row whose strong key repeats an earlier row of the file Invalid with duplicate_in_file (C10): a cue's
- * position, or its label and time without one; a guest's name and show. Run over the whole sheet, in validation and
+ * position, or its label and time without one; a guest's name and show; a pool invitation's email and pool. Run over the whole sheet, in validation and
  * again at commit, so two rows never update the same cue or guest. Other targets are returned as they are.
  */
 export function markInFileDuplicates(
@@ -602,6 +740,9 @@ async function destinationOf(store: ImportStore, job: ImportJobRecord): Promise<
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { project: { id: job.projectId } };
+  }
+  if (job.targetCode === "pool_invitations") {
+    return { pools: await store.lookups.poolInvitationContext(job) };
   }
   return {};
 }
@@ -906,7 +1047,17 @@ async function commit(
       continue;
     }
     try {
+      // A decided Merged review means the person is already invited or in a pool, and the candidate may be a pool member,
+      // so nothing is written. Kept Separate goes on to a new invitation.
+      if (job.targetCode === "pool_invitations" && valid.mergeInto) {
+        await store.skipRow(valid.id, "Already invited or in a pool: merged in review.");
+        continue;
+      }
       const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (job.targetCode === "pool_invitations" && target) {
+        await updatePoolInvitation(store, batchId, valid.id, target, checked.values);
+        continue;
+      }
       if (target) {
         const changes = updateChanges(job.targetCode, checked.values);
         if (job.targetCode === "cues" && (await store.lookups.cueCalled(target))) {
@@ -933,12 +1084,51 @@ async function commit(
       }
     } catch (error) {
       if (!(error instanceof ImportWriteError)) throw error;
-      await store.refuseRow(valid.id, error.message.slice(0, 1000));
+      // Someone who declined within 12 months is not invited again, which is not a failure of the row.
+      if (error.message.startsWith("pool_invitation_declined")) {
+        await store.skipRow(valid.id, error.message.slice(0, 1000));
+      } else await store.refuseRow(valid.id, error.message.slice(0, 1000));
     }
   }
   await store.finishBatch(batchId);
   return notifyFinished(store, job, batchId, options);
 }
+
+/**
+ * A pool invitation row that matched a pending invitation: its fields are updated with no new email, and an expired one
+ * is reissued, which queues the email. The rate is set only when the invitation has none: the update's before image is
+ * readable by every pool writer, so a rate that is already there never reaches it, and the row result says so.
+ */
+async function updatePoolInvitation(
+  store: ImportStore,
+  batchId: string,
+  rowId: string,
+  target: string,
+  values: Row,
+): Promise<void> {
+  const existing = await store.lookups.poolInvitation(target);
+  if (existing === null) throw new ImportWriteError("The invitation to update no longer exists.");
+  const { rate_minor: rate, rate_type: basis, currency_code: currency, ...rest } = updateChanges(
+    "pool_invitations",
+    values,
+  );
+  const changes: Row = { ...rest };
+  const keptRate = existing.hasRate && rate !== undefined;
+  if (!existing.hasRate && rate !== undefined) {
+    changes["rate_minor"] = rate;
+    changes["rate_type"] = basis;
+    changes["currency_code"] = currency;
+  }
+  if (new Date(existing.expiresAt).getTime() <= Date.now()) {
+    changes["expires_at"] = new Date(Date.now() + POOL_INVITATION_DAYS * 86_400_000).toISOString();
+  }
+  const before = await store.lookups.update("pool_invitations", target, changes);
+  await store.commitWrite({ rowId, batchId, targetId: target, action: "Updated", before });
+  if (keptRate) await store.noteRow(rowId, "pool_rate_kept");
+}
+
+/** How long a reissued pool invitation stays open: the default of app.invite_to_talent_pool. */
+const POOL_INVITATION_DAYS = 30;
 
 /**
  * What an update or merge may change (C11): a counterparty keeps its name; a cue keeps its running order and position;
@@ -949,6 +1139,7 @@ function updateChanges(targetCode: string, values: Row): Row {
     counterparties: ["name"],
     cues: ["run_of_show_id", "project_id", "position"],
     guest_list_entries: ["project_id", "guest_name", "scope_node_id"],
+    pool_invitations: ["talent_pool_id", "email", "invited_by"],
   };
   const keep = kept[targetCode] ?? [];
   return Object.fromEntries(Object.entries(values).filter(([key]) => !keep.includes(key)));
@@ -968,6 +1159,10 @@ async function createValues(store: ImportStore, job: ImportJobRecord, values: Ro
   }
   if (job.targetCode === "guest_list_entries" && job.projectId) {
     return { ...values, project_id: job.projectId, entry_state: "Requested" };
+  }
+  if (job.targetCode === "pool_invitations") {
+    if (!job.createdBy) throw new ImportWriteError("This import has no inviter.");
+    return { ...values, invited_by: job.createdBy };
   }
   return values;
 }
@@ -1061,6 +1256,7 @@ const TABLES: Readonly<Record<string, string>> = {
   asset_units: "asset_units",
   cues: "cues",
   guest_list_entries: "guest_list_entries",
+  pool_invitations: "talent_pool_invitations",
 };
 
 /** Trimmed, lower-case text for a name match, as the database compares names (private.fuzzy_candidates). */
@@ -1308,6 +1504,67 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
       const row = await one(app.from("cues").select("called_at").eq("id", id), "cues");
       return typeof row?.["called_at"] === "string";
     },
+    async talentPoolIdByName(orgId, name) {
+      const { data, error } = await app
+        .from("talent_pools")
+        .select("id, name")
+        .eq("org_id", orgId)
+        .eq("pool_kind", "Talent")
+        .is("deleted_at", null);
+      if (error) throw new Error(`talent_pools: ${error.message}`);
+      return onlyMatch((data as Row[] | null) ?? [], name, "name");
+    },
+    async roleCode(codeOrTitle) {
+      const wanted = codeOrTitle.trim();
+      const byCode = await one(
+        canon.from("role").select("role_code").eq("role_code", wanted).limit(1),
+        "role",
+      );
+      if (byCode) return text(byCode, "role_code");
+      const { data, error } = await canon
+        .from("role")
+        .select("role_code, job_title")
+        .ilike("job_title", wanted.replace(/[%_\\]/g, "\\$&"));
+      if (error) throw new Error(`role: ${error.message}`);
+      const rows = (data as Row[] | null) ?? [];
+      return rows.length === 1 ? text(rows[0], "role_code") : null;
+    },
+    async poolInvitationContext(job) {
+      const [can, defaults, currencies] = await Promise.all([
+        call("import_job_can_write_rates", { p_import_job_id: job.id }),
+        call("import_job_org_defaults", { p_import_job_id: job.id }),
+        app.from("currencies").select("currency_code, minor_unit_exponent"),
+      ]);
+      if (currencies.error) throw new Error(`currencies: ${currencies.error.message}`);
+      const org = ((defaults as Row[] | null) ?? [])[0];
+      return {
+        talentPoolId: job.talentPoolId ?? null,
+        numberFormat: job.numberFormat ?? "comma-dot",
+        canWriteRates: can === true,
+        language: typeof org?.["language"] === "string" ? org["language"] : null,
+        baseCurrency: typeof org?.["base_currency"] === "string" ? org["base_currency"] : null,
+        exponents: new Map(
+          ((currencies.data as Row[] | null) ?? []).map((c) => [
+            text(c, "currency_code").trim(),
+            Number(c["minor_unit_exponent"]),
+          ]),
+        ),
+      };
+    },
+    async poolInvitation(id) {
+      const row = await one(
+        app
+          .from("talent_pool_invitations")
+          .select("expires_at, rate_minor")
+          .eq("id", id)
+          .is("claimed_at", null)
+          .is("declined_at", null)
+          .is("revoked_at", null)
+          .is("deleted_at", null),
+        "talent_pool_invitations",
+      );
+      return row ? { expiresAt: text(row, "expires_at"), hasRate: row["rate_minor"] !== null } : null;
+    },
     async update(targetCode, id, values) {
       const table = TABLES[targetCode];
       if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -1347,7 +1604,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url, project_id, run_of_show_id, talent_pool_id, number_format, created_by",
           )
           .eq("id", id)
           .is("deleted_at", null),
@@ -1368,6 +1625,9 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             sourceUrl: optional("source_url"),
             projectId: optional("project_id"),
             runOfShowId: optional("run_of_show_id"),
+            talentPoolId: optional("talent_pool_id"),
+            numberFormat: (optional("number_format") as NumberFormat | null) ?? "comma-dot",
+            createdBy: optional("created_by"),
           }
         : null;
     },
@@ -1637,6 +1897,18 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     async refuseRow(rowId, reason) {
       await exec(
         app.from("import_row_results").update({ row_state: "Refused", reason }).eq("id", rowId),
+        "import_row_results",
+      );
+    },
+    async skipRow(rowId, reason) {
+      await exec(
+        app.from("import_row_results").update({ row_state: "Skipped", reason }).eq("id", rowId),
+        "import_row_results",
+      );
+    },
+    async noteRow(rowId, reason) {
+      await exec(
+        app.from("import_row_results").update({ reason }).eq("id", rowId),
         "import_row_results",
       );
     },

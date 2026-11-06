@@ -428,6 +428,7 @@
     "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
     "action": "Iniciar sesión en Gateway",
     "poolSubject": "{inviterName} te invita a unirte a la lista de equipo de {orgName}",
-    "poolRole": "Rol: {jobTitle}"
+    "poolRole": "Rol: {jobTitle}",
+    "poolHow": "Inicia sesión en Gateway con esta dirección y acepta en Inicio antes del {expiresAt, date, long}. ¿No lo esperabas? Ignóralo."
   }
 }

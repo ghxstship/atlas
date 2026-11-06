@@ -428,6 +428,7 @@
     "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
     "action": "Sign in to Gateway",
     "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
-    "poolRole": "Role: {jobTitle}"
+    "poolRole": "Role: {jobTitle}",
+    "poolHow": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. Not expecting this? Ignore it."
   }
 }

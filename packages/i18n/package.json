@@ -11,6 +11,7 @@
     "./load": "./src/load.ts",
     "./formats": "./src/formats/index.ts",
     "./units": "./src/formats/units.ts",
+    "./phone": "./src/formats/phone.ts",
     "./extracts": "./src/extracts.generated.ts",
     "./messages/*": "./messages/*"
   },

@@ -970,3 +970,128 @@ export async function replyToRating(
     .insert(derivedRow<"rating_replies">({ rating_id: input.ratingId, body: input.body.trim() }));
   return error ? fail(toDataError(error)) : ok(null);
 }
+
+// Generated engagement documents, the party's side (B10, 2994) -------------------------------------------------------
+
+export interface DocumentText {
+  readonly documentId: string;
+  readonly engagementId: string;
+  readonly title: string;
+  /** Null when the caller reads it masked: a representative without Settlement scope and a text with a rate. */
+  readonly body: string | null;
+  readonly bodySha256: string | null;
+  readonly bodyMasked: boolean;
+  readonly signedName: string | null;
+  readonly signedAt: string | null;
+}
+
+/** The sent, generated texts of an engagement the caller's documents area opens. */
+export async function listDocumentTexts(db: XosClient, engagementId: string): Promise<Result<DocumentText[]>> {
+  const { data, error } = await db
+    .schema("api_external")
+    .from("engagement_document_texts")
+    .select("id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at")
+    .eq("engagement_id", engagementId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      documentId: r.id as string,
+      engagementId: r.engagement_id as string,
+      title: r.title as string,
+      body: r.body,
+      bodySha256: r.body_sha256,
+      bodyMasked: r.body_masked === true,
+      signedName: r.signed_name,
+      signedAt: r.signed_at,
+    })),
+  );
+}
+
+/** Signs a generated document with the typed name and the hash of the text the party read. */
+export async function signDocumentText(
+  db: XosClient,
+  input: { readonly documentId: string; readonly signedName: string; readonly bodySha256: string },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("sign_engagement_document_text", {
+    p_document_id: input.documentId,
+    p_signed_name: input.signedName,
+    p_body_sha256: input.bodySha256,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+/** Declines a sent document with a reason, the party's Sent to Canceled. */
+export async function declineDocument(
+  db: XosClient,
+  input: { readonly documentId: string; readonly reason: string },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("decline_engagement_document", {
+    p_document_id: input.documentId,
+    p_reason: input.reason,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+// Crew registrations, the registrant's side (B10, 2992) --------------------------------------------------------------
+
+export interface MyRegistration {
+  readonly id: string;
+  readonly orgName: string | null;
+  readonly orgSlug: string | null;
+  readonly pageTitle: string | null;
+  readonly pageSlug: string | null;
+  readonly state: Database["app"]["Enums"]["crew_registration_state"];
+  readonly submittedAt: string | null;
+  readonly decidedAt: string | null;
+}
+
+/** The caller's own registrations: never the pool, never a decision's reason. */
+export async function myRegistrations(db: XosClient): Promise<Result<MyRegistration[]>> {
+  const { data, error } = await db
+    .schema("api_external")
+    .from("my_crew_registrations")
+    .select("id, org_name, org_slug, page_title, page_slug, registration_state, submitted_at, decided_at")
+    .order("submitted_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      id: r.id as string,
+      orgName: r.org_name,
+      orgSlug: r.org_slug,
+      pageTitle: r.page_title,
+      pageSlug: r.page_slug,
+      state: r.registration_state as MyRegistration["state"],
+      submittedAt: r.submitted_at,
+      decidedAt: r.decided_at,
+    })),
+  );
+}
+
+export async function submitRegistration(
+  db: XosClient,
+  input: {
+    readonly orgSlug: string;
+    readonly pageSlug: string;
+    readonly answers: readonly { questionId: string; answer: string }[];
+    readonly ageConfirmed: boolean;
+    readonly profileShareId?: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db.rpc("submit_crew_registration", {
+    p_org_slug: input.orgSlug,
+    p_page_slug: input.pageSlug,
+    p_answers: input.answers.map((a) => ({ question_id: a.questionId, answer: a.answer })),
+    p_age_confirmed: input.ageConfirmed,
+    ...(input.profileShareId ? { p_profile_share_id: input.profileShareId } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data as string });
+}
+
+export async function withdrawRegistration(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await db.rpc("withdraw_crew_registration", { p_registration_id: id });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}

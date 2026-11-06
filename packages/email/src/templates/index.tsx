@@ -80,11 +80,14 @@ export interface TemplateProps {
    * into it, because the invitation is claimed by the confirmed email the person signs in with.
    */
   readonly party_invitation: {
-    readonly kind: "account" | "roster";
+    readonly kind: "account" | "roster" | "pool";
     readonly inviterName: string;
     readonly accountName: string;
     readonly projectName: string;
     readonly partyName: string;
+    /** A pool invitation names the org and the role, never the pool (B10). */
+    readonly orgName?: string;
+    readonly jobTitle?: string;
     readonly expiresAt: Date;
     readonly signInUrl: string;
   };
@@ -339,11 +342,16 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
               inviterName: p.inviterName,
               accountName: p.accountName,
             })
-          : ctx.t("party_invitation.rosterSubject", {
-              inviterName: p.inviterName,
-              partyName: p.partyName,
-              projectName: p.projectName,
-            });
+          : p.kind === "pool"
+            ? ctx.t("party_invitation.poolSubject", {
+                inviterName: p.inviterName,
+                orgName: p.orgName ?? "",
+              })
+            : ctx.t("party_invitation.rosterSubject", {
+                inviterName: p.inviterName,
+                partyName: p.partyName,
+                projectName: p.projectName,
+              });
       return {
         subject,
         element: (
@@ -356,7 +364,14 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             transactional
             action={{ label: ctx.t("party_invitation.action"), url: p.signInUrl }}
           >
-            <Paragraph>{ctx.t("party_invitation.how", { expiresAt: p.expiresAt })}</Paragraph>
+            {p.kind === "pool" && p.jobTitle ? (
+              <Paragraph>{ctx.t("party_invitation.poolRole", { jobTitle: p.jobTitle })}</Paragraph>
+            ) : null}
+            <Paragraph>
+              {ctx.t(p.kind === "pool" ? "party_invitation.poolHow" : "party_invitation.how", {
+                expiresAt: p.expiresAt,
+              })}
+            </Paragraph>
           </Layout>
         ),
       };

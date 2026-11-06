@@ -23,6 +23,7 @@
   "dependencies": {
     "@supabase/realtime-js": "2.117.3",
     "@supabase/supabase-js": "2.117.3",
+    "@xos/i18n": "workspace:*",
     "@xos/schemas": "workspace:*",
     "exceljs": "4.4.0",
     "pdf-lib": "1.17.1",
