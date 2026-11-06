@@ -73,15 +73,18 @@ call them, as R10's `submit_advance_typed` calls `private.record_advance_answer`
 Every portal write looks its cue up with `run_of_show_id = link.run_of_show_id` in the query. A miss answers one
 `showcaller_link_scope` body, the same for another running order, project or org and for an id that does not exist,
 and writes nothing but a rate event; 20 such answers by one grant in 10 minutes delete the grant. The portal edits,
-moves and removes uncalled cues only, never removes an artist's set time, and never edits the running order itself,
-its set times, the segment library or custom values. In a read-only org every write is refused before anything is
+moves and removes uncalled cues only. It never creates or removes a set-time link, never removes a cue linked to an
+artist's set, and never edits the running order itself, the segment library or custom values. It can retime or rename
+a linked cue through edit or nudge, as a holder of `show.run_of_show.write` can, and the artist then reads the new
+time: a nudge on a late show must move the set. The owner accepts this with the limits. In a read-only org every write is refused before anything is
 written: the 1063 trigger fires only for a person, and the portal has none.
 
 ### 6. Limits
 
 - A link lasts at most 14 days; by default to the end of the day after the show in the project's zone (P1's
   display default), and a show day already past gets now plus one day. The create dialog warns when a chosen day
-  ends before the show.
+  ends before the show. A chosen day ends at the end of that day in the project's zone (W8), still under the ceiling.
+  P1's `lib/live-links/expiry.ts` has the same UTC rule and has shipped; correcting it is a recorded follow-up.
 - A device grant lasts 48 hours or to the link's expiry, whichever is first; a link serves at most 5 devices.
 - At most 5 live links per running order.
 - 5 wrong codes lock the link; a locked link keeps serving devices that proved the code (P1 decision 5).
@@ -104,6 +107,12 @@ Client (Gateway). Crew is presentation only: members read every value their acce
 enforced by `api_public.showcaller_run` and Client by `api_external.cue_field_values`. Neither outside audience takes
 a Person, Money or Email field. Every new cue field starts with Crew.
 
+A required cue field gets its value on the next value write, by 2110's rule. The add-cue form does not show custom
+fields, and cannot within the seven-field limit; library inserts, portal adds and imports also create cues without
+values. That is 2110's rule, not a gap. The editor's Fields tab uses A117's `CustomFieldsSection`, which shows one
+input per field, so an org with more than seven live cue fields passes the seven-field limit on that tab. Org-defined
+fields are unbounded and the component is shared; this is a known residue.
+
 ### 8. Colors are the themed categorical tokens
 
 A custom field choice and a segment take one of `cat-1` to `cat-7`, the `color.viz.cat-*` tokens in light, dark and
@@ -122,7 +131,7 @@ so. Copies with a called cue (Called) or a set time (Linked) are left untouched;
 without one, answers No Instance, so publishing never brings back what a member removed. The version is the
 database's counter.
 
-### 10. Clients are kept out of the show channel at four doors
+### 10. Clients are kept out of the show channel at four doors and the group row
 
 A show channel is a Project group marked `show_channel`, at most one live per project, made only by
 `app.open_show_channel`. Add: nobody engaged as Client on the project is added, and the channel is seeded only with
@@ -132,11 +141,10 @@ channel for a person who reaches the project as Client, so a member who becomes 
 `private.assert_audience` refuses a show channel as a Group audience (`show_channel_audience`), so no feed post,
 announcement, survey or event is ever addressed to it.
 
-What the exclusion leaves: `private.my_group_ids` (0800) is unchanged, so a member who joined the channel and became a
-Client afterwards still sees the group's row and its member list. The messages, their previews, the unread count and
-the notifications are what the channel holds, and those stay closed. A member who is a Client when the channel opens, or when they try
-to join, is never in the group at all. Narrowing `private.my_group_ids` as well would touch every group policy and
-audience check of the org for a case an Owner resolves by removing the member from the group.
+The group row is closed too. `private.my_group_ids` drops the same channels, over only the person's own show channels
+so ordinary groups keep their cost. Comments and attachments on a group read through the group's own policy
+(`private.can_read_subject`), so a member turned Client reads no group row, member list, comment or attachment.
+Holders of `org.communication.write` still read the group by that policy's other arm, so an Owner can resolve it.
 
 The panel sits beside the showcaller console in live mode, and the show shortcuts answer only in the console (ADR
 0131): live mode marks no show scope region, so a key pressed on the panel (Space on its buttons, letters in its

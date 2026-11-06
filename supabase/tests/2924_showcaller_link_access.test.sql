@@ -1,6 +1,6 @@
 -- pgTAP: migration 2924, B3 (RRR-227, ADR 0142). The anonymous side of showcaller links, and the proof that a valid
--- token and grant for running order R1 reach nothing else: every write aimed at a cue of R2 in the same project, of
--- another project, of another org, or at an id that does not exist answers the same showcaller_link_scope body and
+-- token and grant for running order R1 reach nothing else: every write aimed at a cue of another running order of the
+-- same stage (R1B), of another stage (R2), of another project, of another org, or at an id that does not exist answers the same showcaller_link_scope body and
 -- changes no cue, department call or audit event; 20 such answers delete the grant; the read answers R1's rows only,
 -- never a person or the note. Also: a read-only transaction is refused first, tokens never cross kinds or links, the
 -- writes the portal may make (attributed to the link), the field allowlist and stale edits, the device cap, a locked
@@ -96,7 +96,19 @@ insert into app.cues (run_of_show_id, position, label, segment, planned_at, dura
 insert into world select 'q' || c.position, c.id from app.cues c where c.run_of_show_id = pg_temp.id('r1');
 select app.save_cue_calls(pg_temp.id('q1'), '{"Lighting": "LX 1 GO"}');
 select app.set_segment_color(pg_temp.id('r1'), 'Act II', 'cat-6');
-with x as (insert into app.run_of_show (project_id, name, show_date) values (pg_temp.id('prj_a'), 'Second Night', current_date + 6) returning id)
+-- R1B: the same stage on another show date. R2: another stage of the same project.
+with x as (insert into app.run_of_show (project_id, scope_node_id, name, show_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('show_a'), 'Closing Night', current_date + 8) returning id)
+  insert into world select 'r1b', id from x;
+insert into app.cues (run_of_show_id, position, label) values (pg_temp.id('r1b'), 1, 'R1B Doors');
+insert into world select 'r1bq1', c.id from app.cues c where c.run_of_show_id = pg_temp.id('r1b');
+select pg_temp.as_platform();
+insert into app.scope_nodes (project_id, parent_id, scope_kind, scope_code, name)
+values (pg_temp.id('prj_a'), pg_temp.id('root_a'), 'Show', 'NWL-E02', 'Second Stage');
+insert into world select 'stage_2', n.id from app.scope_nodes n where n.project_id = pg_temp.id('prj_a') and n.scope_code = 'NWL-E02';
+select pg_temp.as_user('dave');
+with x as (insert into app.run_of_show (project_id, scope_node_id, name, show_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('stage_2'), 'Second Night', current_date + 6) returning id)
   insert into world select 'r2', id from x;
 insert into app.cues (run_of_show_id, position, label) values (pg_temp.id('r2'), 1, 'R2 Doors');
 insert into world select 'r2q1', c.id from app.cues c where c.run_of_show_id = pg_temp.id('r2');
@@ -253,6 +265,16 @@ select pg_temp.as_platform();
 select results_eq(format('select called_by = %L, called_via_link_id is null from app.cues where id = %L', pg_temp.id('dave'), pg_temp.id('q2')),
   $$values (true, true)$$, 'a signed-in call still names the person');
 
+-- A nudge moves a linked set time and leaves its link -------------------------------------------------------------------------
+insert into k values ('q4_planned', null, (select planned_at::text from app.cues where id = pg_temp.id('q4')));
+insert into k select 'q4_link', ec.id, null from app.engagement_cues ec where ec.cue_id = pg_temp.id('q4');
+select is(pg_temp.w('l1', 'g1', 'showcaller_shift_plan', '60') ->> 'status', 'ok', 'a nudge on a late show');
+select is((select planned_at from app.cues where id = pg_temp.id('q4')), pg_temp.val('q4_planned')::timestamptz + interval '60 seconds',
+  'moves a cue linked to an artist''s set, so the artist reads the new time');
+select results_eq(format('select id, engagement_id from app.engagement_cues where cue_id = %L', pg_temp.id('q4')),
+  format('values (%L::uuid, %L::uuid)', pg_temp.k('q4_link'), pg_temp.id('eng_art_a')), 'and its set-time link stays as it was');
+select is((select deleted_at from app.cues where id = pg_temp.id('q4')), null::timestamptz, 'and so does the cue');
+
 -- The per-cue flags the portal needs: called through a link, and an artist's set time ---------------------------------------------
 insert into k values ('read2', null, pg_temp.run('l1', 'g1')::text);
 create function pg_temp.cue_of(p_label text) returns jsonb
@@ -292,7 +314,8 @@ declare
   v_args text;
 begin
   foreach v_op in array p_ops loop
-    foreach v_target in array array[pg_temp.id('r2q1')::text, pg_temp.id('r3q1')::text, pg_temp.id('r4q1')::text, gen_random_uuid()::text] loop
+    foreach v_target in array array[pg_temp.id('r1bq1')::text, pg_temp.id('r2q1')::text, pg_temp.id('r3q1')::text, pg_temp.id('r4q1')::text,
+        gen_random_uuid()::text] loop
       v_args := case v_op
         when 'showcaller_move_cue' then format('%L, 1', v_target)
         when 'showcaller_save_cue' then format($a$%L, '{"label": "Hijack"}', now()$a$, v_target)
@@ -304,10 +327,12 @@ begin
 end $$;
 select pg_temp.scope_round('g1', array['showcaller_call_cue', 'showcaller_standby_cue', 'showcaller_move_cue']);
 select pg_temp.scope_round('g2', array['showcaller_save_cue', 'showcaller_remove_cue', 'showcaller_save_cue_calls']);
-select is((select count(*)::int from scope_answers), 24, 'every write was aimed at a cue of R2, another project, another org and a random id');
+select is((select count(*)::int from scope_answers), 30,
+  'every write was aimed at a cue of another running order of the stage, another stage, another project, another org and a random id');
 select is((select array_agg(distinct body::text) from scope_answers), array['{"reason": "showcaller_link_scope", "status": "refused"}'],
   'and every one answered the same showcaller_link_scope body');
 select is(pg_temp.snapshot(), pg_temp.val('before'), 'no cue, department call or audit event changed anywhere');
+select is((select label from app.cues where id = pg_temp.id('r1bq1')), 'R1B Doors', 'the same stage''s other night is untouched');
 select is((select label from app.cues where id = pg_temp.id('r2q1')), 'R2 Doors', 'R2''s cue is untouched');
 select is((select called_at from app.cues where id = pg_temp.id('r4q1')), null::timestamptz, 'and another org''s cue was not called');
 

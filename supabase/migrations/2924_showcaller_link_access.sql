@@ -35,9 +35,11 @@
 --     come back as JSON (XR001's hint, as 2730), as do bad field values (showcaller_cue_field); rate and scope counts
 --     are written outside that block, so they persist. Each write adds one showcaller_link.write audit event naming
 --     the link, the operation and the cue.
---   * The portal edits, removes and gives department calls to uncalled cues only (showcaller_cue_called), never
---     removes a cue linked to an artist's set time (showcaller_cue_linked), and never edits the running order itself,
---     its set times, the segment library or custom values.
+--   * The portal edits, removes and gives department calls to uncalled cues only (showcaller_cue_called). It never
+--     creates or removes a set-time link and never removes a linked cue (showcaller_cue_linked), and never edits the
+--     running order itself, the segment library or custom values. It can retime or rename a linked cue through edit or
+--     nudge, as a holder of show.run_of_show.write can, and the artist then reads the new time: a nudge on a late show
+--     must move the set (ADR 0142 decision 5, and an owner step accepts it).
 
 -- The cores ----------------------------------------------------------------------------------------------------------------
 

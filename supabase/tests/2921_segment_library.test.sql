@@ -1,4 +1,4 @@
--- pgTAP: migration 2921, B3 (RRR-227, ADR 0142). The segment library: org-wide policies, a version the database keeps
+-- pgTAP: migration 2921, B3 (RRR-227, ADR 0142). The segment library: policies that follow the running order's read capability, a version the database keeps
 -- (once per changing statement), at most 100 cues per segment, insertion into a running order (place, renumbering,
 -- planned times, department calls, color, the refusals and the 300-cue cap), the instance and cue guards, publishing
 -- (Published, Current, Called, Linked and No Instance, no other run touched) and Trash membership.
@@ -88,9 +88,26 @@ select is(pg_temp.try('gina', format($$update app.segment_library set name = 'Mi
   'a viewer''s update runs');
 select is((select name from app.segment_library where id = pg_temp.k('awards')), 'Awards', 'but changes nothing: writing takes show.run_of_show.write org-wide');
 select pg_temp.as_user('gina');
-select is((select count(*)::int from app.segment_library_cues where segment_library_id = pg_temp.k('awards')), 3, 'every member reads the library');
+select is((select count(*)::int from app.segment_library_cues where segment_library_id = pg_temp.k('awards')), 3, 'an org-wide reader of running orders reads the library');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.segment_library where id = pg_temp.k('awards')), 0, 'another org does not');
+select pg_temp.as_platform();
+
+-- A member with no reach to a running order reads no library script or call; an assigned reader lists it to insert.
+select pg_temp.new_user('rune', 'rune@northwind.test', 'Rune Halvorsen');
+insert into app.memberships (org_id, person_id) values (pg_temp.id('org_a'), pg_temp.id('rune'));
+insert into world select 'rune@org_a', m.id from app.memberships m where m.person_id = pg_temp.id('rune') and m.org_id = pg_temp.id('org_a');
+select pg_temp.as_user('rune');
+select is((select count(*)::int from app.segment_library where id = pg_temp.k('awards')), 0, 'a member with no show access reads no segment');
+select is((select count(*)::int from app.segment_library_cues where segment_library_id = pg_temp.k('awards')), 0, 'no library cue');
+select is((select count(*)::int from app.segment_library_cue_calls where segment_library_cue_id = pg_temp.k('lc1')), 0, 'and no department call');
+select pg_temp.as_user('alice');
+insert into app.user_capability_grants (membership_id, capability_code, scope_kind, scope_id, reason) values
+  (pg_temp.id('rune@org_a'), 'show.run_of_show.read', 'project', pg_temp.id('prj_a'), 'Reads one project''s running orders.');
+select pg_temp.as_user('rune');
+select is((select count(*)::int from app.segment_library where id = pg_temp.k('awards')), 1, 'an assigned reader reads the segment');
+select is((select count(*)::int from app.segment_library_cues where segment_library_id = pg_temp.k('awards')), 3, 'its cues');
+select is((select count(*)::int from app.segment_library_cue_calls where segment_library_cue_id = pg_temp.k('lc1')), 2, 'and their department calls');
 select pg_temp.as_platform();
 
 select pg_temp.as_user('alice');

@@ -19,7 +19,7 @@
 --   * api_external.cue_field_values: a Client's view of the Client-audience values of the cues of their projects. It
 --     leaves api_external.cues (2790) as it is.
 --   * app.cues.script: the words spoken on the cue, up to 20,000 characters. Internal, like the description.
---   * app.run_segment_colors: one color per segment name of a running order (ADR 0142 decision 7). The color is a
+--   * app.run_segment_colors: one color per segment name of a running order (ADR 0142 decision 8). The color is a
 --     fact about the segment, so it is stored once, not on every cue: a cue added to the segment shows it, and a
 --     renamed segment simply has no color until one is set. app.set_segment_color sets or clears it.
 -- No column here is classified above Internal. The new tables have default retention (pgTAP 2390: the nightly sweep

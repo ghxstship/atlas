@@ -1,7 +1,7 @@
 -- 2922_show_channels.sql
 -- B3 Show channels (RRR-227, ADR 0142 decision 10; parity gap G-79). The crew talks beside the running cue in a show
 -- channel: the chat of a Project group (0800) marked show_channel, at most one live per project. Clients never take
--- part, at any of the four doors.
+-- part, at any of the four doors, and they do not read the group row either.
 --
 --   * Add: private.guard_group_member, restated from its only definition (0800), refuses a member whose person is
 --     engaged as Client on the channel's project (show_channel_client). private.person_engaged_as answers for another
@@ -11,6 +11,10 @@
 --     reaches as Client, so a member who becomes a Client after joining reads nothing more. One set-based subquery over
 --     the show channels the person is in keeps the Inbox's cost flat. app.my_conversations (1631) read the members
 --     table directly, so it is restated to stay within private.my_conversation_ids: no row, no preview, no count.
+--   * Group row: private.my_group_ids, restated from its only definition (0800), drops the same show channels. Comments
+--     and attachments on a group read through the group's own policy (private.can_read_subject, 0580), so a member who
+--     becomes a Client reads no group row, member list, comment or attachment. Holders of org.communication.write still
+--     read the group by that policy's other arm, so an Owner can resolve it.
 --   * Notify: app.send_chat_message, restated from its latest definition (1393), notifies no Client-engaged member of
 --     a show channel.
 --   * Audience: private.assert_audience, restated from its latest definition (1365), refuses a show channel as a Group
@@ -183,6 +187,28 @@ comment on function private.guard_group_member() is 'Group members keep their gr
 revoke all on function private.guard_group_member() from public, anon, authenticated;
 
 -- Reading: a Client reads no show channel ------------------------------------------------------------------------------------
+
+-- From its only definition (0800), with the show channel exclusion over only the person's own show channels.
+create or replace function private.my_group_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with mine as (
+    select gm.group_id from app.group_members gm
+    where gm.deleted_at is null and gm.membership_id in (select private.my_membership_ids())
+  )
+  select m.group_id from mine m
+  where m.group_id not in (
+    select g.id from app.groups g
+    where g.id in (select x.group_id from mine x) and g.show_channel
+      and private.engaged_as(g.project_id, 'Client'));
+$$;
+comment on function private.my_group_ids() is 'Groups the signed-in person belongs to, less the show channels of projects they reach as Client (2922).';
+revoke all on function private.my_group_ids() from public, anon;
+grant execute on function private.my_group_ids() to authenticated, service_role;
 
 -- From its only definition (0800), with the show channel exclusion.
 create or replace function private.my_conversation_ids()

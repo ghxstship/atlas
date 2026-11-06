@@ -1,8 +1,8 @@
 -- pgTAP: migration 2922, B3 (RRR-227, ADR 0142). Show channels: opening one per project (seeded with the project's
 -- members who read the running order, less Client-engaged people, the opener as Owner, named in the opener's
 -- language), joining, the panel's status, show_channel set only by the database, and Clients kept out at the four
--- doors: a Client is never added, a member who becomes a Client reads no conversation, message or Inbox preview, is
--- never notified, and no feed post, survey or event takes the channel as its audience.
+-- doors: a Client is never added, a member who becomes a Client reads no conversation, message, Inbox preview, group
+-- row, member list, comment or attachment, is never notified, and no feed post, survey or event takes the channel as its audience.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -155,6 +155,15 @@ select is(pg_temp.n('erin', format('select 1 from app.my_conversations(%L) where
   'and sees the channel in her Inbox');
 select is((select count(*)::int from app.notifications where kind = 'message.received' and recipient_person_id = pg_temp.id('erin')), 1,
   'and was notified');
+select pg_temp.as_user('dave');
+insert into k select 'group_comment', app.post_comment('app.groups', pg_temp.k('group'), 'Rail plan is in the space files.'), null;
+with x as (insert into app.attachments (subject_table, subject_id, title) values ('app.groups', pg_temp.k('group'), 'Rail plan') returning id)
+  insert into k select 'group_attachment', id, null from x;
+select pg_temp.as_platform();
+select is(pg_temp.n('erin', format('select 1 from app.groups where id = %L', pg_temp.k('group'))), 1, 'erin reads the group');
+select is(pg_temp.n('erin', format('select 1 from app.group_members where group_id = %L', pg_temp.k('group'))) > 0, true, 'its members');
+select is(pg_temp.n('erin', format('select 1 from app.comments where id = %L', pg_temp.k('group_comment'))), 1, 'its comments');
+select is(pg_temp.n('erin', format('select 1 from app.attachments where id = %L', pg_temp.k('group_attachment'))), 1, 'and its files');
 
 select pg_temp.as_user('alice');
 with x as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
@@ -168,6 +177,13 @@ select is(pg_temp.n('erin', format('select 1 from app.chat_messages where conver
 select is(pg_temp.n('erin', format('select 1 from app.conversations where id = %L', pg_temp.k('conv'))), 0, 'nor the conversation');
 select is(pg_temp.n('erin', format('select 1 from app.my_conversations(%L) where conversation_id = %L', pg_temp.id('org_a'), pg_temp.k('conv'))), 0,
   'and her Inbox lists no row, preview or count from it');
+select is(pg_temp.n('erin', format('select 1 from app.groups where id = %L', pg_temp.k('group'))), 0, 'nor the group row');
+select is(pg_temp.n('erin', format('select 1 from app.group_members where group_id = %L', pg_temp.k('group'))), 0, 'nor its member list');
+select is(pg_temp.n('erin', format('select 1 from app.comments where id = %L', pg_temp.k('group_comment'))), 0, 'nor its comments');
+select is(pg_temp.n('erin', format('select 1 from app.attachments where id = %L', pg_temp.k('group_attachment'))), 0, 'nor its files');
+select is(pg_temp.try('erin', format($$select app.post_comment('app.groups', %L, 'Hello')$$, pg_temp.k('group'))) <> 'ok', true, 'and she adds no comment');
+select is(pg_temp.n('alice', format('select 1 from app.groups where id = %L', pg_temp.k('group'))), 1,
+  'a holder of org.communication.write still reads the group, so an Owner can resolve it');
 select is(pg_temp.status('erin'), 'exists=true member=false join=false open=false conversation=false', 'the panel offers her nothing');
 select pg_temp.as_user('dave');
 select app.send_chat_message(pg_temp.k('conv'), 'Go house to half.');

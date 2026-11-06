@@ -1,10 +1,13 @@
 -- 2921_segment_library.sql
--- B3 Run-of-show depth (RRR-227, ADR 0142 decision 8; parity gap G-73). A segment the org runs in many shows (a
+-- B3 Run-of-show depth (RRR-227, ADR 0142 decision 9; parity gap G-73). A segment the org runs in many shows (a
 -- walk-in, an awards block, a sponsor moment) is kept once in a library and copied into any running order, where it can
 -- be edited locally. When the library copy changes, the producer publishes it to the shows they choose.
 --
---   * app.segment_library: the org's reusable segments. Org-wide: read by every member, written by holders of
---     show.run_of_show.write org-wide (private.orgs_with_capability, 0204). version counts changes and is never accepted
+--   * app.segment_library: the org's reusable segments. Read by whoever reads a running order in the org, org-wide or
+--     on one of its projects (private.segment_library_reader_org_ids): a script or department call here is the same
+--     text as on a cue, so it takes the same capability, and a project-scoped writer can still list the library to
+--     insert from it. Written by holders of show.run_of_show.write org-wide (private.orgs_with_capability, 0204).
+--     version counts changes and is never accepted
 --     from a caller: a change of name, description or color bumps it, and every statement that changes the segment's
 --     cues or their department calls bumps it once.
 --   * app.segment_library_cues and app.segment_library_cue_calls: the segment's cues (at most 100) and their department
@@ -28,6 +31,23 @@ insert into private.domain_event_types (code, subject, description) values
   ('segment_library.inserted', 'run_segment_instances', 'A library segment was copied into a running order.'),
   ('segment_library.published', 'segment_library', 'A library segment''s current version was published to chosen running orders.')
 on conflict (code) do nothing;
+
+-- Who reads the library ---------------------------------------------------------------------------------------------------
+
+create or replace function private.segment_library_reader_org_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select o.org_id from private.orgs_with_capability('show.run_of_show.read') o (org_id)
+  union
+  select pr.org_id from app.projects pr where pr.id in (select private.project_ids_with('show.run_of_show.read'));
+$$;
+comment on function private.segment_library_reader_org_ids() is 'Orgs whose segment library the signed-in person reads: they hold show.run_of_show.read org-wide or on one of the org''s projects. Policies use it as org_id in (select ...) so it runs once per statement (ADR 0142).';
+revoke all on function private.segment_library_reader_org_ids() from public, anon;
+grant execute on function private.segment_library_reader_org_ids() to authenticated, service_role;
 
 -- The library ------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +73,7 @@ call private.describe('app.segment_library', 'Reusable show segments of an org (
   'version', 'Change counter, set by the database: one more for each change of name, description or color and for each statement that changes the segment''s cues or calls. Never accepted from a caller.'
 ]);
 call private.install_policies('app.segment_library',
-  $$org_id in (select private.my_org_ids())$$,
+  $$org_id in (select private.segment_library_reader_org_ids())$$,
   $$org_id in (select private.orgs_with_capability('show.run_of_show.write'))$$);
 call private.install_audit_trail('app.segment_library');
 call private.install_default_retention('app.segment_library');
@@ -87,7 +107,7 @@ call private.describe('app.segment_library_cues', 'Cues of a library segment, at
   'script', 'What is said on the cue, up to 20,000 characters.'
 ]);
 call private.install_policies('app.segment_library_cues',
-  $$org_id in (select private.my_org_ids())$$,
+  $$org_id in (select private.segment_library_reader_org_ids())$$,
   $$org_id in (select private.orgs_with_capability('show.run_of_show.write'))$$);
 call private.install_default_retention('app.segment_library_cues');
 
@@ -108,7 +128,7 @@ call private.describe('app.segment_library_cue_calls', 'Department calls of a li
   'instruction', 'What the department does on the cue.'
 ]);
 call private.install_policies('app.segment_library_cue_calls',
-  $$org_id in (select private.my_org_ids())$$,
+  $$org_id in (select private.segment_library_reader_org_ids())$$,
   $$org_id in (select private.orgs_with_capability('show.run_of_show.write'))$$);
 call private.install_default_retention('app.segment_library_cue_calls');
 
