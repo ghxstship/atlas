@@ -118,9 +118,7 @@ export function StatusHeatmap({
                           detail: cell.detail,
                         })
                       : t("heatmap.cell", { row: r.label, col: c.label, state: stateLabel });
-                  const actionable = Boolean(
-                    cell && !cell.readOnly && (onCellSelect || cell.href),
-                  );
+                  const actionable = Boolean(cell && !cell.readOnly && (onCellSelect || cell.href));
                   const body = cell ? (
                     <span className="inline-flex flex-col gap-2 whitespace-nowrap">
                       <span className="inline-flex items-center gap-4">

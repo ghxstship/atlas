@@ -51,10 +51,25 @@ describe("advance progress", () => {
   it("reads past the API's row cap, a page at a time, on every grid", async () => {
     // max_rows (1,000) cuts a call with no note: 101 people at ten readiness rows each is already past it.
     const full = (row: Record<string, unknown>) => Array.from({ length: 1000 }, () => row);
-    const readiness = { roster_entry_id: "x1", engagement_id: "e1", category: "Contact", cell_state: "Missing" };
-    const progress = { advance_packet_id: "pk1", advance_recipient_id: "r1", advance_section_id: "s1", cell_state: "Missing" };
+    const readiness = {
+      roster_entry_id: "x1",
+      engagement_id: "e1",
+      category: "Contact",
+      cell_state: "Missing",
+    };
+    const progress = {
+      advance_packet_id: "pk1",
+      advance_recipient_id: "r1",
+      advance_section_id: "s1",
+      cell_state: "Missing",
+    };
     const heat = { engagement_id: "e1", kind: "Credential", requested_quantity: 1 };
-    const track = { advance_packet_id: "pk1", advance_recipient_id: "r1", track: "General", track_state: "In Progress" };
+    const track = {
+      advance_packet_id: "pk1",
+      advance_recipient_id: "r1",
+      track: "General",
+      track_state: "In Progress",
+    };
     const { db, calls } = fakeClient({
       "rpc:roster_readiness": [okResponse(full(readiness)), okResponse([readiness])],
       "from:advance_progress": [okResponse(full(progress)), okResponse([progress, progress])],
@@ -103,8 +118,18 @@ describe("advance progress", () => {
     const { db } = fakeClient({
       "from:advance_progress": [
         okResponse([
-          { advance_recipient_id: "r1", recipient_open: false, cell_state: "Missing", overdue: false },
-          { advance_recipient_id: "r2", recipient_open: true, cell_state: "Missing", overdue: true },
+          {
+            advance_recipient_id: "r1",
+            recipient_open: false,
+            cell_state: "Missing",
+            overdue: false,
+          },
+          {
+            advance_recipient_id: "r2",
+            recipient_open: true,
+            cell_state: "Missing",
+            overdue: true,
+          },
         ]),
       ],
     });

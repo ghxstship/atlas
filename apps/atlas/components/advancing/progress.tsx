@@ -136,8 +136,9 @@ export async function AdvancingProgress({
     {
       label: t("advancing.progress.tiles.outstanding"),
       caption: t("advancing.progress.tileCaptions.outstanding"),
-      value: cells.filter((c) => c.recipientOpen && (c.state === "Missing" || c.state === "Returned"))
-        .length,
+      value: cells.filter(
+        (c) => c.recipientOpen && (c.state === "Missing" || c.state === "Returned"),
+      ).length,
     },
     {
       label: t("advancing.progress.tiles.overdue"),

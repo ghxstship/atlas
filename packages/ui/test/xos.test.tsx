@@ -350,9 +350,9 @@ describe("StatusHeatmap", () => {
       name: "Bayside Audio, Hotel: Accepted. Reviewed today",
     });
     expect(within(cell).getByText("Reviewed today")).toBeTruthy();
-    expect(
-      screen.getByRole("gridcell", { name: "Arturo Bell, Power: Missing" }).textContent,
-    ).toBe("Missing");
+    expect(screen.getByRole("gridcell", { name: "Arturo Bell, Power: Missing" }).textContent).toBe(
+      "Missing",
+    );
   });
 
   it("leaves a read-only cell alone and does not offer it", async () => {
