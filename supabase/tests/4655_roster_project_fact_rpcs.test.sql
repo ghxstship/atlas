@@ -123,6 +123,11 @@ select pg_temp.as_user('victor');
 select lives_ok(pg_temp.vehicle('e_mo'), 'the Account Owner enters mo''s vehicle once the project allows it');
 select pg_temp.as_platform();
 select is(pg_temp.notified('mo', 'roster_entry.project_facts_entered', 'e_mo'), 1, 'mo is notified');
+select pg_temp.as_user('pia');
+select lives_ok(pg_temp.vehicle('e_mo', 'Toyota'), 'the Advancing Lead corrects it');
+select pg_temp.as_platform();
+select is(pg_temp.notified('mo', 'roster_entry.project_facts_entered', 'e_mo'), 2, 'each company write queues one notification');
+
 -- ADR 0164: a meal preference needs the company's attestation, and the person is told and removes it.
 select pg_temp.as_user('victor');
 select throws_like(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegetarian')$$, pg_temp.id('e_mo')),
@@ -151,10 +156,6 @@ select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-1
 select pg_temp.as_platform();
 update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.id('e_mo');
 
-select pg_temp.as_user('pia');
-select lives_ok(pg_temp.vehicle('e_mo', 'Toyota'), 'the Advancing Lead corrects it');
-select pg_temp.as_platform();
-select is(pg_temp.notified('mo', 'roster_entry.project_facts_entered', 'e_mo'), 2, 'each company write queues one notification');
 select is((pg_temp.facts('mo', 'e_mo') -> 'entered_by_person' ->> 'vehicle')::boolean, false, 'the company entered it');
 select pg_temp.as_user('mo');
 select lives_ok(pg_temp.vehicle('e_mo', 'Honda'), 'mo overwrites the company row');
