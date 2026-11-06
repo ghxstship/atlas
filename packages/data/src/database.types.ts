@@ -69978,7 +69978,7 @@ export type Database = {
         Returns: string[];
       };
       record_booking_arrival: {
-        Args: { p_dock_slot_id: string; p_vehicle_identifier?: string };
+        Args: { p_dock_slot_id: string; p_event_id?: string; p_vehicle_identifier?: string };
         Returns: string;
       };
       record_chat_message_translation: {
