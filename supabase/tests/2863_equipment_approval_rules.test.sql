@@ -233,6 +233,7 @@ select pg_temp.as_user('carol');
 select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_temp.id('a_both')),
   'allocation_state_conflict:%', 'so a reviewer who writes rules cannot cancel the gate and then approve');
 select is(pg_temp.heard('dave', 'allocation.withdrawn', 'a_both'), 1, 'the requester hears why');
+select pg_temp.as_platform();
 select is((select message_args ->> 'reason' from app.notifications where kind = 'allocation.withdrawn' and subject_id = pg_temp.id('a_both')
            and recipient_person_id = pg_temp.id('dave')), 'Nobody can decide this step.', 'in the rule writer''s words');
 
