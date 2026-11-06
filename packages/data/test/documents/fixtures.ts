@@ -467,6 +467,33 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+  quote: {
+    project,
+    quote: {
+      key: "NWF26-Q-14",
+      versionNumber: 2,
+      title: "Main stage production",
+      clientName: "Coral Group",
+      currency: "USD",
+      validUntil: "2026-12-01",
+      terms: "Half on signature, half before load-in. Zoë Ångström's crew is included.",
+      state: "Sent",
+      issuedAt: "2026-11-02T15:00:00Z",
+      contentSha256: "a".repeat(64),
+      lines: Array.from({ length: 80 }, (_, i) => ({
+        lineNumber: i + 1,
+        description: i === 3 ? "Ångström-grade rigging, 中文字 and emoji 🎸 outside the subset" : `Scope line ${i + 1}`,
+        quantity: 2,
+        unitBasis: "day",
+        unitPriceMinor: 12500,
+        amountMinor: 25000,
+      })),
+      totalMinor: 2000000,
+      acceptedAt: null,
+      acceptedName: null,
+      acceptedEmail: null,
+    },
+  },
   "radio-handout": {
     project,
     lines: [

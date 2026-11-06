@@ -69,7 +69,7 @@ does not replace the gate 3 `is_baseline` budget the final cost report compares 
 `actual_minor` is approved and paid expenses plus approved crew time. Payroll runs post to the journal (0362). Vendor
 invoices are in the Transactions drill-down, not in Actual; they post to the ledger and the final cost report reads
 them there, so nothing counts twice. An org that also records an agency's invoice as an expense would count that labor
-twice; it is told so in help, and no rule stops it.
+twice; no rule stops it.
 
 Actual follows the live shift's `budget_line_id`. A person with `finance.budget.write` who relinks a shift moves its past
 Actual on purpose, and a crew planner without it is refused (`shift_budget_line_posted`). Deleting a shift moves its

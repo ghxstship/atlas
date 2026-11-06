@@ -140,7 +140,7 @@ describe("every template", () => {
     expect(model.facts.labels.qrAlt).toContain(model.facts.recordKey);
     for (const s of strings(model)) {
       expect(s, `${kind} ${locale}`).not.toMatch(
-        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout)\./,
+        /^(common|facts|purchaseOrder|invoice|changeOrder|daySheet|callSheet|runOfShow|beo|credentialBadge|inspectionReport|incidentReport|finalCostReport|agreementCertificate|radioHandout|quote)\./,
       );
     }
   });
@@ -168,6 +168,7 @@ describe("data mapping", () => {
     expect(d("final-cost-report")).toEqual({ recordKey: "NWF26-FCR", issuedAt: NOW.toISOString() });
     expect(d("agreement-certificate").issuedAt).toBe("2026-09-20T18:12:00Z");
     expect(d("radio-handout")).toEqual({ recordKey: "NWF26-RADIOS", issuedAt: NOW.toISOString() });
+    expect(d("quote")).toEqual({ recordKey: "NWF26-Q-14-v2", issuedAt: "2026-11-02T15:00:00Z" });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -328,5 +329,65 @@ describe("helpers", () => {
     expect(f.time("garbage")).toBe("garbage");
     expect(sp(f.money(150, "JPY"))).toBe("JPY 150");
     expect(f.money(150, "ZZ")).toBe("1.50 ZZ");
+  });
+});
+
+describe("the client quote (B13)", () => {
+  const quoteOf = (over: Partial<(typeof FIXTURES)["quote"]["quote"]>) =>
+    ({ ...FIXTURES.quote, quote: { ...FIXTURES.quote.quote, ...over } }) as never;
+  const text = (kindData: never, locale = "en-US") =>
+    strings(
+      buildDocumentModel("quote", kindData, {
+        locale,
+        messages: locale === "en-US" ? EN : ES,
+        brand: { name: "Northwind", legalEntity: null, accentHex: null, logo: null },
+        recordUrl: "https://example.test/q",
+        now: NOW,
+      }),
+    ).join("\n");
+
+  it("prints the fingerprint and tax sentence from Sent, and no signature block", () => {
+    const shown = text(quoteOf({}));
+    expect(shown).toContain("Content fingerprint (SHA-256)");
+    expect(shown).toContain("Prices exclude tax");
+    expect(shown).not.toContain("Name as signed");
+  });
+
+  it("says a Draft is not sent and prints no fingerprint", () => {
+    const shown = text(quoteOf({ state: "Draft", contentSha256: null }));
+    expect(shown).toContain("Draft: not sent");
+    expect(shown).not.toContain("Content fingerprint");
+  });
+
+  it("prints who signed through a link", () => {
+    const shown = text(
+      quoteOf({
+        state: "Accepted",
+        acceptedAt: "2026-11-03T15:00:00Z",
+        acceptedName: "Cleo Marsh",
+        acceptedEmail: "cleo@coral-group.test",
+      }),
+    );
+    expect(shown).toContain("Cleo Marsh");
+    expect(shown).toContain("Signing link with access code, sent to cleo@coral-group.test");
+    expect(shown).toContain("any change to the content changes the fingerprint");
+  });
+
+  it("prints who signed in, in Spanish too", () => {
+    const signed = quoteOf({
+      state: "Accepted",
+      acceptedAt: "2026-11-03T15:00:00Z",
+      acceptedName: "Cleo Marsh",
+      acceptedEmail: null,
+    });
+    expect(text(signed)).toContain("Signed in to Gateway");
+    expect(text(signed, "es-US")).toContain("Con sesión iniciada en Gateway");
+  });
+
+  it("carries no cost, markup, margin or URID", () => {
+    const shown = text(quoteOf({})).toLowerCase();
+    for (const word of ["cost", "markup", "margin", "urid", "5000."]) {
+      expect(shown).not.toContain(word);
+    }
   });
 });
