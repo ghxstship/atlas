@@ -16,7 +16,15 @@ var integrationSyncScope = [
   "Tracking Refresh",
   "Attendance Import",
 ];
+/** app.site_plan_shape_kind */
+var sitePlanShapeKind = ["Route", "Barrier", "Area", "Label"];
 /** app.warehouse_provider */
 var warehouseProvider = ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery", "Snowflake"];
 //#endregion
-export { dataClassification, exportFormat, integrationSyncScope, warehouseProvider };
+export {
+  dataClassification,
+  exportFormat,
+  integrationSyncScope,
+  sitePlanShapeKind,
+  warehouseProvider,
+};

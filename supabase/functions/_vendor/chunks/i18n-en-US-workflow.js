@@ -77,8 +77,8 @@ var refusals = {
   approval_rule_active_delete: "Retire an Active rule before you delete it.",
   approval_rule_filter_project:
     "The filter must belong to this project's org, and a credential category to this project.",
-  approval_rule_equipment_pending:
-    "Equipment rules take effect once equipment requests come from advances. Keep this rule as a Draft until then.",
+  approval_rule_class_no_offering:
+    "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
   approval_rule_pending:
     "This request waits on its approval rule. Approve it once every step is approved.",
   approval_step_engagement:
@@ -186,6 +186,9 @@ var approvals = {
     reasonHelp: "Kept in the approval's history.",
     submit: "Withdraw approval",
     done: "Approval withdrawn.",
+    equipmentHelp:
+      "Kept in the approval's history. This also withdraws the equipment request, and the requester sees why.",
+    equipmentDone: "Approval and equipment request withdrawn.",
   },
   submit: {
     title: "Submit a document for approval",
@@ -347,6 +350,8 @@ var templates = {
     dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
     remove: "Remove",
     removeNamed: "Remove {name}",
+    requiresReview: "Requires review",
+    reviewed: "requires review",
   },
   draft: {
     title: "Draft version {version}",

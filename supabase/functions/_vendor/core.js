@@ -151,7 +151,7 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xadv|xagr|xcal|xcch|xcgr|xdlt|xdoc|xinv|xkio|xlch|xlgr|xlnk|xscl|xscr|xshr|xshv|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
   {
@@ -160,7 +160,7 @@ var VALUE_PATTERNS = [
   },
   {
     pattern:
-      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/)?)[^/?#\s"'<>]+/gi,
+      /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/(?:view\/|screen\/|showcaller\/)?)[^/?#\s"'<>]+/gi,
     replace: (_m, prefix) => `${prefix}[token]`,
   },
   {

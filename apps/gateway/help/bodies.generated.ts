@@ -597,6 +597,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Answers your organization recorded" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "When you answer by email or send a tour book, the organization may record your answer for you from what you sent. Such an answer says ",
+          },
+          { t: "strong", v: "Recorded by" },
+          {
+            t: "text",
+            v: " the organization, and you are told when it happens. If it needs changing, ask them to return it, then answer again.",
+          },
+        ],
+      },
     ],
     "engagement-approvals": [
       {
@@ -882,6 +897,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reuse a roster from a past event" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "If you managed the roster of a past event with the same organization, for the same company or artist, ",
+          },
+          { t: "strong", v: "Reuse a roster from a past event" },
+          {
+            t: "text",
+            v: " adds those people here. Preview first: it lists who is added, which email addresses are invited again and who is skipped and why. People are added as drafts with their arrival moved to the new dates; each person accepts again, and you still submit the roster for the organization's review. Invitations are emailed only when you choose Add to roster.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -1055,6 +1085,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
+          },
+        ],
+      },
+      { t: "h2", v: "The guest's email" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add the guest's email if you have it. The production sends their pass there, with their table and how many they bring, once it approves them. Each email carries a link to stop the organization's emails to that address.",
+          },
+        ],
+      },
+      { t: "h2", v: "Stop guest emails" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest who opens the stop link in an email is asked first, then stops every email from that organization to their address. Nothing changes until they confirm.",
           },
         ],
       },
@@ -1935,6 +1985,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each submittal lists its files, version by version, with the organization's decision: ",
+          },
+          { t: "strong", v: "Approved" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Changes requested" },
+          { t: "text", v: ", with what to change. A new version starts unreviewed." },
         ],
       },
     ],
@@ -3281,6 +3344,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "To add one item, use " },
           { t: "strong", v: "Add to calendar" },
           { t: "text", v: " on the Up next card on Home." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "To keep your calendar up to date instead, " },
+          { t: "strong", v: "Add a feed" },
+          {
+            t: "text",
+            v: " here. Give it a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed's name and content without changing its link." },
         ],
       },
       {
@@ -4636,6 +4712,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Respuestas que registró tu organización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando respondes por correo o envías un libro de gira, la organización puede registrar tu respuesta a partir de lo que enviaste. Esa respuesta indica quién la registró, y se te avisa cuando ocurre. Si necesita cambios, pídele que la devuelva y responde de nuevo.",
+          },
+        ],
+      },
     ],
     "engagement-approvals": [
       {
@@ -4934,6 +5020,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Reutilizar una lista de un evento anterior" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Si administró la lista de un evento anterior con la misma organización, para la misma empresa o artista, ",
+          },
+          { t: "strong", v: "Reutilizar una lista de un evento anterior" },
+          {
+            t: "text",
+            v: " agrega aquí a esas personas. Primero vea la vista previa: muestra a quién se agrega, qué direcciones de correo se invitan de nuevo y a quién se omite y por qué. Las personas se agregan como borradores con su llegada movida a las nuevas fechas; cada persona acepta de nuevo y usted todavía envía la lista para que la organización la revise. Las invitaciones se envían por correo solo cuando elige Agregar a la lista.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -5112,6 +5213,26 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
+          },
+        ],
+      },
+      { t: "h2", v: "El correo del invitado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue el correo del invitado si lo tiene. La producción le envía ahí su pase, con su mesa y cuántas personas lo acompañan, cuando lo aprueba. Cada correo incluye un enlace para dejar de recibir los correos de la organización en esa dirección.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dejar de recibir correos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un invitado que abre el enlace para darse de baja en un correo primero recibe una pregunta y luego deja de recibir todos los correos de esa organización en su dirección. Nada cambia hasta que confirma.",
           },
         ],
       },
@@ -6010,6 +6131,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela.",
           },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada envío muestra sus archivos, versión por versión, con la decisión de la organización: ",
+          },
+          { t: "strong", v: "Aprobado" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Cambios solicitados" },
+          { t: "text", v: ", con lo que hay que cambiar. Una versión nueva empieza sin revisar." },
         ],
       },
     ],
@@ -7396,6 +7530,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Para agregar un solo elemento, usa " },
           { t: "strong", v: "Agregar al calendario" },
           { t: "text", v: " en la tarjeta A continuación de Inicio." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Para mantener tu calendario al día, " },
+          { t: "strong", v: "Agrega un calendario" },
+          {
+            t: "text",
+            v: " aquí. Dale un nombre, que tu calendario muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " cambia el nombre y el contenido sin cambiar el enlace." },
         ],
       },
       {
