@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Combobox, Input, Select, Textarea } from "@xos/ui";
+import { Combobox, Input, Select, Textarea } from "@xos/ui";
 import { useState } from "react";
 import { createMaintenancePlanAction } from "@/app/[org]/assets/actions";
 import { useAssetsCopy } from "./copy";
@@ -83,7 +83,6 @@ export function PlanCreateDialog({
 export function CompletePlanDialog({
   org,
   unitId,
-  unitLabel,
   planId,
   planTitle,
   currency,
@@ -99,7 +98,6 @@ export function CompletePlanDialog({
   today: string;
   setOpen: (open: boolean) => void;
 }) {
-  const t = useAssetsCopy();
   return (
     <MaintenanceForm
       org={org}

@@ -1,16 +1,15 @@
 "use client";
 
-import { Button, InlineAlert, MultiSelect, Select, Tag } from "@xos/ui";
+import { Button, InlineAlert, Select, Tag } from "@xos/ui";
 import type { CrewAccessWorker, CrewAccessWorkerRef } from "@xos/data/crew-access";
 import type { Route } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState } from "react";
 import {
   crewAccessWorkersAction,
   issueCrewAccessLinksAction,
-  type IssuedLink,
   type IssueState,
 } from "@/app/[org]/crew/access-links/actions";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
@@ -24,6 +23,7 @@ const INITIAL: IssueState = {};
 
 const workerKey = (w: CrewAccessWorkerRef) => JSON.stringify(w);
 
+const WorkerPicker = dynamic(() => import("./crew-access-picker").then((m) => m.WorkerPicker));
 const ResultPanel = dynamic(() => import("./crew-access-result").then((m) => m.ResultPanel));
 
 /** Issue links: project, workers and validity. A printed card never carries the code (owner ruling, invariant 8). */
@@ -45,6 +45,7 @@ export function CrewAccessIssue({
   const [project, setProject] = useState(initialProject ?? projects[0]?.id ?? "");
   const [workers, setWorkers] = useState<readonly CrewAccessWorker[]>([]);
   const [picked, setPicked] = useState<string[]>([]);
+  const [choosing, setChoosing] = useState(false);
   useEffect(() => {
     let live = true;
     if (project) {
@@ -88,17 +89,25 @@ export function CrewAccessIssue({
           setPicked([]);
         }}
       />
-      <MultiSelect
-        key={project}
-        label={t("workers")}
-        help={t("workersHelp")}
-        value={picked}
-        options={workers.map((w) => ({
-          value: workerKey(w.ref),
-          label: w.hasLiveLink ? t("workerWithLink", { name: w.personName }) : w.personName,
-        }))}
-        onChange={setPicked}
-      />
+      {choosing ? (
+        <WorkerPicker
+          key={project}
+          label={t("workers")}
+          help={t("workersHelp")}
+          value={picked}
+          options={workers.map((w) => ({
+            value: workerKey(w.ref),
+            label: w.hasLiveLink ? t("workerWithLink", { name: w.personName }) : w.personName,
+          }))}
+          onChange={setPicked}
+        />
+      ) : (
+        <div>
+          <Button type="button" size="sm" onClick={() => setChoosing(true)}>
+            {t("chooseWorkers")}
+          </Button>
+        </div>
+      )}
       <Select
         name="validFor"
         label={t("validFor")}

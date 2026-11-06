@@ -1065,6 +1065,7 @@
       "title": "Issue links",
       "project": "Project",
       "workers": "Workers",
+      "chooseWorkers": "Choose workers",
       "workersHelp": "People with an upcoming Published or Accepted shift on this project.",
       "workerWithLink": "{name} (has a link)",
       "validFor": "Valid for",

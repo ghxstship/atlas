@@ -50,6 +50,7 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
 
   // The workers load for the project chosen; the picker offers the Field lead.
   const form = atlas.getByRole("form", { name: "Issue links" });
+  await form.getByRole("button", { name: "Choose workers" }).click();
   await form.getByRole("combobox", { name: "Workers" }).click();
   await atlas.getByRole("option", { name: /Demo Field Lead/ }).click();
   await atlas.keyboard.press("Escape");

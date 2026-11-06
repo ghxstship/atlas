@@ -1,8 +1,7 @@
 "use client";
 
-import { Button, InlineAlert, QRCode, Tag } from "@xos/ui";
+import { Button, InlineAlert, QRCode } from "@xos/ui";
 import type { Route } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";

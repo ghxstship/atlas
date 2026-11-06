@@ -1,12 +1,17 @@
 "use client";
 
-import { Button, InlineAlert, MultiSelect } from "@xos/ui";
+import { Button, InlineAlert } from "@xos/ui";
 import type { DecisionResult, RegistrationRow } from "@xos/data/registration";
+import dynamic from "next/dynamic";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { decideRegistrationsAction } from "@/app/[org]/opportunities/registration-pages/actions";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
 import type { OpportunityActionState } from "@/lib/opportunities/action-state";
+
+const RegistrationPicker = dynamic(() =>
+  import("./registration-picker").then((m) => m.RegistrationPicker),
+);
 
 type State = OpportunityActionState & { readonly decisions?: readonly DecisionResult[] };
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
@@ -80,6 +85,7 @@ function DecidingQueue({ org, rows }: { org: string; rows: readonly Registration
   const [state, formAction, pending] = useActionState(decideRegistrationsAction, INITIAL);
   const keep = useKeepInput(state, formAction, (done) => Boolean(done.ok));
   const [picked, setPicked] = useState<readonly string[]>([]);
+  const [choosing, setChoosing] = useState(false);
   const submitted = rows.filter((r) => r.state === "Submitted");
   // Someone decided here or elsewhere leaves the picker with the refresh.
   const chosen = picked.filter((id) => submitted.some((r) => r.id === id));
@@ -113,17 +119,25 @@ function DecidingQueue({ org, rows }: { org: string; rows: readonly Registration
           {chosen.map((id) => (
             <input key={id} type="hidden" name="ids" value={id} />
           ))}
-          <MultiSelect
-            key={submitted.map((r) => r.id).join()}
-            label={t("pick")}
-            help={t("pickHelp")}
-            value={[...chosen]}
-            options={submitted.map((r) => ({
-              value: r.id,
-              label: `${r.personName ?? t("unnamed")} · ${r.pageTitle ?? ""}`,
-            }))}
-            onChange={setPicked}
-          />
+          {choosing ? (
+            <RegistrationPicker
+              key={submitted.map((r) => r.id).join()}
+              label={t("pick")}
+              help={t("pickHelp")}
+              value={[...chosen]}
+              options={submitted.map((r) => ({
+                value: r.id,
+                label: `${r.personName ?? t("unnamed")} · ${r.pageTitle ?? ""}`,
+              }))}
+              onChange={setPicked}
+            />
+          ) : (
+            <div>
+              <Button type="button" size="sm" onClick={() => setChoosing(true)}>
+                {t("pick")}
+              </Button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-8">
             <Button
               type="submit"

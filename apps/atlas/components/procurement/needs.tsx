@@ -43,8 +43,7 @@ import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
-import { ConsolidateForm } from "./needs-forms";
-import { LinkOrderLinesForm } from "./needs-lazy";
+import { ConsolidateEntry, LinkOrderLinesForm } from "./needs-lazy";
 import { SuggestCategoryButton } from "./needs-suggest-button";
 import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
 
@@ -360,7 +359,8 @@ function ReadyPart({
     return <p className="m-0 text-text-13 text-text-secondary">{t("needs.readyEmpty")}</p>;
   }
   return (
-    <ConsolidateForm
+    <ConsolidateEntry
+      label={t("needs.readyChoose")}
       org={org}
       requests={ready.map((r) => ({
         value: r.id,

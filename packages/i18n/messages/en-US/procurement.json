@@ -678,6 +678,7 @@
     "linkLinesSubmit": "Link lines",
     "rfqs": "RFQs",
     "noRfqs": "No RFQ sources this need.",
+    "readyChoose": "Choose requests to consolidate",
     "readyTitle": "Ready to consolidate",
     "readyEmpty": "Every equipment request is already on a need.",
     "readyRequests": "Requests",

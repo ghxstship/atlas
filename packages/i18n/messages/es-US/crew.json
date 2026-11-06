@@ -1065,6 +1065,7 @@
       "title": "Emitir enlaces",
       "project": "Proyecto",
       "workers": "Personas",
+      "chooseWorkers": "Elegir trabajadores",
       "workersHelp": "Personas con un próximo turno publicado o aceptado en este proyecto.",
       "workerWithLink": "{name} (tiene un enlace)",
       "validFor": "Válido por",
