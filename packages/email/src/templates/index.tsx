@@ -94,7 +94,8 @@ export interface TemplateProps {
    * it carries the unsubscribe link and the postal address of decision 41.
    */
   readonly guest_message: {
-    readonly kind: "Invitation" | "Pass" | "Message";
+    /** app.guest_email_kind: Invitation, Pass or Message. */
+    readonly kind: string;
     readonly guestName: string;
     readonly projectName: string;
     readonly showName?: string;

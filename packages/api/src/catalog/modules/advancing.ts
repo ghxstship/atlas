@@ -8,6 +8,7 @@
  * are removed and sending stays the `send` action (app.send_advance_packet, 0430).
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import {
@@ -82,7 +83,7 @@ const GuestListEntry = editDefinition(
       pass_category_id: orNull(
         fields.ref("pass type: an Access credential category of the same project"),
       ),
-      table_label: orNull(fields.text("Table or seat.", "Table 4", 40)),
+      table_label: orNull(fields.text("Table or seat.", "Table 4", 60)),
       host_person_id: orNull(
         fields.ref("project person hosting the guest, alerted when the guest arrives"),
       ),
@@ -116,7 +117,7 @@ const GuestListEntry = editDefinition(
   { nullable: ["created_by", "updated_by"] },
 );
 
-const GuestEmailKind = z.enum(["Invitation", "Pass", "Message"]);
+const GuestEmailKind = z.enum(Constants.app.Enums.guest_email_kind);
 
 /** app.guest_email_sends (2975, B8): one bulk email staff sent to a project's guests. */
 const GuestEmailSend = defineResource({

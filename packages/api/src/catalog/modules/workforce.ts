@@ -7,6 +7,7 @@
  * 422 with the rule the database named.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { orNull } from "../correct.ts";
@@ -1045,7 +1046,7 @@ const WeatherReading = defineResource({
     observed_at: fields.instant("When it was observed."),
     recorded_by_membership_id: orNull(fields.ref("member who recorded it")),
     source: label(
-      ["Manual", "NWS"],
+      Constants.app.Enums.weather_reading_source,
       "Manual for a reading on site, NWS for one the official feed recorded (B8, 2976).",
     ),
     ...AUDIT,

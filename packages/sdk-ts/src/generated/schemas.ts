@@ -39257,7 +39257,7 @@ export interface GuestListEntry {
   readonly pass_category_id: string | null;
   /**
    * Table or seat.
-   * Length: 1 to 40.
+   * Length: 1 to 60.
    */
   readonly table_label: string | null;
   /**
@@ -39313,7 +39313,7 @@ export interface GuestListEntryCreate {
   readonly pass_category_id?: string | null;
   /**
    * Table or seat.
-   * Length: 1 to 40.
+   * Length: 1 to 60.
    */
   readonly table_label?: string | null;
   /**
@@ -39359,7 +39359,7 @@ export interface GuestListEntryUpdate {
   readonly pass_category_id?: string | null;
   /**
    * Table or seat.
-   * Length: 1 to 40.
+   * Length: 1 to 60.
    */
   readonly table_label?: string | null;
   /**

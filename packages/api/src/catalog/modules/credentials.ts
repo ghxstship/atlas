@@ -8,6 +8,7 @@
  * direction, the database's refusal reason and the supervisor override, and the training a category requires.
  */
 import { z } from "@hono/zod-openapi";
+import { Constants } from "@xos/data/database.types";
 import { defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
@@ -20,16 +21,14 @@ const scanResult = z
   .meta({ description: "The database's decision for the scan.", example: "Granted" });
 
 const scanDirection = z
-  .enum(["In", "Out"])
+  .enum(Constants.app.Enums.scan_direction)
   .meta({ description: "In at the zone, or Out. An Out scan is never refused.", example: "In" });
 
-const refusalReason = z
-  .enum(["Revoked", "Not Yet Valid", "Expired", "No Zone Access", "Outside Window"])
-  .meta({
-    description:
-      "Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.",
-    example: "Outside Window",
-  });
+const refusalReason = z.enum(Constants.app.Enums.scan_refusal_reason).meta({
+  description:
+    "Why the database denied an In scan, the first check that failed; null for a granted scan and for denials recorded before B8.",
+  example: "Outside Window",
+});
 
 /** app.credential_category_requirements (2972, B8): what a category requires before it is issued. */
 const CredentialCategoryRequirement = defineResource({

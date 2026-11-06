@@ -5,6 +5,7 @@
  * checksums are validated on device. A code that resolves to nothing goes to the intake queue for a person
  * to resolve; it is never mapped automatically.
  */
+import type { Database } from "@xos/data/database.types";
 import { uuidv7, type MutationInput } from "@xos/sync";
 
 export type Symbology =
@@ -245,7 +246,7 @@ export function decideGate(
 }
 
 /** In or Out at a gate (B8, 2970). Exit is never refused, so an Out scan skips decideGate. */
-export type ScanDirection = "In" | "Out";
+export type ScanDirection = Database["app"]["Enums"]["scan_direction"];
 
 export function buildAccessScan(
   credential: CredentialRow,

@@ -11,15 +11,14 @@ import type { PlatformDb } from "../stores.ts";
  * XOS_POSTAL_ADDRESS (decision 41), and is tagged with the org so a bounce webhook can find it.
  */
 
-export type GuestEmailKind = "Invitation" | "Pass" | "Message";
-
 export interface ClaimedGuestEmail {
   readonly id: string;
   readonly orgId: string;
   readonly orgName: string;
   readonly projectName: string;
   readonly guestListEntryId: string;
-  readonly kind: GuestEmailKind;
+  /** app.guest_email_kind: Invitation, Pass or Message. */
+  readonly kind: string;
   readonly subject: string | null;
   readonly body: string | null;
   readonly locale: Locale;
@@ -180,7 +179,7 @@ export function guestEmailStore(db: PlatformDb): GuestEmailStore {
         orgName: str(r["org_name"], "org_name"),
         projectName: str(r["project_name"], "project_name"),
         guestListEntryId: str(r["guest_list_entry_id"], "guest_list_entry_id"),
-        kind: str(r["email_kind"], "email_kind") as GuestEmailKind,
+        kind: str(r["email_kind"], "email_kind"),
         subject: typeof r["subject"] === "string" ? r["subject"] : null,
         body: typeof r["body"] === "string" ? r["body"] : null,
         locale: typeof r["locale"] === "string" && isLocale(r["locale"]) ? r["locale"] : "en-US",

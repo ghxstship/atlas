@@ -7,6 +7,7 @@
  * training a category requires. See packages/api/README.md and ADR 0023.
  */
 import { overrideScan, recordScan, revokeCredential } from "@xos/data/credentials";
+import type { Database } from "@xos/data/database.types";
 import { defineHandlers, created, ok } from "../runtime/handler.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
 
@@ -23,7 +24,7 @@ interface ScanBody {
   readonly zone_id: string;
   readonly device_scanned_at?: string | null;
   readonly offline_result?: "Granted" | "Denied" | null;
-  readonly direction?: "In" | "Out";
+  readonly direction?: Database["app"]["Enums"]["scan_direction"];
 }
 
 export const handlers = defineHandlers("Credentials", {

@@ -52684,7 +52684,7 @@
           "table_label": {
             "type": ["string", "null"],
             "minLength": 1,
-            "maxLength": 40,
+            "maxLength": 60,
             "description": "Table or seat.",
             "example": "Table 4"
           },
@@ -52780,7 +52780,7 @@
           "table_label": {
             "type": ["string", "null"],
             "minLength": 1,
-            "maxLength": 40,
+            "maxLength": 60,
             "description": "Table or seat.",
             "example": "Table 4"
           },
@@ -52839,7 +52839,7 @@
           "table_label": {
             "type": ["string", "null"],
             "minLength": 1,
-            "maxLength": 40,
+            "maxLength": 60,
             "description": "Table or seat.",
             "example": "Table 4"
           },
