@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { XosClient } from "./client.ts";
 import type { Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
@@ -468,18 +467,13 @@ export interface ExternalTrackProgress {
   readonly signedOffAt: string | null;
 }
 
-/** The api_external views 2743 adds or changes, newer than the generated types. */
-function externalUntyped(db: XosClient) {
-  return (db as unknown as { schema(name: string): SupabaseClient }).schema("api_external");
-}
-
 /** The tracks of the caller's recipients on the given packets (api_external.advance_track_progress). */
 export async function listMyTrackProgress(
   db: XosClient,
   packetIds: readonly string[],
 ): Promise<Result<ExternalTrackProgress[]>> {
   if (packetIds.length === 0) return ok([]);
-  const { data, error } = await externalUntyped(db)
+  const { data, error } = await external(db)
     .from("advance_track_progress")
     .select(
       "advance_recipient_id, advance_packet_id, track, sections_total, sections_done, track_state, signed_off_at",
@@ -487,14 +481,14 @@ export async function listMyTrackProgress(
     .in("advance_packet_id", [...packetIds]);
   if (error) return fail(toDataError(error));
   return ok(
-    ((data ?? []) as Record<string, unknown>[]).map((r) => ({
-      recipientId: String(r["advance_recipient_id"]),
-      packetId: String(r["advance_packet_id"]),
-      track: String(r["track"] ?? "General"),
-      sectionsTotal: Number(r["sections_total"] ?? 0),
-      sectionsDone: Number(r["sections_done"] ?? 0),
-      state: String(r["track_state"] ?? "Not Started"),
-      signedOffAt: typeof r["signed_off_at"] === "string" ? r["signed_off_at"] : null,
+    (data ?? []).map((r) => ({
+      recipientId: String(r.advance_recipient_id),
+      packetId: String(r.advance_packet_id),
+      track: r.track ?? "General",
+      sectionsTotal: r.sections_total ?? 0,
+      sectionsDone: r.sections_done ?? 0,
+      state: r.track_state ?? "Not Started",
+      signedOffAt: r.signed_off_at,
     })),
   );
 }
@@ -506,13 +500,13 @@ export async function listSectionTracks(
 ): Promise<Result<Map<string, string>>> {
   const tracks = new Map<string, string>();
   if (sectionIds.length === 0) return ok(tracks);
-  const { data, error } = await externalUntyped(db)
+  const { data, error } = await external(db)
     .from("advance_sections")
     .select("id, track")
     .in("id", [...sectionIds]);
   if (error) return fail(toDataError(error));
-  for (const r of (data ?? []) as { id: string; track: string | null }[]) {
-    tracks.set(r.id, r.track ?? "General");
+  for (const r of data ?? []) {
+    if (r.id) tracks.set(r.id, r.track ?? "General");
   }
   return ok(tracks);
 }

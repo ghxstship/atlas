@@ -1,6 +1,6 @@
 import type { XosClient } from "./client.ts";
+import { Constants } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -329,15 +329,7 @@ export const ADVANCE_WINDOW_KINDS = [
 export type AdvanceWindowKind = (typeof ADVANCE_WINDOW_KINDS)[number];
 
 /** The track a section is grouped under (app.advance_track, R11 migration 2743). */
-export const ADVANCE_TRACKS = [
-  "Finance",
-  "Technical",
-  "Hospitality",
-  "Catering",
-  "Travel",
-  "Logistics",
-  "General",
-] as const;
+export const ADVANCE_TRACKS = Constants.app.Enums.advance_track;
 export type AdvanceTrack = (typeof ADVANCE_TRACKS)[number];
 
 function isTrack(value: unknown): value is AdvanceTrack {
@@ -623,21 +615,19 @@ export async function getPacket(
   });
 }
 
-/** The track of each section (2743, newer than the generated types). */
+/** The track of each section (2743). */
 async function sectionTracks(
   db: XosClient,
   sectionIds: readonly string[],
 ): Promise<Result<Map<string, AdvanceTrack>>> {
   const tracks = new Map<string, AdvanceTrack>();
   if (sectionIds.length === 0) return ok(tracks);
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("advance_sections")
     .select("id, track")
     .in("id", [...sectionIds]);
   if (error) return fail(toDataError(error));
-  for (const row of (data ?? []) as { id: string; track: unknown }[]) {
-    if (isTrack(row.track)) tracks.set(row.id, row.track);
-  }
+  for (const row of data ?? []) tracks.set(row.id, row.track);
   return ok(tracks);
 }
 
@@ -2399,7 +2389,7 @@ export async function listAdvanceProgress(
   projectId: string,
   packetId?: string,
 ): Promise<Result<AdvanceProgressCell[]>> {
-  let query = untyped(db)
+  let query = db
     .from("advance_progress")
     .select(
       "advance_packet_id, packet_title, due_at, advance_recipient_id, recipient_engagement_id, recipient_label, advance_section_id, position, section_title, section_kind, latest_submission_id, submitted_at, cell_state, overdue",
@@ -2478,7 +2468,7 @@ export async function listRosterReadiness(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ReadinessCell[]>> {
-  const { data, error } = await untyped(db).rpc("roster_readiness", { p_project_id: projectId });
+  const { data, error } = await db.rpc("roster_readiness", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok(
     ((data ?? []) as Raw[]).map((r) => ({
@@ -2516,7 +2506,7 @@ export async function listAllocationHeat(
   db: XosClient,
   projectId: string,
 ): Promise<Result<AllocationHeatCell[]>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("advance_allocation_heat")
     .select(
       "engagement_id, party_label, kind, offering, requested_quantity, approved_quantity, on_order_quantity, received_quantity, reserved_quantity, issued_quantity, returned_quantity, lost_quantity, allocation_count",
@@ -2558,7 +2548,7 @@ export async function sendAdvanceReminderNow(
   if (ids.length === 0 || ids.length > REMINDER_BATCH_LIMIT) {
     return refuse("advance_reminder_batch", "Remind 1 to 200 recipients at a time.");
   }
-  const { data, error } = await untyped(db).rpc("send_advance_reminder_now", {
+  const { data, error } = await db.rpc("send_advance_reminder_now", {
     p_packet_id: packetId,
     p_recipient_ids: ids,
   });
@@ -2598,7 +2588,7 @@ export async function listTrackProgress(
   projectId: string,
   packetId?: string,
 ): Promise<Result<TrackProgress[]>> {
-  let query = untyped(db)
+  let query = db
     .from("advance_track_progress")
     .select(
       "advance_packet_id, advance_recipient_id, recipient_label, track, sections_total, sections_done, overdue, signoff_id, signed_off_at, signed_off_by_name, track_state",
@@ -2640,7 +2630,7 @@ export async function signOffTrack(
   recipientId: string,
   track: AdvanceTrack,
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await untyped(db).rpc("sign_off_advance_track", {
+  const { data, error } = await db.rpc("sign_off_advance_track", {
     p_recipient_id: recipientId,
     p_track: track,
   });
@@ -2661,7 +2651,7 @@ export async function revokeTrackSignoff(
       "Say why the sign-off is revoked, in 1 to 500 characters.",
     );
   }
-  const { error } = await untyped(db).rpc("revoke_advance_track_signoff", {
+  const { error } = await db.rpc("revoke_advance_track_signoff", {
     p_signoff_id: signoffId,
     p_reason: trimmed,
   });
@@ -2678,7 +2668,7 @@ export async function setSectionTrack(
   track: AdvanceTrack,
   version?: string | null,
 ): Promise<Result<null>> {
-  let query = untyped(db)
+  let query = db
     .from("advance_sections")
     .update({ track })
     .eq("id", sectionId)
