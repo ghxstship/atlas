@@ -37704,11 +37704,6 @@ export interface DeliveryWindowCreate {
  */
 export interface DeliveryWindowUpdate {
   /**
-   * Identifier of the project.
-   * Format: `uuid`.
-   */
-  readonly project_id?: string;
-  /**
    * Identifier of the gate: a live zone of the org.
    * Format: `uuid`.
    */
@@ -40399,11 +40394,6 @@ export interface ProcurementNeedCreate {
    */
   readonly project_id: string;
   /**
-   * Number from the project's display key sequence, issued on insert.
-   * Range: 1 to unbounded.
-   */
-  readonly need_number: number;
-  /**
    * What is needed.
    * Length: 1 to 20000.
    */
@@ -40448,16 +40438,6 @@ export interface ProcurementNeedCreate {
  * Fields accepted when updating a ProcurementNeed. Omitted fields are unchanged.
  */
 export interface ProcurementNeedUpdate {
-  /**
-   * Identifier of the project buying.
-   * Format: `uuid`.
-   */
-  readonly project_id?: string;
-  /**
-   * Number from the project's display key sequence, issued on insert.
-   * Range: 1 to unbounded.
-   */
-  readonly need_number?: number;
   /**
    * What is needed.
    * Length: 1 to 20000.
@@ -40691,11 +40671,6 @@ export interface RfqLineCreate {
    */
   readonly rfq_id: string;
   /**
-   * Order of the line within the RFQ, assigned on create.
-   * Range: 1 to unbounded.
-   */
-  readonly line_number: number;
-  /**
    * What is asked for.
    * Length: 1 to 20000.
    */
@@ -40739,16 +40714,6 @@ export interface RfqLineCreate {
  * Fields accepted when updating a RfqLine. Omitted fields are unchanged.
  */
 export interface RfqLineUpdate {
-  /**
-   * Identifier of the RFQ the line belongs to.
-   * Format: `uuid`.
-   */
-  readonly rfq_id?: string;
-  /**
-   * Order of the line within the RFQ, assigned on create.
-   * Range: 1 to unbounded.
-   */
-  readonly line_number?: number;
   /**
    * What is asked for.
    * Length: 1 to 20000.

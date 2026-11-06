@@ -121,7 +121,7 @@ export async function MaintenanceSchedule({
               className="flex flex-wrap items-center justify-between gap-12 py-12 text-text-13"
             >
               <div className="flex min-w-0 flex-col gap-2">
-                <span className="font-medium">{`${d.title} · ${d.assetTag}`}</span>
+                <span className="font-medium">{t("assets.schedule.rowTitle", { title: d.title, tag: d.assetTag })}</span>
                 <span className="text-text-12 text-text-secondary">
                   {t("assets.schedule.line", {
                     status: t(`assets.schedule.statuses.${STATUS_KEY[d.status]}`),

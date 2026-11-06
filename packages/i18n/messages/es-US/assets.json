@@ -425,6 +425,7 @@
       "unit": "Unidad",
       "once": "Solo una vez",
       "instructions": "Instrucciones"
-    }
+    },
+    "rowTitle": "{title} · {tag}"
   }
 }
