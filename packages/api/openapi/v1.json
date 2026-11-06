@@ -50628,12 +50628,6 @@
       "DeliveryWindowUpdate": {
         "type": "object",
         "properties": {
-          "project_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "zone_id": {
             "type": "string",
             "format": "uuid",
@@ -54229,12 +54223,6 @@
             "description": "Identifier of the project buying.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "need_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Number from the project's display key sequence, issued on insert.",
-            "example": 1
-          },
           "description": {
             "type": "string",
             "minLength": 1,
@@ -54286,24 +54274,12 @@
             "example": "Black, not silver."
           }
         },
-        "required": ["project_id", "need_number", "description", "quantity"],
+        "required": ["project_id", "description", "quantity"],
         "description": "Fields accepted when creating a ProcurementNeed."
       },
       "ProcurementNeedUpdate": {
         "type": "object",
         "properties": {
-          "project_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project buying.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "need_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Number from the project's display key sequence, issued on insert.",
-            "example": 1
-          },
           "description": {
             "type": "string",
             "minLength": 1,
@@ -54618,12 +54594,6 @@
             "description": "Identifier of the RFQ the line belongs to.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "line_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Order of the line within the RFQ, assigned on create.",
-            "example": 1
-          },
           "description": {
             "type": "string",
             "minLength": 1,
@@ -54670,24 +54640,12 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["rfq_id", "line_number", "description", "quantity", "acquisition_kind"],
+        "required": ["rfq_id", "description", "quantity", "acquisition_kind"],
         "description": "Fields accepted when creating a RfqLine."
       },
       "RfqLineUpdate": {
         "type": "object",
         "properties": {
-          "rfq_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the RFQ the line belongs to.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "line_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Order of the line within the RFQ, assigned on create.",
-            "example": 1
-          },
           "description": {
             "type": "string",
             "minLength": 1,
@@ -146844,7 +146802,6 @@
           "content": {
             "application/json": {
               "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "starts_at": "2026-10-08T14:30:00Z",
                 "ends_at": "2026-10-08T14:30:00Z",
@@ -150523,9 +150480,9 @@
         "x-xos-table": "app.procurement_needs",
         "x-xos-capability": "procurement.po.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
-        "x-xos-order": { "by": ["need_number"], "numeric": true },
+        "x-xos-order": { "by": ["need_number"], "numeric": false },
         "summary": "List procurement need rows",
-        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. Coded list: the default order is numeric code order by `need_number`. Supports sparse fieldsets and the filter grammar.",
+        "description": "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element. Returns a cursor page of procurement need rows the caller may see. The default order is `need_number` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -150590,7 +150547,6 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "need_number": 1,
                 "description": "Truss Sections",
                 "quantity": 15,
                 "unit_basis": "each",
@@ -150736,8 +150692,6 @@
           "content": {
             "application/json": {
               "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "need_number": 1,
                 "description": "Truss Sections",
                 "quantity": 15,
                 "unit_basis": "each",
@@ -150930,9 +150884,9 @@
         "x-xos-table": "app.rfq_lines",
         "x-xos-capability": "procurement.rfq.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
-        "x-xos-order": { "by": ["line_number"], "numeric": true },
+        "x-xos-order": { "by": ["line_number"], "numeric": false },
         "summary": "List rfq line rows",
-        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. Coded list: the default order is numeric code order by `line_number`. Supports sparse fieldsets and the filter grammar.",
+        "description": "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response. Returns a cursor page of rfq line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -150997,7 +150951,6 @@
             "application/json": {
               "example": {
                 "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "line_number": 1,
                 "description": "Truss Sections",
                 "element_id": "3000.05.01-GHXST-014",
                 "quantity": 5,
@@ -151143,8 +151096,6 @@
           "content": {
             "application/json": {
               "example": {
-                "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "line_number": 1,
                 "description": "Truss Sections",
                 "element_id": "3000.05.01-GHXST-014",
                 "quantity": 5,

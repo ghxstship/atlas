@@ -833,7 +833,7 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
         );
         if (match?.elementId && values["element_id"] === void 0)
           values["element_id"] = match.elementId;
-        if (match?.unitPriceMinor != null && values["unit_price_minor"] === void 0) {
+        if (match && match.unitPriceMinor !== null && values["unit_price_minor"] === void 0) {
           if (match.currencyCode === match.orderCurrencyCode)
             values["unit_price_minor"] = match.unitPriceMinor;
           else matchNote = "price_currency_differs";

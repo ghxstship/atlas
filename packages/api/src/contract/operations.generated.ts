@@ -3083,7 +3083,6 @@ export interface Components {
   DeliveryWindowGenerateResult: { data: Array<string> };
   DeliveryWindowPage: { data: Array<Components["DeliveryWindow"]>; next_cursor: string | null };
   DeliveryWindowUpdate: {
-    project_id?: string;
     zone_id?: string;
     starts_at?: string;
     ends_at?: string;
@@ -6457,7 +6456,6 @@ export interface Components {
   ProcurementNeedConsolidateResult: { data: Array<string> };
   ProcurementNeedCreate: {
     project_id: string;
-    need_number: number;
     description: string;
     quantity: number;
     unit_basis?: string | null;
@@ -6484,8 +6482,6 @@ export interface Components {
     next_cursor: string | null;
   };
   ProcurementNeedUpdate: {
-    project_id?: string;
-    need_number?: number;
     description?: string;
     quantity?: number;
     unit_basis?: string | null;
@@ -7796,7 +7792,6 @@ export interface Components {
   };
   RfqLineCreate: {
     rfq_id: string;
-    line_number: number;
     description: string;
     element_id?: string | null;
     quantity: number;
@@ -7808,8 +7803,6 @@ export interface Components {
   };
   RfqLinePage: { data: Array<Components["RfqLine"]>; next_cursor: string | null };
   RfqLineUpdate: {
-    rfq_id?: string;
-    line_number?: number;
     description?: string;
     element_id?: string | null;
     quantity?: number;

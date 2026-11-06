@@ -30,6 +30,8 @@ const unitBasis = (what: string) => orNull(fields.text(`Unit of ${what}.`, "each
 const ProcurementNeed = defineResource({
   name: "ProcurementNeed",
   table: "app.procurement_needs",
+  serverSet: ["need_number"],
+  immutable: ["project_id"],
   description:
     "What a project will actually get. The quantity is set here and linking requests never changes it; its status is computed from order lines (procurementNeedStatus). At most one of the asset class and the element.",
   fields: {
@@ -107,6 +109,8 @@ export const needConsolidateAction = collectionAction("consolidate", {
 const RfqLine = defineResource({
   name: "RfqLine",
   table: "app.rfq_lines",
+  serverSet: ["line_number"],
+  immutable: ["rfq_id"],
   description:
     "What an RFQ asks for. Lines change only while the RFQ is Proposed. Readable with the RFQ: no prices, and nothing of a sealed response.",
   fields: {
@@ -220,6 +224,7 @@ const AssetMaintenanceDue = defineResource({
 const DeliveryWindow = defineResource({
   name: "DeliveryWindow",
   table: "app.delivery_windows",
+  immutable: ["project_id"],
   description:
     "A gate open for a time for up to a number of vehicles (ADR 0150). Vendors book a place in it, and each booking is a dock slot. It overlaps no other live window or direct slot at its zone.",
   fields: {
@@ -291,7 +296,7 @@ export const dockSlotCancelBookingAction = itemAction("cancelBooking", {
 
 export const procurementFollowOnResources: readonly ResourceSpec[] = [
   resource("Procurement", "/procurement-needs", ProcurementNeed, {
-    order: { by: ["need_number"], numeric: true },
+    order: { by: ["need_number"], numeric: false },
     actions: [needConsolidateAction],
   }),
   resource("Procurement", "/procurement-need-status", NeedStatusRow, {
@@ -301,7 +306,7 @@ export const procurementFollowOnResources: readonly ResourceSpec[] = [
     order: { by: ["need_id"], numeric: false },
   }),
   resource("Procurement", "/rfq-lines", RfqLine, {
-    order: { by: ["line_number"], numeric: true },
+    order: { by: ["line_number"], numeric: false },
   }),
 ];
 

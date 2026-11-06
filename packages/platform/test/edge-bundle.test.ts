@@ -98,7 +98,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  "import-run": 120,
+  // B11 (G-106): two more targets, catalogue matching and dates in a project's time zone in the worker took it from
+  // 119.8 KB to 129.0 KB on 2026-11-06; the same 2 KB of headroom as the others.
+  "import-run": 131,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
   "inbound-email": 80,
