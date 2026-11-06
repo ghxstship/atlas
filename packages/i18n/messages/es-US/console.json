@@ -123,7 +123,9 @@
     "operator_revoked": "Este rol ya se revocó.",
     "operator_last_administrator": "El equipo de la plataforma conserva al menos una persona de Administración. Concede otra primero.",
     "funnel_alert_missing": "Esa alerta de embudo ya no existe. Vuelve a cargar la página.",
-    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada."
+    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada.",
+    "billing_alert_reason": "Indica qué se hizo al respecto, en un máximo de 500 caracteres.",
+    "billing_alert_unknown": "Esta alerta ya está cerrada."
   },
   "tenants": {
     "title": "Organizaciones",
@@ -145,7 +147,16 @@
     },
     "canceled": "Cancelada, solo lectura",
     "active": "Activa",
-    "clientOf": "Cliente de {partner}"
+    "clientOf": "Cliente de {partner}",
+    "billingAlerts": {
+      "title": "Alertas de facturación",
+      "kind": "Alerta",
+      "org": "Organización",
+      "detail": "Qué ocurrió",
+      "raised": "Generada",
+      "close": "Cerrar alerta",
+      "closed": "Alerta cerrada."
+    }
   },
   "plans": {
     "access": "Access",
@@ -701,5 +712,12 @@
     "title": "Esta página no se cargó",
     "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, vuelve a cargar la página.",
     "action": "Intentar de nuevo"
+  },
+  "billingAlerts": {
+    "cancel_delayed": "Stripe no ha aceptado una cancelación",
+    "active_on_deleted_org": "Suscripción activa en una organización eliminada",
+    "active_after_cancel": "Suscripción activa después de una cancelación",
+    "charged_after_cancel": "Cargo después de una cancelación",
+    "deletion_blocked": "Eliminación en espera de Stripe"
   }
 }

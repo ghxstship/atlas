@@ -6,7 +6,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { PLANS } from "@/lib/plans.generated";
 
 /**
- * The renewal terms of a paid plan (ADR 0156): the one statement the Owner sees before Checkout, agrees to, and has
+ * The renewal terms of a paid plan (ADR 0161): the one statement the Owner sees before Checkout, agrees to, and has
  * recorded word for word, and that Stripe's page repeats. The page and the server action word it from the same inputs, and
  * the action compares hashes, so what is recorded is exactly what was on the screen.
  */

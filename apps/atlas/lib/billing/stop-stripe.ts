@@ -9,7 +9,7 @@ import { observability } from "@/lib/observability";
 const WAIT_MS = 8_000;
 
 /**
- * Asks Stripe to stop now, for the person waiting (ADR 0156). The cancel is already queued in the database and the
+ * Asks Stripe to stop now, for the person waiting (ADR 0161). The cancel is already queued in the database and the
  * org-lifecycle worker retries it until Stripe accepts it, so a failure here loses nothing, and nothing is recorded from
  * here: only the service role can mark a cancel accepted, from the worker or a signed webhook.
  */

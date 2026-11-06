@@ -8,7 +8,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
- * Where the org's Stripe cancels stand, on Billing and Plan and in the Danger zone (ADR 0156). It says only what Stripe has
+ * Where the org's Stripe cancels stand, on Billing and Plan and in the Danger zone (ADR 0161). It says only what Stripe has
  * said: accepted once a signed webhook or the worker recorded it, or once Stripe itself says so when asked here. Anything
  * else reads as not confirmed, so nobody is told a charge stopped when it may not have.
  */

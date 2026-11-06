@@ -45,9 +45,17 @@ provider.
 1. Deploy the function: `supabase functions deploy org-lifecycle --project-ref <ref>`.
 2. Schedule it every 5 minutes with the service key, as for `report-run` and `upload-scan`
    (`hosted-security-settings.md`).
-3. Check: call it once with the service key. A 200 with `{"certificates": [], "domains": []}` means it is
-   connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
+3. Check: call it once with the service key. A 200 with `{"stripe": {...}, "certificates": [], "domains": []}`
+   means it is connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
    hourly job.
+
+## Stripe cancels
+
+The worker also sends each Stripe cancel that is due, retrying until Stripe accepts it (ADR 0161, migration 6140), and
+closes Checkout sessions on orgs that are ending. It does this first, because an org cannot finish deletion until its cancel
+is accepted. To see what is waiting: `select cancellation_state, attempts, last_error, next_attempt_at from
+private.stripe_cancellations where cancellation_state = 'Queued';` and `select alert_kind, detail from private.billing_alerts
+where resolved_at is null;`. Secrets and owner steps are in `production.md`, section "Stopping Stripe".
 
 ## The org's calendar
 

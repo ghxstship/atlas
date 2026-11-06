@@ -1074,3 +1074,48 @@ export async function listActionLog(
 export function consoleErrorKey(error: { readonly kind: string; readonly rule?: string }): string {
   return error.kind === "refusal" && error.rule ? error.rule : error.kind;
 }
+
+/** An open billing alert for the platform owner (migrations 6140 and 6142, ADR 0161). */
+export interface BillingAlertRow {
+  readonly id: string;
+  readonly kind: string;
+  readonly orgId: string | null;
+  readonly orgName: string | null;
+  readonly stripeSubscriptionId: string | null;
+  readonly detail: string;
+  readonly raisedAt: string;
+  readonly occurrences: number;
+}
+
+/** Open billing alerts, newest first (tenants.read). */
+export async function listBillingAlerts(db: XosClient): Promise<Result<BillingAlertRow[]>> {
+  return rpc(db, "console_billing_alerts", { p_limit: 100 }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        id: str(r["alert_id"]),
+        kind: str(r["alert_kind"]),
+        orgId: strOrNull(r["subject_org_id"]),
+        orgName: strOrNull(r["org_name"]),
+        stripeSubscriptionId: strOrNull(r["stripe_subscription_id"]),
+        detail: str(r["detail"]),
+        raisedAt: str(r["raised_at"]),
+        occurrences: Number(r["occurrences"]),
+      };
+    }),
+  );
+}
+
+/** Closes a billing alert with what was done about it (plans.write). */
+export async function resolveBillingAlert(
+  db: XosClient,
+  alertId: string,
+  reason: string,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "console_resolve_billing_alert",
+    { p_alert_id: alertId, p_reason: reason },
+    (data) => str(data),
+  );
+}

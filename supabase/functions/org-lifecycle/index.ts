@@ -6,7 +6,7 @@
 //      the former Owner.
 //   2. Custom domains (Section 12): domain.provision, domain.check and domain.release jobs through the Vercel
 //      Domains API (Atlas and Gateway hosts) and the Resend domains API (sending domains).
-//   3. Stripe cancels (ADR 0156, migration 6140): sends each cancel that is due and has not been accepted, retrying with
+//   3. Stripe cancels (ADR 0161, migration 6140): sends each cancel that is due and has not been accepted, retrying with
 //      backoff until it is, then closes Checkout sessions on orgs that are ending and emails open billing alerts to
 //      XOS_BILLING_ALERT_EMAIL. It runs first, since an org cannot finish deletion until its cancel is accepted.
 //

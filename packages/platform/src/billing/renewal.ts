@@ -1,5 +1,5 @@
 /**
- * The renewal terms an Owner agrees to before paying (ADR 0156, migration 6141). Atlas words the statement from the i18n
+ * The renewal terms an Owner agrees to before paying (ADR 0161, migration 6141). Atlas words the statement from the i18n
  * catalog, in the Owner's language, and records it word for word with this version. Bump the version whenever the wording
  * in `shell.settings.billing.renewal` changes: apps/atlas/test/renewal-terms.test.ts fails until it does.
  */

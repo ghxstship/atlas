@@ -1,5 +1,5 @@
 -- 6141_renewal_consent.sql
--- Legal billing issue 1 (RRR-248, ADR 0156): what auto-renewal law needs around a paid plan. Built to the strictest reading
+-- Legal billing issue 1 (RRR-248, ADR 0161): what auto-renewal law needs around a paid plan. Built to the strictest reading
 -- found, since ROSCA's reach to business buyers is disputed and small producers buy XOS: ROSCA (15 U.S.C. 8403), California's
 -- Automatic Renewal Law as the design standard, and Wisconsin 134.49 and New York GOL 5-903 for annual business contracts.
 --   * private.billing_renewal_consents: what the Owner saw and agreed to before Stripe Checkout: the exact statement, its
@@ -47,7 +47,7 @@ create index billing_renewal_consents_org_idx on private.billing_renewal_consent
 create index billing_renewal_consents_consented_by_idx on private.billing_renewal_consents (consented_by);
 create unique index billing_renewal_consents_session_key on private.billing_renewal_consents (stripe_checkout_session_id) where stripe_checkout_session_id is not null;
 
-call private.describe('private.billing_renewal_consents', 'Proof that an Owner saw and accepted the renewal terms of a paid plan before paying (ADR 0156). Kept 7 years and past the org''s own deletion, since the evidence is needed for a later dispute. No foreign key to the org.', array[
+call private.describe('private.billing_renewal_consents', 'Proof that an Owner saw and accepted the renewal terms of a paid plan before paying (ADR 0161). Kept 7 years and past the org''s own deletion, since the evidence is needed for a later dispute. No foreign key to the org.', array[
   'id', 'Consent id.',
   'subject_org_id', 'Id the org had or has.',
   'org_name', 'Name of the org at consent.',
@@ -110,7 +110,7 @@ create table private.billing_renewal_reminders (
 create unique index billing_renewal_reminders_key on private.billing_renewal_reminders (stripe_subscription_id, period_end);
 create index billing_renewal_reminders_org_idx on private.billing_renewal_reminders (subject_org_id);
 
-call private.describe('private.billing_renewal_reminders', 'Each reminder sent before an annual plan renews, once per subscription and period, kept as proof of notice past the org''s own deletion (ADR 0156).', array[
+call private.describe('private.billing_renewal_reminders', 'Each reminder sent before an annual plan renews, once per subscription and period, kept as proof of notice past the org''s own deletion (ADR 0161).', array[
   'id', 'Reminder id.',
   'subject_org_id', 'Id the org had or has.',
   'stripe_subscription_id', 'Stripe subscription that renews.',

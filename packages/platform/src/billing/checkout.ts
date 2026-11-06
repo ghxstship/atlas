@@ -60,7 +60,7 @@ export interface CheckoutRequest {
    */
   readonly trialEnd?: string;
   /**
-   * The renewal terms the Owner agreed to, shown again above Stripe's pay button (ADR 0156), so the same disclosure stands
+   * The renewal terms the Owner agreed to, shown again above Stripe's pay button (ADR 0161), so the same disclosure stands
    * next to the point of payment. Stripe limits it to 1,200 characters.
    */
   readonly renewalMessage?: string;

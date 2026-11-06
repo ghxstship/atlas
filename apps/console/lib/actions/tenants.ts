@@ -3,6 +3,7 @@
 import {
   clearFlagOverride,
   endPlanOverride,
+  resolveBillingAlert,
   setFlagOverride,
   setKillSwitch,
   setPlanOverride,
@@ -69,6 +70,21 @@ export async function endPlanOverrideAction(_: ActionState, form: FormData): Pro
   if (!Uuid.safeParse(overrideId).success || reason === "") return failed("errors.invalid");
   const result = await endPlanOverride(ctx.db, overrideId, reason);
   if (result.ok) revalidatePath(`/tenants/${orgId}`);
+  return fromResult(result);
+}
+
+/** Closes a billing alert once it is dealt with, such as a charge refunded by hand (ADR 0161). */
+export async function resolveBillingAlertAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext("plans.write");
+  if (!ctx.ok) return failed(ctx.key);
+  const alertId = field(form, "alertId");
+  const reason = field(form, "reason");
+  if (!Uuid.safeParse(alertId).success || reason === "") return failed("errors.invalid");
+  const result = await resolveBillingAlert(ctx.db, alertId, reason);
+  if (result.ok) revalidatePath("/tenants");
   return fromResult(result);
 }
 

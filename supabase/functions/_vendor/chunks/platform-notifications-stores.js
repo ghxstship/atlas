@@ -391,6 +391,66 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "billing.purchase_confirmed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.purchase_confirmed.subject",
+      body: "kinds.billing.purchase_confirmed.body",
+    },
+  },
+  {
+    kind: "billing.renewal_reminder",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.renewal_reminder.subject",
+      body: "kinds.billing.renewal_reminder.body",
+    },
+  },
+  {
+    kind: "billing.cancellation_confirmed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.cancellation_confirmed.subject",
+      body: "kinds.billing.cancellation_confirmed.body",
+    },
+  },
+  {
+    kind: "billing.plan_ending",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.plan_ending.subject",
+      body: "kinds.billing.plan_ending.body",
+    },
+  },
+  {
+    kind: "billing.cancellation_delayed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.cancellation_delayed.subject",
+      body: "kinds.billing.cancellation_delayed.body",
+    },
+  },
+  {
     kind: "organization.deletion_requested",
     category: "account",
     emailTemplate: "notification",
@@ -972,7 +1032,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/6059_notification_kind_seed.sql"
+"supabase/migrations/6144_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

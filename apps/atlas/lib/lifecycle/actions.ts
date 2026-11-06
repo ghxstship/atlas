@@ -50,7 +50,7 @@ export async function requestOrgDeletionAction(
     reason: parsed.data.reason,
   });
   if (!result.ok) return fromDataError(result.error);
-  // The request has already queued the Stripe cancel; this asks now for the person waiting (ADR 0156).
+  // The request has already queued the Stripe cancel; this asks now for the person waiting (ADR 0161).
   await askStripeToStopNow(ctx.viewer.db, ctx.org.id);
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return done(result.data);

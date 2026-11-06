@@ -145,7 +145,7 @@ function optionalText(
 }
 
 /** BillingStore over the 0560, 1250 and 1640 RPCs. */
-/** The Stripe cancels of the org-lifecycle worker, over the 6140 RPCs (ADR 0156). */
+/** The Stripe cancels of the org-lifecycle worker, over the 6140 RPCs (ADR 0161). */
 export function stripeCancellationStore(db: PlatformDb): StripeCancellationStore {
   return {
     async claim(input) {

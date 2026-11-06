@@ -27,6 +27,8 @@ const ctx = vi.hoisted(
 const data = vi.hoisted(() => ({
   account: null as unknown,
   getBillingAccount: vi.fn(),
+  getStripeCancellations: vi.fn(async () => ({ ok: true, data: [] as unknown[] })),
+  requestPlanEnd: vi.fn(),
   banner: null as unknown,
 }));
 
@@ -47,6 +49,8 @@ vi.mock("@xos/platform/billing", async (importOriginal) => ({
 vi.mock("@xos/data/billing", async (importOriginal) => ({
   ...(await importOriginal<typeof DataBilling>()),
   getBillingAccount: data.getBillingAccount,
+  getStripeCancellations: data.getStripeCancellations,
+  requestPlanEnd: data.requestPlanEnd,
 }));
 vi.mock("@xos/data/org-lifecycle", async (importOriginal) => ({
   ...(await importOriginal<typeof DataLifecycle>()),
@@ -77,18 +81,28 @@ function keys(key: string, values?: Record<string, unknown>): string {
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => Object.assign(keys, { has: () => true }),
   getFormatter: async () => ({ number: String, dateTime: () => "Nov 5, 2026" }),
+  getLocale: async () => "en-US",
 }));
 vi.mock("@/lib/shell/translate", () => ({ getTranslate: async () => keys }));
 vi.mock("@/lib/platform/format", () => ({ getFormatters: async () => ({ date: String }) }));
 vi.mock("@/lib/shell/time-zone", () => ({ getOrgTimeZone: async () => "UTC" }));
 vi.mock("@/lib/shell/require-node", () => ({ requireNode: async () => ctx }));
 vi.mock("@/lib/platform/action-context", () => ({ contextFor: async () => ctx }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/components/settings/section-header", () => ({ SectionHeader: () => null }));
 vi.mock("@/components/settings/billing-forms", () => ({
-  CheckoutButton: function CheckoutButton() {
+  RenewalConsentForm: function RenewalConsentForm() {
+    return null;
+  },
+  EndPlanForm: function EndPlanForm() {
     return null;
   },
   BillingPortalButton: function BillingPortalButton() {
+    return null;
+  },
+}));
+vi.mock("@/components/settings/stripe-cancellation-notice", () => ({
+  StripeCancellationNotice: function StripeCancellationNotice() {
     return null;
   },
 }));
@@ -96,10 +110,13 @@ vi.mock("@/components/settings/billing-forms", () => ({
 const { CheckoutCompletedError, NotSelfServeError, PriceNotFoundError, BillingNotConfiguredError } =
   await import("@xos/platform/billing");
 const { BillingDataError } = await import("@/lib/billing/stripe");
-const { openBillingPortalAction, startCheckoutAction } = await import("@/lib/billing/actions");
+const { endPlanAction, openBillingPortalAction, startCheckoutAction } =
+  await import("@/lib/billing/actions");
 const { default: BillingSettingsPage } = await import("@/app/[org]/settings/billing-and-plan/page");
 const { BillingLifecycleNotice } = await import("@/components/lifecycle/billing-notice");
-const { BillingPortalButton, CheckoutButton } = await import("@/components/settings/billing-forms");
+const { BillingPortalButton, EndPlanForm, RenewalConsentForm } =
+  await import("@/components/settings/billing-forms");
+const { default: Link } = await import("next/link");
 const { Button, InlineAlert } = await import("@/components/ui");
 const { PLANS } = await import("@/lib/plans.generated");
 
@@ -116,7 +133,14 @@ function form(values: Record<string, string>): FormData {
   return body;
 }
 
-const choose = form({ org: "northwind-live", plan: "core", interval: "Monthly" });
+const HASH = "a".repeat(64);
+const choose = form({
+  org: "northwind-live",
+  plan: "core",
+  interval: "Monthly",
+  hash: HASH,
+  agree: "on",
+});
 const portal = form({ org: "northwind-live" });
 
 type Node = { type: unknown; props: Record<string, unknown> };
@@ -130,6 +154,11 @@ function elements(node: unknown): Node[] {
 }
 
 const ofType = (tree: unknown, type: unknown) => elements(tree).filter((e) => e.type === type);
+/** The plans the page or notice links to for review, in order. */
+const reviewLinks = (tree: unknown) =>
+  ofType(tree, Link)
+    .map((l) => /review=([a-z]+)/.exec(String(l.props["href"]))?.[1])
+    .filter((plan) => plan !== undefined);
 const textOf = (node: Node): string =>
   [node.props["children"]]
     .flat(Infinity)
@@ -164,6 +193,7 @@ describe("billing before the owner sets the Stripe key", () => {
   it("answers billing_not_open from both actions, and never reaches Stripe", async () => {
     expect(await startCheckoutAction({}, choose)).toMatchObject({ rule: "billing_not_open" });
     expect(await openBillingPortalAction({}, portal)).toMatchObject({ rule: "billing_not_open" });
+    expect(await endPlanAction({}, portal)).toMatchObject({ rule: "billing_not_open" });
     expect(platform.createStripeClient).not.toHaveBeenCalled();
     expect(platform.startPlanCheckout).not.toHaveBeenCalled();
     expect(platform.openBillingPortal).not.toHaveBeenCalled();
@@ -177,7 +207,7 @@ describe("billing before the owner sets the Stripe key", () => {
   it("shows Billing and Plan closed: the notice, disabled Choose buttons, no term and no Stripe calls", async () => {
     const tree = await page();
     expect(ofType(tree, InlineAlert).map(textOf)).toContain("notAvailable");
-    expect(ofType(tree, CheckoutButton)).toEqual([]);
+    expect(reviewLinks(tree)).toEqual([]);
     expect(ofType(tree, BillingPortalButton)).toEqual([]);
     expect(elements(tree).some((e) => e.type === "nav")).toBe(false);
     const disabled = ofType(tree, Button)
@@ -187,7 +217,12 @@ describe("billing before the owner sets the Stripe key", () => {
       expect(disabled).toContain(`choose(shell.plans.${plan.code}.name)`);
     }
     const [notice] = ofType(tree, BillingLifecycleNotice);
-    expect(notice?.props["billing"]).toEqual({ open: false, portal: false, awaiting: false });
+    expect(notice?.props["billing"]).toEqual({
+      open: false,
+      portal: false,
+      awaiting: false,
+      reviewing: false,
+    });
     expect(data.getBillingAccount).not.toHaveBeenCalled();
   });
 
@@ -196,7 +231,7 @@ describe("billing before the owner sets the Stripe key", () => {
       ctx,
       billing: { open: false, portal: false, awaiting: false },
     });
-    expect(ofType(notice, CheckoutButton)).toEqual([]);
+    expect(reviewLinks(notice)).toEqual([]);
     const [button] = ofType(notice, Button);
     expect(button?.props["disabled"]).toBe(true);
     expect(button && textOf(button)).toBe("banners.trialAction");
@@ -219,7 +254,7 @@ describe("billing once the key is set", () => {
       id: "cs_test_New1",
       value: "https://checkout.stripe.test/cs_test_New1",
     });
-    expect(platform.startPlanCheckout.mock.calls[0]?.[3]).toEqual({
+    expect(platform.startPlanCheckout.mock.calls[0]?.[3]).toMatchObject({
       orgId: "org-1",
       planCode: "core",
       interval: "Monthly",
@@ -277,14 +312,13 @@ describe("billing once the key is set", () => {
   it("offers Checkout for each self-serve plan, and Add a card for the trial's plan", async () => {
     const tree = await page();
     expect(ofType(tree, InlineAlert).map(textOf)).not.toContain("notAvailable");
-    expect(ofType(tree, CheckoutButton).map((b) => b.props["plan"])).toEqual(
-      PLANS.filter((p) => p.selfServe).map((p) => p.code),
-    );
+    expect(reviewLinks(tree)).toEqual(PLANS.filter((p) => p.selfServe).map((p) => p.code));
+    expect(ofType(tree, RenewalConsentForm)).toEqual([]);
     const notice = await BillingLifecycleNotice({
       ctx,
       billing: { open: true, portal: false, awaiting: false },
     });
-    expect(ofType(notice, CheckoutButton).map((b) => b.props["plan"])).toEqual(["pro"]);
+    expect(reviewLinks(notice)).toEqual(["pro"]);
   });
 
   it("offers no second Checkout while a paid one waits for its subscription to sync", async () => {
@@ -297,16 +331,125 @@ describe("billing once the key is set", () => {
     };
     const tree = await page();
     expect(ofType(tree, InlineAlert).map(textOf)).toContain("checkoutPending");
-    expect(ofType(tree, CheckoutButton)).toEqual([]);
+    expect(reviewLinks(tree)).toEqual([]);
     expect(elements(tree).some((e) => e.type === "nav")).toBe(false);
     const [notice] = ofType(tree, BillingLifecycleNotice);
-    expect(notice?.props["billing"]).toEqual({ open: true, portal: false, awaiting: true });
+    expect(notice?.props["billing"]).toEqual({
+      open: true,
+      portal: false,
+      awaiting: true,
+      reviewing: false,
+    });
     const trial = await BillingLifecycleNotice({
       ctx,
       billing: { open: true, portal: false, awaiting: true },
     });
-    expect(ofType(trial, CheckoutButton)).toEqual([]);
+    expect(reviewLinks(trial)).toEqual([]);
     expect(ofType(trial, Button)[0]?.props["disabled"]).toBe(true);
     expect(ofType(trial, InlineAlert)).toEqual([]);
+  });
+
+  it("opens no Checkout until the Owner agrees: nothing is ticked for them", async () => {
+    const { agree: _agree, ...rest } = Object.fromEntries(choose) as Record<string, string>;
+    expect(await startCheckoutAction({}, form(rest))).toMatchObject({
+      rule: "renewal_consent_required",
+    });
+    expect(platform.startPlanCheckout).not.toHaveBeenCalled();
+  });
+
+  it("asks for initials on an annual plan, and for the statement's hash on any", async () => {
+    const annual = form({ org: "n", plan: "core", interval: "Annual", hash: HASH, agree: "on" });
+    expect(await startCheckoutAction({}, annual)).toMatchObject({
+      rule: "renewal_initials_required",
+    });
+    const noHash = form({ org: "n", plan: "core", interval: "Monthly", agree: "on" });
+    expect(await startCheckoutAction({}, noHash)).toMatchObject({ error: "input" });
+    expect(platform.startPlanCheckout).not.toHaveBeenCalled();
+  });
+
+  it("refuses when the terms worded now are not the ones on the page", async () => {
+    platform.startPlanCheckout.mockImplementation(async (_s, _r, _store, request) => {
+      (request as { consent: (a: { trialEndsAt: null }) => unknown }).consent({
+        trialEndsAt: null,
+      });
+      return { sessionId: "cs_test_New1", url: "https://checkout.stripe.test/cs_test_New1" };
+    });
+    expect(await startCheckoutAction({}, choose)).toMatchObject({ rule: "renewal_terms_changed" });
+  });
+
+  it("words the consent from the page's terms, with its version and language", async () => {
+    let consent: unknown;
+    const page = await import("@/lib/billing/renewal-terms");
+    const word = await page.renewalWording();
+    const terms = word({ planCode: "core", interval: "Monthly", trialEndsAt: null, zone: "UTC" });
+    platform.startPlanCheckout.mockImplementation(async (_s, _r, _store, request) => {
+      consent = (request as { consent: (a: { trialEndsAt: null }) => unknown }).consent({
+        trialEndsAt: null,
+      });
+      return { sessionId: "cs_test_New1", url: "https://checkout.stripe.test/cs_test_New1" };
+    });
+    await startCheckoutAction(
+      {},
+      form({
+        org: "n",
+        plan: "core",
+        interval: "Monthly",
+        hash: terms?.hash ?? "",
+        agree: "on",
+      }),
+    );
+    expect(consent).toMatchObject({
+      amountMinor: terms?.amountMinor,
+      currency: "USD",
+      nextChargeOn: terms?.nextChargeOn,
+      textVersion: "2026-11-06",
+      locale: "en-US",
+      statement: terms?.statement,
+      initials: null,
+    });
+  });
+
+  it("shows the renewal terms and the consent form only for the plan being reviewed", async () => {
+    const tree = await page({ review: "core" });
+    const [consent] = ofType(tree, RenewalConsentForm);
+    expect(consent?.props).toMatchObject({ plan: "core", interval: "Monthly" });
+    expect(consent?.props["hash"]).toMatch(/^[0-9a-f]{64}$/);
+    const annual = await page({ review: "core", term: "annual" });
+    expect(ofType(annual, RenewalConsentForm)[0]?.props["interval"]).toBe("Annual");
+    expect(ofType(await page({ review: "enterprise" }), RenewalConsentForm)).toEqual([]);
+    const [notice] = ofType(tree, BillingLifecycleNotice);
+    expect(notice?.props["billing"]).toMatchObject({ reviewing: true });
+    const reviewing = await BillingLifecycleNotice({
+      ctx,
+      billing: { open: true, portal: false, awaiting: false, reviewing: true },
+    });
+    expect(reviewLinks(reviewing)).toEqual([]);
+    expect(ofType(reviewing, Button)).toEqual([]);
+  });
+
+  it("offers End plan to an org that pays, until a cancel is under way", async () => {
+    data.account = {
+      paidThroughStripe: true,
+      hasStripeCustomer: true,
+      awaitingSubscription: false,
+      interval: "Monthly",
+      currentPeriodEnd: "2026-12-01T00:00:00Z",
+    };
+    expect(ofType(await page(), EndPlanForm)).toHaveLength(1);
+    data.getStripeCancellations.mockResolvedValueOnce({ ok: true, data: [{ id: "c-1" }] });
+    expect(ofType(await page(), EndPlanForm)).toEqual([]);
+  });
+
+  it("ends the plan: queues it, whatever Stripe answers now, and passes on a refusal", async () => {
+    data.requestPlanEnd.mockResolvedValueOnce({
+      ok: true,
+      data: { cancellationId: "c-1", stripeSubscriptionId: "sub_1", state: "Queued" },
+    });
+    expect(await endPlanAction({}, portal)).toMatchObject({ ok: true, id: "c-1" });
+    data.requestPlanEnd.mockResolvedValueOnce({
+      ok: false,
+      error: { kind: "refusal", rule: "billing_no_subscription", message: "" },
+    });
+    expect(await endPlanAction({}, portal)).toMatchObject({ rule: "billing_no_subscription" });
   });
 });

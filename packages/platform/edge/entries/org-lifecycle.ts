@@ -1,7 +1,7 @@
 /**
  * org-lifecycle (A79): deletion certificates and custom domain jobs. The certificate renderer with pdfkit and
  * its fonts, and Resend, load only when a certificate is rendered or sent. It also retries Stripe cancels and sends
- * billing alerts (ADR 0156); the Stripe SDK loads only when a cancel is due.
+ * billing alerts (ADR 0161); the Stripe SDK loads only when a cancel is due.
  */
 export * from "../lifecycle.ts";
 export {

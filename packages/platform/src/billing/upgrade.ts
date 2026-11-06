@@ -113,7 +113,7 @@ export interface PlanCheckoutRequest {
  * Opens Stripe Checkout for a self-serve plan:
  *   1. the plan has Stripe prices in plans.yaml (NotSelfServeError for Access or a quoted plan)
  *   2. the database's checks, step-up last (a refusal from the store)
- *   3. the renewal terms the Owner agreed to are recorded (ADR 0156)
+ *   3. the renewal terms the Owner agreed to are recorded (ADR 0161)
  *   4. the org's open sessions are expired, or CheckoutCompletedError when one was paid meanwhile
  *   5. the session opens on the org's Stripe customer, carrying the rest of a running trial and repeating the renewal terms
  *   6. the session is recorded, tied to the consent; any session another tab opened in the meantime is expired too

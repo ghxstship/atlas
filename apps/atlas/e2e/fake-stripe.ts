@@ -13,7 +13,7 @@ import { serviceClient } from "./a79-support";
  * and `customer.subscription.created`, signed with a webhook secret made up for the run and applied through
  * the platform's webhook handler against the local stack, as the stripe-webhook Edge Function does.
  *
- * ADR 0156: it also keeps the subscriptions it created and answers their cancel, delivering
+ * ADR 0161: it also keeps the subscriptions it created and answers their cancel, delivering
  * `customer.subscription.deleted` or `customer.subscription.updated` as Stripe would. `setDown(true)` makes every
  * subscription call fail with a 503, which is how the journeys see Stripe unreachable.
  */
@@ -32,7 +32,7 @@ interface FakeSession {
   customer: string | null;
   customerEmail: string | null;
   trialEnd: number | null;
-  /** The renewal terms Checkout repeats above its pay button (ADR 0156). */
+  /** The renewal terms Checkout repeats above its pay button (ADR 0161). */
   renewalMessage: string | null;
   lineItems: { price: string; quantity: number }[];
   successUrl: string;

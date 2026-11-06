@@ -128,7 +128,7 @@ export async function getBillingAccount(
   });
 }
 
-// Renewal consent and Stripe cancels (migrations 6140 and 6141, ADR 0156) -------------------------------------------
+// Renewal consent and Stripe cancels (migrations 6140 and 6141, ADR 0161) -------------------------------------------
 
 /** app.record_renewal_consent: records exactly what the Owner agreed to before Checkout opens. */
 export async function recordRenewalConsent(

@@ -122,6 +122,57 @@ function optionalText(row, key) {
   return typeof value === "string" ? value : null;
 }
 /** BillingStore over the 0560, 1250 and 1640 RPCs. */
+/** The Stripe cancels of the org-lifecycle worker, over the 6140 RPCs (ADR 0161). */
+function stripeCancellationStore(db) {
+  return {
+    async claim(input) {
+      return rows(
+        await db.rpc("claim_stripe_cancellations", {
+          p_worker: input.worker,
+          p_livemode: input.livemode,
+          p_limit: input.limit,
+        }),
+      ).map((row) => ({
+        cancellationId: text(row, "cancellation_id"),
+        stripeSubscriptionId: text(row, "stripe_subscription_id"),
+        mode: text(row, "cancel_mode"),
+        attempt: Number(row["attempt"]),
+      }));
+    },
+    async finish({ cancellationId, outcome }) {
+      await db.rpc("finish_stripe_cancellation", {
+        p_id: cancellationId,
+        p_accepted: outcome.accepted,
+        p_stripe_status: outcome.accepted ? outcome.stripeStatus : null,
+        p_error: outcome.accepted ? null : outcome.error,
+      });
+    },
+    async checkoutsToClose(livemode) {
+      return rows(await db.rpc("stripe_checkouts_to_close", { p_livemode: livemode })).map((row) =>
+        text(row, "stripe_checkout_session_id"),
+      );
+    },
+    async closeCheckout(sessionId) {
+      await db.rpc("finish_billing_checkout_from_stripe", {
+        p_stripe_checkout_session_id: sessionId,
+        p_checkout_state: "Expired",
+      });
+    },
+    async alertsToSend() {
+      return rows(await db.rpc("billing_alerts_to_send", { p_limit: 50 })).map((row) => ({
+        alertId: text(row, "alert_id"),
+        kind: text(row, "alert_kind"),
+        orgId: optionalText(row, "subject_org_id"),
+        stripeSubscriptionId: optionalText(row, "stripe_subscription_id"),
+        detail: text(row, "detail"),
+        raisedAt: text(row, "raised_at"),
+      }));
+    },
+    async markAlertSent(alertId) {
+      await db.rpc("mark_billing_alert_sent", { p_alert_id: alertId });
+    },
+  };
+}
 function billingStore(db) {
   return {
     async recordStripeEvent(event) {
@@ -186,6 +237,40 @@ function billingStore(db) {
         p_paid_at: input.paidAt.toISOString(),
       });
       return String(id);
+    },
+    async reconcileSubscription(input) {
+      const state = await db.rpc("reconcile_stripe_subscription", {
+        p_org_id: input.orgId,
+        p_stripe_customer_id: input.customerId,
+        p_stripe_subscription_id: input.subscriptionId,
+        p_stripe_status: input.status,
+        p_livemode: input.livemode,
+        p_event_created_at: input.eventCreatedAt.toISOString(),
+      });
+      return String(state);
+    },
+    async noteSubscriptionTerms(input) {
+      return (
+        (await db.rpc("note_stripe_subscription_terms", {
+          p_stripe_subscription_id: input.subscriptionId,
+          p_cancel_at: input.cancelAt?.toISOString() ?? null,
+          p_amount_minor: input.amountMinor,
+          p_currency_code: input.currency,
+          p_event_created_at: input.eventCreatedAt.toISOString(),
+        })) === true
+      );
+    },
+    async noteCharge(input) {
+      return (
+        (await db.rpc("note_stripe_charge", {
+          p_stripe_subscription_id: input.subscriptionId,
+          p_stripe_invoice_id: input.invoiceId,
+          p_amount_minor: input.amountMinor,
+          p_currency_code: input.currency,
+          p_billing_reason: input.billingReason,
+          p_paid_at: input.paidAt.toISOString(),
+        })) === true
+      );
     },
     async finishCheckout(sessionId, state) {
       return (
@@ -438,5 +523,6 @@ export {
   notificationStore,
   recipientProfile,
   restDb,
+  stripeCancellationStore,
   webhookStore,
 };

@@ -549,13 +549,24 @@ How it behaves:
 
 ### 3. Webhook and secrets (staging first)
 
-1. In the Dashboard (Developers, Webhooks), add an endpoint at `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` that sends `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Those events carry the plan, extra seats, Aurora pack payments and the state of each Checkout session.
+1. In the Dashboard (Developers, Webhooks), add an endpoint at `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` that sends `invoice.paid`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Those events carry the plan, extra seats, Aurora pack payments and the state of each Checkout session.
 2. Set the Edge Function secrets `STRIPE_WEBHOOK_SECRET` (the endpoint's signing secret, `whsec_...`) and `STRIPE_SECRET_KEY` (the same key; the function reads its mode, so test events never touch live billing).
 3. Set `STRIPE_SECRET_KEY` on the `atlas` Vercel project for the staging environment, then redeploy. Without it Billing and Plan says billing is not open yet.
 4. Check on staging: sign up, create an org (it starts the Pro trial), open Settings, Billing and plan, choose Core, pass the second factor, and pay with Stripe's test card `4242 4242 4242 4242`. Back in Atlas the page says the org is on Core; "Open the billing portal" opens the portal on the org's customer. In the Dashboard, the webhook endpoint shows every event delivered with HTTP 200.
 5. If a payment went through and Billing and Plan keeps saying Stripe is confirming it, the subscription's event has not been applied yet. Find the failed `customer.subscription.*` delivery on the endpoint and resend it. Meanwhile Atlas offers that org no second Checkout, for up to three days after the payment (Stripe's retry window); after that a new checkout can open, so resolve it before then.
 
-### 4. Opening billing in production
+### 4. Stopping Stripe (ADR 0161)
+
+Canceling or deleting an org, and End plan on Billing and Plan, queue a cancel the worker retries until Stripe accepts it. An org cannot finish deletion before then. No step is needed per customer. Before live billing, the **OWNER**:
+
+1. Sets the Edge Function secret `XOS_BILLING_ALERT_EMAIL` to the mailbox that should hear about billing alerts: a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Mail goes through the worker's transport, so `XOS_EMAIL_ALLOWLIST` must allow it.
+2. Confirms `org-lifecycle` is scheduled every 5 minutes (`infra/runbooks/org-lifecycle.md`). It holds `STRIPE_SECRET_KEY`, retries cancels and sends alerts. Without the schedule, cancels Atlas could not finish stay queued, and pg_cron still tells the billing owners after 15 minutes.
+3. Creates a Sentry alert rule on the `billing_attention_needed` log event of the Edge Functions, so an alert also reaches on-call when mail cannot.
+4. Sets Stripe's retries and end-of-retry behavior (Dashboard, Billing, Revenue recovery). Failed retries that cancel the subscription now settle as a confirmed end.
+
+When an alert arrives, read it in the console's Tenants page. `charged_after_cancel` names the invoice: refund it in the Stripe Dashboard and tell the Owner, as Terms 11.4 promises. Alerts clear themselves once Stripe accepts the cancel, except a charge, which stays until closed.
+
+### 5. Opening billing in production
 
 Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
 

@@ -43,7 +43,7 @@ import * as enums from "@xos/data/enums";
  * called. Each returns the Stripe URL as `value`, and the form sends the browser there. Until the owner sets
  * STRIPE_SECRET_KEY, both answer `billing_not_open` instead of failing.
  *
- * ADR 0156: Checkout opens only after the Owner agreed to the renewal terms on the page, which are recorded word for
+ * ADR 0161: Checkout opens only after the Owner agreed to the renewal terms on the page, which are recorded word for
  * word, and the Owner can end the plan here with one button.
  */
 
@@ -164,7 +164,7 @@ export async function openBillingPortalAction(
 }
 
 /**
- * Ends the org's paid plan at the end of the period paid for (ADR 0156): the same online medium as buying it, no second
+ * Ends the org's paid plan at the end of the period paid for (ADR 0161): the same online medium as buying it, no second
  * factor and no reason to give. The database queues the cancel first, so it is retried even if Stripe is down now; the
  * Stripe webhook or the worker records that it was accepted, and Billing and Plan shows what Stripe has said.
  */

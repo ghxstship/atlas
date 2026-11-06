@@ -1,5 +1,5 @@
 -- 6140_stripe_cancellations.sql
--- Legal billing issue 1 (RRR-248, audit finding M1, ADR 0156). Canceling or deleting an organization in XOS changed only the
+-- Legal billing issue 1 (RRR-248, audit finding M1, ADR 0161). Canceling or deleting an organization in XOS changed only the
 -- database, so Stripe kept charging. XOS now owns the stop: every way an org ends queues the cancel of its Stripe
 -- subscriptions in the same transaction, and the org cannot finish deletion until Stripe has accepted it.
 --   * private.stripe_cancellations: one row per cancel XOS must get accepted, Queued until Stripe accepts it. It keeps no
@@ -98,7 +98,7 @@ create index stripe_cancellations_org_idx on private.stripe_cancellations (subje
 create index stripe_cancellations_subscription_idx on private.stripe_cancellations (stripe_subscription_id);
 create index stripe_cancellations_requested_by_idx on private.stripe_cancellations (requested_by);
 
-call private.describe('private.stripe_cancellations', 'Every cancel of a Stripe subscription XOS must get accepted (ADR 0156). Written by the triggers on org cancellation and deletion, by app.request_plan_end and by reconciliation; moved only by the service role. subject_org_id has no foreign key, so the record outlives the org it names, as app.deletion_certificates does.', array[
+call private.describe('private.stripe_cancellations', 'Every cancel of a Stripe subscription XOS must get accepted (ADR 0161). Written by the triggers on org cancellation and deletion, by app.request_plan_end and by reconciliation; moved only by the service role. subject_org_id has no foreign key, so the record outlives the org it names, as app.deletion_certificates does.', array[
   'id', 'Cancel id. The idempotency key of each attempt is built from it.',
   'subject_org_id', 'Id the org had or has. No foreign key: the tenant purge leaves this record.',
   'org_name', 'Name of the org when the cancel was queued.',
@@ -199,7 +199,7 @@ create table private.billing_alerts (
 create unique index billing_alerts_open_key on private.billing_alerts (dedupe_key) where resolved_at is null;
 create index billing_alerts_unsent_idx on private.billing_alerts (raised_at) where sent_at is null and resolved_at is null;
 
-call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0156): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Open alerts are unique by dedupe_key, and a repeat counts up. Survives the tenant purge.', array[
+call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0161): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Open alerts are unique by dedupe_key, and a repeat counts up. Survives the tenant purge.', array[
   'id', 'Alert id.',
   'alert_kind', 'cancel_delayed, active_on_deleted_org, active_after_cancel, charged_after_cancel or deletion_blocked.',
   'dedupe_key', 'What makes it the same alert: its kind and its subscription, org or invoice.',
@@ -466,9 +466,9 @@ create trigger t92_queue_stripe_cancel after insert on app.org_cancellations
 create trigger t92_queue_stripe_cancel after insert on app.org_deletion_requests
   for each row execute function private.queue_stripe_cancel_on_org_end();
 
-comment on function app.cancel_organization(uuid, text, text) is 'Cancels an org (Section 14.7): the Owner (org.organization.delete) types the org name and a reason. The subscription is canceled in the database, and a trigger queues the immediate cancel of its Stripe subscriptions in the same transaction (private.stripe_cancellations, 6140, ADR 0156), the org becomes read-only for 30 days with the full export available, and its data is due for deletion at day 90. A paused org can be canceled, which ends its pause as Canceled (6051); an org read-only for another reason is refused. Refuses a partner that still has client orgs. Returns the cancellation id.';
+comment on function app.cancel_organization(uuid, text, text) is 'Cancels an org (Section 14.7): the Owner (org.organization.delete) types the org name and a reason. The subscription is canceled in the database, and a trigger queues the immediate cancel of its Stripe subscriptions in the same transaction (private.stripe_cancellations, 6140, ADR 0161), the org becomes read-only for 30 days with the full export available, and its data is due for deletion at day 90. A paused org can be canceled, which ends its pause as Canceled (6051); an org read-only for another reason is refused. Refuses a partner that still has client orgs. Returns the cancellation id.';
 
-comment on function app.request_org_deletion(uuid, text, text) is 'Asks to delete an org (Section 14.7): the Owner (org.organization.delete) with step-up (private.require_step_up) types the org name and a reason. The subscription is canceled in the database, and a trigger queues the immediate cancel of its Stripe subscriptions in the same transaction (private.stripe_cancellations, 6140, ADR 0156). The org becomes read-only, every Owner is told, and the org is deleted after a recovery window of the rest of the day and 7 whole days on the org''s calendar, once Stripe has accepted that cancel. Refuses a partner with client orgs and an org under a legal hold. Returns the request id.';
+comment on function app.request_org_deletion(uuid, text, text) is 'Asks to delete an org (Section 14.7): the Owner (org.organization.delete) with step-up (private.require_step_up) types the org name and a reason. The subscription is canceled in the database, and a trigger queues the immediate cancel of its Stripe subscriptions in the same transaction (private.stripe_cancellations, 6140, ADR 0161). The org becomes read-only, every Owner is told, and the org is deleted after a recovery window of the rest of the day and 7 whole days on the org''s calendar, once Stripe has accepted that cancel. Refuses a partner with client orgs and an org under a legal hold. Returns the request id.';
 
 -- The deletion gate --------------------------------------------------------------------------------------------------
 
@@ -515,7 +515,7 @@ begin
 end;
 $$;
 
-comment on function private.write_deletion_certificate(uuid, text, timestamptz, timestamptz, uuid) is 'Writes the certificate of an org due for deletion, once, with the former Owner it goes to (the Owner who canceled or asked, while still an Owner, else the longest-standing Owner), their name, address and language. Writes nothing, and raises a deletion_blocked alert, while the org has a Stripe subscription whose cancel Stripe has not accepted (6140, ADR 0156).';
+comment on function private.write_deletion_certificate(uuid, text, timestamptz, timestamptz, uuid) is 'Writes the certificate of an org due for deletion, once, with the former Owner it goes to (the Owner who canceled or asked, while still an Owner, else the longest-standing Owner), their name, address and language. Writes nothing, and raises a deletion_blocked alert, while the org has a Stripe subscription whose cancel Stripe has not accepted (6140, ADR 0161).';
 revoke all on function private.write_deletion_certificate(uuid, text, timestamptz, timestamptz, uuid) from public, anon, authenticated;
 
 -- A certificate written before a subscription appeared (a Checkout paid during the window) still stops at the purge.

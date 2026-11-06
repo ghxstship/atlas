@@ -14,7 +14,7 @@ import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform
 import type { Database } from "@xos/data/database.types";
 
 /**
- * Billing and Plan's forms (ADR 0033 decision 59, ADR 0156): one agrees to the renewal terms and opens Stripe Checkout
+ * Billing and Plan's forms (ADR 0033 decision 59, ADR 0161): one agrees to the renewal terms and opens Stripe Checkout
  * for a plan, one opens the Stripe customer portal, one ends the plan. Checkout and the portal post to a server action in
  * lib/billing/actions.ts, which answers with the Stripe URL the browser then goes to. A step-up refusal opens A77's
  * step-up dialog, and verifying submits the form again; every other refusal shows its copy under
@@ -154,7 +154,7 @@ export function RenewalConsentForm({
   );
 }
 
-/** Ends the plan at the end of the period paid for: one button, online, with no second factor (ADR 0156). */
+/** Ends the plan at the end of the period paid for: one button, online, with no second factor (ADR 0161). */
 export function EndPlanForm({ org, label }: { org: string; label: string }) {
   const t = useBillingT();
   const [state, formAction, pending] = useActionState(endPlanAction, INITIAL_PLATFORM_STATE);

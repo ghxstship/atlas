@@ -20,7 +20,7 @@ import { handleStripeWebhook, type BillingStore } from "../src/billing/webhook.t
 import { billingStore, stripeCancellationStore, type PlatformDb } from "../src/stores.ts";
 
 /**
- * Stopping a Stripe subscription (ADR 0156, migration 6140): the call is idempotent and never loses a failure, the worker
+ * Stopping a Stripe subscription (ADR 0161, migration 6140): the call is idempotent and never loses a failure, the worker
  * retries and alerts, and the webhook reconciles before it syncs. Stripe here is a fake; live keys are an owner step.
  */
 

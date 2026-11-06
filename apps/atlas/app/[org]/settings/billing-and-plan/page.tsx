@@ -31,7 +31,7 @@ import { getTranslate } from "@/lib/shell/translate";
  *
  * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens once the
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
- * Stripe Checkout; an org that pays through Stripe changes its plan or card in the Stripe customer portal. ADR 0156:
+ * Stripe Checkout; an org that pays through Stripe changes its plan or card in the Stripe customer portal. ADR 0161:
  * choosing a plan first shows its renewal terms (price, term, first charge date and how to cancel), and only agreeing to
  * them opens Checkout. A paying org ends its plan here with one button, and the page says what Stripe has said about it.
  * While a paid checkout waits for its subscription to sync, the page says Stripe is confirming

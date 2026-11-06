@@ -3,7 +3,7 @@ import { CheckoutCompletedError, expireCheckoutSession } from "./upgrade.ts";
 import type { StripeClient } from "./env.ts";
 
 /**
- * Stopping a Stripe subscription (ADR 0156, migration 6140). The database queues every cancel in the transaction that
+ * Stopping a Stripe subscription (ADR 0161, migration 6140). The database queues every cancel in the transaction that
  * ends the org or the plan, and only the service role records that Stripe accepted it. This module makes the call: the
  * org-lifecycle worker retries what is due, and Atlas tries once at once for the person waiting.
  *
