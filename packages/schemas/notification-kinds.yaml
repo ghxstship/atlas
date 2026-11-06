@@ -569,6 +569,8 @@ kinds:
         test: supabase/tests/4693_allocation_rpcs.test.sql
       - emitter: supabase/migrations/4693_allocation_rpcs.sql#app.assign_allocation
         test: supabase/tests/4693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/6230_equipment_approval_rules.sql#private.decline_rejected_allocation
+        test: supabase/tests/6230_equipment_approval_rules.test.sql
   - kind: allocation.assigned
     category: assignments
     emitted_by:
@@ -588,6 +590,8 @@ kinds:
         test: supabase/tests/4694_allocation_cascades.test.sql
       - emitter: supabase/migrations/4694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/4694_allocation_cascades.test.sql
+      - emitter: supabase/migrations/6230_equipment_approval_rules.sql#private.withdraw_canceled_allocation
+        test: supabase/tests/6230_equipment_approval_rules.test.sql
   # Travel, lodging and ground transport (B5: 5947)
   - kind: accommodation_block.release_due
     category: expiry_reminders

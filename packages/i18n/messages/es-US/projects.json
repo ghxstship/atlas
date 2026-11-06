@@ -405,7 +405,7 @@
       },
       "fields": {
         "subject": "Se aplica a",
-        "subjectHelp": "Las reglas de equipo quedan en Borrador hasta que las solicitudes de equipo vengan de los avances.",
+        "subjectHelp": "Las reglas de equipo retienen las solicitudes de radios y carritos de los avances. Un revisor aprueba una solicitud cuando todos los pasos la aprobaron.",
         "filter": {
           "Pass": "Categoría de credencial",
           "Delivery": "Muelle",

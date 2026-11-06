@@ -213,9 +213,11 @@ export interface AssetClass {
   readonly unitCount: number;
   readonly lotCount: number;
   readonly createdAt: string;
+  /** The offering the class answers for, Radios or Carts (R7); null for site assets. Equipment rules gate these. */
+  readonly offering: string | null;
 }
 
-/** Asset classes of the org by name, with their canon element and unit and lot counts. */
+/** Asset classes of the org by name, with their canon element, unit and lot counts and offering. */
 export async function listAssetClasses(
   db: XosClient,
   orgId: string,
@@ -223,7 +225,7 @@ export async function listAssetClasses(
   const { data, error } = await db
     .from("asset_classes")
     .select(
-      "id, name, element_id, created_at, asset_units(id, deleted_at), asset_lots(id, deleted_at)",
+      "id, name, element_id, created_at, offering, asset_units(id, deleted_at), asset_lots(id, deleted_at)",
     )
     .eq("org_id", orgId)
     .is("deleted_at", null)
@@ -246,6 +248,7 @@ export async function listAssetClasses(
         unitCount: r.asset_units.filter((u) => u.deleted_at === null).length,
         lotCount: r.asset_lots.filter((l) => l.deleted_at === null).length,
         createdAt: r.created_at,
+        offering: r.offering ?? null,
       };
     }),
   );

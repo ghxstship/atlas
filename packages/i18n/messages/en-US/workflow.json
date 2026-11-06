@@ -66,7 +66,7 @@
     "approval_rule_step_not_draft": "Steps change only while the rule is a Draft. Retire it and add a new one.",
     "approval_rule_active_delete": "Retire an Active rule before you delete it.",
     "approval_rule_filter_project": "The filter must belong to this project's org, and a credential category to this project.",
-    "approval_rule_equipment_pending": "Equipment rules take effect once equipment requests come from advances. Keep this rule as a Draft until then.",
+    "approval_rule_class_no_offering": "Requests come only for Radios and Carts, so a rule on this class would never apply. Choose one of those classes.",
     "approval_rule_pending": "This request waits on its approval rule. Approve it once every step is approved.",
     "approval_step_engagement": "Choose an engagement of this project that is not Complete or Canceled.",
     "approval_step_no_approver": "Nobody this step names has an XOS account to receive approval emails. Invite them to Gateway first, or name another approver.",
@@ -164,7 +164,9 @@
       "reason": "Why withdraw it?",
       "reasonHelp": "Kept in the approval's history.",
       "submit": "Withdraw approval",
-      "done": "Approval withdrawn."
+      "done": "Approval withdrawn.",
+      "equipmentHelp": "Kept in the approval's history. This also withdraws the equipment request, and the requester sees why.",
+      "equipmentDone": "Approval and equipment request withdrawn."
     },
     "submit": {
       "title": "Submit a document for approval",

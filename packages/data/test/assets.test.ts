@@ -222,6 +222,7 @@ describe("asset classes", () => {
             name: "Digital Radio",
             element_id: "E1",
             created_at: "2026-09-01T00:00:00Z",
+            offering: "Radios",
             asset_units: [
               { id: "u1", deleted_at: null },
               { id: "u2", deleted_at: "2026-09-02T00:00:00Z" },
@@ -246,8 +247,10 @@ describe("asset classes", () => {
       lotCount: 1,
       urid: "9000.03.01",
       elementItem: "Radio",
+      offering: "Radios",
     });
     expect(result.ok && result.data[1]?.urid).toBeNull();
+    expect(result.ok && result.data[1]?.offering).toBeNull();
   });
 
   it("returns read errors for classes and their elements", async () => {

@@ -67,8 +67,8 @@ with x as (insert into app.approval_rules (project_id, subject, name) values (pg
   insert into world select 'rule_equipment', id from x;
 insert into app.approval_rule_steps (approval_rule_id, step_order, name, approver_membership_id)
 values (pg_temp.id('rule_equipment'), 1, 'Quartermaster', pg_temp.id('bob@org_a'));
-select throws_like($$select app.transition_approval_rule((select id from world where key = 'rule_equipment'), 'Draft', 'Active', 'Go.')$$,
-  'approval_rule_equipment_pending:%', 'an Equipment rule stays a Draft until equipment requests are gated (2863)');
+select lives_ok($$select app.transition_approval_rule((select id from world where key = 'rule_equipment'), 'Draft', 'Active', 'Go.')$$,
+  'an Equipment rule is activated, since 6230 gates equipment requests');
 -- An outside party with no XOS account cannot receive approval emails.
 select pg_temp.as_platform();
 with p as (insert into app.people (full_name) values ('Offline Vendor') returning id) insert into world select 'offline', id from p;

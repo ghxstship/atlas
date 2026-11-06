@@ -154,6 +154,7 @@
       "act_code": "Acto",
       "actor_person_id": "Quién",
       "actual_minor": "Real (unidades menores)",
+      "advance_allocation_id": "Solicitud de equipo",
       "advance_packet_id": "Paquete de avance",
       "advance_recipient_id": "Destinatario",
       "agenda": "Agenda",

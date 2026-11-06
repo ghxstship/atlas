@@ -199,6 +199,7 @@ describe("subject approvals and reminder status", () => {
       cancel_reason: null,
       viewer_may_decide: null,
       current_step_approver_names: null,
+      advance_allocation_id: null,
     });
 
   it("maps a status row, keeping a step nobody may decide visible", () => {
@@ -220,6 +221,35 @@ describe("subject approvals and reminder status", () => {
     ]);
     expect(map.get("c1")?.id).toBe("a3");
     expect(map.get("c2")?.state).toBe("Approved");
+  });
+
+  it("keys an equipment approval by its allocation (6230)", async () => {
+    const { db, calls } = fakeClient({
+      "from:subject_approval_status": [
+        okResponse([
+          {
+            id: "a5",
+            project_id: "p1",
+            approval_rule_id: "r2",
+            rule_name: "Radio requests",
+            subject: "Equipment",
+            credential_id: null,
+            dock_slot_id: null,
+            advance_allocation_id: "al1",
+            requested_by: "dave",
+            created_at: "2027-06-01T10:00:00Z",
+            approval_state: "In Review",
+            current_step: 1,
+            step_count: 1,
+          },
+        ]),
+      ],
+    });
+    const result = await listSubjectApprovals(db, { advanceAllocationIds: ["al1"] });
+    expect(result.ok && result.data[0]?.advanceAllocationId).toBe("al1");
+    expect(calls[0]?.steps.find(([step]) => step === "in")?.[1][0]).toBe("advance_allocation_id");
+    const map = approvalBySubject(result.ok ? result.data : []);
+    expect(map.get("al1")?.subject).toBe("Equipment");
   });
 
   it("asks for the chips of a long list 100 ids at a time, newest first, with no row cap", async () => {

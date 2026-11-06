@@ -97,6 +97,7 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "allocation_target_project",
   "allocation_target_required",
   "allocation_window",
+  "approval_rule_pending",
   "asset_class_held_for_reservations",
   "asset_reserved_for_other",
   "availability_window",

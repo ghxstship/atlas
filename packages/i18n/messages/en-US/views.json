@@ -154,6 +154,7 @@
       "act_code": "Act",
       "actor_person_id": "Who",
       "actual_minor": "Actual (minor units)",
+      "advance_allocation_id": "Equipment request",
       "advance_packet_id": "Advance packet",
       "advance_recipient_id": "Recipient",
       "agenda": "Agenda",
