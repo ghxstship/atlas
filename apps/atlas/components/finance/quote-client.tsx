@@ -49,12 +49,23 @@ interface LinkTarget {
 
 type Target = SendTarget | LinkTarget;
 
-const HostContext = createContext<(target: Target) => void>(() => undefined);
+interface Host {
+  readonly open: (target: Target) => void;
+  /** Offers Undo from the page: a deleted Draft can take its quote and this panel with it. */
+  readonly draftDeleted: (draft: { quoteId: string; versionId: string }) => void;
+}
+
+const HostContext = createContext<Host>({ open: () => undefined, draftDeleted: () => undefined });
 
 export function QuoteDialogHost({ org, children }: { org: string; children: ReactNode }) {
+  const t = useFinanceT();
+  const go = useQueryNav();
+  const router = useRouter();
   const [target, setTarget] = useState<Target | null>(null);
+  const [deleted, setDeleted] = useState<{ quoteId: string; versionId: string } | null>(null);
+  const [, start] = useTransition();
   return (
-    <HostContext.Provider value={setTarget}>
+    <HostContext.Provider value={{ open: setTarget, draftDeleted: setDeleted }}>
       {children}
       {target ? (
         <QuoteDialog
@@ -64,6 +75,24 @@ export function QuoteDialogHost({ org, children }: { org: string; children: Reac
           onClose={() => setTarget(null)}
         />
       ) : null}
+      <ToastRegion label={t("common.notifications")}>
+        {deleted ? (
+          <UndoToast
+            key={deleted.versionId}
+            message={t("quotes.draftDeleted")}
+            onUndo={() => {
+              const { quoteId, versionId } = deleted;
+              setDeleted(null);
+              start(async () => {
+                await restoreQuoteDraftAction(org, quoteId, versionId);
+                go({ peek: quoteId });
+                router.refresh();
+              });
+            }}
+            onExpire={() => setDeleted(null)}
+          />
+        ) : null}
+      </ToastRegion>
     </HostContext.Provider>
   );
 }
@@ -212,7 +241,7 @@ function QuoteDialog({ org, target, onClose }: { org: string; target: Target; on
 /** Send quote: the screen's primary action on a Draft. */
 export function SendQuoteButton(props: Omit<SendTarget, "kind">) {
   const t = useFinanceT();
-  const open = useContext(HostContext);
+  const { open } = useContext(HostContext);
   return (
     <Button variant="primary" onClick={() => open({ kind: "send", ...props })}>
       {t("quotes.actions.send")}
@@ -222,7 +251,7 @@ export function SendQuoteButton(props: Omit<SendTarget, "kind">) {
 
 export function SigningLinkButton(props: Omit<LinkTarget, "kind">) {
   const t = useFinanceT();
-  const open = useContext(HostContext);
+  const { open } = useContext(HostContext);
   return (
     <Button size="sm" onClick={() => open({ kind: "link", ...props })}>
       {t("quotes.actions.signingLink")}
@@ -254,7 +283,7 @@ export function NewVersionButton({ org, quoteId }: { org: string; quoteId: strin
   );
 }
 
-/** Delete draft, with an Undo toast. */
+/** Delete draft; the page offers Undo. */
 export function DeleteDraftButton({
   org,
   quoteId,
@@ -265,43 +294,22 @@ export function DeleteDraftButton({
   versionId: string;
 }) {
   const t = useFinanceT();
-  const go = useQueryNav();
-  const router = useRouter();
-  const [undo, setUndo] = useState(false);
+  const { draftDeleted } = useContext(HostContext);
   const [pending, start] = useTransition();
   return (
-    <>
-      <Button
-        size="sm"
-        icon="Trash2"
-        loading={pending}
-        onClick={() =>
-          start(async () => {
-            const result = await deleteQuoteDraftAction(org, versionId);
-            if (result.ok) setUndo(true);
-          })
-        }
-      >
-        {t("quotes.actions.deleteDraft")}
-      </Button>
-      <ToastRegion label={t("common.notifications")}>
-        {undo ? (
-          <UndoToast
-            key={versionId}
-            message={t("quotes.draftDeleted")}
-            onUndo={() => {
-              setUndo(false);
-              start(async () => {
-                await restoreQuoteDraftAction(org, quoteId, versionId);
-                go({ peek: quoteId });
-                router.refresh();
-              });
-            }}
-            onExpire={() => setUndo(false)}
-          />
-        ) : null}
-      </ToastRegion>
-    </>
+    <Button
+      size="sm"
+      icon="Trash2"
+      loading={pending}
+      onClick={() =>
+        start(async () => {
+          const result = await deleteQuoteDraftAction(org, versionId);
+          if (result.ok) draftDeleted({ quoteId, versionId });
+        })
+      }
+    >
+      {t("quotes.actions.deleteDraft")}
+    </Button>
   );
 }
 
