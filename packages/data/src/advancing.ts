@@ -823,6 +823,8 @@ export async function addSection(
     readonly prompt: string | null;
     /** The kind and its configuration (R9); Text when left out. */
     readonly config?: SectionConfig;
+    /** The track (R11); General when left out. */
+    readonly track?: AdvanceTrack;
   },
 ): Promise<Result<{ id: string }>> {
   const title = cleanTitle(input.title);
@@ -855,6 +857,7 @@ export async function addSection(
       window_kind: config.windowKind,
       max_lines: config.maxLines,
       per_person: config.perPerson,
+      ...(input.track ? { track: input.track } : {}),
     })
     .select("id")
     .single();
@@ -2367,6 +2370,8 @@ export interface AdvanceProgressCell {
   readonly submittedAt: string | null;
   readonly state: AdvanceCellState;
   readonly overdue: boolean;
+  /** False once the recipient's engagement is Complete or Canceled: it can no longer answer, so nothing is outstanding. */
+  readonly recipientOpen: boolean;
 }
 
 type Raw = Record<string, unknown>;
@@ -2380,6 +2385,29 @@ function count(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/** Rows one PostgREST call answers at most (max_rows in supabase/config.toml); it says nothing when it cuts more. */
+const ROWS_PAGE = 1000;
+
+/**
+ * Every row of a grid's read, a page at a time: a project's grid runs past one call on a realistic roster (ten rows a
+ * person, packets by recipients by sections). `read` must order by a unique key, so that the pages do not overlap.
+ */
+async function everyRow(
+  read: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: unknown; error: Parameters<typeof toDataError>[0] | null }>,
+): Promise<Result<Raw[]>> {
+  const out: Raw[] = [];
+  for (let from = 0; ; from += ROWS_PAGE) {
+    const { data, error } = await read(from, from + ROWS_PAGE - 1);
+    if (error) return fail(toDataError(error));
+    const page = (data ?? []) as Raw[];
+    out.push(...page);
+    if (page.length < ROWS_PAGE) return ok(out);
+  }
+}
+
 /**
  * The packets heatmap of a project, from app.advance_progress (2740): every live sent packet, recipient and section
  * with its computed cell state, optionally for one packet. Computed in the database; nothing is stored.
@@ -2389,20 +2417,25 @@ export async function listAdvanceProgress(
   projectId: string,
   packetId?: string,
 ): Promise<Result<AdvanceProgressCell[]>> {
-  let query = db
-    .from("advance_progress")
-    .select(
-      "advance_packet_id, packet_title, due_at, advance_recipient_id, recipient_engagement_id, recipient_label, advance_section_id, position, section_title, section_kind, latest_submission_id, submitted_at, cell_state, overdue",
-    )
-    .eq("project_id", projectId);
-  if (packetId) query = query.eq("advance_packet_id", packetId);
-  const { data, error } = await query
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .order("advance_packet_id")
-    .order("position");
-  if (error) return fail(toDataError(error));
+  const rows = await everyRow((from, to) => {
+    let query = db
+      .from("advance_progress")
+      .select(
+        "advance_packet_id, packet_title, due_at, advance_recipient_id, recipient_engagement_id, recipient_label, advance_section_id, position, section_title, section_kind, latest_submission_id, submitted_at, cell_state, overdue, recipient_open",
+      )
+      .eq("project_id", projectId);
+    if (packetId) query = query.eq("advance_packet_id", packetId);
+    return query
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .order("advance_packet_id")
+      .order("position")
+      .order("advance_recipient_id")
+      .order("advance_section_id")
+      .range(from, to);
+  });
+  if (!rows.ok) return rows;
   return ok(
-    ((data ?? []) as Raw[]).map((r) => ({
+    rows.data.map((r) => ({
       packetId: String(r["advance_packet_id"]),
       packetTitle: text(r["packet_title"]) ?? "",
       dueAt: text(r["due_at"]),
@@ -2417,6 +2450,7 @@ export async function listAdvanceProgress(
       submittedAt: text(r["submitted_at"]),
       state: (text(r["cell_state"]) ?? "Missing") as AdvanceCellState,
       overdue: r["overdue"] === true,
+      recipientOpen: r["recipient_open"] !== false,
     })),
   );
 }
@@ -2462,16 +2496,19 @@ export interface ReadinessCell {
 
 /**
  * The crew readiness grid of a project (app.roster_readiness, 2740): one cell per live roster entry and category,
- * Hidden where the caller lacks the category's capability. The function returns no value, so nothing is logged.
+ * Hidden where the caller lacks the category's capability. The function returns no value, so nothing is logged. It
+ * orders its own rows, down to the entry and the category, so each page reads on from the last.
  */
 export async function listRosterReadiness(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ReadinessCell[]>> {
-  const { data, error } = await db.rpc("roster_readiness", { p_project_id: projectId });
-  if (error) return fail(toDataError(error));
+  const rows = await everyRow((from, to) =>
+    db.rpc("roster_readiness", { p_project_id: projectId }).range(from, to),
+  );
+  if (!rows.ok) return rows;
   return ok(
-    ((data ?? []) as Raw[]).map((r) => ({
+    rows.data.map((r) => ({
       rosterEntryId: String(r["roster_entry_id"]),
       engagementId: String(r["engagement_id"]),
       partyLabel: text(r["party_label"]),
@@ -2506,15 +2543,21 @@ export async function listAllocationHeat(
   db: XosClient,
   projectId: string,
 ): Promise<Result<AllocationHeatCell[]>> {
-  const { data, error } = await db
-    .from("advance_allocation_heat")
-    .select(
-      "engagement_id, party_label, kind, offering, requested_quantity, approved_quantity, on_order_quantity, received_quantity, reserved_quantity, issued_quantity, returned_quantity, lost_quantity, allocation_count",
-    )
-    .eq("project_id", projectId);
-  if (error) return fail(toDataError(error));
+  const rows = await everyRow((from, to) =>
+    db
+      .from("advance_allocation_heat")
+      .select(
+        "engagement_id, party_label, kind, offering, requested_quantity, approved_quantity, on_order_quantity, received_quantity, reserved_quantity, issued_quantity, returned_quantity, lost_quantity, allocation_count",
+      )
+      .eq("project_id", projectId)
+      .order("engagement_id")
+      .order("kind")
+      .order("offering")
+      .range(from, to),
+  );
+  if (!rows.ok) return rows;
   return ok(
-    ((data ?? []) as Raw[]).map((r) => ({
+    rows.data.map((r) => ({
       engagementId: text(r["engagement_id"]),
       partyLabel: text(r["party_label"]),
       kind: text(r["kind"]) ?? "",
@@ -2588,17 +2631,23 @@ export async function listTrackProgress(
   projectId: string,
   packetId?: string,
 ): Promise<Result<TrackProgress[]>> {
-  let query = db
-    .from("advance_track_progress")
-    .select(
-      "advance_packet_id, advance_recipient_id, recipient_label, track, sections_total, sections_done, overdue, signoff_id, signed_off_at, signed_off_by_name, track_state",
-    )
-    .eq("project_id", projectId);
-  if (packetId) query = query.eq("advance_packet_id", packetId);
-  const { data, error } = await query;
-  if (error) return fail(toDataError(error));
+  const rows = await everyRow((from, to) => {
+    let query = db
+      .from("advance_track_progress")
+      .select(
+        "advance_packet_id, advance_recipient_id, recipient_label, track, sections_total, sections_done, overdue, signoff_id, signed_off_at, signed_off_by_name, track_state",
+      )
+      .eq("project_id", projectId);
+    if (packetId) query = query.eq("advance_packet_id", packetId);
+    return query
+      .order("advance_packet_id")
+      .order("advance_recipient_id")
+      .order("track")
+      .range(from, to);
+  });
+  if (!rows.ok) return rows;
   return ok(
-    ((data ?? []) as Raw[]).flatMap((r) => {
+    rows.data.flatMap((r) => {
       const track = r["track"];
       if (!isTrack(track)) return [];
       return [

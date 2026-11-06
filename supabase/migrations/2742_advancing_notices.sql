@@ -244,19 +244,21 @@ set search_path = ''
 as $$
 declare
   v_project uuid;
+  v_key text;
   v_me uuid := private.current_person_id();
   v_person uuid;
 begin
   if new.roster_entry_id is null or old.revoked_at is not null or new.revoked_at is null then
     return null;
   end if;
-  select e.project_id into v_project from app.engagements e where e.id = new.engagement_id;
+  select e.project_id, p.project_key into v_project, v_key from app.engagements e join app.projects p on p.id = e.project_id
+  where e.id = new.engagement_id;
   for v_person in
     select x from private.project_member_people_with(v_project, 'advancing.packet.read') x order by x limit 50
   loop
     continue when v_person is not distinct from v_me;
     perform private.notify(new.org_id, v_person, 'roster_entry.share_revoked', 'engagement_roster_entries', new.roster_entry_id,
-      v_project, private.roster_notification_args(new.roster_entry_id));
+      v_project, private.roster_notification_args(new.roster_entry_id) || jsonb_build_object('projectKey', v_key));
   end loop;
   return null;
 end;

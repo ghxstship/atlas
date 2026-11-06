@@ -190,6 +190,30 @@ select throws_ok(format($$select * from app.roster_readiness(%L)$$, pg_temp.id('
   'a member who reads neither packets nor engagements is refused');
 select pg_temp.as_platform();
 
+-- A closed engagement ------------------------------------------------------------------------------------------------------
+-- The party can no longer answer (Section 8.7), so what it left stays visible but is neither overdue nor outstanding.
+update app.advance_packets set due_at = now() - interval '1 day' where id = pg_temp.id('pkt');
+select pg_temp.as_user('reader');
+select ok((select bool_and(g.overdue) from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art') and g.cell_state = 'Missing'),
+  'past the due date, an open recipient''s missing section is overdue');
+select is((select count(*)::int from app.roster_readiness(pg_temp.id('prj_a')) r where r.engagement_id = pg_temp.id('eng_art_a')) > 0, true,
+  'and its roster is in the readiness grid');
+select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_art_a', 'Active', 'Closing');
+select pg_temp.as_user('reader');
+select ok((select bool_and(g.recipient_open) from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art')),
+  'Closing still counts: the party can answer until the engagement is Complete');
+select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_art_a', 'Closing', 'Complete');
+select pg_temp.as_user('reader');
+select ok((select bool_and(not g.recipient_open) from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art')),
+  'at Complete the recipient is marked closed, for a reader with no policy on engagements as well');
+select ok((select count(*) > 0 from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art')), 'and keeps its rows');
+select ok((select not bool_or(g.overdue) from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art')), 'none of them overdue');
+select is((select count(*)::int from app.roster_readiness(pg_temp.id('prj_a')) r where r.engagement_id = pg_temp.id('eng_art_a')), 0,
+  'and its roster leaves the readiness grid');
+select pg_temp.as_platform();
+
 -- Allocations ------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('hops');
 select is((select count(*)::int from app.advance_allocation_heat), 0, 'the allocation heat follows R7''s readers');

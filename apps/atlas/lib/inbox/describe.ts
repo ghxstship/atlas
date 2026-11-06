@@ -121,6 +121,13 @@ export function inboxTarget(
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
       : `/${org}/import`;
   }
+  // A revoked share (R11, 2742) opens the person on the project's crew roster.
+  if (item.kind === "roster_entry.share_revoked") {
+    const key = item.args?.["projectKey"];
+    return key && item.subjectId
+      ? `/${org}/p/${encodeURIComponent(key)}/advancing?section=crew&peek=${encodeURIComponent(item.subjectId)}`
+      : null;
+  }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
   if (item.kind.startsWith("billing.")) return `/${org}/settings/billing-and-plan`;

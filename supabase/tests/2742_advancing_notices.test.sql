@@ -103,6 +103,8 @@ select app.revoke_work_detail_share(pg_temp.id('share_kai'));
 select pg_temp.as_platform();
 select is(pg_temp.told('alice', 'roster_entry.share_revoked', 'e_kai'), 1, 'a revoked share tells the project''s packet readers');
 select is(pg_temp.told('kai', 'roster_entry.share_revoked', 'e_kai'), 0, 'not the person who revoked it');
+select ok((select bool_and(n.message_args ->> 'projectKey' = (select p.project_key from app.projects p where p.id = pg_temp.id('prj_a')))
+  from app.notifications n where n.kind = 'roster_entry.share_revoked'), 'with the project''s key, so the Inbox opens the person on the crew roster');
 select is(pg_temp.told('hops', 'roster_entry.share_revoked', 'e_kai'), 0, 'nor a member who does not read packets');
 select ok((select count(*) from app.notifications where kind = 'roster_entry.share_revoked') <= 50, 'at most 50 are told');
 

@@ -6,10 +6,12 @@
 --   1. app.advance_progress (security_invoker): one row per live sent packet, live recipient and live section, with
 --      the latest answer and its cell_state (Missing, Awaiting Review, Accepted, Returned, Complete or Not
 --      Applicable) and overdue. A Crew Roster section is Complete from the recipient engagement's roster, never
---      answered; a Guest List section is Not Applicable for a Contractor or Sponsor engagement.
---   2. app.roster_readiness(project): a person-by-category grid of each live roster entry, with states only (On File,
---      Missing, Not Shared, Shared, Submitted, Not Offered, Hidden and the person's answer). No value leaves the
---      database, so nothing is logged; each category is Hidden from a reader without its capability.
+--      answered; a Guest List section is Not Applicable for a Contractor or Sponsor engagement. A recipient whose linked
+--      engagement is Complete or Canceled keeps its row and its answers, with recipient_open false: it can no longer
+--      answer, so nothing it left is overdue or outstanding.
+--   2. app.roster_readiness(project): a person-by-category grid of each live roster entry of an engagement still open,
+--      with states only (On File, Missing, Not Shared, Shared, Submitted, Not Offered, Hidden and the person's answer).
+--      No value leaves the database, so nothing is logged; each category is Hidden from a reader without its capability.
 --   3. app.advance_allocation_heat (security_invoker): R7's app.advance_allocation_status summed by engagement, party
 --      and offering (owner decision 8: no rollup is stored).
 --   4. app.advance_submissions and app.engagement_roster_entries join the supabase_realtime publication (1450), so
@@ -81,6 +83,22 @@ comment on function private.advance_section_cell(app.advance_section_kind, uuid)
 revoke all on function private.advance_section_cell(app.advance_section_kind, uuid) from public, anon;
 grant execute on function private.advance_section_cell(app.advance_section_kind, uuid) to authenticated, service_role;
 
+create or replace function private.advance_engagement_open(p_engagement_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_engagement_id is null or exists (
+    select 1 from app.engagements e
+    where e.id = p_engagement_id and e.deleted_at is null and e.engagement_state not in ('Complete', 'Canceled'));
+$$;
+
+comment on function private.advance_engagement_open(uuid) is 'R11: false when the engagement an advance recipient answers under is Complete, Canceled or removed, since Section 8.7 then closes advancing to its party for good; true while it is open, and for a recipient linked to no engagement. Definer so the answer never depends on the reader''s engagement policies. Takes column values.';
+revoke all on function private.advance_engagement_open(uuid) from public, anon;
+grant execute on function private.advance_engagement_open(uuid) to authenticated, service_role;
+
 -- 1. Packets ------------------------------------------------------------------------------------------------------------
 
 create view app.advance_progress with (security_invoker = on) as
@@ -89,7 +107,8 @@ select p.org_id, p.project_id, p.id as advance_packet_id, p.title as packet_titl
   private.advance_party_label(p.project_id, r.person_id, r.counterparty_id) as recipient_label,
   s.id as advance_section_id, s.position, s.title as section_title, s.section_kind,
   l.id as latest_submission_id, l.submitted_at, c.cell_state,
-  coalesce(p.due_at < now() and c.cell_state in ('Missing', 'Returned'), false) as overdue
+  coalesce(p.due_at < now() and c.recipient_open and c.cell_state in ('Missing', 'Returned'), false) as overdue,
+  c.recipient_open
 from app.advance_packets p
 join app.advance_recipients r on r.advance_packet_id = p.id and r.deleted_at is null
 join app.advance_sections s on s.advance_packet_id = p.id and s.deleted_at is null
@@ -102,7 +121,8 @@ left join lateral (
 cross join lateral (
   select coalesce(private.advance_section_cell(s.section_kind, r.engagement_id),
     case when l.id is null then 'Missing' when l.review_outcome is null then 'Awaiting Review' else l.review_outcome::text end)
-    as cell_state
+    as cell_state,
+    private.advance_engagement_open(r.engagement_id) as recipient_open
 ) c
 where p.deleted_at is null and p.sent_at is not null;
 
@@ -122,7 +142,8 @@ call private.describe('app.advance_progress', 'Where every recipient of every se
   'latest_submission_id', 'The recipient''s latest answer to the section; NULL when none was given.',
   'submitted_at', 'When the latest answer was given.',
   'cell_state', 'Missing, Awaiting Review, Accepted, Returned, Complete (a Crew Roster with every entry past review) or Not Applicable (a Guest List for a Contractor or Sponsor).',
-  'overdue', 'True when the packet is past due and the section is Missing or Returned.'
+  'overdue', 'True when the packet is past due, the section is Missing or Returned, and the recipient can still answer.',
+  'recipient_open', 'False once the engagement the recipient answers under is Complete or Canceled: the party can no longer answer, so what it left is not outstanding.'
 ]);
 
 revoke all on app.advance_progress from public, anon;
@@ -181,7 +202,8 @@ begin
       r.is_self, r.created_at
     from app.engagement_roster_entries r
     join app.engagements e on e.id = r.engagement_id and e.deleted_at is null
-    where e.project_id = p_project_id and r.deleted_at is null and r.entry_state <> 'Withdrawn'
+    where e.project_id = p_project_id and e.engagement_state not in ('Complete', 'Canceled')
+      and r.deleted_at is null and r.entry_state <> 'Withdrawn'
   ),
   facts as (
     select x.*, p.full_name as person_label,
@@ -230,7 +252,7 @@ begin
 end;
 $$;
 
-comment on function app.roster_readiness(uuid) is 'R11 crew readiness (Section 11.11; owner decisions 4 and 5): for each live, non-Withdrawn roster entry on the project, one row per category with its state only. Acceptance is Accepted, Awaiting Person or Declined. Contact, Emergency Contacts, Dietary Needs and Accessibility Needs are Not Shared, On File or Missing, for readers of the category (private.work_detail_category_capabilities). Allergies are Shared or Not Shared (whether the person shares Dietary Needs, never whether an allergy exists), only for holders of data.restricted.read.medical. Passport is Shared or Not Shared, or Not Offered without travel. Uniform, Travel and Vehicle are Submitted or Missing, or Not Offered when the offering is off, for readers of the project fact kind. A category the caller may not read is Hidden. No value column: no Confidential or Restricted value leaves the database, so nothing is logged. Refuses 42501 unless the caller holds advancing.packet.read or opportunities.engagement.read on the project.';
+comment on function app.roster_readiness(uuid) is 'R11 crew readiness (Section 11.11; owner decisions 4 and 5): for each live, non-Withdrawn roster entry on the project whose engagement is not Complete or Canceled, one row per category with its state only. Acceptance is Accepted, Awaiting Person or Declined. Contact, Emergency Contacts, Dietary Needs and Accessibility Needs are Not Shared, On File or Missing, for readers of the category (private.work_detail_category_capabilities). Allergies are Shared or Not Shared (whether the person shares Dietary Needs, never whether an allergy exists), only for holders of data.restricted.read.medical. Passport is Shared or Not Shared, or Not Offered without travel. Uniform, Travel and Vehicle are Submitted or Missing, or Not Offered when the offering is off, for readers of the project fact kind. A category the caller may not read is Hidden. No value column: no Confidential or Restricted value leaves the database, so nothing is logged. Refuses 42501 unless the caller holds advancing.packet.read or opportunities.engagement.read on the project.';
 revoke all on function app.roster_readiness(uuid) from public, anon;
 grant execute on function app.roster_readiness(uuid) to authenticated, service_role;
 

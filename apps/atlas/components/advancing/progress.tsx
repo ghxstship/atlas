@@ -136,7 +136,8 @@ export async function AdvancingProgress({
     {
       label: t("advancing.progress.tiles.outstanding"),
       caption: t("advancing.progress.tileCaptions.outstanding"),
-      value: cells.filter((c) => c.state === "Missing" || c.state === "Returned").length,
+      value: cells.filter((c) => c.recipientOpen && (c.state === "Missing" || c.state === "Returned"))
+        .length,
     },
     {
       label: t("advancing.progress.tiles.overdue"),
@@ -185,6 +186,7 @@ export async function AdvancingProgress({
       const rows = [...new Map(mine.map((c) => [c.recipientId, c])).values()].map((c) => ({
         id: c.recipientId,
         label: c.recipientLabel ?? t("advancing.recipients.removed"),
+        ...(c.recipientOpen ? {} : { sublabel: t("advancing.progress.engagementClosed") }),
       }));
       const cols = [...new Map(mine.map((c) => [c.sectionId, c])).values()]
         .sort((a, b) => a.position - b.position)
@@ -214,6 +216,7 @@ export async function AdvancingProgress({
       };
       body = (
         <PacketsHeatmap
+          key={packet.packetId}
           org={ctx.org.slug}
           packetId={packet.packetId}
           canRemind={can.send}
@@ -229,6 +232,12 @@ export async function AdvancingProgress({
       const cellMap: Record<string, StatusHeatmapCell> = {};
       for (const r of mine) {
         const k = `${r.recipientId}:${r.track}`;
+        const offer =
+          r.state === "Ready for Sign-off"
+            ? ("signOff" as const)
+            : r.state === "Signed Off" || r.state === "Reopened"
+              ? ("revoke" as const)
+              : null;
         const when = r.signedOffAt
           ? format.dateTime(new Date(r.signedOffAt), { dateStyle: "medium" })
           : null;
@@ -240,6 +249,7 @@ export async function AdvancingProgress({
               : when
                 ? t("advancing.tracks.signedOffOn", { date: when })
                 : t("advancing.tracks.progress", { done: r.sectionsDone, total: r.sectionsTotal }),
+          ...(can.review && offer ? {} : { readOnly: true }),
         };
         actions[k] = {
           recipientId: r.recipientId,
@@ -247,12 +257,7 @@ export async function AdvancingProgress({
           track: r.track,
           trackLabel: trackLabel(r.track),
           signoffId: r.signoffId,
-          offer:
-            r.state === "Ready for Sign-off"
-              ? "signOff"
-              : r.state === "Signed Off" || r.state === "Reopened"
-                ? "revoke"
-                : null,
+          offer,
         };
       }
       const data: HeatmapData = {
@@ -276,7 +281,13 @@ export async function AdvancingProgress({
             {t("advancing.progress.tracksEmpty")}
           </p>
         ) : (
-          <TracksHeatmap org={ctx.org.slug} canReview={can.review} data={data} actions={actions} />
+          <TracksHeatmap
+            key={packet.packetId}
+            org={ctx.org.slug}
+            canReview={can.review}
+            data={data}
+            actions={actions}
+          />
         );
     }
   } else if (pane === "crew") {

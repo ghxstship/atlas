@@ -312,8 +312,8 @@ test("R9: a packet takes typed sections, each held to its kind", async ({ page }
 /**
  * R11 (RRR-192): Advancing > Progress, every outstanding item on one screen. A packet with a Hospitality and a
  * Technical section goes to two recipients and one answers. The heatmap shows Awaiting review and Missing, and the tiles
- * count them. The Missing recipient is reminded in bulk, once a day, and the grid is walked from the keyboard to the
- * answer. Once the Hospitality answer is accepted the Tracks pane offers its sign-off and an Accepted cell opens its
+ * count them. The Missing recipient is reminded in bulk, once a day, a pick does not outlive its packet, and the grid
+ * is walked from the keyboard to the answer. Once the Hospitality answer is accepted the Tracks pane offers its sign-off and an Accepted cell opens its
  * own answer; a newer answer that is then returned leaves the track Reopened. Checked in both themes and at 375 px.
  * What the vendor sees of this in Gateway is the R11 journey of apps/gateway/e2e/vendor.spec.ts.
  */
@@ -393,8 +393,19 @@ test("advancing progress", async ({ page, browser }) => {
     await page.getByRole("button", { name: "Send reminder" }).click();
     await expect(page.getByText(done, { exact: true })).toBeVisible();
   };
-  await remind("Reminded 1; 0 reminded in the last day");
-  await remind("Reminded 0; 1 reminded in the last day");
+  await remind("Reminded 1; 0 skipped: reminded today already, or nothing to answer");
+  await remind("Reminded 0; 1 skipped: reminded today already, or nothing to answer");
+
+  // A pick belongs to its packet: another packet starts with nothing picked and no reminder on offer.
+  await page.getByRole("checkbox", { name: `Select ${missing}` }).check();
+  await expect(page.getByRole("button", { name: "Send reminder" })).toBeVisible();
+  await page.getByLabel("Packet", { exact: true }).selectOption({ index: 0 });
+  await expect(grid).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Send reminder" })).toHaveCount(0);
+  await expect(page.locator("table[role=grid] input[type=checkbox]:checked")).toHaveCount(0);
+  await page.goto(progress);
+  await expect(hotel).toBeVisible();
+  await settle(page);
 
   // From the keyboard: the grid moves cell by cell, and Enter opens the answer.
   await cell(answered, "Power", "Missing").focus();

@@ -227,12 +227,8 @@ export async function addSectionAction(_: AdvancingState, form: FormData): Promi
     title: f.title,
     prompt: f.prompt,
     config,
+    track: f.track,
   });
-  // R11: a section is General unless the builder chose another track (2743).
-  if (added.ok && f.track !== "General") {
-    const tracked = await setSectionTrack(ctx.viewer.db, added.data.id, f.track);
-    if (!tracked.ok) return done(ctx.org.slug, tracked);
-  }
   if (!added.ok || !needsChoices) return done(ctx.org.slug, added);
   for (const choice of f.choices) {
     const [kind, targetId] = choice.split(":") as ["asset_class" | "credential_category", string];

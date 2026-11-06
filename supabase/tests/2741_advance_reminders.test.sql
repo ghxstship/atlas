@@ -3,7 +3,8 @@
 -- They reach the person, the account's Owner and the Advancing Lead, never an Account Member who is not assigned
 -- (owner decision 6). A manual reminder needs advancing.packet.send and goes at most once a day. Both cron jobs are
 -- scheduled. Project facts reminders go only while an offering is on and its fact is missing. Neither ledger stops org
--- deletion or the sandbox purge: each row carries its org and references no subject.
+-- deletion or the sandbox purge: each row carries its org and references no subject. Nobody is reminded for an engagement
+-- that is Complete or Canceled.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -156,6 +157,24 @@ select app.set_setting(pg_temp.id('org_a'), 'offerings.' || o, 'Organization', n
 from unnest(array['travel', 'uniforms', 'parking']) o;
 select pg_temp.as_platform();
 select is(private.send_roster_fact_reminders(), 0, 'with the offerings off nothing is asked for');
+
+-- A closed engagement -------------------------------------------------------------------------------------------------------------
+select pg_temp.move_engagement('eng_vendor_a', 'Onboarding', 'Active');
+select pg_temp.move_engagement('eng_vendor_a', 'Active', 'Closing');
+update app.advance_packets set due_at = now() + interval '1 day' where id = pg_temp.id('pkt');
+select is(private.advance_outstanding(pg_temp.id('rcp_v')), 1, 'a Closing engagement still has its section outstanding');
+select is(private.send_advance_reminders(), 2, 'and is still reminded');
+select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
+select is(private.advance_outstanding(pg_temp.id('rcp_v')), 0, 'once Complete, nothing is outstanding');
+update app.advance_packets set due_at = now() + interval '1 day 1 minute' where id = pg_temp.id('pkt');
+select is(private.send_advance_reminders(), 0, 'a moved due date reminds nobody');
+update app.advance_packets set due_at = now() - interval '3 days' where id = pg_temp.id('pkt');
+select is(private.send_advance_reminders(), 0, 'nor does an overdue one');
+delete from private.advance_reminders_sent where reminder = 'manual';
+select pg_temp.as_user('alice');
+select results_eq(format($$select sent, skipped from app.send_advance_reminder_now(%L, array[%L]::uuid[])$$, pg_temp.id('pkt'), pg_temp.id('rcp_v')),
+  $$values (0, 1)$$, 'and a coordinator''s reminder skips it');
+select pg_temp.as_platform();
 
 -- Org deletion and the sandbox purge -----------------------------------------------------------------------------------------------
 -- Both purges refuse any marked row outside the org (2741_reminder_ledgers_purge.test.sql purges one of each).

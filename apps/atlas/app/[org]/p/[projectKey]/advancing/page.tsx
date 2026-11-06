@@ -30,7 +30,7 @@ const SECTIONS = [
  * this project, using the same components as the org-level pages with the project fixed. Travel party (R5) is a
  * project section only: it reads one project's roster travel, logged, and has no org-level page. Its table and the
  * hospitality forms it opens load on demand. Progress (R11) is the default: every outstanding advancing item of the
- * project on one screen, with heatmaps that load on demand.
+ * project on one screen.
  */
 export default async function ProjectAdvancingPage({
   params,

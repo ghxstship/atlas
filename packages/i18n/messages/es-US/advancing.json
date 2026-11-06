@@ -921,6 +921,7 @@
       "allocations": "Asignaciones",
       "tracks": "Áreas"
     },
+    "engagementClosed": "Contratación cerrada",
     "packetFilter": "Paquete",
     "noPackets": "Aún no se envió ningún paquete. Envía uno para ver quién respondió cada sección.",
     "corner": {
@@ -988,7 +989,7 @@
     "tracksEmpty": "Ninguna sección de este paquete está en un área todavía.",
     "remind": {
       "action": "Enviar recordatorio",
-      "done": "Se recordó a {sent}; a {skipped} ya se les recordó en el último día",
+      "done": "Se recordó a {sent}; se omitió a {skipped}: ya se les recordó hoy o no tienen nada que responder",
       "pickPacket": "Elige un paquete para recordar a sus destinatarios.",
       "selected": "{n, plural, one {# destinatario seleccionado} other {# destinatarios seleccionados}}"
     },

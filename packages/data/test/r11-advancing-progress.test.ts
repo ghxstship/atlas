@@ -48,6 +48,72 @@ describe("advance progress", () => {
     expect(calls[0]?.steps).toContainEqual(["eq", ["advance_packet_id", "pk1"]]);
   });
 
+  it("reads past the API's row cap, a page at a time, on every grid", async () => {
+    // max_rows (1,000) cuts a call with no note: 101 people at ten readiness rows each is already past it.
+    const full = (row: Record<string, unknown>) => Array.from({ length: 1000 }, () => row);
+    const readiness = { roster_entry_id: "x1", engagement_id: "e1", category: "Contact", cell_state: "Missing" };
+    const progress = { advance_packet_id: "pk1", advance_recipient_id: "r1", advance_section_id: "s1", cell_state: "Missing" };
+    const heat = { engagement_id: "e1", kind: "Credential", requested_quantity: 1 };
+    const track = { advance_packet_id: "pk1", advance_recipient_id: "r1", track: "General", track_state: "In Progress" };
+    const { db, calls } = fakeClient({
+      "rpc:roster_readiness": [okResponse(full(readiness)), okResponse([readiness])],
+      "from:advance_progress": [okResponse(full(progress)), okResponse([progress, progress])],
+      "from:advance_allocation_heat": [okResponse(full(heat)), okResponse([])],
+      "from:advance_track_progress": [okResponse(full(track)), okResponse([track])],
+    });
+    const rows = await listRosterReadiness(db, "pr1");
+    const cells = await listAdvanceProgress(db, "pr1");
+    const allocations = await listAllocationHeat(db, "pr1");
+    const tracks = await listTrackProgress(db, "pr1");
+    expect(rows.ok && rows.data.length).toBe(1001);
+    expect(cells.ok && cells.data.length).toBe(1002);
+    expect(allocations.ok && allocations.data.length).toBe(1000);
+    expect(tracks.ok && tracks.data.length).toBe(1001);
+    for (const target of [
+      "rpc:roster_readiness",
+      "from:advance_progress",
+      "from:advance_allocation_heat",
+      "from:advance_track_progress",
+    ]) {
+      const pages = calls.filter((c) => c.target === target);
+      expect(pages.map((c) => c.steps.find(([step]) => step === "range")?.[1])).toEqual([
+        [0, 999],
+        [1000, 1999],
+      ]);
+    }
+    // The pages cannot overlap: the last key makes the view's order unique.
+    const orders = calls
+      .filter((c) => c.target === "from:advance_progress")[0]
+      ?.steps.filter(([step]) => step === "order")
+      .map(([, args]) => args[0]);
+    expect(orders?.slice(-2)).toEqual(["advance_recipient_id", "advance_section_id"]);
+  });
+
+  it("fails rather than answering a partial grid when a later page fails", async () => {
+    const { db } = fakeClient({
+      "from:advance_progress": [
+        okResponse(Array.from({ length: 1000 }, () => ({ cell_state: "Missing" }))),
+        errorResponse("timeout", "57014"),
+      ],
+    });
+    expect((await listAdvanceProgress(db, "pr1")).ok).toBe(false);
+  });
+
+  it("says when a recipient's engagement has closed", async () => {
+    const { db } = fakeClient({
+      "from:advance_progress": [
+        okResponse([
+          { advance_recipient_id: "r1", recipient_open: false, cell_state: "Missing", overdue: false },
+          { advance_recipient_id: "r2", recipient_open: true, cell_state: "Missing", overdue: true },
+        ]),
+      ],
+    });
+    expect(await listAdvanceProgress(db, "pr1")).toMatchObject({
+      ok: true,
+      data: [{ recipientOpen: false }, { recipientOpen: true }],
+    });
+  });
+
   it("reads readiness, allocation heat and tracks", async () => {
     const { db } = fakeClient({
       "rpc:roster_readiness": [

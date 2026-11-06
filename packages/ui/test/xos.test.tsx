@@ -344,6 +344,36 @@ describe("StatusHeatmap", () => {
     await expectAccessible(container);
   });
 
+  it("shows a cell's detail, not only to screen readers", () => {
+    render(<StatusHeatmap {...props} onCellSelect={vi.fn()} />);
+    const cell = screen.getByRole("gridcell", {
+      name: "Bayside Audio, Hotel: Accepted. Reviewed today",
+    });
+    expect(within(cell).getByText("Reviewed today")).toBeTruthy();
+    expect(
+      screen.getByRole("gridcell", { name: "Arturo Bell, Power: Missing" }).textContent,
+    ).toBe("Missing");
+  });
+
+  it("leaves a read-only cell alone and does not offer it", async () => {
+    const onCellSelect = vi.fn();
+    render(
+      <StatusHeatmap
+        {...props}
+        cells={{ ...props.cells, "r2:s1": { state: "Missing", readOnly: true } }}
+        onCellSelect={onCellSelect}
+      />,
+    );
+    const cell = screen.getByRole("gridcell", { name: "Arturo Bell, Power: Missing" });
+    expect(cell.className).not.toContain("cursor-pointer");
+    await userEvent.click(cell);
+    act(() => cell.focus());
+    await userEvent.keyboard("{Enter}");
+    expect(onCellSelect).not.toHaveBeenCalled();
+    const open = screen.getByRole("gridcell", { name: "Bayside Audio, Power: Awaiting review" });
+    expect(open.className).toContain("cursor-pointer");
+  });
+
   it("is its own table alternative, with a legend and selectable rows", async () => {
     const onChange = vi.fn();
     const { container } = render(

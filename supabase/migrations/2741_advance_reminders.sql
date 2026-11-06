@@ -12,7 +12,8 @@
 --      Account Owners and Admins, and the Advancing Leads assigned to the recipient's engagement. Never an unassigned
 --      Account Member (decision 6).
 --   4. private.send_advance_reminders, hourly: 'due' once, days_before ahead of the due date, and 'overdue:k' every N
---      days after it, the highest k reached up to five, for each recipient with a Missing or Returned section.
+--      days after it, the highest k reached up to five, for each recipient with a Missing or Returned section. A recipient
+--      whose engagement is Complete or Canceled has nothing outstanding: Section 8.7 no longer lets it answer.
 --   5. private.send_roster_fact_reminders, hourly: the person on an accepted roster entry with a future arrival is
 --      asked for the uniform sizes, travel request or vehicle an offering needs, days_before and one day ahead.
 --   6. app.send_advance_reminder_now: a coordinator reminds chosen recipients, at most once a day each.
@@ -142,10 +143,10 @@ security definer
 set search_path = ''
 as $$
   select count(*)::integer from app.advance_progress g
-  where g.advance_recipient_id = p_recipient_id and g.cell_state in ('Missing', 'Returned');
+  where g.advance_recipient_id = p_recipient_id and g.recipient_open and g.cell_state in ('Missing', 'Returned');
 $$;
 
-comment on function private.advance_outstanding(uuid) is 'How many sections of a sent packet a recipient still has to answer: Missing or Returned in app.advance_progress.';
+comment on function private.advance_outstanding(uuid) is 'How many sections of a sent packet a recipient still has to answer: Missing or Returned in app.advance_progress. None once its engagement is Complete or Canceled, so neither the hourly run nor a coordinator reminds a party that can no longer answer.';
 revoke all on function private.advance_outstanding(uuid) from public, anon, authenticated;
 
 -- Queues one reminder to everyone it reaches, writing the ledger first; returns how many people it newly reached.
@@ -229,7 +230,7 @@ begin
 end;
 $$;
 
-comment on function private.send_advance_reminders() is 'Hourly (pg_cron xos_send_advance_reminders): for each recipient of a sent packet with a due date, on a project that is not Complete or Canceled and where advancing.reminders is on, with a section Missing or Returned, sends advance_packet.reminder once when advancing.reminder_days_before days or less are left, and after the due date the k-th overdue reminder every advancing.overdue_reminder_every_days days (0 sends none), the highest k reached, up to five. Each reaches private.advance_reminder_recipients once, through private.advance_reminders_sent. Returns how many reminders it queued.';
+comment on function private.send_advance_reminders() is 'Hourly (pg_cron xos_send_advance_reminders): for each recipient of a sent packet with a due date, on a project that is not Complete or Canceled and where advancing.reminders is on, with a section outstanding (private.advance_outstanding), sends advance_packet.reminder once when advancing.reminder_days_before days or less are left, and after the due date the k-th overdue reminder every advancing.overdue_reminder_every_days days (0 sends none), the highest k reached, up to five. Each reaches private.advance_reminder_recipients once, through private.advance_reminders_sent. Returns how many reminders it queued.';
 revoke all on function private.send_advance_reminders() from public, anon, authenticated;
 
 -- 5. Project facts reminders --------------------------------------------------------------------------------------------------
@@ -357,6 +358,6 @@ begin
 end;
 $$;
 
-comment on function app.send_advance_reminder_now(uuid, uuid[]) is 'A coordinator with advancing.packet.send on the project reminds chosen recipients of a sent packet (1 to 200, advance_reminder_batch) now: advance_packet.reminder to everyone private.advance_reminder_recipients names, at most once per recipient on the project''s calendar day. A recipient with nothing outstanding, not on the packet, or already reminded by hand today is skipped. Returns how many were reminded and how many skipped.';
+comment on function app.send_advance_reminder_now(uuid, uuid[]) is 'A coordinator with advancing.packet.send on the project reminds chosen recipients of a sent packet (1 to 200, advance_reminder_batch) now: advance_packet.reminder to everyone private.advance_reminder_recipients names, at most once per recipient on the project''s calendar day. A recipient with nothing outstanding (its engagement closed included), not on the packet, or already reminded by hand today is skipped. Returns how many were reminded and how many skipped.';
 revoke all on function app.send_advance_reminder_now(uuid, uuid[]) from public, anon;
 grant execute on function app.send_advance_reminder_now(uuid, uuid[]) to authenticated, service_role;

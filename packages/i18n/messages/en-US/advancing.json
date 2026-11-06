@@ -921,6 +921,7 @@
       "allocations": "Allocations",
       "tracks": "Tracks"
     },
+    "engagementClosed": "Engagement closed",
     "packetFilter": "Packet",
     "noPackets": "No packet is sent yet. Send one to see who has answered each section.",
     "corner": {
@@ -988,7 +989,7 @@
     "tracksEmpty": "No section of this packet is on a track yet.",
     "remind": {
       "action": "Send reminder",
-      "done": "Reminded {sent}; {skipped} reminded in the last day",
+      "done": "Reminded {sent}; {skipped} skipped: reminded today already, or nothing to answer",
       "pickPacket": "Choose a packet to remind its recipients.",
       "selected": "{n, plural, one {# recipient selected} other {# recipients selected}}"
     },

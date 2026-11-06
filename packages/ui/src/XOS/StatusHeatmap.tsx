@@ -10,8 +10,8 @@ import { type StatusHeatmapCell, type StatusHeatmapProps } from "./XOS.types.ts"
  * Rows crossed with columns, each cell one state: who has answered which section, how ready each person on a roster
  * is, where each party's allocations stand (R11). An ARIA grid, like CoordinateMatrix: arrows move between cells,
  * Home and End go to the row's ends (with Ctrl or Cmd, the grid's), and Enter or Space opens a cell. Every state shows
- * its icon and its label, never color alone, and the table is its own accessible alternative. Rows can be selected
- * for a bulk action. A row and column with no cell is not asked and reads so.
+ * its icon and its label, never color alone, with the cell's detail under them, and the table is its own accessible
+ * alternative. Rows can be selected for a bulk action. A row and column with no cell is not asked and reads so.
  */
 export function StatusHeatmap({
   label,
@@ -35,7 +35,7 @@ export function StatusHeatmap({
     cell: StatusHeatmapCell | undefined,
     target: HTMLElement,
   ) => {
-    if (!cell) return;
+    if (!cell || cell.readOnly) return;
     if (onCellSelect) {
       e?.preventDefault();
       onCellSelect(rowId, colId, cell);
@@ -118,11 +118,18 @@ export function StatusHeatmap({
                           detail: cell.detail,
                         })
                       : t("heatmap.cell", { row: r.label, col: c.label, state: stateLabel });
-                  const actionable = Boolean(cell && (onCellSelect || cell.href));
+                  const actionable = Boolean(
+                    cell && !cell.readOnly && (onCellSelect || cell.href),
+                  );
                   const body = cell ? (
-                    <span className="inline-flex items-center gap-4 whitespace-nowrap">
-                      {item ? <StateIcon state={item.icon} /> : null}
-                      <span>{stateLabel}</span>
+                    <span className="inline-flex flex-col gap-2 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-4">
+                        {item ? <StateIcon state={item.icon} /> : null}
+                        <span>{stateLabel}</span>
+                      </span>
+                      {cell.detail ? (
+                        <span className="text-text-secondary">{cell.detail}</span>
+                      ) : null}
                     </span>
                   ) : (
                     <span className="text-text-secondary">-</span>
@@ -142,13 +149,13 @@ export function StatusHeatmap({
                         } else grid.onKeyDown(e, ri, ci);
                       }}
                       onClick={(e) => {
-                        if (cell && onCellSelect) {
+                        if (cell && !cell.readOnly && onCellSelect) {
                           e.preventDefault();
                           onCellSelect(r.id, c.id, cell);
                         }
                       }}
                       className={cx(
-                        "xos-hit h-control-md rounded-chip px-8 text-start",
+                        "xos-hit h-control-md rounded-chip px-8 py-4 text-start",
                         cell
                           ? "bg-bg-raised ring-(length:--stroke-width-hairline) ring-inset ring-border-subtle"
                           : "ring-(length:--stroke-width-hairline) ring-inset ring-border-subtle",

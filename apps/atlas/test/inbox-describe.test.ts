@@ -211,6 +211,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     partyName: "Bayside Audio",
     projectName: "Northwind Summer Series",
     orgName: "Northwind Live",
+    projectKey: "NWS",
   },
   "credential.revoked": { title: "All Access", projectName: "Northwind Summer Series" },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
@@ -445,6 +446,22 @@ describe("Inbox item copy", () => {
     expect(committed.detail).toBe(
       "Crew import terminó: 12 filas escritas, 1 rechazada y 0 omitidas.",
     );
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: { projectKey: "NWS" },
+      }),
+    ).toBe("/demo/p/NWS/advancing?section=crew&peek=x1");
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "engagement_roster_entries",
+        kind: "roster_entry.share_revoked",
+        subjectId: "x1",
+        args: {},
+      }),
+    ).toBeNull();
     expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
       "/demo/import",
     );

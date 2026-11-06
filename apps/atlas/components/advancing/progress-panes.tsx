@@ -84,7 +84,8 @@ function outcomeMessage(
 
 /**
  * The Packets pane: recipients by sections of one packet. A reader who may send picks recipient rows and reminds
- * them now; the toast says how many were reminded and how many were already reminded in the last day.
+ * them now; the toast says how many were reminded and how many were skipped. Recipients belong to one packet, so
+ * progress.tsx keys this by packet and a new packet starts with nothing picked.
  */
 export function PacketsHeatmap({
   org,

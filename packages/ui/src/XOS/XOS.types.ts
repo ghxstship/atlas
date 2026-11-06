@@ -70,8 +70,10 @@ export interface StatusHeatmapCell {
   readonly state: string;
   /** Where Enter or a click goes. */
   readonly href?: string;
-  /** More about the cell, read after its state (a count, a date). */
+  /** More about the cell, shown under its state and read after it (a count, a date, who signed). */
   readonly detail?: string;
+  /** The cell only says where something stands: Enter, Space and a click do nothing, and it looks that way. */
+  readonly readOnly?: boolean;
 }
 
 export interface StatusHeatmapProps {

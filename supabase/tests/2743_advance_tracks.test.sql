@@ -2,7 +2,8 @@
 -- changes after send. track_state goes Not Started, In Progress, Ready for Sign-off, Signed Off, and a new answer or a
 -- Returned review makes it Reopened. Sign-off refuses advance_track_empty, advance_track_incomplete,
 -- advance_track_signed_off and 42501 without advancing.submission.review; revoking needs a reason. Direct writes are
--- denied. api_external.advance_track_progress follows Section 8.7 and names no signer. xos_backup reads nothing; the
+-- denied. api_external.advance_track_progress follows Section 8.7, through Complete and past the time box, and names no
+-- signer. xos_backup reads nothing; the
 -- table is kept out of Trash and is in the realtime publication.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -157,6 +158,26 @@ select pg_temp.as_user('carol');
 select lives_ok(format($$select app.sign_off_advance_track(%L, 'Hospitality')$$, pg_temp.id('rcp_v')), 'and is signed off again');
 select pg_temp.as_platform();
 select is(pg_temp.state('rcp_v', 'Hospitality'), 'Signed Off', 'Signed Off once more');
+
+-- Section 8.7 after the engagement ends -----------------------------------------------------------------------------------------
+select pg_temp.move_engagement('eng_vendor_a', 'Active', 'Closing');
+select pg_temp.as_user('victor');
+select ok((select count(*) > 0 from api_external.advance_track_progress where advance_recipient_id = pg_temp.id('rcp_v')),
+  'Closing: the account still reads its tracks');
+select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_vendor_a', 'Closing', 'Complete');
+select pg_temp.as_user('victor');
+select is((select count(*)::int from api_external.advance_track_progress), 0, 'Complete: the account''s Owner reads none');
+select pg_temp.as_user('pia');
+select is((select count(*)::int from api_external.advance_track_progress), 0, 'nor does its Advancing Lead');
+select pg_temp.as_user('kai');
+select is((select count(*)::int from api_external.advance_track_progress), 0, 'nor an unassigned Account Member');
+select pg_temp.as_platform();
+select is(pg_temp.state('rcp_v', 'Hospitality'), 'Signed Off', 'the producing org still reads where the track stands');
+select pg_temp.backdate_close('eng_vendor_a', interval '19 months');
+select pg_temp.as_user('victor');
+select is((select count(*)::int from api_external.advance_track_progress), 0, 'past the time box the account still reads none');
+select pg_temp.as_platform();
 
 -- Catalog ------------------------------------------------------------------------------------------------------------------------
 select ok(not has_table_privilege('xos_backup', 'app.advance_track_progress', 'select'), 'xos_backup cannot select app.advance_track_progress');
