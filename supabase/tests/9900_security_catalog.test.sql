@@ -74,7 +74,7 @@ select set_eq($$
 $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
-  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
+  ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_age_refusal'), ('record_cookie_consent'), ('sign_agreement'),
   ('invite_token_open'), ('live_channel_open'), ('live_display'), ('live_view'), ('open_live_link'),
   ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
   ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
