@@ -1256,6 +1256,8 @@
       "checkPass": "Buscar al invitado",
       "passNotListed": "Este pase no está en la lista de esta noche.",
       "passOffline": "Conéctese para revisar los pases.",
+      "passUsed": "{name} ya registró su entrada con este pase.",
+      "passUsedAt": "{name} ya registró su entrada con este pase: {time}.",
       "passType": "Pase: {name}",
       "table": "Mesa {table}"
     },
@@ -1391,6 +1393,7 @@
     "hiddenDoors": "No se muestran la puerta ni los acompañantes de los invitados: requieren el registro de invitados en las puertas.",
     "plusOnes": "Acompañantes",
     "plusOnesLine": "{count, plural, one {# acompañante} other {# acompañantes}}",
-    "truncated": "Esta lista se detiene en {count} filas y hay más personas presentes. Filtra por zona o exporta la lista para ver todas las filas."
+    "truncated": "Esta lista se detiene en {count} filas y hay más personas presentes. Filtra por zona o exporta la lista para ver todas las filas.",
+    "stale": "No se pudo volver a leer la lista en este momento, así que esta es la última leída. Se vuelve a intentar cada 30 segundos."
   }
 }

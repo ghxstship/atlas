@@ -26,7 +26,7 @@ name: field-gate-in-out-override
 - tapOn:
     id: "scan-manual-submit"
 - assertVisible: ".*Exit recorded.*"
-# The direction stays chosen for this zone for the session; Backstage starts on In.
+# The direction stays on this device across restarts, and changing zone keeps it, so go back to In for the denial.
 - tapOn: "Backstage"
 - tapOn: "In"
 - tapOn:

@@ -19,9 +19,11 @@ Un código que Compass no conoce pasa al mostrador para identificarlo. También 
 
 ## Entrada y Salida
 
-En el modo Acreditación, elige **Entrada** o **Salida** para el punto de acceso. La salida nunca se niega. Un escaneo denegado dice por qué.
+En el modo Acreditación, elige **Entrada** o **Salida** para el punto de acceso. Este dispositivo guarda tu elección, incluso tras reiniciar, así que un teléfono apostado en una salida sigue en Salida. La salida nunca se niega. Un escaneo denegado dice por qué.
 
-Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece **Anular** 15 minutos: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.
+El pase de un invitado abre a ese invitado en la puerta, listo para registrarlo.
+
+Si puedes emitir credenciales y leer el registro de escaneos, una denegación (salvo una credencial revocada) ofrece **Anular** 15 minutos y luego deja de ofrecerlo: di por qué y confirma. Sin conexión espera tras el escaneo; si este se sube concedido, la cola indica que no hacía falta.
 
 **Adentro ahora** cuenta quién entró con escaneo en el punto. Requiere el registro de escaneos.
 

@@ -19,9 +19,11 @@ A code Compass does not know goes to the desk to identify. You can also type a c
 
 ## In and Out
 
-In Credential mode, choose **In** or **Out** for the access point. Out is never refused. A denied scan says why.
+In Credential mode, choose **In** or **Out** for the access point. This device keeps your choice, even after a restart, so a phone posted at an exit stays on Out. Out is never refused. A denied scan says why.
 
-If you may issue badges and read the scan log, a denial other than a revoked badge offers **Override** for 15 minutes: say why, then confirm. Offline, it waits after the scan; if the scan uploads as granted, the queue says the override was not needed.
+A guest's pass opens that guest at the door, ready to check in.
+
+If you may issue badges and read the scan log, a denial other than a revoked badge offers **Override** for 15 minutes, then the offer leaves: say why, then confirm. Offline, it waits after the scan; if the scan uploads as granted, the queue says the override was not needed.
 
 **Inside now** counts the people scanned in at the access point. It needs the scan log.
 

@@ -28,3 +28,9 @@ name: field-door-guest-pass
 - assertVisible: ".*Pass: .*"
 - tapOn: "Confirm Check-In"
 - assertVisible: ".*Checked in.*"
+# The same pass again says it was used.
+- tapOn: "Guest pass"
+- inputText: "XOSGP1:${PASS}"
+- tapOn:
+    id: "door-check-pass"
+- assertVisible: ".*already checked in.*"

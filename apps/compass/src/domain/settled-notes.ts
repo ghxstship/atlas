@@ -1,5 +1,5 @@
 /**
- * Queued writes the server settled without them (B8, ADR 0147, review correction C10): the uploader drops such a write
+ * Queued writes the server settled without them (B8, ADR 0147): the uploader drops such a write
  * as done, and the offline queue says so in one informational line instead of an error. A gate override queued after
  * an offline denial is the case today: the server decides the scan at upload, may grant it, and then refuses the
  * override with scan_not_denied, which means nobody needed letting in. Kept in memory for the session; a line is

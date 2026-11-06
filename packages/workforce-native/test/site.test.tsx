@@ -377,6 +377,63 @@ describe("DoorCheckInScreen", () => {
     expect(screen.getByText("errorSentence passOffline")).toBeTruthy();
   });
 
+  it("says a pass was already used, with who came in and when (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    render(
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={[
+          guest({
+            passCode: "GP-ABCDEFGHIJ",
+            state: "Checked In",
+            checkedInAt: "2027-06-02T20:00:00Z",
+          }),
+        ]}
+        search=""
+        onSearch={vi.fn()}
+        onCheckIn={vi.fn(ok)}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("pass"), { target: { value: "GP-ABCDEFGHIJ" } });
+    fireEvent.click(button("checkPass"));
+    expect(screen.getByText(/^passUsed\(.*2027-06-02T20:00:00Z"?\)$/)).toBeTruthy();
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+  });
+
+  it("opens the guest of a pass scanned on the Scan tab once the list has loaded (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    const listed = guest({ passCode: "GP-ABCDEFGHIJ" });
+    const props = {
+      labels: dl,
+      search: "GP-ABCDEFGHIJ",
+      scannedPass: "GP-ABCDEFGHIJ",
+      onSearch: vi.fn(),
+      onCheckIn: vi.fn(ok),
+    };
+    const { rerender } = render(<DoorCheckInScreen {...props} status="loading" guests={[]} />);
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+    rerender(<DoorCheckInScreen {...props} status="ready" guests={[listed]} />);
+    expect(screen.getByText("plusOnes(2,2)")).toBeTruthy();
+  });
+
+  it("says a scanned pass is not on the list, and answers only once (B8)", () => {
+    const dl = labels<DoorCheckInScreenLabels>(["sheetTitle", "plusOnes", "admitted", "passUsed"]);
+    const props = {
+      labels: dl,
+      search: "GP-ZZZZZZZZZZ",
+      scannedPass: "GP-ZZZZZZZZZZ",
+      onSearch: vi.fn(),
+      onCheckIn: vi.fn(ok),
+      status: "ready" as const,
+    };
+    const { rerender } = render(<DoorCheckInScreen {...props} guests={[]} />);
+    expect(screen.getByText("passNotListed")).toBeTruthy();
+    // A later reload holding the guest, after the door dismissed the answer, does not reopen anything by itself.
+    rerender(<DoorCheckInScreen {...props} guests={[guest({ passCode: "GP-ZZZZZZZZZZ" })]} />);
+    expect(screen.queryByText("plusOnes(2,2)")).toBeNull();
+  });
+
   it("keeps the sheet open on a refusal and clears an empty search", async () => {
     const onSearch = vi.fn();
     const dl = labels<DoorCheckInScreenLabels>([

@@ -18,7 +18,7 @@ import { useProjectCapabilities } from "../../src/domain/project-capabilities";
 /**
  * Weather (Atlas site-ops.weather): alerts, thresholds and readings recorded offline. B8: the open hold and the
  * official warnings, read online, and for a dispatcher Call hold and All clear, queued so they go out when the device
- * reconnects, and refused by the server if that is more than 10 minutes later.
+ * reconnects. A late hold is still sent and says when it was called; an all-clear over 10 minutes late is refused.
  */
 function Weather(): ReactElement {
   const t = useT();

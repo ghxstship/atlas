@@ -2,6 +2,7 @@ import type { Row } from "@xos/sync";
 import * as Brightness from "expo-brightness";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Keyboard, View } from "react-native";
@@ -27,6 +28,8 @@ import {
   custodyBlocked,
   decideGate,
   gateScanTitle,
+  guestPassRoute,
+  overrideTimeLeft,
   resolveAsset,
   type AccessGridRow,
   type AssetIdentifierRow,
@@ -37,6 +40,7 @@ import {
   type ScanDirection,
   type Symbology,
 } from "../../src/domain/scan";
+import { loadGateDirection, saveGateDirection } from "../../src/domain/gate-direction";
 import { useProjectCapabilities } from "../../src/domain/project-capabilities";
 import { scanAnnouncement } from "../../src/domain/announce";
 import { hapticsOn } from "../../src/domain/settings";
@@ -72,13 +76,16 @@ interface Last {
   readonly code: string;
 }
 
-/** In or Out per zone, remembered for the session (B8): a gate that only lets people out stays on Out. */
-const directionByZone = new Map<string, ScanDirection>();
+const directionStore = {
+  getItem: (key: string) => SecureStore.getItemAsync(key),
+  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+};
 
-/** A denial the person may override: the denied scan's client id and whose badge it was. */
+/** A denial the person may override: the denied scan's client id, whose badge it was, and when (15 minutes, 2970). */
 interface Denied {
   readonly scanId: string;
   readonly name: string;
+  readonly at: number;
 }
 
 const DENY_KEY = {
@@ -255,20 +262,39 @@ function LiveScan({
     announce(scanAnnouncement(next));
   };
   const [zoneId, setZoneId] = useState<string | null>(null);
+  // In or Out, remembered on this device across restarts (B8): a gate that only lets people out stays on Out.
   const [direction, setDirectionState] = useState<ScanDirection>("In");
   const setDirection = (next: ScanDirection) => {
-    if (zoneId) directionByZone.set(zoneId, next);
     setDirectionState(next);
+    void saveGateDirection(directionStore, next);
   };
   useEffect(() => {
-    setDirectionState(zoneId ? (directionByZone.get(zoneId) ?? "In") : "In");
-  }, [zoneId]);
+    let live = true;
+    void loadGateDirection(directionStore).then((stored) => {
+      if (live) setDirectionState(stored);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   // Override (B8, 2970): offered after a denial other than revoked, to a person who holds credentials.credential.issue
   // and credentials.scan_log.read on the project by the answer read online once per project.
   const capabilities = useProjectCapabilities(projectId);
   const [denied, setDenied] = useState<Denied | null>(null);
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideReason, setOverrideReason] = useState("");
+  // The offer leaves with the 15 minutes the server allows, so a late press never queues a call it would refuse.
+  useEffect(() => {
+    if (!denied) return;
+    const timer = setTimeout(
+      () => {
+        setDenied(null);
+        setOverrideOpen(false);
+      },
+      Math.max(0, overrideTimeLeft(denied.at, Date.now())),
+    );
+    return () => clearTimeout(timer);
+  }, [denied]);
   // Inside now for the chosen zone (app.zone_counts_live), read online after each scan; hidden offline and from anyone
   // without credentials.scan_log.read, under which the counts are read.
   const [inside, setInside] = useState<number | null>(null);
@@ -369,6 +395,13 @@ function LiveScan({
       return;
     }
     if (grant.mode === "credential") {
+      // A guest pass is not a badge: it opens that guest's entry at the door, whichever zone is chosen.
+      if (code.kind === "guest-pass") {
+        haptic(true);
+        setDenied(null);
+        router.navigate(guestPassRoute(code.passCode));
+        return;
+      }
       if (code.kind !== "credential" || !zoneId) {
         haptic(false);
         setLast({
@@ -431,7 +464,11 @@ function LiveScan({
         void enqueue(scan).then(() => setInsideTick((n) => n + 1));
         setDenied(
           canOverride(decision, capabilities)
-            ? { scanId: scan.rowId, name: decision.credential.holder_name ?? code.credentialNumber }
+            ? {
+                scanId: scan.rowId,
+                name: decision.credential.holder_name ?? code.credentialNumber,
+                at: Date.now(),
+              }
             : null,
         );
       } else {

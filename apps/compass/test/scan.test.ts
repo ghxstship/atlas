@@ -4,6 +4,9 @@ import {
   buildAccessScan,
   buildScanOverride,
   canOverride,
+  guestPassRoute,
+  OVERRIDE_WINDOW_MS,
+  overrideTimeLeft,
   assetScanAction,
   effectiveAssetState,
   buildAssetScan,
@@ -300,6 +303,26 @@ describe("gate decisions", () => {
     expect(canOverride(denied, new Set(["credentials.scan.write"]))).toBe(false);
     expect(canOverride(denied, null)).toBe(false);
     expect(canOverride(decideGate("CR-999999", "nowhere", [cred()], grid, now), both)).toBe(false);
+  });
+});
+
+describe("a denial's override window and a scanned guest pass (B8)", () => {
+  it("offers Override for 15 minutes, as the server allows", () => {
+    const now = Date.UTC(2026, 9, 14, 18, 0, 0);
+    expect(OVERRIDE_WINDOW_MS).toBe(15 * 60_000);
+    expect(overrideTimeLeft(now, now + 14 * 60_000)).toBeGreaterThan(0);
+    expect(overrideTimeLeft(now, now + 15 * 60_000)).toBe(0);
+    expect(overrideTimeLeft(now, now + 16 * 60_000)).toBeLessThan(0);
+  });
+
+  it("sends a guest pass the camera read to its entry on the door list", () => {
+    const code = classify("XOSGP1:GP-ABCDEFGHIJ", "qr");
+    expect(code.kind).toBe("guest-pass");
+    if (code.kind !== "guest-pass") return;
+    expect(guestPassRoute(code.passCode)).toEqual({
+      pathname: "/workforce/door",
+      params: { pass: "GP-ABCDEFGHIJ" },
+    });
   });
 });
 

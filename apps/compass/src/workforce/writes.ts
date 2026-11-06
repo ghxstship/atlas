@@ -2,8 +2,9 @@
  * Workforce Suite writes from Compass (Section 4.9). The sixteen RPCs A29 allowlisted in
  * private.sync_rpcs (0807; each SECURITY DEFINER with its own capability check, 0935), and B8's weather hold and
  * all-clear (2977), queue offline and replay once through app.apply_sync_mutation, keyed by the mutation id. The hold
- * RPCs also carry the mutation id as p_id (a replay returns the stored hold) and the device time, so a hold made
- * offline more than 10 minutes before it reaches the server is refused rather than sent late. Everything else (starting a
+ * RPCs also carry the mutation id as p_id (a replay returns the stored hold) and the device time: an all-clear made
+ * offline more than 10 minutes before it reaches the server is refused, while a hold is sent however late, and says
+ * when it was called, because a late stop-work errs safe. Everything else (starting a
  * direct message, grading a quiz, opening a help desk request) needs the server's answer at once and
  * goes online through A29's repositories.
  */

@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Banner, Button, Card, Sheet, StateChip, Text, TextField } from "@xos/ui-native";
 import { guestByPassCode, passCodeFromScan, type DoorGuest } from "@xos/data/workforce-site";
 import {
@@ -33,6 +33,8 @@ export interface DoorCheckInScreenLabels extends FrameLabels {
   readonly passHelp: string;
   readonly checkPass: string;
   readonly passNotListed: string;
+  /** A pass already used: whose it is and when they came in. */
+  readonly passUsed: (name: string, at: string | null) => string;
   readonly passOffline: string;
   readonly passType: (name: string) => string;
   readonly table: (table: string) => string;
@@ -43,6 +45,8 @@ export interface DoorCheckInScreenProps {
   readonly labels: DoorCheckInScreenLabels;
   /** The door list, searched by the app as the person types. */
   readonly guests: readonly DoorGuest[];
+  /** A pass the camera read on the Scan tab: its guest's check-in opens once the door list has loaded. */
+  readonly scannedPass?: string | null;
   readonly search: string;
   readonly onSearch: (value: string) => void;
   readonly onCheckIn: Action<[entryId: string, plusOnesAdmitted: number, door: string | null]>;
@@ -54,13 +58,14 @@ export interface DoorCheckInScreenProps {
 
 /**
  * Compass door check-in: search the guest list and admit a guest with their plus-ones. A guest's pass (B8, XOSGP1:<code>,
- * from a scanner or typed) finds them in the loaded door list and opens their check-in; a pass not on the list says
- * so, and without a loaded list (offline) the door is asked to connect first.
+ * scanned on the Scan tab or typed here) finds them in the loaded door list and opens their check-in; a pass not on the
+ * list or already used says so, and without a loaded list (offline) the door is asked to connect first.
  */
 export function DoorCheckInScreen({
   status,
   labels,
   guests,
+  scannedPass,
   search,
   onSearch,
   onCheckIn,
@@ -75,22 +80,41 @@ export function DoorCheckInScreen({
   const [pass, setPass] = useState("");
   const [passNotice, setPassNotice] = useState<string | null>(null);
   const { busy, run, alert } = useActionRunner(labels.failed);
-  const checkPass = () => {
-    const code = passCodeFromScan(pass);
+  const openPass = (raw: string): boolean => {
+    const code = passCodeFromScan(raw);
     if (status !== "ready") {
       setPassNotice(labels.passOffline);
-      return;
+      return false;
     }
     const found = code ? guestByPassCode(guests, code) : undefined;
-    if (!found || found.state !== "Approved") {
-      setPassNotice(found ? null : labels.passNotListed);
-      return;
+    if (!found) {
+      setPassNotice(labels.passNotListed);
+      return false;
+    }
+    if (found.state !== "Approved") {
+      setPassNotice(labels.passUsed(found.name, found.checkedInAt));
+      return false;
     }
     setPassNotice(null);
-    setPass("");
     setPlus(found.plusOnes);
     setGuest(found);
+    return true;
   };
+  const checkPass = () => {
+    if (openPass(pass)) setPass("");
+  };
+  // A pass scanned on the Scan tab is answered once, when the list holding it has loaded; an offline door says so and
+  // answers on the retry.
+  const answered = useRef(false);
+  useEffect(() => {
+    if (!scannedPass || answered.current) return;
+    if (status === "ready") {
+      answered.current = true;
+      openPass(scannedPass);
+    }
+    // openPass reads the current list and labels; only the scan and the list arriving start it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scannedPass, status, guests]);
   const admit = async () => {
     if (guest === null) return;
     const ok = await run("admit", () =>

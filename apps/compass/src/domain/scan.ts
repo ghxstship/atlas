@@ -315,6 +315,22 @@ export function buildScanOverride(
   };
 }
 
+/** A denial older than this cannot be overridden (the server's scan_override_stale, 2970). */
+export const OVERRIDE_WINDOW_MS = 15 * 60_000;
+
+/** How long Override stays offered for a denial made at deniedAtMs; zero or less once it has passed. */
+export function overrideTimeLeft(deniedAtMs: number, nowMs: number): number {
+  return deniedAtMs + OVERRIDE_WINDOW_MS - nowMs;
+}
+
+/** Where a scanned guest pass goes: its entry on the door list, opened by the pass code (2974). */
+export function guestPassRoute(passCode: string): {
+  readonly pathname: "/workforce/door";
+  readonly params: { readonly pass: string };
+} {
+  return { pathname: "/workforce/door", params: { pass: passCode } };
+}
+
 /** True when the device may offer Override: a denial other than revoked or unknown, and the issue capability. */
 export function canOverride(
   decision: GateDecision,
