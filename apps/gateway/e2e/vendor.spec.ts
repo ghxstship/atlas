@@ -426,8 +426,11 @@ test("R11: a vendor is reminded, gets an answer back and sees its Hospitality tr
   const engagement = await vendorEngagement();
   const packetTitle = `Track Advance ${tag}`;
   const [party] = await sql<{ counterparty_id: string; name: string }>(
-    `select e.counterparty_id, c.counterparty_name as name
-       from app.engagements e join app.counterparties c on c.id = e.counterparty_id where e.id = $1`,
+    `select e.counterparty_id, o.name
+       from app.engagements e
+       join app.counterparties c on c.id = e.counterparty_id
+       join app.organizations o on o.id = c.organization_id
+      where e.id = $1`,
     [engagement.id],
   );
   const vendorName = party?.name as string;
