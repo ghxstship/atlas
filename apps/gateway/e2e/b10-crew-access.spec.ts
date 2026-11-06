@@ -111,7 +111,9 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
 
   // Atlas sees it.
   await atlas.goto(`/${ORG}/p/NWS/crew?view=list`);
-  await expect(atlas.getByText("Accepted").first()).toBeVisible();
+  await expect(
+    atlas.getByText("Accepted", { exact: true }).locator("visible=true").first(),
+  ).toBeVisible();
 
   // A reload needs no code; forgetting asks again.
   await worker.reload();

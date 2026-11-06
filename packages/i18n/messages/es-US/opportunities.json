@@ -970,13 +970,13 @@
       "unexpected": "Algo salió mal. Inténtalo de nuevo en un momento."
     },
     "states": {
-      "Proposed": "Propuesto",
-      "Sent": "Enviado",
-      "Signed": "Firmado",
-      "Executed": "Ejecutado",
-      "Expired": "Vencido",
-      "Superseded": "Reemplazado",
-      "Canceled": "Cancelado"
+      "proposed": "Propuesto",
+      "sent": "Enviado",
+      "signed": "Firmado",
+      "executed": "Ejecutado",
+      "expired": "Vencido",
+      "superseded": "Reemplazado",
+      "canceled": "Cancelado"
     },
     "textMasked": "Este texto contiene una tarifa que no puedes leer."
   }

@@ -179,6 +179,7 @@ test("a public form address asks for a code and answers no-store", async ({ page
   await expect(page.getByLabel("Access code")).toBeVisible();
   const post = await page.request.post(`/forms/${token}/open`, {
     form: { accessCode: "000000" },
+    headers: { Origin: new URL(page.url()).origin },
     maxRedirects: 0,
   });
   expect(post.status()).toBe(303);

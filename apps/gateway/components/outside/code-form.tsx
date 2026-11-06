@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Button, InlineAlert, Input } from "@/components/ui";
+import { GrantRefresh } from "./grant-refresh";
 
 /**
  * The access code form of an intake or public form link (B2, ADR 0141). It posts natively to the link's open handler, a
@@ -19,6 +20,7 @@ export async function OutsideCodeForm({
   const t = await getTranslations("gateway.tokens");
   return (
     <div className="flex max-w-layout-form flex-col gap-16">
+      {refusal ? null : <GrantRefresh />}
       <p className="m-0 text-text-14 text-text-secondary">{intro}</p>
       {refusal ? <InlineAlert tone={stop ? "danger" : "warning"}>{refusal}</InlineAlert> : null}
       {stop ? null : (

@@ -1,5 +1,12 @@
 import { expect as baseExpect, test } from "./engine-test";
-import { demoVendorId, PEOPLE, PROJECT, suffix, vendorEngagement } from "./role-fixtures";
+import {
+  transition,
+  demoVendorId,
+  PEOPLE,
+  PROJECT,
+  suffix,
+  vendorEngagement,
+} from "./role-fixtures";
 import { signIn, sql } from "./support";
 
 /**
@@ -15,6 +22,7 @@ const expect = baseExpect.configure({ timeout: 20_000 });
 
 test("a vendor books a delivery and keeps its reference code on the row", async ({ page }) => {
   const engagement = await vendorEngagement();
+  await transition("engagement", engagement.id, "Onboarding", "Active");
   const [zone] = await sql<{ id: string }>(
     `insert into app.zones (venue_id, code, name)
      select p.venue_id, $2, $3 from app.projects p where p.id = $1 returning id`,

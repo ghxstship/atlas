@@ -117,7 +117,7 @@ test("a pool invitation is accepted on Home and the person is named in Atlas", a
   const { context: org, page: pools } = await atlasAs(browser, "owner@example.com");
   await pools.goto(`/${ORG}/opportunities/pools?pool=${pool?.id}`);
   const invite = pools.getByRole("form", { name: "Invite by email" });
-  await invite.getByLabel("Email", { exact: true }).fill("crew@example.com");
+  await invite.getByLabel(/email/i).first().fill("crew@example.com");
   await invite.getByRole("button", { name: "Send invitation" }).click();
   await expect(pools.locator("#pool-invitations").getByText("crew@example.com")).toBeVisible();
   const [queued] = await sql<{ args: Record<string, unknown> }>(

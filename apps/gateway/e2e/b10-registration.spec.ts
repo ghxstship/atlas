@@ -48,7 +48,7 @@ test("a registration page: open it, register, approve, and the person is on the 
   await create.getByRole("button", { name: "Create page" }).click();
   await atlas.getByRole("link", { name: `Summer Crew ${id}` }).click();
   await atlas.waitForURL(/page=/);
-  await atlas.getByLabel("Question template").selectOption(template?.id as string);
+  await atlas.getByRole("combobox", { name: "Question template" }).selectOption(template?.id as string);
   await atlas.getByRole("button", { name: "Apply template" }).click();
   await expect(atlas.getByLabel("Question", { exact: true })).toHaveCount(10);
   await atlas.getByRole("button", { name: "Publish" }).click();

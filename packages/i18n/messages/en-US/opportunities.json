@@ -970,13 +970,13 @@
       "unexpected": "Something went wrong. Try again in a moment."
     },
     "states": {
-      "Proposed": "Proposed",
-      "Sent": "Sent",
-      "Signed": "Signed",
-      "Executed": "Executed",
-      "Expired": "Expired",
-      "Superseded": "Superseded",
-      "Canceled": "Canceled"
+      "proposed": "Proposed",
+      "sent": "Sent",
+      "signed": "Signed",
+      "executed": "Executed",
+      "expired": "Expired",
+      "superseded": "Superseded",
+      "canceled": "Canceled"
     },
     "textMasked": "This text holds a rate you cannot read."
   }
