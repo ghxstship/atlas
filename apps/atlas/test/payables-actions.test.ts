@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * holds the form can leave in the same commit as the refresh. A refusal stays on the form, with no redirect.
  */
 const seen = vi.hoisted(() => ({
-  redirect: vi.fn((to: string, _type?: string) => {
+  redirect: vi.fn<(to: string, type?: string) => never>((to) => {
     throw new Error(`redirect:${to}`);
   }),
   record: vi.fn(),
