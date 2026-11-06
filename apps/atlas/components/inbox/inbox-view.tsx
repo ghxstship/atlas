@@ -1,7 +1,7 @@
 "use client";
 
 import { chordOf } from "@xos/schemas/shortcuts/keys";
-import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
+import { Button, Kbd } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,9 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
-import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import { quickInboxAction } from "@/app/[org]/inbox/actions";
+import { EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 // The bulk bar shows only with a selection, so it loads then (A24-009).
 import { BulkActionBar } from "@/components/lazy-ui/bulk-action-bar";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
@@ -39,6 +40,13 @@ export interface InboxRow {
 }
 
 type Quick = "approve" | "done" | "snooze";
+
+/**
+ * The reject dialog (and Radix Dialog with it) loads with the first Reject. The press is held in
+ * `rejecting` by this module, so a press before the code arrives still opens the dialog (ADR 0027).
+ */
+const rejectDialog = onDemand(() => import("./reject-dialog"));
+const prepareReject = () => void rejectDialog.load().catch(() => undefined);
 
 /**
  * Shortcuts on the focused item, by registry id (packages/schemas/shortcuts.yaml, scope inbox), with the
@@ -103,6 +111,7 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<PlatformActionState>({});
   const [rejecting, setRejecting] = useState<InboxRow | null>(null);
+  const rejectModule = useOnDemand(rejectDialog, rejecting !== null);
   const [handled, setHandled] = useState(0);
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const anchor = useRef<string | null>(null);
@@ -491,6 +500,8 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                                 <Button
                                   size="sm"
                                   variant="secondary"
+                                  onPointerEnter={prepareReject}
+                                  onFocus={prepareReject}
                                   onClick={() => setRejecting(row)}
                                 >
                                   {t("inbox.reject")}
@@ -514,45 +525,25 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
           ),
         )}
       </ul>
-      {rejecting ? (
-        <Dialog
-          title={t("inbox.rejectTitle")}
-          open
-          onOpenChange={(open) => (open ? null : setRejecting(null))}
-          actions={null}
-        >
-          <p className="m-0 text-text-13">{rejecting.summary}</p>
-          <ActionForm
-            action={rejectInboxAction}
-            hidden={{ org, id: rejecting.id }}
-            label={t("inbox.rejectTitle")}
-            submitLabel={t("inbox.rejectSubmit")}
-            submitVariant="danger"
-            onDone={() => {
-              const next = neighbourOf(
-                items.map((r) => r.id),
-                rejecting.id,
-              );
-              afterDialog.current = next;
-              setSelectedId(next);
-              setHidden((prev) => new Set(prev).add(rejecting.id));
-              setHandled((n) => n + 1);
-              setRejecting(null);
-              router.refresh();
-            }}
-          >
-            <Textarea
-              id="reject-reason"
-              name="reason"
-              label={t("inbox.rejectReason")}
-              required
-              maxLength={2000}
-              rows={3}
-              width="100%"
-              autoFocus
-            />
-          </ActionForm>
-        </Dialog>
+      {rejecting && rejectModule ? (
+        <rejectModule.RejectDialog
+          org={org}
+          id={rejecting.id}
+          summary={rejecting.summary}
+          onClose={() => setRejecting(null)}
+          onRejected={() => {
+            const next = neighbourOf(
+              items.map((r) => r.id),
+              rejecting.id,
+            );
+            afterDialog.current = next;
+            setSelectedId(next);
+            setHidden((prev) => new Set(prev).add(rejecting.id));
+            setHandled((n) => n + 1);
+            setRejecting(null);
+            router.refresh();
+          }}
+        />
       ) : null}
     </div>
   );
