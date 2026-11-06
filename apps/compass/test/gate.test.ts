@@ -11,6 +11,7 @@ import {
   type DeliveryWindowRow,
   type GateRow,
 } from "../src/domain/gate";
+import { buildRelease } from "../src/domain/logistics";
 
 const slot = (over: Partial<BookingRow> = {}): BookingRow => ({
   id: "s1",
@@ -142,12 +143,20 @@ describe("the gate view (B11, G-115)", () => {
       target: "app.record_booking_arrival",
       rowId: "m1",
       policy: "append",
-      payload: { p_dock_slot_id: "s1", p_vehicle_identifier: null },
+      payload: { p_dock_slot_id: "s1", p_vehicle_identifier: null, p_event_id: "m1" },
     });
     expect(arrived.optimistic).toMatchObject({
       vehicle_identifier: "FL ABC-123",
       dock_slot_id: "s1",
     });
+  });
+
+  it("releases the row the server was told to make, online or queued", () => {
+    const arrived = buildBookingArrival(slot(), null, 1000, () => "m1");
+    const row = arrived.optimistic as unknown as GateRow;
+    const released = buildRelease(row, 2000);
+    expect(row.id).toBe(arrived.payload?.["p_event_id"]);
+    expect(released.payload).toEqual({ p_gate_queue_id: arrived.payload?.["p_event_id"] });
   });
 
   it("sends the plate typed, trimmed, ahead of the slot's", () => {

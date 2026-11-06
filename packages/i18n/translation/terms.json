@@ -2,52 +2,23 @@
   "$comment": "Do-not-translate list and checked terminology rules (ADR 0037). doNotTranslate entries are masked before text goes to Google and must stay unchanged in every target. rules are checked offline on every catalog key; a rule with googleGlossary false also sends its keys to Google without the glossary.",
   "doNotTranslate": {
     "terms": [
-      {
-        "term": "XOS"
-      },
-      {
-        "term": "Atlas"
-      },
-      {
-        "term": "Gateway"
-      },
-      {
-        "term": "Compass"
-      },
-      {
-        "term": "Aurora"
-      },
-      {
-        "term": "Legend",
-        "except": ["ui.chart.legend"]
-      },
-      {
-        "term": "URID"
-      },
-      {
-        "term": "GHXSTSHIP"
-      },
-      {
-        "term": "ATLVS"
-      },
-      {
-        "term": "Core",
-        "except": ["canonBrowser.departments.coreFunction"]
-      },
-      {
-        "term": "Pro"
-      },
-      {
-        "term": "Enterprise"
-      },
+      { "term": "XOS" },
+      { "term": "Atlas" },
+      { "term": "Gateway" },
+      { "term": "Compass" },
+      { "term": "Aurora" },
+      { "term": "Legend", "except": ["ui.chart.legend"] },
+      { "term": "URID" },
+      { "term": "GHXSTSHIP" },
+      { "term": "ATLVS" },
+      { "term": "Core", "except": ["canonBrowser.departments.coreFunction"] },
+      { "term": "Pro" },
+      { "term": "Enterprise" },
       {
         "term": "Team",
         "only": ["platform.partner.plans.team", "shell.plans.team.name", "help/contact-support.md"]
       },
-      {
-        "term": "Access",
-        "only": ["platform.partner.plans.access", "shell.plans.access.name"]
-      },
+      { "term": "Access", "only": ["platform.partner.plans.access", "shell.plans.access.name"] },
       {
         "term": "English (US)",
         "only": ["shell.chrome.locales.en-US", "gateway.shell.locales.en-US"]
@@ -56,212 +27,83 @@
         "term": "Español (EE. UU.)",
         "only": ["shell.chrome.locales.es-US", "gateway.shell.locales.es-US"]
       },
-      {
-        "term": "Français",
-        "only": ["shell.chrome.locales.fr-FR", "gateway.shell.locales.fr-FR"]
-      },
-      {
-        "term": "Deutsch",
-        "only": ["shell.chrome.locales.de-DE", "gateway.shell.locales.de-DE"]
-      },
-      {
-        "term": "Italiano",
-        "only": ["shell.chrome.locales.it-IT", "gateway.shell.locales.it-IT"]
-      },
+      { "term": "Français", "only": ["shell.chrome.locales.fr-FR", "gateway.shell.locales.fr-FR"] },
+      { "term": "Deutsch", "only": ["shell.chrome.locales.de-DE", "gateway.shell.locales.de-DE"] },
+      { "term": "Italiano", "only": ["shell.chrome.locales.it-IT", "gateway.shell.locales.it-IT"] },
       {
         "term": "Português (Brasil)",
         "only": ["shell.chrome.locales.pt-BR", "gateway.shell.locales.pt-BR"]
       },
-      {
-        "term": "日本語",
-        "only": ["shell.chrome.locales.ja-JP", "gateway.shell.locales.ja-JP"]
-      },
-      {
-        "term": "Stripe"
-      },
-      {
-        "term": "Resend"
-      },
-      {
-        "term": "Supabase"
-      },
-      {
-        "term": "PowerSync"
-      },
-      {
-        "term": "Vercel"
-      },
-      {
-        "term": "Sentry"
-      },
-      {
-        "term": "ClamAV"
-      },
-      {
-        "term": "Expo"
-      },
-      {
-        "term": "TestFlight"
-      },
-      {
-        "term": "App Store"
-      },
-      {
-        "term": "Google Play"
-      },
-      {
-        "term": "GitHub"
-      },
-      {
-        "term": "Google"
-      },
-      {
-        "term": "Apple"
-      },
-      {
-        "term": "Microsoft"
-      },
-      {
-        "term": "Microsoft Teams"
-      },
-      {
-        "term": "Slack"
-      },
-      {
-        "term": "QuickBooks"
-      },
-      {
-        "term": "Xero"
-      },
-      {
-        "term": "Gusto"
-      },
-      {
-        "term": "ADP"
-      },
-      {
-        "term": "Rippling"
-      },
-      {
-        "term": "Dropbox"
-      },
-      {
-        "term": "OneDrive"
-      },
-      {
-        "term": "SharePoint"
-      },
-      {
-        "term": "Excel"
-      },
-      {
-        "term": "UPS"
-      },
-      {
-        "term": "FedEx"
-      },
-      {
-        "term": "DHL"
-      },
-      {
-        "term": "SAML"
-      },
-      {
-        "term": "SCIM"
-      },
-      {
-        "term": "OpenAPI"
-      },
-      {
-        "term": "MCP"
-      },
-      {
-        "term": "CSV"
-      },
-      {
-        "term": "PDF"
-      },
-      {
-        "term": "JSON"
-      },
-      {
-        "term": "SMS"
-      },
-      {
-        "term": "iOS"
-      },
-      {
-        "term": "Android"
-      },
-      {
-        "term": "Node.js"
-      },
-      {
-        "term": "Next.js"
-      },
-      {
-        "term": "Postgres"
-      },
-      {
-        "term": "Docker"
-      }
+      { "term": "日本語", "only": ["shell.chrome.locales.ja-JP", "gateway.shell.locales.ja-JP"] },
+      { "term": "Stripe" },
+      { "term": "Resend" },
+      { "term": "Supabase" },
+      { "term": "PowerSync" },
+      { "term": "Vercel" },
+      { "term": "Sentry" },
+      { "term": "ClamAV" },
+      { "term": "Expo" },
+      { "term": "TestFlight" },
+      { "term": "App Store" },
+      { "term": "Google Play" },
+      { "term": "GitHub" },
+      { "term": "Google" },
+      { "term": "Apple" },
+      { "term": "Microsoft" },
+      { "term": "Microsoft Teams" },
+      { "term": "Slack" },
+      { "term": "QuickBooks" },
+      { "term": "Xero" },
+      { "term": "Gusto" },
+      { "term": "ADP" },
+      { "term": "Rippling" },
+      { "term": "Dropbox" },
+      { "term": "OneDrive" },
+      { "term": "SharePoint" },
+      { "term": "Excel" },
+      { "term": "UPS" },
+      { "term": "FedEx" },
+      { "term": "DHL" },
+      { "term": "SAML" },
+      { "term": "SCIM" },
+      { "term": "OpenAPI" },
+      { "term": "MCP" },
+      { "term": "CSV" },
+      { "term": "PDF" },
+      { "term": "JSON" },
+      { "term": "SMS" },
+      { "term": "iOS" },
+      { "term": "Android" },
+      { "term": "Node.js" },
+      { "term": "Next.js" },
+      { "term": "Postgres" },
+      { "term": "Docker" }
     ],
     "patterns": [
       {
         "name": "plan name",
         "pattern": "(?<=\\b(?:Core|Pro|Team|Enterprise),? (?:and |or )?)Team\\b|\\bTeam\\b(?=,? (?:and |or )?(?:the )?(?:Core|Pro|Enterprise)\\b)|\\b(?:Access|Team)\\b(?= plans?\\b| and above\\b| or above\\b)"
       },
-      {
-        "name": "URL",
-        "pattern": "https?://[^\\s<>\"'{}]*[^\\s<>\"'{}.,;:!?)\\]]"
-      },
-      {
-        "name": "email address",
-        "pattern": "[\\w.+-]+@[\\w-]+(?:\\.[\\w-]+)+",
-        "check": false
-      },
-      {
-        "name": "canon code",
-        "pattern": "\\b[A-Z][A-Z0-9]*(?:[-_][A-Z0-9]+)+\\b"
-      },
-      {
-        "name": "identifier",
-        "pattern": "\\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\\b"
-      },
-      {
-        "name": "dotted name",
-        "pattern": "\\b[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*){2,}\\b"
-      },
-      {
-        "name": "path",
-        "pattern": "(?<![\\p{L}\\p{N}_.:/])/[A-Za-z0-9_][\\w./-]*"
-      }
+      { "name": "URL", "pattern": "https?://[^\\s<>\"'{}]*[^\\s<>\"'{}.,;:!?)\\]]" },
+      { "name": "email address", "pattern": "[\\w.+-]+@[\\w-]+(?:\\.[\\w-]+)+", "check": false },
+      { "name": "canon code", "pattern": "\\b[A-Z][A-Z0-9]*(?:[-_][A-Z0-9]+)+\\b" },
+      { "name": "identifier", "pattern": "\\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\\b" },
+      { "name": "dotted name", "pattern": "\\b[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*){2,}\\b" },
+      { "name": "path", "pattern": "(?<![\\p{L}\\p{N}_.:/])/[A-Za-z0-9_][\\w./-]*" }
     ]
   },
   "rules": [
     {
       "id": "project-gate",
       "description": "A project gate is a compuerta (ADR 0033 decision 27); puerta stays for physical doors and gates.",
-      "source": {
-        "pattern": "\\bgates?\\b",
-        "flags": "i"
-      },
+      "source": { "pattern": "\\bgates?\\b", "flags": "i" },
       "except": ["@physical-gate"],
       "targets": {
         "es-US": {
-          "require": {
-            "pattern": "compuerta",
-            "flags": "i"
-          },
+          "require": { "pattern": "compuerta", "flags": "i" },
           "forbid": [
-            {
-              "pattern": "\\bpuertas?\\b",
-              "flags": "i"
-            },
-            {
-              "pattern": "\\bgates?\\b",
-              "flags": "i"
-            }
+            { "pattern": "\\bpuertas?\\b", "flags": "i" },
+            { "pattern": "\\bgates?\\b", "flags": "i" }
           ]
         }
       }
@@ -299,34 +141,13 @@
         "logistics.common.errors.delivery_booking_outside_window"
       ],
       "googleGlossary": false,
-      "targets": {
-        "es-US": {
-          "forbid": [
-            {
-              "pattern": "compuerta",
-              "flags": "i"
-            }
-          ]
-        }
-      }
+      "targets": { "es-US": { "forbid": [{ "pattern": "compuerta", "flags": "i" }] } }
     },
     {
       "id": "physical-door",
       "description": "A door is a puerta, never a compuerta.",
-      "source": {
-        "pattern": "\\bdoors?\\b",
-        "flags": "i"
-      },
-      "targets": {
-        "es-US": {
-          "forbid": [
-            {
-              "pattern": "compuerta",
-              "flags": "i"
-            }
-          ]
-        }
-      }
+      "source": { "pattern": "\\bdoors?\\b", "flags": "i" },
+      "targets": { "es-US": { "forbid": [{ "pattern": "compuerta", "flags": "i" }] } }
     }
   ]
 }

@@ -49,3 +49,6 @@ name: field-gate-view
     notVisible:
       id: "sync-queued"
     timeout: 30000
+# Every step uploaded: a refused release would leave the phone reading Released and show here.
+- assertNotVisible:
+    id: "sync-conflicts"

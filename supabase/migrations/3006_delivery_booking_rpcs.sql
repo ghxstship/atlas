@@ -193,7 +193,7 @@ comment on function app.set_delivery_booking_vehicle(uuid, text) is 'Changes the
 revoke all on function app.set_delivery_booking_vehicle(uuid, text) from public, anon;
 grant execute on function app.set_delivery_booking_vehicle(uuid, text) to authenticated, service_role;
 
-create or replace function app.record_booking_arrival(p_dock_slot_id uuid, p_vehicle_identifier text default null)
+create or replace function app.record_booking_arrival(p_dock_slot_id uuid, p_vehicle_identifier text default null, p_event_id uuid default null)
 returns uuid
 language plpgsql
 volatile
@@ -203,11 +203,23 @@ as $$
 declare
   v_slot app.dock_slots;
   v_vehicle text;
+  v_replay_slot uuid;
   v_id uuid;
 begin
   select d.* into v_slot from app.dock_slots d where d.id = p_dock_slot_id for update;
   if v_slot.id is null or v_slot.project_id not in (select private.project_ids_with('logistics.yard.write')) then
     raise exception using errcode = '42501', message = 'logistics.yard.write is required on this project';
+  end if;
+  -- The event id is the gate row's id, so the phone's optimistic row is the row release_vehicle will find, and a replay
+  -- answers with it, even once the slot has moved on.
+  if p_event_id is not null then
+    select q.dock_slot_id, q.id into v_replay_slot, v_id from app.gate_queue q where q.id = p_event_id;
+    if v_id is not null then
+      if v_replay_slot is distinct from v_slot.id then
+        perform private.refuse('booking_event_reused', 'This booking was already used for another window or company.');
+      end if;
+      return v_id;
+    end if;
   end if;
   if v_slot.deleted_at is not null then
     perform private.refuse('dock_slot_canceled', 'A canceled dock slot cannot be checked in.');
@@ -219,15 +231,15 @@ begin
   if v_vehicle is null then
     perform private.refuse('gate_vehicle_required', 'Enter the plate or trailer number.');
   end if;
-  insert into app.gate_queue (project_id, vehicle_identifier, shipment_id, dock_slot_id)
-  values (v_slot.project_id, v_vehicle, v_slot.shipment_id, v_slot.id)
+  insert into app.gate_queue (id, project_id, vehicle_identifier, shipment_id, dock_slot_id)
+  values (coalesce(p_event_id, private.uuid_v7()), v_slot.project_id, v_vehicle, v_slot.shipment_id, v_slot.id)
   returning id into v_id;
   return v_id;
 end;
 $$;
-comment on function app.record_booking_arrival(uuid, text) is 'A vehicle arrived at the gate for its booking (B11, G-115): one gate row for the slot, under logistics.yard.write on the project (42501 otherwise). It uses the slot''s plate when none is given, else refuses gate_vehicle_required; a repeat refuses booking_already_arrived and a canceled slot dock_slot_canceled. Security definer because private.sync_call refuses any other (0935), and replayable from Compass.';
-revoke all on function app.record_booking_arrival(uuid, text) from public, anon;
-grant execute on function app.record_booking_arrival(uuid, text) to authenticated, service_role;
+comment on function app.record_booking_arrival(uuid, text, uuid) is 'A vehicle arrived at the gate for its booking (B11, G-115): one gate row for the slot, under logistics.yard.write on the project (42501 otherwise). The event id is the gate row''s id, so Compass can release the row it just showed, and a replay returns it (booking_event_reused when it names another slot). It uses the slot''s plate when none is given, else refuses gate_vehicle_required; another arrival refuses booking_already_arrived and a canceled slot dock_slot_canceled. Security definer because private.sync_call refuses any other (0935), and replayable from Compass.';
+revoke all on function app.record_booking_arrival(uuid, text, uuid) from public, anon;
+grant execute on function app.record_booking_arrival(uuid, text, uuid) to authenticated, service_role;
 
 insert into private.sync_rpcs (rpc, description) values
   ('app.record_booking_arrival', 'A gate marshal records a vehicle arriving for its delivery booking.')

@@ -93,7 +93,10 @@ export function findBookings(
   );
 }
 
-/** Arrived: one gate row for the booking, with the plate typed, or the slot's when none is. */
+/**
+ * Arrived: one gate row for the booking, with the plate typed, or the slot's when none is. The row's id goes to the server
+ * as the event id, because the RPC returns a bare id the uploader cannot merge: Release must name the row the server has.
+ */
 export function buildBookingArrival(
   slot: BookingRow,
   vehicle: string | null,
@@ -107,7 +110,7 @@ export function buildBookingArrival(
     target: "app.record_booking_arrival",
     table: "gate_queue",
     rowId: id,
-    payload: { p_dock_slot_id: slot.id, p_vehicle_identifier: typed },
+    payload: { p_dock_slot_id: slot.id, p_vehicle_identifier: typed, p_event_id: id },
     policy: "append",
     optimistic: {
       id,

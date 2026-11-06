@@ -153,8 +153,30 @@ select is((select dock_slot_id from app.gate_queue where vehicle_identifier = 'N
 select lives_ok(format($$select app.record_booking_arrival(%L)$$, pg_temp.id('b1')), 'without a plate, it uses the slot''s');
 select is((select vehicle_identifier from app.gate_queue where dock_slot_id = pg_temp.id('b1')), 'FL ABC 123', 'the slot''s plate');
 select throws_like(format($$select app.record_booking_arrival(%L, 'X')$$, pg_temp.id('b2')), 'dock_slot_canceled:%', 'a slot that is not live refuses');
+-- Arrived, then Release of the row the phone is showing, through the path a queued mutation takes.
+select pg_temp.as_user('carol');
+insert into app.delivery_windows (project_id, zone_id, starts_at, ends_at, vehicle_limit)
+values (pg_temp.id('prj_a'), pg_temp.id('gate_b'), now() + interval '10 days', now() + interval '10 days 2 hours', 2);
+insert into world select 'w5', id from app.delivery_windows where zone_id = pg_temp.id('gate_b') and starts_at > now() + interval '9 days';
+insert into world select 'b5', app.book_delivery_window(gen_random_uuid(), pg_temp.id('w5'), null, 'FL EVT 5');
+insert into world values ('arrival5', gen_random_uuid()), ('arrival5_m', gen_random_uuid()), ('release5_m', gen_random_uuid());
+select is(
+  app.apply_sync_mutation(pg_temp.id('arrival5_m'), pg_temp.id('org_a'), 'gate-phone', 'app.record_booking_arrival',
+    jsonb_build_object('p_dock_slot_id', pg_temp.id('b5'), 'p_vehicle_identifier', null, 'p_event_id', pg_temp.id('arrival5'))) ->> 'data',
+  pg_temp.id('arrival5')::text, 'a queued Arrived makes the gate row under the phone''s id');
+select is((select dock_slot_id from app.gate_queue where id = pg_temp.id('arrival5')), pg_temp.id('b5'), 'and the row under that id names the slot');
+select is(app.record_booking_arrival(pg_temp.id('b5'), null, pg_temp.id('arrival5')), pg_temp.id('arrival5'), 'a replay returns the same row');
+select is((select count(*)::integer from app.gate_queue where dock_slot_id = pg_temp.id('b5') and deleted_at is null), 1, 'and adds none');
+select throws_like(format($$select app.record_booking_arrival(%L, null, gen_random_uuid())$$, pg_temp.id('b5')), 'booking_already_arrived:%', 'another event for the same booking refuses booking_already_arrived');
+select throws_like(format($$select app.record_booking_arrival(%L, 'OTHER', %L)$$, pg_temp.id('b4'), pg_temp.id('arrival5')), 'booking_event_reused:%', 'an event id used for another slot refuses booking_event_reused');
+select is(
+  (app.apply_sync_mutation(pg_temp.id('release5_m'), pg_temp.id('org_a'), 'gate-phone', 'app.release_vehicle',
+    jsonb_build_object('p_gate_queue_id', pg_temp.id('arrival5')))) ? 'refusal',
+  false, 'a queued Release naming that id is not refused');
+select ok((select released_at from app.gate_queue where id = pg_temp.id('arrival5')) is not null, 'and the vehicle reads released on the server');
+select is(app.record_booking_arrival(pg_temp.id('b5'), null, pg_temp.id('arrival5')), pg_temp.id('arrival5'), 'a late replay after the release still returns the row');
 select pg_temp.as_platform();
-select ok((select p.prosecdef from pg_proc p where p.oid = 'app.record_booking_arrival(uuid, text)'::regprocedure), 'it is security definer, as private.sync_call requires');
+select ok((select p.prosecdef from pg_proc p where p.oid = 'app.record_booking_arrival(uuid, text, uuid)'::regprocedure), 'it is security definer, as private.sync_call requires');
 select ok(exists (select 1 from private.sync_rpcs where rpc = 'app.record_booking_arrival'), 'and in private.sync_rpcs');
 select throws_ok(format($$insert into app.gate_queue (project_id, vehicle_identifier, dock_slot_id) values (%L, 'Y', %L)$$, pg_temp.id('prj_a2'), pg_temp.id('b1')), 'XR001', null, 'a gate row names a slot of its own project');
 
