@@ -252,7 +252,7 @@ select is((select suggestion_state::text from app.ai_suggestions where id = pg_t
 -- Retention
 select is((select retention from private.retention_policies where table_name = 'app.ai_requests'), interval '7 years',
   'request logs follow the audit retention rule');
--- Counted against the app.ai_ tables, so a later Aurora table (B15's app.ai_intake_batches, 3040) is held to the same rule.
+-- Counted against the app.ai_ tables, so a later Aurora table is held to the same rule.
 select is((select count(*)::int from private.retention_policies where table_name like 'app.ai\_%'),
   (select count(*)::int from pg_tables where schemaname = 'app' and tablename like 'ai\_%'), 'every Aurora table has a retention policy');
 
