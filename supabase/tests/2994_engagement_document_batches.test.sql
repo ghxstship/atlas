@@ -257,5 +257,12 @@ select is((select x.body from api_external.engagement_document_texts x where x.i
 select pg_temp.as_user('quinn');
 select is((select count(*)::int from api_external.engagement_document_texts x where x.id = pg_temp.id('doc_art')), 0, 'someone else reads nothing');
 
+select pg_temp.as_user('ned');
+select is((select count(*)::int from api_external.engagement_document_texts x where x.id = pg_temp.id('doc_ned')), 1, 'the party reads their own text while the documents area is open');
+select pg_temp.move_engagement('eng_ned', 'Onboarding', 'Canceled');
+select pg_temp.backdate_close('eng_ned', interval '19 months');
+select pg_temp.as_user('ned');
+select is((select count(*)::int from api_external.engagement_document_texts x where x.id = pg_temp.id('doc_ned')), 0, 'and not after it closes');
+
 select * from finish();
 rollback;

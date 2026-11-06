@@ -174,6 +174,14 @@ update app.memberships set valid_to = now() where id = pg_temp.id('frank@org_a')
 select pg_temp.as_anon();
 select is(pg_temp.reason('frank'), 'crew_access_not_working', 'an ended membership closes the link');
 
+select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_ivy_b', 'Onboarding', 'Canceled');
+select is(private.crew_access_worker_live(pg_temp.id('org_b'), pg_temp.id('prj_b'), null, pg_temp.id('eng_ivy_b'), null), false, 'leaving Active or Closing closes the engagement arm');
+select is(private.crew_access_worker_live(pg_temp.id('org_a'), pg_temp.id('prj_a'), null, null, pg_temp.id('e_una')), false, 'a roster entry not accepted by both sides is not working');
+select pg_temp.as_user('carol');
+select is(pg_temp.refusal(format($$select * from app.issue_crew_access_links('%s', '[{"engagement_id": "%s"}]')$$, pg_temp.id('prj_a'), pg_temp.id('eng_art_a'))),
+  'crew_access_not_working', 'an engagement still in Onboarding is refused');
+
 -- The Atlas reads --------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
 select is((select l.link_status from app.crew_access_link_list l where l.id = (select link_id from lnk where key = 'stella')), 'Closed', 'a link whose worker stopped working reads Closed');

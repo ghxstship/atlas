@@ -38,10 +38,7 @@ async function publishedShift(): Promise<{ id: string; membership: string; perso
   };
 }
 
-test("a crew access link: issue, open with a code, accept, forget, revoke", async ({
-  page,
-  browser,
-}) => {
+test("a crew access link: issue, open with a code, accept, forget, revoke", async ({ browser }) => {
   const shift = await publishedShift();
   const { context: lead, page: atlas } = await atlasAs(browser, "owner@example.com");
 
