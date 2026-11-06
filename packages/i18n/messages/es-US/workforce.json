@@ -823,7 +823,7 @@
     "support_ticket_closed": "Esta solicitud está cerrada. Abre una nueva.",
     "occupancy_count_negative": "Eso dejaría el conteo bajo cero. Revisa el conteo de la puerta.",
     "occupancy_counter_closed": "Este contador está cerrado.",
-    "occupancy_load_unknown": "Indica un aforo permitido, elige un factor de carga o primero configura la capacidad del espacio.",
+    "occupancy_load_unknown": "Escribe el aforo de un permiso, elige un factor de carga o primero configura la capacidad del espacio.",
     "occupancy_space_area": "El espacio necesita su área antes de que un factor de carga calcule el aforo.",
     "occupancy_load_factor": "Elige un factor de carga de ocupantes de las métricas de capacidad de la Biblia.",
     "guest_not_approved": "Solo se registran invitados aprobados. Pregunta a quien lleva la lista.",

@@ -823,7 +823,7 @@
     "support_ticket_closed": "This request is closed. Open a new one.",
     "occupancy_count_negative": "That would take the count below zero. Check the door count.",
     "occupancy_counter_closed": "This counter is closed.",
-    "occupancy_load_unknown": "Give a permitted load, pick a load factor, or set the space's capacity first.",
+    "occupancy_load_unknown": "Enter the load from a permit, pick a load factor, or set the space's capacity first.",
     "occupancy_space_area": "The space needs its area before a load factor can size it.",
     "occupancy_load_factor": "Pick an occupant load factor from the Bible capacity metrics.",
     "guest_not_approved": "Only approved guests are checked in. Ask the guest list owner.",
