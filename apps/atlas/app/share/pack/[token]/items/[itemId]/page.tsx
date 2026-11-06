@@ -46,7 +46,7 @@ export default async function StakeholderPackItemPage({
     throw new Error("stakeholder pack item read failed");
   }
   const back = (
-    <a className="text-label-13 text-accent underline" href={`/share/pack/${token}`}>
+    <a className="text-label-13 text-accent-text underline" href={`/share/pack/${token}`}>
       {t("back")}
     </a>
   );

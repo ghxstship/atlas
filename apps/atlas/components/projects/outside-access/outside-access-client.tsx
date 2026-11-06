@@ -174,7 +174,7 @@ function Row({
           ) : null}
           {row.source === "Engagement" ? (
             <NextLink
-              className="text-label-13 text-accent underline"
+              className="text-label-13 text-accent-text underline"
               href={`/${refs.org}/p/${refs.projectKey}/engagements?open=${row.sourceId}` as Route}
             >
               {t("openEngagement")}
@@ -182,7 +182,7 @@ function Row({
           ) : null}
           {row.source === "Roster invitation" ? (
             <NextLink
-              className="text-label-13 text-accent underline"
+              className="text-label-13 text-accent-text underline"
               href={`/${refs.org}/p/${refs.projectKey}/engagements` as Route}
             >
               {t("openEngagement")}

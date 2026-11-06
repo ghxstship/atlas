@@ -97,7 +97,7 @@ export async function PackItemRow({
             </Button>
           </form>
         ) : (
-          <a className="text-label-13 text-accent underline" href={base}>
+          <a className="text-label-13 text-accent-text underline" href={base}>
             {t("view")}
           </a>
         )}
