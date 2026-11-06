@@ -48,9 +48,7 @@ function Decide({
   return (
     <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
       {state.error ? (
-        <InlineAlert tone="danger">
-          {refusalText(errors, state.error)}
-        </InlineAlert>
+        <InlineAlert tone="danger">{refusalText(errors, state.error)}</InlineAlert>
       ) : null}
       <Textarea
         id={`intake-reason-${row.request.id}`}

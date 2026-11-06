@@ -530,7 +530,17 @@ function DeliveryStep({
             }))}
           />
         ) : null}
-  XX      </form>
+        <div className="flex flex-wrap items-center gap-8">
+          <Button type="submit" variant="primary" loading={pending}>
+            {t("saveSchedule")}
+          </Button>
+          {wasSaved(state) ? (
+            <span role="status" className="text-text-12 text-text-secondary">
+              {t(cadence === "Off" ? "scheduleOff" : "scheduleSaved")}
+            </span>
+          ) : null}
+        </div>
+      </form>
     </div>
   );
 }

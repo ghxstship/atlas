@@ -43,7 +43,8 @@ function render(fields: readonly PublicFormField[]): string {
 
 /** Visible controls as gate 27 counts them, leaving out the hidden wrapper's honeypot. */
 const controls = (html: string) =>
-  (html.replace(/<div hidden="">.*?<\/div>/s, "").match(/<(input|select|textarea)\b/g) ?? []).length;
+  (html.replace(/<div hidden="">.*?<\/div>/s, "").match(/<(input|select|textarea)\b/g) ?? [])
+    .length;
 
 describe("a public form window's controls", () => {
   it("counts a multi_choice as one control, whatever its number of choices", () => {

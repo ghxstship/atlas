@@ -157,11 +157,7 @@ export function IntakeLinkDialog({
       }
     >
       <div className="flex flex-col gap-16">
-        {refusal ? (
-          <InlineAlert tone="danger">
-            {refusalText(errors, refusal)}
-          </InlineAlert>
-        ) : null}
+        {refusal ? <InlineAlert tone="danger">{refusalText(errors, refusal)}</InlineAlert> : null}
         {created ? (
           <RevealPanel revealed={created} onDismiss={onClose} />
         ) : step === 1 ? (

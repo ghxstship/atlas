@@ -79,9 +79,7 @@ export function FormLinkDialog({
         className="flex flex-col gap-8"
       >
         {state.error ? (
-          <InlineAlert tone="danger">
-            {refusalText(errors, state.error)}
-          </InlineAlert>
+          <InlineAlert tone="danger">{refusalText(errors, state.error)}</InlineAlert>
         ) : null}
         <Select
           id="form-link-project"
