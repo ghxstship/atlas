@@ -1,5 +1,10 @@
 import type { PlanRegistry } from "@xos/schemas/plans";
-import { createCheckoutSession, createPortalSession, findPortalConfiguration } from "./checkout.ts";
+import {
+  createCheckoutSession,
+  createPortalSession,
+  findPortalConfiguration,
+  type PORTAL_CONFIGURATION_KEYS,
+} from "./checkout.ts";
 import type { StripeClient } from "./env.ts";
 import { lookupKeyFor, type BillingInterval } from "./plans.ts";
 import type { RenewalConsent } from "./renewal.ts";
@@ -190,7 +195,7 @@ export async function openBillingPortal(
     readonly orgId: string;
     readonly livemode: boolean;
     readonly returnUrl: string;
-    readonly term: "Monthly" | "Annual" | null;
+    readonly term: keyof typeof PORTAL_CONFIGURATION_KEYS | null;
   },
 ): Promise<string> {
   const customer = await store.portalCustomer({
