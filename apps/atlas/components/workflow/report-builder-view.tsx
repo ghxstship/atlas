@@ -1,8 +1,5 @@
-import {
-  getReportDefinition,
-  standardReportOf,
-  type ReportDefinition,
-} from "@xos/data/report-builder";
+import { getReportDefinition, type ReportDefinition } from "@xos/data/report-builder";
+import { standardReportOf } from "@xos/data/report-builder-standard";
 import { listMyRuns, listSavedReports } from "@xos/data/reports";
 import type { Route } from "next";
 import Link from "next/link";

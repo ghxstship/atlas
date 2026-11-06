@@ -58,7 +58,7 @@
       },
       "no_show": {
         "subject": "Marked as a no-show: {title}",
-        "body": "You were marked as a no-show for {title} starting {startsAt, date, full} at {startsAt, time, short}. Clocking in on the shift withdraws it; otherwise talk to your supervisor."
+        "body": "You were marked as a no-show for {title} starting {startsAt, date, full} at {startsAt, time, short}. Clocking in withdraws it."
       }
     },
     "invoice": {

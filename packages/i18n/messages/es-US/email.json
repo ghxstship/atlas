@@ -58,7 +58,7 @@
       },
       "no_show": {
         "subject": "Marcado como ausente: {title}",
-        "body": "Te marcaron como ausente en {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. Registrar tu entrada en el turno lo retira; si no, habla con tu supervisor."
+        "body": "Te marcaron como ausente en {title} a partir del {startsAt, date, full} a las {startsAt, time, short}. Registrar tu entrada lo retira."
       }
     },
     "invoice": {

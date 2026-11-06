@@ -23,6 +23,7 @@ const code = [...sources(join(root, "app")), ...sources(join(root, "src"))].join
 
 /** Test ids built at runtime from a prefix and a value (tabs, menu rows, options, keypad keys). */
 const DYNAMIC = [
+  "crew-no-show-",
   "tab-",
   "more-",
   "scan-mode-",

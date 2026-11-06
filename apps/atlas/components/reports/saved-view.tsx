@@ -1,5 +1,5 @@
 import { listCounterparties } from "@xos/data/finance";
-import { STANDARD_REPORTS } from "@xos/data/report-builder";
+import { STANDARD_REPORTS } from "@xos/data/report-builder-standard";
 import { listMyRuns, listSavedReports, listSharedReports } from "@xos/data/reports";
 import { listEngagementRefs } from "@xos/data/settlements";
 import { getNode } from "@xos/ia";

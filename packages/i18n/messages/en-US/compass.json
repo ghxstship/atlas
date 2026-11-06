@@ -162,7 +162,9 @@
       "profile_documents": "your documents",
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
-      "parking_passes": "parking passes"
+      "parking_passes": "parking passes",
+      "shift_no_shows": "no-shows",
+      "break_types": "break types"
     }
   },
   "queue": {

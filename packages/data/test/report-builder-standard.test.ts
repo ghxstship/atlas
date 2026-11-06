@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { REPORT_SOURCES, STANDARD_REPORTS, standardReportOf } from "../src/report-builder.ts";
+import { REPORT_SOURCES } from "../src/report-builder.ts";
+import { STANDARD_REPORTS, standardReportOf } from "../src/report-builder-standard.ts";
 
 /** The standard crew reports and their sources (B9, migration 2987, ADR 0148 decision 5). */
 

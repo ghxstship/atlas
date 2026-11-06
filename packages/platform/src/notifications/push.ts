@@ -23,7 +23,6 @@ import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts
 
 /** Push categories Compass registers in offer-actions.ts (A127, ADR 0106); approval_request is the registry's. */
 export const SHIFT_OFFER_CATEGORY = "shift_offer";
-export const SHIFT_RECONFIRM_CATEGORY = "shift_reconfirm";
 export const ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
 export const MESSAGE_REPLY_CATEGORY = "message_reply";
 
@@ -40,7 +39,7 @@ export function pushCategoryFor(
   )
     return SHIFT_OFFER_CATEGORY;
   // "Still coming?" (B9, ADR 0148): answered from the lock screen.
-  if (kind === "shift.reconfirm") return SHIFT_RECONFIRM_CATEGORY;
+  if (kind === "shift.reconfirm") return "shift_reconfirm";
   if (kind === "offer.sent") return ENGAGEMENT_OFFER_CATEGORY;
   if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
   return null;

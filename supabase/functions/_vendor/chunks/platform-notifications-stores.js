@@ -127,6 +127,42 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "shift.reconfirm",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: 12 },
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.reconfirm.subject",
+      body: "kinds.shift.reconfirm.body",
+    },
+  },
+  {
+    kind: "shift.reconfirm_declined",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.reconfirm_declined.subject",
+      body: "kinds.shift.reconfirm_declined.body",
+    },
+  },
+  {
+    kind: "shift.no_show",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.no_show.subject",
+      body: "kinds.shift.no_show.body",
+    },
+  },
+  {
     kind: "event.invited",
     category: "schedule",
     emailTemplate: "notification",

@@ -221,6 +221,138 @@ var REPORT_SOURCES = [
       },
     ],
   },
+  {
+    code: "crew_hours",
+    relation: "crew_shift_hours",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "shift_id",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+      {
+        key: "worker_kind",
+        type: "text",
+      },
+      {
+        key: "worker_name",
+        type: "text",
+      },
+      {
+        key: "starts_at",
+        type: "date",
+      },
+      {
+        key: "scheduled_hours",
+        type: "number",
+      },
+      {
+        key: "actual_hours",
+        type: "number",
+      },
+      {
+        key: "variance_hours",
+        type: "number",
+      },
+      {
+        key: "no_show",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_responses",
+    relation: "crew_responses",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "kind",
+        type: "text",
+      },
+      {
+        key: "answer",
+        type: "text",
+      },
+      {
+        key: "asked_at",
+        type: "date",
+      },
+      {
+        key: "answered_at",
+        type: "date",
+      },
+      {
+        key: "person_name",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_removals",
+    relation: "crew_removals",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "removed_at",
+        type: "date",
+      },
+      {
+        key: "from_state",
+        type: "text",
+      },
+      {
+        key: "person_name",
+        type: "text",
+      },
+      {
+        key: "role_code",
+        type: "text",
+      },
+      {
+        key: "engagement_party",
+        type: "text",
+      },
+      {
+        key: "reason",
+        type: "text",
+      },
+      {
+        key: "removed_by_name",
+        type: "text",
+      },
+    ],
+  },
+  {
+    code: "crew_ratings",
+    relation: "crew_ratings",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "party_name",
+        type: "text",
+      },
+      {
+        key: "role_type",
+        type: "text",
+      },
+      {
+        key: "score",
+        type: "number",
+      },
+      {
+        key: "submitted_at",
+        type: "date",
+      },
+    ],
+  },
 ];
 function sourceOf(code) {
   return REPORT_SOURCES.find((s) => s.code === code);

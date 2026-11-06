@@ -109,6 +109,11 @@ describe("placement refusals", () => {
       "assignTitle",
       "person",
       "personHint",
+      // B9: the lead marks a no-show, one field too.
+      "noShow",
+      "noShowDone",
+      "noShowTitle",
+      "noShowReason",
     ]);
   });
 });
