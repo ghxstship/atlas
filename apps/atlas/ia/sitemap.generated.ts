@@ -1016,6 +1016,13 @@ export const sitemap: Sitemap = {
               list: { views: ["list", "table"], default: "list" },
             },
             {
+              id: "opportunities.registration-pages",
+              kind: "page",
+              label: "nav.atlas.pages.opportunities.registrationPages",
+              route: "/{org}/opportunities/registration-pages",
+              list: { views: ["list", "table"], default: "list" },
+            },
+            {
               id: "opportunities.onboarding",
               kind: "page",
               label: "nav.atlas.pages.opportunities.onboarding",
@@ -1080,6 +1087,22 @@ export const sitemap: Sitemap = {
                 views: ["resource-schedule", "list", "table", "calendar"],
                 default: "resource-schedule",
               },
+            },
+            {
+              id: "crew.access-links",
+              kind: "page",
+              label: "nav.atlas.pages.crew.accessLinks",
+              route: "/{org}/crew/access-links",
+              visibility: {
+                owner: "full",
+                admin: "full",
+                manager: "full",
+                member: "hidden",
+                collaborator: "hidden",
+                field: "hidden",
+                viewer: "hidden",
+              },
+              list: { views: ["list", "table"], default: "list" },
             },
             {
               id: "crew.swaps",

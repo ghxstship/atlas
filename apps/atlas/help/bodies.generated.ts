@@ -337,6 +337,34 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew access links" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some crew never open the app. A crew access link shows one worker their own shifts on one project in Gateway, without signing in, and lets them accept their own Published shift. Open Crew access links, choose Issue links, pick the project and the people, and choose how long the links last, 1 hour to 30 days.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each person gets a link and a 6-digit code, shown once. Copy them or print a card now, because they are not shown again. A printed card carries the code only when you tick the box; leave it off to send the code another way, so a lost card opens nothing.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A link closes when the person stops working on the project, when they delete their account, or when you revoke it. Five wrong codes lock it, and issuing again replaces it. A link shows no rate, no note and nobody else's shift, and nobody can punch or decline through one. A person has to have accepted something once, such as a membership, an engagement or a roster place, to be on a shift at all.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -888,6 +916,25 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Importing freelancers" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The Freelancers and crew to invite target sends each row an invitation into a Talent pool. It never creates a person or a profile. Choose how the file writes amounts, such as 1,234.56 or 1.234,56, and the pool for rows that name none. A rate can name its currency and how it is paid, such as 1.250,50 € per day, and needs the payroll capability.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Email inside the pool is the exact match: a pending invitation is updated with no new email, and an expired one is sent again. In duplicate review, Merged skips the row because the person is already invited or in a pool, and Keep separate sends a new invitation. Someone who declined in the last 12 months is skipped, and an organization sends at most 2,000 invitation emails in 24 hours. Undo keeps invitations already answered.",
+          },
+        ],
+      },
     ],
     "inbox-and-approvals": [
       { t: "h2", v: "Inbox" },
@@ -1284,6 +1331,54 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.",
+          },
+        ],
+      },
+      { t: "h2", v: "Registration pages" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A registration page is your public page for crew and volunteers. It fills one of your Talent pools and never names it. Write the title and introduction, choose the pool and the minimum age, add questions or apply a question template, then publish. Ask about the work, never about a protected attribute. Copy the page's link to share it, or invite the people already in the pool.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. An org that needs adults sets the minimum age to 18.",
+          },
+        ],
+      },
+      { t: "h2", v: "Inviting people into a pool" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a Talent pool, invite someone by email, or use Import people to send a whole list. Nothing creates a person: they sign in to Gateway with that address and accept on Home. A standing rate is informational and needs the payroll capability. Only pool managers see invitations, since they hold the contact details of people who never joined.",
+          },
+        ],
+      },
+      { t: "h2", v: "Agreement templates and batches" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On Onboarding, write your own agreement with merge fields such as the person's name, the shifts and the rate. XOS supplies no wording. On a project's Engagements tab, choose Generate agreements, pick the template and the people, and read the preview. A person with a missing field is left out until it is filled. Create, then Send.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "People read the full text in Gateway and sign with their typed name, or decline with a reason. Countersign the signed ones from the batch; an Automatic Electronic Signature item then passes. Once a template has been used its wording is fixed, so duplicate it to change it. Without the payroll capability, a text with a rate shows no body and no hash.",
           },
         ],
       },
@@ -2659,6 +2754,34 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Enlaces de acceso del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunas personas del equipo nunca abren la app. Un enlace de acceso muestra a una persona sus propios turnos en un proyecto en Gateway, sin iniciar sesión, y le permite aceptar su propio turno publicado. Abre Enlaces de acceso del equipo, elige Emitir enlaces, elige el proyecto y las personas, y cuánto duran los enlaces, de 1 hora a 30 días.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada persona recibe un enlace y un código de 6 dígitos, que se muestran una sola vez. Cópialos o imprime una tarjeta ahora, porque no se vuelven a mostrar. Una tarjeta impresa lleva el código solo si marcas la casilla; déjala sin marcar para enviar el código por otra vía, así una tarjeta perdida no abre nada.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un enlace se cierra cuando la persona deja de trabajar en el proyecto, cuando elimina su cuenta o cuando lo revocas. Cinco códigos incorrectos lo bloquean, y emitirlo de nuevo lo reemplaza. Un enlace no muestra tarifas, notas ni turnos de otras personas, y nadie puede registrar tiempo ni rechazar con él. Para estar en un turno, una persona debe haber aceptado algo una vez, como una membresía, una contratación o un lugar en el equipo.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -3227,6 +3350,25 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Importar personal independiente" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El destino Personal independiente y equipo a invitar envía a cada fila una invitación a un grupo de talento. Nunca crea una persona ni un perfil. Elige cómo escribe los montos el archivo, como 1,234.56 o 1.234,56, y el grupo para las filas que no nombran uno. Una tarifa puede nombrar su moneda y cómo se paga, como 1.250,50 € por día, y requiere la capacidad de nómina.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El correo dentro del grupo es la coincidencia exacta: una invitación pendiente se actualiza sin un correo nuevo, y una vencida se envía de nuevo. En la revisión de duplicados, Combinar omite la fila porque la persona ya está invitada o en un grupo, y Mantener separada envía una invitación nueva. Quien rechazó en los últimos 12 meses se omite, y una organización envía un máximo de 2,000 correos de invitación en 24 horas. Deshacer conserva las invitaciones ya respondidas.",
+          },
+        ],
+      },
     ],
     "inbox-and-approvals": [
       { t: "h2", v: "Bandeja de entrada" },
@@ -3618,6 +3760,54 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.",
+          },
+        ],
+      },
+      { t: "h2", v: "Páginas de registro" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una página de registro es tu página pública para el equipo y los voluntarios. Llena uno de tus grupos de talento y nunca lo nombra. Escribe el título y la introducción, elige el grupo y la edad mínima, agrega preguntas o aplica una plantilla de preguntas, y publica. Pregunta sobre el trabajo, nunca sobre un atributo protegido. Copia el enlace de la página para compartirlo, o invita a las personas que ya están en el grupo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Una organización que requiere adultos pone la edad mínima en 18.",
+          },
+        ],
+      },
+      { t: "h2", v: "Invitar personas a un grupo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En un grupo de talento, invita a alguien por correo, o usa Importar personas para enviar una lista completa. Nada crea una persona: inicia sesión en Gateway con esa dirección y acepta en Inicio. Una tarifa habitual es informativa y requiere la capacidad de nómina. Solo quienes gestionan grupos ven las invitaciones, porque contienen datos de contacto de personas que nunca se unieron.",
+          },
+        ],
+      },
+      { t: "h2", v: "Plantillas y lotes de acuerdos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En Incorporación, escribe tu propio acuerdo con campos de combinación como el nombre de la persona, los turnos y la tarifa. XOS no incluye texto. En la pestaña Contrataciones de un proyecto, elige Generar acuerdos, la plantilla y las personas, y lee la vista previa. Una persona a la que le falta un campo queda fuera hasta que se llene. Crea y luego envía.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las personas leen el texto completo en Gateway y firman con su nombre escrito, o rechazan con un motivo. Refrenda los firmados desde el lote; un elemento de Firma electrónica automático queda aprobado. Una vez usada, el texto de una plantilla es fijo, así que duplícala para cambiarlo. Sin la capacidad de nómina, un texto con tarifa no muestra el cuerpo ni el hash.",
           },
         ],
       },

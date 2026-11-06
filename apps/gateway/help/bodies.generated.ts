@@ -357,6 +357,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Opening your shifts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Your crew lead can send you a link and a 6-digit code. Open the link, type the code, and you see your own shifts on that project for the next 14 days, with the times in each shift's own time zone, your job title and the venue. Your device remembers the code on this link for up to 12 hours. Choose Forget this code on a shared phone.",
+          },
+        ],
+      },
+      { t: "h2", v: "Accepting a shift" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Choose Accept shift on a Published shift. Your crew lead sees it at once. Declining and punching in stay in your account and in Compass, so choose Sign in to see all your work for those.",
+          },
+        ],
+      },
+      { t: "h2", v: "When a link stops working" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A link stops working when it expires, when your crew lead revokes it or issues a new one, when your work on the project ends, or after five wrong codes. Ask your crew lead for a new one.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -414,6 +446,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Show documents as a table or a list. Documents to sign also appear on Home under Needs you.",
+          },
+        ],
+      },
+      { t: "h2", v: "Reading and signing an agreement" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Some agreements are written for you from the organization's own wording. Open it on the engagement's Documents tab, read the full text and type your full name to sign. Your name signs exactly that text, and the document records its fingerprint. If you do not agree, choose Decline and say why. The organization then countersigns, and the PDF is yours to download.",
           },
         ],
       },
@@ -2789,6 +2831,28 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    registration: [
+      { t: "h2", v: "Registering" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An organization shares a registration page to find crew and volunteers. Sign up or sign in, then answer its questions. Your work phone comes first and saves to your settings. You confirm the page's minimum age, and you can share chosen sections of your profile with that organization only. Your account stays yours.",
+          },
+        ],
+      },
+      { t: "h2", v: "What happens next" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization approves or declines, and you hear either way. Once approved you are on its crew list and can see the work it offers that list in Explore. You can withdraw from the page at any time.",
+          },
+        ],
+      },
+    ],
     "settings-accessibility": [
       {
         t: "ul",
@@ -3968,6 +4032,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "crew-shifts": [
+      { t: "h2", v: "Abrir tus turnos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Tu jefe de equipo puede enviarte un enlace y un código de 6 dígitos. Abre el enlace, escribe el código y verás tus propios turnos en ese proyecto durante los próximos 14 días, con las horas en la zona horaria de cada turno, tu puesto y el lugar. Tu dispositivo recuerda el código en este enlace hasta por 12 horas. Elige Olvidar este código en un teléfono compartido.",
+          },
+        ],
+      },
+      { t: "h2", v: "Aceptar un turno" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Elige Aceptar turno en un turno publicado. Tu jefe de equipo lo ve de inmediato. Rechazar y registrar tiempo siguen en tu cuenta y en Compass, así que elige Inicia sesión para ver todo tu trabajo para eso.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cuando un enlace deja de funcionar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un enlace deja de funcionar cuando vence, cuando tu jefe de equipo lo revoca o emite uno nuevo, cuando termina tu trabajo en el proyecto o después de cinco códigos incorrectos. Pide uno nuevo a tu jefe de equipo.",
+          },
+        ],
+      },
+    ],
     documents: [
       {
         t: "p",
@@ -4025,6 +4121,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los documentos como tabla o lista. Los documentos por firmar también aparecen en Inicio, en Te necesita.",
+          },
+        ],
+      },
+      { t: "h2", v: "Leer y firmar un acuerdo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Algunos acuerdos se redactan para ti a partir del texto de la organización. Ábrelo en la pestaña Documentos de la contratación, lee el texto completo y escribe tu nombre completo para firmar. Tu nombre firma exactamente ese texto, y el documento registra su huella. Si no estás de acuerdo, elige Rechazar y di por qué. Luego la organización refrenda, y el PDF queda disponible para que lo descargues.",
           },
         ],
       },
@@ -6458,6 +6564,28 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Cuando actúas como una cuenta de empresa, esta página muestra el perfil y el equipo de la empresa.",
+          },
+        ],
+      },
+    ],
+    registration: [
+      { t: "h2", v: "Registrarte" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una organización comparte una página de registro para encontrar equipo y voluntarios. Regístrate o inicia sesión, y responde sus preguntas. Tu teléfono de trabajo va primero y se guarda en tu configuración. Confirmas la edad mínima de la página, y puedes compartir solo con esa organización las secciones de tu perfil que elijas. Tu cuenta sigue siendo tuya.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué sigue" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La organización aprueba o rechaza, y te avisa en ambos casos. Una vez aprobado estás en su lista de equipo y puedes ver en Explorar el trabajo que ofrece a esa lista. Puedes retirarte de la página en cualquier momento.",
           },
         ],
       },
