@@ -33,7 +33,12 @@ export default async function RegistrationPage({
   const db = await createServerSupabase();
   const found = await getPublicRegistrationPage(db, { orgSlug, pageSlug });
   if (!found.ok || found.data.refused) {
-    return <p className="m-0 text-text-14">{t("closed")}</p>;
+    return (
+      <>
+        <h1 className="m-0 text-heading-20 font-semibold">{t("metaTitle")}</h1>
+        <p className="m-0 text-text-14">{t("closed")}</p>
+      </>
+    );
   }
   const page = found.data;
   const facts = await getRequestFacts();
