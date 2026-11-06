@@ -15,7 +15,6 @@ import {
   listRunsOfShow,
   listSegmentColors,
   type Cue,
-  type SegmentColor,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
