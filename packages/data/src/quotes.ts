@@ -107,6 +107,9 @@ async function rows<T>(
   return ok(((data as Raw[] | null) ?? []).map(map));
 }
 
+const STATUS_COLUMNS =
+  "quote_id, org_id, project_id, budget_id, engagement_id, quote_key, title, client_name, current_version_id, current_version_number, display_state, valid_until, sent_at, accepted_at, currency_code, client_total_minor, margin_minor, has_draft";
+
 const toStatus = (r: Raw): QuoteStatus => ({
   id: str(r["quote_id"]),
   orgId: str(r["org_id"]),
@@ -153,7 +156,7 @@ export async function listQuotes(
   db: XosClient,
   filter: { readonly orgId: string; readonly projectId?: string | null },
 ): Promise<Result<QuoteStatus[]>> {
-  let query = db.from("quote_statuses").select("*").eq("org_id", filter.orgId);
+  let query = db.from("quote_statuses").select(STATUS_COLUMNS).eq("org_id", filter.orgId);
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
   return rows(query.order("quote_id", { ascending: false }), toStatus);
 }
@@ -171,7 +174,7 @@ export async function countProjectQuotes(db: XosClient, projectId: string): Prom
 /** A quote with its versions and the client lines of its current version. */
 export async function getQuote(db: XosClient, quoteId: string): Promise<Result<QuoteDetail>> {
   const [status, versions] = await Promise.all([
-    rows(db.from("quote_statuses").select("*").eq("quote_id", quoteId), toStatus),
+    rows(db.from("quote_statuses").select(STATUS_COLUMNS).eq("quote_id", quoteId), toStatus),
     rows(
       db
         .from("quote_versions")
