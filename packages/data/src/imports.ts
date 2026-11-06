@@ -478,6 +478,8 @@ export interface ImportDetail extends ImportSummary {
   readonly projectId: string | null;
   /** The running order a cue import writes into (P3). */
   readonly runOfShowId: string | null;
+  /** The budget a budget line import writes into (B13). */
+  readonly budgetId: string | null;
   /** The running order or project, as project key · name, when the caller can read it. */
   readonly destinationLabel: string | null;
   /** Every sheet of the workbook, listed on the import detection read first. */
@@ -512,7 +514,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     untyped(db)
       .from("import_jobs")
       .select(
-        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id, project_id, run_of_show_id",
+        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id, project_id, run_of_show_id, budget_id",
       )
       .eq("id", id)
       .is("deleted_at", null)
@@ -583,6 +585,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     db,
     strOrNull(head["project_id"]),
     strOrNull(head["run_of_show_id"]),
+    strOrNull(head["budget_id"]),
   );
   if (!destination.ok) return destination;
   const scan = await uploadScanStatus(db, head);
@@ -597,6 +600,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     failureCode: strOrNull(head["failure_code"]),
     projectId: strOrNull(head["project_id"]),
     runOfShowId: strOrNull(head["run_of_show_id"]),
+    budgetId: strOrNull(head["budget_id"]),
     destinationLabel: destination.data,
     sheets: sheets.data.map((sheet) =>
       sheet.name === strOrNull(head["sheet_name"]) && sheet.importId === null
@@ -739,7 +743,18 @@ async function destinationLabel(
   db: XosClient,
   projectId: string | null,
   runOfShowId: string | null,
+  budgetId: string | null = null,
 ): Promise<Result<string | null>> {
+  if (budgetId !== null) {
+    const budget = await rows(
+      untyped(db).from("budgets").select("name, projects (project_key)").eq("id", budgetId).limit(1),
+    );
+    if (!budget.ok) return budget;
+    const head = budget.data[0];
+    if (!head) return ok(null);
+    const key = strOrNull(((head["projects"] as Raw | null) ?? {})["project_key"]);
+    return ok(key ? `${key} · ${str(head["name"])}` : str(head["name"]));
+  }
   if (runOfShowId !== null) {
     const run = await rows(
       untyped(db)

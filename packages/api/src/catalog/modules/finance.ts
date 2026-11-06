@@ -104,8 +104,54 @@ const Form1099NecRow = defineResource({
   },
 });
 
+const QUOTE_DISPLAY_STATES = [
+  "Draft",
+  "Sent",
+  "Expired",
+  "Accepted",
+  "Declined",
+  "Withdrawn",
+  "Superseded",
+] as const;
+
+/** A client quote (G-188 phase 1, ADR 0152): read-only here; sending and acceptance stay in Atlas and Gateway. */
+const Quote = defineResource({
+  name: "Quote",
+  table: "app.quote_statuses",
+  description:
+    "A client quote of one budget: its current version, computed display state and totals. Versions and client lines come with GET /quotes/{id}. XOS never holds funds, so a quote has no Paid state.",
+  base: "view",
+  fields: {
+    id: fields.ref("quote"),
+    quote_key: fields.text("Display key, the project key, -Q- and the number.", "NWF26-Q-14"),
+    title: fields.text("Title of the current version; frozen once sent.", "Main stage production"),
+    project_id: fields.ref("project of the quote's budget"),
+    budget_id: fields.ref("budget the quote prices from"),
+    engagement_id: orNull(fields.ref("Client engagement the quote is for")),
+    client_name: orNull(fields.text("Who the current version is for.", "Coral Group")),
+    current_version_id: fields.ref("latest sent version, else the Draft"),
+    current_version_number: fields.int("Number of the current version.", 1, 1),
+    display_state: label(QUOTE_DISPLAY_STATES, "State; Expired is computed, never stored."),
+    valid_until: fields.date("Last day the client can accept, on the project's calendar."),
+    sent_at: orNull(fields.timestamp("When the current version was sent.")),
+    accepted_at: orNull(fields.timestamp("When the current version was accepted.")),
+    currency_code: currencyCode,
+    client_total_minor: orNull(
+      fields.money("Client total of the current version; null while any line is unpriced.", 125000),
+    ),
+    margin_minor: orNull(
+      fields.money("Client total less cost; null whenever either is unknown.", 25000),
+    ),
+    has_draft: fields.bool("Whether the quote has a live Draft version.", false),
+  },
+});
+
 export const additions = defineAdditions("Finance", {
   resources: [
+    resource("Finance", "/quotes", Quote, {
+      verbs: ["list", "get"],
+      label: "quote",
+    }),
     resource("Finance", "/form-1099-nec", Form1099NecRow, {
       verbs: [],
       label: "1099-NEC payee",
@@ -142,8 +188,56 @@ export const additions = defineAdditions("Finance", {
   capabilities: {
     invoices: { actions: { recordPayment: "finance.payment.write" } },
     form1099Nec: { actions: { rows: "finance.payment.read" } },
+    quotes: { read: "finance.budget.read" },
   },
   corrections: [
+    {
+      id: "budget-default-markup",
+      since: SINCE,
+      resources: ["budgets"],
+      change: "Adds optional `default_markup_bp`.",
+      reason:
+        "app.budgets (3020) stores the default markup of its lines in basis points for client pricing (G-188); NULL means no default.",
+      apply: editShape({
+        add: {
+          default_markup_bp: {
+            schema: orNull(
+              fields.int("Default markup of the budget's lines in basis points; 2500 is 25 percent.", 2500, 0),
+            ),
+            create: "optional",
+          },
+        },
+      }),
+    },
+    {
+      id: "budget-line-client-pricing",
+      since: SINCE,
+      resources: ["budgetLines"],
+      change:
+        "Adds optional `markup_bp`, `client_unit_price_minor`, `excluded_from_quote` and `etc_minor`.",
+      reason:
+        "app.budget_lines (3020) stores a line's own markup, an override of its client unit price, whether it stays off quotes, and an entered estimate to complete. Client prices and forecasts are derived from them, and NULL is never read as zero.",
+      apply: editShape({
+        add: {
+          markup_bp: {
+            schema: orNull(fields.int("The line's markup in basis points; null uses the budget's default.", 2500, 0)),
+            create: "optional",
+          },
+          client_unit_price_minor: {
+            schema: orNull(fields.money("Override of the client unit price; null derives it from the markup.", 12500)),
+            create: "optional",
+          },
+          excluded_from_quote: {
+            schema: fields.bool("True for an internal line that never appears on a quote.", false),
+            create: "optional",
+          },
+          etc_minor: {
+            schema: orNull(fields.money("Entered estimate to complete; null derives it.", 50000)),
+            create: "optional",
+          },
+        },
+      }),
+    },
     {
       id: "budget-columns",
       since: SINCE,

@@ -239,6 +239,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Budget lines",
     operations: [...crud("budgets"), ...crud("budgetLines"), "budgets.summary"],
   },
+  { module: "Finance", entity: "Client quotes", operations: read("quotes") },
   { module: "Finance", entity: "Expenses", operations: [...crud("expenses"), "expenses.approve"] },
   {
     module: "Finance",
