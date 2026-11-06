@@ -94,7 +94,11 @@ select pg_temp.bill('bill_cad', null, 'CAD', 120000, '2027-06-09', 'Approved', '
 
 -- On Bayside Audio, whose total is already NULL: an unpriced bill leaves every later one uncounted, and so does an unpriced
 -- settlement.
-select pg_temp.bill('bill_gbp1', 'cp_v_a', 'GBP', null, '2027-06-01', 'Approved', null, 'eng_vendor_a');
+select pg_temp.bill('bill_gbp1', 'cp_v_a', 'GBP', 900, '2027-06-01', 'Approved', null, 'eng_vendor_a');
+-- An Approved bill cannot lose its price through any RPC (invoice_unpriced), so the fixture takes it directly.
+alter table app.invoice_lines disable trigger user;
+update app.invoice_lines set unit_price_minor = null where invoice_id = pg_temp.id('bill_gbp1');
+alter table app.invoice_lines enable trigger user;
 select pg_temp.bill('bill_gbp2', 'cp_v_a', 'GBP', 5000, '2027-06-02', 'Approved', null, 'eng_vendor_a');
 select pg_temp.settled('st_cad_v', 'CAD', 'eng_vendor_a', null, 0);
 select pg_temp.bill('bill_cad_v', 'cp_v_a', 'CAD', 5000, '2027-06-02', 'Approved', null, 'eng_vendor_a');
@@ -157,20 +161,20 @@ select throws_ok(format($$select * from app.engagement_costs(%L)$$, pg_temp.id('
 select pg_temp.as_platform();
 
 -- Each of the six capabilities is needed: the member holds them all, until one is taken away.
-create function pg_temp.check_capability(p_capability text) returns void
+create function pg_temp.check_capability(p_capability text) returns setof text
 language plpgsql as $$
 begin
   perform pg_temp.as_platform();
   delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = p_capability;
   perform pg_temp.as_user('dave');
-  perform ok(not app.can_read_engagement_costs(pg_temp.id('prj_a')), 'the roll-up needs ' || p_capability);
-  perform throws_ok(format($q$select * from app.engagement_costs(%L)$q$, pg_temp.id('prj_a')), '42501', null, 'and refuses without ' || p_capability);
+  return next ok(not app.can_read_engagement_costs(pg_temp.id('prj_a')), 'the roll-up needs ' || p_capability);
+  return next throws_ok(format($q$select * from app.engagement_costs(%L)$q$, pg_temp.id('prj_a')), '42501', null, 'and refuses without ' || p_capability);
   perform pg_temp.as_platform();
   insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), p_capability, 'organization');
 end $$;
 select pg_temp.as_user('dave');
 select ok(app.can_read_engagement_costs(pg_temp.id('prj_a')), 'a member on the project holds all six');
-select pg_temp.check_capability(c) from unnest(array['finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read', 'hospitality.fulfillment.read', 'opportunities.engagement.read']) c;
+select r from unnest(array['finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read', 'hospitality.fulfillment.read', 'opportunities.engagement.read']) c, pg_temp.check_capability(c) r;
 select pg_temp.as_platform();
 
 select * from finish();

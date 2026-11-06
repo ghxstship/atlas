@@ -123,7 +123,7 @@ async function positiveAmount(
 ): Promise<number | null> {
   const exponent = exponentOf(await getExponents(ctx), currency);
   const parsed = finance.parseMoney(value, exponent);
-  return parsed === null || parsed <= 0 ? null : parsed;
+  return typeof parsed === "number" && parsed > 0 ? parsed : null;
 }
 
 export async function saveExpenseCreditAction(

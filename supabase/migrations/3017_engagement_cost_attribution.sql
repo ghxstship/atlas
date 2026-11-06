@@ -138,7 +138,7 @@ as $$
      join app.engagement_roster_entries r on r.id = rp.roster_entry_id
      join app.engagements e on e.id = r.engagement_id
      where rp.person_id = p_person_id and e.project_id = p_project_id
-       and r.deleted_at is null and e.deleted_at is null
+       and r.deleted_at is null and e.deleted_at is null and e.engagement_state <> 'Canceled'
        and r.entry_state = 'Accepted' and r.person_response = 'Accepted'
      order by (e.engagement_state = 'Active') desc, e.start_date desc, e.id desc
      limit 1),
@@ -150,5 +150,5 @@ as $$
      limit 1));
 $$;
 
-comment on function private.cost_engagement_for_person(uuid, uuid) is 'The engagement a cost naming only a person is attributed to on a project (3017): the engagement of their live roster entry accepted by the reviewer and by them (the 2692 rule), else their own live engagement that is not Canceled, each ordered Active first, then the latest start, then id; NULL otherwise, since internal crew are not acts. NULL for a NULL person.';
+comment on function private.cost_engagement_for_person(uuid, uuid) is 'The engagement a cost naming only a person is attributed to on a project (3017): the engagement that is not Canceled of their live roster entry accepted by the reviewer and by them (the 2692 rule), else their own live engagement that is not Canceled, each ordered Active first, then the latest start, then id; NULL otherwise, since internal crew are not acts. NULL for a NULL person.';
 revoke all on function private.cost_engagement_for_person(uuid, uuid) from public, anon, authenticated;

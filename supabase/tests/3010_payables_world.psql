@@ -3,7 +3,7 @@
 -- fictional; nothing persists: each suite rolls back.
 --
 -- In org_a (Northwind Live), on prj_a:
---   periods per_jun and per_jul (2027); cost center cc_venue; budget bud (USD) with line_a (Stage deck rental, 0000.01.01,
+--   periods per_jun and per_jul (2027), and this month's on the project's calendar, where a bill's approval posts; cost center cc_venue; budget bud (USD) with line_a (Stage deck rental, 0000.01.01,
 --   cc_venue, 12 x 10000) and line_b (Sound package, 0000.01.01, 1 x 50000).
 --   Counterparties cp_rig 'Pier Rigging Co', cp_rig2 'Pier Rigging Co.' (alike by name), cp_lake 'Lakeshore Brands'.
 --   Spend authority for Expense and Purchase Order, USD and EUR, for the owner and admin roles.
@@ -43,6 +43,10 @@ begin
   insert into world values ('cp_lake', app.create_counterparty(pg_temp.id('org_a'), 'Lakeshore Brands', null));
 
   perform pg_temp.as_platform();
+  insert into app.accounting_periods (org_id, starts_on, ends_on)
+  select pg_temp.id('org_a'), m, (m + interval '1 month - 1 day')::date
+  from (select date_trunc('month', private.project_today(pg_temp.id('prj_a')))::date as m) x
+  where m not in ('2027-06-01', '2027-07-01');
   insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
   select pg_temp.id('org_a'), pg_temp.system_role(r), d::app.spend_document_type, c, 100000000
   from unnest(array['owner', 'admin']) r, unnest(array['Expense', 'Purchase Order']) d, unnest(array['USD', 'EUR']) c

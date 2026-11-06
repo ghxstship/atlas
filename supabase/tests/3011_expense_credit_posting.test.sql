@@ -18,7 +18,7 @@ select is((select count(*)::int from app.journal_entries where source_table = 'e
   1, 'the charge posts one entry, as 1611 posts it');
 select is((select account_code from app.journal_lines l join app.journal_entries j on j.id = l.journal_entry_id
   where j.source_id = pg_temp.id('exp_a') and l.line_number = 1), '5000', 'its debit is the line''s class account');
-select is((select actual_minor from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 12000::bigint,
+select is((select actual_minor::bigint from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 12000::bigint,
   'Actual holds the approved charge');
 
 -- Change the line's cost center after posting: the credit reverses what the original posted, not today's line.
@@ -30,7 +30,7 @@ select pg_temp.as_platform();
 
 -- A 40.00 credit -------------------------------------------------------------------------------------------------------------
 select pg_temp.expense('cr_a', 'carol', 'line_a', 4000, '2027-07-02', null, false, 'exp_a');
-select is((select actual_minor from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 12000::bigint,
+select is((select actual_minor::bigint from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 12000::bigint,
   'a Proposed credit changes nothing');
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.approve_expense(%L, 'Self.')$$, pg_temp.id('cr_a')),
@@ -66,12 +66,12 @@ select is((select sum(debit_minor) - sum(credit_minor) from app.journal_lines wh
   0::bigint, 'the entry balances');
 
 -- Actual nets the credit everywhere --------------------------------------------------------------------------------------------
-select is((select actual_minor from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
+select is((select actual_minor::bigint from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
   'budget_line_amounts: 120.00 less the 40.00 credit');
-select is((select actual_minor from app.budget_totals where budget_id = pg_temp.id('bud')), 8000::bigint, 'budget_totals nets it');
-select is((select actual_minor from app.budget_revised_totals where budget_id = pg_temp.id('bud')), 8000::bigint,
+select is((select actual_minor::bigint from app.budget_totals where budget_id = pg_temp.id('bud')), 8000::bigint, 'budget_totals nets it');
+select is((select actual_minor::bigint from app.budget_revised_totals where budget_id = pg_temp.id('bud')), 8000::bigint,
   'budget_revised_totals nets it');
-select is((select actual_minor from app.budget_line_facts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
+select is((select actual_minor::bigint from app.budget_line_facts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
   'budget_line_facts nets it, so the grid, budget versus actual and the final cost report do');
 
 -- A Rejected and a Canceled credit never count.
@@ -83,7 +83,7 @@ select pg_temp.expense('cr_can', 'carol', 'line_a', 1000, '2027-07-03', null, fa
 select pg_temp.as_user('carol');
 select app.transition_expense(pg_temp.id('cr_can'), 'Proposed', 'Canceled', 'Entered twice.');
 select pg_temp.as_platform();
-select is((select actual_minor from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
+select is((select actual_minor::bigint from app.budget_line_amounts where budget_line_id = pg_temp.id('line_a')), 8000::bigint,
   'Rejected and Canceled credits never count');
 
 -- An original with no posted entry ---------------------------------------------------------------------------------------------

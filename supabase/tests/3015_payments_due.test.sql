@@ -164,7 +164,7 @@ grant all on due to public;
 select pg_temp.as_user('alice');
 insert into due select * from app.payments_due(pg_temp.id('org_a'), pg_temp.id('prj_a'));
 select pg_temp.as_platform();
-select is((select string_agg(kind || ':' || coalesce(w.key, '?'), ',' order by kind, w.key)
+select is((select string_agg(kind || ':' || coalesce(w.key, '?'), ',' order by kind, w.key collate "C")
   from due d left join world w on w.id = d.source_id),
   'expense:x_vendor,instalment:i_balance_2,instalment:i_deposit_1,instalment:po_m2_i,instalment:po_m3_i,invoice:bill_appr,invoice:bill_art,'
   || 'invoice:bill_bay,invoice:bill_blank,invoice:bill_ivy,invoice:bill_m1,invoice:bill_m2,invoice:bill_m3,invoice:bill_prop,invoice:bill_prop2,'
@@ -226,20 +226,20 @@ select throws_ok(format($$select * from app.payments_due(%L)$$, pg_temp.id('org_
 select pg_temp.as_platform();
 
 -- Each of the five capabilities is needed: the member holds them all at organization reach, until one is taken away.
-create function pg_temp.check_capability(p_capability text) returns void
+create function pg_temp.check_capability(p_capability text) returns setof text
 language plpgsql as $$
 begin
   perform pg_temp.as_platform();
   delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = p_capability;
   perform pg_temp.as_user('dave');
-  perform ok(not app.can_read_payments_due(pg_temp.id('org_a')), 'the ledger needs ' || p_capability);
-  perform throws_ok(format($q$select * from app.payments_due(%L)$q$, pg_temp.id('org_a')), '42501', null, 'and refuses without ' || p_capability);
+  return next ok(not app.can_read_payments_due(pg_temp.id('org_a')), 'the ledger needs ' || p_capability);
+  return next throws_ok(format($q$select * from app.payments_due(%L)$q$, pg_temp.id('org_a')), '42501', null, 'and refuses without ' || p_capability);
   perform pg_temp.as_platform();
   insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), p_capability, 'organization');
 end $$;
 select pg_temp.as_user('dave');
 select ok(app.can_read_payments_due(pg_temp.id('org_a')), 'a member holds all five');
-select pg_temp.check_capability(c) from unnest(array['finance.payment.read', 'finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read']) c;
+select r from unnest(array['finance.payment.read', 'finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read']) c, pg_temp.check_capability(c) r;
 
 -- Each project's day: Pago Pago and Kiritimati are 25 hours apart, so their dates differ at every instant ----------------------
 update app.projects set time_zone = 'Pacific/Pago_Pago' where id = pg_temp.id('prj_a');
@@ -281,10 +281,12 @@ update app.expense_state_transitions set created_at = created_at - interval '40 
 where expense_id = pg_temp.id('r_due') and from_state = 'Proposed' and to_state = 'Approved';
 alter table app.expense_state_transitions enable trigger user;
 select pg_temp.as_user('alice');
-select is((select d.due_on from app.payments_due(pg_temp.id('org_a')) d where d.source_id = pg_temp.id('r_due')),
+truncate due;
+insert into due select * from app.payments_due(pg_temp.id('org_a'));
+select pg_temp.as_platform();
+select is((select due_on from due where source_id = pg_temp.id('r_due')),
   private.zone_date(now() - interval '40 days', 'Pacific/Pago_Pago'),
   'after a void it is due from the first approval, not from the void');
-select pg_temp.as_platform();
 
 select * from finish();
 rollback;

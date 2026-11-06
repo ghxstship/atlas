@@ -19404,6 +19404,13 @@ export type Database = {
             foreignKeyName: "expense_receipts_expense_id_fkey";
             columns: ["expense_id"];
             isOneToOne: false;
+            referencedRelation: "expense_balances";
+            referencedColumns: ["expense_id"];
+          },
+          {
+            foreignKeyName: "expense_receipts_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
             referencedRelation: "expenses";
             referencedColumns: ["id"];
           },
@@ -19417,6 +19424,104 @@ export type Database = {
           {
             foreignKeyName: "expense_receipts_updated_by_fkey";
             columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expense_reimbursements: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          paid_minor: number;
+          paid_on: string;
+          payee_person_id: string;
+          reference_identifier: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          void_reason: string | null;
+          voided_at: string | null;
+          voided_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          paid_minor: number;
+          paid_on: string;
+          payee_person_id: string;
+          reference_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          void_reason?: string | null;
+          voided_at?: string | null;
+          voided_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          paid_minor?: number;
+          paid_on?: string;
+          payee_person_id?: string;
+          reference_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          void_reason?: string | null;
+          voided_at?: string | null;
+          voided_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expense_reimbursements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_reimbursements_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "expense_reimbursements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_reimbursements_payee_person_id_fkey";
+            columns: ["payee_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_reimbursements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_reimbursements_voided_by_fkey";
+            columns: ["voided_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
@@ -19476,6 +19581,13 @@ export type Database = {
             foreignKeyName: "expense_state_transitions_expense_id_fkey";
             columns: ["expense_id"];
             isOneToOne: false;
+            referencedRelation: "expense_balances";
+            referencedColumns: ["expense_id"];
+          },
+          {
+            foreignKeyName: "expense_state_transitions_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
             referencedRelation: "expenses";
             referencedColumns: ["id"];
           },
@@ -19502,13 +19614,17 @@ export type Database = {
           counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
+          credit_of_expense_id: string | null;
           currency_code: string;
           deleted_at: string | null;
           description: string;
+          engagement_id: string | null;
           expense_state: Database["app"]["Enums"]["expense_state"];
           id: string;
           incurred_on: string;
+          is_reimbursable: boolean;
           org_id: string;
+          reimbursement_id: string | null;
           submitter_person_id: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -19520,13 +19636,17 @@ export type Database = {
           counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          credit_of_expense_id?: string | null;
           currency_code: string;
           deleted_at?: string | null;
           description: string;
+          engagement_id?: string | null;
           expense_state?: Database["app"]["Enums"]["expense_state"];
           id?: string;
           incurred_on: string;
+          is_reimbursable?: boolean;
           org_id: string;
+          reimbursement_id?: string | null;
           submitter_person_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -19537,13 +19657,17 @@ export type Database = {
           counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          credit_of_expense_id?: string | null;
           currency_code?: string;
           deleted_at?: string | null;
           description?: string;
+          engagement_id?: string | null;
           expense_state?: Database["app"]["Enums"]["expense_state"];
           id?: string;
           incurred_on?: string;
+          is_reimbursable?: boolean;
           org_id?: string;
+          reimbursement_id?: string | null;
           submitter_person_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -19599,6 +19723,20 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "expenses_credit_of_expense_id_fkey";
+            columns: ["credit_of_expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_balances";
+            referencedColumns: ["expense_id"];
+          },
+          {
+            foreignKeyName: "expenses_credit_of_expense_id_fkey";
+            columns: ["credit_of_expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expenses";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "expenses_currency_code_fkey";
             columns: ["currency_code"];
             isOneToOne: false;
@@ -19606,10 +19744,45 @@ export type Database = {
             referencedColumns: ["currency_code"];
           },
           {
+            foreignKeyName: "expenses_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "expenses_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "expenses_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "expenses_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "expenses_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_reimbursement_id_fkey";
+            columns: ["reimbursement_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_reimbursements";
             referencedColumns: ["id"];
           },
           {
@@ -34795,6 +34968,8 @@ export type Database = {
           id: string;
           membership_id: string | null;
           org_id: string;
+          paid_on: string | null;
+          paid_reference: string | null;
           project_id: string;
           roster_entry_id: string | null;
           updated_at: string;
@@ -34813,6 +34988,8 @@ export type Database = {
           id?: string;
           membership_id?: string | null;
           org_id: string;
+          paid_on?: string | null;
+          paid_reference?: string | null;
           project_id: string;
           roster_entry_id?: string | null;
           updated_at?: string;
@@ -34830,6 +35007,8 @@ export type Database = {
           id?: string;
           membership_id?: string | null;
           org_id?: string;
+          paid_on?: string | null;
+          paid_reference?: string | null;
           project_id?: string;
           roster_entry_id?: string | null;
           updated_at?: string;
@@ -36885,6 +37064,7 @@ export type Database = {
           deleted_at: string | null;
           description: string;
           element_id: string | null;
+          engagement_id: string | null;
           hire_period: unknown;
           id: string;
           line_number: number;
@@ -36905,6 +37085,7 @@ export type Database = {
           deleted_at?: string | null;
           description: string;
           element_id?: string | null;
+          engagement_id?: string | null;
           hire_period?: unknown;
           id?: string;
           line_number: number;
@@ -36924,6 +37105,7 @@ export type Database = {
           deleted_at?: string | null;
           description?: string;
           element_id?: string | null;
+          engagement_id?: string | null;
           hire_period?: unknown;
           id?: string;
           line_number?: number;
@@ -36979,6 +37161,34 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "po_lines_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "po_lines_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "po_lines_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "po_lines_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "po_lines_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -37008,6 +37218,112 @@ export type Database = {
           },
           {
             foreignKeyName: "po_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      po_payment_instalments: {
+        Row: {
+          amount_minor: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_on: string;
+          id: string;
+          instalment_number: number;
+          invoice_id: string | null;
+          label: string;
+          org_id: string;
+          purchase_order_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_minor: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_on: string;
+          id?: string;
+          instalment_number: number;
+          invoice_id?: string | null;
+          label: string;
+          org_id: string;
+          purchase_order_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_on?: string;
+          id?: string;
+          instalment_number?: number;
+          invoice_id?: string | null;
+          label?: string;
+          org_id?: string;
+          purchase_order_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_payment_instalments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_unit_provenance";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_payment_instalments_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -61659,6 +61975,58 @@ export type Database = {
           },
         ];
       };
+      expense_balances: {
+        Row: {
+          budget_line_id: string | null;
+          creditable_minor: number | null;
+          credited_minor: number | null;
+          expense_id: string | null;
+          is_balance_withheld: boolean | null;
+          is_credit: boolean | null;
+          net_minor: number | null;
+          owed_minor: number | null;
+          pending_credit_minor: number | null;
+          reimbursement_status: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_commitments";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_facts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       expense_budget_lines: {
         Row: {
           budget_id: string | null;
@@ -65156,6 +65524,10 @@ export type Database = {
       call_cue: { Args: { p_cue_id: string }; Returns: string };
       can_add_per_diems: { Args: { p_project_id: string }; Returns: boolean };
       can_export_org: { Args: { p_org_id: string }; Returns: boolean };
+      can_read_engagement_costs: { Args: { p_project_id: string }; Returns: boolean };
+      can_read_payments_due: { Args: { p_org_id: string }; Returns: boolean };
+      can_read_reimbursements: { Args: { p_org_id: string }; Returns: boolean };
+      can_record_payments: { Args: { p_org_id: string }; Returns: boolean };
       cancel_approval: {
         Args: { p_approval_instance_id: string; p_reason: string };
         Returns: string;
@@ -65530,6 +65902,10 @@ export type Database = {
           signature: string;
           url: string;
         }[];
+      };
+      clear_per_diem_payment: {
+        Args: { p_per_diem_id: string; p_reason: string };
+        Returns: string;
       };
       clear_personal_setting: {
         Args: { p_org_id?: string; p_setting_key: string };
@@ -66317,6 +66693,42 @@ export type Database = {
         }[];
       };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
+      engagement_cost_items: {
+        Args: { p_engagement_id?: string; p_project_id: string };
+        Returns: {
+          amount_minor: number;
+          component: string;
+          counted_minor: number;
+          currency_code: string;
+          engagement_id: string;
+          label: string;
+          occurred_on: string;
+          parent_id: string;
+          source_id: string;
+          source_table: string;
+        }[];
+      };
+      engagement_costs: {
+        Args: { p_engagement_id?: string; p_project_id: string };
+        Returns: {
+          counterparty_id: string;
+          currency_code: string;
+          engagement_id: string;
+          expense_minor: number;
+          hospitality_minor: number;
+          invoice_minor: number;
+          lodging_minor: number;
+          per_diem_minor: number;
+          person_id: string;
+          priced_total_minor: number;
+          purchase_order_minor: number;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          settlement_minor: number;
+          total_minor: number;
+          travel_minor: number;
+          unpriced_count: number;
+        }[];
+      };
       engagement_options: {
         Args: { p_org_id: string; p_project_id?: string };
         Returns: {
@@ -66363,6 +66775,16 @@ export type Database = {
           scopes: string[];
           service_account_id: string;
           user_id: string;
+        }[];
+      };
+      expense_duplicate_candidates: {
+        Args: { p_expense_ids: string[] };
+        Returns: {
+          amount_delta_minor: number;
+          candidate_id: string;
+          day_gap: number;
+          expense_id: string;
+          same_vendor: boolean;
         }[];
       };
       expire_offers: { Args: Record<PropertyKey, never>; Returns: number };
@@ -66491,6 +66913,21 @@ export type Database = {
       find_chat_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
         Returns: string;
+      };
+      find_expense_duplicates: {
+        Args: {
+          p_amount_minor: number;
+          p_budget_line_id: string;
+          p_counterparty_id: string;
+          p_exclude_expense_id?: string;
+          p_incurred_on: string;
+        };
+        Returns: {
+          amount_delta_minor: number;
+          candidate_id: string;
+          day_gap: number;
+          same_vendor: boolean;
+        }[];
       };
       find_integration_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
@@ -67310,6 +67747,18 @@ export type Database = {
           skin_disorders: number;
         }[];
       };
+      owed_reimbursable_expenses: {
+        Args: { p_org_id: string; p_payee_person_id: string; p_project_id?: string };
+        Returns: {
+          currency_code: string;
+          description: string;
+          expense_id: string;
+          incurred_on: string;
+          net_minor: number;
+          pending_credit_minor: number;
+          project_key: string;
+        }[];
+      };
       partner_client_orgs: {
         Args: { p_partner_org_id: string };
         Returns: {
@@ -67341,6 +67790,27 @@ export type Database = {
       payee_name: {
         Args: { p_counterparty_id: string; p_org_id: string; p_payee_person_id: string };
         Returns: string;
+      };
+      payments_due: {
+        Args: { p_org_id: string; p_project_id?: string };
+        Returns: {
+          amount_minor: number;
+          billed_offset_minor: number;
+          counterparty_id: string;
+          counterparty_name: string;
+          currency_code: string;
+          due_on: string;
+          kind: string;
+          label: string;
+          payee_person_id: string;
+          project_id: string;
+          project_key: string;
+          project_today: string;
+          purchase_order_id: string;
+          scheduled_minor: number;
+          source_id: string;
+          source_state: string;
+        }[];
       };
       payroll_export_file: {
         Args: { p_payroll_export_id: string };
@@ -67402,6 +67872,27 @@ export type Database = {
           limit_value: number;
           plan_code: string;
           read_only: number;
+        }[];
+      };
+      po_instalment_schedule: {
+        Args: { p_purchase_order_id: string };
+        Returns: {
+          amount_minor: number;
+          currency_code: string;
+          due_on: string;
+          instalment_id: string;
+          instalment_number: number;
+          invoice_id: string;
+          invoice_number: string;
+          invoice_total_minor: number;
+          is_invoice_withheld: boolean;
+          is_payment_withheld: boolean;
+          label: string;
+          order_total_minor: number;
+          paid_minor: number;
+          schedule_total_minor: number;
+          scheduled_minor: number;
+          status: string;
         }[];
       };
       point_in_geofence: {
@@ -67505,6 +67996,16 @@ export type Database = {
       publish_training_course: {
         Args: { p_course_id: string; p_reason?: string };
         Returns: string;
+      };
+      purchase_order_duplicate_candidates: {
+        Args: { p_purchase_order_ids: string[] };
+        Returns: {
+          candidate_id: string;
+          day_gap: number;
+          purchase_order_id: string;
+          same_vendor: boolean;
+          total_delta_minor: number;
+        }[];
       };
       queue_automation_webhook: {
         Args: { p_run_id: string; p_webhook_endpoint_id: string };
@@ -67751,6 +68252,15 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_expense_reimbursement: {
+        Args: {
+          p_expense_ids: string[];
+          p_paid_on: string;
+          p_payee_person_id: string;
+          p_reference?: string;
+        };
+        Returns: string;
+      };
       record_export_download: {
         Args: { p_export_job_id: string };
         Returns: {
@@ -67894,6 +68404,10 @@ export type Database = {
           p_provider_reference: string;
         };
         Returns: string;
+      };
+      record_per_diem_payments: {
+        Args: { p_paid_on: string; p_per_diem_ids: string[]; p_reference?: string };
+        Returns: number;
       };
       record_product_events: {
         Args: { p_app_code: string; p_events: Json; p_session_key: string };
@@ -68148,6 +68662,19 @@ export type Database = {
       register_web_push: {
         Args: { p_app: string; p_auth: string; p_endpoint: string; p_p256dh: string };
         Returns: number;
+      };
+      reimbursement_balances: {
+        Args: { p_org_id: string; p_project_id?: string };
+        Returns: {
+          currency_code: string;
+          last_paid_on: string;
+          owed_count: number;
+          owed_minor: number;
+          paid_minor: number;
+          payee_person_id: string;
+          recorded_count: number;
+          recorded_minor: number;
+        }[];
       };
       reissue_roster_invitation: {
         Args: { p_roster_entry_id: string; p_valid_for?: string };
@@ -69171,6 +69698,7 @@ export type Database = {
           p_description: string;
           p_id: string;
           p_incurred_on: string;
+          p_is_reimbursable?: boolean;
           p_media_uri: string;
         };
         Returns: string;
@@ -69687,6 +70215,10 @@ export type Database = {
           role_reach: Database["app"]["Enums"]["capability_reach"];
           viewer_reach: Database["app"]["Enums"]["capability_reach"];
         }[];
+      };
+      void_expense_reimbursement: {
+        Args: { p_reason: string; p_reimbursement_id: string };
+        Returns: string;
       };
       vote_in_poll: { Args: { p_option_ids: string[]; p_poll_id: string }; Returns: number };
       warehouse_delivery_columns: {
