@@ -13,7 +13,7 @@ import {
 } from "@/components/settings/billing-forms";
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
-import { Button, Card, InlineAlert } from "@/components/ui";
+import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
 import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
@@ -305,16 +305,15 @@ export default async function BillingSettingsPage({
                   ) : null}
                   {plan.selfServe && buying ? (
                     <div>
-                      <Link
+                      <ButtonLink
                         href={
                           `${page}?review=${plan.code}${term === "Annual" ? "&term=annual" : ""}#renewal-review` as Route
                         }
-                        className="inline-flex h-control-md w-fit items-center rounded-control border border-border-control px-12 text-text-13 font-medium hover:bg-bg-hover"
                       >
                         {term === "Annual"
                           ? t("chooseAnnual", { plan: name(plan.code) })
                           : t("choose", { plan: name(plan.code) })}
-                      </Link>
+                      </ButtonLink>
                     </div>
                   ) : plan.selfServe && plan.code !== current && !billing.open ? (
                     <div>

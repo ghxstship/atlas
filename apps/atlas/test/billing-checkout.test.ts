@@ -116,8 +116,7 @@ const { default: BillingSettingsPage } = await import("@/app/[org]/settings/bill
 const { BillingLifecycleNotice } = await import("@/components/lifecycle/billing-notice");
 const { BillingPortalButton, EndPlanForm, RenewalConsentForm } =
   await import("@/components/settings/billing-forms");
-const { default: Link } = await import("next/link");
-const { Button, InlineAlert } = await import("@/components/ui");
+const { Button, ButtonLink, InlineAlert } = await import("@/components/ui");
 const { PLANS } = await import("@/lib/plans.generated");
 
 const TRIAL = {
@@ -156,7 +155,7 @@ function elements(node: unknown): Node[] {
 const ofType = (tree: unknown, type: unknown) => elements(tree).filter((e) => e.type === type);
 /** The plans the page or notice links to for review, in order. */
 const reviewLinks = (tree: unknown) =>
-  ofType(tree, Link)
+  ofType(tree, ButtonLink)
     .map((l) => /review=([a-z]+)/.exec(String(l.props["href"]))?.[1])
     .filter((plan) => plan !== undefined);
 const textOf = (node: Node): string =>

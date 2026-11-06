@@ -1,9 +1,8 @@
 import { dayOf, getOrgBannerStatus, readOnlyOn, windowLastDay } from "@xos/data/org-lifecycle";
 import type { Route } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { BillingPortalButton } from "@/components/settings/billing-forms";
-import { Button, Card, InlineAlert } from "@/components/ui";
+import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -51,14 +50,14 @@ export async function BillingLifecycleNotice({
       <></>
     ) : !s.billingState && billing.open && !billing.awaiting && s.trialPlan ? (
       <div>
-        <Link
+        <ButtonLink
+          variant="primary"
           href={
             `/${ctx.org.slug}/settings/billing-and-plan?review=${s.trialPlan}#renewal-review` as Route
           }
-          className="inline-flex h-control-md w-fit items-center rounded-control bg-accent px-12 text-text-13 font-medium text-accent-text-on hover:bg-accent-hover"
         >
           {action}
-        </Link>
+        </ButtonLink>
       </div>
     ) : null;
   return (
