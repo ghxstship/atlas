@@ -226,7 +226,7 @@ headless shell 1248, `next start` on the stack of block 6483x with the demo seed
 - **Modules fetched after hydration.** Every signed-in Atlas page fetches the shell's key handler
   once it hydrates (2,951 bytes). Crew Shifts fetched its quick add row, open on the page, with the
   chrono-node date parser (21 KB). Gateway Money fetches a 21 KB module the same way. No build
-  manifest lists them; `budget:js -- --served` loads each key page in Chromium and counts them, in
+  manifest lists them; `budget:js -- --served` loads each key page in Chromium and counts them, all but the Realtime client, which has its own 20 KB limit (ADR 0027, 2026-11-06), in
   CI's journeys jobs.
 - **Shell code on every page.** The client sitemap with its route matching (about 5 KB), the
   shell peek (2 KB), the ownership offer's actions with the step-up dialog (1 KB), and the

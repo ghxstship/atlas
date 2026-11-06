@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { webBudgets } from "../src/budgets.ts";
-import { scriptRequests, servedRow, servedTargets } from "../src/served-budget.ts";
+import { realtimeInFirstLoad, realtimeWithinLimit } from "../src/realtime-chunk.ts";
+import { scriptRequests, servedRow, servedTargets, withoutChunks } from "../src/served-budget.ts";
 
 describe("scriptRequests", () => {
   it("keeps the scripts that finished, at the protocol's encoded length", () => {
@@ -46,5 +47,25 @@ describe("servedTargets", () => {
     expect(atlas?.paths).toContain("/demo-productions/projects");
     expect(docs?.email).toBeNull();
     expect(docs?.baseUrl).toBe("http://127.0.0.1:3014");
+  });
+});
+
+describe("the Realtime client (ADR 0027)", () => {
+  const chunks = [{ name: "abc.js", transferBytes: 18_941 }];
+  it("leaves a page's total whether or not it loaded in time", () => {
+    const script = (name: string) => ({
+      url: `http://x/_next/static/chunks/${name}`,
+      transferBytes: 9,
+    });
+    expect(withoutChunks([script("abc.js"), script("d.js")], ["abc.js"])).toEqual([script("d.js")]);
+    expect(withoutChunks([script("d.js")], ["abc.js"])).toEqual([script("d.js")]);
+  });
+  it("has its own limit and is never in a first load", () => {
+    expect(realtimeWithinLimit(chunks)).toBe(true);
+    expect(realtimeWithinLimit([{ name: "abc.js", transferBytes: 20_481 }])).toBe(false);
+    expect(realtimeInFirstLoad(["static/chunks/abc.js", "static/chunks/d.js"], chunks)).toEqual([
+      "static/chunks/abc.js",
+    ]);
+    expect(realtimeInFirstLoad(["static/chunks/d.js"], chunks)).toEqual([]);
   });
 });

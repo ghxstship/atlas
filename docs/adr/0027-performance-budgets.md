@@ -190,9 +190,21 @@ measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 
 only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
 
 The first CI run of `budget:js -- --served` on this train found Crew Shifts at 204 KB and Budgets at 208 KB of 200 KB:
-scripts fetched after hydration, which the build manifests cannot show. They are now 196 KB and 200 KB (204,582 of
-204,800 bytes), with no limit raised. The shell's key handler loads with the first key press, which first-load code
-holds and answers (`first-press.ts`); the system banners' code loads when the route returns a banner; the saved views
-menu's items load when someone reaches for the menu; and the browser carries each view's code and saved type rather
-than the view registry. Budgets still fetches the Realtime client (18.9 KB) on arrival because the list and the grid are
-live, so it has about 200 bytes to spare, and anything added to that page needs a matching cut.
+scripts fetched after hydration, which the build manifests cannot show. No limit was raised. The shell's key handler
+now loads with the first key press, which first-load code holds and answers (`first-press.ts`); the system banners' code
+loads when the route returns a banner; the saved views menu's items load when someone reaches for the menu; and the
+browser carries each view's code and saved type rather than the view registry.
+
+## Amendment (2026-11-06): what the 200 KB covers, and the Realtime client's own limit
+
+The owner decided this on 2026-11-06. A live page fetches the Realtime client once it is idle, so the served measure,
+which stops at a quiet second, counted it only when idle came early: the same page passed one run and failed the next.
+
+- **The 200 KB covers** every script a cold load of a page fetches, except the Realtime client chunk.
+- **The Realtime client has its own limit of 20 KB**, on the wire, which fails if exceeded and only falls from here. It is
+  known by the Phoenix protocol's join event, not its chunk name, and measured from the build, so the answer never depends
+  on timing. `budget:js` always reports it on its own line (`realtime-chunk.ts`).
+- **It must load only after the page is idle.** `budget:js` fails if it is in the first load of any page it reads.
+
+No other chunk gets this treatment, and no other limit changes. The nightly Lighthouse run still counts every script it
+sees, so a live page it catches with the client loaded can read about 19 KB more there.
