@@ -224,6 +224,8 @@ export const TABLE_RULES: readonly TableRule[] = [
   },
   // Compass logistics (Section 4.3 item 8): the gate queue, the marshalling yard log and fulfillments.
   { table: "gate_queue", anyOf: [internalProject] },
+  // B11 (G-115): a gate's windows for the phone gate view; vendors read open windows through api_external instead.
+  { table: "delivery_windows", anyOf: [internalProject] },
   { table: "marshalling_log", anyOf: [internalProject] },
   { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },

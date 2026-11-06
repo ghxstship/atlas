@@ -19,6 +19,11 @@ import {
   SHIPMENT_DIRECTIONS,
   type ShipmentInput,
 } from "@xos/data/logistics";
+import {
+  cancelDeliveryBooking,
+  createDeliveryWindows,
+  setDeliveryWindowOpen,
+} from "@xos/data/delivery-windows";
 import { z } from "zod";
 import {
   contextFor,
@@ -251,6 +256,66 @@ export async function addYardEntryAction(_: ActionState, form: FormData): Promis
     shipmentId: shipmentId.success ? shipmentId.data : null,
     zoneId: zoneId.success ? zoneId.data : null,
   });
+  if (!result.ok) return failed(result);
+  refresh(ctx);
+  return { ok: true };
+}
+
+/** Add delivery windows (B11, G-115): a schedule at one gate on the project's calendar. logistics.dock_slot.write decides. */
+export async function createDeliveryWindowsAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const projectId = uuid.safeParse(field(form, "projectId"));
+  const project = projectId.success ? await projectFor(ctx, projectId.data) : null;
+  if (!project) return { fieldErrors: { projectId: "required" } };
+  const parsed = z
+    .object({
+      zoneId: uuid,
+      firstDay: z.iso.date(),
+      lastDay: z.iso.date(),
+      fromTime: z.iso.time({ precision: -1 }),
+      toTime: z.iso.time({ precision: -1 }),
+      slotMinutes: z.coerce.number().int().min(5).max(1440),
+      vehicleLimit: z.coerce.number().int().min(1).max(500),
+    })
+    .safeParse({
+      zoneId: field(form, "zoneId"),
+      firstDay: field(form, "firstDay"),
+      lastDay: field(form, "lastDay"),
+      fromTime: field(form, "fromTime"),
+      toTime: field(form, "toTime"),
+      slotMinutes: field(form, "slotMinutes"),
+      vehicleLimit: field(form, "vehicleLimit"),
+    });
+  if (!parsed.success) {
+    return { fieldErrors: { [String(parsed.error.issues[0]?.path[0] ?? "zoneId")]: "required" } };
+  }
+  const result = await createDeliveryWindows(ctx.viewer.db, {
+    projectId: project.id,
+    ...parsed.data,
+  });
+  if (!result.ok) return failed(result);
+  refresh(ctx);
+  return { ok: true };
+}
+
+export async function setDeliveryWindowOpenAction(
+  org: string,
+  id: string,
+  isOpen: boolean,
+): Promise<ActionState> {
+  const ctx = await contextForSlug(org);
+  const result = await setDeliveryWindowOpen(ctx.viewer.db, uuid.parse(id), isOpen);
+  if (!result.ok) return failed(result);
+  refresh(ctx);
+  return { ok: true };
+}
+
+export async function cancelDeliveryBookingAction(org: string, id: string): Promise<ActionState> {
+  const ctx = await contextForSlug(org);
+  const result = await cancelDeliveryBooking(ctx.viewer.db, uuid.parse(id));
   if (!result.ok) return failed(result);
   refresh(ctx);
   return { ok: true };

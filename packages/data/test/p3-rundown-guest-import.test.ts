@@ -101,6 +101,11 @@ function lookups(writes: Row[] = [], called: ReadonlySet<string> = new Set()): T
     }),
     poolInvitation: async () => null,
     cueCalled: async (id) => called.has(id),
+    unitExists: async () => true,
+    materialMatch: async () => null,
+    projectTimeZone: async () => "UTC",
+    purchaseOrderState: async () => "Proposed",
+    nextPoLineNumber: async () => 1,
     async create(_o, target, values) {
       writes.push({ op: "create", target, ...values });
       return `new-${writes.length}`;
@@ -529,6 +534,7 @@ function memoryStore(
       samples.push(...list);
     },
     insertSheets: async () => {},
+    recordMaterialMatch: async () => {},
     async setSheet(_id, name) {
       job.sheetName = name;
     },

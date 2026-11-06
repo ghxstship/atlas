@@ -137,7 +137,8 @@
     "custody_roster_engagement": "La persona no está en el equipo de esa contratación.",
     "custody_roster_entry_not_live": "El equipo va a una entrada aceptada por el revisor y por la persona.",
     "lot_held_for_reservations": "Lo que queda de este lote está reservado para otros ahora.",
-    "lot_reservation_mismatch": "Esa reserva es de otro lote."
+    "lot_reservation_mismatch": "Esa reserva es de otro lote.",
+    "maintenance_plan_unit": "Este plan no cubre esta unidad. Elige una unidad a la que se aplique."
   },
   "load": {
     "loading": "Cargando activos",
@@ -385,5 +386,46 @@
     "allocation": "Asignación",
     "noAllocation": "Sin asignación",
     "allocationHelp": "Asignaciones aprobadas de esta clase con reservas pendientes. La unidad va a la persona de la reserva."
+  },
+  "schedule": {
+    "sections": "Secciones de mantenimiento",
+    "schedule": "Programa",
+    "log": "Registro",
+    "title": "Programa de mantenimiento",
+    "all": "Todos",
+    "filterLabel": "Filtrar por estado",
+    "statuses": {
+      "pending": "Pendiente",
+      "overdue": "Vencido",
+      "completed": "Completado"
+    },
+    "empty": "Nada programado aquí. Agrega un plan para que el trabajo venza por sí solo.",
+    "line": "{status}. Vence {due}. Último realizado {last}.",
+    "noDate": "sin definir",
+    "everyUnitOf": "Cada unidad de {name}",
+    "nextDue": "{title} vence próximamente el {date}.",
+    "intervals": {
+      "Day": "Días",
+      "Week": "Semanas",
+      "Month": "Meses",
+      "Year": "Años"
+    },
+    "complete": "Completar",
+    "completeLabel": "Completar {title} en {unit}",
+    "create": {
+      "open": "Agregar plan",
+      "title": "Agregar un plan de mantenimiento",
+      "description": "Indica qué vence, cuándo por primera vez y con qué frecuencia. Deja el intervalo en blanco para un trabajo único.",
+      "submit": "Agregar plan",
+      "appliesTo": "Se aplica a",
+      "planTitle": "Qué se debe hacer",
+      "firstDue": "Primer vencimiento",
+      "every": "Cada",
+      "everyHelp": "Cuántas de la unidad de abajo entre cada vez.",
+      "unit": "Unidad",
+      "once": "Solo una vez",
+      "instructions": "Instrucciones"
+    },
+    "rowTitle": "{title} · {tag}"
   }
 }

@@ -1041,6 +1041,16 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ]),
   "procurement/purchase_orders": purchaseOrders,
   "procurement/receipts": receipts,
+  "procurement/needs": source("app.procurement_need_status", [
+    "need_number",
+    "description",
+    "need_status",
+    "quantity",
+    "requested_quantity",
+    "drafted_quantity",
+    "ordered_quantity",
+    "received_quantity",
+  ]),
   "procurement/rfqs": rfqs,
 
   projects,

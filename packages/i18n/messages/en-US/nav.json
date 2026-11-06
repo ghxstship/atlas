@@ -151,7 +151,8 @@
         "purchaseOrders": "Purchase Orders",
         "receipts": "Receipts",
         "invoiceMatching": "Invoice Matching",
-        "catalog": "Catalog"
+        "catalog": "Catalog",
+        "needs": "Needs"
       },
       "vendors": {
         "directory": "Directory",
@@ -451,7 +452,8 @@
       "upcoming": "Upcoming",
       "engagements": "Engagements",
       "applications": "Applications",
-      "engagement": "Engagement"
+      "engagement": "Engagement",
+      "quoteRequests": "Quote requests"
     },
     "money": {
       "overview": "Overview",
@@ -505,6 +507,7 @@
       "profile": "Profile and Certifications",
       "settings": "Settings",
       "projectDetails": "Project Details",
+      "logisticsGate": "Gate",
       "drives": "Drives"
     },
     "reference": {

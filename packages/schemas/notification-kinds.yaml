@@ -184,6 +184,20 @@ kinds:
       # B14 (6264): a record review's decision tells the requester.
       - emitter: supabase/migrations/6264_record_reviews.sql#app.decide_record_review
         test: supabase/tests/6264_record_reviews.test.sql
+  # B11 (G-196): the hourly chase of a pending quote, and word to a supplier that lost. rfq.issued notifies nobody, so
+  # the first reminder is the vendor's first contact. Never a price, a winner or another vendor.
+  - kind: rfq.quote_reminder
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6538_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
+  - kind: rfq.not_awarded
+    category: opportunities
+    channels: [In App, Email]
+    emitted_by:
+      - emitter: supabase/migrations/6538_rfq_quote_chase.sql#private.send_rfq_supplier_notice
+        test: supabase/tests/6538_rfq_quote_chase.test.sql
   # P9 (G-261): the approvers of a step that waits are reminded, hourly or by the requester's nudge.
   - kind: approval.reminder
     category: approvals

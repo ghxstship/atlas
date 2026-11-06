@@ -227,6 +227,12 @@ export interface RfqResponseLine {
   /** Null when the vendor did not quote the line. */
   readonly unitPriceMinor: number | null;
   readonly currencyCode: string;
+  /** From the request line it answers (B11, G-97): a sub-hire's order line stays a rental for its need. */
+  readonly unitBasis: string | null;
+  readonly acquisitionKind: AcquisitionKind;
+  /** As PostgREST returns a tstzrange; null unless Rental. */
+  readonly hirePeriod: string | null;
+  readonly procurementNeedId: string | null;
 }
 
 export interface RfqResponse {
@@ -253,6 +259,15 @@ export function nullAwareTotal(amounts: readonly (number | null)[]): number | nu
   return (amounts as number[]).reduce((a, b) => a + b, 0);
 }
 
+/** The facts a quoted line takes from the request line it answers (B11, G-97). */
+interface RfqLineFacts {
+  element_id: string | null;
+  unit_basis: string | null;
+  acquisition_kind: AcquisitionKind;
+  hire_period: unknown;
+  procurement_need_id: string | null;
+}
+
 /**
  * Responses to an RFQ. Responses are sealed: row level security returns none until the RFQ is
  * Closed or Awarded, so an empty list on an Issued RFQ means sealed, not absent.
@@ -265,7 +280,7 @@ export async function listRfqResponses(
     db
       .from("rfq_responses")
       .select(
-        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at)",
+        "id, vendor_id, submitted_at, valid_until, vendor:vendors(counterparty:counterparties(counterparty_name)), rfq_response_lines(id, description, element_id, quantity, unit_price_minor, currency_code, deleted_at, rfq_line:rfq_lines(element_id, unit_basis, acquisition_kind, hire_period, procurement_need_id))",
       )
       .eq("rfq_id", rfqId)
       .is("deleted_at", null)
@@ -273,14 +288,21 @@ export async function listRfqResponses(
     (row) => {
       const lines = (row.rfq_response_lines ?? [])
         .filter((l) => l.deleted_at === null)
-        .map((l) => ({
-          id: l.id,
-          description: l.description,
-          elementId: l.element_id,
-          quantity: l.quantity,
-          unitPriceMinor: l.unit_price_minor,
-          currencyCode: l.currency_code,
-        }));
+        .map((l) => {
+          const asked = (l as unknown as { rfq_line: RfqLineFacts | null }).rfq_line;
+          return {
+            id: l.id,
+            description: l.description,
+            elementId: l.element_id ?? asked?.element_id ?? null,
+            quantity: l.quantity,
+            unitPriceMinor: l.unit_price_minor,
+            currencyCode: l.currency_code,
+            acquisitionKind: asked?.acquisition_kind ?? ("Purchase" as AcquisitionKind),
+            hirePeriod: (asked?.hire_period as string | null | undefined) ?? null,
+            procurementNeedId: asked?.procurement_need_id ?? null,
+            unitBasis: asked?.unit_basis ?? null,
+          };
+        });
       return {
         id: row.id,
         vendorId: row.vendor_id,
@@ -295,6 +317,8 @@ export async function listRfqResponses(
 }
 
 export interface ResponseLineInput {
+  /** The request line this quoted line answers, when it answers one (B11, G-97). */
+  readonly rfqLineId?: string | null;
   readonly description: string;
   readonly quantity: number;
   readonly unitPriceMinor: number | null;
@@ -329,6 +353,7 @@ export async function recordRfqResponse(
         element_id: blankToNull(l.elementId),
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        rfq_line_id: blankToNull(l.rfqLineId),
       })),
     }),
   );
@@ -662,6 +687,11 @@ export async function createPurchaseOrderFromResponse(
         element_id: l.elementId,
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
+        // B11 (G-97): a sub-hire stays a rental at its hire period, and serves its need once approved.
+        unit_basis: l.unitBasis,
+        acquisition_kind: l.acquisitionKind,
+        hire_period: l.hirePeriod,
+        procurement_need_id: l.procurementNeedId,
       }) as Tables["po_lines"]["Insert"],
   );
   const inserted = await readRows(db.from("po_lines").insert(lines).select("id"), (r) => r);

@@ -139,6 +139,7 @@
     "import_destination_unknown": "Esa escaleta o ese proyecto ya no existe.",
     "import_target_outside_destination": "Una fila habría quedado fuera de la escaleta o del proyecto que nombra esta importación, así que no se escribió.",
     "import_paste_empty": "Pegue una fila de encabezados y al menos una fila debajo.",
+    "import_po_not_proposed": "Las líneas solo se importan a un pedido que sigue en borrador.",
     "import_pool_unexpected": "Solo una importación de invitaciones a una lista nombra una lista.",
     "import_pool_unknown": "Esa lista ya no existe. Elige una lista de talento activa de la organización.",
     "earning_code_taken": "Otro código de ingreso ya usa este código. Elija un código diferente.",
@@ -345,6 +346,8 @@
       "destinationProject": "Proyecto",
       "destinationHelp": "Las filas se agregan a esta escaleta o proyecto.",
       "sourcePaste": "Filas pegadas",
+      "destinationOrder": "Orden de compra",
+      "sourceDocument": "Documento",
       "destinationPool": "Grupo",
       "destinationPoolHelp": "Para las filas que no nombran un grupo.",
       "destinationPoolNone": "Usar el grupo nombrado en cada fila"
@@ -373,6 +376,8 @@
       "asset_units": "Unidades de activos",
       "cues": "Cues de la escaleta",
       "guest_list_entries": "Lista de invitados",
+      "procurement_needs": "Necesidades de compra",
+      "po_lines": "Líneas de orden de compra",
       "pool_invitations": "Personal independiente y equipo a invitar"
     },
     "steps": {
@@ -598,6 +603,32 @@
       "failed": "Aurora no pudo sugerir asignaciones. Asigne las columnas usted.",
       "applied": "{count, plural, one {Aurora sugirió # columna. Revísela antes de confirmar.} other {Aurora sugirió # columnas. Revíselas antes de confirmar.}}",
       "none": "Aurora no encontró nada que agregar a las sugerencias actuales."
+    },
+    "material": {
+      "title": "Coincidencias del catálogo",
+      "help": "Revisa lo que indicó el catálogo antes de confirmar. Una fila sin coincidencia se escribe como texto libre.",
+      "match": "Coincidencia",
+      "note": "Nota",
+      "matched": "Coincide",
+      "unmatched": "Sin coincidencia",
+      "notes": {
+        "price_currency_differs": "El precio del proveedor está en otra moneda, así que el precio queda en blanco."
+      }
+    },
+    "document": {
+      "intro": "Aurora lee la lista en filas que puedes corregir. No se escribe nada hasta que continúes y confirmes.",
+      "file": "PDF de la lista",
+      "read": "Leer el documento",
+      "tooLarge": "Este archivo pesa más de 10 MB. Elige uno más pequeño.",
+      "failed": "Aurora no pudo leer este documento. Pega las filas en su lugar.",
+      "review": "{count, plural, one {Se leyó # fila. Corrígela antes de continuar.} other {Se leyeron # filas. Corrígelas antes de continuar.}}",
+      "row": "Fila {n}",
+      "description": "Artículo",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "sku": "SKU del proveedor",
+      "noQuantity": "El documento no lo indica. Escríbelo para continuar.",
+      "continue": "Continuar a la revisión"
     },
     "numberFormat": {
       "label": "Formato numérico",
@@ -875,6 +906,10 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "rfq": {
+        "quote_reminder": "Cotización solicitada",
+        "not_awarded": "Proveedor no elegido"
       },
       "crew_registration": {
         "decided": "Registro de equipo decidido",

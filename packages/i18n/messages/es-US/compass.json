@@ -165,6 +165,7 @@
       "roster_entries": "entradas de lista",
       "advance_allocations": "artículos asignados a ti",
       "parking_passes": "pases de estacionamiento",
+      "delivery_windows": "franjas de entrega",
       "shift_no_shows": "ausencias",
       "break_types": "tipos de descanso",
       "itinerary_changes": "cambios del itinerario",
@@ -286,6 +287,7 @@
       "expenseReceipt": "Gasto: {description}, {day}",
       "noShow": "Marcar a un miembro del equipo como ausente",
       "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
+      "bookingArrival": "Registrar la llegada a la puerta de un vehículo con reserva",
       "accessExit": "Escaneo de salida a las {time}",
       "accessExitZone": "Escaneo de salida en {zone}, {time}",
       "accessOverride": "Anular un escaneo denegado: {reason}",
@@ -1110,6 +1112,25 @@
   "systemBanner": {
     "details": "Detalles",
     "dismiss": "Ocultar"
+  },
+  "gateView": {
+    "title": "Puerta",
+    "open": "Abrir la vista de puerta",
+    "find": "Buscar una reserva",
+    "findHelp": "Código de referencia o placa.",
+    "notFound": "Ninguna reserva coincide. Revisa el código o la placa.",
+    "selected": "Seleccionada",
+    "empty": "No hay franjas de entrega en esta puerta hoy.",
+    "window": "{start} a {end}: {booked} de {limit} vehículos",
+    "noPlate": "Sin placa todavía",
+    "arrived": "Llegó",
+    "arrivalQueued": "Llegada guardada. Se envía ahora o cuando vuelvas a tener conexión.",
+    "status": {
+      "expected": "Esperado",
+      "waiting": "En espera",
+      "released": "Liberado",
+      "checkedIn": "Registrado"
+    }
   },
   "drives": {
     "empty": "No tienes traslados hoy ni próximos. Aquí aparecen los traslados que te asignan conducir.",

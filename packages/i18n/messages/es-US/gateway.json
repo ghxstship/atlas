@@ -131,6 +131,11 @@
       "sponsor_asset_files_invalid": "Adjunta los archivos de nuevo: cada archivo va en un solo recurso.",
       "sponsor_asset_source": "La organización aprueba los recursos que envías. Para cambiar uno que te devolvió, reenvíalo con archivos nuevos.",
       "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
+      "delivery_window_full": "Esta franja está completa. Elige otra franja.",
+      "delivery_window_closed": "Esta franja ya no admite reservas.",
+      "delivery_booking_locked": "Esta reserva ya empezó o registró su llegada, así que ya no puede cambiar.",
+      "delivery_booking_shipment": "Elige un envío que transporte tu empresa.",
+      "booking_event_reused": "Esta reserva ya se usó para otra franja o empresa. Vuelve a cargar e inténtalo de nuevo.",
       "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
       "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
@@ -363,6 +368,21 @@
         "waiting": "En espera de aprobación",
         "approved": "Aprobado",
         "rejected": "Rechazado"
+      },
+      "reference": "Referencia {code}",
+      "book": {
+        "title": "Reservar una entrega",
+        "window": "Franja de entrega",
+        "windowLine": "{gate}, {when}, quedan {places}",
+        "plate": "Placa o remolque",
+        "plateHelp": "Déjalo en blanco si aún no lo sabes. Puedes agregarlo después.",
+        "shipment": "Envío",
+        "noShipment": "Sin envío",
+        "submit": "Reservar entrega",
+        "done": "Entrega reservada. Indica su código de referencia en la puerta.",
+        "savePlate": "Guardar placa",
+        "changePlate": "Cambiar placa",
+        "cancel": "Cancelar reserva"
       }
     },
     "submittals": {
@@ -572,6 +592,8 @@
         "advanceLine": "Revisa cada línea: elige un artículo y una cantidad entera de 1 o más.",
         "sponsorAsset": "Elige el beneficio y el tipo, y adjunta los archivos.",
         "title": "Di qué es el recurso, en hasta 200 caracteres.",
+        "deliveryWindow": "Elige una franja de entrega.",
+        "deliveryPlate": "Escribe una placa o remolque de hasta 40 caracteres.",
         "guestEmail": "Escribe una dirección de correo, o déjala vacía.",
         "rosterAssignee": "Elige a quién asignar al turno.",
         "noShowReason": "Indica qué pasó, en hasta 500 caracteres.",
@@ -2769,6 +2791,16 @@
           "dates": "El último día debe ser igual o posterior al primero."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "Ninguna empresa te ha pedido una cotización por ahora.",
+      "from": "{org}, {project}",
+      "due": "Cotizar antes de {when}",
+      "noDue": "Sin fecha límite",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, en alquiler del {from} al {to}",
+      "sendTo": "Envía tu cotización a {name}.",
+      "sendToOrg": "Envía tu cotización a tu contacto en {org}."
     }
   },
   "legal": {

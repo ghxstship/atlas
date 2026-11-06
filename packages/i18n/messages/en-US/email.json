@@ -423,6 +423,16 @@
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
       }
     },
+    "rfq": {
+      "quote_reminder": {
+        "subject": "{orgName} asked you for a quote: {title}",
+        "body": "{orgName} asked you for a quote for {title} on {projectName}{dueDate, select, none {.} other {, by {dueDate}.}} Open it to see what they need."
+      },
+      "not_awarded": {
+        "subject": "{orgName} chose another supplier for {title}",
+        "body": "{orgName} chose another supplier for {title} on {projectName}. Thank you for your quote."
+      }
+    },
     "crew_registration": {
       "decided": {
         "subject": "{outcome, select, approved {{orgName} approved your registration} other {{orgName} did not select you this time}}",

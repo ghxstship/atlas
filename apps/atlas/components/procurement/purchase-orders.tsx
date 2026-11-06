@@ -66,6 +66,7 @@ import { DocumentActions } from "@/components/documents/document-actions";
 import * as enums from "@xos/data/enums";
 import { HIRE_WARNING_KEY } from "@/lib/procurement/hire";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { MaterialQuickAddButton } from "@/components/quick-add/material-quick-add-button";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -448,6 +449,15 @@ async function PurchaseOrderRecord({
                   refusals={REFUSALS}
                 />
               ))}
+            </div>
+            <div className="flex flex-wrap gap-8">
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "order", purchaseOrderId: order.id }}
+              />
+              <KitLink href={`/${ctx.org.slug}/import?target=po_lines&purchaseOrder=${order.id}`}>
+                {t("needs.import")}
+              </KitLink>
             </div>
             <PoLineForm
               org={ctx.org.slug}

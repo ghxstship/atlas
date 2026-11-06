@@ -182,6 +182,8 @@ export function summarizeMutation(
         const vehicle = text(a["p_vehicle_identifier"]);
         return vehicle ? { key: "gateArrival", values: { vehicle } } : generic(m, ctx);
       }
+      case "app.record_booking_arrival":
+        return { key: "bookingArrival", values: {} };
       case "app.release_vehicle":
         return { key: "vehicleRelease", values: {} };
       case "app.check_in_dock_slot":

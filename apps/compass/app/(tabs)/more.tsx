@@ -14,6 +14,7 @@ const ICONS: Readonly<Record<string, string>> = {
   incidents: "shield-alert",
   inspections: "clipboard-check",
   logistics: "package",
+  "logistics.gate": "truck",
   show: "clapperboard",
   "run-of-show": "clapperboard",
   reference: "book-open",

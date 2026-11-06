@@ -165,6 +165,7 @@
       "roster_entries": "roster entries",
       "advance_allocations": "items assigned to you",
       "parking_passes": "parking passes",
+      "delivery_windows": "delivery windows",
       "shift_no_shows": "no-shows",
       "break_types": "break types",
       "itinerary_changes": "itinerary changes",
@@ -286,6 +287,7 @@
       "expenseReceipt": "Expense: {description}, {day}",
       "noShow": "Mark a crew member as a no-show",
       "proofPhoto": "Proof of performance photo, {time}",
+      "bookingArrival": "Record a booked vehicle's arrival at the gate",
       "accessExit": "Exit scan at {time}",
       "accessExitZone": "Exit scan at {zone}, {time}",
       "accessOverride": "Override a denied scan: {reason}",
@@ -1110,6 +1112,25 @@
   "systemBanner": {
     "details": "Details",
     "dismiss": "Dismiss"
+  },
+  "gateView": {
+    "title": "Gate",
+    "open": "Open gate view",
+    "find": "Find a booking",
+    "findHelp": "Reference code or plate.",
+    "notFound": "No booking matches. Check the code or plate.",
+    "selected": "Selected",
+    "empty": "No delivery windows at this gate today.",
+    "window": "{start} to {end}: {booked} of {limit} vehicles",
+    "noPlate": "No plate yet",
+    "arrived": "Arrived",
+    "arrivalQueued": "Arrival saved. It sends now, or when you're back online.",
+    "status": {
+      "expected": "Expected",
+      "waiting": "Waiting",
+      "released": "Released",
+      "checkedIn": "Checked In"
+    }
   },
   "drives": {
     "empty": "No drives today or ahead. Transfers you are assigned to drive show here.",

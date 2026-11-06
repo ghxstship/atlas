@@ -327,6 +327,7 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "incidents",
   "inspections",
   "logistics",
+  "logistics.gate",
   "show",
   "run-of-show",
   "reference",

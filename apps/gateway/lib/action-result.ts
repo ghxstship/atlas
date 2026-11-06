@@ -11,6 +11,12 @@ export type ActionResult = { readonly ok: true } | { readonly ok: false; readonl
 
 /** Refusal rules with their own copy in `gateway.outcomes.refusals`. */
 export const KNOWN_REFUSALS = [
+  // B11: delivery self-booking (migration 6536).
+  "delivery_window_full",
+  "delivery_window_closed",
+  "delivery_booking_locked",
+  "delivery_booking_shipment",
+  "booking_event_reused",
   "application_deadline_passed",
   "opportunity_not_available",
   "application_not_editable",

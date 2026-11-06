@@ -29,6 +29,7 @@ executionOrder:
     - field-gate-scan
     - field-gate-in-out-override
     - field-door-guest-pass
+    - field-gate-view
     - field-receive-batch
     - field-receive-order
     - field-asset-scan

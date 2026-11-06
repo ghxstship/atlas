@@ -49,7 +49,11 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/i
   }
   // A destination target is allowed where the person may import into at least one running order or project.
   const preselected = (target: ImportTarget) =>
-    target.destination === "run_of_show_id" ? text("runOfShow") : text("project");
+    target.destination === "run_of_show_id"
+      ? text("runOfShow")
+      : target.destination === "purchase_order_id"
+        ? text("purchaseOrder")
+        : text("project");
   const destinations = new Map<string, ImportDestination[]>();
   await Promise.all(
     targets.data

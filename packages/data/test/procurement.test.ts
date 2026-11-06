@@ -244,7 +244,15 @@ describe("rfqs", () => {
           p_vendor_id: "v1",
           p_valid_until: null,
           p_currency_code: "USD",
-          p_lines: [{ description: "Mics", element_id: null, quantity: 4, unit_price_minor: null }],
+          p_lines: [
+            {
+              description: "Mics",
+              element_id: null,
+              quantity: 4,
+              unit_price_minor: null,
+              rfq_line_id: null,
+            },
+          ],
         },
       ],
     ]);
@@ -479,6 +487,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: 1000,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
         {
           id: "l2",
@@ -487,6 +499,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: null,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
       ],
     };
@@ -513,6 +529,10 @@ describe("purchase orders", () => {
           element_id: null,
           quantity: 4,
           unit_price_minor: 1000,
+          unit_basis: null,
+          acquisition_kind: "Purchase",
+          hire_period: null,
+          procurement_need_id: null,
         },
         {
           purchase_order_id: "po9",
@@ -521,6 +541,10 @@ describe("purchase orders", () => {
           element_id: "E-1",
           quantity: 4,
           unit_price_minor: null,
+          unit_basis: null,
+          acquisition_kind: "Purchase",
+          hire_period: null,
+          procurement_need_id: null,
         },
       ],
     ]);

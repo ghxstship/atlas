@@ -421,7 +421,8 @@ export interface AuroraClient {
       | "receipt"
       | "quote"
       | "itinerary"
-      | "contract";
+      | "contract"
+      | "material_list";
     document_id?: string | null;
     /** The project read for, required for an itinerary or a contract. */
     project_id?: string;

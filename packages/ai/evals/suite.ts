@@ -121,8 +121,8 @@ async function extractionCases(client: ModelClient, config: ModelConfig): Promis
       subject: null,
       ...("feeVisible" in c ? { feeVisible: c.feeVisible as boolean } : {}),
     });
-    // An itinerary has no header: every proposal is a line.
-    const headerless = c.kind === "itinerary";
+    // An itinerary and a material list (B11) have no header: every proposal is a line.
+    const headerless = c.kind === "itinerary" || c.kind === "material_list";
     const header = headerless ? [] : (proposals[0]?.fields ?? []);
     const wrong = Object.entries(c.expected).find(
       ([path, value]) =>

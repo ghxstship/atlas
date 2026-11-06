@@ -39,7 +39,7 @@ export interface ImportTargetField {
 }
 
 /** The import column that names where a target's rows go: none for an org-wide target. */
-export type ImportDestinationKind = "run_of_show_id" | "project_id";
+export type ImportDestinationKind = "run_of_show_id" | "project_id" | "purchase_order_id";
 
 export interface ImportTarget {
   readonly code: string;
@@ -75,7 +75,9 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
       writeCapability: str(t["write_capability"]) as CapabilityCode,
       fuzzyMatch: t["fuzzy_match"] === true,
       destination:
-        t["destination"] === "run_of_show_id" || t["destination"] === "project_id"
+        t["destination"] === "run_of_show_id" ||
+        t["destination"] === "project_id" ||
+        t["destination"] === "purchase_order_id"
           ? t["destination"]
           : null,
       fields: fields.data
@@ -146,6 +148,7 @@ export interface ImportDestinationInput {
   readonly runOfShowId?: string | null;
   readonly talentPoolId?: string | null;
   readonly numberFormat?: NumberFormat | null;
+  readonly purchaseOrderId?: string | null;
 }
 
 /** The destination columns of a new import; an org-wide target sends none of them. */
@@ -155,6 +158,7 @@ function destinationColumns(input: ImportDestinationInput): Record<string, strin
     ...(input.runOfShowId ? { run_of_show_id: input.runOfShowId } : {}),
     ...(input.talentPoolId ? { talent_pool_id: input.talentPoolId } : {}),
     ...(input.numberFormat ? { number_format: input.numberFormat } : {}),
+    ...(input.purchaseOrderId ? { purchase_order_id: input.purchaseOrderId } : {}),
   };
 }
 
@@ -242,6 +246,7 @@ export async function createPastedImport(
     runOfShowId: input.runOfShowId ?? null,
     talentPoolId: input.talentPoolId ?? null,
     numberFormat: input.numberFormat ?? null,
+    purchaseOrderId: input.purchaseOrderId ?? null,
   });
 }
 
@@ -354,6 +359,7 @@ export function importDetectedSheet(
       p_target_code: input.targetCode,
       p_project_id: input.projectId ?? null,
       p_run_of_show_id: input.runOfShowId ?? null,
+      p_purchase_order_id: input.purchaseOrderId ?? null,
     },
     str,
   );
@@ -427,6 +433,14 @@ export interface RowIssue {
   readonly cells: readonly { columnIndex: number; issue: string }[];
 }
 
+/** Whether the catalogue named a need or order line row (B11, 6537); the person confirms at commit. */
+export interface MaterialRowMatch {
+  readonly rowNumber: number;
+  readonly match: "Matched" | "Unmatched";
+  /** price_currency_differs when the vendor's price is in another currency, so the price stayed blank. */
+  readonly note: string | null;
+}
+
 export interface MergeReview {
   readonly id: string;
   readonly rowId: string;
@@ -484,6 +498,7 @@ export interface ImportDetail extends ImportSummary {
   readonly scanStatus: UploadScanStatus | null;
   readonly columns: readonly ImportColumn[];
   readonly issues: readonly RowIssue[];
+  readonly materialMatches: readonly MaterialRowMatch[];
   readonly reviews: readonly MergeReview[];
   readonly dryRun: DryRun | null;
   readonly batches: readonly ImportBatch[];
@@ -532,7 +547,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       untyped(db)
         .from("import_row_results")
         .select(
-          "id, sheet_name, row_number, row_state, reason, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
+          "id, sheet_name, row_number, row_state, reason, material_match, match_note, import_batch_id, undo_outcome, undo_reason, import_cell_issues (column_index, issue_code)",
         )
         .eq("import_job_id", id)
         .is("deleted_at", null)
@@ -608,6 +623,13 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
       suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
+    materialMatches: results.data
+      .filter((r) => r["material_match"] === "Matched" || r["material_match"] === "Unmatched")
+      .map((r) => ({
+        rowNumber: num(r["row_number"]),
+        match: r["material_match"] as "Matched" | "Unmatched",
+        note: strOrNull(r["match_note"]),
+      })),
     // A written row is listed only when it carries a note, such as a rate left as it was.
     issues: results.data
       .filter(

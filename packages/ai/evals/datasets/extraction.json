@@ -246,6 +246,28 @@
         "currency_code": "USD",
         "incurred_on": "2027-03-14"
       }
+    },
+    {
+      "id": "material-list",
+      "kind": "material_list",
+      "document": "EQUIPMENT LIST\nAudio\n12 x Shure SM58, part SM58-LC\nMic stands\nLED Par, Qty 8 ea",
+      "expected": {},
+      "expectedLines": [
+        {
+          "description": "Shure SM58",
+          "quantity": 12,
+          "vendor_sku": "SM58-LC"
+        },
+        {
+          "description": "Mic stands",
+          "quantity": "NO_ANSWER"
+        },
+        {
+          "description": "LED Par",
+          "quantity": 8,
+          "unit_basis": "ea"
+        }
+      ]
     }
   ]
 }

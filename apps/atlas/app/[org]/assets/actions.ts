@@ -24,6 +24,12 @@ import {
   type ScannedLot,
   type ScannedUnit,
 } from "@xos/data/assets";
+import {
+  createMaintenancePlan,
+  deleteMaintenancePlan,
+  MAINTENANCE_INTERVAL_UNITS,
+  type MaintenanceIntervalUnit,
+} from "@xos/data/asset-maintenance-plans";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -49,6 +55,8 @@ export interface AssetActionState {
 
 /** Refusal rules with their own copy in `assets.errors`; anything else reads as unexpected. */
 const KNOWN_RULES = new Set([
+  // B11 (G-95): a plan covers its unit or the units of its class.
+  "maintenance_plan_unit",
   "asset_class_in_use",
   "asset_lot_count_negative",
   "asset_lot_insufficient",
@@ -412,8 +420,18 @@ export async function recordMaintenanceAction(
       description: text(2000),
       cost: z.string().trim().optional(),
       currencyCode: z.string().regex(/^[A-Z]{3}$/),
+      maintenancePlanId: z.uuid().optional(),
     })
-    .safeParse(fields(form, ["unitId", "performedOn", "description", "cost", "currencyCode"]));
+    .safeParse(
+      fields(form, [
+        "unitId",
+        "performedOn",
+        "description",
+        "cost",
+        "currencyCode",
+        "maintenancePlanId",
+      ]),
+    );
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "description") };
   }
@@ -522,4 +540,57 @@ export async function allocationHoldsAction(
       },
     ];
   });
+}
+
+/**
+ * Adds a maintenance plan (B11, G-95): "unit:{id}" or "class:{id}" from the one picker, first due, and an interval, or
+ * none for work done once. assets.maintenance.write decides.
+ */
+export async function createMaintenancePlanAction(
+  _: AssetActionState,
+  form: FormData,
+): Promise<AssetActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({
+      appliesTo: z.string().regex(/^(unit|class):[0-9a-f-]{36}$/),
+      title: text(200),
+      firstDueOn: z.iso.date(),
+      everyCount: z.coerce.number().int().min(1).max(999).optional(),
+      everyUnit: z
+        .enum(MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]])
+        .optional(),
+      instructions: z.string().trim().max(1000).optional(),
+    })
+    .safeParse(
+      fields(form, ["appliesTo", "title", "firstDueOn", "everyCount", "everyUnit", "instructions"]),
+    );
+  if (!parsed.success) {
+    return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "title") };
+  }
+  const { appliesTo, everyCount, everyUnit, instructions, ...rest } = parsed.data;
+  if ((everyCount === undefined) !== (everyUnit === undefined)) {
+    return { error: "invalid", field: "everyCount" };
+  }
+  const [kind, id] = appliesTo.split(":") as [string, string];
+  const result = await createMaintenancePlan(ctx.viewer.db, ctx.org.id, {
+    ...rest,
+    assetUnitId: kind === "unit" ? id : null,
+    assetClassId: kind === "class" ? id : null,
+    everyCount: everyCount ?? null,
+    everyUnit: everyUnit ?? null,
+    instructions: instructions ?? null,
+  });
+  return result.ok ? done(ctx.org.slug) : errorKey(result.error);
+}
+
+export async function deleteMaintenancePlanAction(
+  _: AssetActionState,
+  form: FormData,
+): Promise<AssetActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z.uuid().safeParse(form.get("planId"));
+  if (!parsed.success) return { error: "invalid" };
+  const result = await deleteMaintenancePlan(ctx.viewer.db, parsed.data);
+  return result.ok ? done(ctx.org.slug) : errorKey(result.error);
 }

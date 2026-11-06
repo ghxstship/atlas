@@ -131,6 +131,11 @@
       "sponsor_asset_files_invalid": "Attach the files again: each file goes to one asset.",
       "sponsor_asset_source": "The organization approves the assets you supply. To change one it returned, resubmit it with new files.",
       "credential_names_closed": "The deadline to name passes has passed. Contact the organization to change who holds them.",
+      "delivery_window_full": "This window is full. Choose another window.",
+      "delivery_window_closed": "This window is no longer open for booking.",
+      "delivery_booking_locked": "This booking has started or checked in, so it can no longer change.",
+      "delivery_booking_shipment": "Choose a shipment your company carries.",
+      "booking_event_reused": "This booking was already used for another window or company. Reload and try again.",
       "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
       "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
       "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
@@ -363,6 +368,21 @@
         "waiting": "Awaiting approval",
         "approved": "Approved",
         "rejected": "Rejected"
+      },
+      "reference": "Reference {code}",
+      "book": {
+        "title": "Book a delivery",
+        "window": "Delivery window",
+        "windowLine": "{gate}, {when}, {places} left",
+        "plate": "Plate or trailer",
+        "plateHelp": "Leave blank if you do not know it yet. You can add it later.",
+        "shipment": "Shipment",
+        "noShipment": "No shipment",
+        "submit": "Book delivery",
+        "done": "Delivery booked. Quote its reference code at the gate.",
+        "savePlate": "Save plate",
+        "changePlate": "Change plate",
+        "cancel": "Cancel booking"
       }
     },
     "submittals": {
@@ -572,6 +592,8 @@
         "advanceLine": "Check each line: choose an item and a whole quantity of 1 or more.",
         "sponsorAsset": "Choose the entitlement and the kind, and attach the files.",
         "title": "Say what the asset is, in up to 200 characters.",
+        "deliveryWindow": "Choose a delivery window.",
+        "deliveryPlate": "Enter a plate or trailer of up to 40 characters.",
         "guestEmail": "Enter one email address, or leave it empty.",
         "rosterAssignee": "Choose who to place on the shift.",
         "noShowReason": "Say what happened, in up to 500 characters.",
@@ -2769,6 +2791,16 @@
           "dates": "The last day must be on or after the first day."
         }
       }
+    },
+    "quoteRequests": {
+      "empty": "No company has asked you for a quote right now.",
+      "from": "{org}, {project}",
+      "due": "Quote by {when}",
+      "noDue": "No deadline set",
+      "line": "{quantity} {description}",
+      "hireLine": "{quantity} {description}, on hire {from} to {to}",
+      "sendTo": "Send your quote to {name}.",
+      "sendToOrg": "Send your quote to your contact at {org}."
     }
   },
   "legal": {

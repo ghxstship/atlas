@@ -194,14 +194,22 @@ const INTERNAL_SOURCES: readonly Source[] = [
     schema: "app",
     relation: "dock_slots",
     select:
-      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id,delivery_window_id,reference_code,vehicle_identifier",
+    projectColumn: "project_id",
+  },
+  {
+    table: "delivery_windows",
+    schema: "app",
+    relation: "delivery_windows",
+    select: "id,org_id,project_id,zone_id,starts_at,ends_at,vehicle_limit,is_open",
     projectColumn: "project_id",
   },
   {
     table: "gate_queue",
     schema: "app",
     relation: "gate_queue",
-    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    select:
+      "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at,dock_slot_id",
     projectColumn: "project_id",
   },
   {
@@ -447,7 +455,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id,reference_code",
     projectColumn: "project_id",
   },
   // The external More screens (Section 4.5.7 role table, A92), each for the role types whose menu lists it. Parents

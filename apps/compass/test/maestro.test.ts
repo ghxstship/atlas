@@ -62,6 +62,11 @@ const DYNAMIC = [
   "proof-photo-",
   // P2's department picker: one option per app.cue_call_kind slug, and All (SegmentedControl testID-value).
   "show-department-",
+  // B11's gate view: a booking's card and its actions, by dock slot.
+  "gate-booking-",
+  "gate-arrived-",
+  "gate-release-",
+  "gate-check-in-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

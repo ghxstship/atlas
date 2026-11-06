@@ -169,6 +169,7 @@ describe("navigation from the sitemap", () => {
       "incidents",
       "inspections",
       "logistics",
+      "logistics.gate",
       "show",
       "drives",
       "expenses",

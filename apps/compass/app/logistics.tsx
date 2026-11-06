@@ -1,4 +1,5 @@
 import type { Row } from "@xos/sync";
+import { router } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -129,6 +130,12 @@ export default function LogisticsScreen(): ReactElement {
       <ProjectPicker />
       <SyncBanner />
       {queued ? <InlineAlert testID="logistics-queued" tone="success" message={queued} /> : null}
+      <Button
+        testID="logistics-open-gate"
+        variant="secondary"
+        label={t("compass.gateView.open")}
+        onPress={() => router.push("/logistics-gate")}
+      />
 
       <Text variant="heading16" heading>
         {t("compass.logistics.dock.title")}

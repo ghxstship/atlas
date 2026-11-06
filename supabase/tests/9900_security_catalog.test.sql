@@ -112,7 +112,7 @@ $$, $$values ('advance_allocation_status'), ('ai_never_send'), ('allocation_hold
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
   ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
   ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'), ('permit_rule_place_facts'),
-  ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'), ('roster_entry_people'),
+  ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'), ('roster_entry_people'), ('allocations_ready_to_consolidate'), ('rfq_chase_status'),
   ('separation_of_duties_options'), ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),
   ('sign_production'),
   ('sync_rpcs'), ('vendor_bank_accounts_masked'), ('warehouse_providers')$$,

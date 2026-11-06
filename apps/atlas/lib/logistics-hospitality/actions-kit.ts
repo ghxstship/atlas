@@ -30,6 +30,23 @@ export const INITIAL_STATE: ActionState = {};
 
 /** Database rules whose refusal has its own sentence in the catalog. */
 const KNOWN_RULES = new Set([
+  // B11 (ADR 0150): delivery windows and bookings.
+  "delivery_window_full",
+  "delivery_window_closed",
+  "delivery_window_overlap",
+  "delivery_window_booked",
+  "delivery_window_limit",
+  "delivery_window_zone",
+  "delivery_window_count",
+  "delivery_window_range",
+  "delivery_booking_direct",
+  "delivery_booking_outside_window",
+  "delivery_booking_reference",
+  "delivery_booking_locked",
+  "delivery_booking_shipment",
+  "booking_event_reused",
+  "booking_already_arrived",
+  "gate_vehicle_required",
   "dock_slot_overlap",
   "dock_slot_checked_in",
   "dock_slot_canceled",

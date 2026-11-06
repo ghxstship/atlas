@@ -344,6 +344,7 @@ const ExtractBody = z
         "quote",
         "itinerary",
         "contract",
+        "material_list",
       ])
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
     document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),

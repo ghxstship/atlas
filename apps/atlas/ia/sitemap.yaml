@@ -1010,6 +1010,12 @@ nodes:
         level: both
         module: procurement
         children:
+          # B11 (G-180): what every event will get, consolidated from requests, with computed status.
+          - id: procurement.needs
+            kind: page
+            label: nav.atlas.pages.procurement.needs
+            route: "/{org}/procurement/needs"
+            list: { views: [table, list, board], default: table }
           - id: procurement.rfqs
             kind: page
             label: nav.atlas.pages.procurement.rfqs

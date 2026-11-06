@@ -936,6 +936,8 @@ export async function recordAssetMaintenance(
     readonly description: string;
     readonly costMinor: number | null;
     readonly currencyCode: string | null;
+    /** The plan this work fulfils (B11, G-95); it moves the plan's next due date. */
+    readonly maintenancePlanId?: string | null | undefined;
   },
 ): Promise<Result<{ id: string }>> {
   const description = input.description.trim();
@@ -954,6 +956,7 @@ export async function recordAssetMaintenance(
       description,
       cost_minor: input.costMinor,
       currency_code: input.costMinor === null ? null : input.currencyCode,
+      maintenance_plan_id: input.maintenancePlanId ?? null,
     })
     .select("id")
     .single();

@@ -151,7 +151,8 @@
         "purchaseOrders": "Órdenes de compra",
         "receipts": "Recepciones",
         "invoiceMatching": "Conciliación de facturas",
-        "catalog": "Catálogo"
+        "catalog": "Catálogo",
+        "needs": "Necesidades"
       },
       "vendors": {
         "directory": "Directorio",
@@ -451,7 +452,8 @@
       "upcoming": "Próximos",
       "engagements": "Contrataciones",
       "applications": "Postulaciones",
-      "engagement": "Contratación"
+      "engagement": "Contratación",
+      "quoteRequests": "Solicitudes de cotización"
     },
     "money": {
       "overview": "Resumen",
@@ -505,6 +507,7 @@
       "profile": "Perfil y certificaciones",
       "settings": "Configuración",
       "projectDetails": "Datos del proyecto",
+      "logisticsGate": "Puerta",
       "drives": "Traslados que conduzco"
     },
     "reference": {

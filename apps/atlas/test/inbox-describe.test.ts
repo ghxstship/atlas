@@ -315,6 +315,16 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     title: "Audio vendors",
     requesterName: "Bayside Audio",
     projectName: "Summer Headline Weekend",
+  "rfq.quote_reminder": {
+    title: "Stage cable",
+    orgName: "Demo Productions",
+    projectName: "Northwind Summer Series",
+    dueDate: "2027-06-01",
+  },
+  "rfq.not_awarded": {
+    title: "Stage cable",
+    orgName: "Demo Productions",
+    projectName: "Northwind Summer Series",
   },
   "opportunity.matched": {
     title: "Festival Truss Riggers",

@@ -91,7 +91,8 @@ select results_eq($$select code, write_capability, destination from app.import_t
   $$values ('venues', 'places.venue.write', null::text), ('counterparties', 'vendors.vendor.write', null),
     ('vendor_products', 'vendors.vendor.write', null), ('asset_units', 'assets.asset.write', null),
     ('cues', 'show.run_of_show.write', 'run_of_show_id'), ('guest_list_entries', 'advancing.rider.write', 'project_id'),
-    ('pool_invitations', 'opportunities.pool.write', null)$$,
+    ('pool_invitations', 'opportunities.pool.write', null),
+        ('procurement_needs', 'procurement.po.write', 'project_id'), ('po_lines', 'procurement.po.write', 'purchase_order_id')$$,
   'cues and guest list entries follow the four org-wide targets, each naming its destination');
 select set_eq($$select field_name, required, strong_key from app.import_target_fields where target_code = 'cues'$$,
   $$values ('position', false, true), ('label', true, false), ('segment', false, false), ('description', false, false),
