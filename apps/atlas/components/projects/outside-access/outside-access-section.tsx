@@ -7,8 +7,8 @@ import { OutsideAccessClient } from "./outside-access-client";
 /**
  * Outside access (B2, ADR 0141; parity gap G-81): one section on Project Settings listing everything that reaches the
  * project from outside the org, grouped by source. It is a section, not a tab, because S4.5.4-01 fixes twenty project
- * tabs. Each source's own row level security decides what a member sees, and a control shows only to someone holding
- * the capability the source's RPC checks again. Nothing here is a code or token: XOS stores none readably.
+ * tabs. Each source's own row level security decides what a member sees, and a row's control shows only when the view's
+ * viewer_can_manage says the source's RPC would accept that person. Nothing here is a code or token: XOS stores none readably.
  */
 export async function OutsideAccessSection({ ctx }: { ctx: ProjectContext }) {
   const t = await getTranslate();
@@ -35,10 +35,7 @@ export async function OutsideAccessSection({ ctx }: { ctx: ProjectContext }) {
           groups={groupOutsideAccess(rows.data)}
           can={{
             packs: has("projects.settings.write"),
-            live: has("show.run_of_show.write") || has("schedule.timeline.export"),
-            advance: has("advancing.packet.send"),
             engagement: has("opportunities.engagement.write"),
-            forms: has("knowledge.sop.publish"),
           }}
         />
       ) : (

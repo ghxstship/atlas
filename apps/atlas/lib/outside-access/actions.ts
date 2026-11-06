@@ -14,8 +14,10 @@ import {
   createStakeholderPack,
   getPackSchedule,
   listPackActivity,
+  listPackFileChoices,
   listPackItems,
   listPackRecipients,
+  listPackSuppliers,
   listPackSignatures,
   listStakeholderPacks,
   orderPackItems,
@@ -336,28 +338,27 @@ export async function packItemChoicesAction(ref: ProjectKeyRef): Promise<
   const db = ctx.org.viewer.db;
   const links = await listLiveLinks(db, { projectId: ctx.project.id });
   if (!links.ok) return refused(links.error);
-  const files = await db
-    .from("attachments")
-    .select("id, title")
-    .eq("subject_table", "app.projects")
-    .eq("subject_id", ctx.project.id)
-    .in("classification", ["Public", "Internal"])
-    .is("deleted_at", null)
-    .order("title")
-    .limit(200);
-  if (files.error) return { ok: false, error: "unexpected" };
+  const files = await listPackFileChoices(db, ctx.org.org.id, ctx.project.id);
+  if (!files.ok) return refused(files.error);
   return {
     ok: true,
     data: {
       links: links.data
         .filter((l) => l.state === "Active" || l.state === "Locked")
         .map((l) => ({ ...l, title: l.note ?? `${l.kind} ${l.tokenHint}` })),
-      files: ((files.data ?? []) as unknown as { id: string; title: string }[]).map((f) => ({
-        id: f.id,
-        title: f.title,
-      })),
+      files: files.data,
     },
   };
+}
+
+/** Suppliers a recipient can be filed under: the org's counterparties. */
+export async function packSupplierChoicesAction(
+  ref: ProjectKeyRef,
+): Promise<OutsideResult<readonly { readonly id: string; readonly name: string }[]>> {
+  const ctx = await project(ref);
+  if (!ctx) return { ok: false, error: "notFound" };
+  const r = await listPackSuppliers(ctx.org.viewer.db, ctx.org.org.id);
+  return r.ok ? { ok: true, data: r.data } : refused(r.error);
 }
 
 export async function addPackItemAction(
@@ -409,15 +410,17 @@ export async function orderPackItemsAction(
 export async function addRecipientAction(
   ref: ProjectKeyRef,
   packId: string,
-  input: { fullName: string; email: string; label: string },
+  input: { fullName: string; email: string; counterpartyId: string; label: string },
 ): Promise<OutsideResult<Revealed>> {
   const ctx = await project(ref);
   if (!ctx) return { ok: false, error: "notFound" };
+  const supplier = input.counterpartyId === "" ? null : id.safeParse(input.counterpartyId);
+  if (supplier && !supplier.success) return { ok: false, error: "invalid" };
   const r = await addPackRecipient(ctx.org.viewer.db, {
     packId,
     fullName: input.fullName.trim(),
     email: input.email,
-    counterpartyId: null,
+    counterpartyId: supplier ? (supplier.data ?? null) : null,
     label: input.label.trim() === "" ? null : input.label.trim(),
   });
   if (!r.ok) return refused(r.error);
@@ -647,9 +650,7 @@ export async function decideIntakeRequestAction(
 
 // Public form links (Knowledge, Forms) --------------------------------------------------------------------------
 
-export async function formLinkOptionsAction(
-  org: string,
-): Promise<
+export async function formLinkOptionsAction(org: string): Promise<
   OutsideResult<{
     readonly projects: readonly { value: string; label: string }[];
     readonly today: string;

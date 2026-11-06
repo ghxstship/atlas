@@ -446,6 +446,11 @@
       "Form link": "Form links",
       "Engagement": "Engagements"
     },
+    "defaultLabels": {
+      "Live view link": "Live view link",
+      "Display link": "Display link",
+      "Roster invitation": "Roster invitation"
+    },
     "states": {
       "Active": "Active",
       "Locked": "Locked",
@@ -459,7 +464,7 @@
       "Blocked": "Blocked",
       "Closing": "Closing",
       "Complete": "Complete",
-      "Cancelled": "Canceled",
+      "Canceled": "Canceled",
       "Proposed": "Proposed"
     },
     "errors": {
@@ -554,6 +559,9 @@
       "linkExpiresFirst": "A live link in this pack expires before the pack does.",
       "recipientName": "Name",
       "recipientEmail": "Email",
+      "recipientSupplier": "Supplier",
+      "recipientSupplierHelp": "Optional. Their activity can then be read per supplier.",
+      "noSupplier": "No supplier",
       "recipientLabel": "Group",
       "recipientLabelHelp": "Optional, for example a department or supplier.",
       "addRecipient": "Add recipient",
@@ -657,6 +665,8 @@
       "payoutLast4": "{provider}, ending {last4}",
       "signed": "Signed by {name}",
       "invoiceDraft": "First invoice attached",
+      "decide": "Decide",
+      "cancel": "Cancel",
       "reason": "Reason",
       "reasonHelp": "Required to decline, at least 10 characters.",
       "approve": "Approve",

@@ -16,14 +16,17 @@ type Translate = ((key: string, values?: Record<string, string | number>) => str
   has?: (key: string) => boolean;
 };
 
+/** One request's decision. The dialog mounts one at a time: gate 27 counts every field in an open dialog. */
 function Decide({
   refs,
   row,
   onDone,
+  onCancel,
 }: {
   refs: ProjectKeyRef;
   row: IntakeRequestRow;
   onDone: () => void;
+  onCancel: () => void;
 }) {
   const t = useTranslations("projects.outsideAccess.requests") as unknown as Translate;
   const errors = useTranslations("projects.outsideAccess.errors") as unknown as Translate;
@@ -76,6 +79,9 @@ function Decide({
         >
           {t("decline")}
         </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
+          {t("cancel")}
+        </Button>
       </div>
     </form>
   );
@@ -98,6 +104,7 @@ export function IntakeRequestsDialog({
   const router = useRouter();
   const [rows, setRows] = useState<readonly IntakeRequestRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deciding, setDeciding] = useState<string | null>(null);
   const reload = useCallback(() => {
     void listIntakeRequestsAction(refs).then((r) => (r.ok ? setRows(r.data) : setError(r.error)));
   }, [refs]);
@@ -177,16 +184,30 @@ export function IntakeRequestsDialog({
                           {row.request.decisionReason}
                         </span>
                       ) : null}
-                      {state === "Pending" ? (
+                      {state !== "Pending" ? null : deciding === row.request.id ? (
                         <Decide
+                          key={row.request.id}
                           refs={refs}
                           row={row}
+                          onCancel={() => setDeciding(null)}
                           onDone={() => {
+                            setDeciding(null);
                             reload();
                             router.refresh();
                           }}
                         />
-                      ) : null}
+                      ) : (
+                        <div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setDeciding(row.request.id)}
+                          >
+                            {t("decide")}
+                          </Button>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

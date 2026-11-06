@@ -2,7 +2,7 @@ import { parseDisplay, parseLiveView } from "@xos/data/live-links";
 import { PACK_LINK_TOKEN, parsePackGrants, readPackItem } from "@xos/data/stakeholder-packs";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PublicLive } from "@/components/live/public-live";
 import { PublicLiveRows } from "@/components/live/public-live-view";
@@ -50,6 +50,10 @@ export default async function StakeholderPackItemPage({
       {t("back")}
     </a>
   );
+  // Back to the pack, which reads again with whatever grant the cookie now holds and asks for the code only if it must.
+  if (read.data.refused && read.data.reason === "pack_grant") {
+    redirect(`/share/pack/${token}?reason=pack_grant`);
+  }
   if (read.data.refused) {
     return (
       <>

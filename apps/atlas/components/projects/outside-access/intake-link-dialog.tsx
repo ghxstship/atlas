@@ -11,6 +11,7 @@ import {
   type ProjectKeyRef,
   type Revealed,
 } from "@/lib/outside-access/actions";
+import { RevealPanel } from "./reveal-panel";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
   has?: (key: string) => boolean;
@@ -39,7 +40,8 @@ const uniq = (values: readonly (string | null)[]) => [
 /**
  * A new vendor intake link (B2, ADR 0141), in three steps, each its own dialog body with only the current step mounted,
  * so no screen shows more than seven fields (gate 27). The rate card fields cascade, each keyed to the one before so
- * its default resets. The link, code and QR go to the section's reveal panel.
+ * its default resets. The link, code and QR go to the section's reveal panel; with no section to hold them (the
+ * Engagements toolbar, no onReveal) they stay here until the dialog closes.
  */
 export function IntakeLinkDialog({
   refs,
@@ -47,13 +49,14 @@ export function IntakeLinkDialog({
   onClose,
 }: {
   refs: ProjectKeyRef;
-  onReveal: (revealed: Revealed) => void;
+  onReveal?: (revealed: Revealed) => void;
   onClose: () => void;
 }) {
   const t = useTranslations("projects.outsideAccess.intake") as unknown as Translate;
   const errors = useTranslations("projects.outsideAccess.errors") as unknown as Translate;
   const [options, setOptions] = useState<IntakeOptions | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [created, setCreated] = useState<Revealed | null>(null);
   const [who, setWho] = useState<Who>({
     title: "",
     instructions: "",
@@ -126,8 +129,12 @@ export function IntakeLinkDialog({
         maxRequests: Number(data.get("maxRequests") ?? 50),
       });
       if (!result.ok) return { error: result.error };
-      onReveal(result.data);
-      onClose();
+      if (onReveal) {
+        onReveal(result.data);
+        onClose();
+      } else {
+        setCreated(result.data);
+      }
       return { error: null };
     },
     { error: null },
@@ -154,7 +161,9 @@ export function IntakeLinkDialog({
             {errors.has?.(refusal) === false ? errors("unexpected") : errors(refusal)}
           </InlineAlert>
         ) : null}
-        {step === 1 ? (
+        {created ? (
+          <RevealPanel revealed={created} onDismiss={onClose} />
+        ) : step === 1 ? (
           <form
             className="flex flex-col gap-8"
             action={(data) => {

@@ -3,7 +3,7 @@
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useCallback, useEffect, useState, useTransition } from "react";
-import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
 import {
   addPackItemAction,
   addRecipientAction,
@@ -11,6 +11,7 @@ import {
   loadPackAction,
   orderPackItemsAction,
   packItemChoicesAction,
+  packSupplierChoicesAction,
   removePackItemAction,
   revokePackAction,
   savePackAction,
@@ -22,6 +23,7 @@ import {
 } from "@/lib/outside-access/actions";
 import { dayInZone } from "@/lib/stakeholder-packs/expiry";
 import type { PackSummary } from "@xos/data/stakeholder-packs";
+import { RevealLines, type HeldReveal } from "./reveal-panel";
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
   has?: (key: string) => boolean;
@@ -43,8 +45,10 @@ function Refusal({ error }: { error: string | null }) {
   );
 }
 
-type FormState = { readonly error: string | null };
+type FormState = { readonly error: string | null; readonly saved?: boolean };
 const CLEAN: FormState = { error: null };
+const SAVED: FormState = { error: null, saved: true };
+const wasSaved = (state: FormState) => state.saved === true;
 
 function DetailsStep({
   refs,
@@ -172,8 +176,9 @@ function ItemsStep({
     });
     if (!added.ok) return { error: added.error };
     onChanged();
-    return CLEAN;
+    return SAVED;
   }, CLEAN);
+  const keep = useKeepInput(state, dispatch, wasSaved);
   const move = (index: number, delta: number) => {
     const ids = data.items.map((i) => i.id);
     const [taken] = ids.splice(index, 1);
@@ -193,12 +198,9 @@ function ItemsStep({
     <div className="flex flex-col gap-16">
       <Refusal error={error ?? state.error} />
       {soon ? <InlineAlert tone="warning">{t("linkExpiresFirst")}</InlineAlert> : null}
-      <form
-        action={dispatch}
-        onSubmit={keepInputOnSubmit(dispatch)}
-        className="flex flex-col gap-8"
-      >
+      <form action={dispatch} {...keep} className="flex flex-col gap-8">
         <Select
+          key={choices === null ? "loading" : "loaded"}
           id="pack-item-subject"
           name="subject"
           label={t("itemSubject")}
@@ -275,34 +277,43 @@ function ItemsStep({
 function RecipientsStep({
   refs,
   data,
+  reveals,
   onChanged,
   onReveal,
+  onDismiss,
 }: {
   refs: ProjectKeyRef;
   data: PackEditorData;
+  reveals: readonly HeldReveal[];
   onChanged: () => void;
   onReveal: (revealed: Revealed) => void;
+  onDismiss: (key: number) => void;
 }) {
   const t = useLabels();
+  const [suppliers, setSuppliers] = useState<readonly { id: string; name: string }[]>([]);
+  useEffect(() => {
+    void packSupplierChoicesAction(refs).then((r) => {
+      if (r.ok) setSuppliers(r.data);
+    });
+  }, [refs]);
   const [state, dispatch, pending] = useActionState(async (_s: FormState, form: FormData) => {
     const added = await addRecipientAction(refs, data.pack.id, {
       fullName: String(form.get("fullName") ?? ""),
       email: String(form.get("email") ?? ""),
+      counterpartyId: String(form.get("counterpartyId") ?? ""),
       label: String(form.get("label") ?? ""),
     });
     if (!added.ok) return { error: added.error };
     onReveal(added.data);
     onChanged();
-    return CLEAN;
+    return SAVED;
   }, CLEAN);
+  const keep = useKeepInput(state, dispatch, wasSaved);
   return (
     <div className="flex flex-col gap-16">
       <Refusal error={state.error} />
-      <form
-        action={dispatch}
-        onSubmit={keepInputOnSubmit(dispatch)}
-        className="flex flex-col gap-8"
-      >
+      <RevealLines reveals={reveals} onDismiss={onDismiss} />
+      <form action={dispatch} {...keep} className="flex flex-col gap-8">
         <Input
           id="pack-recipient-name"
           name="fullName"
@@ -319,6 +330,18 @@ function RecipientsStep({
           maxLength={320}
           required
           width="100%"
+        />
+        <Select
+          key={suppliers.length}
+          id="pack-recipient-supplier"
+          name="counterpartyId"
+          label={t("recipientSupplier")}
+          help={t("recipientSupplierHelp")}
+          value=""
+          options={[
+            { value: "", label: t("noSupplier") },
+            ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+          ]}
         />
         <Input
           id="pack-recipient-label"
@@ -549,20 +572,24 @@ function ActivityStep({ data, timeZone }: { data: PackEditorData; timeZone: stri
 
 /**
  * The stakeholder pack editor (B2, ADR 0141): one screen per concern, each under seven fields with its own primary, so
- * only the current step is mounted. A code from Add recipient goes up to the section's reveal panel, which outlives
- * this dialog. Loaded on first click.
+ * only the current step is mounted. A code from Add recipient shows on the Recipients step at once, and stays in the
+ * section's reveal panels after this dialog closes, each until dismissed. Loaded on first click.
  */
 export function PackEditorDialog({
   refs,
   timeZone,
   startNew,
+  reveals,
   onReveal,
+  onDismiss,
   onClose,
 }: {
   refs: ProjectKeyRef;
   timeZone: string;
   startNew: boolean;
+  reveals: readonly HeldReveal[];
   onReveal: (revealed: Revealed) => void;
+  onDismiss: (key: number) => void;
   onClose: () => void;
 }) {
   const t = useLabels();
@@ -643,7 +670,14 @@ export function PackEditorDialog({
         ) : step === "items" ? (
           <ItemsStep refs={refs} data={data} onChanged={reload} />
         ) : step === "recipients" ? (
-          <RecipientsStep refs={refs} data={data} onChanged={reload} onReveal={onReveal} />
+          <RecipientsStep
+            refs={refs}
+            data={data}
+            reveals={reveals}
+            onChanged={reload}
+            onReveal={onReveal}
+            onDismiss={onDismiss}
+          />
         ) : step === "delivery" ? (
           <DeliveryStep refs={refs} data={data} timeZone={timeZone} onChanged={reload} />
         ) : (

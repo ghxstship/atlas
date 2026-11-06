@@ -446,6 +446,11 @@
       "Form link": "Enlaces de formulario",
       "Engagement": "Contrataciones"
     },
+    "defaultLabels": {
+      "Live view link": "Enlace de vista en vivo",
+      "Display link": "Enlace de pantalla",
+      "Roster invitation": "Invitación al equipo"
+    },
     "states": {
       "Active": "Activo",
       "Locked": "Bloqueado",
@@ -459,7 +464,7 @@
       "Blocked": "Bloqueada",
       "Closing": "En cierre",
       "Complete": "Completa",
-      "Cancelled": "Cancelada",
+      "Canceled": "Cancelada",
       "Proposed": "Propuesta"
     },
     "errors": {
@@ -554,6 +559,9 @@
       "linkExpiresFirst": "Un enlace en vivo de este paquete vence antes que el paquete.",
       "recipientName": "Nombre",
       "recipientEmail": "Correo",
+      "recipientSupplier": "Proveedor",
+      "recipientSupplierHelp": "Opcional. Así su actividad se puede leer por proveedor.",
+      "noSupplier": "Sin proveedor",
       "recipientLabel": "Grupo",
       "recipientLabelHelp": "Opcional, por ejemplo un departamento o proveedor.",
       "addRecipient": "Agregar destinatario",
@@ -657,6 +665,8 @@
       "payoutLast4": "{provider}, termina en {last4}",
       "signed": "Firmado por {name}",
       "invoiceDraft": "Primera factura adjunta",
+      "decide": "Decidir",
+      "cancel": "Cancelar",
       "reason": "Motivo",
       "reasonHelp": "Obligatorio para rechazar, al menos 10 caracteres.",
       "approve": "Aprobar",

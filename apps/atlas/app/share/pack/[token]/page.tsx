@@ -45,7 +45,9 @@ export default async function StakeholderPackPage({
   const grants = parsePackGrants((await cookies()).get(PACK_GRANT_COOKIE)?.value);
   const heading = <h1 className="m-0 text-heading-24 font-semibold">{t("title")}</h1>;
 
-  if (grants.length === 0 || (asked !== null && packAsksForCode(asked))) {
+  // A pack_grant reason is not itself a reason to ask: a click can land while the arrival's swap is on its way, with the
+  // old grant. By the time it returns here the fresh grant is in the cookie, so the read below decides.
+  if (grants.length === 0 || (asked !== null && asked !== "pack_grant" && packAsksForCode(asked))) {
     return (
       <>
         {heading}
@@ -85,8 +87,10 @@ export default async function StakeholderPackPage({
   return (
     <>
       <PackHeader meta={pack.meta} recipientName={pack.recipientName} />
-      {query["opened"] === "1" ? null : <PackOpened token={token} />}
-      {asked ? <InlineAlert tone="warning">{t(`refusals.${asked}`)}</InlineAlert> : null}
+      <PackOpened token={token} opened={query["opened"] === "1"} />
+      {asked && asked !== "pack_grant" ? (
+        <InlineAlert tone="warning">{t(`refusals.${asked}`)}</InlineAlert>
+      ) : null}
       {pack.items.length === 0 ? (
         <p className="m-0 text-text-14 text-text-secondary">{t("noItems")}</p>
       ) : (

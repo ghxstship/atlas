@@ -13,13 +13,21 @@ import { env } from "@/lib/env";
 /** The device grant cookie, HttpOnly, on /share/pack, holding up to 8 grants space-separated. */
 export const PACK_GRANT_COOKIE = "xos_pack_grant";
 
-/** The Set-Cookie value that adds a grant, keeping the device's others. */
-export function packGrantCookie(current: string | null, grant: string, expiresAt: string): string {
-  // Each grant expires by itself in the database; the cookie lasts as long as its newest grant may, 7 days.
-  const seconds = Math.max(0, Math.floor((Date.parse(expiresAt) - Date.now()) / 1000));
+/**
+ * Each grant expires by itself in the database, so the cookie lasts as long as any grant in it may, 7 days. The new
+ * grant's own expiry would not do: a pack ending tomorrow would take the device's grants for its other packs with it.
+ */
+const COOKIE_SECONDS = 7 * 24 * 60 * 60;
+
+/** The Set-Cookie value that adds a grant, keeping the device's others and dropping those the database says are dead. */
+export function packGrantCookie(
+  current: string | null,
+  grant: string,
+  dead: readonly string[],
+): string {
   const secure = env().ATLAS_SITE_URL.startsWith("https:") ? "; Secure" : "";
-  const value = encodeURIComponent(addPackGrant(current, grant));
-  return `${PACK_GRANT_COOKIE}=${value}; Path=/share/pack; Max-Age=${seconds}; HttpOnly; SameSite=Lax${secure}`;
+  const value = encodeURIComponent(addPackGrant(current, grant, dead));
+  return `${PACK_GRANT_COOKIE}=${value}; Path=/share/pack; Max-Age=${COOKIE_SECONDS}; HttpOnly; SameSite=Lax${secure}`;
 }
 
 /** The cookie's value from a Cookie header, decoded. */

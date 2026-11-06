@@ -56,5 +56,5 @@ export async function POST(request: Request, { params }: RouteContext<"/share/pa
     return new Response(null, { status: 500, headers: PUBLIC_HEADERS });
   }
   if (opened.data.refused) return back(token, opened.data.reason);
-  return back(token, null, packGrantCookie(current, opened.data.grant, opened.data.grantExpiresAt));
+  return back(token, null, packGrantCookie(current, opened.data.grant, opened.data.deadGrants));
 }

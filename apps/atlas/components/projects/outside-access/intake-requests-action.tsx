@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
-import type { ProjectKeyRef, Revealed } from "@/lib/outside-access/actions";
-import { RevealPanel } from "./reveal-panel";
+import type { ProjectKeyRef } from "@/lib/outside-access/actions";
 
 /** The panel and its reads load on the first click (ADR 0027); the board is shared, so nothing eager goes with it. */
 const panel = onDemand(() => import("./intake-requests-dialog"));
@@ -16,7 +15,7 @@ const newLink = onDemand(() => import("./intake-link-dialog"));
 
 /**
  * Intake requests and New intake link on the project's Engagements tab (B2, ADR 0141): static, secondary controls, with
- * the way to Outside access beside them. A new link's code stays in this control's state until dismissed.
+ * the way to Outside access beside them. A new link's code stays in its dialog until closed, not in this toolbar row.
  */
 export function IntakeRequestsAction({
   refs,
@@ -29,7 +28,6 @@ export function IntakeRequestsAction({
   const access = useTranslations("projects.outsideAccess");
   const router = useRouter();
   const [open, setOpen] = useState<"requests" | "link" | null>(null);
-  const [revealed, setRevealed] = useState<Revealed | null>(null);
   const requests = useOnDemand(panel, open === "requests");
   const link = useOnDemand(newLink, open === "link");
   return (
@@ -62,14 +60,12 @@ export function IntakeRequestsAction({
       >
         {access("title")}
       </NextLink>
-      {revealed ? <RevealPanel revealed={revealed} onDismiss={() => setRevealed(null)} /> : null}
       {open === "requests" && requests ? (
         <requests.IntakeRequestsDialog refs={refs} onClose={() => setOpen(null)} />
       ) : null}
       {open === "link" && link ? (
         <link.IntakeLinkDialog
           refs={refs}
-          onReveal={setRevealed}
           onClose={() => {
             setOpen(null);
             router.refresh();

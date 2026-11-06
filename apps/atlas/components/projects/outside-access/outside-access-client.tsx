@@ -16,7 +16,7 @@ import {
   type Revealed,
   type RevokeKind,
 } from "@/lib/outside-access/actions";
-import { RevealPanel } from "./reveal-panel";
+import { RevealPanels, useReveals } from "./reveal-panel";
 
 /** Each dialog and its writes load the first time someone opens it (ADR 0027). */
 const packEditor = onDemand(() => import("./pack-editor-dialog"));
@@ -26,35 +26,28 @@ type Translate = ((key: string, values?: Record<string, string | number>) => str
   has?: (key: string) => boolean;
 };
 
+/** Which toolbar controls show. A row's own controls follow its viewer_can_manage, the check that source's RPC makes. */
 export interface OutsideCan {
   readonly packs: boolean;
-  readonly live: boolean;
-  readonly advance: boolean;
   readonly engagement: boolean;
-  readonly forms: boolean;
 }
 
-const REVOKE: Partial<Record<OutsideAccessSource, { kind: RevokeKind; can: keyof OutsideCan }>> = {
-  "Live view link": { kind: "live", can: "live" },
-  "Display link": { kind: "live", can: "live" },
-  "File link": { kind: "file", can: "packs" },
-  "Advance link": { kind: "advance", can: "advance" },
-  "Signing link": { kind: "signing", can: "engagement" },
-  "Pack recipient": { kind: "recipient", can: "packs" },
-  "Intake link": { kind: "intake", can: "engagement" },
-  "Form link": { kind: "form", can: "forms" },
+const REVOKE: Partial<Record<OutsideAccessSource, RevokeKind>> = {
+  "Live view link": "live",
+  "Display link": "live",
+  "File link": "file",
+  "Advance link": "advance",
+  "Signing link": "signing",
+  "Pack recipient": "recipient",
+  "Intake link": "intake",
+  "Form link": "form",
 };
 
-const REGENERATE: Partial<
-  Record<
-    OutsideAccessSource,
-    { kind: "view" | "display" | "intake" | "form"; can: keyof OutsideCan }
-  >
-> = {
-  "Live view link": { kind: "view", can: "live" },
-  "Display link": { kind: "display", can: "live" },
-  "Intake link": { kind: "intake", can: "engagement" },
-  "Form link": { kind: "form", can: "forms" },
+const REGENERATE: Partial<Record<OutsideAccessSource, "view" | "display" | "intake" | "form">> = {
+  "Live view link": "view",
+  "Display link": "display",
+  "Intake link": "intake",
+  "Form link": "form",
 };
 
 const STATE_TONES: Readonly<Record<string, "success" | "warning" | "neutral" | "danger">> = {
@@ -69,13 +62,11 @@ function Row({
   refs,
   timeZone,
   row,
-  can,
   onReveal,
 }: {
   refs: ProjectKeyRef;
   timeZone: string;
   row: OutsideAccessRow;
-  can: OutsideCan;
   onReveal: (revealed: Revealed) => void;
 }) {
   const t = useTranslations("projects.outsideAccess") as unknown as Translate;
@@ -88,9 +79,10 @@ function Row({
   const open = row.state === "Active" || row.state === "Locked" || row.state === "Pending";
   const revoke = REVOKE[row.source];
   const regenerate = REGENERATE[row.source];
-  const canRevoke = open && revoke !== undefined && can[revoke.can];
-  const canRegenerate = open && regenerate !== undefined && can[regenerate.can];
-  const canReset = open && row.source === "Pack recipient" && can.packs;
+  const canRevoke = open && revoke !== undefined && row.viewerCanManage;
+  const canRegenerate = open && regenerate !== undefined && row.viewerCanManage;
+  const canReset = open && row.source === "Pack recipient" && row.viewerCanManage;
+  const name = row.label ?? "";
   const done = (result: { ok: true } | { ok: false; error: string }) => {
     if (!result.ok) setError(result.error);
     setConfirm(null);
@@ -100,9 +92,9 @@ function Row({
     start(async () => {
       setError(null);
       if (confirm === "revoke" && revoke) {
-        done(await revokeSourceAction(refs, revoke.kind, row.sourceId));
+        done(await revokeSourceAction(refs, revoke, row.sourceId));
       } else if (confirm === "regenerate" && regenerate) {
-        const result = await regenerateSourceAction(refs, regenerate.kind, row.sourceId, row.label);
+        const result = await regenerateSourceAction(refs, regenerate, row.sourceId, name);
         if (result.ok) onReveal(result.data);
         done(result);
       }
@@ -110,14 +102,16 @@ function Row({
   const reset = () =>
     start(async () => {
       setError(null);
-      const result = await resetRecipientCodeAction(refs, row.sourceId, row.label);
+      const result = await resetRecipientCodeAction(refs, row.sourceId, name);
       if (result.ok) onReveal(result.data);
       done(result);
     });
   return (
     <li className="flex flex-col gap-4 py-8" data-outside-row={row.source}>
       <span className="flex flex-wrap items-baseline justify-between gap-8">
-        <span className="text-text-13 text-text-primary">{row.label}</span>
+        <span className="text-text-13 text-text-primary">
+          {row.label ?? t(`defaultLabels.${row.source}`)}
+        </span>
         <Tag tone={STATE_TONES[row.state] ?? "neutral"}>
           {t.has?.(`states.${row.state}`) === false ? row.state : t(`states.${row.state}`)}
         </Tag>
@@ -227,7 +221,7 @@ export function OutsideAccessClient({
 }) {
   const t = useTranslations("projects.outsideAccess") as unknown as Translate;
   const router = useRouter();
-  const [revealed, setRevealed] = useState<Revealed | null>(null);
+  const { reveals, add: reveal, dismiss } = useReveals();
   const [dialog, setDialog] = useState<"pack" | "packs" | "intake" | null>(null);
   const packs = useOnDemand(packEditor, dialog === "pack" || dialog === "packs");
   const intake = useOnDemand(intakeDialog, dialog === "intake");
@@ -277,7 +271,7 @@ export function OutsideAccessClient({
           ) : null}
         </div>
       ) : null}
-      {revealed ? <RevealPanel revealed={revealed} onDismiss={() => setRevealed(null)} /> : null}
+      <RevealPanels reveals={reveals} onDismiss={dismiss} />
       {groups.length === 0 ? (
         <p className="m-0 text-text-13 text-text-secondary">{t("empty")}</p>
       ) : (
@@ -291,8 +285,7 @@ export function OutsideAccessClient({
                   refs={refs}
                   timeZone={timeZone}
                   row={row}
-                  can={can}
-                  onReveal={setRevealed}
+                  onReveal={reveal}
                 />
               ))}
             </ul>
@@ -304,12 +297,14 @@ export function OutsideAccessClient({
           refs={refs}
           timeZone={timeZone}
           startNew={dialog === "pack"}
-          onReveal={setRevealed}
+          reveals={reveals}
+          onReveal={reveal}
+          onDismiss={dismiss}
           onClose={close}
         />
       ) : null}
       {dialog === "intake" && intake ? (
-        <intake.IntakeLinkDialog refs={refs} onReveal={setRevealed} onClose={close} />
+        <intake.IntakeLinkDialog refs={refs} onReveal={reveal} onClose={close} />
       ) : null}
     </div>
   );
