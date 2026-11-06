@@ -48,7 +48,9 @@ test("a registration page: open it, register, approve, and the person is on the 
   await create.getByRole("button", { name: "Create page" }).click();
   await atlas.getByRole("link", { name: `Summer Crew ${id}` }).click();
   await atlas.waitForURL(/page=/);
-  await atlas.getByRole("combobox", { name: "Question template" }).selectOption(template?.id as string);
+  await atlas
+    .getByRole("combobox", { name: "Question template" })
+    .selectOption(template?.id as string);
   await atlas.getByRole("button", { name: "Apply template" }).click();
   await expect(atlas.getByLabel("Question", { exact: true })).toHaveCount(10);
   await atlas.getByRole("button", { name: "Publish" }).click();
@@ -81,7 +83,7 @@ test("a registration page: open it, register, approve, and the person is on the 
   await form.getByLabel("Work phone").fill("+13055550142");
   await form.getByLabel("Question 1 about the work").fill("Rigging and load-in.");
   await form.getByRole("button", { name: "Next" }).click();
-  await expect(form.getByLabel("Question 6 about the work")).toBeVisible();
+  await expect(form.getByLabel("Question 7 about the work")).toBeVisible();
   expect(await visible.count()).toBeLessThanOrEqual(7);
   await form.getByRole("button", { name: "Next" }).click();
   await form.getByRole("checkbox", { name: "I am 18 or older" }).check();

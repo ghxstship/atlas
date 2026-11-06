@@ -61,7 +61,8 @@
     "editUndo": "Someone changed this line after your edit; reload to see the change.",
     "yes": "Yes",
     "no": "No",
-    "delete": "Delete"
+    "delete": "Delete",
+    "undo": "Undo"
   },
   "views": {
     "table": "Table",

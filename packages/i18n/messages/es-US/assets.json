@@ -93,7 +93,8 @@
     "eventId": "Evento de escaneo",
     "action": "Acción",
     "comment": "Comentario",
-    "file": "Archivo"
+    "file": "Archivo",
+    "everyCount": "Repetir cada"
   },
   "errors": {
     "field": "Revisa {field}.",

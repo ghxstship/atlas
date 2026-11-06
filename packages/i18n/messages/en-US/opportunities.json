@@ -425,11 +425,11 @@
         "Flat": "Flat"
       },
       "statuses": {
-        "Pending": "Pending",
-        "Expired": "Expired",
-        "Claimed": "Claimed",
-        "Declined": "Declined",
-        "Revoked": "Revoked"
+        "pending": "Pending",
+        "expired": "Expired",
+        "claimed": "Claimed",
+        "declined": "Declined",
+        "revoked": "Revoked"
       }
     }
   },
@@ -911,11 +911,16 @@
     "kinds": {
       "agreement": "Agreement",
       "statementOfWork": "Statement of work",
-      "nonDisclosureAgreement": "Non-disclosure agreement"
+      "nonDisclosureAgreement": "Non-disclosure agreement",
+      "Agreement": "Agreement",
+      "StatementofWork": "Statement of work",
+      "NonDisclosureAgreement": "Non-disclosure agreement"
     },
     "languages": {
       "enUs": "English (US)",
-      "esUs": "Spanish (US)"
+      "esUs": "Spanish (US)",
+      "enUS": "English (US)",
+      "esUS": "Spanish (US)"
     },
     "fieldNames": {
       "party_name": "Person's name",

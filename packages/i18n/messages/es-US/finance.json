@@ -61,7 +61,8 @@
     "editUndo": "Alguien cambió esta línea después de su edición; vuelva a cargar la página para ver el cambio.",
     "yes": "Sí",
     "no": "No",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "undo": "Deshacer"
   },
   "views": {
     "table": "Tabla",

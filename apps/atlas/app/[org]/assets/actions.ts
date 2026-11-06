@@ -556,7 +556,11 @@ export async function createMaintenancePlanAction(
       appliesTo: z.string().regex(/^(unit|class):[0-9a-f-]{36}$/),
       title: text(200),
       firstDueOn: z.iso.date(),
-      everyCount: z.coerce.number().int().min(1).max(999).optional(),
+      // A blank count is a plan done once; coerce would read it as 0 and refuse it.
+      everyCount: z.preprocess(
+        (v) => (v === "" ? undefined : v),
+        z.coerce.number().int().min(1).max(999).optional(),
+      ),
       everyUnit: z
         .enum(MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]])
         .optional(),
@@ -568,8 +572,10 @@ export async function createMaintenancePlanAction(
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "title") };
   }
-  const { appliesTo, everyCount, everyUnit, instructions, ...rest } = parsed.data;
-  if ((everyCount === undefined) !== (everyUnit === undefined)) {
+  const { appliesTo, everyCount, instructions, ...rest } = parsed.data;
+  // The unit's select always holds a value, so a blank count alone means work done once.
+  const everyUnit = everyCount === undefined ? undefined : parsed.data.everyUnit;
+  if (everyCount !== undefined && everyUnit === undefined) {
     return { error: "invalid", field: "everyCount" };
   }
   const [kind, id] = appliesTo.split(":") as [string, string];

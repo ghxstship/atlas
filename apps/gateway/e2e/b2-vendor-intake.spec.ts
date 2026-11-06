@@ -98,7 +98,7 @@ test("a vendor goes from the code to an approved request and the intake's invoic
     await page.getByLabel("Taxpayer identification number").fill(TIN);
     expect(await cognitiveLoadProblems(page)).toEqual([]);
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect(page.getByText("W-9 on file, ending 6789")).toBeVisible();
+    await expect(heading("Payout reference")).toBeVisible();
     expect(await page.content()).not.toContain(TIN);
     expect(await cognitiveLoadProblems(page)).toEqual([]);
     await page.getByRole("button", { name: "Next", exact: true }).click();

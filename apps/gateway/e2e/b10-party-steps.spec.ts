@@ -77,6 +77,7 @@ test("the crew person signs one agreement and declines another; Atlas countersig
   const row = atlas
     .getByRole("listitem")
     .filter({ hasText: `Sign me ${tag}` })
+    .filter({ has: atlas.getByRole("button", { name: "Countersign signed" }) })
     .first();
   await row.getByRole("button", { name: "Countersign signed" }).click();
   await expect(row.getByText(/Executed: 1/)).toBeVisible();
@@ -119,7 +120,7 @@ test("a pool invitation is accepted on Home and the person is named in Atlas", a
   const invite = pools.getByRole("form", { name: "Invite by email" });
   await invite.getByLabel(/email/i).first().fill("crew@example.com");
   await invite.getByRole("button", { name: "Send invitation" }).click();
-  await expect(pools.locator("#pool-invitations").getByText("crew@example.com")).toBeVisible();
+  await expect(pools.getByRole("cell", { name: "crew@example.com" })).toBeVisible();
   const [queued] = await sql<{ args: Record<string, unknown> }>(
     `select e.args from private.platform_emails e where e.template = 'party_invitation' and lower(e.to_email) = 'crew@example.com'
      order by e.created_at desc limit 1`,

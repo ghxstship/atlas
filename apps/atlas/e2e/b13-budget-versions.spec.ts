@@ -51,7 +51,7 @@ test("a snapshot compares with the live budget", async ({ page }) => {
       .getByRole("dialog", { name: "Budget versions" })
       .getByRole("button", { name: "Delete", exact: true })
       .click();
-    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await page.getByRole("button", { name: /^Undo/ }).click();
     await expect(
       page.getByRole("dialog", { name: "Budget versions" }).getByText(`Before changes ${id}`),
     ).toBeVisible();

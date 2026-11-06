@@ -47,8 +47,13 @@ export async function sql<T extends Record<string, unknown>>(
   try {
     await client.query("begin");
     if (person) {
+      // A person id names the account that signs in: auth.uid() reads the sub as the user.
+      const account = await client.query<{ user_id: string }>(
+        "select user_id from app.people where id = $1",
+        [person],
+      );
       await client.query("select set_config('request.jwt.claims', $1, true)", [
-        JSON.stringify({ sub: person, role: "authenticated" }),
+        JSON.stringify({ sub: account.rows[0]?.user_id ?? person, role: "authenticated" }),
       ]);
       await client.query("set local role authenticated");
     }
@@ -127,6 +132,7 @@ export async function displayLink(person: string, project: string, name: string)
   const [order] = await sql<{ id: string }>(
     `insert into app.run_of_show (project_id, name, show_date) values ($1::uuid, $2, current_date + 10) returning id`,
     [project, name],
+    person,
   );
   const [link] = await sql<{ live_link_id: string }>(
     `select d.live_link_id from app.create_display_link($1::uuid, now() + interval '30 days') d`,

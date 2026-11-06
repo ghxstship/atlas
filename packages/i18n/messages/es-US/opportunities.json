@@ -425,11 +425,11 @@
         "Flat": "Fija"
       },
       "statuses": {
-        "Pending": "Pendiente",
-        "Expired": "Vencida",
-        "Claimed": "Aceptada",
-        "Declined": "Rechazada",
-        "Revoked": "Revocada"
+        "pending": "Pendiente",
+        "expired": "Vencida",
+        "claimed": "Aceptada",
+        "declined": "Rechazada",
+        "revoked": "Revocada"
       }
     }
   },
@@ -911,11 +911,16 @@
     "kinds": {
       "agreement": "Acuerdo",
       "statementOfWork": "Declaración de trabajo",
-      "nonDisclosureAgreement": "Acuerdo de confidencialidad"
+      "nonDisclosureAgreement": "Acuerdo de confidencialidad",
+      "Agreement": "Acuerdo",
+      "StatementofWork": "Declaración de trabajo",
+      "NonDisclosureAgreement": "Acuerdo de confidencialidad"
     },
     "languages": {
       "enUs": "Inglés (EE. UU.)",
-      "esUs": "Español (EE. UU.)"
+      "esUs": "Español (EE. UU.)",
+      "enUS": "Inglés (EE. UU.)",
+      "esUS": "Español (EE. UU.)"
     },
     "fieldNames": {
       "party_name": "Nombre de la persona",

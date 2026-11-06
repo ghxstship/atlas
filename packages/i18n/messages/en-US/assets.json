@@ -93,7 +93,8 @@
     "eventId": "Scan event",
     "action": "Action",
     "comment": "Comment",
-    "file": "File"
+    "file": "File",
+    "everyCount": "Repeat every"
   },
   "errors": {
     "field": "Check {field}.",

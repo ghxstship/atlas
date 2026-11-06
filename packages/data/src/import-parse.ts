@@ -237,6 +237,8 @@ export const FIELD_SYNONYMS: Readonly<Record<string, readonly string[]>> = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  // Purchase order and budget lines (B11, B13).
+  line_number: ["line", "lineno", "linenum"],
   // Rundowns (P3). A header that is only '#' means the cue number; normalize() drops it, so similarField checks it.
   position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
   label: ["scene", "title", "cuename", "item"],

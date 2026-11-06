@@ -50,7 +50,10 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     await page.goto(`/${DEMO_ORG}/finance/quotes?project=NWS`);
     await settle(page);
     await expect(async () => {
-      await page.getByRole("button", { name: "New quote", exact: true }).first().click();
+      await page
+        .getByRole("button", { name: /^New quote/ })
+        .first()
+        .click();
       await expect(page.getByRole("dialog", { name: "New quote" })).toBeVisible({ timeout: 5_000 });
     }).toPass();
     const sheet = page.getByRole("dialog", { name: "New quote" });

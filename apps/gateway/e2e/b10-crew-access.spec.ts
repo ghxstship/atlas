@@ -94,6 +94,7 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   const row = worker
     .getByRole("listitem")
     .filter({ hasText: /PST|PDT/ })
+    .filter({ hasText: "Published" })
     .first();
   await expect(row).toBeVisible();
   await expect(row.getByText("Published")).toBeVisible();

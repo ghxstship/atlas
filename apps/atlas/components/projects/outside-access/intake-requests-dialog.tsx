@@ -96,9 +96,11 @@ function Decide({
 export function IntakeRequestsDialog({
   refs,
   onClose,
+  onNewLink,
 }: {
   refs: ProjectKeyRef;
   onClose: () => void;
+  onNewLink?: () => void;
 }) {
   const t = useTranslations("projects.outsideAccess.requests") as unknown as Translate;
   const format = useFormatter();
@@ -121,9 +123,16 @@ export function IntakeRequestsDialog({
       title={t("title")}
       description={t("description")}
       actions={
-        <Button type="button" variant="secondary" onClick={onClose}>
-          {t("close")}
-        </Button>
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            {t("close")}
+          </Button>
+          {onNewLink ? (
+            <Button type="button" variant="secondary" onClick={onNewLink}>
+              {access("newIntake")}
+            </Button>
+          ) : null}
+        </>
       }
     >
       <div className="flex flex-col gap-16">

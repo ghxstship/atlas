@@ -12,8 +12,8 @@ const panel = onDemand(() => import("./intake-requests-dialog"));
 const newLink = onDemand(() => import("./intake-link-dialog"));
 
 /**
- * Intake requests and New intake link on the project's Engagements tab (B2, ADR 0141): static, secondary controls, with
- * the way to Outside access beside them. A new link's code stays in its dialog until closed, not in this toolbar row.
+ * Intake requests on the project's Engagements tab (B2, ADR 0141): one static, secondary control. New intake link and the
+ * way to Outside access sit in its dialog, and a new link's code stays in that link's dialog until closed.
  */
 export function IntakeRequestsAction({
   refs,
@@ -23,7 +23,6 @@ export function IntakeRequestsAction({
   canCreate: boolean;
 }) {
   const t = useTranslations("projects.outsideAccess.requests");
-  const access = useTranslations("projects.outsideAccess");
   const router = useRouter();
   const [open, setOpen] = useState<"requests" | "link" | null>(null);
   const requests = useOnDemand(panel, open === "requests");
@@ -40,20 +39,19 @@ export function IntakeRequestsAction({
       >
         {t("action")}
       </Button>
-      {canCreate ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onMouseEnter={() => void newLink.load()}
-          onFocus={() => void newLink.load()}
-          onClick={() => setOpen("link")}
-        >
-          {access("newIntake")}
-        </Button>
-      ) : null}
       {open === "requests" && requests ? (
-        <requests.IntakeRequestsDialog refs={refs} onClose={() => setOpen(null)} />
+        <requests.IntakeRequestsDialog
+          refs={refs}
+          onClose={() => setOpen(null)}
+          {...(canCreate
+            ? {
+                onNewLink: () => {
+                  void newLink.load();
+                  setOpen("link");
+                },
+              }
+            : {})}
+        />
       ) : null}
       {open === "link" && link ? (
         <link.IntakeLinkDialog

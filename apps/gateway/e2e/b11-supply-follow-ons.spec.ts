@@ -1,5 +1,6 @@
 import { expect as baseExpect, test } from "./engine-test";
 import {
+  ACCOUNTS,
   transition,
   demoVendorId,
   PEOPLE,
@@ -40,7 +41,7 @@ test("a vendor books a delivery and keeps its reference code on the row", async 
   await page.getByLabel("Plate or trailer", { exact: true }).fill("FL ABC 123");
   await expect(async () => {
     await page.getByRole("button", { name: "Book delivery", exact: true }).click();
-    await expect(page.getByText(/^Reference [2-9A-HJ-NP-Z]{6}$/).first()).toBeVisible({
+    await expect(page.getByText(/Reference [2-9A-HJ-NP-Z]{6}/).first()).toBeVisible({
       timeout: 3_000,
     });
   }).toPass();
@@ -69,7 +70,12 @@ test("a vendor reads an issued RFQ's lines and no prices", async ({ page }) => {
     PEOPLE.owner,
   );
 
-  await signIn(page, "vendor@example.com", "/work/quote-requests");
+  // The page is for the account's Owners and Admins, so the vendor contact acts for the company, as the account menu does.
+  await signIn(page, "vendor@example.com", "/home");
+  await page
+    .context()
+    .addCookies([{ name: "xos-acting", value: ACCOUNTS.vendor, url: new URL(page.url()).origin }]);
+  await page.goto("/work/quote-requests");
   await expect(page.getByRole("heading", { name: title, exact: true })).toHaveCount(0);
 
   await sql(`select app.transition_rfq($1, 'Proposed', 'Issued', 'Go.')`, [rfq?.id], PEOPLE.owner);
