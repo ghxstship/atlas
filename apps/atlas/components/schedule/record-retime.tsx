@@ -140,7 +140,7 @@ export function RecordRetime({ org, recordId }: { org: string; recordId: string 
       <ActionErrorAlert error={error} />
       <div className="flex gap-6">
         {moves ? (
-          <Button variant="primary" loading={pending} onClick={() => run(true)}>
+          <Button loading={pending} onClick={() => run(true)}>
             {t("retime.apply")}
           </Button>
         ) : (

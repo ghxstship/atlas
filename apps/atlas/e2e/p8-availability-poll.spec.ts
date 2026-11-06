@@ -34,8 +34,8 @@ test("ask for availability, answer it and read the results", async ({ page }) =>
   await dialog.getByLabel("First day").fill(first);
   await dialog.getByLabel("Last day").fill(last);
   await expect(dialog.getByText("Asks about 2 days.")).toBeVisible();
-  await dialog.getByLabel("Search people").fill("Pat");
-  await dialog.getByLabel("Pat Planner").check();
+  await dialog.getByRole("combobox", { name: /People to ask/ }).fill("Pat");
+  await page.getByRole("option", { name: "Pat Planner" }).click();
   await settle(page);
   await expectAccessible(page);
   await dialog.getByRole("button", { name: "Ask 1 person" }).click();

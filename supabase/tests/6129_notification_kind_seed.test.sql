@@ -1,4 +1,4 @@
--- 6059_notification_kind_seed.test.sql
+-- 6129_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --

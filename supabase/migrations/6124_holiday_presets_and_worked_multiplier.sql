@@ -10,7 +10,7 @@
 --   * app.holiday_calendars.worked_holiday_multiplier: an org pay policy, set per calendar, that pays work on a holiday
 --     of that calendar at a multiple of the rate. It is not jurisdictional overtime: ADR 0033 decision 54 stands, no
 --     state holiday rule is applied, and break and meal rules stay deferred. NULL pays no premium, as before.
---   * app.calculate_payroll_run is restated from 3271 (its latest definition). Work on a day that is a holiday on the
+--   * app.calculate_payroll_run is restated from 6060 (its latest definition, with period bounds on the project's local days). Work on a day that is a holiday on the
 --     calendar governing its project (private.project_holiday_calendar_id), when that calendar sets a multiplier m
 --     above 1, pays its regular minutes on the holiday earning code at m times the rate, its overtime minutes at the
 --     greater of their own multiplier and m, and its double time at the greater of its multiplier and m. Premiums
@@ -207,7 +207,7 @@ begin
   join app.timesheet_approvals a on a.timesheet_id = t.id and a.voided_at is null
   join app.projects p on p.id = t.project_id
   join app.time_entries e on e.membership_id = t.membership_id and e.project_id = t.project_id and e.deleted_at is null
-    and e.clock_out is not null and e.clock_in >= t.period_start::timestamptz and e.clock_in < (t.period_end + 1)::timestamptz
+    and e.clock_out is not null and e.clock_in >= private.project_day_start(t.project_id, t.period_start) and e.clock_in < private.project_day_start(t.project_id, t.period_end + 1)
   left join app.shifts sh on sh.id = e.shift_id
   where t.org_id = v_run.org_id and t.deleted_at is null and t.timesheet_state = 'Approved' and t.membership_id is not null
     and t.period_start >= v_period.starts_on and t.period_end <= v_period.ends_on;

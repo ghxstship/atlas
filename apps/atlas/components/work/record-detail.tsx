@@ -27,9 +27,9 @@ import {
 } from "@xos/data/work";
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
-import dynamic from "next/dynamic";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
+import { RecordRetime } from "@/components/schedule/record-retime";
 import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
@@ -65,11 +65,6 @@ import {
 import { recordHistoryItems } from "./record-history-items";
 import { RelatedRecords, type RecordRelations } from "./related-records";
 import { ArchiveControls } from "@/components/archive/archive-controls";
-
-// Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
-const RecordRetime = dynamic(() =>
-  import("@/components/schedule/record-retime").then((m) => m.RecordRetime),
-);
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read

@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 11 email templates, 15 categories, 74 kinds (288 kind and channel rows),
+-- 11 email templates, 15 categories, 73 kinds (284 kind and channel rows),
 -- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (6059_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
@@ -97,10 +97,6 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('shift.changed', 'Email'::app.notification_channel, 'schedule', 'notification'),
   ('shift.changed', 'SMS'::app.notification_channel, 'schedule', null),
   ('shift.changed', 'Push'::app.notification_channel, 'schedule', null),
-  ('availability.requested', 'In App'::app.notification_channel, 'schedule', null),
-  ('availability.requested', 'Email'::app.notification_channel, 'schedule', 'notification'),
-  ('availability.requested', 'SMS'::app.notification_channel, 'schedule', null),
-  ('availability.requested', 'Push'::app.notification_channel, 'schedule', null),
   ('event.invited', 'In App'::app.notification_channel, 'schedule', null),
   ('event.invited', 'Email'::app.notification_channel, 'schedule', 'notification'),
   ('event.invited', 'SMS'::app.notification_channel, 'schedule', null),

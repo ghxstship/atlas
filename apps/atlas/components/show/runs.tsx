@@ -65,15 +65,13 @@ import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import { CueShift } from "./cue-shift";
+import { ShowcallerConsole } from "./showcaller-console";
 
-// The showcaller console and the inline cue editor load when opened, so the route keeps its weight.
-const ShowcallerConsole = dynamic(() =>
-  import("./showcaller-console").then((m) => m.ShowcallerConsole),
-);
+// The inline cue editor loads when a person opens it, so the route keeps its weight. The showcaller console and the
+// cue shift render on arrival, so they load with the page: a control still waiting for its chunk would lose a click.
 const CueEditor = dynamic(() => import("./cue-editor").then((m) => m.CueEditor));
 const MoveCueDialog = dynamic(() => import("./cue-editor").then((m) => m.MoveCueDialog));
-// Shift the cues still to come (P8), for people who edit the run of show; loads on demand.
-const CueShift = dynamic(() => import("./cue-shift").then((m) => m.CueShift));
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.

@@ -1,10 +1,10 @@
 "use client";
 
 import type { PollablePerson } from "@xos/data/crew";
-import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { Button, Dialog, InlineAlert, Input, MultiSelect, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { sendAvailabilityPollAction } from "@/app/[org]/crew/scheduling-actions";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -49,26 +49,15 @@ export function AvailabilityPollDialog({
   const [last, setLast] = useState(today);
   const [message, setMessage] = useState("");
   const [closesOn, setClosesOn] = useState("");
-  const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+  const [picked, setPicked] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   const days = daysFrom(first, last);
   const tooMany = days.length > 31;
-  const shown = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase();
-    return q ? people.filter((p) => (p.name ?? "").toLocaleLowerCase().includes(q)) : people;
-  }, [people, query]);
   const ready =
-    projectId !== "" && title.trim() !== "" && days.length > 0 && !tooMany && picked.size > 0;
+    projectId !== "" && title.trim() !== "" && days.length > 0 && !tooMany && picked.length > 0;
 
-  const toggle = (id: string, on: boolean) => {
-    const next = new Set(picked);
-    if (on) next.add(id);
-    else next.delete(id);
-    setPicked(next);
-  };
 
   const send = () =>
     start(async () => {
@@ -76,7 +65,7 @@ export function AvailabilityPollDialog({
         projectId,
         title,
         days,
-        personIds: [...picked],
+        personIds: picked,
         ...(message.trim() ? { message: message.trim() } : {}),
         ...(closesOn ? { closesOn } : {}),
       });
@@ -99,7 +88,7 @@ export function AvailabilityPollDialog({
             {t("cancel")}
           </Button>
           <Button variant="primary" loading={pending} disabled={!ready} onClick={send}>
-            {t("send", { count: picked.size })}
+            {t("send", { count: picked.length })}
           </Button>
         </>
       }
@@ -144,37 +133,20 @@ export function AvailabilityPollDialog({
         <p className="m-0 text-text-12 text-text-secondary">
           {t("dayCount", { count: Math.min(days.length, 31) })}
         </p>
-        <fieldset className="m-0 flex flex-col gap-6 border-0 p-0">
-          <legend className="mb-4 text-label-13 font-semibold">
-            {t("recipients", { count: picked.size })}
-          </legend>
-          <Input
-            id="poll-search"
-            type="search"
-            label={t("search")}
-            width="100%"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <div className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto">
-            {shown.length === 0 ? (
-              <p className="m-0 text-text-13 text-text-secondary">{t("noPeople")}</p>
-            ) : (
-              shown.map((p) => (
-                <Checkbox
-                  key={p.personId}
-                  label={
-                    p.engaged
-                      ? t("engagedPerson", { name: p.name ?? t("unnamed") })
-                      : (p.name ?? t("unnamed"))
-                  }
-                  checked={picked.has(p.personId)}
-                  onChange={(e) => toggle(p.personId, e.currentTarget.checked)}
-                />
-              ))
-            )}
-          </div>
-        </fieldset>
+        {/* One field, whatever the number of people (gate 27). It filters as the person types. */}
+        <MultiSelect
+          id="poll-people"
+          label={t("recipients", { count: picked.length })}
+          {...(people.length === 0 ? { help: t("noPeople") } : {})}
+          options={people.map((p) => ({
+            value: p.personId,
+            label: p.engaged
+              ? t("engagedPerson", { name: p.name ?? t("unnamed") })
+              : (p.name ?? t("unnamed")),
+          }))}
+          value={picked}
+          onChange={setPicked}
+        />
         <Textarea
           id="poll-message"
           label={t("message")}

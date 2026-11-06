@@ -8,11 +8,14 @@ import {
   type CueCallKind,
   type RunOfShow,
 } from "@xos/data/show";
-import { Button, Checkbox, Dialog, Input, Select, Textarea } from "@xos/ui";
+import { Button, Checkbox, Dialog, Input, MoreFields, Select, Textarea } from "@xos/ui";
 import { useState } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { fromLocalInput, toLocalInput } from "@/components/work/format";
 import { moveCueToAction, saveCueCallsAction, updateCueAction } from "./actions";
+
+/** Department calls shown beside a cue's four fields; the rest sit under More fields (gate 27). */
+const VISIBLE_CALLS = 3;
 
 /**
  * The run of show's inline cue editor and Move to position dialog (G-78, ADR 0131). runs.tsx loads
@@ -58,6 +61,20 @@ export function CueEditor({
   // The planned day is the cue's own, or the show day for a cue that had no time.
   const day = cue.plannedAt ? toLocalInput(cue.plannedAt, zone).slice(0, 10) : run.showDate;
   const department = (k: CueCallKind) => t(`cues.departments.${CUE_CALL_SLUGS[k]}`);
+  const [moreCalls] = useState(() =>
+    CUE_CALL_KINDS.slice(VISIBLE_CALLS).some((k) => initial[k] !== ""),
+  );
+  const callField = (k: CueCallKind) => (
+    <Textarea
+      key={k}
+      id={`cue-edit-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
+      label={t("cues.callFor", { department: department(k) })}
+      rows={2}
+      maxLength={2000}
+      value={instructions[k]}
+      onChange={(e) => setInstructions((v) => ({ ...v, [k]: e.target.value }))}
+    />
+  );
 
   const submit = () =>
     save.run(
@@ -134,18 +151,14 @@ export function CueEditor({
         />
       </div>
       <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
-        {CUE_CALL_KINDS.map((k) => (
-          <Textarea
-            key={k}
-            id={`cue-edit-call-${CUE_CALL_SLUGS[k]}-${cue.id}`}
-            label={t("cues.callFor", { department: department(k) })}
-            rows={2}
-            maxLength={2000}
-            value={instructions[k]}
-            onChange={(e) => setInstructions((v) => ({ ...v, [k]: e.target.value }))}
-          />
-        ))}
+        {CUE_CALL_KINDS.slice(0, VISIBLE_CALLS).map(callField)}
       </div>
+      {/* At most seven fields show (gate 27); the rest open by themselves when they hold a call. */}
+      <MoreFields open={moreCalls}>
+        <div className="grid grid-cols-2 gap-8 max-sm:grid-cols-1">
+          {CUE_CALL_KINDS.slice(VISIBLE_CALLS).map(callField)}
+        </div>
+      </MoreFields>
       <div className="flex gap-8">
         <Button
           type="submit"

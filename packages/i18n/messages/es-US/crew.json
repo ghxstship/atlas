@@ -852,7 +852,6 @@
       "tooManyDays": "Pregunte por 31 días como máximo.",
       "dayCount": "{count, plural, one {Pregunta por # día.} other {Pregunta por # días.}}",
       "recipients": "Personas a las que preguntar ({count})",
-      "search": "Buscar personas",
       "noPeople": "Ningún miembro ni persona contratada coincide.",
       "engagedPerson": "{name} (contratada)",
       "unnamed": "Persona sin nombre",

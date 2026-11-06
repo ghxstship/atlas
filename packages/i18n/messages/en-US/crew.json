@@ -852,7 +852,6 @@
       "tooManyDays": "Ask about 31 days at most.",
       "dayCount": "{count, plural, one {Asks about # day.} other {Asks about # days.}}",
       "recipients": "People to ask ({count})",
-      "search": "Search people",
       "noPeople": "No member or engaged person matches.",
       "engagedPerson": "{name} (engaged)",
       "unnamed": "Unnamed person",

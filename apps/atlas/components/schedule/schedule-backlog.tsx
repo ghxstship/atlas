@@ -216,7 +216,7 @@ export function ScheduleBacklog({
                 {t("backlog.cancel")}
               </Button>
               {pending.plan ? (
-                <Button variant="primary" loading={busy} onClick={() => apply(pending)}>
+                <Button loading={busy} onClick={() => apply(pending)}>
                   {t("backlog.apply")}
                 </Button>
               ) : (

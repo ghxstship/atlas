@@ -156,7 +156,7 @@ export function CueShift({
           }}
         />
         {preview && !blocked && preview.changed > 0 ? (
-          <Button variant="primary" loading={pending} onClick={() => run(false)}>
+          <Button loading={pending} onClick={() => run(false)}>
             {t("cueShift.apply", { count: preview.changed })}
           </Button>
         ) : (
