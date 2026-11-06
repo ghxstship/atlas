@@ -243,5 +243,76 @@ select lives_ok(format($$select app.console_transition_legal_queue_item(%L, 'Rec
 select pg_temp.as_platform();
 select ok((select told_by = 'Operator' and told_at is not null from private.moderation_appeal_reviews where moderation_appeal_id = pg_temp.id('appeal_gone')), 'and the appeal''s record now says they were told');
 
+-- A statement of reasons reaches the affected party whatever their settings -------------------------------------------------------
+-- Everyone who manages the marketplace in org A and the author have every channel of the category off.
+select pg_temp.public_listing('opp_g', 'Summer Series Stagehands');
+select pg_temp.public_listing('opp_h', 'Summer Series Porters');
+select pg_temp.public_listing('opp_i', 'Summer Series Grips');
+select pg_temp.as_platform();
+insert into app.notification_preferences (membership_id, category_code, channel, enabled)
+select m.id, 'account', c.channel::app.notification_channel, false
+from app.memberships m cross join (values ('In App'), ('Email'), ('SMS'), ('Push')) as c (channel)
+where m.org_id = pg_temp.id('org_a') and m.person_id <> pg_temp.id('carol')
+on conflict do nothing;
+select pg_temp.as_op('olga');
+select lives_ok(format($$insert into world select 'removal_g', app.console_decide_listing(%L, 'Removed', 'Terms Violation', 'Acceptable Use Policy 3.2',
+  'Asks for a fee.', 'We removed it. You may appeal within six months.')$$, pg_temp.id('opp_g')), 'a removal, with every channel off');
+select pg_temp.as_platform();
+select cmp_ok((select count(*)::int from private.platform_emails where template = 'moderation_notice' and args ->> 'kind' = 'listing.moderated'
+  and args -> 'values' ->> 'title' = 'Summer Series Stagehands' and args -> 'values' ->> 'statement' = 'We removed it. You may appeal within six months.'), '>=', 1,
+  'the statement of reasons goes by email, because the queue reaches nobody');
+select is((select org_id from private.platform_emails where template = 'moderation_notice' and args -> 'values' ->> 'title' = 'Summer Series Stagehands' limit 1), pg_temp.id('org_a'),
+  'and carries its org, so the org purge takes it');
+select is((select count(*)::int from app.legal_queue_items where source_table = 'listing.moderated' and source_id = pg_temp.id('removal_g')), 0, 'so nothing needs opening');
+select pg_temp.as_op('olga');
+select lives_ok(format($$insert into world select 'no_action_g', app.console_decide_listing(%L, 'No Action', 'No Violation', 'Terms 7.6', 'No fee.', 'We found no violation.')$$, pg_temp.id('opp_h')),
+  'a decision to take no action');
+select pg_temp.as_platform();
+select is((select count(*)::int from private.platform_emails where template = 'moderation_notice' and args -> 'values' ->> 'title' = 'Summer Series Porters'), 0,
+  'is promised to no one, so it honours their settings');
+
+-- Nobody left in the org to tell.
+update app.memberships set valid_to = now() - interval '1 minute' where org_id = pg_temp.id('org_a');
+select pg_temp.as_op('olga');
+select lives_ok(format($$insert into world select 'removal_i', app.console_decide_listing(%L, 'Removed', 'Terms Violation', 'Acceptable Use Policy 3.2',
+  'Asks for a fee.', 'We removed it, and nobody is left to read this.')$$, pg_temp.id('opp_i')), 'a removal when no member is left');
+select pg_temp.as_platform();
+insert into world select 'unreached', id from app.legal_queue_items where source_table = 'listing.moderated' and source_id = pg_temp.id('removal_i');
+select is((select rule_code from app.legal_queue_items where id = pg_temp.id('unreached')), 'undelivered_notice', 'opens an item, so it does not vanish in silence');
+select is((select tenant_org_id from app.legal_queue_items where id = pg_temp.id('unreached')), pg_temp.id('org_a'), 'naming the org');
+select is((select details from app.legal_queue_items where id = pg_temp.id('unreached')), null, 'and keeping no copy of the words');
+select pg_temp.as_op('olga');
+select is(app.console_legal_queue_item(pg_temp.id('unreached')) ->> 'details', 'We removed it, and nobody is left to read this.', 'the operator reads them live');
+select is(app.console_legal_queue_item(pg_temp.id('unreached')) ->> 'opportunity_id', pg_temp.id('opp_i')::text, 'and can open the listing');
+select pg_temp.as_platform();
+
+-- A reporter with no email left, on a report rather than an appeal.
+insert into app.listing_reports (opportunity_id, reporter_person_id, reason, details) values (pg_temp.id('opp_f'), pg_temp.id('rae'), 'Fraud', 'Still asks for a fee.');
+insert into world select 'report_gone', id from app.listing_reports where opportunity_id = pg_temp.id('opp_f') and details = 'Still asks for a fee.';
+select pg_temp.as_op('olga');
+select lives_ok(format($$select app.console_decide_listing(%L, 'No Action', 'No Violation', 'Terms 7.6', 'No fee.', 'Nothing found.')$$, pg_temp.id('opp_f')), 'a decision on a report by someone with no email left');
+select pg_temp.as_platform();
+select is((select rule_code from app.legal_queue_items where source_table = 'listing_report.decided' and source_id = pg_temp.id('report_gone')), 'undelivered_notice',
+  'leaves a record that they were not told');
+select is(private.sync_legal_queue_feeds() >= 0, true, 'and the feed for reports keeps its own item for the same record');
+
+-- Deleting a sign-in takes that address's notices and alerts with it. --------------------------------------------------------------
+select pg_temp.new_user('tess', 'tess@reporter.test', 'Tess Leaving');
+select pg_temp.as_platform();
+insert into private.platform_emails (id, template, to_email, locale, args, send_state, sent_at, org_id)
+values (private.uuid_v7(), 'moderation_notice', 'tess@reporter.test', 'en-US', '{"values": {"statement": "Words."}}', 'Failed', null, pg_temp.id('org_a')),
+       (private.uuid_v7(), 'moderation_notice', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', pg_temp.id('org_a')),
+       (private.uuid_v7(), 'legal_clock_alert', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', null),
+       (private.uuid_v7(), 'party_invitation', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', null);
+insert into world select 'tess_email', id from private.platform_emails where to_email = 'tess@reporter.test' and send_state = 'Failed';
+select private.sync_legal_queue_feeds();
+insert into world select 'tess_item', id from app.legal_queue_items where source_table = 'private.platform_emails' and source_id = pg_temp.id('tess_email');
+select is((select item_state::text from app.legal_queue_items where id = pg_temp.id('tess_item')), 'Received', 'a failed notice has an open item');
+delete from auth.users where id = pg_temp.id('tess_user');
+select is((select array_agg(template) from private.platform_emails where to_email = 'tess@reporter.test'), array['party_invitation'],
+  'deleting the sign-in deletes its notices and alerts from the outbox, and leaves other templates to their own rules');
+select private.sync_legal_queue_feeds();
+select is((select item_state::text from app.legal_queue_items where id = pg_temp.id('tess_item')), 'Withdrawn', 'and the item closes, with nobody left to tell');
+
 select * from finish();
 rollback;

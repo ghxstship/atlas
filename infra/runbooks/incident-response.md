@@ -101,6 +101,7 @@ Check: `legal_queue.heartbeat`. It stays off the public status page, because it 
 
 - `sweep_stale`: the hourly sweep has not finished in 2 hours. Look at `cron.job_run_details` for `xos_sweep_legal_queue`, then run `select private.sweep_legal_queue();` once in the SQL editor.
 - `feed_failing`: an automatic feed is failing, most often after a migration changed its table. Alerts on everything else still go out. The failure is also an item in the queue, with the error, and closes itself once the feed works.
+- `alert_path_failing`: part of the last sweep failed, and an alert it could not send tries again next hour. `select failing_paths from private.legal_queue_health;` names which: `operator`, `backup`, `reviewer`, `on_call` or `purge`. Most often a later migration changed `platform_emails_template` or the outbox and dropped `legal_clock_alert`. Run `select private.sweep_legal_queue();` once it is fixed, and the check clears. Until then read the queue by hand.
 - `alert_email_stuck_or_failed`: an alert or moderation-result email has waited over an hour, or failed in the last 48 hours. Check the `subprocessor-notices` worker, the provider, and `XOS_EMAIL_ALLOWLIST` or `XOS_EMAIL_DELIVER_TO_ANY`. A failed result email is also a queue item: tell the person another way.
 - `no_alert_recipient`: nobody holds the Administrator role, so alerts reach no one. Grant it with `private.grant_platform_operator`.
 

@@ -782,13 +782,13 @@
     "delivery": {
       "stuck": "{count, plural, one {# alert email has} other {# alert emails have}} waited over an hour to send. Check the subprocessor-notices worker and its schedule.",
       "failed": "{count, plural, one {# alert email} other {# alert emails}} failed in the last 30 days. Check the email provider and the allowlist.",
-      "noAlert": "{count, plural, one {# overdue clock has} other {# overdue clocks have}} had no alert in 26 hours. Check the xos_sweep_legal_queue job.",
+      "noAlert": "{count, plural, one {# overdue clock has} other {# overdue clocks have}} had no alert in 26 hours. Check the xos_sweep_legal_queue job and the platform email outbox.",
       "webhookOff": "The on-call channel is not connected, so alerts go by email only.",
       "lastSent": "Last alert email: {when}.",
       "noticesStuck": "{count, plural, one {# email telling someone a moderation result has} other {# emails telling people a moderation result have}} waited over an hour to send. Check the subprocessor-notices worker and its schedule.",
       "noticesFailed": "{count, plural, one {# email telling someone a moderation result} other {# emails telling people a moderation result}} failed in the last 30 days. Each one is an item here, so tell them another way.",
       "sweepStale": "The hourly sweep has not finished in 2 hours, so no alert is going out. Check the xos_sweep_legal_queue job.",
-      "alertPathFailed": "An alert path failed in the last 24 hours. Check the platform email outbox and the on-call webhook."
+      "alertPathFailed": "Part of the sweep failed in the last 24 hours, and what it could not send tries again each hour. Check the platform email outbox and the on-call webhook."
     },
     "add": {
       "title": "Add an item",
@@ -1001,7 +1001,7 @@
       },
       "intimate_image_report": {
         "label": "Intimate image shared without consent",
-        "source": "Take It Down Act: remove within 48 hours of a valid request. Treated as binding until counsel decides whether XOS is a covered platform."
+        "source": "Our own target, set to the Take It Down Act's 48 hours from a valid request, until counsel decides whether XOS is a covered platform."
       },
       "child_safety_report": {
         "label": "Child sexual abuse material",
@@ -1096,7 +1096,7 @@
       "title": "Customer clocks we watch",
       "intro": "{count} open. These clocks are each Customer's own. They stay here until the Customer closes them, and never count as work overdue."
     },
-    "undeliveredNote": "This person has not been told the result of a moderation decision or appeal. Tell them another way, then complete this item and say how. Who it was for and what it said show below.",
+    "undeliveredNote": "This person has not been told the result of a moderation decision or appeal. Tell them another way, then complete this item and say how. Who it was for and what it said show below, if we still hold them.",
     "feedFailureNote": "One of the queue's automatic feeds is failing, so records of that kind are not reaching this list. Everything else still runs, and this item closes itself when the feed works again. Check the error below and the most recent migration."
   }
 }

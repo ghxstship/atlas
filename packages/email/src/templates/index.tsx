@@ -123,10 +123,11 @@ export interface TemplateProps {
   };
   /**
    * The outcome of a moderation decision or appeal for someone the notification queue cannot reach, such as a reporter
-   * with no tie to the org (ADR 0167, migration 6168). The words are the same notice the queue would carry.
+   * with no tie to the org, or a statement of reasons to a member with every channel off (ADR 0167, migration 6168). The
+   * words are the same notice the queue would carry.
    */
   readonly moderation_notice: {
-    readonly kind: "listing_report.decided" | "moderation_appeal.decided";
+    readonly kind: "listing.moderated" | "listing_report.decided" | "moderation_appeal.decided";
     readonly args: MessageArgs;
   };
 }

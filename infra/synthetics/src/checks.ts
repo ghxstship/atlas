@@ -285,6 +285,7 @@ export const legalQueueHeartbeat: CheckDefinition = {
     const beat = (await response.json()) as Record<string, unknown>;
     if (beat["sweep_ok"] !== true) return failed("sweep_stale");
     if (beat["feeds_ok"] !== true) return failed("feed_failing");
+    if (beat["alert_path_ok"] !== true) return failed("alert_path_failing");
     if (beat["email_ok"] !== true) return failed("alert_email_stuck_or_failed");
     if (beat["recipient_ok"] !== true) return failed("no_alert_recipient");
     return ok;

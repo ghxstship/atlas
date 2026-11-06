@@ -45,6 +45,12 @@ insert into world select 'cert', private.write_deletion_certificate(pg_temp.id('
 update app.deletion_certificates set storage_cleared_at = now() where id = pg_temp.id('cert');
 select is((select count(*)::int from private.moderation_appeal_reviews where org_id = pg_temp.id('org_b')), 1, 'the org has a re-review record');
 select is((select tenant_org_id from app.legal_queue_items where id = pg_temp.id('fed')), pg_temp.id('org_b'), 'and a fed item says which org');
+-- A notice that failed, with the listing's title and its reasons in the outbox, and the item that keeps it on the operator's list.
+insert into private.platform_emails (template, to_email, locale, args, send_state, org_id)
+values ('moderation_notice', 'ivy@reporter.test', 'en-US', '{"kind": "listing_report.decided", "values": {"title": "Harbor Riggers", "statement": "We found no violation."}}', 'Failed', pg_temp.id('org_b'));
+select private.sync_legal_queue_feeds();
+insert into world select 'failed_item', i.id from app.legal_queue_items i join private.platform_emails e on e.id = i.source_id where e.to_email = 'ivy@reporter.test';
+select is((select tenant_org_id from app.legal_queue_items where id = pg_temp.id('failed_item')), pg_temp.id('org_b'), 'a failed notice''s item carries the org from the outbox row');
 
 -- The console ledger's own row for the moderation decision stops the purge. That row is older than this work and not the queue's,
 -- which writes no target org: the test shows the queue adds nothing to that list, and then clears it to see the rest through.
@@ -62,6 +68,10 @@ select is((select tenant_org_id from app.legal_queue_items where id = pg_temp.id
 select cmp_ok((select count(*)::int from private.legal_queue_events where legal_queue_item_id = pg_temp.id('fed')), '>', 0, 'and with its log, as evidence the clock was met');
 select is(private.legal_queue_item_json((select i from app.legal_queue_items i where i.id = pg_temp.id('fed')), now()) ->> 'live_title', null, 'nothing of the tenant''s is left to read');
 select is(private.sync_legal_queue_feeds() >= 0, true, 'and the feeds run on');
+select is((select count(*)::int from private.platform_emails where args::text ~ 'Harbor Riggers' or to_email = 'ivy@reporter.test'), 0, 'the outbox keeps no notice of the org''s, its title or the address');
+select is((select item_state::text from app.legal_queue_items where id = pg_temp.id('failed_item')), 'Withdrawn', 'and the item for that notice closes, with its evidence');
+select pg_temp.as_op('olga');
+select is((select e ->> 'details' from app.console_legal_queue_item(pg_temp.id('failed_item')) e), null, 'and reads nothing of the tenant''s');
 
 select * from finish();
 rollback;

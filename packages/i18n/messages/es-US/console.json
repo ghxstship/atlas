@@ -782,13 +782,13 @@
     "delivery": {
       "stuck": "{count, plural, one {# correo de alerta lleva} other {# correos de alerta llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
       "failed": "{count, plural, one {# correo de alerta falló} other {# correos de alerta fallaron}} en los últimos 30 días. Revisa el proveedor de correo y la lista de permitidos.",
-      "noAlert": "{count, plural, one {# plazo vencido no tiene} other {# plazos vencidos no tienen}} alerta desde hace 26 horas. Revisa el trabajo xos_sweep_legal_queue.",
+      "noAlert": "{count, plural, one {# plazo vencido no tiene} other {# plazos vencidos no tienen}} alerta desde hace 26 horas. Revisa el trabajo xos_sweep_legal_queue y la bandeja de salida de correos de la plataforma.",
       "webhookOff": "El canal de guardia no está conectado, así que las alertas solo salen por correo.",
       "lastSent": "Último correo de alerta: {when}.",
       "noticesStuck": "{count, plural, one {# correo que comunica un resultado de moderación lleva} other {# correos que comunican un resultado de moderación llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
       "noticesFailed": "{count, plural, one {# correo que comunica un resultado de moderación falló} other {# correos que comunican un resultado de moderación fallaron}} en los últimos 30 días. Cada uno es un elemento aquí, así que avísales por otra vía.",
       "sweepStale": "La revisión de cada hora no ha terminado en 2 horas, así que no sale ninguna alerta. Revisa el trabajo xos_sweep_legal_queue.",
-      "alertPathFailed": "Una vía de alerta falló en las últimas 24 horas. Revisa la bandeja de salida de correos de la plataforma y el webhook de guardia."
+      "alertPathFailed": "Parte del barrido falló en las últimas 24 horas, y lo que no pudo enviar se reintenta cada hora. Revisa la bandeja de salida de correos de la plataforma y el webhook de guardia."
     },
     "add": {
       "title": "Agregar un elemento",
@@ -1001,7 +1001,7 @@
       },
       "intimate_image_report": {
         "label": "Imagen íntima compartida sin consentimiento",
-        "source": "Take It Down Act: retirar en 48 horas desde una solicitud válida. Se trata como obligatorio hasta que un abogado decida si XOS es una plataforma cubierta."
+        "source": "Nuestra propia meta, fijada en las 48 horas de la Take It Down Act desde una solicitud válida, hasta que un abogado decida si XOS es una plataforma cubierta."
       },
       "child_safety_report": {
         "label": "Material de abuso sexual infantil",
@@ -1096,7 +1096,7 @@
       "title": "Plazos de Clientes que vigilamos",
       "intro": "{count} abiertos. Estos plazos son de cada Cliente. Siguen aquí hasta que el Cliente los cierre y nunca cuentan como trabajo vencido."
     },
-    "undeliveredNote": "A esta persona no se le ha comunicado el resultado de una decisión o apelación de moderación. Avísale por otra vía, luego completa este elemento e indica cómo. Abajo aparece a quién iba dirigido y qué decía.",
+    "undeliveredNote": "A esta persona no se le ha comunicado el resultado de una decisión o apelación de moderación. Avísale por otra vía, luego completa este elemento e indica cómo. Abajo aparece a quién iba dirigido y qué decía, si aún lo conservamos.",
     "feedFailureNote": "Una de las alimentaciones automáticas de la cola está fallando, así que los registros de ese tipo no llegan a esta lista. Todo lo demás sigue funcionando, y este elemento se cierra solo cuando la alimentación vuelva a funcionar. Revisa el error de abajo y la migración más reciente."
   }
 }

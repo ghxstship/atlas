@@ -212,13 +212,15 @@ alter table private.legal_queue_rules enable row level security;
 revoke all on private.legal_queue_rules from public, anon, authenticated;
 grant select on private.legal_queue_rules to service_role;
 
--- Sources are in the console catalog. Four numbers are worth saying why here:
+-- Sources are in the console catalog. Five numbers are worth saying why here:
 --   * dsar_privacy runs for the shorter of a month and 30 days, as Privacy Policy 7 says, and extends by 59 days, not 60, so
 --     the whole never passes the three months GDPR Article 12(3) allows.
 --   * dmca_counter_notice ends its earliest day at the 10th business day, so a restoration always falls after it, as 17
 --     U.S.C. 512(g)(2)(C) requires.
 --   * dmca_notice, abuse_report, moderation_appeal and abuse_appeal are targets: the law says "expeditiously" or "timely" and
 --     gives no number, and no published document states one.
+--   * intimate_image_report runs the Take It Down Act's 48 hours as our own target. Whether XOS is a covered platform is
+--     undecided, so the basis says target and not statute, and the catalog's source line says why.
 --   * listing_report, moderation_appeal, undelivered_notice and queue_feed_failure start with a lead longer than the clock.
 --     Nothing else tells the owner these arrived, because no mailbox receives them, so the first sweep alerts at once.
 insert into private.legal_queue_rules (code, matter, basis, first_amount, first_unit, due_amount, due_unit, earliest_amount,
@@ -232,7 +234,7 @@ insert into private.legal_queue_rules (code, matter, basis, first_amount, first_
   ('dmca_counter_notice', 'DMCA Counter-Notice', 'Statute', 1, 'Business Days', 14, 'Business Days', 10, 'Business Days', null, null, false, true, false, false, false, '{5 days,2 days,1 day}', 70),
   ('repeat_infringer_review', 'Repeat Infringer Review', 'Internal Target', null, null, 5, 'Business Days', null, null, null, null, false, false, false, false, false, '{2 days,1 day}', 80),
   ('abuse_report', 'Abuse Report', 'Internal Target', 2, 'Business Days', 5, 'Business Days', null, null, null, null, false, true, false, false, false, '{2 days,1 day}', 90),
-  ('intimate_image_report', 'Abuse Report', 'Statute', null, null, 48, 'Hours', null, null, null, null, false, true, false, false, false, '{24 hours,12 hours,4 hours}', 100),
+  ('intimate_image_report', 'Abuse Report', 'Internal Target', null, null, 48, 'Hours', null, null, null, null, false, true, false, false, false, '{24 hours,12 hours,4 hours}', 100),
   ('child_safety_report', 'Abuse Report', 'Internal Target', null, null, 24, 'Hours', null, null, null, null, false, true, false, false, false, '{12 hours,4 hours}', 110),
   ('abuse_appeal', 'Moderation Appeal', 'Internal Target', null, null, 30, 'Days', null, null, null, null, false, true, false, false, true, '{7 days,3 days,1 day}', 115),
   ('listing_report', 'Abuse Report', 'Internal Target', null, null, 5, 'Business Days', null, null, null, null, false, false, false, false, false, '{14 days,2 days,1 day}', 120),
@@ -351,8 +353,8 @@ call private.describe('app.legal_queue_items', 'One piece of legal or security w
   'tenant_org_id', 'Tenant a fed item concerns. Not org_id: this is the platform''s record, not the tenant''s, so deleting the org clears this link and keeps the evidence the clock was met.',
   'subject_person_id', 'Account a DMCA notice or repeat infringer review is about, which the repeat infringer count reads.',
   'related_item_id', 'The DMCA notice a counter-notice answers.',
-  'source_table', 'Table of the record that fed the item; null for an item added by hand.',
-  'source_id', 'Record that fed the item.',
+  'source_table', 'Table of the record that fed the item; null for an item added by hand. For a moderation notice that reached no one it is the notice''s kind instead, listing.moderated or listing_report.decided, because the record may also have an item of its own.',
+  'source_id', 'Record that fed the item: for listing.moderated the decision, for listing_report.decided the report.',
   'received_at', 'When the matter arrived, entered from the message itself; the clock starts here, not at entry.',
   'first_response_due_at', 'When the first response is due, computed from the rule.',
   'first_response_at', 'When the first response was recorded.',
@@ -572,6 +574,7 @@ create table private.legal_queue_health (
   feeds_checked_at timestamptz,
   feeds_failing boolean not null default false,
   alert_path_failed_at timestamptz,
+  failing_paths text[] not null default '{}',
   constraint legal_queue_health_one check (id)
 );
 comment on table private.legal_queue_health is 'One row: when the queue''s own machinery last worked (ADR 0167). The queue page and the outside heartbeat (api_public.legal_queue_heartbeat) read it, because a stopped sweep cannot report itself.';
@@ -579,7 +582,8 @@ comment on column private.legal_queue_health.id is 'Always true, so there is one
 comment on column private.legal_queue_health.last_sweep_at is 'When the hourly sweep last finished.';
 comment on column private.legal_queue_health.feeds_checked_at is 'When the feeds last ran.';
 comment on column private.legal_queue_health.feeds_failing is 'Whether a feed failed the last time they ran.';
-comment on column private.legal_queue_health.alert_path_failed_at is 'When an alert path last failed inside the sweep (the email outbox or the on-call post).';
+comment on column private.legal_queue_health.alert_path_failed_at is 'When a path last failed inside the sweep, for the banner on the queue page.';
+comment on column private.legal_queue_health.failing_paths is 'What failed in the last sweep: operator, backup, reviewer, on_call or purge. Empty when all of it worked; the outside heartbeat reads this.';
 alter table private.legal_queue_health enable row level security;
 revoke all on private.legal_queue_health from public, anon, authenticated;
 grant select on private.legal_queue_health to service_role;
@@ -652,7 +656,7 @@ begin
     from private.platform_emails e
     where r.notice_email_id = e.id and r.told_at is null and e.send_state = 'Sent';
     for v_row in
-      select e.id, e.created_at, (select r.org_id from private.moderation_appeal_reviews r where r.notice_email_id = e.id) as org_id
+      select e.id, e.created_at, e.org_id
       from private.platform_emails e
       where e.template = 'moderation_notice' and e.send_state = 'Failed'
         and not exists (select 1 from app.legal_queue_items i
@@ -711,6 +715,16 @@ begin
         if found then
           insert into private.legal_queue_events (legal_queue_item_id, event_kind)
           values (v_row.id, 'Extended');
+        end if;
+      elsif v_row.source_table in ('private.platform_emails', 'private.moderation_appeal_reviews', 'listing.moderated', 'listing_report.decided') then
+        -- The person deleted their account or the org was purged: the notice went with them, and there is nobody left to tell.
+        if not case v_row.source_table
+             when 'private.platform_emails' then exists (select 1 from private.platform_emails e where e.id = v_row.source_id)
+             when 'private.moderation_appeal_reviews' then exists (select 1 from private.moderation_appeal_reviews r where r.moderation_appeal_id = v_row.source_id)
+             when 'listing.moderated' then exists (select 1 from app.moderation_actions m where m.id = v_row.source_id)
+             else exists (select 1 from app.listing_reports r where r.id = v_row.source_id)
+           end then
+          perform private.follow_legal_queue_source(v_row.id, 'Withdrawn');
         end if;
       end if;
     end loop;
@@ -781,6 +795,7 @@ as $$
 declare
   v_contacts integer;
   v_reviewers integer;
+  v_emails integer;
 begin
   delete from private.legal_alert_contacts c where c.removed_at < now() - interval '1 year';
   get diagnostics v_contacts = row_count;
@@ -789,8 +804,19 @@ begin
     and not exists (select 1 from private.moderation_appeal_reviews r where r.outside_reviewer_id = o.id)
     and not exists (select 1 from app.legal_queue_items i where i.outside_reviewer_id = o.id);
   get diagnostics v_reviewers = row_count;
-  return v_contacts + v_reviewers;
+  -- The outbox keeps an address for each email. An alert's row is only proof it left. A moderation notice's row is proof the
+  -- person was told, so it stays through the six months they may appeal, and a month more. One that failed keeps the words
+  -- the operator needs, for only as long as its item is open. A row still waiting is never deleted here.
+  delete from private.platform_emails e
+  where (e.template = 'legal_clock_alert' and e.send_state in ('Sent', 'Failed')
+         and coalesce(e.sent_at, e.created_at) < now() - interval '90 days')
+     or (e.template = 'moderation_notice' and e.send_state = 'Sent' and e.sent_at < now() - interval '7 months')
+     or (e.template = 'moderation_notice' and e.send_state = 'Failed' and exists (
+           select 1 from app.legal_queue_items i
+           where i.source_table = 'private.platform_emails' and i.source_id = e.id and i.closed_at is not null));
+  get diagnostics v_emails = row_count;
+  return v_contacts + v_reviewers + v_emails;
 end;
 $$;
-comment on function private.purge_legal_queue_people() is 'Deletes backup contacts a year after removal, and outside reviewers 7 years after their appointment ended once no decision names them (ADR 0167). private.retention_policies governs app tables only, so the hourly sweep calls this. Returns the rows deleted.';
+comment on function private.purge_legal_queue_people() is 'Deletes what the queue keeps about people once its period ends (ADR 0167): backup contacts a year after removal; outside reviewers 7 years after their appointment ended once no decision names them; outbox rows of legal clock alerts 90 days after they ended; moderation notices 7 months after they were sent, or a failed one once its item closes. private.retention_policies governs app tables only, so the hourly sweep calls this. Returns the rows deleted.';
 revoke all on function private.purge_legal_queue_people() from public, anon, authenticated;

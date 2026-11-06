@@ -183,6 +183,36 @@ describe("platform emails", () => {
     expect(backup?.html).not.toContain("console.xos.test");
   });
 
+  it("sends a statement of reasons by email when the notification queue reached nobody", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([
+      {
+        id: "e8",
+        template: "moderation_notice",
+        to: "carol@org.test",
+        locale: "es-US",
+        args: {
+          kind: "listing.moderated",
+          values: {
+            title: "Summer Series Riggers",
+            action: "Removed",
+            ground: "Terms Violation",
+            ruleReference: "Acceptable Use Policy 3.2",
+            statement: "Pide una tarifa.",
+            actorName: "XOS",
+          },
+        },
+      },
+    ]);
+    expect(await dispatchPlatformEmails(s, transport, OPTIONS)).toEqual({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+    expect(transport.sent[0]?.subject).toBe("Retiramos tu anuncio Summer Series Riggers");
+    expect(transport.sent[0]?.text).toContain("Pide una tarifa.");
+  });
+
   it("sends a moderation outcome in the notice's own words to someone the queue cannot reach", async () => {
     const transport = new RecordingTransport();
     const { s } = store([

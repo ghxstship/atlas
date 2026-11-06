@@ -16,8 +16,10 @@
 --     (private.notify answers null), and a member can have every channel of the category off, so the outcome goes out as a
 --     platform email instead. The record says they were told only once the provider took that email. If it fails for good,
 --     or they have no email left, an item with its own clock opens in the legal queue (6165).
--- The same reach gap hid a listing decision's outcome from such a reporter, so private.notify_moderation_decision now
--- tells them the same way.
+-- The same reach gap hid a listing decision's outcome from such a reporter, and could keep a statement of reasons from the
+-- org whose listing was removed or restricted, so private.notify_moderation_decision now tells them the same way. A removal
+-- that reaches nobody in the org, or a reporter with no email left, opens an item as well.
+-- The outbox's row is the only place an address and a notice's words stay behind, so deleting the sign-in deletes them too.
 
 comment on type app.moderation_appeal_state is 'An appeal of a moderation decision (Acceptable Use Policy 7): Open until a fresh re-review upholds the decision or reverses it.';
 
@@ -97,8 +99,8 @@ begin
   if v_email is null then
     return;
   end if;
-  insert into private.platform_emails (template, to_email, locale, args)
-  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args))
+  insert into private.platform_emails (template, to_email, locale, args, org_id)
+  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args), p_org_id)
   returning id into email_id;
   channel := 'Email';
 end;
@@ -118,6 +120,7 @@ declare
   v_action app.moderation_actions;
   v_opp app.opportunities;
   v_person uuid;
+  v_report uuid;
   v_count integer := 0;
   v_args jsonb;
   v_channel text;
@@ -136,30 +139,80 @@ begin
       and (m.person_id = v_opp.created_by
            or private.person_capability_reach(m.person_id, v_opp.org_id, 'opportunities.marketplace.manage', true) = 'organization')
   loop
-    if private.notify(v_opp.org_id, v_person, 'listing.moderated', 'opportunities', v_opp.id, v_opp.project_id, v_args) is not null then
+    -- A restriction's statement of reasons is promised (Acceptable Use Policy 7, Digital Services Act Article 17), so it reaches
+    -- them whatever their settings. Any other decision is a courtesy, and their settings stand.
+    if v_action.action in ('Removed', 'Restricted') then
+      select t.channel into v_channel from private.tell_moderation_party(v_opp.org_id, v_person, 'listing.moderated', v_opp.id, v_opp.project_id, v_args) t;
+      if v_channel is not null then
+        v_count := v_count + 1;
+      end if;
+    elsif private.notify(v_opp.org_id, v_person, 'listing.moderated', 'opportunities', v_opp.id, v_opp.project_id, v_args) is not null then
       v_count := v_count + 1;
     end if;
   end loop;
+  -- Nobody in the org could be reached: no member is left who manages the marketplace, or none has an email. An operator has to
+  -- find someone, and the statement of reasons shows on the item, read live.
+  if v_count = 0 and v_action.action in ('Removed', 'Restricted') then
+    perform private.open_legal_queue_item('undelivered_notice', 'Moderation notice', v_action.decided_at, p_org_id => v_opp.org_id,
+      p_source_table => 'listing.moderated', p_source_id => v_action.id);
+  end if;
   -- Each reporter whose report this decision decided: reported before it and after any earlier decision. A reporter
   -- outside the queue's reach is told by email (6168), because Acceptable Use Policy 7 promises the outcome.
-  for v_person in
-    select distinct r.reporter_person_id from app.listing_reports r
+  for v_person, v_report in
+    select distinct on (r.reporter_person_id) r.reporter_person_id, r.id from app.listing_reports r
     where r.opportunity_id = v_opp.id and r.deleted_at is null and r.reported_at <= v_action.decided_at
       and not exists (select 1 from app.moderation_actions e
                       where e.opportunity_id = v_opp.id and e.id <> v_action.id and e.decided_at >= r.reported_at
                         and e.decided_at < v_action.decided_at)
+    order by r.reporter_person_id, r.reported_at
   loop
     select t.channel into v_channel from private.tell_moderation_party(v_opp.org_id, v_person, 'listing_report.decided', v_opp.id, v_opp.project_id,
       jsonb_build_object('title', v_opp.title, 'action', v_action.action, 'statement', v_action.statement_of_reasons, 'actorName', 'XOS')) t;
     if v_channel is not null then
       v_count := v_count + 1;
+    else
+      -- No email left, which most often means they deleted their account. It stays on record that they were not told.
+      perform private.open_legal_queue_item('undelivered_notice', 'Moderation notice', v_action.decided_at, p_org_id => v_opp.org_id,
+        p_source_table => 'listing_report.decided', p_source_id => v_report);
     end if;
   end loop;
   return v_count;
 end;
 $$;
-comment on function private.notify_moderation_decision(uuid) is 'Sends a moderation decision''s statement of reasons to the affected party, the org''s marketplace managers and the listing''s author (listing.moderated), and its outcome to each reporter whose report it decided (listing_report.decided), by email when the notification queue cannot reach them (private.tell_moderation_party, 6168). Returns how many were reached or had an email queued. The notices name the platform as the actor, never the operator who decided (1590).';
+comment on function private.notify_moderation_decision(uuid) is 'Sends a moderation decision''s statement of reasons to the affected party, the org''s marketplace managers and the listing''s author (listing.moderated), and its outcome to each reporter whose report it decided (listing_report.decided). A removal, a restriction and a report''s outcome go by email when the notification queue cannot reach them (private.tell_moderation_party, 6168), and open a legal queue item when that cannot reach anyone either. Returns how many were reached or had an email queued. The notices name the platform as the actor, never the operator who decided (1590).';
 revoke all on function private.notify_moderation_decision(uuid) from public, anon, authenticated;
+
+-- When a sign-in is deleted ---------------------------------------------------------------------------------------------
+
+-- A trigger on the sign-in rather than a change to app.delete_my_account, so a deletion by any path is covered: a legal queue
+-- alert or a moderation notice to that address goes with it, sent or waiting. An open item about a failed notice closes at
+-- the next sync, because there is nobody left to tell.
+create function private.forget_legal_emails_of_sign_in()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_email text := lower(old.email);
+begin
+  if v_email is null then
+    return null;
+  end if;
+  -- They were told, if the provider took it, and the record must say so before the row that proves it goes.
+  update private.moderation_appeal_reviews r set told_at = e.sent_at
+  from private.platform_emails e
+  where r.notice_email_id = e.id and r.told_at is null and e.send_state = 'Sent' and e.to_email = v_email;
+  delete from private.platform_emails e
+  where e.template in ('legal_clock_alert', 'moderation_notice') and e.to_email = v_email;
+  return null;
+end;
+$$;
+comment on function private.forget_legal_emails_of_sign_in() is 'After a sign-in is deleted, deletes the legal queue alerts and moderation notices addressed to it from the platform email outbox (ADR 0167), so no address or notice outlives the account.';
+revoke all on function private.forget_legal_emails_of_sign_in() from public, anon, authenticated;
+
+create trigger xos_forget_legal_emails after delete on auth.users
+  for each row execute function private.forget_legal_emails_of_sign_in();
 
 -- Deciding an appeal --------------------------------------------------------------------------------------------------
 

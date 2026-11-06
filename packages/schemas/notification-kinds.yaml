@@ -388,8 +388,8 @@ kinds:
   - kind: listing.moderated
     category: account
     emitted_by:
-      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
-      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
+      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided; 6168 sends a restriction's statement by email when the queue reaches nobody.
+      - emitter: supabase/migrations/6168_one_person_appeal_rule.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: listing_report.decided
     category: account

@@ -60,7 +60,7 @@ function healthyRoutes(): Record<string, Route> {
     "https://sync.test/probes/readiness": () => new Response("ok"),
     "https://ref.supabase.test/functions/v1/notification-dispatch": () => json({}, 401),
     "https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat": () =>
-      json({ sweep_ok: true, feeds_ok: true, email_ok: true, recipient_ok: true }),
+      json({ sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: true }),
   };
 }
 
@@ -167,7 +167,7 @@ describe("runChecks", () => {
     routes["https://sync.test/probes/readiness"] = () => new Response("no", { status: 503 });
     routes["https://ref.supabase.test/functions/v1/notification-dispatch"] = () => json({}, 500);
     routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () =>
-      json({ sweep_ok: false, feeds_ok: true, email_ok: true, recipient_ok: true });
+      json({ sweep_ok: false, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: true });
     const f = fakeFetch(routes);
     const ws = fakeSocket(
       JSON.stringify({ event: "phx_reply", ref: "1", payload: { status: "error" } }),
@@ -203,13 +203,26 @@ describe("runChecks", () => {
   });
 
   it.each([
-    [{ sweep_ok: false, feeds_ok: true, email_ok: true, recipient_ok: true }, "sweep_stale"],
-    [{ sweep_ok: true, feeds_ok: false, email_ok: true, recipient_ok: true }, "feed_failing"],
     [
-      { sweep_ok: true, feeds_ok: true, email_ok: false, recipient_ok: true },
+      { sweep_ok: false, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "sweep_stale",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: false, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "feed_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: false, email_ok: true, recipient_ok: true },
+      "alert_path_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: false, recipient_ok: true },
       "alert_email_stuck_or_failed",
     ],
-    [{ sweep_ok: true, feeds_ok: true, email_ok: true, recipient_ok: false }, "no_alert_recipient"],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: false },
+      "no_alert_recipient",
+    ],
   ])("says which part of the legal queue's machinery stopped: %j", async (beat, detail) => {
     const routes = healthyRoutes();
     routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () => json(beat);

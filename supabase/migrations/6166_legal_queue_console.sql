@@ -136,6 +136,8 @@ as $$
       when 'app.listing_reports' then (select o.title from app.listing_reports x join app.opportunities o on o.id = x.opportunity_id where x.id = p_item.source_id)
       when 'app.moderation_appeals' then (select o.title from app.moderation_appeals x join app.moderation_actions m on m.id = x.moderation_action_id
                                           join app.opportunities o on o.id = m.opportunity_id where x.id = p_item.source_id)
+      when 'listing.moderated' then (select o.title from app.moderation_actions m join app.opportunities o on o.id = m.opportunity_id where m.id = p_item.source_id)
+      when 'listing_report.decided' then (select o.title from app.listing_reports x join app.opportunities o on o.id = x.opportunity_id where x.id = p_item.source_id)
     end,
     -- Fed and system items carry a code in title, which the console words from its catalog in the operator's language.
     'title', p_item.title,
@@ -202,7 +204,8 @@ begin
       'notices_failed', (select count(*) from private.platform_emails e
                          where e.template = 'moderation_notice' and e.send_state = 'Failed' and e.created_at > v_now - interval '30 days'),
       'last_sent_at', (select max(e.sent_at) from private.platform_emails e where e.template = 'legal_clock_alert'),
-      -- The sweep alerts on each overdue item at least daily, so one with no alert in 26 hours says the sweep is down.
+      -- The sweep alerts on each overdue item at least daily, and logs it once an operator's digest is on its way. So one with
+      -- no alert in 26 hours says the sweep or its email path is down.
       'overdue_without_alert', (
         select count(*) from app.legal_queue_items i join private.legal_queue_rules r on r.code = i.rule_code
         where i.closed_at is null and not r.customer_clock and private.legal_queue_next_clock(i) < v_now - interval '2 hours'
@@ -261,6 +264,9 @@ begin
   -- An undelivered notice reads who it was for and what it said live from the outbox, so the queue keeps no copy.
   select e.to_email, e.args -> 'values' ->> 'statement' into v_notice_to, v_notice_text
   from private.platform_emails e where v_item.source_table = 'private.platform_emails' and e.id = v_item.source_id;
+  if v_item.source_table = 'listing.moderated' then
+    select m.statement_of_reasons into v_notice_text from app.moderation_actions m where m.id = v_item.source_id;
+  end if;
   return private.legal_queue_item_json(v_item, v_now) || jsonb_build_object(
     'time_zone', private.legal_clock_time_zone(), 'details', coalesce(v_item.details, v_notice_text),
     'requester_contact', coalesce(v_item.requester_contact, v_notice_to),
@@ -277,7 +283,8 @@ begin
       else (select o.reviewer_name from private.legal_outside_reviewers o where o.id = v_item.outside_reviewer_id) end,
     -- A fed appeal or report is decided on its listing's moderation page.
     'opportunity_id', case
-      when v_item.source_table = 'app.listing_reports' then (select r.opportunity_id from app.listing_reports r where r.id = v_item.source_id)
+      when v_item.source_table in ('app.listing_reports', 'listing_report.decided') then (select r.opportunity_id from app.listing_reports r where r.id = v_item.source_id)
+      when v_item.source_table = 'listing.moderated' then (select m.opportunity_id from app.moderation_actions m where m.id = v_item.source_id)
       when v_item.source_table = 'app.moderation_appeals' then (
         select m.opportunity_id from app.moderation_appeals a join app.moderation_actions m on m.id = a.moderation_action_id
         where a.id = v_item.source_id) end,
@@ -511,8 +518,6 @@ begin
   update app.legal_queue_items
   set item_state = p_next,
     closed_at = case when v_closing then now() end,
-    -- Closing answers whoever was waiting for a first response.
-    first_response_at = case when v_closing then coalesce(first_response_at, now()) else first_response_at end,
     court_action_filed = coalesce(p_court_action_filed, false),
     re_review_same_person = case when v_re_review then v_outside is null and coalesce(p_same_person, false) end,
     outside_reviewer_id = case when v_re_review then v_outside end,
