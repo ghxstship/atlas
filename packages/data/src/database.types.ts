@@ -78997,6 +78997,10 @@ export type Database = {
           stays_because: string;
         }[];
       };
+      muster_rows: {
+        Args: { p_limit?: number; p_project_id: string; p_zone_id?: string };
+        Returns: Json;
+      };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -82671,6 +82675,7 @@ export type Database = {
           unestimated_tasks: number;
         }[];
       };
+      zone_count_rows: { Args: { p_project_id: string; p_zone_id?: string }; Returns: Json };
     };
     Enums: {
       accessibility_need:
