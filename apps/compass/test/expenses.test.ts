@@ -625,7 +625,10 @@ describe("an expense the person paid themselves (3012)", () => {
   });
 
   it("marks the row it shows at once", () => {
-    expect(save(true).optimistic).toMatchObject({ is_reimbursable: true, credit_of_expense_id: null });
+    expect(save(true).optimistic).toMatchObject({
+      is_reimbursable: true,
+      credit_of_expense_id: null,
+    });
     expect(save().optimistic).toMatchObject({ is_reimbursable: false });
   });
 

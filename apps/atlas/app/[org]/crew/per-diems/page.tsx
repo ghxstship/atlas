@@ -139,7 +139,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
             ? [
                 { label: t("crew.perDiems.fields.paidOn"), value: paidDay(peeked) },
                 ...(peeked.paidReference
-                  ? [{ label: t("crew.perDiems.fields.paidReference"), value: peeked.paidReference }]
+                  ? [
+                      {
+                        label: t("crew.perDiems.fields.paidReference"),
+                        value: peeked.paidReference,
+                      },
+                    ]
                   : []),
               ]
             : []),

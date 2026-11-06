@@ -229,7 +229,9 @@ describe("the all-in cost of an act (3018)", () => {
       ],
     });
     const result = await listEngagementCostItems(db, { projectId: "p1" });
-    expect(result.ok && result.data.map((i) => [i.amountMinor, i.countedMinor, i.parentId])).toEqual([
+    expect(
+      result.ok && result.data.map((i) => [i.amountMinor, i.countedMinor, i.parentId]),
+    ).toEqual([
       [120000, 20000, null],
       [500, 500, "po1"],
     ]);
@@ -262,6 +264,9 @@ describe("the all-in cost of an act (3018)", () => {
       "rpc:person_names": [okResponse([{ person_id: "art", full_name: "Arturo Bell" }])],
     });
     const result = await listEngagementRefs(db, { orgId: "o1" });
-    expect(result.ok && result.data[0]).toMatchObject({ personId: "art", personName: "Arturo Bell" });
+    expect(result.ok && result.data[0]).toMatchObject({
+      personId: "art",
+      personName: "Arturo Bell",
+    });
   });
 });

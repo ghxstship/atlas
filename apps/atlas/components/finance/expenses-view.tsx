@@ -98,7 +98,8 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
     `${projectKey.get(e.projectId ?? "") ?? ""} · ${c.date(e.incurredOn)}`;
   const isCredit = (e: Expense) => e.creditOfExpenseId !== null;
   // A credit's amount stays positive in the database; here it reads as what it takes back.
-  const signedAmount = (e: Expense) => c.money(isCredit(e) ? -e.amountMinor : e.amountMinor, e.currency);
+  const signedAmount = (e: Expense) =>
+    c.money(isCredit(e) ? -e.amountMinor : e.amountMinor, e.currency);
   const reimbursementLabel = (e: Expense) => {
     const status = e.isReimbursable ? (e.balance?.reimbursementStatus ?? null) : null;
     return status ? t(`finance.expenses.status.${status.replace(/\s+/g, "")}`) : "";
@@ -166,7 +167,10 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
                 label: t("finance.expenses.pendingCredits"),
                 value: c.money(peek.balance.pendingCreditMinor, peek.currency),
               },
-              { label: t("finance.expenses.net"), value: c.money(peek.balance.netMinor, peek.currency) },
+              {
+                label: t("finance.expenses.net"),
+                value: c.money(peek.balance.netMinor, peek.currency),
+              },
             ]
           : []),
         ...(peek.isReimbursable
@@ -390,7 +394,9 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
       listItems={shown.map((e) => ({
         id: e.id,
         recordKey: keyOf(e),
-        title: isCredit(e) ? t("finance.expenses.creditTitle", { description: e.description }) : e.description,
+        title: isCredit(e)
+          ? t("finance.expenses.creditTitle", { description: e.description })
+          : e.description,
         state: iconState(e.state),
         stateLabel: c.state("expense", e.state),
         next: signedAmount(e),
@@ -402,7 +408,9 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
           .filter((e) => e.state === s)
           .map((e) => ({
             key: e.id,
-            title: isCredit(e) ? t("finance.expenses.creditTitle", { description: e.description }) : e.description,
+            title: isCredit(e)
+              ? t("finance.expenses.creditTitle", { description: e.description })
+              : e.description,
             meta: signedAmount(e),
           })),
       }))}

@@ -183,7 +183,10 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
       propertiesLabel: t("finance.common.properties"),
       properties: [
         { label: t("finance.due.fields.payee"), value: payeeOf(peeked) },
-        { label: t("finance.due.fields.due"), value: c.date(peeked.dueOn) || t("finance.common.none") },
+        {
+          label: t("finance.due.fields.due"),
+          value: c.date(peeked.dueOn) || t("finance.common.none"),
+        },
         { label: t("finance.common.amount"), value: c.money(peeked.amountMinor, peeked.currency) },
         ...(peeked.scheduledMinor > 0
           ? [
@@ -206,7 +209,9 @@ export async function PaymentsDueTab({ page }: { page: FinancePage }) {
       content: (
         <>
           {peeked.billedOffsetMinor === null || peeked.billedOffsetMinor > 0 ? (
-            <p className="m-0 text-text-12 text-text-secondary">{t("finance.due.billedOffsetHelp")}</p>
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("finance.due.billedOffsetHelp")}
+            </p>
           ) : null}
           {open ? (
             <div className="flex flex-wrap gap-8">

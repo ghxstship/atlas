@@ -1445,7 +1445,8 @@ export async function listExpenseBalances(
       .select(BALANCE_COLUMNS)
       .in("expense_id", chunk);
     if (error) return fail(toDataError(error));
-    for (const r of (data as Raw[] | null) ?? []) out.set(str(r["expense_id"]), toExpenseBalance(r));
+    for (const r of (data as Raw[] | null) ?? [])
+      out.set(str(r["expense_id"]), toExpenseBalance(r));
   }
   return ok(out);
 }
@@ -2876,12 +2877,7 @@ export function toCsv(header: readonly string[], body: readonly (readonly string
 // Payments due (B12, 3015) ------------------------------------------------------------------------------------------
 
 export type PaymentDueKind =
-  | "invoice"
-  | "instalment"
-  | "settlement"
-  | "per_diem"
-  | "reimbursement"
-  | "expense";
+  "invoice" | "instalment" | "settlement" | "per_diem" | "reimbursement" | "expense";
 
 /** One outstanding payable of app.payments_due: what the org owes, to whom and when. */
 export interface PaymentDue {

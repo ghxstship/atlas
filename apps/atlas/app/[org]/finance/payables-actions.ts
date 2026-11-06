@@ -53,8 +53,7 @@ const reference = z
   .trim()
   .max(200)
   .transform((s) => (s === "" ? null : s));
-const ids = (form: FormData, key: string) =>
-  z.array(z.uuid()).min(1).safeParse(form.getAll(key));
+const ids = (form: FormData, key: string) => z.array(z.uuid()).min(1).safeParse(form.getAll(key));
 
 export async function recordReimbursementAction(
   _: ActionState,

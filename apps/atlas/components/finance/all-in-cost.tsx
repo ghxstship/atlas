@@ -1,7 +1,4 @@
-import {
-  canReadEngagementCosts,
-  listEngagementCosts,
-} from "@xos/data/settlements";
+import { canReadEngagementCosts, listEngagementCosts } from "@xos/data/settlements";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFinanceCopy } from "@/lib/finance/copy";

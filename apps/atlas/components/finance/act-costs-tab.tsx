@@ -159,7 +159,10 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
       propertiesLabel: t("finance.common.properties"),
       properties: [
         { label: t("finance.common.total"), value: totalOf(peeked) },
-        { label: t("finance.actCosts.fields.pricedTotal"), value: money(peeked, peeked.pricedTotalMinor) },
+        {
+          label: t("finance.actCosts.fields.pricedTotal"),
+          value: money(peeked, peeked.pricedTotalMinor),
+        },
       ],
       content: (
         <>
@@ -207,7 +210,11 @@ export async function ActCostsTab({ page }: { page: FinancePage }) {
         { key: "perDiem", label: t("finance.actCosts.components.perDiem"), type: "number" },
         { key: "hospitality", label: t("finance.actCosts.components.hospitality"), type: "number" },
         { key: "expense", label: t("finance.actCosts.components.expense"), type: "number" },
-        { key: "purchaseOrder", label: t("finance.actCosts.components.purchaseOrder"), type: "number" },
+        {
+          key: "purchaseOrder",
+          label: t("finance.actCosts.components.purchaseOrder"),
+          type: "number",
+        },
         { key: "total", label: t("finance.common.total"), type: "number" },
         { key: "priced", label: t("finance.actCosts.fields.pricedTotal"), type: "number" },
       ]}

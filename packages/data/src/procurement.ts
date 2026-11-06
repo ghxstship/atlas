@@ -756,9 +756,18 @@ export interface LinkableBill {
  */
 export async function listLinkableBills(
   db: XosClient,
-  order: { readonly id: string; readonly projectId: string; readonly vendorId: string; readonly currencyCode: string },
+  order: {
+    readonly id: string;
+    readonly projectId: string;
+    readonly vendorId: string;
+    readonly currencyCode: string;
+  },
 ): Promise<Result<LinkableBill[]>> {
-  const vendor = await db.from("vendors").select("counterparty_id").eq("id", order.vendorId).maybeSingle();
+  const vendor = await db
+    .from("vendors")
+    .select("counterparty_id")
+    .eq("id", order.vendorId)
+    .maybeSingle();
   if (vendor.error) return fail(toDataError(vendor.error));
   if (!vendor.data?.counterparty_id) return ok([]);
   const bills = await db
@@ -780,7 +789,11 @@ export async function listLinkableBills(
       .in("invoice_id", ids)
       .neq("purchase_order_id", order.id)
       .is("deleted_at", null),
-    db.from("po_payment_instalments").select("invoice_id").in("invoice_id", ids).is("deleted_at", null),
+    db
+      .from("po_payment_instalments")
+      .select("invoice_id")
+      .in("invoice_id", ids)
+      .is("deleted_at", null),
   ]);
   if (matches.error) return fail(toDataError(matches.error));
   if (linked.error) return fail(toDataError(linked.error));

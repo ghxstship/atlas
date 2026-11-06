@@ -1197,12 +1197,20 @@ describe("payment schedule (3013)", () => {
       "from:po_lines": [okResponse([{ id: "l1" }])],
       "rpc:purchase_order_duplicate_candidates": [
         okResponse([
-          { purchase_order_id: "po1", candidate_id: "po2", same_vendor: false, total_delta_minor: 50, day_gap: 3 },
+          {
+            purchase_order_id: "po1",
+            candidate_id: "po2",
+            same_vendor: false,
+            total_delta_minor: 50,
+            day_gap: 3,
+          },
         ]),
       ],
     });
     expect(await setPoLineEngagement(db, "l1", "e1")).toEqual({ ok: true, data: null });
-    expect(calls[0]?.steps.find(([name]) => name === "update")?.[1][0]).toEqual({ engagement_id: "e1" });
+    expect(calls[0]?.steps.find(([name]) => name === "update")?.[1][0]).toEqual({
+      engagement_id: "e1",
+    });
     const found = await listPurchaseOrderDuplicates(db, "po1");
     expect(found.ok && found.data).toEqual([
       { candidateId: "po2", sameVendor: false, totalDeltaMinor: 50, dayGap: 3 },

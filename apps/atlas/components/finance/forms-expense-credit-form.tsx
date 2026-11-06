@@ -78,10 +78,7 @@ export function ExpenseCreditForm({
         error={fieldError(t, state, "description")}
       />
       <ActionFeedback state={state} />
-      <Submit
-        label={creditId ? t("common.save") : t("expenses.recordCredit")}
-        pending={pending}
-      />
+      <Submit label={creditId ? t("common.save") : t("expenses.recordCredit")} pending={pending} />
     </form>
   );
 }

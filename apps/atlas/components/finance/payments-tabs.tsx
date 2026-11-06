@@ -4,7 +4,13 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { InlineAlert } from "./payables-ui";
 
 /** The sections of Finance > Payments, as `?tab=`; payments is the bare page. */
-export const PAYMENT_TABS = ["payments", "settlements", "due", "reimbursements", "act-costs"] as const;
+export const PAYMENT_TABS = [
+  "payments",
+  "settlements",
+  "due",
+  "reimbursements",
+  "act-costs",
+] as const;
 export type PaymentTab = (typeof PAYMENT_TABS)[number];
 
 const LABEL_KEY: Readonly<Record<PaymentTab, string>> = {

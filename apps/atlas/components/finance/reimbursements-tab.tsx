@@ -60,7 +60,8 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
     return <FinanceCollection {...base} error={t("finance.reimbursements.loadError")} />;
   }
   const me = ctx.viewer.person?.id ?? null;
-  const nameOf = (b: { payeeName: string | null }) => b.payeeName ?? t("finance.invoices.individual");
+  const nameOf = (b: { payeeName: string | null }) =>
+    b.payeeName ?? t("finance.invoices.individual");
   const payee = query.extra["payee"] ?? null;
   const term = query.q?.toLowerCase() ?? null;
   const shown = balances.data.filter(
@@ -97,13 +98,27 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
       title: nameOf(peeked),
       state: peeked.owedCount > 0 ? "in-review" : "complete",
       stateLabel:
-        peeked.owedCount > 0 ? t("finance.reimbursements.status.Owed") : t("finance.reimbursements.status.NotOwed"),
+        peeked.owedCount > 0
+          ? t("finance.reimbursements.status.Owed")
+          : t("finance.reimbursements.status.NotOwed"),
       propertiesLabel: t("finance.common.properties"),
       properties: [
-        { label: t("finance.reimbursements.fields.recorded"), value: String(rows.find((r) => r.id === query.peek)?.["recorded"] ?? "") },
-        { label: t("finance.reimbursements.fields.owed"), value: c.money(peeked.owedMinor, peeked.currency) },
-        { label: t("finance.reimbursements.fields.paid"), value: c.money(peeked.paidMinor, peeked.currency) },
-        { label: t("finance.reimbursements.fields.lastPaid"), value: c.date(peeked.lastPaidOn) || t("finance.common.none") },
+        {
+          label: t("finance.reimbursements.fields.recorded"),
+          value: String(rows.find((r) => r.id === query.peek)?.["recorded"] ?? ""),
+        },
+        {
+          label: t("finance.reimbursements.fields.owed"),
+          value: c.money(peeked.owedMinor, peeked.currency),
+        },
+        {
+          label: t("finance.reimbursements.fields.paid"),
+          value: c.money(peeked.paidMinor, peeked.currency),
+        },
+        {
+          label: t("finance.reimbursements.fields.lastPaid"),
+          value: c.date(peeked.lastPaidOn) || t("finance.common.none"),
+        },
       ],
       content: (
         <div className="flex flex-wrap gap-8">
@@ -189,7 +204,11 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
   const recordFor = query.extra["record"];
   const recordCurrency = query.extra["currency"];
   if (canRecord && recordFor && recordCurrency && recordFor !== me) {
-    const owed = await listOwedExpenses(db, { orgId: ctx.org.id, payeePersonId: recordFor, projectId });
+    const owed = await listOwedExpenses(db, {
+      orgId: ctx.org.id,
+      payeePersonId: recordFor,
+      projectId,
+    });
     // One currency a sheet: a reimbursement settles expenses in one currency.
     const inCurrency = owed.ok ? owed.data.filter((o) => o.currency === recordCurrency) : [];
     if (inCurrency.length > 0) {
@@ -248,7 +267,9 @@ export async function ReimbursementsTab({ page }: { page: FinancePage }) {
         title: nameOf(b),
         state: b.owedCount > 0 ? "in-review" : "complete",
         stateLabel:
-          b.owedCount > 0 ? t("finance.reimbursements.status.Owed") : t("finance.reimbursements.status.NotOwed"),
+          b.owedCount > 0
+            ? t("finance.reimbursements.status.Owed")
+            : t("finance.reimbursements.status.NotOwed"),
         next: c.money(b.owedMinor, b.currency),
       }))}
       detail={detail}
