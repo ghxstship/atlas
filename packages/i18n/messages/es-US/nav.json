@@ -130,7 +130,8 @@
         "universalPostingLineExport": "Exportación de la línea de registro universal",
         "chartOfAccounts": "Catálogo de cuentas",
         "costCenters": "Centros de costos",
-        "yearEnd": "Cierre del año"
+        "yearEnd": "Cierre del año",
+        "quotes": "Cotizaciones"
       },
       "procurement": {
         "rfqs": "Solicitudes de cotización",

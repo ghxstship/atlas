@@ -507,7 +507,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.chartTitle", { currency: cur })}
           head={header}
-          numeric={[2, 3, 4, 5, 6, 7]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={same.map((r) => line(r, keyLabel(r.key)))}
         />
       </div>
@@ -525,7 +525,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
         <SimpleTable
           caption={t("reports.bva.tableCaption")}
           head={header}
-          numeric={[2, 3, 4, 5, 6, 7]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={rows.map((r) => line(r, keyLabel(r.key)))}
         />
         <SimpleTable
@@ -538,7 +538,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
             t(`reports.bva.dimensions.${dimension === "costCenter" ? "account" : "costCenter"}`),
             ...header.slice(1),
           ]}
-          numeric={[2, 3, 4, 5, 6, 7]}
+          numeric={[2, 3, 4, 5, 6, 7, 8]}
           rows={other.map((r) => line(r, r.key || t("reports.bva.unassigned.costCenter")))}
         />
       </div>
@@ -548,7 +548,7 @@ export async function BudgetVersusActualReport({ page }: { page: FinancePage }) 
       <SimpleTable
         caption={t("reports.bva.tableCaption")}
         head={header}
-        numeric={[2, 3, 4, 5, 6, 7]}
+        numeric={[2, 3, 4, 5, 6, 7, 8]}
         rows={rows.map((r) => [
           <Link key="k" className="text-accent-text underline" href={drill(r.key) as Route}>
             {keyLabel(r.key)}

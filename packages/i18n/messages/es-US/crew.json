@@ -54,7 +54,8 @@
     "moneyRequired": "Ingrese la tarifa como un monto con dos decimales como máximo.",
     "currency": "Elija una moneda.",
     "hours": "Ingrese las horas como un número mayor que cero.",
-    "worker": "Elige a alguien de la lista o deja el turno libre."
+    "worker": "Elige a alguien de la lista o deja el turno libre.",
+    "budgetLine": "Elige una línea de presupuesto de la lista."
   },
   "refusals": {
     "shift_accept_rpc": "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
@@ -165,7 +166,10 @@
     "roster_shift_not_assigned": "Nadie del equipo de una agencia tiene este turno.",
     "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
     "sod_roster_training": "Una persona no puede verificar su propia formación. Pide a otra persona que la verifique.",
-    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas."
+    "sod_supervisor_punch": "Fichaste la entrada o la salida de esta persona, así que otra persona aprueba esta hoja de horas.",
+    "shift_budget_line_project": "Elige una línea vigente de un presupuesto del proyecto de este turno.",
+    "shift_budget_line_labor": "Un turno registra su tiempo en una línea de mano de obra.",
+    "shift_budget_line_posted": "El tiempo aprobado de este turno ya está en el presupuesto, así que moverlo requiere finance.budget.write."
   },
   "states": {
     "shift": {
@@ -239,7 +243,8 @@
     "hours": "Horas",
     "state": "Estado",
     "startsAt": "Inicio ({zone})",
-    "endsAt": "Fin ({zone})"
+    "endsAt": "Fin ({zone})",
+    "budgetLine": "Línea de presupuesto"
   },
   "common": {
     "unnamed": "Persona sin nombre",
@@ -399,7 +404,10 @@
         "when": "Indica cuándo empieza el turno, por ejemplo viernes 8am-4pm.",
         "role": "Ese rol no está en la biblioteca de roles."
       }
-    }
+    },
+    "budgetLineHelp": "El tiempo aprobado de este turno se registra en esta línea de mano de obra.",
+    "noBudgetLine": "Sin línea de presupuesto",
+    "currentBudgetLine": "Línea de presupuesto actual"
   },
   "swapsPage": {
     "title": "{from} a {to}",

@@ -293,9 +293,11 @@ export function SignTokenFlow({ token }: { token: string }) {
       {alreadySigned ? (
         <>
           <InlineAlert tone="success">
-            {t("sign.signed", { name: doc.signerName ?? name })}
+            {quote
+              ? t("sign.quote.signed", { name: doc.signerName ?? name })
+              : t("sign.signed", { name: doc.signerName ?? name })}
           </InlineAlert>
-          <ClaimOffer title={t("sign.done")} />
+          <ClaimOffer title={quote ? t("sign.quote.done") : t("sign.done")} />
         </>
       ) : (
         <form

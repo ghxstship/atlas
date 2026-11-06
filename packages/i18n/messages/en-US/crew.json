@@ -54,7 +54,8 @@
     "moneyRequired": "Enter the rate as an amount with at most two decimals.",
     "currency": "Choose a currency.",
     "hours": "Enter the hours as a number above zero.",
-    "worker": "Choose someone from the list, or leave the shift open."
+    "worker": "Choose someone from the list, or leave the shift open.",
+    "budgetLine": "Choose a budget line from the list."
   },
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
@@ -165,7 +166,10 @@
     "roster_shift_not_assigned": "No one from an agency's roster holds this shift.",
     "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
     "sod_roster_training": "A person cannot verify their own training. Ask someone else to verify it.",
-    "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet."
+    "sod_supervisor_punch": "You punched this person in or out, so someone else approves this timesheet.",
+    "shift_budget_line_project": "Choose a live line of a budget of this shift's project.",
+    "shift_budget_line_labor": "A shift posts its time to a Labor line.",
+    "shift_budget_line_posted": "Approved time on this shift is already on the budget, so moving it needs finance.budget.write."
   },
   "states": {
     "shift": {
@@ -239,7 +243,8 @@
     "hours": "Hours",
     "state": "State",
     "startsAt": "Starts ({zone})",
-    "endsAt": "Ends ({zone})"
+    "endsAt": "Ends ({zone})",
+    "budgetLine": "Budget line"
   },
   "common": {
     "unnamed": "Unnamed person",
@@ -399,7 +404,10 @@
         "when": "Add when the shift starts, for example Friday 8am-4pm.",
         "role": "That role is not in the Roles Library."
       }
-    }
+    },
+    "budgetLineHelp": "Approved time on this shift posts to this Labor line.",
+    "noBudgetLine": "No budget line",
+    "currentBudgetLine": "Current budget line"
   },
   "swapsPage": {
     "title": "{from} to {to}",

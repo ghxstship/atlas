@@ -70,6 +70,16 @@ export async function QuotesView({ page }: { page: FinancePage }) {
       .maybeSingle();
     if (data) redirect(withQuery(page, { version: null, peek: data.quote_id }) as Route);
   }
+  // An engagement's Quote document links to its quote.
+  const documentLink = query.extra["document"];
+  if (documentLink) {
+    const { data } = await db
+      .from("quote_versions")
+      .select("quote_id")
+      .eq("engagement_document_id", documentLink)
+      .maybeSingle();
+    if (data) redirect(withQuery(page, { document: null, peek: data.quote_id }) as Route);
+  }
   const scope = { orgId: ctx.org.id, projectId: page.project?.id ?? null };
   const [quotes, budgets] = await Promise.all([listQuotes(db, scope), listBudgets(db, scope)]);
   if (!quotes.ok || !budgets.ok) {

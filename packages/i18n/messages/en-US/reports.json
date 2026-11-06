@@ -95,7 +95,8 @@
     },
     "variance": "Variance",
     "varianceIn": "Variance in {currency}",
-    "withheld": "Withheld"
+    "withheld": "Withheld",
+    "efc": "Estimated final cost"
   },
   "labor": {
     "budget": "Labor budget",
@@ -111,7 +112,22 @@
     "open": "Open time entries",
     "payrollRuns": "Payroll runs",
     "run": "Run",
-    "timesheets": "Timesheets"
+    "timesheets": "Timesheets",
+    "postedByTeam": "Posted to budget by team",
+    "team": "Team",
+    "cost": "Cost",
+    "unpricedHours": "Unpriced hours",
+    "offBudget": "Hours not on a budget line",
+    "person": "Person",
+    "date": "Date",
+    "shift": "Shift",
+    "openShift": "Open the shift",
+    "noShift": "No shift",
+    "teams": {
+      "OwnTeam": "Own team",
+      "Agency": "Agency",
+      "Engaged": "Engaged individuals"
+    }
   },
   "po": {
     "caption": "Open commitment by purchase order",

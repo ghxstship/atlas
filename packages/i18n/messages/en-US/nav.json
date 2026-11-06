@@ -130,7 +130,8 @@
         "universalPostingLineExport": "Universal Posting Line Export",
         "chartOfAccounts": "Chart of Accounts",
         "costCenters": "Cost Centers",
-        "yearEnd": "Year-End"
+        "yearEnd": "Year-End",
+        "quotes": "Quotes"
       },
       "procurement": {
         "rfqs": "RFQs",
