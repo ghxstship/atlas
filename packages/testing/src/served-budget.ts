@@ -70,6 +70,15 @@ export interface ServedRow {
   readonly pass: boolean;
 }
 
+/** A page's scripts without the named chunks, whether or not they loaded in time. */
+export function withoutChunks(
+  scripts: readonly ScriptRequest[],
+  names: readonly string[],
+): ScriptRequest[] {
+  const left = new Set(names);
+  return scripts.filter((s) => !left.has(new URL(s.url).pathname.split("/").pop() ?? ""));
+}
+
 /** One page's verdict against the route JavaScript budget, or the ceiling recorded for it. */
 export function servedRow(
   app: BudgetApp,

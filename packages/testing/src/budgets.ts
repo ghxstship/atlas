@@ -14,6 +14,12 @@ export const webBudgets = {
 /** Section 11.2: every page reaches interactive in under 1.5 s on a mid-tier laptop. */
 export const interactiveBudgetMs = 1_500;
 
+/**
+ * The Realtime client chunk's own limit, in bytes on the wire (ADR 0027, owner decision of 2026-11-06). It does not count
+ * toward routeJavaScriptGzipBytes, and it only falls from here.
+ */
+export const realtimeClientGzipBytes = 20 * 1024;
+
 /** Section 5.1 service level objectives, in region. */
 export const apiBudgets = {
   readP95Ms: 250,

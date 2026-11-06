@@ -172,7 +172,8 @@ describe("FilePreviewPanel", () => {
     const page = await screen.findByRole("img", { name: "Page 1 of 3" });
     expect(page.tagName).toBe("CANVAS");
     expect(new TextDecoder().decode(pdf.opened[0])).toBe("%PDF-1.7 marked");
-    expect(pdf.draw).toHaveBeenCalledWith(0, page, 1);
+    // The canvas renders a step before the effect that draws on it.
+    await waitFor(() => expect(pdf.draw).toHaveBeenCalledWith(0, page, 1));
     // The delivered copy keeps its own name, and its pages are listed.
     expect(screen.getByText("Stage plot (watermarked).pdf")).toBeTruthy();
     expect(screen.getByText("3 pages")).toBeTruthy();
