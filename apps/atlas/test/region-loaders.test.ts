@@ -48,6 +48,8 @@ const work = vi.hoisted(() => ({
   getWatch: vi.fn(),
   listAssignments: vi.fn(),
   listChecklist: vi.fn(),
+  listRecordReviews: vi.fn(),
+  listEligibleReviewers: vi.fn(),
   listCurrencyOptions: vi.fn(),
   listRecords: vi.fn(),
   listRecurrences: vi.fn(),

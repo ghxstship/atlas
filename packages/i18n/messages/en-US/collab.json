@@ -104,7 +104,8 @@
       "proposed_fee_minor": "Proposed fee",
       "rate_minor": "Rate",
       "shipping_minor": "Shipping",
-      "tax_minor": "Tax"
+      "tax_minor": "Tax",
+      "printed_total_minor": "Printed total"
     }
   },
   "coedit": {

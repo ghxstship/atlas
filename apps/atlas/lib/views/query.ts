@@ -20,6 +20,7 @@ export const VIEW_SAVED_AS: readonly (readonly [string, SavedViewType])[] = [
   ["matrix", "Matrix"],
   ["org-chart", "Org Chart"],
   ["chart", "Chart"],
+  ["heatmap", "Heatmap"],
   ["feed", "Feed"],
   ["inbox", "Inbox"],
   ["split", "List"],
