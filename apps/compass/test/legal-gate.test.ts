@@ -122,7 +122,10 @@ describe("what the device remembers", () => {
         Promise.resolve(
           answers.failing
             ? { data: null, error: { code: "PGRST000", message: "fetch failed" } }
-            : { data: fn === "my_legal_standing" ? answers.standing : (answers.pending ?? []), error: null },
+            : {
+                data: fn === "my_legal_standing" ? answers.standing : (answers.pending ?? []),
+                error: null,
+              },
         ),
     } as never;
   }
@@ -135,7 +138,9 @@ describe("what the device remembers", () => {
   };
 
   it("remembers the clearance and the AI choice, so the person can work offline", async () => {
-    const online = await readGate(client({ standing: answered }), "u1", () => Promise.resolve(false));
+    const online = await readGate(client({ standing: answered }), "u1", () =>
+      Promise.resolve(false),
+    );
     expect(online.decision.kind).toBe("clear");
     expect(online.aiChoice).toBe("Allowed");
     const offline = await readGate(client({ standing: null, failing: true }), "u1", () =>

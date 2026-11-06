@@ -10,7 +10,11 @@ import { Button, Card, InlineAlert, Text, useTheme } from "../ui";
  * who receives what and records the person's choice (app.record_ai_choice). Declining turns AI features off for the
  * person, on the server too. Both answers need the server, so it says so when it cannot reach it.
  */
-export function AiDisclosure({ testID = "ai-disclosure" }: { readonly testID?: string }): ReactElement {
+export function AiDisclosure({
+  testID = "ai-disclosure",
+}: {
+  readonly testID?: string;
+}): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
   const { aiChoice, chooseAi, config } = useCompass();

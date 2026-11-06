@@ -178,7 +178,9 @@ export default function SettingsScreen(): ReactElement {
               message={t("compass.aiDisclosure.failed")}
             />
           ) : null}
-          {askingAi && aiChoice !== "Allowed" ? <AiDisclosure testID="settings-ai-disclosure" /> : null}
+          {askingAi && aiChoice !== "Allowed" ? (
+            <AiDisclosure testID="settings-ai-disclosure" />
+          ) : null}
         </Card>
       ) : null}
       {canKiosk ? (

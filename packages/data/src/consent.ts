@@ -215,7 +215,9 @@ export async function refuseMinimumAge(
       orgName: typeof row["org_name"] === "string" ? row["org_name"] : null,
     });
   }
-  return ok({ outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed" });
+  return ok({
+    outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed",
+  });
 }
 
 /**

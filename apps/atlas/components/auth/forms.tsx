@@ -52,7 +52,10 @@ function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
   return (
     <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
       <legend className="mb-8 text-text-13 font-medium">{t("fields.ageLegend")}</legend>
-      <label htmlFor={id} className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13">
+      <label
+        htmlFor={id}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
         <input
           id={id}
           type="radio"
@@ -345,7 +348,12 @@ export function AgeQuestionForm({ next }: { next: string }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);
   return (
-    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
       <AgeConfirmation id="age-question" state={state} />

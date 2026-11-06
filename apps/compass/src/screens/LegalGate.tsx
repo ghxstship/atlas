@@ -1,17 +1,12 @@
 import type { XosClient } from "@xos/data/client";
-import { confirmMinimumAge, refuseMinimumAge } from "@xos/data/consent";
+import { confirmMinimumAge, refuseMinimumAge, type AgeRefusal } from "@xos/data/consent";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import * as Linking from "expo-linking";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { revokeAppleBeforeDeletion } from "../domain/appleSignIn";
-import {
-  acceptancesOf,
-  heldReason,
-  type HeldReason,
-  type LegalNeeds,
-} from "../domain/legalGate";
+import { acceptancesOf, heldReason, type HeldReason, type LegalNeeds } from "../domain/legalGate";
 import {
   accountSignsInWithApple,
   appleAvailable,
@@ -92,26 +87,31 @@ export function LegalGate({
   };
 
   const refuse = async () => {
-    let outcome: Awaited<ReturnType<typeof refuseMinimumAge>> | null = null;
+    const answer: { refusal?: AgeRefusal } = {};
     const done = await attempt(async () => {
-      // Apple's sheet comes first, while the account still exists; closing it never holds up the refusal.
+      // Apple's sheet comes first, while the account still exists; neither closing it nor a failure holds up the refusal.
       await revokeAppleBeforeDeletion({
         signedInWithApple: await accountSignsInWithApple(xos),
         appleOnDevice: await appleAvailable(),
         native: loadAppleNative,
         revoke: appleRevoker(xos, config.supabaseUrl),
-      });
-      outcome = await refuseMinimumAge(xos, "Compass");
-      return outcome.ok;
+      }).catch(() => undefined);
+      const refused = await refuseMinimumAge(xos, "Compass");
+      if (!refused.ok) return false;
+      answer.refusal = refused.data;
+      return true;
     });
-    if (!done || !outcome) return;
+    if (!done || !answer.refusal) return;
     setBusy(false);
-    const result = (outcome as Extract<typeof outcome, { ok: true }>).data;
-    if (result.outcome === "Account Held") {
-      setStep({ kind: "held", reason: heldReason(result.reason), org: result.orgName ?? "" });
-    } else {
-      setStep({ kind: "refused" });
-    }
+    setStep(
+      answer.refusal.outcome === "Account Held"
+        ? {
+            kind: "held",
+            reason: heldReason(answer.refusal.reason),
+            org: answer.refusal.orgName ?? "",
+          }
+        : { kind: "refused" },
+    );
   };
 
   /** The sign-in no longer exists on the server, or may not be used: forget it on this device only. */
@@ -302,7 +302,9 @@ export function LegalGate({
         variant="ghost"
         block
         disabled={busy}
-        label={t(onLater ? "compass.legalGate.documents.later" : "compass.legalGate.documents.decline")}
+        label={t(
+          onLater ? "compass.legalGate.documents.later" : "compass.legalGate.documents.decline",
+        )}
         onPress={() => (onLater ? onLater() : setStep({ kind: "declined" }))}
       />
       <Text variant="text13" tone="tertiary">

@@ -328,9 +328,7 @@ export interface ReceiptReading {
   readonly proposal: ReceiptProposal | null;
 }
 
-function refusalState(
-  problem: AuroraProblem,
-): Exclude<AuroraState, "reading" | "read" | "ask"> {
+function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | "read" | "ask"> {
   // The phone was online but the API did not answer (a dropped connection, Atlas unreachable): say Aurora
   // could not read it rather than that the phone is offline.
   if (problem.status === 0) return "failed";

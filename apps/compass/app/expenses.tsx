@@ -141,6 +141,7 @@ function ReceiptForm({
   linesRef.current = lines;
   useEffect(() => {
     let live = true;
+    if (aiChoice === "Allowed") setAurora("reading");
     void readReceipt(reader, photo, online, aiChoice)
       .then((reading) => {
         if (!live) return;
@@ -229,7 +230,7 @@ function ReceiptForm({
         </View>
       ) : aurora === "ask" ? (
         <AiDisclosure testID="expense-ai-disclosure" />
-      ) : (
+      ) : aurora === "reading" && aiChoice !== "Allowed" ? null : (
         <InlineAlert
           testID={`expense-aurora-${aurora}`}
           tone={AURORA_COPY[aurora].tone}

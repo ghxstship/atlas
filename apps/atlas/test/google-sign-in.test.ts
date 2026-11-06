@@ -101,6 +101,8 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  outdated = false;
+  refusals = [];
   jar.values.clear();
   settings = { google: true, apple: false, azure: false };
   tokenRequests = [];
@@ -113,6 +115,11 @@ beforeEach(() => {
       tokenRequests.push(JSON.parse(String(init?.body)));
       return tokenAnswer();
     }
+    if (url.pathname === "/rest/v1/rpc/minimum_age_outdated") return json(outdated);
+    if (url.pathname === "/rest/v1/rpc/record_age_refusal") {
+      refusals.push(JSON.parse(String(init?.body)));
+      return json(true);
+    }
     throw new Error(`unexpected request to ${url.pathname}`);
   });
 });
@@ -120,6 +127,11 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
 });
+
+/** Whether the person holds only a confirmation at the earlier age of 16. */
+let outdated = false;
+/** Refusals counted through api_public.record_age_refusal. */
+let refusals: Record<string, unknown>[] = [];
 
 async function startWith(fields: Record<string, string>): Promise<URL> {
   const { signInWithProvider } = await import("../app/auth/actions");
@@ -332,6 +344,44 @@ describe("Continue with Google: the callback", () => {
     expect(link.searchParams.get("error")).toBe("link_invalid");
     const noCode = await callback("provider=google");
     expect(`${noCode.pathname}${noCode.search}`).toBe("/auth/sign-in?error=oauth_expired");
+  });
+});
+
+describe("the minimum age of 18 (ADR 0156)", () => {
+  it("asks someone who confirmed the earlier age again after a sign-in", async () => {
+    outdated = true;
+    const to = await startWith({ provider: "google", next: "/auth/invite/xlnk_abc123" });
+    const back = new URL(to.searchParams.get("redirect_to") ?? "");
+    back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000002");
+    const landed = await callback(back.searchParams.toString());
+    expect(landed.pathname).toBe("/auth/age");
+    expect(landed.searchParams.get("next")).toBe("/auth/invite/xlnk_abc123");
+  });
+
+  it("makes no account for an answer of under 18, and counts it without the name or email", async () => {
+    const { signUpWithEmail, sendMagicLink } = await import("../app/auth/actions");
+    for (const [action, intent] of [
+      [signUpWithEmail, null],
+      [sendMagicLink, "sign-up"],
+    ] as const) {
+      const form = new FormData();
+      if (intent) form.set("intent", intent);
+      form.set("fullName", "Una Under");
+      form.set("email", "una@example.com");
+      form.set("ageConfirmed", "under-18");
+      await expect(action({}, form)).rejects.toMatchObject({ url: "/auth/age-refused" });
+    }
+    expect(refusals).toEqual([{ p_surface: "Atlas" }, { p_surface: "Atlas" }]);
+  });
+
+  it("carries on to the sign-up form's checks with an answer of 18 or older", async () => {
+    const { signUpWithEmail } = await import("../app/auth/actions");
+    const form = new FormData();
+    form.set("ageConfirmed", "18");
+    await expect(signUpWithEmail({}, form)).resolves.toMatchObject({
+      fieldErrors: { fullName: "fullName" },
+    });
+    expect(refusals).toEqual([]);
   });
 });
 
