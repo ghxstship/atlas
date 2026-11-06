@@ -183,9 +183,10 @@ revoke select on app.advance_track_progress from xos_backup;
 
 -- A security_invoker view applies the end user's policies to its base tables even under a view that is not invoker, and
 -- an external party holds no policy on packets, sections or recipients. So the rows come through a definer read that takes
--- no argument and answers only for the signed-in person's own recipients. The lateral read hands each recipient's id to
--- the progress view as a parameter, which reaches below its grouping; an IN over the view would first compute every
--- org's tracks, since a definer runs with no policies to narrow it.
+-- no argument and answers only for the signed-in person's own recipients. A definer runs with no policies to narrow the
+-- view, and a plain join or IN over it computes every org's tracks first, since the planner cannot move a join below the
+-- grouping. The lateral read with OFFSET 0 stays a subquery, so each recipient's id reaches below the grouping as a
+-- parameter (EXPLAIN shows an index condition on the recipient).
 create or replace function private.my_advance_track_progress()
 returns table (
   advance_recipient_id uuid,
@@ -204,7 +205,7 @@ as $$
   select t.advance_recipient_id, t.advance_packet_id, t.track, t.sections_total, t.sections_done, t.track_state, t.signed_off_at
   from api_external.my_advance_recipients x
   cross join lateral (
-    select g.* from app.advance_track_progress g where g.advance_recipient_id = x.id
+    select g.* from app.advance_track_progress g where g.advance_recipient_id = x.id offset 0
   ) t;
 $$;
 

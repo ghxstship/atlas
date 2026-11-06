@@ -60984,6 +60984,7 @@ export type Database = {
           project_id: string | null;
           recipient_engagement_id: string | null;
           recipient_label: string | null;
+          recipient_open: boolean | null;
           section_kind: Database["app"]["Enums"]["advance_section_kind"] | null;
           section_title: string | null;
           submitted_at: string | null;

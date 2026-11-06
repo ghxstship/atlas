@@ -199,6 +199,7 @@ select ok((select bool_and(g.overdue) from app.advance_progress g where g.advanc
 select is((select count(*)::int from app.roster_readiness(pg_temp.id('prj_a')) r where r.engagement_id = pg_temp.id('eng_art_a')) > 0, true,
   'and its roster is in the readiness grid');
 select pg_temp.as_platform();
+select pg_temp.move_engagement('eng_art_a', 'Onboarding', 'Active');
 select pg_temp.move_engagement('eng_art_a', 'Active', 'Closing');
 select pg_temp.as_user('reader');
 select ok((select bool_and(g.recipient_open) from app.advance_progress g where g.advance_recipient_id = pg_temp.id('rcp_art')),
