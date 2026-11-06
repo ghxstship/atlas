@@ -374,6 +374,9 @@ arrays:
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.legal_queue_health.failing_paths
+    kind: reviewed
+    note: The named parts of the last sweep that failed, read whole by the heartbeat and written whole by each sweep; no row refers to one (ADR 0167, migration 6167).
   - column: private.legal_queue_rules.alert_leads
     kind: reviewed
     note: How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6165).

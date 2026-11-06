@@ -76,23 +76,24 @@ ADR 0002 allows JSON columns only for rich text documents, audit diffs and provi
 
 ADR 0002 forbids arrays of identifiers, and pgTAP 1280 refuses any `uuid[]` column. Each array column below holds a short closed set or a payload read whole, never a relationship.
 
-| Column                                        | Kind     | Why                                                                                                                                  |
-| --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `app.api_keys.scopes`                         | reviewed | Capability groups checked against the registry on every write (A22-009).                                                             |
-| `app.mcp_connectors.default_scopes`           | reviewed | Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).                 |
-| `app.oauth_grants.scopes`                     | reviewed | Capability groups checked against the registry on every write (A22-009).                                                             |
-| `app.person_work_details.accessibility_needs` | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).                      |
-| `app.person_work_details.dietary_needs`       | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).                      |
-| `app.scim_identities.groups`                  | reviewed | Group names in the identity provider's last SCIM payload, replaced whole on each sync (A22-009).                                     |
-| `app.survey_questions.choices`                | reviewed | The ordered answer texts of one question (A22-008).                                                                                  |
-| `app.training_quiz_questions.options`         | reviewed | The ordered answer texts of one question; the quiz key follows its option (A22-008, migration 1042).                                 |
-| `app.work_detail_events.categories`           | reviewed | The set of work detail categories an access touched, in the person's append-only log (migration 1340).                               |
-| `app.work_detail_events.changed_columns`      | reviewed | Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).                 |
-| `app.work_detail_events.fact_kinds`           | reviewed | The set of project fact kinds an access touched, in the person's append-only log (R5, migration 4654).                               |
-| `app.work_detail_shares.categories`           | reviewed | The set of work detail categories a share grants, read whole (migration 1340).                                                       |
-| `private.legal_queue_rules.alert_leads`       | reviewed | How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6165). |
-| `private.live_view_fields.source_columns`     | reviewed | The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).  |
-| `private.realtime_channel_policies.roles`     | reviewed | The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 3782).       |
+| Column                                        | Kind     | Why                                                                                                                                                          |
+| --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app.api_keys.scopes`                         | reviewed | Capability groups checked against the registry on every write (A22-009).                                                                                     |
+| `app.mcp_connectors.default_scopes`           | reviewed | Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).                                         |
+| `app.oauth_grants.scopes`                     | reviewed | Capability groups checked against the registry on every write (A22-009).                                                                                     |
+| `app.person_work_details.accessibility_needs` | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).                                              |
+| `app.person_work_details.dietary_needs`       | reviewed | A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).                                              |
+| `app.scim_identities.groups`                  | reviewed | Group names in the identity provider's last SCIM payload, replaced whole on each sync (A22-009).                                                             |
+| `app.survey_questions.choices`                | reviewed | The ordered answer texts of one question (A22-008).                                                                                                          |
+| `app.training_quiz_questions.options`         | reviewed | The ordered answer texts of one question; the quiz key follows its option (A22-008, migration 1042).                                                         |
+| `app.work_detail_events.categories`           | reviewed | The set of work detail categories an access touched, in the person's append-only log (migration 1340).                                                       |
+| `app.work_detail_events.changed_columns`      | reviewed | Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).                                         |
+| `app.work_detail_events.fact_kinds`           | reviewed | The set of project fact kinds an access touched, in the person's append-only log (R5, migration 4654).                                                       |
+| `app.work_detail_shares.categories`           | reviewed | The set of work detail categories a share grants, read whole (migration 1340).                                                                               |
+| `private.legal_queue_health.failing_paths`    | reviewed | The named parts of the last sweep that failed, read whole by the heartbeat and written whole by each sweep; no row refers to one (ADR 0167, migration 6167). |
+| `private.legal_queue_rules.alert_leads`       | reviewed | How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6165).                         |
+| `private.live_view_fields.source_columns`     | reviewed | The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).                          |
+| `private.realtime_channel_policies.roles`     | reviewed | The roles a Realtime channel policy is created for, anon or authenticated, read whole by the ensure function (migration 3782).                               |
 
 ## Restated parent columns
 

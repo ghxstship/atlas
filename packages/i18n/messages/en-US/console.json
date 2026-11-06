@@ -413,6 +413,7 @@
     "told": "The person was told on {when}.",
     "toldByOperator": "The person was told another way on {when}. The legal queue log says how.",
     "noticeOnItsWay": "The email telling the person the result is on its way.",
+    "noticeGone": "The person has not been told. The email never left, and it has since been deleted, with their account or when its Legal Queue item closed.",
     "noticeFailed": "The email telling the person the result failed, so they have not been told. It is in the Legal Queue with its own clock."
   },
   "actions": {

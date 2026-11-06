@@ -413,6 +413,7 @@
     "told": "Se le comunicó a la persona el {when}.",
     "toldByOperator": "Se le comunicó a la persona por otra vía el {when}. El registro de la cola legal indica cómo.",
     "noticeOnItsWay": "El correo que comunica el resultado a la persona está en camino.",
+    "noticeGone": "No se le ha comunicado a la persona. El correo nunca salió y ya se eliminó, junto con su cuenta o al cerrarse su elemento en la Cola Legal.",
     "noticeFailed": "Falló el correo que comunica el resultado a la persona, así que no se le ha comunicado. Está en la Cola Legal con su propio plazo."
   },
   "actions": {

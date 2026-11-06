@@ -187,6 +187,8 @@ export default async function ListingPage({ params }: PageProps<"/moderation/[op
                       <InlineAlert tone="danger">
                         {t(a.toldBy ? "moderation.noticeFailed" : "moderation.notTold")}
                       </InlineAlert>
+                    ) : a.hasReview && a.toldBy === "Email" && a.noticeState === null ? (
+                      <span>{t("moderation.noticeGone")}</span>
                     ) : a.hasReview && a.toldBy === "Email" ? (
                       <span>{t("moderation.noticeOnItsWay")}</span>
                     ) : null}
