@@ -20,12 +20,15 @@ import {
   BADGE_V2,
   BRAND,
   DELETION_CERTIFICATE,
+  DRAWING_TALL,
   FIXTURES,
   LOGO_PNG,
   NOW,
   PHOTO_JPEG,
   PHOTO_PNG,
+  sitePlan,
 } from "../test/documents/fixtures.ts";
+import { DESCRIBE } from "../src/documents/templates.ts";
 
 /**
  * Section 18 gate 19: renders every Section 11.9 template from fixture data, on US Letter and A4, in
@@ -34,8 +37,10 @@ import {
  * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
  * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041), and the P5 credential badges: CR80 and A6 cards
  * with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter
- * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. Exits 1 when
- * any file is not compliant or veraPDF cannot run.
+ * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. B1 adds site plans
+ * with a wide (landscape) and a tall (portrait) drawing and a legacy plan without one, with the kinds and items
+ * legends, and build sheets with and without artwork, on Letter and A4. Exits 1 when any file is not compliant or
+ * veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
  */
@@ -111,6 +116,71 @@ for (const locale of LOCALES) {
       { mode: 0o644 },
     );
     files.push(name);
+  }
+  // B1: site plans and build sheets, each in the orientation its kind chooses after loading (DESCRIBE).
+  const tall = {
+    ...sitePlan,
+    drawing: {
+      ...(sitePlan.drawing as NonNullable<typeof sitePlan.drawing>),
+      widthPx: 1000,
+      heightPx: 2000,
+    },
+  };
+  const legacy = {
+    ...sitePlan,
+    drawing: null,
+    calibration: null,
+    imageUri: "https://example.test/ground.png",
+  };
+  const places = [
+    [
+      "site-plan-wide-items",
+      "site-plan",
+      { ...FIXTURES["site-plan"] },
+      { legend: "items", pins: "1" },
+    ],
+    [
+      "site-plan-tall-kinds",
+      "site-plan",
+      { ...FIXTURES["site-plan"], plan: tall, drawing: DRAWING_TALL },
+      {},
+    ],
+    [
+      "site-plan-legacy",
+      "site-plan",
+      { ...FIXTURES["site-plan"], plan: legacy, shapes: [], drawing: null },
+      { legend: "items" },
+    ],
+    [
+      "signage-build-sheet-artwork",
+      "signage-build-sheet",
+      FIXTURES["signage-build-sheet"],
+      { state: "all" },
+    ],
+    [
+      "signage-build-sheet-no-artwork",
+      "signage-build-sheet",
+      { ...FIXTURES["signage-build-sheet"], artwork: {} },
+      {},
+    ],
+  ] as const;
+  for (const [base, kind, data, options] of places) {
+    const model = buildDocumentModel(kind, data as never, {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: `https://atlas.example.test/northwind/documents/${kind}`,
+      now: NOW,
+      options,
+    });
+    const orientation = DESCRIBE[kind](data as never, NOW).orientation ?? "portrait";
+    for (const paper of PAPERS) {
+      const name = `${base}.${locale}.${paper}.pdf`;
+      writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper, orientation }), {
+        mode: 0o644,
+      });
+      files.push(name);
+    }
   }
   // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.
   const certificate = buildDeletionCertificateModel(DELETION_CERTIFICATE, {

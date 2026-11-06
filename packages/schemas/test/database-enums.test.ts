@@ -4,6 +4,7 @@ import { AUTOMATION_ACTION_TYPES, FILTER_OPERATORS } from "../src/automations/mo
 import { CAPABILITY_CLASSES, CAPABILITY_REACHES, NAV_GROUPS } from "../src/capabilities/model.ts";
 import * as common from "../src/common/enums.ts";
 import { NOTIFICATION_CHANNELS } from "../src/notifications/model.ts";
+import * as operations from "../src/resources/operations.ts";
 import type { dbValueType } from "../src/settings/model.ts";
 import { SHELL_LABELS } from "../src/shortcuts/model.ts";
 import { SAVED_VIEW_TYPES } from "../src/views/model.ts";
@@ -48,6 +49,11 @@ const lists: readonly (readonly [string, readonly string[]])[] = [
   ["app.setting_value_type", Object.keys(valueTypes)],
   ["app.shortcut_shell", Object.values(SHELL_LABELS)],
   ["app.view_type", SAVED_VIEW_TYPES],
+  ["app.vehicle_type", operations.VEHICLE_TYPES],
+  ["app.space_booking_purpose", operations.SPACE_BOOKING_PURPOSES],
+  ["app.space_booking_mode", operations.SPACE_BOOKING_MODES],
+  ["app.local_contact_role", operations.LOCAL_CONTACT_ROLES],
+  ["app.local_contact_audience", operations.LOCAL_CONTACT_AUDIENCES],
 ];
 
 describe("lists that mirror a database enum", () => {

@@ -20,9 +20,12 @@ const HIDDEN = new Set([
   "search_vector",
 ]);
 const HIDDEN_SUFFIX = /(_id|_ids|_by|_display_key|_sha256|_hash)$/;
+/** Columns that only look like a reference: a site plan's scale point B is (calibration_bx, calibration_by), B1. */
+const SHOWN = new Set(["calibration_by"]);
 
 /** Whether a history field stays out of a record page's history. */
 export function isHiddenHistoryField(field: string): boolean {
+  if (SHOWN.has(field)) return false;
   return HIDDEN.has(field) || HIDDEN_SUFFIX.test(field);
 }
 

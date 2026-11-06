@@ -158,6 +158,14 @@ kinds:
       # P9: a pass or dock booking an approval rule matched asks its current step's approvers.
       - emitter: supabase/migrations/5860_approval_rules.sql#private.notify_subject_step_approvers
         test: supabase/tests/5860_approval_rules.test.sql
+  # B16 (6052, ADR 0155 D2): a connected app proposed a change for the person to confirm. In App and Push only, never
+  # Email: the body names the app and the operation, never the agent-written summary, which XOS mail must not carry.
+  - kind: agent.change_proposed
+    category: approvals
+    channels: [In App, Push]
+    emitted_by:
+      - emitter: supabase/migrations/6052_agent_change_proposals.sql#app.propose_agent_change
+        test: supabase/tests/6052_agent_change_proposals.test.sql
   - kind: approval.decided
     category: approvals
     emitted_by:
@@ -313,6 +321,20 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1350_org_trials.sql#private.expire_trial
         test: supabase/tests/1350_org_trials.test.sql
+  # B16 (6051, ADR 0155 D4): a subscription pause started and resumed, to the billing owners. The hourly job sends both;
+  # the Stripe sync sends billing.resumed when Stripe clears an Owner's pause at its own resume, an hour early.
+  - kind: billing.paused
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/6051_subscription_pauses.sql#private.run_subscription_pauses
+        test: supabase/tests/6051_subscription_pauses.test.sql
+  - kind: billing.resumed
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/6051_subscription_pauses.sql#private.run_subscription_pauses
+        test: supabase/tests/6051_subscription_pauses.test.sql
+      - emitter: supabase/migrations/6051_subscription_pauses.sql#app.sync_subscription_from_stripe
+        test: supabase/tests/6051_subscription_pauses.test.sql
   - kind: organization.deletion_requested
     category: account
     emitted_by:
@@ -560,3 +582,14 @@ kinds:
         test: supabase/tests/4694_allocation_cascades.test.sql
       - emitter: supabase/migrations/4694_allocation_cascades.sql#private.withdraw_entry_allocations
         test: supabase/tests/4694_allocation_cascades.test.sql
+  # Travel, lodging and ground transport (B5: 5947)
+  - kind: accommodation_block.release_due
+    category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/5947_hospitality_notices.sql#private.send_block_release_reminders
+        test: supabase/tests/5947_hospitality_notices.test.sql
+  - kind: transfer.assigned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/5947_hospitality_notices.sql#private.notify_transfer_driver
+        test: supabase/tests/5947_hospitality_notices.test.sql

@@ -1,4 +1,4 @@
--- pgTAP: migration 3872, custom fields on budget lines (P10, RRR-224, gap G-217). Budget lines are the tenth built-in
+-- pgTAP: migration 3872, custom fields on budget lines (P10, RRR-224, gap G-217). Budget lines are a built-in
 -- target: Settings lists them, an org with org.custom_fields.write defines a filterable Choice tag on them, values are
 -- read and written under the line's own budget policy (finance.budget.read on the budget's project) by the
 -- Collaborator band or higher, and the 0540 and 2110 value rules hold.
@@ -39,7 +39,12 @@ insert into app.user_capability_grants (membership_id, capability_code, scope_ki
 select pg_temp.as_user('bob');
 select ok(exists (select 1 from app.custom_field_targets where table_name = 'app.budget_lines'),
   'Settings lists budget lines among the custom field targets');
-select is((select count(*)::integer from app.custom_field_targets), 10, 'budget lines are the tenth target');
+-- The built-in targets by name, so a new one is a reviewed change: the nine of 0540, budget lines (3872), and B1's
+-- spaces and signs (5903, 5904). packages/data's CUSTOM_FIELD_TABLES lists the same twelve.
+select set_eq($$select table_name::text from app.custom_field_targets$$,
+  $$values ('app.records'), ('app.projects'), ('app.vendors'), ('app.venues'), ('app.counterparties'), ('app.asset_units'),
+    ('app.purchase_orders'), ('app.invoices'), ('app.incidents'), ('app.budget_lines'), ('app.spaces'), ('app.signs')$$,
+  'budget lines join the built-in targets, with B1''s spaces and signs');
 select lives_ok($$
   with d as (
     insert into app.custom_field_definitions (org_id, target_table, field_key, label, data_type, filterable, sort_order)

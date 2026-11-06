@@ -4,6 +4,7 @@ import {
   certificateKey,
   deletionCertificateFileName,
 } from "./data-documents-deletion-certificate-name.js";
+import { xos_tokens_default } from "./tokens-xos-tokens.js";
 //#region \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1684,6 +1685,26 @@ var SIZES = {
   a6: "A6",
   cr80: [153.01, 242.65],
 };
+/** A color token's Light theme value, following `{other-token}` references: paper is white, as the Light theme. */
+function lightColor(name) {
+  const token = xos_tokens_default.color.tokens.find((t) => t.name === name);
+  const value = typeof token?.value === "string" ? token.value : token?.value.light;
+  if (!value) throw new Error(`Unknown color token ${name}`);
+  const ref = /^\{(.+)\}$/.exec(value);
+  return ref?.[1] ? lightColor(ref[1]) : value;
+}
+/**
+ * Plan overlay colors (B1): the light theme's values of the @xos/tokens roles a shape tone names, each at least 3:1 on
+ * the white paper frame (WCAG 1.4.11, checked in test/documents/places-documents.test.ts).
+ */
+var PLAN_TONES = {
+  Accent: lightColor("accent-default"),
+  Info: lightColor("state-scheduled"),
+  Success: lightColor("success-text"),
+  Warning: lightColor("warning-text"),
+  Danger: lightColor("danger-text"),
+  Neutral: lightColor("paper-ink"),
+};
 var fontCache = null;
 async function fonts() {
   if (!fontCache) {
@@ -2152,7 +2173,10 @@ var Renderer = class extends TaggedWriter {
         doc.y += 4;
         return;
       case "image":
-        this.image(block.bytes, block.alt);
+        this.image(block.bytes, block.alt, block.maxHeight);
+        return;
+      case "plan":
+        this.plan(block);
         return;
       case "portrait": {
         this.ensure(122);
@@ -2219,14 +2243,18 @@ var Renderer = class extends TaggedWriter {
     }
   }
   /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
-  image(bytes, alt) {
+  image(bytes, alt, maxHeight) {
     const { doc } = this;
     if (!isEmbeddableImage(bytes)) return;
     const buffer = Buffer.from(bytes);
     const opened = doc.openImage(buffer);
     const room = () => this.bottom - doc.y;
     const fullPage = this.bottom - doc.page.margins.top;
-    const scale = Math.min(1, this.width / opened.width, fullPage / opened.height);
+    const scale = Math.min(
+      1,
+      this.width / opened.width,
+      Math.min(fullPage, maxHeight ?? fullPage) / opened.height,
+    );
     const height = opened.height * scale;
     if (height > room()) {
       doc.addPage();
@@ -2246,6 +2274,116 @@ var Renderer = class extends TaggedWriter {
     );
     doc.x = this.left;
     doc.y = y + height + GAP;
+  }
+  /**
+   * A site plan (B1): the drawing fitted to the content box, never cropped, with its overlays as vectors, all in one
+   * Figure with its alternative text, so the overlays never drift from the drawing. Without a stored drawing, a ruled
+   * frame of the drawing's proportions takes its place and the note is printed in it.
+   */
+  plan(block) {
+    const { doc } = this;
+    const fullPage = this.bottom - doc.page.margins.top - GAP;
+    const ratio =
+      block.heightPx > 0 && block.widthPx > 0 ? block.heightPx / block.widthPx : 10 / 16;
+    const width = Math.min(this.width, fullPage / ratio);
+    const height = width * ratio;
+    if (doc.y + height > this.bottom) {
+      doc.addPage();
+      doc.x = this.left;
+      doc.y = doc.page.margins.top;
+    }
+    const x = this.left + (this.width - width) / 2;
+    const y = doc.y;
+    let buffer = null;
+    if (block.bytes && isEmbeddableImage(block.bytes)) {
+      buffer = Buffer.from(block.bytes);
+      try {
+        doc.openImage(buffer);
+      } catch {
+        buffer = null;
+      }
+    }
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(block.alt) }, () => {
+        doc.save();
+        if (buffer)
+          doc.image(buffer, x, y, {
+            width,
+            height,
+          });
+        else doc.rect(x, y, width, height).lineWidth(0.6).strokeColor(RULE).stroke();
+        for (const overlay of block.overlays) this.overlay(overlay, x, y, width, height);
+        doc.restore();
+      }),
+    );
+    if (!buffer) {
+      this.style("regular", BODY, MUTED);
+      this.text(this.root, "P", block.note, {
+        x: x + 8,
+        y: y + 8,
+        width: width - 16,
+      });
+    }
+    doc.x = this.left;
+    doc.y = y + height + GAP;
+  }
+  overlay(overlay, x, y, width, height) {
+    const { doc } = this;
+    const at = (px, py) => [x + px * width, y + py * height];
+    if (overlay.kind === "pin") {
+      const [cx, cy] = at(overlay.x, overlay.y);
+      doc.circle(cx, cy, 6).fillColor(PLAN_TONES.Accent).fill();
+      doc.circle(cx, cy, 6).lineWidth(1).strokeColor("white").stroke();
+      this.style("semibold", 6.5, "white");
+      doc.text(String(overlay.n), cx - 6, cy - 3.2, {
+        width: 12,
+        align: "center",
+        lineBreak: false,
+      });
+      return;
+    }
+    if (overlay.kind === "label") {
+      const [lx, ly] = at(overlay.x, overlay.y);
+      const text = this.safe(overlay.text);
+      this.style("semibold", SMALL, PLAN_TONES.Neutral);
+      const w = Math.min(doc.widthOfString(text) + 6, width);
+      doc
+        .rect(lx - w / 2, ly - 6, w, 12)
+        .fillColor("white")
+        .fill();
+      this.style("semibold", SMALL, PLAN_TONES.Neutral);
+      doc.text(text, lx - w / 2, ly - 4.5, {
+        width: w,
+        align: "center",
+        lineBreak: false,
+      });
+      return;
+    }
+    const points = overlay.points.map(([px, py]) => at(px, py));
+    const first = points[0];
+    if (!first) return;
+    const color = PLAN_TONES[overlay.tone];
+    doc.moveTo(first[0], first[1]);
+    for (const [px, py] of points.slice(1)) doc.lineTo(px, py);
+    if (overlay.kind === "area") {
+      doc.closePath();
+      doc.lineWidth(1.2).fillOpacity(0.18).fillAndStroke(color, color);
+      doc.fillOpacity(1);
+    } else {
+      if (overlay.kind === "barrier") doc.dash(5, { space: 3 });
+      doc
+        .lineWidth(overlay.kind === "barrier" ? 2.5 : 1.6)
+        .strokeColor(color)
+        .stroke();
+      doc.undash();
+    }
+    doc.circle(first[0], first[1], 5).fillColor(color).fill();
+    this.style("semibold", 6, "white");
+    doc.text(String(overlay.n), first[0] - 5, first[1] - 3, {
+      width: 10,
+      align: "center",
+      lineBreak: false,
+    });
   }
   /**
    * A table with a caption, a header row of TH cells scoped to their column (or, for fields, a TH

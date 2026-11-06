@@ -12,8 +12,15 @@ import {
   listRunsOfShow,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
+import { todayIn } from "@xos/data/calendar";
+import { ButtonLink } from "@/components/ui";
 import { getNode } from "@xos/ia";
+import { listMembers } from "@xos/data/identity";
+import { listProjectLocalContacts } from "@xos/data/local-contacts";
+import { getLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
+import { shownContacts } from "@/components/local-contacts/shown";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
 import { RecordHistory } from "@/components/history/record-history";
@@ -193,6 +200,56 @@ export async function RunsPage({
         />
       }
       peek={collectionPeek(peekId, peek)}
+      {...(project
+        ? {
+            showDay: (
+              <ButtonLink
+                href={`/${ctx.org.slug}/show/show-day?project=${encodeURIComponent(project.key)}&day=${todayIn(project.timeZone)}`}
+                size="sm"
+              >
+                {t("show.showDay.open")}
+              </ButtonLink>
+            ),
+          }
+        : {})}
+    />
+  );
+}
+
+/** The local contacts panel loads with an open day sheet only (B5, G-56). */
+const LocalContactsPanel = dynamic(() =>
+  import("@/components/local-contacts/panel").then((m) => m.LocalContactsPanel),
+);
+
+/**
+ * The day sheet's Local contacts (B5, G-56): the venue's, the project's every-day contacts and that day's, read
+ * through app.project_local_contacts; members show their current name and directory work phone.
+ */
+async function daySheetContacts(
+  ctx: OrgContext,
+  projectId: string,
+  day: string,
+  canWrite: boolean,
+): Promise<ReactNode> {
+  const [contacts, members, locale] = await Promise.all([
+    listProjectLocalContacts(ctx.viewer.db, projectId, day),
+    canWrite ? listMembers(ctx.viewer.db, ctx.org.id) : null,
+    getLocale(),
+  ]);
+  if (!contacts.ok) return null;
+  return (
+    <LocalContactsPanel
+      org={ctx.org.slug}
+      namespace="show"
+      home={{ projectId }}
+      day={day}
+      contacts={shownContacts(contacts.data, locale)}
+      members={
+        members?.ok
+          ? members.data.map((m) => ({ membershipId: m.membershipId, name: m.fullName ?? "" }))
+          : []
+      }
+      canWrite={canWrite}
     />
   );
 }
@@ -242,6 +299,12 @@ export async function DaySheetsPage({
             canPublish={caps.has("show.call_sheet.publish")}
           >
             <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
+            {await daySheetContacts(
+              ctx,
+              open.projectId,
+              open.day,
+              caps.has("show.day_sheet.write"),
+            )}
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}
           </DaySheetPeek>
         ) : null,

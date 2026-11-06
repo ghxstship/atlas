@@ -264,7 +264,10 @@ export const sitemap: Sitemap = {
                       label: "nav.atlas.projectTabs.hospitality",
                       route: "/{org}/p/{projectKey}/hospitality",
                       twin: "hospitality",
-                      list: { views: ["list", "table", "calendar"], default: "list" },
+                      list: {
+                        views: ["list", "table", "calendar", "resource-schedule", "matrix"],
+                        default: "list",
+                      },
                     },
                     {
                       id: "project.assets",
@@ -497,6 +500,12 @@ export const sitemap: Sitemap = {
               route: "/{org}/show/call-sheets",
               list: { views: ["list", "table", "calendar"], default: "list" },
             },
+            {
+              id: "show.show-day",
+              kind: "page",
+              label: "nav.atlas.pages.show.showDay",
+              route: "/{org}/show/show-day",
+            },
           ],
         },
         {
@@ -604,6 +613,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/places/site-plans",
               list: { views: ["gallery", "site-plan", "list"], default: "gallery" },
             },
+            {
+              id: "places.signage",
+              kind: "page",
+              label: "nav.atlas.pages.places.signage",
+              route: "/{org}/places/signage",
+              list: { views: ["list", "table", "board"], default: "list" },
+            },
           ],
         },
         {
@@ -667,7 +683,28 @@ export const sitemap: Sitemap = {
               kind: "page",
               label: "nav.atlas.pages.hospitality.accommodationBlocks",
               route: "/{org}/hospitality/accommodation-blocks",
-              list: { views: ["list", "table", "calendar"], default: "list" },
+              list: { views: ["list", "table", "calendar", "matrix"], default: "list" },
+            },
+            {
+              id: "hospitality.travel",
+              kind: "page",
+              label: "nav.atlas.pages.hospitality.travel",
+              route: "/{org}/hospitality/travel",
+              list: { views: ["table", "list"], default: "table" },
+            },
+            {
+              id: "hospitality.transfers",
+              kind: "page",
+              label: "nav.atlas.pages.hospitality.transfers",
+              route: "/{org}/hospitality/transfers",
+              list: { views: ["list", "table", "resource-schedule", "calendar"], default: "list" },
+            },
+            {
+              id: "hospitality.rooms",
+              kind: "page",
+              label: "nav.atlas.pages.hospitality.rooms",
+              route: "/{org}/hospitality/rooms",
+              list: { views: ["list", "table", "resource-schedule"], default: "list" },
             },
           ],
         },

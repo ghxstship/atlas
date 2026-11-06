@@ -7,7 +7,7 @@ images behind each finding. The findings are `legal/qa/findings/A59-001.md` to `
 
 ## Method
 
-**Environment.** Production builds (`next build`, then `next start`) of Atlas on port 3059 and
+**Environment.** Production builds (`next build`, then `next start`) of Atlas on port 6059 and
 Gateway on port 3159, both pointed at a private Supabase stack (`xos4-a59`, ports 583xx, full stack
 with every seed in `supabase/seeds`). Compass was built in the Release configuration, with the
 JavaScript bundle embedded and `EXPO_PUBLIC_*` aimed at the same stack, and run on the iPhone 17 Pro

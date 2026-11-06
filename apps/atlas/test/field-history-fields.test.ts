@@ -58,7 +58,7 @@ describe("field history labels", () => {
         .flatMap((column) => historyLabelKey(column) ?? []),
     );
     expect(keys.size).toBeGreaterThan(200);
-    expect([...keys].filter((key) => key.startsWith("collab.history.money.")).length).toBe(13);
+    expect([...keys].filter((key) => key.startsWith("collab.history.money.")).length).toBe(14);
     for (const locale of ["en-US", "es-US"] as const) {
       const catalog = flatten(getMessages(locale));
       expect(
@@ -88,6 +88,8 @@ describe("field history labels", () => {
     expect(historyLabelKey("deleted_at")).toBe("collab.history.trash");
     expect(historyLabelKey("description")).toBe("views.export.columns.description");
     expect(historyLabelKey("amount_minor")).toBe("collab.history.money.amount_minor");
+    // A site plan's scale point B (B1) is a coordinate, not a person, so it shows.
+    expect(historyLabelKey("calibration_by")).toBe("views.export.columns.calibration_by");
   });
 
   it("words an amount in its currency, by that currency's exponent", () => {

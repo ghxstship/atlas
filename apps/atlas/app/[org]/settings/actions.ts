@@ -41,6 +41,8 @@ const KNOWN_REFUSALS = new Set([
   "seat_limit_upgrade",
   "not_member",
   "step_up_required",
+  // The org blocklist (B16, 6050): the inviter hears why.
+  "invite_blocked",
 ]);
 
 function errorKey(error: DataError): string {

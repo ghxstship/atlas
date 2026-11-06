@@ -15,6 +15,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
 import { Panel, RunReconciliationForm } from "./forms";
+import { ProvideSpecsForm } from "@/components/places/reconciliation/provide-specs-form";
 import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { InlineAlert, PageHeader, ReconciliationTable, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
@@ -114,6 +115,9 @@ export async function ReconciliationCollection({
           />
         </div>
       )}
+      {can.scopeWrite && project ? (
+        <ProvideSpecsForm org={ctx.org.slug} projectId={project.id} />
+      ) : null}
       {can.reconcile && projects.length > 0 ? (
         <RunReconciliationForm
           org={ctx.org.slug}
@@ -304,7 +308,11 @@ async function RunPage({
           rows={run.lines.map((l) => ({
             requirement: `${statementLabel(l.requirement.description, l.requirement.urid)}${l.requirement.isCritical ? ` · ${t("advancing.reconciliation.critical")}` : ""}`,
             capability: l.capability
-              ? `${statementLabel(l.capability.description, l.capability.urid)} · ${l.capability.assertionWord}`
+              ? [
+                  statementLabel(l.capability.description, l.capability.urid),
+                  l.capability.assertionWord,
+                  ...(l.capability.placeSpecField ? [t("places.specs.fromSpecs")] : []),
+                ].join(" · ")
               : null,
             result: l.result,
           }))}

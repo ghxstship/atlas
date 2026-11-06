@@ -22,6 +22,8 @@ import {
 } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
+import { LocalContactsSection, readTransfers } from "./ground-and-contacts";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -441,7 +443,19 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
     }),
   ]);
   if (!lodging.ok || !segments.ok || !travel.ok) return <RegionError />;
-  if (lodging.data.length === 0 && segments.data.length === 0 && travel.data.length === 0) {
+  // Ground transport and Shared local contacts (B5): the caller's transfers take their day in the itinerary, the
+  // project's contacts stay a section. As B5 had it, a failed transfer read leaves them out rather than failing the tab.
+  const [transfers, contacts] = await Promise.all([
+    readTransfers(view).then((r) => r ?? []),
+    LocalContactsSection({ view, t, locale }),
+  ]);
+  if (
+    lodging.data.length === 0 &&
+    segments.data.length === 0 &&
+    travel.data.length === 0 &&
+    transfers.length === 0 &&
+    contacts === null
+  ) {
     return (
       <TabEmpty
         icon="BedDouble"
@@ -451,59 +465,25 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
       />
     );
   }
+  // Your stay (B6): the segments, check-ins, check-outs and transfers by day, marked where they changed since the last
+  // look (transfers are never marked: they have no audit trail). The check-in and check-out lines carry the hotel and
+  // dates, so the Lodging list no longer repeats them.
+  const hasStay = segments.data.length > 0 || lodging.data.length > 0 || transfers.length > 0;
+  const stay = hasStay
+    ? await loadItinerary(view, { travel: segments.data, lodging: lodging.data, transfers })
+    : null;
+  if (hasStay && !stay) return <RegionError />;
   return (
     <div className="flex flex-col gap-16">
-      {segments.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.itinerary")}>
-          <RowList
-            label={t("gateway.engagement.travel.itinerary")}
-            items={segments.data.map((s) => ({
-              id: s.id ?? "",
-              title: t("gateway.engagement.travel.route", {
-                from: s.departs_from ?? "",
-                to: s.arrives_at_place ?? "",
-              }),
-              meta: [
-                [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-                s.departs_at
-                  ? t("gateway.engagement.travel.departs", {
-                      time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-                    })
-                  : null,
-                s.arrives_at
-                  ? t("gateway.engagement.travel.arrives", {
-                      time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-                    })
-                  : null,
-                s.confirmation_identifier
-                  ? t("gateway.engagement.travel.confirmation", {
-                      code: s.confirmation_identifier,
-                    })
-                  : null,
-              ],
-              ...(s.travel_mode
-                ? {
-                    tag: {
-                      label: t(enumLabelKey("travelMode", s.travel_mode)),
-                      tone: "neutral" as const,
-                    },
-                  }
-                : {}),
-            }))}
-          />
-        </Section>
-      ) : null}
-      {lodging.data.length > 0 ? (
-        <Section title={t("gateway.engagement.travel.lodging")}>
-          <RowList
-            label={t("gateway.engagement.travel.lodging")}
-            items={lodging.data.map((l) => ({
-              id: l.id ?? "",
-              title: l.hotel_name ?? l.block_title ?? "",
-              meta: [formatDateRange(locale, l.check_in_on, l.check_out_on), l.guest_name],
-            }))}
-          />
-        </Section>
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          lookup={stay.lookup}
+          view={view}
+          t={t}
+          locale={locale}
+        />
       ) : null}
       {travel.data.length > 0 ? (
         <Section title={t("gateway.engagement.travel.travel")}>
@@ -517,6 +497,7 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
           />
         </Section>
       ) : null}
+      {contacts}
     </div>
   );
 }

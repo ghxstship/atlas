@@ -32,6 +32,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
   "event.invited": ["startsAt"],
+  // B5 (5947): the pickup time of a transfer to drive.
+  "transfer.assigned": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
   // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
@@ -42,6 +44,9 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // R6a (4664): which profile facts moved to each project (uniform, travel or both).
   "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
+  // B16 (6051, 6052): when a pause resumes (or none), and which connected app proposed which operation.
+  "billing.paused": ["resumesOn"],
+  "agent.change_proposed": ["app", "operation"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
@@ -87,6 +92,14 @@ const TARGETS: Readonly<Record<string, string>> = {
   report_deliveries: "reports",
 };
 
+/** Subjects that open their own row: the page and the query key it reads (B1: plans, their pins and shapes, signs). */
+const ROW_TARGETS: Readonly<Record<string, readonly [path: string, key: string]>> = {
+  "app.site_plans": ["places/site-plans", "peek"],
+  "app.site_plan_pins": ["places/site-plans", "pin"],
+  "app.site_plan_shapes": ["places/site-plans", "shape"],
+  "app.signs": ["places/signage", "peek"],
+};
+
 /** A record subject: app.records from the record emitters, records from a domain event an automation notice is about. */
 const RECORD_TABLES: ReadonlySet<string> = new Set(["app.records", "records"]);
 
@@ -117,8 +130,16 @@ export function inboxTarget(
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
       : `/${org}/import`;
   }
+  const row = item.subjectTable ? ROW_TARGETS[item.subjectTable] : undefined;
+  if (row) {
+    return item.subjectId
+      ? `/${org}/${row[0]}?${row[1]}=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/${row[0]}`;
+  }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
+  // A connected app's proposal (B16, 6052) waits in Personal settings, Connected apps.
+  if (item.kind === "agent.change_proposed") return `/${org}/me/connected-apps`;
   if (item.kind.startsWith("billing.")) return `/${org}/settings/billing-and-plan`;
   if (item.kind.startsWith("account.")) return `/${org}/me/security`;
   return null;
@@ -163,6 +184,8 @@ function values(
     "skipped",
     "reminderNumber",
     "reminderLimit",
+    "freeRoomNights",
+    "passengerCount",
   ]) {
     if (a[key] !== undefined) out[key] = Number(a[key]);
   }

@@ -133,6 +133,14 @@
       "trial_ended": {
         "subject": "Your Pro trial has ended",
         "body": "Your organization is now on the Access plan. No data was deleted. Add a card in Billing and plan whenever you want Pro back."
+      },
+      "paused": {
+        "subject": "Your organization is paused",
+        "body": "Billing is paused and the organization is read-only {resumesOn, select, none {until the Owner resumes it} other {until {resumesOn}}}. Everything stays readable and exportable, and no data is deleted."
+      },
+      "resumed": {
+        "subject": "Your organization has resumed",
+        "body": "The pause has ended. The organization is writable again and billing continues."
       }
     },
     "message": {
@@ -313,6 +321,12 @@
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
     },
+    "agent": {
+      "change_proposed": {
+        "subject": "{app} proposed a change",
+        "body": "{app} proposed {operation}. Review it in Personal settings, Connected apps; nothing changes until you confirm it."
+      }
+    },
     "credential_photo": {
       "requested": {
         "subject": "{orgName} asks for your badge photo",
@@ -359,6 +373,18 @@
       "withdrawn": {
         "subject": "Your {kind, select, credential {badge} parking_pass {parking pass} asset {{itemName}} catering {catering} lodging {room} travel {travel} per_diem {per diem} other {allocation}} for {projectName} was withdrawn",
         "body": "{cause, select, engagement_ended {The engagement ended.} entry_removed {You are no longer on the roster.} other {{orgName} withdrew it.}}"
+      }
+    },
+    "accommodation_block": {
+      "release_due": {
+        "subject": "{blockKey} {blockTitle} releases {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "{freeRoomNights, plural, one {# room night is} other {# room nights are}} still free in {blockTitle} for {projectName}. Unassigned rooms return to the hotel on {releaseOn}."
+      }
+    },
+    "transfer": {
+      "assigned": {
+        "subject": "You are driving {transferKey}",
+        "body": "Pickup at {pickupPlace}, {startsAt, date, medium} at {startsAt, time, short}, to {dropoffPlace}, with {passengerCount, plural, one {# passenger} other {# passengers}}."
       }
     }
   },

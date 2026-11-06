@@ -33,6 +33,7 @@ executionOrder:
     - field-nfc-scan
     - desk-asset-custody
     - field-run-of-show
+    - field-drives
     - handoff-open-record
     - supervisor-kiosk
     - supervisor-kiosk-rekey
@@ -42,6 +43,7 @@ executionOrder:
     - roster-member-today
     - clock-team
     - crew-external-work
+    - itinerary-changes
     - project-details
     - profile-credentials
     - vendor-external-scan

@@ -6,6 +6,7 @@ import type { Incident, IncidentTransition } from "../incidents.ts";
 import type { AgreementDetail } from "../people.ts";
 import type { PoLine, PurchaseOrder, PurchaseOrderTotals } from "../procurement.ts";
 import type { FinalCostReport, FinalCostRow } from "../reports.ts";
+import type { LocalContact } from "../local-contacts.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
 import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
@@ -16,9 +17,17 @@ import {
   type DocumentKind,
   type PrintSize,
 } from "./model.ts";
+import {
+  buildSignageSheet,
+  buildSitePlan,
+  type BuildSheetData,
+  type SitePlanDocumentData,
+} from "./places-templates.ts";
+import type { Orientation } from "./render.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
+ * Versioned templates for the Section 11.9 record documents (ADR 0031): the twelve of 4.0, the radio hand-out (R7) and,
+ * from B1, the site plan export and the signage build sheet (places-templates.ts). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -52,7 +61,12 @@ export interface DocumentDataMap {
     readonly budgetName: string | null;
     readonly currency: string;
   };
-  "day-sheet": { readonly project: DocumentProject; readonly sheet: DaySheet };
+  "day-sheet": {
+    readonly project: DocumentProject;
+    readonly sheet: DaySheet;
+    /** The day's local contacts (B5): the venue's, every day's and that day's. Version 1 shows none. */
+    readonly contacts?: readonly LocalContact[];
+  };
   "call-sheet": {
     readonly project: DocumentProject;
     readonly sheet: CallSheet;
@@ -99,6 +113,8 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly lines: readonly RadioHandoutLine[];
   };
+  "site-plan": SitePlanDocumentData;
+  "signage-build-sheet": BuildSheetData;
 }
 
 export interface BadgePhoto {
@@ -116,6 +132,11 @@ export interface TemplateContext {
   readonly generatedAt: Date;
   /** The size it prints on; a card layout (A6, CR80) takes its blocks in card order. */
   readonly paper: PrintSize;
+  /**
+   * The request's search params, for the kinds whose content the reader chooses (the site plan's layers and legend,
+   * the build sheet's state filter, B1); every other kind ignores them.
+   */
+  readonly options: Readonly<Record<string, string | undefined>>;
 }
 
 export interface TemplateOutput {
@@ -166,12 +187,20 @@ export function templateFor<K extends DocumentKind>(
 /** A catalog key segment from a stored value ("Offer Letter" to "OfferLetter"). */
 export const keyOf = (value: string) => value.replace(/[^A-Za-z0-9]/g, "");
 
-/** How each record names itself on the page and when it was issued. Stable across versions. */
+/**
+ * How each record names itself on the page and when it was issued. Stable across versions. It runs after the loader,
+ * so a kind may also choose its page orientation from its data (the site plan follows its drawing, B1); kinds that
+ * name none print as the route asks.
+ */
 export const DESCRIBE: {
   readonly [K in DocumentKind]: (
     data: DocumentDataMap[K],
     generatedAt: Date,
-  ) => { readonly recordKey: string; readonly issuedAt: string };
+  ) => {
+    readonly recordKey: string;
+    readonly issuedAt: string;
+    readonly orientation?: Orientation;
+  };
 } = {
   "purchase-order": (d) => ({ recordKey: d.order.key, issuedAt: d.order.createdAt }),
   invoice: (d) => ({
@@ -216,6 +245,20 @@ export const DESCRIBE: {
     recordKey: keyed(d.project.key, "RADIOS"),
     issuedAt: generatedAt.toISOString(),
   }),
+  // Computed live, like the final cost report; landscape for a drawing at least as wide as it is tall (ADR 0140 D10).
+  "site-plan": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, `PLAN-${d.plan.id.slice(0, 8)}`),
+    issuedAt: generatedAt.toISOString(),
+    orientation:
+      d.drawing && d.plan.drawing && d.plan.drawing.widthPx >= d.plan.drawing.heightPx
+        ? "landscape"
+        : "portrait",
+  }),
+  "signage-build-sheet": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "SGN"),
+    issuedAt: generatedAt.toISOString(),
+    orientation: "landscape",
+  }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -239,6 +282,8 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/** Day sheets issued from this instant list the day's local contacts (B5, ADR 0144). */
+const DAY_SHEET_CONTACTS = "2026-11-01T00:00:00Z";
 
 /**
  * When credential badge version 2 (the photo and the gate code, P5) takes effect for newly issued credentials on
@@ -453,6 +498,52 @@ export const TEMPLATES: TemplateRegistry = {
           {
             kind: "paragraph",
             text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+        ],
+      }),
+    },
+    // B5 (G-56): the day's local contacts follow the notes.
+    {
+      version: 2,
+      effectiveFrom: DAY_SHEET_CONTACTS,
+      build: ({ project, sheet, contacts }, { t, f }) => ({
+        title: t("daySheet.title", { project: project.key, day: f.day(sheet.day) }),
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("common.details"),
+            fields: [
+              field(t("common.project"), projectLabel(project)),
+              field(t("common.day"), f.day(sheet.day)),
+              field(
+                t("common.published"),
+                sheet.publishedAt ? f.dateTime(sheet.publishedAt) : t("common.draft"),
+              ),
+            ],
+          },
+          { kind: "heading", text: t("daySheet.body") },
+          {
+            kind: "paragraph",
+            text: sheet.body.trim() === "" ? t("daySheet.emptyBody") : sheet.body,
+          },
+          {
+            kind: "table",
+            caption: t("daySheet.localContacts"),
+            columns: [
+              { label: t("daySheet.contactRole") },
+              { label: t("daySheet.contactName"), weight: 2 },
+              { label: t("daySheet.contactTitle"), weight: 1.6 },
+              { label: t("daySheet.contactPhone"), weight: 1.6 },
+              { label: t("daySheet.contactEmail"), weight: 2 },
+            ],
+            rows: (contacts ?? []).map((c) => [
+              t(`daySheet.roles.${c.role}`),
+              [c.displayName, c.organizationName].filter(Boolean).join(", ") || t("common.none"),
+              c.title ?? "",
+              c.phone ?? "",
+              c.email ?? "",
+            ]),
+            empty: t("daySheet.noContacts"),
           },
         ],
       }),
@@ -1003,4 +1094,6 @@ export const TEMPLATES: TemplateRegistry = {
       }),
     },
   ],
+  "site-plan": [{ version: 1, effectiveFrom: V1, build: buildSitePlan }],
+  "signage-build-sheet": [{ version: 1, effectiveFrom: V1, build: buildSignageSheet }],
 };

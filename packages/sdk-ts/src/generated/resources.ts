@@ -24,6 +24,7 @@ import type {
   AccessReviewItemUpdate,
   AccessScan,
   AccessScanCreate,
+  AccommodationNight,
   AccountMembership,
   AccountMembershipCreate,
   AccountMembershipRole,
@@ -32,6 +33,7 @@ import type {
   AccountingPeriodCreate,
   AccountingPeriodTransitionRequest,
   ActCode,
+  ActWithoutRoomPage,
   ActivityEvent,
   AdvanceAllocation,
   AdvanceAllocationAssign,
@@ -412,6 +414,7 @@ import type {
   FeedPostUpdate,
   FeedReactionRequest,
   FieldHistoryEventPage,
+  Flight,
   Form1099NecRowPage,
   FormDecisionRequest,
   FormSubmission,
@@ -558,6 +561,7 @@ import type {
   LiveLinkRegenerated,
   LiveViewLinkRequest,
   LiveViewLinkToken,
+  LocalContact,
   LostFoundClaim,
   LostFoundItem,
   LostFoundItemCreate,
@@ -567,6 +571,8 @@ import type {
   LoyaltyProgramCreate,
   LoyaltyProgramUpdate,
   MarkAllReadResult,
+  MarkCommunicatedRequest,
+  MarkCommunicatedResult,
   MarkConversationReadRequest,
   MarketplaceListingPage,
   MarshallingLogEntry,
@@ -863,6 +869,7 @@ import type {
   RoleCode,
   RoleCreate,
   RoleUpdate,
+  RoomingEntryPage,
   RosterEntry,
   RosterLockRequest,
   RosterProjectFacts,
@@ -915,6 +922,7 @@ import type {
   ShiftBulkEditRequest,
   ShiftBulkEditResult,
   ShiftClaimResult,
+  ShiftCommunicationStatusPage,
   ShiftCreate,
   ShiftSwap,
   ShiftSwapCreate,
@@ -941,6 +949,7 @@ import type {
   SopCreate,
   SopUpdate,
   Space,
+  SpaceBooking,
   SpaceCreate,
   SpaceUpdate,
   SpendAuthority,
@@ -1041,6 +1050,8 @@ import type {
   TrainingQuizQuestion,
   TrainingQuizQuestionCreate,
   TrainingQuizQuestionUpdate,
+  Transfer,
+  TransferVehicle,
   TrashItem,
   TrashRestoreResult,
   TravelDayCountPage,
@@ -8606,6 +8617,49 @@ export class ShiftsResource extends $Resource {
     return this.client.request<FieldHistoryEventPage>(
       $OPERATIONS["shifts.fieldHistory"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Read whether shift workers were told of changes
+   *
+   * For up to 100 shifts, the person on each, when and how they were last told, the communicable fields others changed since, and whether the shift needs review (app.communication_status). Shifts the caller cannot read, or cannot write (crew.shift.write), are left out. More than 100 ids are refused with 422 communication_too_many. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /shifts/communication-status` (operation `shifts.communicationStatus`).
+   * Requires the capability `crew.shift.write`.
+   */
+  communicationStatus(
+    params: {
+      /**
+       * Shift ids, comma-separated, at most 100; more are refused as communication_too_many.
+       */
+      readonly ids: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShiftCommunicationStatusPage>> {
+    return this.client.request<ShiftCommunicationStatusPage>(
+      $OPERATIONS["shifts.communicationStatus"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Mark shifts as communicated
+   *
+   * Saves one communication mark per shift for the person on it now, at the same instant (app.mark_communicated); their changes up to then no longer need review. All or nothing: 404 unless the caller holds crew.shift.write on every shift's project, 422 communication_no_assignee for an open or deleted shift and communication_too_many above 500 ids. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/mark-communicated` (operation `shifts.markCommunicated`).
+   * Requires the capability `crew.shift.write`.
+   */
+  markCommunicated(
+    body: MarkCommunicatedRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<MarkCommunicatedResult>> {
+    return this.client.request<MarkCommunicatedResult>(
+      $OPERATIONS["shifts.markCommunicated"],
+      { body },
       options,
     );
   }
@@ -35449,6 +35503,402 @@ export class GuestListEntriesResource extends $Resource {
     return this.client.request<GuestListEntry>(
       $OPERATIONS["guestListEntries.checkIn"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `flights`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class FlightsResource extends $Resource {
+  /**
+   * List flight rows
+   *
+   * A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns a cursor page of flight rows the caller may see. The default order is `departs_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /flights` (operation `flights.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  list(params?: $ListParams<Flight>, options?: $RequestOptions): Promise<$Page<Flight>> {
+    return this.client.requestPage<Flight>($OPERATIONS["flights.list"], { query: params }, options);
+  }
+
+  /**
+   * List flight rows
+   *
+   * A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns a cursor page of flight rows the caller may see. The default order is `departs_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /flights` (operation `flights.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Flight>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Flight, void, undefined> {
+    return this.client.paginate<Flight>($OPERATIONS["flights.list"], { query: params }, options);
+  }
+
+  /**
+   * Get a flight
+   *
+   * A live Flight segment the caller may read, with the traveller's name, the journey it belongs to (legs within 24 hours of the previous landing) and its phase now. Phase and journey are computed on every read; the fare never appears. Returns one flight with its `ETag`. A flight the caller may not see returns 404.
+   *
+   * `GET /flights/{id}` (operation `flights.get`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Flight>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Flight>> {
+    return this.client.request<Flight>(
+      $OPERATIONS["flights.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `transfers`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class TransfersResource extends $Resource {
+  /**
+   * List transfer rows
+   *
+   * A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns a cursor page of transfer rows the caller may see. The default order is `pickup_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /transfers` (operation `transfers.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  list(params?: $ListParams<Transfer>, options?: $RequestOptions): Promise<$Page<Transfer>> {
+    return this.client.requestPage<Transfer>(
+      $OPERATIONS["transfers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List transfer rows
+   *
+   * A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns a cursor page of transfer rows the caller may see. The default order is `pickup_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /transfers` (operation `transfers.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Transfer>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Transfer, void, undefined> {
+    return this.client.paginate<Transfer>(
+      $OPERATIONS["transfers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a transfer
+   *
+   * A live ground transfer with its vehicle, driver, passengers, the flight it meets, warnings and status, computed on every read. The drop-off time is the planner's estimate; no drive time is computed. Returns one transfer with its `ETag`. A transfer the caller may not see returns 404.
+   *
+   * `GET /transfers/{id}` (operation `transfers.get`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Transfer>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Transfer>> {
+    return this.client.request<Transfer>(
+      $OPERATIONS["transfers.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `transferVehicles`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class TransferVehiclesResource extends $Resource {
+  /**
+   * List transfer vehicle rows
+   *
+   * A vehicle a project's ground transfers run in. No plate is stored. Returns a cursor page of transfer vehicle rows the caller may see. The default order is `label`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /transfer-vehicles` (operation `transferVehicles.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  list(
+    params?: $ListParams<TransferVehicle>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TransferVehicle>> {
+    return this.client.requestPage<TransferVehicle>(
+      $OPERATIONS["transferVehicles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List transfer vehicle rows
+   *
+   * A vehicle a project's ground transfers run in. No plate is stored. Returns a cursor page of transfer vehicle rows the caller may see. The default order is `label`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /transfer-vehicles` (operation `transferVehicles.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TransferVehicle>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TransferVehicle, void, undefined> {
+    return this.client.paginate<TransferVehicle>(
+      $OPERATIONS["transferVehicles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a transfer vehicle
+   *
+   * A vehicle a project's ground transfers run in. No plate is stored. Returns one transfer vehicle with its `ETag`. A transfer vehicle the caller may not see returns 404.
+   *
+   * `GET /transfer-vehicles/{id}` (operation `transferVehicles.get`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TransferVehicle>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TransferVehicle>> {
+    return this.client.request<TransferVehicle>(
+      $OPERATIONS["transferVehicles.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `spaceBookings`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class SpaceBookingsResource extends $Resource {
+  /**
+   * List space booking rows
+   *
+   * A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns a cursor page of space booking rows the caller may see. The default order is `starts_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /space-bookings` (operation `spaceBookings.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  list(
+    params?: $ListParams<SpaceBooking>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SpaceBooking>> {
+    return this.client.requestPage<SpaceBooking>(
+      $OPERATIONS["spaceBookings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List space booking rows
+   *
+   * A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns a cursor page of space booking rows the caller may see. The default order is `starts_at`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /space-bookings` (operation `spaceBookings.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SpaceBooking>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SpaceBooking, void, undefined> {
+    return this.client.paginate<SpaceBooking>(
+      $OPERATIONS["spaceBookings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a space booking
+   *
+   * A live green room, dressing room or other space booking with its space, act and set time, the cluster of overlapping bookings it belongs to, the peak party against capacity and whether the set moved, computed on every read. Returns one space booking with its `ETag`. A space booking the caller may not see returns 404.
+   *
+   * `GET /space-bookings/{id}` (operation `spaceBookings.get`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SpaceBooking>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SpaceBooking>> {
+    return this.client.request<SpaceBooking>(
+      $OPERATIONS["spaceBookings.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `localContacts`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class LocalContactsResource extends $Resource {
+  /**
+   * List local contact rows
+   *
+   * A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live. Returns a cursor page of local contact rows the caller may see. The default order is `project_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /local-contacts` (operation `localContacts.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(
+    params?: $ListParams<LocalContact>,
+    options?: $RequestOptions,
+  ): Promise<$Page<LocalContact>> {
+    return this.client.requestPage<LocalContact>(
+      $OPERATIONS["localContacts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List local contact rows
+   *
+   * A local contact listed for a project: its own rows and its venue's. A member contact shows the member's current name and directory work phone, read live. Returns a cursor page of local contact rows the caller may see. The default order is `project_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /local-contacts` (operation `localContacts.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<LocalContact>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<LocalContact, void, undefined> {
+    return this.client.paginate<LocalContact>(
+      $OPERATIONS["localContacts.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `accommodationNights`, in the Hospitality module.
+ *
+ * Lodging, catering, travel and amenity fulfillment and BEOs (Section 4.2).
+ */
+export class AccommodationNightsResource extends $Resource {
+  /**
+   * List accommodation night rows
+   *
+   * One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard. Returns a cursor page of accommodation night rows the caller may see. The default order is `block_id`, then `night` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /accommodation-nights` (operation `accommodationNights.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  list(
+    params?: $ListParams<AccommodationNight>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AccommodationNight>> {
+    return this.client.requestPage<AccommodationNight>(
+      $OPERATIONS["accommodationNights.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List accommodation night rows
+   *
+   * One night of a live accommodation block: rooms held, assigned to live stays and free, computed on read with the same count as the block's occupancy guard. Returns a cursor page of accommodation night rows the caller may see. The default order is `block_id`, then `night` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /accommodation-nights` (operation `accommodationNights.list`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AccommodationNight>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AccommodationNight, void, undefined> {
+    return this.client.paginate<AccommodationNight>(
+      $OPERATIONS["accommodationNights.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List the acts without rooms
+   *
+   * Artist engagements of the project in Onboarding to Closing with Lodging offered none of whose people (the artist and live, not-declined roster people) holds a live room on the project's blocks, through `app.acts_without_rooms`. Needs hospitality.fulfillment.read on the project (404 otherwise). Reads no project fact. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /accommodation-nights/acts-without-rooms` (operation `accommodationNights.actsWithoutRooms`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  actsWithoutRooms(
+    params: {
+      /**
+       * Project whose rooms are read.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ActWithoutRoomPage>> {
+    return this.client.request<ActWithoutRoomPage>(
+      $OPERATIONS["accommodationNights.actsWithoutRooms"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Read a project's rooming list
+   *
+   * The travel party members whose travel request needs lodging and whose engagement offers Lodging, with suggested stays (credential access days for credentials.credential.read holders, else the travel dates), assigned stays, uncovered nights, status and cost, through `app.rooming_list`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every person returned is logged as a read of their travel request. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /accommodation-nights/rooming-list` (operation `accommodationNights.roomingList`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  roomingList(
+    params: {
+      /**
+       * Project whose rooms are read.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RoomingEntryPage>> {
+    return this.client.request<RoomingEntryPage>(
+      $OPERATIONS["accommodationNights.roomingList"],
+      { query: params },
       options,
     );
   }

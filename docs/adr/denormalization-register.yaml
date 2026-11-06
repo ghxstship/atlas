@@ -33,6 +33,13 @@ derived:
     reason: PowerSync project filter, as above
     adr: "0022"
   - objects:
+      - app.communication_marks.org_id
+      - app.communication_marks.project_id
+    source: "`app.shifts.org_id` and `app.shifts.project_id` (the marked row's)"
+    refresh: Stamped by `app.mark_communicated` on insert; the ledger is never updated (5951)
+    reason: The marks' read policy filters by project without a join to the polymorphic subject
+    adr: "0145"
+  - objects:
       - app.credentials.project_id
     source: "`app.credential_categories.project_id`"
     refresh: Stamped by trigger; changing it is refused (0470)
@@ -182,6 +189,25 @@ derived:
     refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (3070)
     reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
     adr: "0081"
+  - objects:
+      - app.site_plans.image_uri
+    source: "`app.attachment_versions.object_name` of the plan's drawing"
+    refresh: Overwritten by `private.guard_site_plan_layout` on every insert and update while a drawing is set, whatever the caller sends (5901)
+    reason: The frozen v1 contract keeps a non-null image_uri; it never drifts because a version is immutable
+    adr: "0140"
+  - objects:
+      - app.capability_statements.description
+      - app.capability_statements.assertion_word
+    source: "`app.place_specs` and the validity of its `app.capability_documents` row, for rows with place_spec_id set"
+    refresh: Rewritten each time `app.provide_place_specs` runs; never automatically (5903)
+    reason: Reconciliation joins capability statements by URID; the copy is what a person added, and a computed tag shows when the spec changed or the document expired
+    adr: "0140"
+  - objects:
+      - app.space_bookings.engagement_id
+    source: "`app.engagement_cues.engagement_id` of the booking's set time, when `engagement_cue_id` is set"
+    refresh: Copied by `private.guard_space_booking` on insert and update; a different engagement is refused (space_booking_set_engagement, migration 5943, B5)
+    reason: A booking for an engagement without a set time names the engagement directly, so the board, Gateway and the act's filter read one column either way
+    adr: "0144"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -240,6 +266,9 @@ json:
   - column: app.ai_suggestion_fields.proposed_value
     kind: provider-payload
     note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
+  - column: app.ai_suggestions.operation_request
+    kind: provider-payload
+    note: How Atlas calls the operation a connected app proposed (path values and If-Match), as the app sent it; read whole when the person confirms (migration 6052).
   - column: app.audit_events.diff
     kind: audit-diff
     note: The audit ledger's diff of each write.
@@ -312,6 +341,9 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.mcp_connectors.default_scopes
+    kind: reviewed
+    note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 6052).
   - column: app.oauth_grants.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
@@ -570,6 +602,10 @@ restated:
     parent: app.projects.time_zone
     kind: own
     note: Zone the calendar's days are read in, set per calendar.
+  - column: app.capability_statements.venue_id
+    parent: app.place_specs.venue_id
+    kind: own
+    note: The venue that provides the capability, the project's venue, which owns the spec it was copied from (`app.provide_place_specs`, 5903).
   - column: app.capability_statements.venue_id
     parent: app.projects.venue_id
     kind: own
@@ -960,6 +996,10 @@ restated:
     parent: app.run_of_show.project_id
     kind: registered
     note: Stamped from the running order for a Display link by `private.stamp_live_link_project` (derived entry); for a View link it is the creator's choice of project.
+  - column: app.local_contacts.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: A venue contact names the venue and no project, a project contact the project and no venue (`local_contacts_one_home`, migration 5944).
   - column: app.marshalling_log.project_id
     parent: app.shipments.project_id
     kind: own
@@ -1120,6 +1160,14 @@ restated:
     parent: app.people.full_name
     kind: own
     note: The contact's name, not the person's.
+  - column: app.place_specs.venue_id
+    parent: app.capability_documents.venue_id
+    kind: own
+    note: The venue the spec describes; its documenting capability document must be of the same venue (`place_spec_document_venue`).
+  - column: app.place_specs.venue_id
+    parent: app.spaces.venue_id
+    kind: own
+    note: The space's venue for space rows, derived by `private.guard_place_spec` and refused if sent otherwise (5903).
   - column: app.po_lines.element_id
     parent: app.budget_lines.element_id
     kind: own
@@ -1432,10 +1480,26 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Venue drawn, not necessarily the project's primary venue.
+  - column: app.site_plans.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The venue the plan draws; a plan with a level names the level's venue (`site_plan_level_venue`, 5900).
   - column: app.sms_summary_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the summary carrying this delivery was sent.
+  - column: app.space_bookings.engagement_id
+    parent: app.engagement_cues.engagement_id
+    kind: registered
+    note: Copied from the set time by `private.guard_space_booking` (derived entry).
+  - column: app.space_bookings.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the booking; `t39_space_booking_project` and the guard require the engagement's (migration 5943).
+  - column: app.spaces.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The space's venue; its level is a level of that venue (`space_level_venue`, 5900).
   - column: app.spend_approvals.currency_code
     parent: app.spend_authorities.currency_code
     kind: fact
@@ -1535,6 +1599,22 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project of the timesheet; the engagement link is optional.
+  - column: app.transfers.fulfillment_id
+    parent: app.travel_segments.fulfillment_id
+    kind: own
+    note: Travel fulfillment the transfer belongs to; the flight it meets may belong to another or none.
+  - column: app.transfers.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the fulfillment's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.transfer_vehicles.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the vehicle's (migration 5941).
+  - column: app.transfers.project_id
+    parent: app.travel_segments.project_id
+    kind: own
+    note: Project of the transfer; `t39_transfer_project` requires the met flight's (migration 5941).
   - column: app.travel_segments.currency_code
     parent: app.engagements.currency_code
     kind: own
@@ -1711,6 +1791,10 @@ restated:
     kind: finding
     note: The factor is required and belongs to one sign-in, so the label's sign-in is the factor's.
     finding: A108-003
+  - column: private.block_release_reminders_sent.release_on
+    parent: app.accommodation_blocks.release_on
+    kind: fact
+    note: The release date reminded, kept as it was, so a block given a new date is reminded again (migration 5947).
   - column: private.file_download_tickets.attachment_version_id
     parent: app.share_links.attachment_version_id
     kind: fact
@@ -1843,6 +1927,15 @@ stored:
   - column: app.osha_annual_summaries.total_hours_worked
     kind: input
     note: The establishment's Form 300A figure; `app.osha_employment_estimate` only suggests one from time entries (migration 1385).
+  - column: app.place_specs.loading_dock_count
+    kind: input
+    note: Loading docks the venue states (5903).
+  - column: app.place_specs.rigging_point_count
+    kind: input
+    note: Rigging points the venue states (5903).
+  - column: app.place_specs.rigging_total_load_lb
+    kind: input
+    note: Total rigging load the venue states, not a sum of points (5903).
   - column: app.ratings.score
     kind: input
     note: A rating of 1 to 5.

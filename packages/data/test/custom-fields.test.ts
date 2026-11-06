@@ -72,10 +72,14 @@ const EMPTY_ROW = {
 };
 
 describe("custom field tables", () => {
-  it("lists the ten built-in tables orgs may extend (0540, budget lines from 3872)", () => {
-    expect(CUSTOM_FIELD_TABLES).toHaveLength(10);
+  it("lists the twelve built-in tables orgs may extend (0540, budget lines from 3872, spaces and signs from B1)", () => {
+    expect(CUSTOM_FIELD_TABLES).toHaveLength(12);
     expect(isCustomFieldTable("app.budget_lines")).toBe(true);
+    expect(CUSTOM_FIELD_TABLES).toEqual(
+      expect.arrayContaining(["app.venues", "app.asset_units", "app.spaces", "app.signs"]),
+    );
     expect(isCustomFieldTable("app.asset_units")).toBe(true);
+    expect(isCustomFieldTable("app.signs")).toBe(true);
     expect(isCustomFieldTable("app.audit_events")).toBe(false);
     expect(isCustomFieldTable(7)).toBe(false);
   });

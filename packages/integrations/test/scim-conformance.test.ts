@@ -18,6 +18,7 @@ const token = `xos_scim_${crypto.randomUUID().replaceAll("-", "")}`;
 
 function memoryStore(identities: ScimIdentity[]): ScimStore {
   return {
+    emailBlocked: async () => false,
     providerForToken: async (t) => (t === token ? "idp-1" : null),
     identity: async (_p, id) => identities.find((i) => i.externalId === id) ?? null,
     identityByEmail: async (_p, email) => identities.find((i) => i.email === email) ?? null,

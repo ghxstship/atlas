@@ -294,6 +294,26 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "XOS tells the person on a published shift when it is assigned to them and when its times move. Other changes, such as a new role, a cancellation or a return to Draft, are not announced, so the shift shows ",
+          },
+          { t: "strong", v: "Needs review" },
+          {
+            t: "text",
+            v: " with the number of changes since the person was told. The shift's peek shows how and when they were last told (by notification, by accepting the shift, or by your mark) and what changed since. After you tell them, choose ",
+          },
+          { t: "strong", v: "Mark as communicated" },
+          { t: "text", v: "; with " },
+          { t: "strong", v: "Review" },
+          { t: "text", v: " set to " },
+          { t: "strong", v: "Needs review" },
+          { t: "text", v: ", you can mark every listed shift at once." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: 'Planners can plan a Draft shift from one line in the quick add field, such as "#stagehand @dana ~NWS-S01 Friday 8am-4pm": ',
           },
           { t: "code", v: "#" },
@@ -677,7 +697,33 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Today lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
+            v: "Today is a dashboard of tiles you can widen or narrow; it keeps your layout. ",
+          },
+          { t: "strong", v: "Doors" },
+          {
+            t: "text",
+            v: " counts down to the next doors of an event in the next 14 days, in its project's time zone. ",
+          },
+          { t: "strong", v: "Waiting for your approval" },
+          {
+            t: "text",
+            v: " counts the approvals your Inbox asks you to decide and lists the first five. ",
+          },
+          { t: "strong", v: "Since your last visit" },
+          {
+            t: "text",
+            v: " names what others changed on the records you are assigned to or watch and on your shifts, and who changed it; a visit lasts 30 minutes, so refreshing keeps the list, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          { t: "text", v: " clears it. It starts from your second visit." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Below the tiles, the day's work lists the records assigned to you or waiting on your decision, ordered by when they are due. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " and " },
@@ -756,6 +802,56 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "An accommodation block holds rooms at a hotel for a date range. Assign people to rooms from the block and see how many remain.",
+          },
+        ],
+      },
+      { t: "h2", v: "Flights" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitality > Travel lists every flight booked under a Travel fulfillment, across the org or in the project's Travel section. Legs a traveler flies within 24 hours of the last landing are one journey, so each row shows Leg 1 of 3 and the journey's final arrival. Each time shows in the zone it was entered in. The built-in views show Upcoming flights, those In flight, or All; save one as your own view, and export the rows on screen as CSV, Excel or PDF. The fare never appears.",
+          },
+        ],
+      },
+      { t: "h2", v: "Transfers" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A transfer is one vehicle run: a pickup and a drop-off, a vehicle, a driver and the passengers riding. Type the drop-off time you expect; drive times are not computed and no map is drawn. Manage the project's vehicles from Vehicles. XOS refuses a driver, vehicle or passenger booked on two transfers at once, more passengers than seats, and the driver riding as a passenger. Each transfer shows Unassigned, Assigned, Underway or Done, and warns of a Tight turnaround (the driver's previous drop-off plus the turnaround in Settings > Scheduling) or a flight that lands after the pickup. The resource schedule lays transfers out by driver or by vehicle for the week. The driver is told when they are assigned.",
+          },
+        ],
+      },
+      { t: "h2", v: "Green rooms and dressing rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Book a space at the project's venue for an act or a team, or use Book from set time: in is filled in 90 minutes before the set and out 60 minutes after it ends, and you can change both. An exclusive booking holds the room alone; shared bookings may overlap, and the overlaps to check list them together with the most people in the room at once against its capacity. Set moved shows when the set's planned time leaves the booking.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooms by night and acts without rooms" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The Matrix view of accommodation blocks shows each block's rooms assigned of held on every night. A night with free rooms is highlighted when the block releases within 14 days, and the block's creator and last editor get a reminder at 14, 7 and 1 days. The header counts the artists with lodging offered whose people hold no room yet. Link a block to a budget line to see its lodging held and assigned on the budget; nothing is written to the budget.",
+          },
+        ],
+      },
+      { t: "h2", v: "Rooming list" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The project's Rooming section lists the people of the travel party who need a room: the stays their passes or travel dates suggest, the rooms they hold, the nights still uncovered and what they cost. Filter to Missing, Partial or No dates. Assign room opens the allocation to issue when the person has one approved, and otherwise the room form filled in with the suggested stay; nothing is saved until you confirm. Each read of the list is recorded in each person's access log, so it loads only when you ask, and it cannot be exported.",
           },
         ],
       },
@@ -1622,6 +1718,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A venue's levels name its floors in order, with basements below zero; spaces and site plans name the level they are on. Its technical specs record house power, dock and access, dimensions, rigging and network facts. A blank spec is not recorded and never passes a check. Never enter a network password: share credentials in a Restricted capability document.",
+          },
+        ],
+      },
       { t: "h2", v: "Spaces and zones" },
       {
         t: "p",
@@ -1648,7 +1753,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A site plan is a drawing of a venue with pins for spaces, assets and points of interest. Switch to the table view for an accessible list of every pin.",
+            v: "A site plan is a project's drawing of a venue with pins for spaces, assets and points of interest. Upload a PNG, JPEG or PDF as its drawing; from a PDF, the page you choose becomes the drawing. On a Draft plan, draw routes, barriers, areas and labels, set the scale from one known distance, and measure lengths and areas. Every tool also takes its points as Across and Down percentages, and the arrow keys nudge the selected point.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A plan moves from Draft to Locked when its layout is fixed, and to Live when crews work from it; one plan per venue and level is live. Comments, notes at a point, mentions and Resolve work in every state. Export PDF prints the drawing with the layers and legend you choose.",
+          },
+        ],
+      },
+      { t: "h2", v: "Signage" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The signage register lists each project's signs with their text, size, material, place and artwork. Mark a sign ordered, printed and placed, or link it to a purchase order line so the order says when it is ordered and received. The build sheet prints the signs to build and place, grouped by plan and pin.",
+          },
+        ],
+      },
+      { t: "h2", v: "Venue specs in advancing and permits" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a project's scope, Add venue specs as capabilities copies the venue's known power, rigging and connectivity specs into capabilities for reconciliation, documented when a current capability document backs them. Permits show the venue facts that matter to each rule; they never change which permits apply.",
           },
         ],
       },
@@ -2425,6 +2559,47 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Local contacts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A day sheet lists the local contacts for its day: the venue's contacts, the project's contacts for every day, and that day's. Add a member of the org, whose current name and directory work phone always show, or type a contact with a business phone and email. Shared contacts also reach the people engaged or rostered on the project in Gateway and Compass; a member's work phone never leaves the org. Manage a venue's own contacts from its peek in Places > Venues.",
+          },
+        ],
+      },
+      { t: "h2", v: "Show day" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Show day puts one project's show day on one page. Pick the project and the day, or step a day back or forward. ",
+          },
+          { t: "strong", v: "Sets by stage" },
+          {
+            t: "text",
+            v: " lists each artist's set with its time and length, what has been called and what is up next. ",
+          },
+          { t: "strong", v: "Run of show" },
+          { t: "text", v: " shows how many cues each running order has called and the next one. " },
+          { t: "strong", v: "Arrivals" },
+          { t: "text", v: " lists who lands that day, in the arrival's own time zone, and " },
+          { t: "strong", v: "Hotels" },
+          {
+            t: "text",
+            v: " who sleeps where that night and who checks in or out; both need access to hospitality. Anything changed since you last looked carries a tag naming what changed, and ",
+          },
+          { t: "strong", v: "Mark all as seen" },
+          {
+            t: "text",
+            v: " clears the tags. The page updates live as cues are called. From a project's Show tab, ",
+          },
+          { t: "strong", v: "Open show day" },
+          { t: "text", v: " opens today's." },
+        ],
+      },
     ],
     "site-operations": [
       { t: "h2", v: "Occupancy" },
@@ -2933,6 +3108,26 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
+            v: "XOS avisa a la persona de un turno publicado cuando se le asigna y cuando cambian sus horas. Otros cambios, como un rol nuevo, una cancelación o la vuelta a Borrador, no se anuncian, así que el turno muestra ",
+          },
+          { t: "strong", v: "Requiere revisión" },
+          {
+            t: "text",
+            v: " con el número de cambios desde el aviso. La vista rápida del turno muestra cómo y cuándo se le avisó por última vez (por notificación, al aceptar el turno o con su marca) y qué cambió desde entonces. Después de avisarle, elija ",
+          },
+          { t: "strong", v: "Marcar como comunicado" },
+          { t: "text", v: "; con " },
+          { t: "strong", v: "Revisión" },
+          { t: "text", v: " en " },
+          { t: "strong", v: "Requiere revisión" },
+          { t: "text", v: ", puede marcar todos los turnos de la lista a la vez." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
             v: 'Quien planifica puede crear un turno en borrador con una línea en el campo de agregar rápido, como "#tramoyista @dana ~NWS-S01 viernes 8am-4pm": ',
           },
           { t: "code", v: "#" },
@@ -3333,7 +3528,28 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Hoy muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
+            v: "Hoy es un tablero de mosaicos que puede ensanchar o estrechar; conserva su diseño. El primer mosaico cuenta el tiempo hasta la próxima apertura de un evento en los próximos 14 días, en la zona horaria de su proyecto. ",
+          },
+          { t: "strong", v: "Esperan tu aprobación" },
+          {
+            t: "text",
+            v: " cuenta las aprobaciones que su Bandeja de entrada le pide decidir y muestra las cinco primeras. ",
+          },
+          { t: "strong", v: "Desde tu última visita" },
+          {
+            t: "text",
+            v: " nombra lo que otros cambiaron en los registros que tiene asignados o sigue y en sus turnos, y quién lo cambió; una visita dura 30 minutos, así que al actualizar la lista se mantiene, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          { t: "text", v: " la vacía. Empieza a partir de su segunda visita." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Debajo de los mosaicos, el trabajo del día muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use ",
           },
           { t: "strong", v: "J" },
           { t: "text", v: " y " },
@@ -3412,6 +3628,56 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Un bloque reserva habitaciones en un hotel para un rango de fechas. Asigne personas a habitaciones del bloque y vea cuántas quedan.",
+          },
+        ],
+      },
+      { t: "h2", v: "Vuelos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Hospitalidad > Viajes muestra cada vuelo reservado en una gestión de viaje, en toda la organización o en la sección Viajes del proyecto. Los tramos que un viajero vuela dentro de las 24 horas del último aterrizaje forman un viaje, así que cada fila muestra Tramo 1 de 3 y la llegada final del viaje. Cada hora se muestra en la zona en que se escribió. Las vistas incluidas muestran los vuelos Próximos, los que están En vuelo o Todos; guarde una como vista propia y exporte las filas en pantalla como CSV, Excel o PDF. La tarifa nunca aparece.",
+          },
+        ],
+      },
+      { t: "h2", v: "Traslados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un traslado es un recorrido de un vehículo: una recogida y un destino, un vehículo, un conductor y los pasajeros. Escriba la hora de llegada que espera; no se calculan tiempos de manejo ni se dibuja un mapa. Administre los vehículos del proyecto desde Vehículos. XOS rechaza un conductor, vehículo o pasajero reservado en dos traslados a la vez, más pasajeros que asientos y que el conductor viaje como pasajero. Cada traslado muestra Sin asignar, Asignado, En curso o Terminado, y avisa de un Margen corto (la llegada anterior del conductor más el margen de Configuración > Programación) o de un vuelo que aterriza después de la recogida. La agenda de recursos organiza los traslados por conductor o por vehículo durante la semana. Se avisa al conductor cuando se le asigna.",
+          },
+        ],
+      },
+      { t: "h2", v: "Camerinos y salas de espera" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Reserve un espacio del recinto del proyecto para un artista o un equipo, o use Reservar desde el horario de presentación: la entrada se completa 90 minutos antes de la presentación y la salida 60 minutos después de que termina, y puede cambiar ambas. Una reserva exclusiva ocupa la sala sola; las compartidas pueden superponerse, y las superposiciones por revisar las agrupan con el máximo de personas a la vez frente a la capacidad. Cambió el horario aparece cuando la hora planificada de la presentación sale de la reserva.",
+          },
+        ],
+      },
+      { t: "h2", v: "Habitaciones por noche y artistas sin habitación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La vista Matriz de los bloques de alojamiento muestra en cada noche las habitaciones asignadas de las reservadas. Una noche con habitaciones libres se resalta cuando el bloque se libera en 14 días o menos, y quien creó el bloque y quien lo editó por última vez reciben un recordatorio a los 14, 7 y 1 días. El encabezado cuenta los artistas con alojamiento ofrecido cuyas personas aún no tienen habitación. Vincule un bloque a una línea del presupuesto para ver su alojamiento reservado y asignado; no se escribe nada en el presupuesto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista de alojamiento" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La sección Lista de alojamiento del proyecto muestra a las personas del grupo de viaje que necesitan habitación: las estancias que sugieren sus pases o fechas de viaje, las habitaciones que tienen, las noches sin cubrir y su costo. Filtre por Falta, Parcial o Sin fechas. Asignar habitación abre la asignación por entregar cuando la persona tiene una aprobada y, si no, el formulario de habitación con la estancia sugerida; no se guarda nada hasta que confirme. Cada lectura de la lista queda registrada en el historial de acceso de cada persona, así que solo se carga cuando lo pide y no se puede exportar.",
           },
         ],
       },
@@ -4263,6 +4529,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los niveles de una sede nombran sus pisos en orden, con los sótanos por debajo de cero; los espacios y los planos del sitio indican el nivel en que están. Sus especificaciones técnicas registran energía, muelle y acceso, dimensiones, puntos de colgado y red. Una especificación en blanco no está registrada y nunca aprueba una revisión. No ingreses contraseñas de red: comparte las credenciales en un documento de capacidad Restringido.",
+          },
+        ],
+      },
       { t: "h2", v: "Espacios y zonas" },
       {
         t: "p",
@@ -4289,7 +4564,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Un plano del sitio es un dibujo de la sede con marcadores de espacios, activos y puntos de interés. La vista de tabla ofrece una lista accesible de cada marcador.",
+            v: "Un plano del sitio es el dibujo de una sede de un proyecto con marcadores de espacios, activos y puntos de interés. Sube un PNG, JPEG o PDF como dibujo; de un PDF, la página que elijas será el dibujo. En un plano en borrador, dibuja rutas, barreras, áreas y etiquetas, define la escala con una distancia conocida y mide longitudes y áreas. Cada herramienta también toma sus puntos como porcentajes horizontal y vertical, y las flechas mueven el punto seleccionado.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un plano pasa de Borrador a Bloqueado cuando su diseño queda fijo, y a Activo cuando los equipos lo usan; solo un plano por sede y nivel está activo. Los comentarios, las notas en un punto, las menciones y Resolver funcionan en todos los estados. Exportar PDF imprime el dibujo con las capas y la leyenda que elijas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Señalización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El registro de señalización enumera los letreros de cada proyecto con su texto, tamaño, material, ubicación y arte. Marca un letrero como pedido, impreso y colocado, o vincúlalo a una línea de orden de compra para que la orden indique cuándo se pide y se recibe. La hoja de montaje imprime los letreros por fabricar y colocar, agrupados por plano y marcador.",
+          },
+        ],
+      },
+      { t: "h2", v: "Especificaciones de la sede en la preparación de avanzada y los permisos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En el alcance de un proyecto, Agregar especificaciones del recinto como capacidades copia la energía, los puntos de colgado y la conectividad conocidos de la sede como capacidades para la conciliación, documentadas cuando las respalda un documento de capacidad vigente. Los permisos muestran los datos de la sede que importan para cada regla; nunca cambian qué permisos aplican.",
           },
         ],
       },
@@ -5038,6 +5342,47 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa en el horario del equipo, así que los cambios de turnos aparecen en la siguiente versión publicada.",
           },
+        ],
+      },
+      { t: "h2", v: "Contactos locales" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una hoja del día muestra los contactos locales de ese día: los del recinto, los del proyecto para todos los días y los de ese día. Agregue un miembro de la organización, cuyo nombre actual y teléfono de trabajo del directorio siempre se muestran, o escriba un contacto con teléfono y correo comerciales. Los contactos compartidos también llegan a las personas contratadas o en la lista del proyecto en Gateway y Compass; el teléfono de trabajo de un miembro nunca sale de la organización. Administre los contactos de un recinto desde su vista previa en Lugares > Recintos.",
+          },
+        ],
+      },
+      { t: "h2", v: "Día del show" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El día del show reúne en una página el día de show de un proyecto. Elija el proyecto y el día, o avance o retroceda un día. ",
+          },
+          { t: "strong", v: "Presentaciones por escenario" },
+          {
+            t: "text",
+            v: " muestra la presentación de cada artista con su hora y duración, lo que ya se llamó y lo que sigue. ",
+          },
+          { t: "strong", v: "Órdenes de show" },
+          { t: "text", v: " muestra cuántos cues llamó cada orden de show y el siguiente. " },
+          { t: "strong", v: "Llegadas" },
+          { t: "text", v: " muestra quién llega ese día, en la zona horaria de su llegada, y " },
+          { t: "strong", v: "Hoteles" },
+          {
+            t: "text",
+            v: " quién duerme dónde esa noche y quién entra o sale; ambos requieren acceso a hospitalidad. Lo que cambió desde su última visita lleva una etiqueta que dice qué cambió, y ",
+          },
+          { t: "strong", v: "Marcar todo como visto" },
+          {
+            t: "text",
+            v: " quita las etiquetas. La página se actualiza en vivo a medida que se llaman los cues. Desde la pestaña Show de un proyecto, ",
+          },
+          { t: "strong", v: "Abrir día del show" },
+          { t: "text", v: " abre el de hoy." },
         ],
       },
     ],

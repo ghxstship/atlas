@@ -26,7 +26,38 @@
     "starts": "{key} starts today",
     "ends": "{key} ends today",
     "projectDay": "Production day",
-    "open": "Open project"
+    "open": "Open project",
+    "layoutLabel": "Today tiles",
+    "tiles": {
+      "approvals": {
+        "count": "{count, plural, one {# approval waiting} other {# approvals waiting}}",
+        "empty": "Nothing is waiting for your approval.",
+        "open": "Open Inbox",
+        "title": "Waiting for your approval"
+      },
+      "changes": {
+        "added": "{name} added it",
+        "empty": "Nothing changed since your last visit.",
+        "firstVisit": "From your next visit, changes others make to your records and shifts show here.",
+        "markAllSeen": "Mark all as seen",
+        "removed": "{name} removed it",
+        "row": "{name} changed {fields}",
+        "since": "Since your last visit on {date}",
+        "someone": "Someone",
+        "title": "Since your last visit"
+      },
+      "doors": {
+        "in": "Doors in {hours, plural, =0 {{minutes} min} other {# h {minutes} min}}",
+        "none": "No doors in the next 14 days.",
+        "opened": "Doors opened {hours, plural, =0 {{minutes} min} other {# h {minutes} min}} ago",
+        "time": "Doors {time}",
+        "title": "Doors",
+        "where": "{project} at {venue}"
+      },
+      "today": {
+        "title": "Today"
+      }
+    }
   },
   "readiness": {
     "title": "Gate readiness",

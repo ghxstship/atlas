@@ -1,11 +1,16 @@
-/** Wires the SDK client, the tools and the protocol session together, and runs them over stdio. */
-import { createInterface } from "node:readline";
+/**
+ * Wires the SDK client, the tools and the protocol session together. On stdio the server acts as one API key
+ * (xos-mcp); hosted (B16, ADR 0155 D1) it acts as the OAuth access token of an app the person connected, and every
+ * write is a proposal the person confirms in XOS.
+ */
 import { API_VERSION, XosClient } from "@ghxstship/xos-sdk";
-import type { WriteScope } from "./tools.ts";
-import { createTools, parseWriteScope } from "./tools.ts";
+import type { Propose, WriteScope } from "./tools.ts";
+import { PROPOSE_ALL, createTools, parseWriteScope } from "./tools.ts";
 import { McpSession } from "./protocol.ts";
 
-export const SERVER_VERSION = "0.0.0";
+export { serveStdio } from "./stdio.ts";
+
+export const SERVER_VERSION = "0.1.0";
 
 export interface McpServerOptions {
   /** API base URL including the version, for example https://api.ghxstship.tech/v1. */
@@ -13,6 +18,19 @@ export interface McpServerOptions {
   /** Org-scoped `xos_live_` API key. The server acts with exactly its permissions. */
   readonly apiKey: string;
   readonly scope: WriteScope;
+  readonly fetch?: typeof fetch;
+}
+
+/** The hosted endpoint's session (B16): an app's OAuth access token, and proposals instead of writes. */
+export interface HostedSessionOptions {
+  readonly baseUrl: string;
+  /** The OAuth access token Supabase Auth issued to the connected app. */
+  readonly accessToken: string;
+  /** The capability groups of the person's live grant to the app. */
+  readonly grantScopes: readonly string[];
+  readonly propose: Propose;
+  /** The revision the request's MCP-Protocol-Version header named. */
+  readonly protocolVersion: string;
   readonly fetch?: typeof fetch;
 }
 
@@ -31,17 +49,22 @@ function instructions(scope: WriteScope): string {
   ].join(" ");
 }
 
-export function createSession(options: McpServerOptions): McpSession {
-  const client = new XosClient({
-    baseUrl: options.baseUrl,
-    apiKey: options.apiKey,
-    ...(options.fetch ? { fetch: options.fetch } : {}),
-  });
+function hostedInstructions(): string {
+  return [
+    `Tools for the XOS public API ${API_VERSION}, acting for the person who connected you, within the capability groups they granted, in one organization.`,
+    "Find resources with xos_list_resources and schemas with xos_describe_operation.",
+    "Reads answer at once. Every write (xos_create, xos_update, xos_action, xos_delete) proposes the change for the person to confirm in XOS, Personal settings, Connected apps; nothing changes until they do, and a proposal expires after 7 days. Tell the person to review it, with the review link the tool returns.",
+    "Refusals (NO_ANSWER, UNRATIFIED, REFUSE) are answers: report the reason, never work around it.",
+    "Money is integer minor units and null means unpriced, never zero.",
+  ].join(" ");
+}
+
+function documentLoader(client: XosClient, token: string, fetcher: typeof fetch | undefined) {
   let document: Promise<Record<string, unknown>> | null = null;
-  const fetchDocument = () => {
+  return () => {
     document ??= (async () => {
-      const response = await (options.fetch ?? fetch)(`${client.baseUrl}/openapi.json`, {
-        headers: { Authorization: `Bearer ${options.apiKey}`, Accept: "application/json" },
+      const response = await (fetcher ?? fetch)(`${client.baseUrl}/openapi.json`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       if (!response.ok) {
         document = null;
@@ -51,6 +74,14 @@ export function createSession(options: McpServerOptions): McpSession {
     })();
     return document;
   };
+}
+
+export function createSession(options: McpServerOptions): McpSession {
+  const client = new XosClient({
+    baseUrl: options.baseUrl,
+    apiKey: options.apiKey,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+  });
   return new McpSession(
     {
       name: "xos-mcp",
@@ -58,31 +89,37 @@ export function createSession(options: McpServerOptions): McpSession {
       version: SERVER_VERSION,
       instructions: instructions(options.scope),
     },
-    createTools({ client, scope: options.scope, fetchDocument }),
+    createTools({
+      client,
+      scope: options.scope,
+      fetchDocument: documentLoader(client, options.apiKey, options.fetch),
+    }),
   );
 }
 
-/** Reads newline-delimited JSON-RPC messages and writes one response line per request. */
-export function serveStdio(
-  session: McpSession,
-  input: NodeJS.ReadableStream,
-  write: (line: string) => void,
-): Promise<void> {
-  const lines = createInterface({ input, crlfDelay: Infinity });
-  const pending = new Set<Promise<void>>();
-  lines.on("line", (line) => {
-    if (line.trim() === "") return;
-    const task = session.handleText(line).then((response) => {
-      if (response) write(`${JSON.stringify(response)}\n`);
-    });
-    pending.add(task);
-    void task.finally(() => pending.delete(task));
+/** One stateless session of the hosted endpoint, for one request. */
+export function createHostedSession(options: HostedSessionOptions): McpSession {
+  const client = new XosClient({
+    baseUrl: options.baseUrl,
+    accessToken: options.accessToken,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
   });
-  return new Promise((resolve) => {
-    lines.on("close", () => {
-      void Promise.all(pending).then(() => resolve());
-    });
-  });
+  return new McpSession(
+    {
+      name: "xos-mcp",
+      title: "XOS",
+      version: SERVER_VERSION,
+      instructions: hostedInstructions(),
+    },
+    createTools({
+      client,
+      scope: PROPOSE_ALL,
+      fetchDocument: documentLoader(client, options.accessToken, options.fetch),
+      propose: options.propose,
+      grantScopes: options.grantScopes,
+    }),
+    { lifecycle: "stateless", protocolVersion: options.protocolVersion },
+  );
 }
 
 export interface CliArgs {

@@ -103,6 +103,24 @@ export interface Components {
     | "Service Animal"
     | "Quiet Space"
     | "Assistance on Arrival";
+  AccommodationNight: {
+    block_id: string;
+    org_id: string;
+    project_id: string;
+    block_number: number;
+    title: string;
+    night: string;
+    rooms_held: number;
+    assigned: number;
+    free: number;
+    release_on: string | null;
+    nightly_rate_minor: number | null;
+    currency_code: string | null;
+  };
+  AccommodationNightPage: {
+    data: Array<Components["AccommodationNight"]>;
+    next_cursor: string | null;
+  };
   AccountMembership: {
     id: string;
     created_at: string;
@@ -154,6 +172,13 @@ export interface Components {
     reason?: string;
   };
   ActCode: string;
+  ActWithoutRoom: {
+    engagement_id: string;
+    act_name: string | null;
+    engagement_state: string;
+    people_count: number;
+  };
+  ActWithoutRoomPage: { data: Array<Components["ActWithoutRoom"]>; next_cursor: string | null };
   ActivityEvent: {
     id: string;
     org_id: string;
@@ -1213,6 +1238,14 @@ export interface Components {
   AssignHelpDeskRequest: { assignee_membership_id: string | null; help_desk_team_id?: string };
   AssignTrainingRequest: { membership_ids: Array<string>; due_on?: string; reason?: string };
   AssignTrainingResult: { assigned: number };
+  AssignedStay: {
+    assignment_id: string;
+    block_id: string;
+    block_title: string | null;
+    check_in_on: string;
+    check_out_on: string;
+    allocation_id: string | null;
+  };
   AuditEvent: {
     id: string;
     org_id: string;
@@ -3629,6 +3662,32 @@ export interface Components {
       contains?: string;
     }
   >;
+  Flight: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    person_id: string;
+    traveler_name: string | null;
+    engagement_id: string | null;
+    fulfillment_id: string | null;
+    operator_name: string | null;
+    service_identifier: string | null;
+    confirmation_identifier: string | null;
+    departs_from: string;
+    departs_at: string;
+    departs_time_zone: string;
+    arrives_at_place: string;
+    arrives_at: string | null;
+    arrives_time_zone: string;
+    phase: "Upcoming" | "In Flight" | "Departed" | "Landed";
+    journey_id: string;
+    leg_number: number;
+    leg_count: number;
+    final_arrival_at: string | null;
+    final_arrival_place: string | null;
+    final_arrival_time_zone: string | null;
+  };
+  FlightPage: { data: Array<Components["Flight"]>; next_cursor: string | null };
   Form1099NecRow: {
     payee_person_id: string | null;
     payee_organization_id: string | null;
@@ -4901,6 +4960,31 @@ export interface Components {
     access_code: string;
     expires_at: string;
   };
+  LocalContact: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    venue_id: string | null;
+    day: string | null;
+    contact_role:
+      | "Promoter"
+      | "Venue"
+      | "Production"
+      | "Security"
+      | "Transport"
+      | "Hospitality"
+      | "Medical"
+      | "Other";
+    contact_title: string | null;
+    source: "Member" | "Contact";
+    display_name: string | null;
+    organization_name: string | null;
+    phone: string | null;
+    email: string | null;
+    audience: "Internal" | "Shared";
+    member_active: boolean;
+  };
+  LocalContactPage: { data: Array<Components["LocalContact"]>; next_cursor: string | null };
   LostFoundClaim: {
     id: string;
     org_id: string;
@@ -4983,6 +5067,8 @@ export interface Components {
     sort_order?: number;
   };
   MarkAllReadResult: { updated_count: number };
+  MarkCommunicatedRequest: { ids: Array<string>; note?: string };
+  MarkCommunicatedResult: { marked: number };
   MarkConversationReadRequest: { muted?: boolean };
   MarketplaceListing: {
     id: string;
@@ -7845,6 +7931,22 @@ export interface Components {
   RoleCreate: { name?: string | null; description?: string | null; code: string; band: number };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
   RoleUpdate: { name?: string | null; description?: string | null; band?: number };
+  RoomingCost: { currency_code: string | null; nights: number; amount_minor: number | null };
+  RoomingEntry: {
+    roster_entry_id: string;
+    engagement_id: string;
+    party_name: string | null;
+    person_id: string;
+    person_name: string | null;
+    role_code: string | null;
+    suggested_stays: Array<Components["SuggestedStay"]>;
+    assigned_stays: Array<Components["AssignedStay"]>;
+    uncovered_nights: number;
+    status: "Covered" | "Partial" | "Missing" | "No Dates";
+    cost: Array<Components["RoomingCost"]>;
+    lodging_allocation_id: string | null;
+  };
+  RoomingEntryPage: { data: Array<Components["RoomingEntry"]>; next_cursor: string | null };
   RosterEntry: {
     id: string;
     org_id: string;
@@ -8380,6 +8482,20 @@ export interface Components {
     scheduled_break_minutes: number | null;
     claim: { id: string; claim_state: "Requested" } | null;
   };
+  ShiftCommunicationStatus: {
+    shift_id: string;
+    person_id: string | null;
+    told_at: string | null;
+    told_via: "marked" | "accepted" | "notified" | null;
+    told_by_name: string | null;
+    changed_at: string | null;
+    changed_fields: Array<string>;
+    needs_review: boolean;
+  };
+  ShiftCommunicationStatusPage: {
+    data: Array<Components["ShiftCommunicationStatus"]>;
+    next_cursor: string | null;
+  };
   ShiftCreate: {
     project_id: string;
     record_id?: string | null;
@@ -8626,6 +8742,31 @@ export interface Components {
     urid: Components["Urid"] | null;
     description: string | null;
   };
+  SpaceBooking: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    space_id: string;
+    space_name: string | null;
+    space_capacity: number | null;
+    venue_name: string | null;
+    engagement_id: string | null;
+    engagement_cue_id: string | null;
+    purpose: "Green Room" | "Dressing Room" | "Production Office" | "Hospitality Suite" | "Other";
+    booking_mode: "Exclusive" | "Shared";
+    party_size: number | null;
+    starts_at: string;
+    ends_at: string;
+    act_name: string | null;
+    set_label: string | null;
+    set_planned_at: string | null;
+    set_moved: boolean;
+    conflict_group: string | null;
+    group_size: number;
+    group_peak_party: number;
+    over_capacity: boolean | null;
+  };
+  SpaceBookingPage: { data: Array<Components["SpaceBooking"]>; next_cursor: string | null };
   SpaceCreate: {
     venue_id: string;
     name: string;
@@ -8911,6 +9052,7 @@ export interface Components {
     seats_grandfathered: boolean;
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
+  SuggestedStay: { check_in_on: string; check_out_on: string; source: "Credentials" | "Travel" };
   SupportSession: {
     id: string;
     org_id: string;
@@ -9625,6 +9767,47 @@ export interface Components {
     next_cursor: string | null;
   };
   TrainingQuizQuestionUpdate: { position?: number; prompt?: string; options?: Array<string> };
+  Transfer: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    transfer_number: number;
+    transfer_key: string | null;
+    fulfillment_id: string | null;
+    vehicle_id: string | null;
+    vehicle_label: string | null;
+    vehicle_type: "Sedan" | "SUV" | "Van" | "Sprinter" | "Minibus" | "Coach" | "Other" | null;
+    seats: number | null;
+    driver_person_id: string | null;
+    driver_name: string | null;
+    pickup_place: string;
+    pickup_at: string;
+    pickup_time_zone: string;
+    dropoff_place: string;
+    dropoff_at: string;
+    dropoff_time_zone: string;
+    meets_travel_segment_id: string | null;
+    meets_service_identifier: string | null;
+    meets_flight_arrives_at: string | null;
+    meets_flight_after_pickup: boolean;
+    passenger_count: number;
+    primary_passenger_id: string | null;
+    primary_passenger_name: string | null;
+    tight_turnaround: boolean;
+    status: "Unassigned" | "Assigned" | "Underway" | "Done";
+    notes: string | null;
+  };
+  TransferPage: { data: Array<Components["Transfer"]>; next_cursor: string | null };
+  TransferVehicle: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    counterparty_id: string | null;
+    label: string;
+    vehicle_type: "Sedan" | "SUV" | "Van" | "Sprinter" | "Minibus" | "Coach" | "Other";
+    seats: number;
+  };
+  TransferVehiclePage: { data: Array<Components["TransferVehicle"]>; next_cursor: string | null };
   TrashItem: {
     subject_urn: string;
     deleted_at: string;
@@ -13826,6 +14009,24 @@ export interface Operations {
     query: { limit?: number };
     body: undefined;
     responses: { 200: Components["FieldHistoryEventPage"] };
+  };
+  "shifts.communicationStatus": {
+    module: "Crew";
+    method: "get";
+    path: "/shifts/communication-status";
+    params: Record<string, never>;
+    query: { ids: string };
+    body: undefined;
+    responses: { 200: Components["ShiftCommunicationStatusPage"] };
+  };
+  "shifts.markCommunicated": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/mark-communicated";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["MarkCommunicatedRequest"];
+    responses: { 200: Components["MarkCommunicatedResult"] };
   };
   "shiftSwaps.list": {
     module: "Crew";
@@ -24977,6 +25178,150 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "flights.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/flights";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FlightPage"] };
+  };
+  "flights.get": {
+    module: "Hospitality";
+    method: "get";
+    path: "/flights/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Flight"] };
+  };
+  "transfers.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/transfers";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TransferPage"] };
+  };
+  "transfers.get": {
+    module: "Hospitality";
+    method: "get";
+    path: "/transfers/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Transfer"] };
+  };
+  "transferVehicles.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/transfer-vehicles";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TransferVehiclePage"] };
+  };
+  "transferVehicles.get": {
+    module: "Hospitality";
+    method: "get";
+    path: "/transfer-vehicles/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TransferVehicle"] };
+  };
+  "spaceBookings.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/space-bookings";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SpaceBookingPage"] };
+  };
+  "spaceBookings.get": {
+    module: "Hospitality";
+    method: "get";
+    path: "/space-bookings/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SpaceBooking"] };
+  };
+  "localContacts.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/local-contacts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LocalContactPage"] };
+  };
+  "accommodationNights.list": {
+    module: "Hospitality";
+    method: "get";
+    path: "/accommodation-nights";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AccommodationNightPage"] };
+  };
+  "accommodationNights.actsWithoutRooms": {
+    module: "Hospitality";
+    method: "get";
+    path: "/accommodation-nights/acts-without-rooms";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["ActWithoutRoomPage"] };
+  };
+  "accommodationNights.roomingList": {
+    module: "Hospitality";
+    method: "get";
+    path: "/accommodation-nights/rooming-list";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["RoomingEntryPage"] };
+  };
   "assetUnitHire.list": {
     module: "Assets";
     method: "get";
@@ -28760,7 +29105,19 @@ export interface ModuleOperations {
     | "beoLines.create"
     | "beoLines.get"
     | "beoLines.update"
-    | "beoLines.delete";
+    | "beoLines.delete"
+    | "flights.list"
+    | "flights.get"
+    | "transfers.list"
+    | "transfers.get"
+    | "transferVehicles.list"
+    | "transferVehicles.get"
+    | "spaceBookings.list"
+    | "spaceBookings.get"
+    | "localContacts.list"
+    | "accommodationNights.list"
+    | "accommodationNights.actsWithoutRooms"
+    | "accommodationNights.roomingList";
   Assets:
     | "assetClasses.list"
     | "assetClasses.create"
@@ -28933,6 +29290,8 @@ export interface ModuleOperations {
     | "shifts.bulkPreview"
     | "shifts.bulkUpdate"
     | "shifts.fieldHistory"
+    | "shifts.communicationStatus"
+    | "shifts.markCommunicated"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"

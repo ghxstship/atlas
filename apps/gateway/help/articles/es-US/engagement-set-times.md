@@ -16,4 +16,8 @@ Cada una de tus presentaciones con su hora prevista y duración. Cuando se marca
 
 La hoja del día de cada día de show, con lo que la producción compartió para ese día.
 
+## Tus salas
+
+La sala de espera o el camerino reservado para ti, con su hora de entrada y salida y la presentación que atiende. Cada hoja del día también muestra los contactos locales de ese día.
+
 Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios aparecen cuando se comparte la escaleta.

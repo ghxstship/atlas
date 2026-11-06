@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type {
   BudgetLine,
   BudgetLineInput,
@@ -24,7 +25,6 @@ import {
   UndoToast,
   type GridColumn,
 } from "@xos/ui";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
@@ -106,6 +106,9 @@ interface Props {
   readonly grades: readonly Grade[];
   readonly canWrite: boolean;
 }
+
+/** Lodging on linked lines (B5) loads with the editor only when there are lines, and reads on request. */
+const BudgetLodging = dynamic(() => import("./budget-lodging").then((m) => m.BudgetLodging));
 
 const toMajor = (minor: number | null, exponent: number) =>
   minor === null ? null : minor / 10 ** exponent;
@@ -469,6 +472,14 @@ export function BudgetEditor(props: Props) {
             lines: otherCurrencyLines.join(", "),
           })}
         </p>
+      ) : null}
+      {lines.length > 0 ? (
+        <BudgetLodging
+          org={props.org}
+          budgetId={props.budgetId}
+          lines={lines}
+          exponent={props.exponent}
+        />
       ) : null}
       {conflict ? (
         <ConflictDialog

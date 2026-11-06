@@ -79,6 +79,7 @@ export const HELP_SCREENS: Readonly<Record<string, string>> = {
   "/timesheets": "timesheets",
   "/per-diem": "per-diem",
   "/travel-and-lodging": "travel-and-lodging",
+  "/drives": "drives",
   "/onboarding": "onboarding",
   "/purchase-orders": "purchase-orders",
   "/deliveries": "deliveries",

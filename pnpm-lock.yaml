@@ -28,6 +28,9 @@ importers:
 
   apps/atlas:
     dependencies:
+      '@ghxstship/xos-sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk-ts
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -67,6 +70,9 @@ importers:
       '@xos/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
+      '@xos/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@xos/platform':
         specifier: workspace:*
         version: link:../../packages/platform
@@ -881,6 +887,9 @@ importers:
       '@xos/schemas':
         specifier: workspace:*
         version: link:../schemas
+      '@xos/tokens':
+        specifier: workspace:*
+        version: link:../tokens
       exceljs:
         specifier: 4.4.0
         version: 4.4.0

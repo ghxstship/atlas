@@ -19,6 +19,7 @@ import { ArchiveControls } from "@/components/archive/archive-controls";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
 import { archivedOf } from "@/lib/archive/param";
 import { peekedRow } from "@/lib/archive/peek";
+import { LinkedFiles } from "@/components/knowledge/linked-files";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
@@ -328,6 +329,7 @@ export async function DocumentsSection({
       >
         <PresenceFor table="documents" id={selected.id} />
         {versions(selected, t)}
+        <LinkedFiles ctx={ctx} documentId={selected.id} canWrite={canWrite} />
       </PeekDrawer>
     );
   }

@@ -841,6 +841,61 @@
       "party": "Engaged as",
       "documentsEmpty": "Your documents and certifications appear here once you add them to your profile."
     },
+    "itinerary": {
+      "changed": "Changed since you last looked: {fields}",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "day": "{date}",
+      "fields": {
+        "arrives_at": "Arrival",
+        "arrives_at_place": "Arrival place",
+        "arrives_time_zone": "Arrival time zone",
+        "check_in_on": "Check-in",
+        "check_out_on": "Check-out",
+        "confirmation_identifier": "Confirmation",
+        "departs_at": "Departure",
+        "departs_from": "Departure place",
+        "departs_time_zone": "Departure time zone",
+        "duration": "Length",
+        "hotel": "Hotel",
+        "label": "Name",
+        "operator_name": "Operator",
+        "planned_at": "Time",
+        "service_identifier": "Flight or service number",
+        "travel_mode": "Mode"
+      },
+      "firstVisit": "From your next visit, changes to your stay are marked here.",
+      "markAllSeen": "Mark all as seen",
+      "new": "New since you last looked",
+      "removedKind": {
+        "lodging": "Room removed",
+        "set": "Set time removed",
+        "travel": "Trip removed"
+      },
+      "removedTitle": "Removed since you last looked",
+      "set": "Set",
+      "title": "Your stay"
+    },
+    "ground": {
+      "title": "Ground transport",
+      "pickup": "Pickup {time}",
+      "dropoff": "Drop-off {time}",
+      "driver": "Driver {name}",
+      "vehicle": "{label}, {type}",
+      "meets": "Meets {flight}, lands {time}",
+      "passengers": "Passengers: {names}"
+    },
+    "localContacts": {
+      "title": "Local contacts",
+      "day": "For {day}",
+      "everyDay": "Every day",
+      "line": "{role}: {name}"
+    },
+    "rooms": {
+      "title": "Your rooms",
+      "window": "{in} to {out}",
+      "set": "For {set}"
+    },
     "staffing": {
       "openSlot": "Open agency slot",
       "unassign": "Unassign",
@@ -1238,6 +1293,38 @@
     "sponsorAssetSource": {
       "orgSupplied": "Supplied by the organization",
       "sponsorSupplied": "Supplied by you"
+    },
+    "vehicleType": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "van": "Van",
+      "sprinter": "Sprinter",
+      "minibus": "Minibus",
+      "coach": "Coach",
+      "other": "Other"
+    },
+    "transferStatus": {
+      "unassigned": "Unassigned",
+      "assigned": "Assigned",
+      "underway": "Underway",
+      "done": "Done"
+    },
+    "localContactRole": {
+      "promoter": "Promoter",
+      "venue": "Venue",
+      "production": "Production",
+      "security": "Security",
+      "transport": "Transport",
+      "hospitality": "Hospitality",
+      "medical": "Medical",
+      "other": "Other"
+    },
+    "spaceBookingPurpose": {
+      "greenRoom": "Green room",
+      "dressingRoom": "Dressing room",
+      "productionOffice": "Production office",
+      "hospitalitySuite": "Hospitality suite",
+      "other": "Other"
     }
   },
   "explore": {

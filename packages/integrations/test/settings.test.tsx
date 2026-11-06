@@ -284,3 +284,62 @@ describe("IntegrationsSettings", () => {
     await expectAccessible();
   });
 });
+
+describe("signing in to storage (B16)", () => {
+  it("offers Connect with Google instead of a pasted token, and disables it while the app is not set up", async () => {
+    const user = userEvent.setup();
+    const oauth = recorder();
+    const { rerender } = render(
+      <IntegrationsSettings
+        org="northwind"
+        canManage
+        providers={providers}
+        connections={[
+          connection({
+            providerCode: "google_drive",
+            providerLabel: "Google Drive",
+            displayName: "Production Drive",
+            oauth: { label: "Connect with Google", disabledReason: null },
+            accountName: "crew@northwind.test",
+            extra: <p>Linking folder</p>,
+          }),
+        ]}
+        copy={copy}
+        actions={{ ...actions(), oauth: oauth.action }}
+      />,
+    );
+    expect(screen.queryByText("copy:credentialHeading")).toBeNull();
+    expect(screen.getByText("crew@northwind.test")).toBeTruthy();
+    expect(screen.getByText("Linking folder")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Connect with Google: Production Drive" }));
+    await waitFor(() => expect(oauth.calls).toHaveLength(1));
+    expect(oauth.calls[0]).toMatchObject({
+      org: "northwind",
+      connectionId: "c1",
+      provider: "google_drive",
+    });
+    rerender(
+      <IntegrationsSettings
+        org="northwind"
+        canManage
+        providers={providers}
+        connections={[
+          connection({
+            providerCode: "google_drive",
+            displayName: "Production Drive",
+            oauth: {
+              label: "Connect with Google",
+              disabledReason: "Google Drive is not set up on this XOS yet",
+            },
+          }),
+        ]}
+        copy={copy}
+        actions={{ ...actions(), oauth: oauth.action }}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Connect with Google: Production Drive" });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText("Google Drive is not set up on this XOS yet")).toBeTruthy();
+    await expectAccessible();
+  });
+});

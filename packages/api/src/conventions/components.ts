@@ -6,7 +6,7 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
 import { Problem, RefusalProblem, ValidationProblem } from "@xos/schemas";
-import type { CapabilityRegistry } from "@xos/schemas/capabilities";
+import { CAPABILITY_CODES } from "@xos/schemas/capabilities/codes";
 import { Constants } from "@xos/data/database.types";
 
 export const PROBLEM_MEDIA_TYPE = "application/problem+json";
@@ -353,20 +353,26 @@ export const SECURITY_REQUIREMENT = [{ bearerJwt: [] }, { apiKey: [] }, { oauth2
  * OAuth scopes: one per capability group (Section 8.5), where a group is the module that
  * prefixes every capability code in `capabilities.yaml`. Ordered as the registry orders them.
  */
-export function oauthScopes(capabilityRegistry: CapabilityRegistry): Record<string, string> {
+/**
+ * The generated codes, not the registry file: a server action calls this app in process (B16), and there the file's path
+ * does not resolve. A capability's group is the first part of its code.
+ */
+export function oauthScopes(codes: readonly string[] = CAPABILITY_CODES): Record<string, string> {
+  const groups = new Map<string, string[]>();
+  for (const code of codes) {
+    const group = code.slice(0, code.indexOf("."));
+    groups.set(group, [...(groups.get(group) ?? []), code]);
+  }
   return Object.fromEntries(
-    capabilityRegistry.modules.map((m) => [
-      m.code,
-      `Capability group \`${m.code}\`: ${m.capabilities.map((c) => c.code).join(", ")}.`,
+    [...groups].map(([group, members]) => [
+      group,
+      `Capability group \`${group}\`: ${members.join(", ")}.`,
     ]),
   );
 }
 
-export function registerSecuritySchemes(
-  registry: Registry,
-  capabilityRegistry: CapabilityRegistry,
-): void {
-  const scopes = oauthScopes(capabilityRegistry);
+export function registerSecuritySchemes(registry: Registry): void {
+  const scopes = oauthScopes();
   for (const [name, scheme] of Object.entries(SECURITY_SCHEMES)) {
     const filled =
       name === "oauth2"

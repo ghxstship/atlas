@@ -52,10 +52,16 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
     "ShipmentsSection shows common.peekMissing",
   "components/logistics-hospitality/yard.tsx#YardSection": "YardSection shows common.peekMissing",
+  "components/logistics-hospitality/transfers.tsx#TransfersSection":
+    "TransfersSection shows common.peekMissing",
+  "components/logistics-hospitality/space-bookings.tsx#SpaceBookingsSection":
+    "SpaceBookingsSection shows common.peekMissing",
   // Places and safety open their drawer with places.kit.peekMissing in it.
   "components/places/documents/documents-page.tsx#DocumentsPage":
     "the drawer shows places.kit.peekMissing",
   "components/places/plans/plans-page.tsx#PlansPage": "the drawer shows places.kit.peekMissing",
+  "components/places/signage/signage-page.tsx#SignagePage":
+    "the drawer shows places.kit.peekMissing",
   "components/places/venues/venues-page.tsx#VenuesPage": "VenueDetail shows places.kit.peekMissing",
   "components/safety/inspections/inspections-page.tsx#InspectionsView":
     "the drawer shows places.kit.peekMissing",
@@ -119,6 +125,8 @@ const KIND_NOT_FOUND: Readonly<Record<string, string>> = {
   "components/logistics-hospitality/fulfillments.tsx#FulfillmentsSection":
     "finds the id by key (findIdByKey)",
   "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
+    "finds the id by key (findIdByKey)",
+  "components/logistics-hospitality/transfers.tsx#TransfersSection":
     "finds the id by key (findIdByKey)",
   "components/schedule/schedule-pages.tsx#BaselinesPage": "reads a baseline only for a UUID key",
   "components/show/show-pages.tsx#RunsPage": "reads a running order only for a UUID key",

@@ -161,6 +161,9 @@ export const HELP_CONTENT: HelpIndex = {
           "hospitality.fulfillments",
           "hospitality.beos",
           "hospitality.accommodation-blocks",
+          "hospitality.travel",
+          "hospitality.transfers",
+          "hospitality.rooms",
           "project.hospitality",
         ],
         order: 41,
@@ -288,7 +291,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "places",
         title: "Venues, spaces and site plans",
         summary:
-          "Record venues and their capabilities, divide them into spaces and zones, and pin plans to drawings.",
+          "Record venues, their levels and specs, divide them into spaces and zones, draw on site plans and track signage.",
         kind: "page",
         nodes: [
           "places",
@@ -296,6 +299,7 @@ export const HELP_CONTENT: HelpIndex = {
           "places.spaces-and-zones",
           "places.capability-documents",
           "places.site-plans",
+          "places.signage",
         ],
         order: 30,
       },
@@ -399,7 +403,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Build the running order of a show, run it live with cues, and publish day and call sheets.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
+        nodes: [
+          "show.run-of-show",
+          "show.day-sheets",
+          "show.call-sheets",
+          "show.show-day",
+          "project.show",
+          "show",
+        ],
         order: 22,
       },
       {
@@ -611,6 +622,9 @@ export const HELP_CONTENT: HelpIndex = {
           "hospitality.fulfillments",
           "hospitality.beos",
           "hospitality.accommodation-blocks",
+          "hospitality.travel",
+          "hospitality.transfers",
+          "hospitality.rooms",
           "project.hospitality",
         ],
         order: 41,
@@ -739,7 +753,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "places",
         title: "Sedes, espacios y planos del sitio",
         summary:
-          "Registre sedes y sus capacidades, divídalas en espacios y zonas y ubique elementos en planos.",
+          "Registra sedes, sus niveles y especificaciones, divídelas en espacios y zonas, dibuja en planos del sitio y sigue la señalización.",
         kind: "page",
         nodes: [
           "places",
@@ -747,6 +761,7 @@ export const HELP_CONTENT: HelpIndex = {
           "places.spaces-and-zones",
           "places.capability-documents",
           "places.site-plans",
+          "places.signage",
         ],
         order: 30,
       },
@@ -851,7 +866,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
+        nodes: [
+          "show.run-of-show",
+          "show.day-sheets",
+          "show.call-sheets",
+          "show.show-day",
+          "project.show",
+          "show",
+        ],
         order: 22,
       },
       {

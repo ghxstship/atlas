@@ -7,7 +7,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./settings": "./src/settings/index.ts"
+    "./settings": "./src/settings/index.ts",
+    "./storage-oauth": "./src/connectors/storage/oauth.ts",
+    "./http": "./src/framework/http.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -1,13 +1,21 @@
 "use client";
 
-import { Checkbox, DataTable, EmptyState, Input, PageHeader, TemplateCollection } from "@xos/ui";
+import {
+  Button,
+  Checkbox,
+  DataTable,
+  EmptyState,
+  Input,
+  PageHeader,
+  TemplateCollection,
+} from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
-import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import type { ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
@@ -20,6 +28,40 @@ import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { isConditionParam } from "@/lib/views/query";
 
 // Views other than the default table, and the peek, load when shown (A24-009).
+function CreateProjectLoading() {
+  const t = useTranslations("projects");
+  return (
+    <Button variant="primary" icon="Plus" loading>
+      {t("list.newProject")}
+    </Button>
+  );
+}
+
+// Most visits to Projects never open the dialog, and the page sits at its route budget.
+const CreateProjectDialog = dynamic(
+  () => import("./create-project").then((m) => m.CreateProjectDialog),
+  { loading: CreateProjectLoading },
+);
+
+/** The button renders and hydrates with the page, so a click is never lost; the first one loads the dialog. */
+function CreateProject({
+  org,
+  options,
+  defaultOpen,
+}: {
+  org: string;
+  options: ProjectFormOptions;
+  defaultOpen: boolean;
+}) {
+  const t = useTranslations("projects");
+  const [wanted, setWanted] = useState(defaultOpen);
+  if (wanted) return <CreateProjectDialog org={org} options={options} defaultOpen />;
+  return (
+    <Button variant="primary" icon="Plus" onClick={() => setWanted(true)}>
+      {t("list.newProject")}
+    </Button>
+  );
+}
 const ProjectOtherView = dynamic(() =>
   import("./project-other-views").then((m) => m.ProjectOtherView),
 );
@@ -161,7 +203,7 @@ export function ProjectCollection({
       }
       actions={
         create ? (
-          <CreateProjectDialog
+          <CreateProject
             key={String(create.open)}
             org={org}
             options={create.options}

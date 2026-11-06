@@ -165,6 +165,21 @@ describe("download scope (Section 8.7)", () => {
     expect(ruleFor("advance_allocations")?.anyOf.every((a) => a.restOnly)).toBe(true);
   });
 
+  it("admits transfers and local contacts by project, inside the org and outside it (B5)", () => {
+    for (const table of ["my_transfers", "local_contacts"]) {
+      expect(
+        ruleFor(table)?.anyOf.every((a) => a.restOnly),
+        table,
+      ).toBe(true);
+      expect(admits(table, { id: "t1", project_id: "proj-1" }, internal), table).toBe(true);
+      expect(admits(table, { id: "t2", project_id: "proj-9" }, internal), table).toBe(false);
+      expect(admits(table, { id: "t3", project_id: "proj-1" }, external("crew")), table).toBe(true);
+      expect(admits(table, { id: "t4", project_id: "proj-1" }, external("crew", [])), table).toBe(
+        false,
+      );
+    }
+  });
+
   it("filters a downloaded batch", () => {
     const result = filterDownload(
       "shifts",

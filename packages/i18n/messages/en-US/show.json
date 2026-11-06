@@ -150,6 +150,119 @@
     "timeline": "Timeline",
     "calendar": "Calendar"
   },
+  "showDay": {
+    "changed": "Changed: {fields}",
+    "day": "Day",
+    "dayNav": "Days",
+    "emptyTitle": "No show day yet",
+    "go": "Show",
+    "layoutLabel": "Show day tiles",
+    "markAllSeen": "Mark all as seen",
+    "minutes": "{minutes} min",
+    "new": "New since you last looked",
+    "nextDay": "Next day",
+    "noProject": "None of your projects has a running order yet. Create one in Show > Run of show and its show day appears here.",
+    "noTime": "No time set",
+    "open": "Open show day",
+    "openRunOfShow": "Open Run of show",
+    "previousDay": "Previous day",
+    "project": "Project",
+    "projectOption": "{key} · {name}",
+    "subtitle": "{project}, {day}",
+    "tiles": {
+      "arrivals": {
+        "arrives": "Arrives {time}",
+        "departs": "Departs {time}",
+        "empty": "Nobody arrives on this day.",
+        "mode": {
+          "Flight": "Flight",
+          "Ground": "Ground"
+        },
+        "route": "{from} to {to}",
+        "title": "Arrivals"
+      },
+      "hotels": {
+        "checkIns": "Checking in: {names}",
+        "checkOuts": "Checking out: {names}",
+        "empty": "Nobody stays in a booked room this night.",
+        "guests": "{count, plural, one {# guest tonight} other {# guests tonight}}",
+        "title": "Hotels"
+      },
+      "runOfShow": {
+        "empty": "No running order on this day.",
+        "nextCue": "Next: {cue} at {time}",
+        "open": "Open the project's Show tab",
+        "progress": "{called} of {total} cues called",
+        "title": "Run of show"
+      },
+      "sets": {
+        "called": "Called {time}",
+        "empty": "No set times on this day. Mark a cue as an artist's set in its running order.",
+        "next": "Up next",
+        "planned": "Planned",
+        "title": "Sets by stage"
+      }
+    },
+    "title": "Show Day",
+    "unnamed": "Unnamed"
+  },
+  "localContacts": {
+    "title": "Local contacts",
+    "empty": "No local contacts yet.",
+    "add": "Add contact",
+    "edit": "Edit",
+    "remove": "Remove {name}",
+    "save": "Save contact",
+    "cancel": "Cancel",
+    "roles": {
+      "Promoter": "Promoter",
+      "Venue": "Venue",
+      "Production": "Production",
+      "Security": "Security",
+      "Transport": "Transport",
+      "Hospitality": "Hospitality",
+      "Medical": "Medical",
+      "Other": "Other"
+    },
+    "audience": {
+      "Internal": "Internal",
+      "Shared": "Shared"
+    },
+    "source": {
+      "Member": "Member",
+      "Contact": "Contact"
+    },
+    "scope": {
+      "venue": "Venue contact",
+      "thisDay": "This day",
+      "everyDay": "Every day"
+    },
+    "fields": {
+      "source": "Contact from",
+      "member": "Member",
+      "memberHelp": "Shows the member's current name and directory work phone. Nothing is copied.",
+      "name": "Name",
+      "phone": "Business phone",
+      "phoneHelp": "With the country code, such as +1 305 555 0100.",
+      "email": "Business email",
+      "title": "Title",
+      "role": "Role",
+      "scope": "Applies to",
+      "audience": "Who sees it",
+      "audienceHelp": "Shared also shows to the people engaged or rostered on the project. A member's work phone never leaves the org.",
+      "notes": "Notes for the org"
+    },
+    "errors": {
+      "local_contact_member": "That person is no longer an active member of the org. Choose a current member or type the contact.",
+      "local_contact_day_outside_project": "That day is outside the project's dates. Choose a day within the project.",
+      "cross_org_reference": "That member or organization belongs to another org.",
+      "refused": "The contact could not be saved. Check it and try again.",
+      "notFound": "That contact is gone. Reload the page.",
+      "invalid": "Check the name, role and email.",
+      "phone": "Enter the phone with its country code, such as +1 305 555 0100.",
+      "unexpected": "Something went wrong. Try again."
+    }
+  },
   "importCues": "Import cues",
   "display": {
     "action": "Display screens",

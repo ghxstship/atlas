@@ -19,10 +19,13 @@ import type { NotificationKindRegistry } from "./model.ts";
  * account.work_details_moved. 4698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
  * allocation.withdrawn. 5201 adds offer.sent (A127, ADR 0106), the offer that waits on the applicant, and carries 4698's.
  * 5829 adds P5's badge photo request (credential_photo.requested, G-144) and carries 5201's. 5869 adds P9's
- * approval.reminder and approval.link_code with its approval_link_code email (ADR 0138) and carries 5829's.
+ * approval.reminder and approval.link_code with its approval_link_code email (ADR 0138) and carries 5829's. 6059 adds
+ * B16's subscription pause notices billing.paused and billing.resumed (6051) and agent.change_proposed (6052), which
+ * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
+ * and transfer.assigned (5947) to it.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/5869_notification_kind_seed.sql";
+  "supabase/migrations/6059_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

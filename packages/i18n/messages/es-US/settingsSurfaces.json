@@ -247,6 +247,8 @@
       "purchase_orders": "Órdenes de compra",
       "invoices": "Facturas",
       "incidents": "Incidentes",
+      "spaces": "Espacios",
+      "signs": "Letreros",
       "budget_lines": "Líneas de presupuesto"
     }
   },

@@ -35,7 +35,8 @@
       "show": {
         "runOfShow": "Escaleta",
         "daySheets": "Hojas del día",
-        "callSheets": "Hojas de llamado"
+        "callSheets": "Hojas de llamado",
+        "showDay": "Día del show"
       },
       "advancing": {
         "packets": "Paquetes",
@@ -49,7 +50,8 @@
         "venues": "Recintos",
         "spacesAndZones": "Espacios y zonas",
         "capabilityDocuments": "Documentos de capacidades",
-        "sitePlans": "Planos del sitio"
+        "sitePlans": "Planos del sitio",
+        "signage": "Señalización"
       },
       "logistics": {
         "shipments": "Envíos",
@@ -59,7 +61,10 @@
       "hospitality": {
         "fulfillments": "Servicios atendidos",
         "beos": "Órdenes de banquete",
-        "accommodationBlocks": "Bloqueos de habitaciones"
+        "accommodationBlocks": "Bloqueos de habitaciones",
+        "travel": "Viajes",
+        "transfers": "Traslados",
+        "rooms": "Camerinos y salas de espera"
       },
       "assets": {
         "assetClasses": "Catálogo de clases de activos",
@@ -482,7 +487,8 @@
       "offlineQueue": "Cola sin conexión",
       "profile": "Perfil y certificaciones",
       "settings": "Configuración",
-      "projectDetails": "Datos del proyecto"
+      "projectDetails": "Datos del proyecto",
+      "drives": "Traslados que conduzco"
     },
     "reference": {
       "emergencyCodes": "Códigos de emergencia",

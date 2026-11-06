@@ -16,6 +16,7 @@
     "certification_not_yours": "Solo el titular puede hacer esto con una certificación.",
     "email_unconfirmed": "Confirma primero tu correo y vuelve a intentarlo.",
     "auto_join_unavailable": "Esta organización ya no permite que tu dominio de correo se una automáticamente. Pide una invitación a un administrador.",
+    "member_blocked": "No puedes unirte a esta organización. Pregunta a uno de sus administradores.",
     "role_band": "Solo puedes dar roles de tu nivel o inferiores.",
     "role_unknown": "Elige un rol disponible en esta organización.",
     "invite_link_role_band": "Los enlaces no pueden dar el rol de propietario o administrador. Invita a esas personas por correo.",

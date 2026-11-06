@@ -89,6 +89,9 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
+  "billing.paused": { resumesOn: "2026-12-30" },
+  "billing.resumed": {},
+  "agent.change_proposed": { app: "Claude", appId: "app-1", operation: "updateTask" },
   "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
   // P5: app.request_credential_photos (5822) names the org and the Gateway page the item opens.
   "credential_photo.requested": {
@@ -216,6 +219,23 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     expiresOn: "2026-10-28",
   },
   "certification.expiring": { title: "First Aid", days: "30", expiresOn: "2026-11-20" },
+  // B5 (5947): block release reminders and the driver's transfer.
+  "accommodation_block.release_due": {
+    blockKey: "NWL-6",
+    blockTitle: "Harborview Crew Block",
+    releaseOn: "2027-05-15",
+    days: "7",
+    freeRoomNights: "12",
+    projectName: "Northwind Summer Series",
+  },
+  "transfer.assigned": {
+    transferKey: "NWL-3",
+    startsAt: "2027-06-02T14:00:00Z",
+    pickupTimeZone: "America/New_York",
+    pickupPlace: "Miami International Airport (MIA)",
+    dropoffPlace: "Crew Hotel",
+    passengerCount: "2",
+  },
   "document.expiring": { kind: "passport", title: "passport", days: "1", expiresOn: "2026-10-22" },
   // A90: marketplace moderation (1473), as private.notify_moderation_decision and console_decide_appeal store them.
   "listing.moderated": {

@@ -1915,6 +1915,8 @@ export interface CapabilityStatement {
   readonly assertionWord: string;
   readonly venueId: string | null;
   readonly counterpartyId: string | null;
+  /** Set on a capability copied from venue specs (B1, app.provide_place_specs): power, rigging or connectivity. */
+  readonly placeSpecField: string | null;
 }
 
 /** Live requirements and capabilities of a project, in URID order. */
@@ -1925,7 +1927,7 @@ export async function listCapabilityStatements(
   const { data, error } = await db
     .from("capability_statements")
     .select(
-      "id, direction, urid, description, quantity, unit_basis, is_critical, assertion_word, venue_id, counterparty_id",
+      "id, direction, urid, description, quantity, unit_basis, is_critical, assertion_word, venue_id, counterparty_id, place_spec_field",
     )
     .eq("project_id", projectId)
     .is("deleted_at", null)
@@ -1943,6 +1945,7 @@ export async function listCapabilityStatements(
       assertionWord: s.assertion_word,
       venueId: s.venue_id,
       counterpartyId: s.counterparty_id,
+      placeSpecField: s.place_spec_field,
     })),
   );
 }

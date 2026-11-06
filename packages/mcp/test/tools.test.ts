@@ -5,8 +5,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { JsonRpcResponse, ToolResult } from "../src/protocol.ts";
 import { ERROR, PROTOCOL_VERSION } from "../src/protocol.ts";
 import type { McpSession } from "../src/protocol.ts";
-import { createSession, optionsFromEnv } from "../src/server.ts";
-import { READ_ONLY, canWrite, parseWriteScope } from "../src/tools.ts";
+import { createHostedSession, createSession, optionsFromEnv } from "../src/server.ts";
+import type { ProposalInput } from "../src/tools.ts";
+import { ProposalRefusal, READ_ONLY, canWrite, parseWriteScope } from "../src/tools.ts";
 import { OPERATIONS } from "@ghxstship/xos-sdk";
 
 let server: ContractServer;
@@ -337,5 +338,143 @@ describe("scoped write tools", () => {
       params: { name: "xos_delete", arguments: { resource: "calendars", id } },
     });
     expect(r?.error?.code).toBe(ERROR.invalidParams);
+  });
+});
+
+describe("hosted mode: writes are proposals (B16)", () => {
+  function hosted(grantScopes: readonly string[], refuse?: string) {
+    const proposals: { operation: string; input: ProposalInput }[] = [];
+    const s = createHostedSession({
+      baseUrl: server.baseUrl,
+      accessToken: server.apiKey,
+      grantScopes,
+      protocolVersion: "2025-06-18",
+      propose: async (spec, input) => {
+        if (refuse) throw new ProposalRefusal(refuse, "The organization is paused.");
+        proposals.push({ operation: spec.id, input });
+        return {
+          suggestionId: `s-${proposals.length}`,
+          expiresAt: "2026-11-06T12:00:00Z",
+          reviewUrl: "https://atlas.example.test/northwind-live/me/connected-apps",
+        };
+      },
+    });
+    return { s, proposals };
+  }
+
+  const scopes = OPERATIONS["projects.update"].scopes;
+
+  it("needs no initialize, lists every write tool as a proposal and names the 7-day expiry", async () => {
+    const { s } = hosted(scopes);
+    const r = await s.handle({ jsonrpc: "2.0", id: nextId++, method: "tools/list" });
+    const tools = (
+      r?.result as {
+        tools: {
+          name: string;
+          description: string;
+          inputSchema: { properties: Record<string, unknown> };
+        }[];
+      }
+    ).tools;
+    expect(tools.map((t) => t.name)).toEqual([
+      "xos_list_resources",
+      "xos_describe_operation",
+      "xos_whoami",
+      "xos_list",
+      "xos_get",
+      "xos_read",
+      "xos_create",
+      "xos_update",
+      "xos_action",
+      "xos_delete",
+    ]);
+    const update = tools.find((t) => t.name === "xos_update");
+    expect(update?.description).toMatch(
+      /^Proposes updating the fields sent for the person to confirm in XOS; nothing changes until they do/,
+    );
+    expect(update?.inputSchema.properties).toHaveProperty("summary");
+    const init = await s.handle({
+      jsonrpc: "2.0",
+      id: nextId++,
+      method: "initialize",
+      params: { protocolVersion: "2024-11-05" },
+    });
+    const result = init?.result as { protocolVersion: string; instructions: string };
+    expect(result.protocolVersion).toBe("2025-06-18");
+    expect(result.instructions).toMatch(/expires after 7 days/);
+  });
+
+  it("records an update as a proposal with its path, If-Match and fields, and never writes", async () => {
+    const { s, proposals } = hosted(scopes);
+    const id = "0f8fad5b-d9cb-469f-a165-70867728950e";
+    const { result, data } = await call(s, "xos_update", {
+      resource: "projects",
+      id,
+      body: { name: "Encore", description: null },
+      if_match: 'W/"1"',
+    });
+    expect(result.isError).toBe(false);
+    expect(data).toEqual({
+      proposed: true,
+      suggestion_id: "s-1",
+      expires_at: "2026-11-06T12:00:00Z",
+      review_url: "https://atlas.example.test/northwind-live/me/connected-apps",
+    });
+    expect(proposals[0]).toEqual({
+      operation: "projects.update",
+      input: {
+        path: { id },
+        body: { name: "Encore", description: null },
+        ifMatch: 'W/"1"',
+        idempotencyKey: null,
+        summary: `${OPERATIONS["projects.update"].summary}: projects ${id}`,
+        targetId: id,
+      },
+    });
+    await call(s, "xos_update", {
+      resource: "projects",
+      id,
+      body: { name: "Encore" },
+      if_match: 'W/"1"',
+      summary: "Rename the tour for the encore.",
+    });
+    expect(proposals[1]?.input.summary).toBe("Rename the tour for the encore.");
+  });
+
+  it("refuses operations outside the grant and Aurora's own, without proposing", async () => {
+    const { s, proposals } = hosted(["home"]);
+    const outside = await call(s, "xos_create", { resource: "projects", body: project });
+    expect(outside.result.isError).toBe(true);
+    expect(outside.data["error"]).toBe("outside_granted_scopes");
+    const all = hosted(Object.values(OPERATIONS).flatMap((o) => o.scopes));
+    const aurora = Object.values(OPERATIONS).find(
+      (o) => o.id.startsWith("ai") && o.method === "POST",
+    );
+    if (aurora) {
+      const refused = await call(all.s, "xos_action", { operation_id: aurora.id, path: {} }).catch(
+        () => null,
+      );
+      expect(refused === null || refused.data["error"] === "operation_not_proposable").toBe(true);
+    }
+    expect(proposals).toEqual([]);
+    expect(all.proposals).toEqual([]);
+  });
+
+  it("answers a database refusal of the proposal as a tool error", async () => {
+    const { s } = hosted(scopes, "org_read_only");
+    const { result, data } = await call(s, "xos_update", {
+      resource: "projects",
+      id: "0f8fad5b-d9cb-469f-a165-70867728950e",
+      body: { name: "x" },
+      if_match: 'W/"1"',
+    });
+    expect(result.isError).toBe(true);
+    expect(data).toEqual({ error: "org_read_only", detail: "The organization is paused." });
+  });
+
+  it("reads through the API with the access token", async () => {
+    const { s } = hosted(scopes);
+    const { result } = await call(s, "xos_whoami", {});
+    expect(result.isError).toBe(false);
   });
 });

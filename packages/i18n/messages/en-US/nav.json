@@ -35,7 +35,8 @@
       "show": {
         "runOfShow": "Run of Show",
         "daySheets": "Day Sheets",
-        "callSheets": "Call Sheets"
+        "callSheets": "Call Sheets",
+        "showDay": "Show Day"
       },
       "advancing": {
         "packets": "Packets",
@@ -49,7 +50,8 @@
         "venues": "Venues",
         "spacesAndZones": "Spaces and Zones",
         "capabilityDocuments": "Capability Documents",
-        "sitePlans": "Site Plans"
+        "sitePlans": "Site Plans",
+        "signage": "Signage"
       },
       "logistics": {
         "shipments": "Shipments",
@@ -59,7 +61,10 @@
       "hospitality": {
         "fulfillments": "Fulfillments",
         "beos": "BEOs",
-        "accommodationBlocks": "Accommodation Blocks"
+        "accommodationBlocks": "Accommodation Blocks",
+        "travel": "Travel",
+        "transfers": "Transfers",
+        "rooms": "Green Rooms and Dressing Rooms"
       },
       "assets": {
         "assetClasses": "Catalog of Asset Classes",
@@ -482,7 +487,8 @@
       "offlineQueue": "Offline Queue",
       "profile": "Profile and Certifications",
       "settings": "Settings",
-      "projectDetails": "Project Details"
+      "projectDetails": "Project Details",
+      "drives": "Drives"
     },
     "reference": {
       "emergencyCodes": "Emergency Codes",
