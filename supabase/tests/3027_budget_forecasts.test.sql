@@ -107,11 +107,11 @@ with x as (insert into app.budget_lines (budget_id, line_number, description, ur
 select pg_temp.as_platform();
 alter table app.change_orders disable trigger user;
 alter table app.change_order_lines disable trigger user;
-with c as (insert into app.change_orders (project_id, budget_id, reason, change_order_state, change_order_number, org_id)
-  values (pg_temp.id('prj_a'), pg_temp.id('bud2'), 'More.', 'Approved', 9001, pg_temp.id('org_a')) returning id)
+with c as (insert into app.change_orders (project_id, budget_id, title, reason, change_order_state, change_order_number, org_id)
+  values (pg_temp.id('prj_a'), pg_temp.id('bud2'), 'More scope', 'More.', 'Approved', 9001, pg_temp.id('org_a')) returning id)
   insert into world select 'co', id from c;
-insert into app.change_order_lines (change_order_id, org_id, line_number, description, urid, quantity, unit_price_minor)
-  values (pg_temp.id('co'), pg_temp.id('org_a'), 1, 'Added scope.', '5000.04.02', 1, 300);
+insert into app.change_order_lines (change_order_id, org_id, description, urid, quantity, unit_price_minor)
+  values (pg_temp.id('co'), pg_temp.id('org_a'), 'Added scope.', '5000.04.02', 1, 300);
 alter table app.change_orders enable trigger user;
 alter table app.change_order_lines enable trigger user;
 select pg_temp.as_user('alice');

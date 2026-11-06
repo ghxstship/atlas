@@ -148,8 +148,9 @@ insert into app.role_capabilities (role_id, capability_code, reach)
   select id, c, 'organization' from app.roles, unnest(array['crew.shift.read', 'crew.shift.write']) c where code = 'crew_planner_b13' and org_id = pg_temp.id('org_a');
 select pg_temp.as_user_stepped_up('alice');
 insert into app.membership_roles (membership_id, role_id)
-  select pg_temp.id('gina@org_a'), id from app.roles where code = 'crew_planner_b13' and org_id = pg_temp.id('org_a');
-select pg_temp.as_user('gina');
+  select pg_temp.id('erin@org_a'), id from app.roles where code = 'crew_planner_b13' and org_id = pg_temp.id('org_a');
+select pg_temp.as_user('erin');
+select is((select count(*)::int from app.shifts where id = pg_temp.id('sh1')), 1, 'the planner reads the shift');
 select throws_ok(format($$update app.shifts set budget_line_id = null where id = '%s'$$, pg_temp.id('sh1')), 'XR001',
   'shift_budget_line_posted: Approved time on this shift is already on the budget, so moving it needs finance.budget.write.',
   'a crew planner cannot move posted time');
@@ -170,6 +171,13 @@ select ok((select bool_and(rate_minor is null and rate_source is null and curren
 select is((select coalesce(sum(minutes), 0)::int from private.labor_postings_standing where timesheet_id = pg_temp.id('ts_d')), 120, 'its minutes are counted');
 
 -- External postings -------------------------------------------------------------------------------------------------------------
+-- The canon rate card holds Day Rate rows only, and an engagement's terms must name a row of it (engagements_rate_card_fkey),
+-- so an Hourly engagement needs an Hourly row: added here for this transaction.
+select pg_temp.as_platform();
+insert into xpms.rate_card (rate_card_id, role_code, worker_classification, pay_basis, arrangement, standard_rate_minor, currency_code, overtime_rule_id)
+  select 'LRC-999', role_code, worker_classification, 'Hourly', arrangement, 5000, 'USD', overtime_rule_id
+  from xpms.rate_card where role_code = '5000.51.02' and worker_classification = 'INDEPENDENT_CONTRACTOR' and pay_basis = 'Day Rate' limit 1;
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
 select pg_temp.as_platform();
 update app.engagements set agreed_rate_minor = 4500, currency_code = 'USD', pay_basis = 'Hourly' where id = pg_temp.id('eng_ivy_a');
 insert into app.time_entries (project_id, engagement_id, clock_in, clock_out, break_minutes)
