@@ -901,6 +901,8 @@ export const scheduleCadence = ["Daily", "Weekly", "Monthly"] as const;
 export const scopeKind = ["Engagement Root", "Standing Venue", "Show"] as const;
 /** app.seat_preference */
 export const seatPreference = ["Window", "Aisle", "No Preference"] as const;
+/** app.seen_surface */
+export const seenSurface = ["Today", "Itinerary", "Show Day"] as const;
 /** app.setting_scope */
 export const settingScope = ["Organization", "Workspace", "Team", "Project"] as const;
 /** app.setting_source */

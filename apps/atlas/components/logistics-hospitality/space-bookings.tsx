@@ -403,6 +403,7 @@ export async function SpaceBookingsSection({
         icon="Users"
         sentence={writable.length > 0 ? t("empty") : t("emptyReadOnly")}
         actionLabel={t("new")}
+        secondary
         href={hrefWith(base, search, { create: "1" })}
       />
     );

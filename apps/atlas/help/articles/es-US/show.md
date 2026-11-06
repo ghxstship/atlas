@@ -2,7 +2,7 @@
 title: Guion del espectáculo, hojas del día y hojas de llamado
 summary: Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show, show]
+nodes: [show.run-of-show, show.day-sheets, show.call-sheets, show.show-day, project.show, show]
 order: 22
 ---
 
@@ -53,3 +53,7 @@ Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa 
 ## Contactos locales
 
 Una hoja del día muestra los contactos locales de ese día: los del recinto, los del proyecto para todos los días y los de ese día. Agregue un miembro de la organización, cuyo nombre actual y teléfono de trabajo del directorio siempre se muestran, o escriba un contacto con teléfono y correo comerciales. Los contactos compartidos también llegan a las personas contratadas o en la lista del proyecto en Gateway y Compass; el teléfono de trabajo de un miembro nunca sale de la organización. Administre los contactos de un recinto desde su vista previa en Lugares > Recintos.
+
+## Día del show
+
+El día del show reúne en una página el día de show de un proyecto. Elija el proyecto y el día, o avance o retroceda un día. **Presentaciones por escenario** muestra la presentación de cada artista con su hora y duración, lo que ya se llamó y lo que sigue. **Órdenes de show** muestra cuántos cues llamó cada orden de show y el siguiente. **Llegadas** muestra quién llega ese día, en la zona horaria de su llegada, y **Hoteles** quién duerme dónde esa noche y quién entra o sale; ambos requieren acceso a hospitalidad. Lo que cambió desde su última visita lleva una etiqueta que dice qué cambió, y **Marcar todo como visto** quita las etiquetas. La página se actualiza en vivo a medida que se llaman los cues. Desde la pestaña Show de un proyecto, **Abrir día del show** abre el de hoy.

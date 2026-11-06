@@ -3,6 +3,8 @@
  * offline, and one button that opens the engagement's tab in Gateway, where submitting, uploading and signing live.
  * A page that writes from Compass itself (proof-of-performance photos, A140) adds an action under its items.
  */
+import type { XosClient } from "@xos/data";
+import { recordVisit } from "@xos/data/change-tracking";
 import { toDisplayKey } from "@xos/data/gateway-keys";
 import type { Row } from "@xos/sync";
 import * as Linking from "expo-linking";
@@ -10,7 +12,7 @@ import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { moreMenu } from "../domain/access";
-import { todayOn } from "../domain/dates";
+import { formatCalendarDay, todayOn } from "../domain/dates";
 import {
   EXTERNAL_PAGES,
   engagementFor,
@@ -60,6 +62,33 @@ function useTables(tables: readonly string[]): (table: string) => readonly Row[]
   return (table) => rows.get(table) ?? [];
 }
 
+/**
+ * The itinerary baseline of the person's engagements on the project (B6): opening Travel and lodging while online
+ * records a visit on each engagement's itinerary (app.record_visit) and keeps the latest baseline returned, so a
+ * change already seen shows no chip. Offline nothing is recorded and the downloaded marks stay.
+ */
+function useItineraryVisit(enabled: boolean, engagementIds: readonly string[]): string | null {
+  const { client, network } = useCompass();
+  const [baseline, setBaseline] = useState<string | null>(null);
+  const key = engagementIds.join(",");
+  useEffect(() => {
+    if (!enabled || !network.isConnected || key === "") return undefined;
+    let live = true;
+    const db = client as unknown as XosClient;
+    void Promise.all(key.split(",").map((id) => recordVisit(db, "Itinerary", id))).then(
+      (results) => {
+        if (!live) return;
+        const instants = results.flatMap((r) => (r.ok && r.data ? [r.data] : []));
+        setBaseline(instants.sort().at(-1) ?? null);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [enabled, network.isConnected, key, client]);
+  return baseline;
+}
+
 function Item({
   item,
   depth,
@@ -78,6 +107,33 @@ function Item({
     (zone) => scheduleZone(zone, orgSettings),
   );
   const title = item.title || facts.shift() || "";
+  const changed = item.changed;
+  // A chip for what changed since the person last looked, and a sentence for screen readers that names the fields.
+  const chip = changed ? (
+    <View
+      testID={`external-item-${item.id}-changed`}
+      accessible
+      accessibilityLabel={
+        changed.kind === "added"
+          ? t("compassExternal.itinerary.newSentence")
+          : t("compassExternal.itinerary.changedSentence", {
+              fields: changed.fields
+                .map((f) => t(`compassExternal.itinerary.fields.${f}`))
+                .join(", "),
+            })
+      }
+    >
+      <Tag
+        tone="accent"
+        label={t(
+          changed.kind === "added"
+            ? "compassExternal.itinerary.new"
+            : "compassExternal.itinerary.changed",
+        )}
+      />
+    </View>
+  ) : null;
+  const tag = item.tag ? <Tag tone={item.tag.tone} label={t(item.tag.key)} /> : null;
   return (
     <View style={{ paddingLeft: depth * theme.space["16"] }}>
       <ListRow
@@ -85,7 +141,16 @@ function Item({
         icon={item.icon}
         title={title}
         {...(facts.length > 0 ? { subtitle: facts.join(" · ") } : {})}
-        {...(item.tag ? { trailing: <Tag tone={item.tag.tone} label={t(item.tag.key)} /> } : {})}
+        {...(chip || tag
+          ? {
+              trailing: (
+                <View style={{ flexDirection: "row", gap: theme.space["4"] }}>
+                  {chip}
+                  {tag}
+                </View>
+              ),
+            }
+          : {})}
       />
       {(item.lines ?? []).map((line) => (
         <Item key={line.id} item={line} depth={depth + 1} />
@@ -105,11 +170,17 @@ export function ExternalPageScreen({
   /** Shown after the sections, such as a capture sheet. */
   readonly children?: ReactNode;
 }): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const page = EXTERNAL_PAGES[id];
   const { resolved, projectId, config, refresh } = useCompass();
   const rows = useTables(page.tables);
+  const seenBaseline = useItineraryVisit(
+    id === "travel-and-lodging",
+    (resolved?.identity.engagements ?? [])
+      .filter((e) => projectId === null || e.projectId === projectId)
+      .map((e) => e.id),
+  );
   const { rows: projects } = useRows<Row & { time_zone?: string | null }>("projects");
   const [refreshing, setRefreshing] = useState(false);
   const title = t(`nav.compass.more.${id.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())}`);
@@ -138,6 +209,7 @@ export function ExternalPageScreen({
     engagements: identity.engagements,
     zoneOf,
     todayOf: (project) => todayOn(zoneOf(project)),
+    seenBaseline,
   });
   const engagement = engagementFor(page, identity.engagements, projectId);
   const openGateway = () => {
@@ -184,7 +256,11 @@ export function ExternalPageScreen({
         />
       ) : (
         sections.map((s) => (
-          <Card key={s.id} testID={`external-section-${s.id}`} title={t(s.titleKey)}>
+          <Card
+            key={s.id}
+            testID={`external-section-${s.id}`}
+            title={t(s.titleKey, s.day ? { date: formatCalendarDay(s.day, i18n.language) } : {})}
+          >
             {s.progress ? (
               <ProgressBar
                 label={t("compassExternal.progress", {

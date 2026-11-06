@@ -117,7 +117,7 @@ export function PlanTools({
             role="radio"
             aria-checked={tool === name}
             onClick={() => setTool(name)}
-            className={`min-h-24 rounded-control border px-8 text-text-13 ${tool === name ? "border-accent bg-accent text-text-on-accent" : "border-border-control bg-bg-raised text-text-primary"}`}
+            className={`min-h-24 rounded-control border px-8 text-text-13 ${tool === name ? "border-accent bg-accent text-accent-text-on" : "border-border-control bg-bg-raised text-text-primary"}`}
           >
             {t(`plans.tools.${name}`)}
           </button>

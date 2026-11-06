@@ -187,6 +187,8 @@ test("every Schedule, Work and Show page passes axe in the light theme and answe
   page,
   context,
 }) => {
+  // Axe on every page of three modules, and train 7 added some.
+  test.setTimeout(180_000);
   const slug = await newOwnerOrg(page);
   await context.addCookies([
     { name: "xos-theme", value: "light", domain: new URL(page.url()).hostname, path: "/" },

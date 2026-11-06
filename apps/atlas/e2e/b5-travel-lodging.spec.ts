@@ -38,7 +38,7 @@ test("a transfer takes a vehicle, a driver and passengers, and refuses a full ve
   await vehicles.getByLabel("Type").selectOption("Sedan");
   await vehicles.getByLabel("Passenger seats").fill("1");
   await vehicles.getByRole("button", { name: "Add vehicle" }).click();
-  await expect(vehicles.getByText(`Sedan ${run}`)).toBeVisible();
+  await expect(vehicles.getByText(`Sedan ${run}`, { exact: true })).toBeVisible();
 
   const book = async (from: string, to: string, pickup: string, dropoff: string) => {
     await page.goto(`/${ORG}/p/NWS/hospitality?section=transfers&create=1`);

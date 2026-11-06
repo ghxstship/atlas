@@ -1,8 +1,8 @@
 "use client";
 
 import * as enums from "@xos/data/enums";
-import { Button, Checkbox, Dialog, InlineAlert, Input, Select } from "@xos/ui";
-import { useActionState, useRef, useState } from "react";
+import { Button, Dialog, InlineAlert, Input, MultiSelect, Select } from "@xos/ui";
+import { useActionState, useId, useRef, useState } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
 import { pauseSubscriptionAction, resumeSubscriptionAction } from "@/lib/billing/actions";
@@ -339,6 +339,8 @@ export function McpConnectorForm({
   const [state, dispatch, pending] = useActionState(registerMcpConnectorAction, {});
   const keep = useKeepInput(state, dispatch, (s: B16State) => s.ok === true);
   const [kind, setKind] = useState<(typeof enums.mcpClientKind)[number]>("Claude");
+  const [scopes, setScopes] = useState<string[]>([...defaults]);
+  const formId = useId();
   return (
     <form
       action={dispatch}
@@ -369,21 +371,18 @@ export function McpConnectorForm({
           />
         ) : null}
       </div>
-      <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-        <legend className="mb-4 text-label-13 font-medium">{labels.scopes}</legend>
-        <p className="m-0 text-text-12 text-text-secondary">{labels.scopesHelp}</p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {groups.map((g) => (
-            <Checkbox
-              key={g.value}
-              name="scope"
-              value={g.value}
-              label={g.label}
-              defaultChecked={defaults.includes(g.value)}
-            />
-          ))}
-        </div>
-      </fieldset>
+      {/* About twenty groups: one field, not twenty checkboxes (gate 27). */}
+      <MultiSelect
+        id={`${formId}-scopes`}
+        label={labels.scopes}
+        help={labels.scopesHelp}
+        options={[...groups]}
+        value={scopes}
+        onChange={setScopes}
+      />
+      {scopes.map((scope) => (
+        <input key={scope} type="hidden" name="scope" value={scope} />
+      ))}
       {state.connector ? (
         <div className="flex flex-col gap-8" data-testid="mcp-connector-result">
           <InlineAlert tone="success">{state.message}</InlineAlert>

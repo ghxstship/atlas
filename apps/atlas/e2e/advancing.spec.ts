@@ -235,8 +235,10 @@ async function asOwner<T extends Record<string, unknown>>(
 test("R9: a packet takes typed sections, each held to its kind", async ({ page }) => {
   const stamp = Date.now().toString(36);
   // What request sections offer: the org's radio class and a crew pass of the project.
+  // In two statements: a class this call creates is not visible to the statement that created it.
+  await asOwner("select app.ensure_offering_asset_class($1, 'Radios')", [DEMO_ORG_ID]);
   const [radios] = await asOwner<{ name: string }>(
-    `select c.name from app.asset_classes c where c.id = app.ensure_offering_asset_class($1, 'Radios')`,
+    "select name from app.asset_classes where org_id = $1 and offering = 'Radios' and deleted_at is null",
     [DEMO_ORG_ID],
   );
   const radioName = radios?.name as string;

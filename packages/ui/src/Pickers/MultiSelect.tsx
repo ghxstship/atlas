@@ -53,6 +53,7 @@ export function MultiSelect({
                 <button
                   type="button"
                   aria-label={t("chip.remove", { label: o.label })}
+                  title={t("chip.remove", { label: o.label })}
                   onClick={() => toggle(o)}
                   className="xos-hit inline-grid place-items-center ms-2 p-0 border-0 bg-transparent text-text-tertiary hover:text-text-primary rounded-mark cursor-pointer"
                 >

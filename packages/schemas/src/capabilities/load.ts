@@ -17,9 +17,9 @@ import {
 } from "./model.ts";
 
 /** Default location of the registry: the package root. */
-export const CAPABILITIES_YAML_PATH = fileURLToPath(
-  new URL("../../capabilities.yaml", import.meta.url),
-);
+export function capabilitiesYamlPath(): string {
+  return fileURLToPath(new URL("../../capabilities.yaml", import.meta.url));
+}
 
 /** Capabilities the specification names by code; each must exist. */
 export const SPEC_NAMED_CAPABILITIES = [
@@ -254,6 +254,6 @@ export function parseCapabilityRegistry(text: string): CapabilityRegistry {
 }
 
 /** Reads, parses and validates the registry file. */
-export function loadCapabilityRegistry(path: string = CAPABILITIES_YAML_PATH): CapabilityRegistry {
+export function loadCapabilityRegistry(path: string = capabilitiesYamlPath()): CapabilityRegistry {
   return parseCapabilityRegistry(readFileSync(path, "utf8"));
 }

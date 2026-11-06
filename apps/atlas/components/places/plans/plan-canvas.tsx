@@ -286,7 +286,7 @@ export function PlanCanvas({
           <span
             key={pin.id}
             aria-hidden="true"
-            className="pointer-events-none absolute flex size-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-text-12 font-semibold text-text-on-accent"
+            className="pointer-events-none absolute flex size-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-text-12 font-semibold text-accent-text-on"
             style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
           >
             {i + 1}

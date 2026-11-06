@@ -65,5 +65,17 @@ export async function uploadAttachment(
   await passAttachmentScans(worker);
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor();
-  return page.locator("li", { hasText: file.name }).first();
+  const row = page.locator("li", { hasText: file.name }).first();
+  // The panel hydrates after the shell, and a click on the row before that opens nothing.
+  await expect
+    .poll(
+      () =>
+        row
+          .getByRole("button")
+          .first()
+          .evaluate((el) => Object.keys(el).some((key) => key.startsWith("__reactProps"))),
+      { timeout: 60_000 },
+    )
+    .toBe(true);
+  return row;
 }

@@ -93,6 +93,10 @@ test("site plans: a stored drawing, its scale, shapes by keyboard, the lock, a p
   await signIn(page);
   await page.goto(`/${ORG}/places/site-plans?create=1`);
   const drawer = page.getByRole("dialog", { name: "Add site plan" });
+  // On NWS, whose members the pin's comment can mention.
+  const project = drawer.getByLabel("Project");
+  const nws = await project.locator("option", { hasText: /^NWS/ }).getAttribute("value");
+  await project.selectOption(nws ?? "");
   await drawer.getByLabel("Title").fill(title);
   await drawer.getByRole("button", { name: "Add site plan" }).click();
   const peek = page.getByRole("dialog", { name: "Site plan" });
@@ -102,7 +106,11 @@ test("site plans: a stored drawing, its scale, shapes by keyboard, the lock, a p
   await peek
     .getByLabel("Drawing file")
     .setInputFiles({ name: `stage-${id}.png`, mimeType: "image/png", buffer: drawing() });
-  await peek.getByRole("button", { name: "Upload", exact: true }).click();
+  // The peek's Attachments panel has its own Upload button.
+  await peek
+    .getByRole("region", { name: "Upload drawing" })
+    .getByRole("button", { name: "Upload", exact: true })
+    .click();
   await slow(peek.getByText("Checking the file for viruses…")).toBeVisible();
   await passAttachmentScans("atlas-e2e-b1");
   await slow(peek.getByRole("button", { name: "Use as drawing" })).toBeEnabled();
@@ -216,11 +224,7 @@ test("specs: venue power and rigging become capabilities that reconciliation mee
 }) => {
   await signIn(page);
   await page.goto(`/${ORG}/places/venues?view=list`);
-  await page
-    .getByRole("link")
-    .filter({ hasText: /Pavilion|Hall|Arena|Venue/ })
-    .first()
-    .click();
+  await page.getByRole("link").filter({ hasText: "Bayfront Pier Stage" }).first().click();
   const venue = page.getByRole("dialog");
   const specs = venue.getByRole("region", { name: "Technical specs" });
   await specs.getByLabel("House power (A)").fill("400");

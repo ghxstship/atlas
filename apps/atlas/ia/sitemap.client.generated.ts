@@ -114,6 +114,7 @@ export const clientSitemap: Sitemap = {
         ["run-of-show", "page"],
         ["day-sheets", "page"],
         ["call-sheets", "page"],
+        ["show-day", "page"],
       ],
     ],
     [

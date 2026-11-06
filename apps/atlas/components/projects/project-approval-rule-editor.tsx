@@ -57,6 +57,7 @@ export function NewApprovalRuleForm({ scope, filters }: { scope: Scope; filters:
       }}
       label={t("create.label")}
       submitLabel={t("create.submit")}
+      submitVariant="secondary"
       success={t("create.done")}
     >
       <div className="grid grid-cols-2 gap-8 max-md:grid-cols-1">

@@ -149,7 +149,7 @@ test("a change a connected app proposed is confirmed into the record, and anothe
                     select a.org_id, $2, 'assistant', 'external-agent', 'Answered', now(), a.id from app.oauth_apps a where a.id = $1
                     returning id),
               s as (insert into app.ai_suggestions (request_id, operation_id, target_id, summary, operation_request)
-                    select r.id, 'projects.update', $3, $4, jsonb_build_object('path', jsonb_build_object('id', $3::text), 'if_match', '*')
+                    select r.id, 'projects.update', $3::uuid, $4::text, jsonb_build_object('path', jsonb_build_object('id', $3::uuid::text), 'if_match', '*')
                     from r returning id)
          insert into app.ai_suggestion_fields (suggestion_id, field_path, proposed_value, position)
          select s.id, 'name', to_jsonb($5::text), 0 from s`,

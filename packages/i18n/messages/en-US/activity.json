@@ -233,6 +233,8 @@
     "cost_center": "a cost center",
     "time_off_request": "a time off request",
     "access_grid": "an access grid entry",
+    "communication_mark": "a communication mark",
+    "travel_segment": "a travel segment",
     "settlement_line": "a settlement line"
   }
 }

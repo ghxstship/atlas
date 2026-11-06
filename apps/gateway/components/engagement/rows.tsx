@@ -20,6 +20,8 @@ export interface RowItem {
   readonly href?: string;
   /** Extra content under the row, such as line items or an answer form. */
   readonly detail?: ReactNode;
+  /** Changed since the person last looked (B6, the itinerary): an accent tag that names the fields. */
+  readonly changed?: { readonly label: string };
 }
 
 export function RowList({ items, label }: { items: readonly RowItem[]; label: string }) {
@@ -47,6 +49,7 @@ export function RowList({ items, label }: { items: readonly RowItem[]; label: st
                   <span className="text-text-13 text-text-secondary">{meta.join(" · ")}</span>
                 ) : null}
               </div>
+              {item.changed ? <Tag tone="accent">{item.changed.label}</Tag> : null}
               {item.tag ? <Tag tone={item.tag.tone}>{item.tag.label}</Tag> : null}
               {item.action}
             </div>

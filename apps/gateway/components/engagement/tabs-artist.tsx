@@ -21,10 +21,12 @@ import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
 import {
   ContactLinks,
-  GroundTransport,
+  readRooms,
   readSharedContacts,
+  readTransfers,
   YourRooms,
 } from "./ground-and-contacts";
+import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
@@ -199,7 +201,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const [hospitality, lodging, travel] = await Promise.all([
+  const [hospitality, lodging, travel, sets] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId },
       order: ["starts_at", "asc"],
@@ -213,55 +215,35 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       eq: { engagement_id: view.engagement.id },
       order: ["departs_at", "asc"],
     }),
+    // The artist's own set times on the project (0760), placed in the itinerary on their day.
+    readView(view.ctx.db, "cues", {
+      eq: { project_id: view.engagement.projectId, is_my_set: true },
+      order: ["planned_at", "asc"],
+    }),
   ]);
-  if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
-  // Transfers carrying the artist or the people the caller answers for (B5).
-  const ground = await GroundTransport({ view, t, locale, roles: ["Passenger", "Party"] });
-  const rows = [
-    ...travel.data.map((s) => ({
-      id: `travel-${s.id}`,
-      title: t("gateway.engagement.travel.route", {
-        from: s.departs_from ?? "",
-        to: s.arrives_at_place ?? "",
-      }),
-      meta: [
-        [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
-        s.travel_mode ? t(enumLabelKey("travelMode", s.travel_mode)) : null,
-        s.departs_at
-          ? t("gateway.engagement.travel.departs", {
-              time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
-            })
-          : null,
-        s.arrives_at
-          ? t("gateway.engagement.travel.arrives", {
-              time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
-            })
-          : null,
-        s.confirmation_identifier
-          ? t("gateway.engagement.travel.confirmation", { code: s.confirmation_identifier })
-          : null,
-      ],
-    })),
-    ...lodging.data.map((l) => ({
-      id: `lodging-${l.id}`,
-      title: l.hotel_name ?? l.block_title ?? "",
-      meta: [
-        t(enumLabelKey("fulfillmentKind", "Lodging")),
-        formatDateRange(locale, l.check_in_on, l.check_out_on),
-        l.guest_name,
-      ],
-    })),
-    ...hospitality.data.map((h) => ({
-      id: h.id ?? "",
-      title: h.title ?? h.description ?? "",
-      meta: [
-        h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
-        h.starts_at ? formatDateTime(locale, h.starts_at) : null,
-        h.supplier_name,
-      ],
-    })),
-  ];
-  if (rows.length === 0 && ground === null) {
+  if (!hospitality.ok || !lodging.ok || !travel.ok || !sets.ok) return <RegionError />;
+  // Transfers carrying the artist or the people the caller answers for, and the act's booked rooms (B5): each takes
+  // its day in the itinerary. As B5 had it, a failed read of either leaves it out rather than failing the tab.
+  const [transfers, rooms] = await Promise.all([
+    readTransfers(view, ["Passenger", "Party"]).then((r) => r ?? []),
+    readRooms(view).then((r) => r ?? []),
+  ]);
+  const lines = hospitality.data.map((h) => ({
+    id: h.id ?? "",
+    title: h.title ?? h.description ?? "",
+    meta: [
+      h.fulfillment_kind ? t(enumLabelKey("fulfillmentKind", h.fulfillment_kind)) : null,
+      h.starts_at ? formatDateTime(locale, h.starts_at) : null,
+      h.supplier_name,
+    ],
+  }));
+  const hasStay =
+    travel.data.length > 0 ||
+    lodging.data.length > 0 ||
+    sets.data.length > 0 ||
+    transfers.length > 0 ||
+    rooms.length > 0;
+  if (!hasStay && lines.length === 0) {
     return (
       <TabEmpty
         icon="UtensilsCrossed"
@@ -271,12 +253,33 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       />
     );
   }
+  // The itinerary first (B6): travel, nights, transfers, rooms and set times by day, marked where they changed since
+  // the last look; then the hospitality lines alone.
+  const stay = hasStay
+    ? await loadItinerary(view, {
+        travel: travel.data,
+        lodging: lodging.data,
+        setTimes: sets.data,
+        transfers,
+        rooms,
+      })
+    : null;
+  if (hasStay && !stay) return <RegionError />;
   return (
     <div className="flex flex-col gap-16">
-      {rows.length > 0 ? (
-        <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={rows} />
+      {stay ? (
+        <ItinerarySections
+          itinerary={stay.itinerary}
+          baselineAt={stay.baselineAt}
+          lookup={stay.lookup}
+          view={view}
+          t={t}
+          locale={locale}
+        />
       ) : null}
-      {ground}
+      {lines.length > 0 ? (
+        <RowList label={t("nav.gateway.engagementTabs.hospitality")} items={lines} />
+      ) : null}
     </div>
   );
 }

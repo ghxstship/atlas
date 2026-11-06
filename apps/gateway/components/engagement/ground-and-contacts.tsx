@@ -1,9 +1,9 @@
-import { readView } from "@xos/data/gateway";
+import { readView, type ExternalRow } from "@xos/data/gateway";
 import { formatPhone, regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { Section } from "@/components/page/page";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
-import { RowList } from "./rows";
+import { RowList, type RowItem } from "./rows";
 import type { TabProps } from "./tab-context";
 
 /**
@@ -11,6 +11,7 @@ import type { TabProps } from "./tab-context";
  * from api_external.my_transfers (as driver, passenger or principal of a passenger), the project's Shared local
  * contacts from api_external.local_contacts with tel: and mailto: links, and the act's rooms from
  * api_external.space_bookings. Each view already limits rows to what the caller may see; these only narrow.
+ * Transfers and rooms take their day in the whole-stay itinerary (B6, ./itinerary.tsx); contacts stay a section.
  */
 
 type Role = "Driver" | "Passenger" | "Party";
@@ -25,79 +26,80 @@ function projectToday(timeZone: string): string {
   }).format(new Date());
 }
 
-/** The caller's transfers on the project, in pickup order; `roles` narrows by the caller's role. */
-export async function GroundTransport({
-  view,
-  t,
-  locale,
-  roles,
-}: Pick<TabProps, "view" | "t" | "locale"> & { roles?: readonly Role[] }) {
+type TransferRow = ExternalRow<"my_transfers">;
+type RoomRow = ExternalRow<"space_bookings">;
+
+/**
+ * The caller's transfers on the project, in pickup order; `roles` narrows by the caller's role. Null when the read
+ * failed. The itinerary places them on their pickup day (B6).
+ */
+export async function readTransfers(
+  view: TabProps["view"],
+  roles?: readonly Role[],
+): Promise<TransferRow[] | null> {
   const read = await readView(view.ctx.db, "my_transfers", {
     eq: { project_id: view.engagement.projectId },
     order: ["pickup_at", "asc"],
   });
   if (!read.ok) return null;
-  const rows = read.data.filter((r) => !roles || roles.includes(r.my_role as Role));
-  if (rows.length === 0) return null;
-  return (
-    <Section title={t("gateway.engagement.ground.title")}>
-      <RowList
-        label={t("gateway.engagement.ground.title")}
-        items={rows.map((r) => ({
-          id: r.id ?? "",
-          title: t("gateway.engagement.travel.route", {
-            from: r.pickup_place ?? "",
-            to: r.dropoff_place ?? "",
-          }),
-          meta: [
-            r.pickup_at
-              ? t("gateway.engagement.ground.pickup", {
-                  time: formatDateTime(locale, r.pickup_at, r.pickup_time_zone),
-                })
-              : null,
-            r.dropoff_at
-              ? t("gateway.engagement.ground.dropoff", {
-                  time: formatDateTime(locale, r.dropoff_at, r.dropoff_time_zone),
-                })
-              : null,
-            r.driver_name ? t("gateway.engagement.ground.driver", { name: r.driver_name }) : null,
-            r.vehicle_label
-              ? t("gateway.engagement.ground.vehicle", {
-                  label: r.vehicle_label,
-                  type: r.vehicle_type ? t(enumLabelKey("vehicleType", r.vehicle_type)) : "",
-                })
-              : null,
-            r.meets_service_identifier
-              ? t("gateway.engagement.ground.meets", {
-                  flight: r.meets_service_identifier,
-                  time: r.meets_arrives_at
-                    ? formatDateTime(locale, r.meets_arrives_at, r.pickup_time_zone)
-                    : "",
-                })
-              : null,
-            (r.passenger_names ?? []).length > 0
-              ? t("gateway.engagement.ground.passengers", {
-                  names: (r.passenger_names ?? []).join(", "),
-                })
-              : null,
-          ],
-          ...(r.status
-            ? {
-                tag: {
-                  label: t(enumLabelKey("transferStatus", r.status)),
-                  tone:
-                    r.status === "Done"
-                      ? ("neutral" as const)
-                      : r.status === "Unassigned"
-                        ? ("warning" as const)
-                        : ("accent" as const),
-                },
-              }
-            : {}),
-        }))}
-      />
-    </Section>
-  );
+  return read.data.filter((r) => !roles || roles.includes(r.my_role as Role));
+}
+
+/** One transfer as a row: the route, pickup and drop-off in their zones, driver, vehicle, the flight met, passengers. */
+export function transferRow(r: TransferRow, t: TabProps["t"], locale: string): RowItem {
+  return {
+    id: `transfer-${r.id ?? ""}`,
+    title: t("gateway.engagement.travel.route", {
+      from: r.pickup_place ?? "",
+      to: r.dropoff_place ?? "",
+    }),
+    meta: [
+      t("gateway.engagement.ground.title"),
+      r.pickup_at
+        ? t("gateway.engagement.ground.pickup", {
+            time: formatDateTime(locale, r.pickup_at, r.pickup_time_zone),
+          })
+        : null,
+      r.dropoff_at
+        ? t("gateway.engagement.ground.dropoff", {
+            time: formatDateTime(locale, r.dropoff_at, r.dropoff_time_zone),
+          })
+        : null,
+      r.driver_name ? t("gateway.engagement.ground.driver", { name: r.driver_name }) : null,
+      r.vehicle_label
+        ? t("gateway.engagement.ground.vehicle", {
+            label: r.vehicle_label,
+            type: r.vehicle_type ? t(enumLabelKey("vehicleType", r.vehicle_type)) : "",
+          })
+        : null,
+      r.meets_service_identifier
+        ? t("gateway.engagement.ground.meets", {
+            flight: r.meets_service_identifier,
+            time: r.meets_arrives_at
+              ? formatDateTime(locale, r.meets_arrives_at, r.pickup_time_zone)
+              : "",
+          })
+        : null,
+      (r.passenger_names ?? []).length > 0
+        ? t("gateway.engagement.ground.passengers", {
+            names: (r.passenger_names ?? []).join(", "),
+          })
+        : null,
+    ],
+    ...(r.status
+      ? {
+          tag: {
+            label: t(enumLabelKey("transferStatus", r.status)),
+            tone:
+              r.status === "Done"
+                ? ("neutral" as const)
+                : r.status === "Unassigned"
+                  ? ("warning" as const)
+                  : ("accent" as const),
+          },
+        }
+      : {}),
+  };
 }
 
 export interface SharedContact {
@@ -198,31 +200,47 @@ export async function LocalContactsSection({
   );
 }
 
-/** The rooms booked for the engagement: space, purpose, in, out and the set they serve. */
-export async function YourRooms({ view, t, locale }: Pick<TabProps, "view" | "t" | "locale">) {
+/** The rooms booked for the engagement, in start order; null when the read failed. */
+export async function readRooms(view: TabProps["view"]): Promise<RoomRow[] | null> {
   const read = await readView(view.ctx.db, "space_bookings", {
     eq: { engagement_id: view.engagement.id },
     order: ["starts_at", "asc"],
   });
-  if (!read.ok || read.data.length === 0) return null;
+  return read.ok ? read.data : null;
+}
+
+/** One booked room as a row: space, purpose, in, out and the set it serves. */
+export function roomRow(
+  b: RoomRow,
+  t: TabProps["t"],
+  locale: string,
+  zone: string | null,
+): RowItem {
+  return {
+    id: `room-${b.id ?? ""}`,
+    title: b.space_name ?? "",
+    meta: [
+      b.purpose ? t(enumLabelKey("spaceBookingPurpose", b.purpose)) : null,
+      b.starts_at && b.ends_at
+        ? t("gateway.engagement.rooms.window", {
+            in: formatDateTime(locale, b.starts_at, zone),
+            out: formatDateTime(locale, b.ends_at, zone),
+          })
+        : null,
+      b.set_label ? t("gateway.engagement.rooms.set", { set: b.set_label }) : null,
+    ],
+  };
+}
+
+/** The rooms booked for the engagement as a section (the Set Times tab). */
+export async function YourRooms({ view, t, locale }: Pick<TabProps, "view" | "t" | "locale">) {
+  const rooms = await readRooms(view);
+  if (!rooms || rooms.length === 0) return null;
   return (
     <Section title={t("gateway.engagement.rooms.title")}>
       <RowList
         label={t("gateway.engagement.rooms.title")}
-        items={read.data.map((b) => ({
-          id: b.id ?? "",
-          title: b.space_name ?? "",
-          meta: [
-            b.purpose ? t(enumLabelKey("spaceBookingPurpose", b.purpose)) : null,
-            b.starts_at && b.ends_at
-              ? t("gateway.engagement.rooms.window", {
-                  in: formatDateTime(locale, b.starts_at, view.engagement.projectTimeZone),
-                  out: formatDateTime(locale, b.ends_at, view.engagement.projectTimeZone),
-                })
-              : null,
-            b.set_label ? t("gateway.engagement.rooms.set", { set: b.set_label }) : null,
-          ],
-        }))}
+        items={rooms.map((b) => roomRow(b, t, locale, view.engagement.projectTimeZone))}
       />
     </Section>
   );

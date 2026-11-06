@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
 import {
-  CAPABILITIES_YAML_PATH,
+  capabilitiesYamlPath,
   CapabilityRegistryError,
   ORG_SETTINGS_SECTIONS,
   REQUIRED_MODULES,
@@ -14,7 +14,7 @@ import {
   parseCapabilityRegistry,
 } from "../../src/capabilities/index.ts";
 
-const sourceText = readFileSync(CAPABILITIES_YAML_PATH, "utf8");
+const sourceText = readFileSync(capabilitiesYamlPath(), "utf8");
 
 interface RawCapability {
   code: string;
