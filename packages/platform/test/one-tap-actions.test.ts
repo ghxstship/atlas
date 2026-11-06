@@ -201,6 +201,8 @@ describe("push categories of offers and messages", () => {
     );
     expect(pushCategoryFor("shift.assigned", { shiftState: "Accepted" })).toBeNull();
     expect(pushCategoryFor("shift.assigned", {})).toBeNull();
+    // "Still coming?" (B9): answered from the lock screen, whatever the shift's state says.
+    expect(pushCategoryFor("shift.reconfirm", { shiftState: "Accepted" })).toBe("shift_reconfirm");
     expect(pushCategoryFor("offer.sent", {})).toBe(ENGAGEMENT_OFFER_CATEGORY);
     expect(pushCategoryFor("message.received", {})).toBe(MESSAGE_REPLY_CATEGORY);
     expect(pushCategoryFor("approval.requested", {})).toBe("approval_request");

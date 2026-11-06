@@ -4,7 +4,6 @@ import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getFormatter } from "next-intl/server";
-import { EmptyState } from "@xos/ui";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { FilterDate } from "@/components/crew/views-filter-date";
 import { FilterSelect } from "@/components/crew/views-filter-select";
@@ -124,7 +123,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         href={`/${crew.slug}/crew/schedule`}
       />
     ) : (
-      <EmptyState icon="CircleCheck" sentence={t("crew.shortages.emptyReader")} />
+      <p className="m-0 text-text-13 text-text-secondary">{t("crew.shortages.emptyReader")}</p>
     );
   } else if (view === "table") {
     body = (

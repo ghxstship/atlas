@@ -1,6 +1,6 @@
 "use server";
 
-import { actOnInboxItem } from "@xos/data/inbox";
+import { answerStillComing } from "@xos/data/notification-actions";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import type { FormResult } from "@/lib/actions/operations";
@@ -13,10 +13,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 
 export async function confirmStillComingAction(notificationId: string): Promise<ActionResult> {
   return toAction(
-    await actOnInboxItem(await createServerSupabase(), {
-      id: z.uuid().parse(notificationId),
-      action: "accept",
-    }),
+    await answerStillComing(await createServerSupabase(), z.uuid().parse(notificationId), true),
   );
 }
 
@@ -24,10 +21,11 @@ export async function declineStillComingAction(_: FormResult, form: FormData): P
   const id = z.uuid().safeParse(form.get("notificationId"));
   if (!id.success) return { fieldError: "stillComing" };
   const reason = form.get("reason");
-  const result = await actOnInboxItem(await createServerSupabase(), {
-    id: id.data,
-    action: "decline",
-    comment: typeof reason === "string" && reason.trim() !== "" ? reason.trim().slice(0, 500) : null,
-  });
+  const result = await answerStillComing(
+    await createServerSupabase(),
+    id.data,
+    false,
+    typeof reason === "string" && reason.trim() !== "" ? reason.trim().slice(0, 500) : null,
+  );
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }

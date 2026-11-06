@@ -217,3 +217,22 @@ export async function listStillComing(db: XosClient, limit = 20): Promise<Result
     })),
   );
 }
+
+/** Answers "Still coming?" where the notification arrived (app.act_on_notification), which retires it. */
+export function answerStillComing(
+  db: XosClient,
+  notificationId: string,
+  coming: boolean,
+  comment?: string | null,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "act_on_notification",
+    {
+      p_notification_id: notificationId,
+      p_action: coming ? "accept" : "decline",
+      p_comment: comment ?? null,
+    },
+    str,
+  );
+}

@@ -93,7 +93,6 @@ function Crew(): ReactElement {
                   <Button
                     testID={`crew-no-show-${s.id}`}
                     variant="secondary"
-                    size="sm"
                     label={t("compass.crew.noShow.mark")}
                     onPress={() =>
                       setMarking({

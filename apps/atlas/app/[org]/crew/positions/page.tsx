@@ -5,7 +5,6 @@ import {
   type AgencyEngagement,
   type ProjectPosition,
 } from "@xos/data/crew";
-import { EmptyState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import {
@@ -298,7 +297,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           secondary
         />
       ) : (
-        <EmptyState icon="Users" sentence={t("crew.positions.emptyReader")} />
+        <p className="m-0 text-text-13 text-text-secondary">{t("crew.positions.emptyReader")}</p>
       );
   } else if (view === "table") {
     body = (
