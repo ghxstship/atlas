@@ -41,10 +41,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     productAnalyticsConsent(),
     headers(),
   ]);
-  // Public live link pages (P1, ADR 0130) set only the strictly necessary grant cookie and load no product
-  // analytics; a display screen also keeps the cookie banner off, so it never covers the timer on a TV.
+  // Public live link and stakeholder pack pages (P1, ADR 0130; B2, ADR 0141) set only the strictly necessary grant
+  // cookie and load no product analytics; a display screen also keeps the cookie banner off, so it never covers the
+  // timer on a TV. A pack's own display item keeps the banner: the layout sees only the path, not what the item is.
   const path = requestHeaders.get(PATH_HEADER) ?? "";
-  const publicLive = /^\/share\/(view|screen)\//.test(path);
+  const publicLive = /^\/share\/(view|screen|pack)\//.test(path);
   const screen = path.startsWith("/share/screen/");
   const theme = themeFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.

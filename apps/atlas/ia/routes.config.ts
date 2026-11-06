@@ -80,6 +80,20 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Display screen: a running order as a room clock, presenter timer or backstage screen; no session needed (P1, ADR 0130).",
   "/share/screen/{token}/open":
     "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/pack/{token}":
+    "Public frame: a stakeholder pack with its recipient's access code and device grant; no session needed (B2, ADR 0141).",
+  "/share/pack/{token}/open":
+    "Route handler: opens a stakeholder pack with the code or a device grant, and sets the grant (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}":
+    "Public frame: one live item of a stakeholder pack, read as the live link's creator (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/file":
+    "Route handler: downloads a stakeholder pack's file item by a single-use ticket (B2, ADR 0141).",
+  "/share/pack/{token}/items/{itemId}/sign":
+    "Route handler: records a typed-name acknowledgement of a stakeholder pack item (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}":
+    "Public frame: confirm stopping a stakeholder pack's emails; opening never acts (B2, ADR 0141).",
+  "/share/pack/unsubscribe/{token}/confirm":
+    "Route handler: stops a stakeholder pack's emails on the confirm button's POST (B2, ADR 0141).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
   "/files/party/{version}":

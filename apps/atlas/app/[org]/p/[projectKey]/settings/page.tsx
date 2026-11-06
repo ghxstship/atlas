@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ProjectAccess } from "@/components/projects/project-access";
 import { ProjectInboxSettings } from "@/components/projects/project-inbox";
+import { OutsideAccessSection } from "@/components/projects/outside-access/outside-access-section";
 import { ProjectOfferings } from "@/components/projects/project-offerings";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
@@ -18,7 +19,8 @@ import { CollectionPage } from "@/components/platform/collection-page";
 /**
  * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
  * (A52) extra project roles per member and the partner orgs the project is shared with, and (A84)
- * the project inbox address (Section 4.6.5), and (R3) what the project offers the people it engages.
+ * the project inbox address (Section 4.6.5), (R3) what the project offers the people it engages, and (B2, ADR 0141)
+ * everything that reaches the project from outside the org, last and reachable at #outside-access.
  */
 export default async function SettingsPage({
   params,
@@ -65,6 +67,7 @@ export default async function SettingsPage({
       <ProjectAccess ctx={ctx} members={current} roles={PROJECT_ROLE_ORDER} />
       <ProjectInboxSettings ctx={ctx} />
       <ProjectOfferings ctx={ctx} />
+      <OutsideAccessSection ctx={ctx} />
     </CollectionPage>
   );
 }
