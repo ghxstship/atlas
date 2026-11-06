@@ -186,6 +186,53 @@ describe("DataTable", () => {
     ow.mockRestore();
   });
 
+  it("shows a long table's first screen without the engine, which then moves the same window", async () => {
+    const oh = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(360);
+    const ow = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const many = Array.from({ length: 500 }, (_, i) => ({ code: `R-${i}`, name: `Row ${i}` }));
+    const { container } = render(
+      <DataTable label="Many" columns={columns.slice(0, 2)} rows={many} resizable={false} />,
+    );
+    const shown = () =>
+      [...container.querySelectorAll("tbody tr[aria-rowindex]")].map((r) =>
+        Number(r.getAttribute("aria-rowindex")),
+      );
+    // 360 px holds ten 36 px rows, and ten more render below them.
+    const firstScreen = shown();
+    expect(firstScreen).toEqual(Array.from({ length: 20 }, (_, i) => i + 2));
+
+    const region = screen.getByRole("region", { name: "Many" });
+    region.scrollTop = 3600;
+    fireEvent.scroll(region);
+    // Row 100 starts at 3,600 px: the engine reads where the region is once it has loaded.
+    await waitFor(() => expect(shown()).toContain(102));
+    expect(shown()).not.toContain(2);
+    oh.mockRestore();
+    ow.mockRestore();
+  });
+
+  it("takes a key press made before the engine has loaded", async () => {
+    const oh = vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(360);
+    const ow = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const sh = vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(18000);
+    const many = Array.from({ length: 500 }, (_, i) => ({ code: `R-${i}`, name: `Row ${i}` }));
+    render(<DataTable label="Many" columns={columns.slice(0, 2)} rows={many} resizable={false} />);
+    const region = screen.getByRole("region", { name: "Many" });
+    region.scrollTo = ((options: ScrollToOptions) => {
+      region.scrollTop = options.top ?? 0;
+      // A browser fires the scroll event later, not during the call.
+      setTimeout(() => fireEvent.scroll(region), 0);
+    }) as typeof region.scrollTo;
+    act(() => screen.getAllByRole("gridcell")[0]?.focus());
+    await userEvent.keyboard("{Control>}{End}{/Control}");
+    await waitFor(() =>
+      expect(document.activeElement?.closest("tr")?.getAttribute("aria-rowindex")).toBe("501"),
+    );
+    oh.mockRestore();
+    ow.mockRestore();
+    sh.mockRestore();
+  });
+
   it("mirrors horizontal keys in right-to-left", async () => {
     render(
       <XOSProvider locale="ar-XB">

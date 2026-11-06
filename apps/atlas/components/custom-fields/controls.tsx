@@ -2,7 +2,6 @@
 
 import { Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import type {
   CustomField,
   CustomFieldForm,
@@ -22,11 +21,6 @@ export type CustomFieldInputs = Readonly<Record<string, CustomFieldInput>>;
 
 /** Copy lookups take built keys (`problems.required`), so the catalog type is widened. */
 type Translate = (key: string, values?: Record<string, string | number>) => string;
-
-/** The org slug of an Atlas page: the first path segment. */
-export function useOrgSlug(): string {
-  return usePathname().split("/").filter(Boolean)[0] ?? "";
-}
 
 /** The inputs as they will be saved: a money amount without a chosen currency takes the default one. */
 export function effectiveInputs(

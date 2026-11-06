@@ -13,9 +13,9 @@ import {
   CustomFieldControls,
   effectiveInputs,
   parseContextOf,
-  useOrgSlug,
   type CustomFieldInputs as Inputs,
 } from "./controls";
+import { useOrgSlug } from "./org-slug";
 
 /** What a typed form reads from the inputs: run the checks, then send `inputs()` with its own input. */
 export interface CustomFieldInputsHandle {

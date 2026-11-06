@@ -146,3 +146,33 @@ the gate caught the regression a night late. Decision 1 now reads:
 Data stays out of this: the en-US `ui` catalog and the client sitemap are not moved into the page
 payload to pass the script budget, since script chunks are cached as immutable and page payloads are
 sent again on every full load.
+
+## Amendment (2026-11-06): room for the remaining trains (RRR-243)
+
+Projects, project overview and Inbox had under 2 KB of headroom with five trains still to merge. The
+source maps (`XOS_SOURCEMAPS=1`) gave a per-module count of what each page loads. Projects is now
+189.3 KB (193,856 bytes), project overview 190.1 KB (194,705 bytes) and Inbox 180.9 KB (185,260 bytes).
+The rules that keep the pages here:
+
+1. **An interaction engine loads on the interaction, with a first state that needs no engine.**
+   DataTable renders the first screen of a table over its row limit itself, the same rows TanStack
+   Virtual renders at the top. `DataTableVirtualizer.tsx` loads when a pointer moves over the table,
+   a focus enters it or it scrolls, and takes over the same window. This replaces the 2026-10-19
+   note that TanStack Virtual stays in the route budget. ADR 0001's stack is unchanged.
+2. **A press is held by first-load code.** The control and its state stay with the page, and the
+   module opens when it arrives (`onDemand`, `useOnDemand`), so no click is lost. Inbox's reject
+   dialog and the custom field editor work this way. `next/dynamic` is still not for anything that
+   renders on arrival.
+3. **A component takes optional views as props.** Project Overview's activity feed never shows a
+   view switcher, so `ActivityFeed` carries none; `ActivityFeedViews` adds them for the Activity pages.
+4. **The root layout imports no shared client boundary.** `components/ui.tsx` ships every export any
+   server component in the app takes from it, so a root layout import put them on every page.
+5. **The shell's peek hook is a gate.** Only a read of `?peek` loads with every page. A URL with a key
+   loads the rest, which was already fetching its panel on demand.
+
+Measured and left: the client sitemap (4.4 KB, 1 KB more for the `@xos/ia` helpers) cannot simply come
+from the server, because the layout does not render again on a client navigation, and Help and
+`peekHref` read it while rendering. The `ui` message catalog (3.9 KB) has synchronous lookups, so
+splitting it means each rare component registering its own strings, perhaps 2 KB saved. The three
+copies of TemplateSystem across boundaries cost about 0.6 KB. Neither other suspect is worth chasing:
+`@xos/ui`'s barrel tree-shakes, and the bulk and row-menu code is under 0.3 KB on these pages.
