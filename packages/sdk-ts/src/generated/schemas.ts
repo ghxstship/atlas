@@ -26785,7 +26785,7 @@ export interface CreateOrganizationRequest {
    */
   readonly slug: string;
   /**
-   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
    * Pattern: `^[A-Z]{2}$`.
    */
   readonly country_code?: string;
@@ -26837,7 +26837,7 @@ export interface CreateClientOrganizationRequest {
    */
   readonly plan_code?: string;
   /**
-   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
    * Pattern: `^[A-Z]{2}$`.
    */
   readonly country_code?: string;

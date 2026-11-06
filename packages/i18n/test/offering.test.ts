@@ -132,9 +132,7 @@ describe("where XOS is offered (ADR 0160)", () => {
     expect(reads).toHaveLength(2);
     const fresh = offeringFrom([]);
     finish(fresh);
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(await cached()).toBe(fresh);
   });
 
@@ -230,8 +228,10 @@ describe("where XOS is offered (ADR 0160)", () => {
     now = 60_000;
     next = DEFAULT_OFFERING;
     await cached();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     now = 60_001;
     await cached();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(reads).toBe(3);
   });
 });

@@ -15410,7 +15410,7 @@ class _CreateOrganizationRequestRequired(TypedDict):
 class CreateOrganizationRequest(_CreateOrganizationRequestRequired, total=False):
     """Creates an organization with the caller as its Owner."""
 
-    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
     country_code: str
 
 
@@ -15439,7 +15439,7 @@ class CreateClientOrganizationRequest(_CreateClientOrganizationRequestRequired, 
 
     #: Plan code from `plans.yaml`; defaults to access.
     plan_code: str
-    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+    #: ISO 3166-1 alpha-2 country the organization is established in, as the caller states it. A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`. Omitted, no country is recorded and the platform team reviews the organization; XOS is offered only to organizations in the offered territories, as the Terms of Service say.
     country_code: str
 
 
