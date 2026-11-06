@@ -691,7 +691,10 @@
       },
       "shift": {
         "assigned": "Shift assigned",
-        "changed": "Shift changed"
+        "changed": "Shift changed",
+        "reconfirm": "Still coming?",
+        "reconfirm_declined": "Can't make a shift",
+        "no_show": "Marked as a no-show"
       },
       "survey": {
         "opened": "Survey opened"

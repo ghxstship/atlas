@@ -634,6 +634,15 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ),
   "crew/schedule": shifts,
   "crew/shifts": shifts,
+  "crew/positions": source("app.project_positions", [
+    "project_id",
+    "title",
+    "role_code",
+    "engagement_id",
+    "membership_id",
+    "roster_entry_id",
+    "filled_at",
+  ]),
   "crew/swaps": source(
     "app.shift_swaps",
     [
@@ -642,6 +651,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
       "requested_by_membership_id",
       "proposed_membership_id",
       "swap_state",
+      "reason",
     ],
     { filters: { state: "swap_state" } },
   ),
@@ -1142,6 +1152,8 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
  * this list instead of asking these pages for a source.
  */
 export const NOT_EXPORTED: Readonly<Record<string, string>> = {
+  "crew/shortages":
+    "Computed at read time by app.crew_shortages across shifts and order lines (B9): no one table holds it.",
   // ADR 0033 decision 57: nobody is told who reported, and the queue reads through content_moderation_queue,
   // which shows a moderator what they need to decide and nothing to carry away.
   "people/moderation":

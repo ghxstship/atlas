@@ -691,7 +691,10 @@
       },
       "shift": {
         "assigned": "Turno asignado",
-        "changed": "Turno modificado"
+        "changed": "Turno modificado",
+        "reconfirm": "¿Sigues yendo?",
+        "reconfirm_declined": "No puede ir a un turno",
+        "no_show": "Marcado como ausente"
       },
       "survey": {
         "opened": "Encuesta abierta"

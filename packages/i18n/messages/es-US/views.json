@@ -525,7 +525,8 @@
       "planned_minutes": "Minutos previstos",
       "is_default": "Predeterminado",
       "paid_break_minutes": "Descanso pagado (minutos)",
-      "reason": "Motivo"
+      "reason": "Motivo",
+      "roster_entry_id": "Entrada de la lista"
     }
   }
 }

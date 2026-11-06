@@ -337,6 +337,56 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Shortages" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Shortages lists what is not covered yet between two days, across every project you can read: open shifts, agency slots nobody on the roster holds, offers nobody has answered, Still coming? asks unanswered or declined, no-shows without a replacement, and unacknowledged labor lines of Approved or Sent purchase orders. Rows run by day, in each shift's own time zone, and each opens its shift or order. A range can be up to 62 days.",
+          },
+        ],
+      },
+      { t: "h2", v: "Positions" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Positions holds seats filled later, such as Stage Manager or Rigger 2. Hold shifts for a position from the shift form and assign records to it from the record. Nobody claims or is dragged onto a held shift. Filling the position gives its shifts to the holder and shows what was filled, skipped or warned about at the top of the page. Vacating returns shifts that have not started and removes only the assignments filling made.",
+          },
+        ],
+      },
+      { t: "h2", v: "Still coming? and no-shows" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Turn on Settings > Scheduling > Ask crew if they are still coming, and the worker of an accepted shift is asked once before it starts. They answer from email, push, Gateway Home or the shift itself until the shift starts. When someone can't make it, the shift reopens, or goes back to its agency, unless you turn that off. Mark no-show on a started shift when the worker did not arrive and has not clocked in. A later clock-in withdraws it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Scheduling warnings" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Minimum rest and maximum daily and weekly hours on Settings > Scheduling are your organization's warnings, shown on the scheduling board, the shift record and swap and claim approval. They never refuse an assignment and they are not pay or state overtime rules. A shift's minutes count on the day it starts, and the week tag means the week starting on your payroll week start, which can differ from the ISO week the board's hours use.",
+          },
+        ],
+      },
+      { t: "h2", v: "Break types" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Settings > Time and Attendance defines breaks, each paid or unpaid. A paid break is worked time, so its minutes are not subtracted from hours and show as Paid break beside Break. Compass asks which break when there are two or more types. An organization with no types behaves as before.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -2559,6 +2609,56 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Agregue viáticos en Equipo > Viáticos después de elegir un proyecto: elija a un miembro o a una persona contratada en el proyecto, el primer y el último día, y el monto diario. Cada día se registra una vez por persona, y el personal externo recibe viáticos solo mientras su contratación está Activa o En cierre. Quitar un viático conserva su historial.",
+          },
+        ],
+      },
+      { t: "h2", v: "Faltantes" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Faltantes muestra lo que aún no está cubierto entre dos días, en todos los proyectos que puedes leer: turnos abiertos, plazas de agencia que nadie de la lista ocupa, ofertas sin responder, preguntas de ¿Sigues yendo? sin responder o rechazadas, ausencias sin reemplazo y líneas de mano de obra sin acuse en órdenes de compra aprobadas o enviadas. Las filas van por día, en la zona horaria de cada turno, y cada una abre su turno u orden. Un rango puede tener hasta 62 días.",
+          },
+        ],
+      },
+      { t: "h2", v: "Puestos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew > Puestos guarda plazas que se cubren después, como Jefe de escena o Aparejador 2. Reserva turnos para un puesto desde el formulario del turno y asígnale registros desde el registro. Nadie reclama ni se arrastra a un turno reservado. Cubrir el puesto da sus turnos a quien lo ocupa y muestra arriba de la página lo cubierto, omitido o con avisos. Dejarlo vacante devuelve los turnos que no han empezado y quita solo las asignaciones que hizo la cobertura.",
+          },
+        ],
+      },
+      { t: "h2", v: "¿Sigues yendo? y ausencias" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Activa Ajustes > Programación > Preguntar al equipo si sigue yendo, y a quien trabaja un turno aceptado se le pregunta una vez antes de que empiece. Responde por correo, notificación, Inicio de Gateway o el propio turno hasta que empiece. Si alguien no puede ir, el turno se reabre o vuelve a su agencia, salvo que lo desactives. Marca la ausencia en un turno ya empezado cuando la persona no llegó ni registró su entrada. Un registro de entrada posterior la retira.",
+          },
+        ],
+      },
+      { t: "h2", v: "Avisos de programación" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El descanso mínimo y las horas máximas por día y por semana en Ajustes > Programación son avisos de tu organización, visibles en el tablero de programación, el registro del turno y la aprobación de cambios y reclamos. Nunca rechazan una asignación ni son reglas de pago o de horas extra estatales. Los minutos de un turno cuentan el día en que empieza, y la etiqueta semanal se refiere a la semana que empieza en el inicio de semana de tu nómina, que puede diferir de la semana ISO que usan las horas del tablero.",
+          },
+        ],
+      },
+      { t: "h2", v: "Tipos de descanso" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Ajustes > Tiempo y asistencia define los descansos, cada uno pagado o sin pagar. Un descanso pagado es tiempo trabajado, así que sus minutos no se restan de las horas y aparecen como Descanso pagado junto a Descanso. Compass pregunta qué descanso cuando hay dos o más tipos. Una organización sin tipos funciona como antes.",
           },
         ],
       },

@@ -525,7 +525,8 @@
       "planned_minutes": "Planned minutes",
       "is_default": "Default",
       "paid_break_minutes": "Paid break (minutes)",
-      "reason": "Reason"
+      "reason": "Reason",
+      "roster_entry_id": "Roster entry"
     }
   }
 }

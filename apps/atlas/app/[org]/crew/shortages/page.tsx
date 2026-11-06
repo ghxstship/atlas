@@ -7,6 +7,7 @@ import { getFormatter } from "next-intl/server";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { FilterDate } from "@/components/crew/views-filter-date";
 import { FilterSelect } from "@/components/crew/views-filter-select";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { PeekTable } from "@/components/crew/views-peek-table";
 import { EmptyStateLink, InlineAlert } from "@/components/ui";
 import { flatParams, getCrewContext, getRoleTitles, withParams } from "@/lib/crew/context";
@@ -212,6 +213,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       search={search}
       count={rows.length}
       view={view}
+      peek={collectionPeek(search["peek"], null)}
       filters={
         <>
           <FilterDate name="from" label={t("crew.shortages.from")} value={from} />
