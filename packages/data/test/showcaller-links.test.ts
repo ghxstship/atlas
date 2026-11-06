@@ -321,7 +321,7 @@ describe("the portal", () => {
     const base = { token: TOKEN, grant: GRANT, clientAddress: "198.51.100.7" };
     expect(await showcallerWrite(db, { ...base, write: { op: "call", cueId: "c1" } })).toEqual({
       ok: true,
-      data: { refused: false },
+      data: { refused: false, updatedAt: null },
     });
     expect(calls[0]?.args).toEqual({
       p_token: TOKEN,

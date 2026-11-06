@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -79,13 +80,6 @@ export interface DebriefSummary {
   readonly at: string | null;
 }
 
-async function names(db: XosClient, ids: readonly (string | null)[]): Promise<Map<string, string>> {
-  const wanted = [...new Set(ids.filter((id): id is string => id !== null))];
-  if (wanted.length === 0) return new Map();
-  const { data } = await db.from("people").select("id, full_name").in("id", wanted);
-  return new Map((data ?? []).flatMap((p) => (p.full_name ? [[p.id, p.full_name] as const] : [])));
-}
-
 /** The project's live debrief, or null when none was started. */
 export async function getProjectDebrief(
   db: XosClient,
@@ -105,7 +99,7 @@ export async function getProjectDebrief(
     completed_at: string | null;
     completed_by: string | null;
   };
-  const people = await names(db, [row.completed_by]);
+  const people = await personNames(db, [row.completed_by]);
   return ok({
     id: row.id,
     projectId: row.project_id,
@@ -177,7 +171,7 @@ export async function getDebriefSummary(
     summary_by: string | null;
     summary_at: string | null;
   };
-  const people = await names(db, [row.summary_by]);
+  const people = await personNames(db, [row.summary_by]);
   return ok({
     text: row.management_summary,
     aiDrafted: row.ai_drafted,

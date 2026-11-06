@@ -1,4 +1,6 @@
+import { personNames } from "./person-names.ts";
 import type { XosClient } from "./client.ts";
+import { personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -113,7 +115,15 @@ export async function listVendorLanes(
       ids: Set<string>;
     }
   >();
-  for (const e of engagements.data as unknown as EngagementRow[]) {
+  const rows = engagements.data as unknown as EngagementRow[];
+  // app.people hides engaged externals, so a contractor's name comes through app.person_names.
+  const contractorNames = await personNames(
+    db,
+    rows
+      .filter((e) => e.counterparty_id === null && e.role_type === "Contractor")
+      .map((e) => e.person_id),
+  );
+  for (const e of rows) {
     const contractor = e.counterparty_id === null && e.role_type === "Contractor";
     if (e.counterparty_id === null && !contractor) continue;
     if (!overlaps(e.start_date, e.end_date, input.from, input.to)) continue;
@@ -121,7 +131,9 @@ export async function listVendorLanes(
     const lane = lanes.get(key) ?? {
       label: e.counterparty_id
         ? (e.counterparty?.counterparty_name ?? "")
-        : (e.person?.full_name ?? ""),
+        : ((e.person_id ? contractorNames.get(e.person_id) : undefined) ??
+          e.person?.full_name ??
+          ""),
       counterpartyId: e.counterparty_id,
       engagements: [],
       ids: new Set<string>(),

@@ -1,6 +1,6 @@
 import type { XosClient } from "./client.ts";
 import type { Database } from "./database.types.ts";
-import type { Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 import {
   args,

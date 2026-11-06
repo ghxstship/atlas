@@ -81,7 +81,7 @@ describe("Inside now", () => {
       { id: "e1", label: "Bayside Audio", inside: 3 },
       { id: null, label: null, inside: 1 },
     ]);
-    expect(calls[0]?.steps).toContainEqual(["eq", ["project_id", "p"]]);
+    expect(calls[0]?.steps).toContainEqual(["args", [{ p_project_id: "p" }]]);
     // The team comes from the view: a field reader holds the scan log without opportunities.engagement.read.
     expect(calls.some((c) => c.target.includes("engagements"))).toBe(false);
   });

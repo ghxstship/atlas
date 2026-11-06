@@ -358,6 +358,17 @@ describe("DoorCheckInScreen", () => {
     expect(screen.getByText('passType("VIP Guest") · table("Table 4")')).toBeTruthy();
     fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ZZZZZZZZZZ" } });
     fireEvent.click(button("checkPass"));
+    // The list searched by that code arrives, and it does not hold the pass.
+    rerender(
+      <DoorCheckInScreen
+        status="ready"
+        labels={dl}
+        guests={[listed]}
+        search="GP-ZZZZZZZZZZ"
+        onSearch={vi.fn()}
+        onCheckIn={onCheckIn}
+      />,
+    );
     expect(screen.getByText("passNotListed")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ABCDEFGHIJ" } });
     fireEvent.click(button("checkPass"));
@@ -379,25 +390,14 @@ describe("DoorCheckInScreen", () => {
 
   it("looks a typed pass up by its code when the search has narrowed the list (B8)", () => {
     const dl = labels<DoorCheckInScreenLabels>([
-      "pass",
-      "checkPass",
-      "search",
-      "passNotListed",
       "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
     ]);
     const onSearch = vi.fn();
-    const guest = {
-      entryId: "e1",
-      name: "Sasha Bell",
-      plusOnes: 0,
-      state: "Approved",
-      checkedInAt: null,
-      passCode: "GP-ABCDEFGHIJ",
-      passCategoryCode: null,
-      passCategoryName: null,
-      tableLabel: null,
-      hostName: null,
-    } as unknown as DoorGuest;
+    const found = guest({ passCode: "GP-ABCDEFGHIJ" });
     const screenAt = (guests: readonly DoorGuest[], search: string) => (
       <DoorCheckInScreen
         status="ready"
@@ -405,34 +405,41 @@ describe("DoorCheckInScreen", () => {
         guests={guests}
         search={search}
         onSearch={onSearch}
-        onCheckIn={async () => ({ ok: true })}
+        onCheckIn={vi.fn(ok)}
       />
     );
     const view = render(screenAt([], "smith"));
     fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ABCDEFGHIJ" } });
-    fireEvent.click(screen.getByTestId("door-check-pass"));
+    fireEvent.click(button("checkPass"));
     expect(onSearch).toHaveBeenCalledWith("GP-ABCDEFGHIJ");
     expect(screen.queryByText("passNotListed")).toBeNull();
-    view.rerender(screenAt([guest], "GP-ABCDEFGHIJ"));
+    view.rerender(screenAt([found], "GP-ABCDEFGHIJ"));
     expect(screen.queryByText("passNotListed")).toBeNull();
-    expect((screen.getByLabelText("pass") as HTMLInputElement).value).toBe("");
+    expect(screen.getByText("plusOnes(2,2)")).toBeTruthy();
   });
 
   it("says a pass is not on the list once the search by its code finds nothing (B8)", () => {
-    const dl = labels<DoorCheckInScreenLabels>(["pass", "checkPass", "search", "passNotListed"]);
+    const dl = labels<DoorCheckInScreenLabels>([
+      "sheetTitle",
+      "plusOnes",
+      "admitted",
+      "passType",
+      "table",
+    ]);
     const screenAt = (guests: readonly DoorGuest[], search: string) => (
       <DoorCheckInScreen
         status="ready"
         labels={dl}
         guests={guests}
         search={search}
-        onSearch={() => undefined}
-        onCheckIn={async () => ({ ok: true })}
+        onSearch={vi.fn()}
+        onCheckIn={vi.fn(ok)}
       />
     );
     const view = render(screenAt([], "smith"));
     fireEvent.change(screen.getByLabelText("pass"), { target: { value: "XOSGP1:GP-ZZZZZZZZZZ" } });
-    fireEvent.click(screen.getByTestId("door-check-pass"));
+    fireEvent.click(button("checkPass"));
+    expect(screen.queryByText("passNotListed")).toBeNull();
     view.rerender(screenAt([], "GP-ZZZZZZZZZZ"));
     expect(screen.getByText("passNotListed")).toBeTruthy();
   });
