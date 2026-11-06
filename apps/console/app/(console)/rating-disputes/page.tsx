@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function RatingDisputesPage({
   searchParams,
-}: PageProps<"/moderation/rating-disputes">) {
+}: PageProps<"/rating-disputes">) {
   const ctx = await requirePermission("moderation.decide");
   const decided = (await searchParams)["view"] === "decided";
   const { t, label, instant } = await getConsoleFormat();
@@ -28,9 +28,9 @@ export default async function RatingDisputesPage({
       <nav aria-label={t("ratingDisputes.title")}>
         <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
           {[
-            { href: "/moderation/rating-disputes", current: !decided, text: t("moderation.openTab") },
+            { href: "/rating-disputes", current: !decided, text: t("moderation.openTab") },
             {
-              href: "/moderation/rating-disputes?view=decided",
+              href: "/rating-disputes?view=decided",
               current: decided,
               text: t("moderation.decidedTab"),
             },
@@ -70,7 +70,7 @@ export default async function RatingDisputesPage({
             cells: [
               <NextLink
                 key="person"
-                href={`/moderation/rating-disputes/${row.disputeId}` as Route}
+                href={`/rating-disputes/${row.disputeId}` as Route}
                 className="font-medium text-accent-text underline"
               >
                 {row.disputantName ?? t("common.unknownPerson")}

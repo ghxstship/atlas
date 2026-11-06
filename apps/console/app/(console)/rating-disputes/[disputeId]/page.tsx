@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function RatingDisputePage({
   params,
-}: PageProps<"/moderation/rating-disputes/[disputeId]">) {
+}: PageProps<"/rating-disputes/[disputeId]">) {
   const { disputeId } = await params;
   if (!z.uuid().safeParse(disputeId).success) notFound();
   const ctx = await requirePermission("moderation.decide");

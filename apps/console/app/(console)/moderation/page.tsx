@@ -24,7 +24,7 @@ export default async function ModerationPage({ searchParams }: PageProps<"/moder
       <PageHeader title={t("moderation.title")} intro={t("moderation.intro")} />
       <p className="m-0 text-text-13">
         <NextLink
-          href={"/moderation/rating-disputes" as Route}
+          href={"/rating-disputes" as Route}
           className="text-accent-text underline"
         >
           {t("ratingDisputes.link")}

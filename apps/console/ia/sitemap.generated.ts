@@ -82,6 +82,21 @@ export const sitemap: Sitemap = {
               label: "nav.console.listing",
               route: "/moderation/{opportunityId}",
             },
+            {
+              id: "moderation.rating-disputes",
+              kind: "page",
+              label: "nav.console.ratingDisputes",
+              route: "/rating-disputes",
+              list: { views: ["table"], default: "table" },
+              children: [
+                {
+                  id: "moderation.rating-dispute",
+                  kind: "record",
+                  label: "nav.console.ratingDispute",
+                  route: "/rating-disputes/{disputeId}",
+                },
+              ],
+            },
           ],
         },
         {

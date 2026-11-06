@@ -113,8 +113,8 @@ export async function decideRatingDisputeAction(
     statement,
   });
   if (result.ok) {
-    revalidatePath(`/moderation/rating-disputes/${disputeId}`);
-    revalidatePath("/moderation/rating-disputes");
+    revalidatePath(`/rating-disputes/${disputeId}`);
+    revalidatePath("/rating-disputes");
   }
   return fromResult(result);
 }
