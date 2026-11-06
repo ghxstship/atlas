@@ -116,7 +116,11 @@ interface Pending {
  * Listens for the shell's shortcuts until the returned function is called. `state` holds what the
  * keys act on as of the latest render; nothing answers while it is empty.
  */
-export function installShellKeys(state: { readonly current: KeyState | null }): () => void {
+export function installShellKeys(
+  state: { readonly current: KeyState | null },
+  /** Presses first-press.ts held until this module arrived; they already passed the page's components. */
+  held: readonly KeyboardEvent[] = [],
+): () => void {
   let pending: Pending | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let compiled: { readonly from: ShellKeys; readonly table: Table } | null = null;
@@ -174,7 +178,8 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
 
   const onKey = (event: KeyboardEvent) => {
     const now = state.current;
-    if (now === null || event === ended || event.defaultPrevented) return;
+    if (now === null || event === ended) return;
+    if (event.defaultPrevented && !held.includes(event)) return;
     if (event.isComposing || event.repeat) return;
     const { keys } = now;
     const chord = chordOf(event, keys.platform);
@@ -216,6 +221,10 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
 
   window.addEventListener("keydown", onSequence, true);
   window.addEventListener("keydown", onKey);
+  for (const event of [...held]) {
+    onSequence(event);
+    onKey(event);
+  }
   return () => {
     clearTimeout(timer);
     window.removeEventListener("keydown", onSequence, true);

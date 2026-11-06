@@ -43,6 +43,7 @@ import { atlasLiveSource } from "@/components/live/live-source";
 import { UndoCenter } from "@/components/undo/undo-center";
 import { undoStack } from "@xos/ui/undo";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
+import { holdFirstPress } from "./first-press";
 import { onDemand, useOnDemand } from "./on-demand";
 import { useRecentProjects } from "./recent-projects";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -203,18 +204,26 @@ export function ShellFrame(props: ShellFrameProps) {
     let live = true;
     let stop: (() => void) | undefined;
     const root = document.documentElement.dataset;
-    keyHandler.load().then(
-      (m) => {
-        if (!live) return;
-        stop = m.installShellKeys(keyState);
-        // Marks the document once the shell's shortcuts work, Aurora's among them.
-        root["shellReady"] = "";
-        root["auroraReady"] = "";
+    // The handler loads with the first key press, which waits for it (first-press.ts).
+    const release = holdFirstPress(
+      () => keyState.current?.keys ?? null,
+      (held) => {
+        keyHandler.load().then(
+          (m) => {
+            if (!live) return;
+            release();
+            stop = m.installShellKeys(keyState, held);
+          },
+          (error: unknown) => console.error("Could not load the keyboard shortcuts", error),
+        );
       },
-      (error: unknown) => console.error("Could not load the keyboard shortcuts", error),
     );
+    // Marks the document once the shell's shortcuts answer, Aurora's among them.
+    root["shellReady"] = "";
+    root["auroraReady"] = "";
     return () => {
       live = false;
+      release();
       stop?.();
       delete root["shellReady"];
       delete root["auroraReady"];
