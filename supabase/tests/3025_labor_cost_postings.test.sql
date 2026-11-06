@@ -241,8 +241,6 @@ select is((select labor_actual_minor::bigint from app.budget_line_labor_totals w
 
 -- A roster self entry has no counterparty, so it is not an agency (C15).
 select pg_temp.as_platform();
-insert into world select 'self_ivy', r.id from app.engagement_roster_entries r
-  where r.engagement_id = pg_temp.id('eng_ivy_a') and r.is_self and r.deleted_at is null;
 insert into app.time_entries (project_id, roster_entry_id, clock_in, clock_out)
 values (pg_temp.id('prj_a'), pg_temp.id('self_ivy'), '2027-07-27 12:00+00', '2027-07-27 14:00+00');
 with x as (insert into app.timesheets (project_id, roster_entry_id, period_start, period_end)
