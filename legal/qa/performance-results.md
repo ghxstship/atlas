@@ -223,8 +223,8 @@ headless shell 1248, `next start` on the stack of block 6483x with the demo seed
   response's headers and framing: about 400 bytes a script, 4 to 5 KB on a page of 10 to 13 chunks.
   `budget:js` now counts both and lands within 100 bytes of Lighthouse on every page that fetches
   nothing after hydration (Atlas sign-in: 163,570 against 163,481).
-- **Modules fetched after hydration.** Every signed-in Atlas page fetches the shell's key handler
-  once it hydrates (2,951 bytes). Crew Shifts fetched its quick add row, open on the page, with the
+- **Modules fetched after hydration.** Every signed-in Atlas page fetched the shell's key handler
+  once it hydrated (2,951 bytes); since merge train 8 it loads with the first key press. Crew Shifts fetched its quick add row, open on the page, with the
   chrono-node date parser (21 KB). Gateway Money fetches a 21 KB module the same way. No build
   manifest lists them; `budget:js -- --served` loads each key page in Chromium and counts them, all but the Realtime client, which has its own 20 KB limit (ADR 0027, 2026-11-06), in
   CI's journeys jobs.
