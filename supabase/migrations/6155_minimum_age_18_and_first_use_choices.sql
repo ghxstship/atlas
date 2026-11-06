@@ -284,7 +284,7 @@ begin
   end if;
 
   v_email := (select lower(u.email) from auth.users u where u.id = v_uid);
-  -- app.delete_my_account confirms against the stored address. A sign-in with none gets a placeholder here, in the
+  -- app.delete_my_account confirms against the stored address. A sign-in with none gets an invented address here, in the
   -- transaction that deletes it, so it can close too and no org's register learns an address that never existed.
   if v_email is null then
     v_email := format('closed-%s@example.invalid', v_uid);
