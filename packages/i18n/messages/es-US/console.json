@@ -104,7 +104,6 @@
     "moderation_statement": "Escribe la exposición de motivos, en hasta 4,000 caracteres.",
     "moderation_report_mismatch": "La denuncia debe ser de este anuncio.",
     "moderation_appeal_decided": "Esta apelación ya se decidió.",
-    "moderation_appeal_same_operator": "Otra persona del equipo decide esta apelación: tú tomaste la decisión apelada.",
     "moderation_appeal_outcome": "Mantén la decisión o revócala.",
     "moderation_appeal_new_decision": "Revocar una decisión de no tomar medidas necesita la nueva decisión: retirar o restringir, con su fundamento, norma y hechos.",
     "system_banner_shape": "Elige el tipo, la gravedad y quién ve el aviso.",
@@ -123,7 +122,38 @@
     "operator_revoked": "Este rol ya se revocó.",
     "operator_last_administrator": "El equipo de la plataforma conserva al menos una persona de Administración. Concede otra primero.",
     "funnel_alert_missing": "Esa alerta de embudo ya no existe. Vuelve a cargar la página.",
-    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada."
+    "funnel_alert_resolved": "El embudo se recuperó y su alerta está cerrada.",
+    "legal_queue_rule": "Elige qué es este elemento.",
+    "legal_queue_title": "Descríbelo en hasta 200 caracteres.",
+    "legal_queue_received": "Indica cuándo llegó. No puede ser en el futuro.",
+    "legal_queue_details": "Limita los detalles a 4,000 caracteres.",
+    "legal_queue_contact": "Limita el contacto a 320 caracteres.",
+    "legal_queue_due": "Ingresa la fecha que fija el documento, posterior al día en que llegó.",
+    "legal_queue_subject": "Ninguna cuenta usa ese correo. Déjalo vacío si no hay una cuenta detrás del contenido.",
+    "legal_queue_related": "Indica la referencia del aviso DMCA al que responde.",
+    "legal_queue_note": "Di qué se hizo, en hasta 4,000 caracteres.",
+    "legal_queue_first_response": "Este elemento no tiene una primera respuesta pendiente.",
+    "legal_queue_fed": "Este elemento sigue a su origen. Actúa sobre el origen y este lo seguirá.",
+    "transition_reason_required": "Cada cambio de estado lleva un motivo.",
+    "legal_queue_item_transition_not_allowed": "Un elemento no puede pasar a ese estado desde el actual.",
+    "legal_queue_item_state_conflict": "El elemento cambió desde que se cargó esta página. Vuelve a cargarla.",
+    "legal_queue_court_action": "Una acción judicial solo aplica al completar un contraaviso DMCA.",
+    "legal_queue_too_early": "La ley no lo permite antes de su primer día posible. Espéralo o registra la acción judicial.",
+    "legal_queue_no_extension": "Este plazo no tiene prórroga.",
+    "legal_queue_extended": "Este elemento ya no se puede prorrogar.",
+    "legal_queue_extension_late": "La prórroga debe tomarse, y avisarse a la persona, antes de que termine el primer periodo.",
+    "legal_queue_extension_reason": "Di por qué, en hasta 1,000 caracteres, tal como se lo dirás a la persona.",
+    "legal_contact_name": "Di quién es, en hasta 200 caracteres.",
+    "legal_contact_email": "Ingresa un correo que funcione.",
+    "legal_contact_exists": "Este correo ya recibe las alertas de plazos vencidos.",
+    "legal_contact_missing": "Ese contacto ya se quitó. Vuelve a cargar la página.",
+    "outside_reviewer_name": "Nombra al revisor, en hasta 200 caracteres.",
+    "outside_reviewer_organization": "Limita la firma u organismo a 200 caracteres.",
+    "outside_reviewer_reason": "Di por qué, en hasta 500 caracteres.",
+    "outside_reviewer_exists": "Ya hay un revisor externo nombrado. Termina ese nombramiento primero.",
+    "outside_reviewer_missing": "Ese nombramiento ya terminó. Vuelve a cargar la página.",
+    "moderation_appeal_re_review": "Registra qué volviste a mirar y cómo valoraste los motivos, en hasta 4,000 caracteres.",
+    "moderation_appeal_outside_reviewer": "Esta apelación va al revisor externo. Registra su decisión cuando la haya tomado."
   },
   "tenants": {
     "title": "Organizaciones",
@@ -323,7 +353,7 @@
   },
   "moderation": {
     "title": "Moderación",
-    "intro": "Anuncios denunciados y apelaciones. Cada decisión lleva una exposición de motivos que recibe la parte afectada, y otra persona del equipo decide cada apelación.",
+    "intro": "Anuncios denunciados y apelaciones. Cada decisión lleva una exposición de motivos que recibe la parte afectada, y cada apelación recibe una nueva revisión documentada.",
     "openTab": "Abiertos",
     "decidedTab": "Decididos",
     "none": "No hay nada pendiente de decisión.",
@@ -362,14 +392,22 @@
     "noAppeals": "Sin apelaciones.",
     "appealBy": "{name} apeló la decisión {decision} el {when}",
     "appealState": "{state} el {when} por {name}: {statement}",
-    "appealOwn": "Tú tomaste la decisión de esta apelación, así que la decide otra persona del equipo.",
+    "appealOwn": "Tú tomaste la decisión de esta apelación. Revísala desde cero: el registro y el aviso a la persona dirán que la misma persona volvió a revisarla.",
     "outcome": "Resultado",
     "uphold": "Mantener la decisión",
     "reverse": "Revocar la decisión",
     "appealStatement": "Motivos que recibe quien apela",
     "newDecision": "Nueva decisión, al revocar una decisión de no tomar medidas",
     "decideAppeal": "Decidir la apelación",
-    "appealDecided": "Apelación decidida y enviada."
+    "appealDecided": "Apelación decidida y enviada.",
+    "appealOutside": "Esta apelación va a {name}, revisor externo. Registra su decisión cuando la haya tomado.",
+    "reReview": "Qué volviste a mirar",
+    "reReviewHelp": "Queda en el registro y nunca se envía. Di qué releíste y cómo valoraste los motivos.",
+    "outsideDecided": "{name} tomó esta decisión",
+    "appealRecord": "Nueva revisión: {notes}",
+    "reviewerSame": "La persona que tomó la primera decisión volvió a revisarla.",
+    "reviewerOutside": "{name}, revisor externo, volvió a revisarla.",
+    "notTold": "No se pudo contactar a la persona, así que no se le ha avisado. Su cuenta ya no tiene correo."
   },
   "actions": {
     "Removed": "Retirado",
@@ -690,7 +728,17 @@
     "system_banner_ended": "Terminó un aviso",
     "platform_operator_granted": "Concedió un rol de operación",
     "platform_operator_revoked": "Revocó un rol de operación",
-    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo"
+    "funnel_alert_acknowledge": "Marcó como vista una alerta de embudo",
+    "legal_queue_viewed": "Abrió un elemento de la cola legal",
+    "legal_queue_added": "Agregó un elemento a la cola legal",
+    "legal_queue_noted": "Agregó al registro de la cola legal",
+    "legal_queue_first_response": "Registró una primera respuesta",
+    "legal_queue_moved": "Cambió el estado de un elemento de la cola legal",
+    "legal_queue_extended": "Prorrogó un plazo legal",
+    "legal_contact_added": "Agregó un contacto de respaldo",
+    "legal_contact_removed": "Quitó un contacto de respaldo",
+    "outside_reviewer_appointed": "Nombró a un revisor externo",
+    "outside_reviewer_ended": "Terminó el nombramiento de un revisor externo"
   },
   "notFound": {
     "title": "No se encontró",
@@ -701,5 +749,283 @@
     "title": "Esta página no se cargó",
     "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, vuelve a cargar la página.",
     "action": "Intentar de nuevo"
+  },
+  "legalQueue": {
+    "title": "Cola legal",
+    "intro": "Todos los plazos legales y de seguridad en una sola lista, primero los más próximos. Cada fecha de vencimiento sale de la regla de su plazo. Las alertas salen antes de que venza un plazo y cada día que siga vencido.",
+    "openTab": "Abiertos",
+    "closedTab": "Cerrados",
+    "none": "No hay nada pendiente. Agrega lo que llegue por buzón, carta o llamada.",
+    "noneClosed": "Todavía no hay elementos cerrados.",
+    "loadError": "No se pudo cargar la cola. Tus buzones siguen guardando todo, así que revísalos mientras tanto.",
+    "summary": "{open} abiertos, {overdue} vencidos, {dueSoon} vencen en 7 días. Los plazos se cuentan en la hora de {zone}.",
+    "banner": "{count, plural, one {# plazo legal está vencido.} other {# plazos legales están vencidos.}}",
+    "bannerLink": "Abrir la cola legal",
+    "columns": {
+      "reference": "Referencia",
+      "matter": "Qué es",
+      "title": "Sobre qué",
+      "org": "Organización",
+      "received": "Recibido",
+      "next": "Próximo plazo",
+      "state": "Estado",
+      "closed": "Cerrado"
+    },
+    "overdue": "Vencido",
+    "customerClock": "Plazo del cliente",
+    "delivery": {
+      "stuck": "{count, plural, one {# correo de alerta lleva} other {# correos de alerta llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
+      "failed": "{count, plural, one {# correo de alerta falló} other {# correos de alerta fallaron}} en los últimos 30 días. Revisa el proveedor de correo y la lista de permitidos.",
+      "noAlert": "{count, plural, one {# plazo vencido no tiene} other {# plazos vencidos no tienen}} alerta desde hace 26 horas. Revisa el trabajo xos_sweep_legal_queue.",
+      "webhookOff": "El canal de guardia no está conectado, así que las alertas solo salen por correo.",
+      "lastSent": "Último correo de alerta: {when}."
+    },
+    "add": {
+      "title": "Agregar un elemento",
+      "intro": "Agrega lo que llegue fuera de XOS. El plazo empieza cuando llegó, no cuando lo registras.",
+      "rule": "Qué es",
+      "titleField": "Descripción breve",
+      "titleHelp": "No pongas datos personales en esta línea. Las alertas nombran la referencia, nunca esto.",
+      "received": "Cuándo llegó",
+      "receivedHelp": "En tu hora local, según el propio mensaje.",
+      "contact": "A quién responder",
+      "details": "Detalles",
+      "detailsHelp": "Solo los datos personales que el trabajo necesita. El mensaje completo se queda en el buzón.",
+      "subject": "Cuenta a la que se refiere",
+      "subjectHelp": "Correo de la cuenta que nombra el aviso, para el conteo de infractores reincidentes. Déjalo vacío si no hay ninguna.",
+      "related": "Referencia del aviso DMCA al que responde",
+      "relatedHelp": "Por ejemplo, LQ-2026-00001.",
+      "due": "Fecha que fija el documento",
+      "dueHelp": "En tu hora local. La regla no puede calcularla, así que revísala dos veces.",
+      "submit": "Agregar a la cola",
+      "done": "Agregado a la cola."
+    },
+    "facts": {
+      "matter": "Qué es",
+      "rule": "Plazo",
+      "source": "Se basa en",
+      "basis": "Tipo de plazo",
+      "org": "Organización",
+      "state": "Estado",
+      "received": "Recibido",
+      "firstDue": "Primera respuesta vence",
+      "firstDone": "Primera respuesta enviada",
+      "earliest": "No antes de",
+      "due": "Vence",
+      "extended": "Prorrogado",
+      "extensionReason": "Motivo de la prórroga",
+      "contact": "A quién responder",
+      "details": "Detalles",
+      "subject": "Cuenta a la que se refiere",
+      "related": "Responde al aviso",
+      "courtAction": "Acción judicial presentada",
+      "closed": "Cerrado"
+    },
+    "move": {
+      "title": "Cambiar de estado",
+      "next": "Nuevo estado",
+      "reason": "Qué pasó",
+      "court": "Quien notificó presentó una acción judicial, así que el material sigue retirado",
+      "submit": "Guardar",
+      "done": "Guardado."
+    },
+    "first": {
+      "title": "Registrar la primera respuesta",
+      "note": "Qué enviaste",
+      "submit": "Registrarla",
+      "done": "Primera respuesta registrada."
+    },
+    "extend": {
+      "title": "Tomar la prórroga",
+      "reason": "Por qué, tal como se lo dirás a la persona",
+      "help": "Una sola prórroga, antes de que termine el primer periodo. Hay que avisarle a la persona.",
+      "submit": "Prorrogar el plazo",
+      "done": "Plazo prorrogado."
+    },
+    "note": {
+      "title": "Agregar al registro",
+      "note": "Qué se hizo",
+      "submit": "Agregar al registro",
+      "done": "Agregado al registro."
+    },
+    "fedNote": "Este elemento sigue al registro que lo creó, así que su estado cambia cuando cambia ese registro.",
+    "listingLink": "Abrir el anuncio",
+    "customerNote": "Este plazo es del cliente. Quién lo pidió y qué dijo se quedan en el registro del cliente, y GHXSTSHIP ayuda cuando el cliente lo pide.",
+    "earliestNote": "No restablezcas antes de {when}. La ley fija el primer día posible.",
+    "logTitle": "Registro",
+    "logBy": "{what}, {when}, {who}",
+    "system": "XOS",
+    "stateChange": "De {from} a {to}",
+    "repeat": {
+      "title": "Conteo de infractores reincidentes",
+      "intro": "Avisos DMCA válidos y no impugnados en los 12 meses con más avisos de cada persona. Más de dos cumple la regla de la Política de Derechos de Autor y DMCA. Una persona decide qué sigue.",
+      "none": "Todavía no hay avisos contados.",
+      "person": "Persona",
+      "counted": "Contados",
+      "from": "12 meses desde",
+      "status": "Situación",
+      "met": "Cumple la regla",
+      "under": "Por debajo de la regla"
+    },
+    "government": {
+      "title": "Solicitudes de datos del gobierno",
+      "intro": "Solicitudes recibidas por año calendario, para el conteo anual que promete el Acuerdo de Tratamiento de Datos. Un año sin fila es un conteo de cero.",
+      "none": "No se ha recibido ninguna.",
+      "year": "Año",
+      "received": "Recibidas"
+    },
+    "contacts": {
+      "title": "Contactos de respaldo",
+      "intro": "Cada administrador recibe todas las alertas por correo. Un contacto de respaldo recibe solo las de plazos vencidos, con referencias y fechas, nunca el asunto.",
+      "none": "Todavía no hay contacto de respaldo. Un solo buzón lleno podría ocultar un plazo vencido.",
+      "name": "Nombre",
+      "email": "Correo",
+      "submit": "Agregar contacto de respaldo",
+      "done": "Contacto de respaldo agregado.",
+      "remove": "Quitar",
+      "removeLabel": "Quitar a {name}"
+    },
+    "reviewer": {
+      "title": "Revisor externo",
+      "none": "No hay ninguno nombrado. Un operador vuelve a revisar desde cero cada apelación de moderación y lo deja registrado. Si nombras uno, todas las apelaciones van a esa persona.",
+      "current": "{name} revisa las apelaciones de moderación desde {when}.",
+      "currentOrg": "{name}, de {organization}, revisa las apelaciones de moderación desde {when}.",
+      "name": "Nombre",
+      "organization": "Firma u organismo",
+      "email": "Correo",
+      "reason": "Por qué",
+      "submit": "Nombrar",
+      "done": "Revisor externo nombrado.",
+      "end": "Terminar el nombramiento",
+      "endReason": "Por qué termina",
+      "ended": "Nombramiento terminado."
+    },
+    "matters": {
+      "Data Subject Request": "Solicitud de derechos de datos",
+      "Privacy Complaint": "Queja de privacidad",
+      "DMCA Notice": "Aviso DMCA",
+      "DMCA Counter-Notice": "Contraaviso DMCA",
+      "Repeat Infringer Review": "Revisión de infractor reincidente",
+      "Abuse Report": "Denuncia de abuso",
+      "Moderation Appeal": "Apelación de moderación",
+      "Security Report": "Informe de seguridad",
+      "Personal Data Breach": "Violación de datos personales",
+      "Accessibility Complaint": "Queja de accesibilidad",
+      "Government Data Request": "Solicitud de datos del gobierno",
+      "Other Promise": "Otro compromiso"
+    },
+    "states": {
+      "Received": "Recibido",
+      "In Progress": "En curso",
+      "Waiting": "A la espera de otra persona",
+      "Completed": "Completado",
+      "Refused": "Rechazado",
+      "Withdrawn": "Retirado"
+    },
+    "bases": {
+      "Statute": "Fijado por ley",
+      "Published Promise": "Nuestro compromiso publicado",
+      "Internal Target": "Nuestra propia meta",
+      "Customer Clock": "El plazo del cliente"
+    },
+    "events": {
+      "Received": "Recibido",
+      "First Response": "Primera respuesta",
+      "Note": "Nota",
+      "State Changed": "Cambio de estado",
+      "Extended": "Prórroga",
+      "Source Changed": "Siguió a su origen",
+      "Alert Sent": "Alerta enviada"
+    },
+    "rules": {
+      "dsar_privacy": {
+        "label": "Solicitud de derechos de datos por correo",
+        "source": "Política de Privacidad 7: confirmar en 10 días hábiles y responder en 30 días. Una prórroga si explicas el motivo dentro del primer periodo (RGPD 12(3), reglamento de California)."
+      },
+      "dsar_brazil": {
+        "label": "Solicitud de derechos de datos desde Brasil",
+        "source": "LGPD artículo 19 y Política de Privacidad 7: confirmar de inmediato y dar una declaración completa en 15 días."
+      },
+      "dsar_appeal": {
+        "label": "Apelación de una solicitud de datos rechazada",
+        "source": "Política de Privacidad 7: responder en 45 días."
+      },
+      "account_deletion_email": {
+        "label": "Eliminación de cuenta por correo",
+        "source": "Elimina tu cuenta: terminar en 30 días."
+      },
+      "privacy_complaint": {
+        "label": "Queja de privacidad",
+        "source": "Política de Privacidad 7: acusar recibo en 30 días y dar el resultado sin demora indebida. Los 60 días son nuestra propia meta."
+      },
+      "dmca_notice": {
+        "label": "Aviso DMCA",
+        "source": "17 U.S.C. 512(c): actuar con diligencia y avisar pronto a quien subió el material. Los 2 días hábiles son nuestra propia meta."
+      },
+      "dmca_counter_notice": {
+        "label": "Contraaviso DMCA",
+        "source": "17 U.S.C. 512(g): enviar copia pronto a quien notificó y restablecer entre 10 y 14 días hábiles, salvo que presente una acción judicial."
+      },
+      "repeat_infringer_review": {
+        "label": "Revisión de infractor reincidente",
+        "source": "17 U.S.C. 512(i) y Política de Derechos de Autor y DMCA 5. Los 5 días hábiles son nuestra propia meta."
+      },
+      "abuse_report": {
+        "label": "Denuncia de abuso por correo",
+        "source": "Política de Uso Aceptable 6 y artículo 16 de la Ley de Servicios Digitales: decidir a tiempo. Los 5 días hábiles son nuestra propia meta."
+      },
+      "intimate_image_report": {
+        "label": "Imagen íntima compartida sin consentimiento",
+        "source": "Take It Down Act: retirar en 48 horas desde una solicitud válida. Se trata como obligatorio hasta que un abogado decida si XOS es una plataforma cubierta."
+      },
+      "child_safety_report": {
+        "label": "Material de abuso sexual infantil",
+        "source": "18 U.S.C. 2258A: informar a NCMEC lo antes razonablemente posible. Las 24 horas son nuestra propia meta."
+      },
+      "listing_report": {
+        "label": "Denuncia de un anuncio del mercado",
+        "source": "Política de Uso Aceptable 6 y artículo 16 de la Ley de Servicios Digitales: decidir a tiempo. Los 5 días hábiles son nuestra propia meta."
+      },
+      "moderation_appeal": {
+        "label": "Apelación de una decisión de moderación",
+        "source": "Política de Uso Aceptable 7: una nueva revisión documentada, y avisar del resultado a la persona. Los 30 días son nuestra propia meta."
+      },
+      "security_report": {
+        "label": "Informe de seguridad",
+        "source": "Política de Divulgación Responsable 2: acusar recibo en 3 días hábiles y compartir un plan en 10."
+      },
+      "personal_data_breach": {
+        "label": "Violación de datos personales",
+        "source": "Acuerdo de Tratamiento de Datos 9.1: avisar a los clientes en 48 horas. RGPD artículo 33: avisar a los reguladores en 72 horas cuando GHXSTSHIP sea responsable."
+      },
+      "accessibility_report": {
+        "label": "Informe de accesibilidad",
+        "source": "Declaración de Accesibilidad 5: responder en 5 días hábiles."
+      },
+      "accessibility_review": {
+        "label": "Solicitud de revisión de accesibilidad",
+        "source": "Declaración de Accesibilidad 6: responder en 10 días hábiles."
+      },
+      "government_request": {
+        "label": "Solicitud de datos del gobierno",
+        "source": "Acuerdo de Tratamiento de Datos 13.6: avisar al cliente salvo que la ley lo prohíba, para lo cual los 2 días hábiles son nuestra propia meta. El documento fija la fecha de vencimiento."
+      },
+      "omitted_data_return": {
+        "label": "Devolución de datos que la exportación omite",
+        "source": "Acuerdo de Tratamiento de Datos 10.2 y Términos 11.2: devolverlos en 30 días y detener la eliminación hasta entonces."
+      },
+      "customer_privacy_help": {
+        "label": "Pedido de ayuda de privacidad de un cliente",
+        "source": "Acuerdo de Tratamiento de Datos 8.3: ayuda razonable. Los 14 días son nuestra propia meta, para ajustarse al plazo de 30 días del cliente."
+      },
+      "other_promise": {
+        "label": "Otro compromiso escrito",
+        "source": "El documento que hace el compromiso. Ingresa su fecha."
+      },
+      "dsar_customer_register": {
+        "label": "Solicitud en el registro de un cliente",
+        "source": "El plazo del cliente (Acuerdo de Tratamiento de Datos 8.1): 30 días, o 90 con prórroga. XOS solo lo vigila."
+      }
+    }
   }
 }

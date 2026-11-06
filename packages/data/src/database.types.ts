@@ -30157,6 +30157,169 @@ export type Database = {
           },
         ];
       };
+      legal_queue_events: {
+        Row: {
+          actor_person_id: string | null;
+          created_at: string;
+          event_kind: Database["app"]["Enums"]["legal_queue_event_kind"];
+          from_state: Database["app"]["Enums"]["legal_queue_state"] | null;
+          id: string;
+          legal_queue_item_id: string;
+          note: string | null;
+          to_state: Database["app"]["Enums"]["legal_queue_state"] | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_person_id?: string | null;
+          created_at?: string;
+          event_kind: Database["app"]["Enums"]["legal_queue_event_kind"];
+          from_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
+          id?: string;
+          legal_queue_item_id: string;
+          note?: string | null;
+          to_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
+        };
+        Update: {
+          actor_person_id?: string | null;
+          created_at?: string;
+          event_kind?: Database["app"]["Enums"]["legal_queue_event_kind"];
+          from_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
+          id?: string;
+          legal_queue_item_id?: string;
+          note?: string | null;
+          to_state?: Database["app"]["Enums"]["legal_queue_state"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "legal_queue_events_actor_person_id_fkey";
+            columns: ["actor_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_events_legal_queue_item_id_fkey";
+            columns: ["legal_queue_item_id"];
+            isOneToOne: false;
+            referencedRelation: "legal_queue_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      legal_queue_items: {
+        Row: {
+          closed_at: string | null;
+          court_action_filed: boolean;
+          created_at: string;
+          created_by: string | null;
+          details: string | null;
+          due_at: string;
+          earliest_action_at: string | null;
+          extended_at: string | null;
+          extension_reason: string | null;
+          first_response_at: string | null;
+          first_response_due_at: string | null;
+          id: string;
+          item_state: Database["app"]["Enums"]["legal_queue_state"];
+          matter: Database["app"]["Enums"]["legal_queue_matter"];
+          org_id: string | null;
+          received_at: string;
+          reference: string;
+          related_item_id: string | null;
+          requester_contact: string | null;
+          rule_code: string;
+          source_id: string | null;
+          source_table: string | null;
+          subject_person_id: string | null;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          closed_at?: string | null;
+          court_action_filed?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          details?: string | null;
+          due_at: string;
+          earliest_action_at?: string | null;
+          extended_at?: string | null;
+          extension_reason?: string | null;
+          first_response_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          matter: Database["app"]["Enums"]["legal_queue_matter"];
+          org_id?: string | null;
+          received_at: string;
+          reference: string;
+          related_item_id?: string | null;
+          requester_contact?: string | null;
+          rule_code: string;
+          source_id?: string | null;
+          source_table?: string | null;
+          subject_person_id?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          closed_at?: string | null;
+          court_action_filed?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          details?: string | null;
+          due_at?: string;
+          earliest_action_at?: string | null;
+          extended_at?: string | null;
+          extension_reason?: string | null;
+          first_response_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          matter?: Database["app"]["Enums"]["legal_queue_matter"];
+          org_id?: string | null;
+          received_at?: string;
+          reference?: string;
+          related_item_id?: string | null;
+          requester_contact?: string | null;
+          rule_code?: string;
+          source_id?: string | null;
+          source_table?: string | null;
+          subject_person_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "legal_queue_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_related_item_id_fkey";
+            columns: ["related_item_id"];
+            isOneToOne: false;
+            referencedRelation: "legal_queue_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_subject_person_id_fkey";
+            columns: ["subject_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       listing_reports: {
         Row: {
           created_at: string;
@@ -71880,6 +72043,27 @@ export type Database = {
           target_org_name: string;
         }[];
       };
+      console_add_legal_alert_contact: {
+        Args: { p_email: string; p_name: string };
+        Returns: string;
+      };
+      console_add_legal_queue_item: {
+        Args: {
+          p_details?: string;
+          p_due_at?: string;
+          p_received_at: string;
+          p_related_reference?: string;
+          p_requester_contact?: string;
+          p_rule_code: string;
+          p_subject_email?: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
+      console_appoint_outside_reviewer: {
+        Args: { p_email: string; p_name: string; p_organization: string; p_reason: string };
+        Returns: string;
+      };
       console_banners: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -71910,6 +72094,8 @@ export type Database = {
           p_facts?: string;
           p_ground?: Database["app"]["Enums"]["moderation_ground"];
           p_outcome: Database["app"]["Enums"]["moderation_appeal_state"];
+          p_outside_reviewer_decided?: boolean;
+          p_re_review_notes: string;
           p_rule_reference?: string;
           p_statement: string;
         };
@@ -71928,8 +72114,16 @@ export type Database = {
         Returns: string;
       };
       console_end_banner: { Args: { p_banner_id: string }; Returns: string };
+      console_end_outside_reviewer: {
+        Args: { p_reason: string; p_reviewer_id: string };
+        Returns: undefined;
+      };
       console_end_plan_override: {
         Args: { p_override_id: string; p_reason: string };
+        Returns: string;
+      };
+      console_extend_legal_queue_item: {
+        Args: { p_item_id: string; p_reason: string };
         Returns: string;
       };
       console_flags: {
@@ -71952,6 +72146,9 @@ export type Database = {
         };
         Returns: string;
       };
+      console_legal_queue: { Args: { p_open?: boolean }; Returns: Json };
+      console_legal_queue_item: { Args: { p_item_id: string }; Returns: Json };
+      console_legal_queue_overdue: { Args: Record<PropertyKey, never>; Returns: number };
       console_listing_detail: { Args: { p_opportunity_id: string }; Returns: Json };
       console_moderation_queue: {
         Args: { p_open?: boolean };
@@ -71970,6 +72167,10 @@ export type Database = {
           title: string;
           total_reports: number;
         }[];
+      };
+      console_note_legal_queue_item: {
+        Args: { p_item_id: string; p_note: string };
+        Returns: string;
       };
       console_operators: {
         Args: Record<PropertyKey, never>;
@@ -71990,6 +72191,11 @@ export type Database = {
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
+      console_record_legal_first_response: {
+        Args: { p_item_id: string; p_note: string };
+        Returns: string;
+      };
+      console_remove_legal_alert_contact: { Args: { p_contact_id: string }; Returns: undefined };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
@@ -72073,6 +72279,16 @@ export type Database = {
           p_support_session_id: string;
         };
         Returns: Json;
+      };
+      console_transition_legal_queue_item: {
+        Args: {
+          p_court_action_filed?: boolean;
+          p_expected: Database["app"]["Enums"]["legal_queue_state"];
+          p_item_id: string;
+          p_next: Database["app"]["Enums"]["legal_queue_state"];
+          p_reason: string;
+        };
+        Returns: string;
       };
       console_whoami: {
         Args: Record<PropertyKey, never>;
@@ -76831,6 +77047,31 @@ export type Database = {
       join_request_state: "Pending" | "Approved" | "Declined" | "Withdrawn";
       journal_state: "Proposed" | "Posted" | "Canceled";
       language_proficiency: "Basic" | "Conversational" | "Fluent" | "Native";
+      legal_queue_basis: "Statute" | "Published Promise" | "Internal Target" | "Customer Clock";
+      legal_queue_clock_unit: "Hours" | "Days" | "Business Days";
+      legal_queue_event_kind:
+        | "Received"
+        | "First Response"
+        | "Note"
+        | "State Changed"
+        | "Extended"
+        | "Source Changed"
+        | "Alert Sent";
+      legal_queue_matter:
+        | "Data Subject Request"
+        | "Privacy Complaint"
+        | "DMCA Notice"
+        | "DMCA Counter-Notice"
+        | "Repeat Infringer Review"
+        | "Abuse Report"
+        | "Moderation Appeal"
+        | "Security Report"
+        | "Personal Data Breach"
+        | "Accessibility Complaint"
+        | "Government Data Request"
+        | "Other Promise";
+      legal_queue_state:
+        "Received" | "In Progress" | "Waiting" | "Completed" | "Refused" | "Withdrawn";
       listing_report_reason:
         | "Illegal Content"
         | "Discrimination"
@@ -83524,6 +83765,39 @@ export const Constants = {
       join_request_state: ["Pending", "Approved", "Declined", "Withdrawn"],
       journal_state: ["Proposed", "Posted", "Canceled"],
       language_proficiency: ["Basic", "Conversational", "Fluent", "Native"],
+      legal_queue_basis: ["Statute", "Published Promise", "Internal Target", "Customer Clock"],
+      legal_queue_clock_unit: ["Hours", "Days", "Business Days"],
+      legal_queue_event_kind: [
+        "Received",
+        "First Response",
+        "Note",
+        "State Changed",
+        "Extended",
+        "Source Changed",
+        "Alert Sent",
+      ],
+      legal_queue_matter: [
+        "Data Subject Request",
+        "Privacy Complaint",
+        "DMCA Notice",
+        "DMCA Counter-Notice",
+        "Repeat Infringer Review",
+        "Abuse Report",
+        "Moderation Appeal",
+        "Security Report",
+        "Personal Data Breach",
+        "Accessibility Complaint",
+        "Government Data Request",
+        "Other Promise",
+      ],
+      legal_queue_state: [
+        "Received",
+        "In Progress",
+        "Waiting",
+        "Completed",
+        "Refused",
+        "Withdrawn",
+      ],
       listing_report_reason: [
         "Illegal Content",
         "Discrimination",

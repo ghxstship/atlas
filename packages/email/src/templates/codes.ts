@@ -17,4 +17,6 @@ export const TEMPLATE_CODES = [
   "subprocessor_notice",
   "party_invitation",
   "approval_link_code",
+  "legal_clock_alert",
+  "moderation_notice",
 ] as const satisfies readonly TemplateCode[];

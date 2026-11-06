@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Select, Textarea } from "@xos/ui";
+import { Checkbox, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
@@ -115,10 +115,13 @@ export function DecideAppealForm({
   opportunityId,
   appealId,
   reversesNoAction,
+  outsideReviewerName,
 }: {
   opportunityId: string;
   appealId: string;
   reversesNoAction: boolean;
+  /** The named outside reviewer the appeal goes to; the operator then records their decision. */
+  outsideReviewerName: string | null;
 }) {
   const t = useTranslations("console");
   const [outcome, setOutcome] = useState<"Upheld" | "Reversed">("Upheld");
@@ -143,6 +146,16 @@ export function DecideAppealForm({
         onChange={(e) => setOutcome(e.target.value === "Reversed" ? "Reversed" : "Upheld")}
       />
       <Textarea
+        id={`appeal-${appealId}-re-review`}
+        name="reReviewNotes"
+        label={t("moderation.reReview")}
+        help={t("moderation.reReviewHelp")}
+        maxLength={4000}
+        rows={3}
+        required
+        width="100%"
+      />
+      <Textarea
         id={`appeal-${appealId}-statement`}
         name="statement"
         label={t("moderation.appealStatement")}
@@ -151,6 +164,13 @@ export function DecideAppealForm({
         required
         width="100%"
       />
+      {outsideReviewerName ? (
+        <Checkbox
+          id={`appeal-${appealId}-outside`}
+          name="outsideReviewerDecided"
+          label={t("moderation.outsideDecided", { name: outsideReviewerName })}
+        />
+      ) : null}
       {outcome === "Reversed" && reversesNoAction ? (
         <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">
           <legend className="text-text-13 font-medium">{t("moderation.newDecision")}</legend>

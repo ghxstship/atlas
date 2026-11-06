@@ -24,6 +24,21 @@ function gatewaySignInUrl(gatewayUrl) {
 function text(value) {
   return typeof value === "string" ? value : "";
 }
+/** One line of a legal queue digest, as the sweep wrote it. */
+function legalClockItem(value) {
+  const line = value ?? {};
+  const matter = line["matter"];
+  return {
+    reference: str(line["reference"], "reference"),
+    ...(typeof matter === "string" ? { matter } : {}),
+    clock: line["clock"] === "First Response" ? "First Response" : "Due",
+    at: new Date(str(line["clock_at"], "clock_at")),
+    overdue: line["overdue"] === true,
+  };
+}
+function legalAudience(value) {
+  return value === "backup" || value === "reviewer" ? value : "operator";
+}
 /** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
 async function dispatchPlatformEmails(store, transport, options, limit = 25) {
   const claims = await store.claim(limit);
@@ -53,40 +68,69 @@ async function dispatchPlatformEmails(store, transport, options, limit = 25) {
         deliveryId: claim.id,
       };
       const result =
-        claim.template === "party_invitation"
+        claim.template === "legal_clock_alert"
           ? await sendEmail({
               ...common,
-              template: "party_invitation",
+              timeZone: str(claim.args["time_zone"], "time_zone"),
+              template: "legal_clock_alert",
               props: {
-                kind: claim.args["kind"] === "roster" ? "roster" : "account",
-                inviterName: text(claim.args["inviter_name"]),
-                accountName: text(claim.args["account_name"]),
-                projectName: text(claim.args["project_name"]),
-                partyName: text(claim.args["party_name"]),
-                expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
-                signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
+                audience: legalAudience(claim.args["audience"]),
+                overdue: Number(claim.args["overdue"] ?? 0),
+                dueSoon: Number(claim.args["due_soon"] ?? 0),
+                items: (Array.isArray(claim.args["items"]) ? claim.args["items"] : []).map(
+                  legalClockItem,
+                ),
+                ...(options.consoleUrl
+                  ? { queueUrl: new URL("/legal-queue", options.consoleUrl).toString() }
+                  : {}),
               },
             })
-          : claim.template === "subprocessor_confirm"
+          : claim.template === "moderation_notice"
             ? await sendEmail({
                 ...common,
-                template: "subprocessor_confirm",
+                template: "moderation_notice",
                 props: {
-                  confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                  kind:
+                    claim.args["kind"] === "listing_report.decided"
+                      ? "listing_report.decided"
+                      : "moderation_appeal.decided",
+                  args: claim.args["values"] ?? {},
                 },
               })
-            : await sendEmail({
-                ...common,
-                template: "subprocessor_notice",
-                props: {
-                  listVersion: str(claim.args["list_version"], "list_version"),
-                  summary: str(claim.args["summary"], "summary"),
-                  effectiveOn: /* @__PURE__ */ new Date(
-                    `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
-                  ),
-                  listUrl: links.list,
-                },
-              });
+            : claim.template === "party_invitation"
+              ? await sendEmail({
+                  ...common,
+                  template: "party_invitation",
+                  props: {
+                    kind: claim.args["kind"] === "roster" ? "roster" : "account",
+                    inviterName: text(claim.args["inviter_name"]),
+                    accountName: text(claim.args["account_name"]),
+                    projectName: text(claim.args["project_name"]),
+                    partyName: text(claim.args["party_name"]),
+                    expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
+                    signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
+                  },
+                })
+              : claim.template === "subprocessor_confirm"
+                ? await sendEmail({
+                    ...common,
+                    template: "subprocessor_confirm",
+                    props: {
+                      confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                    },
+                  })
+                : await sendEmail({
+                    ...common,
+                    template: "subprocessor_notice",
+                    props: {
+                      listVersion: str(claim.args["list_version"], "list_version"),
+                      summary: str(claim.args["summary"], "summary"),
+                      effectiveOn: /* @__PURE__ */ new Date(
+                        `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                      ),
+                      listUrl: links.list,
+                    },
+                  });
       await store.finish(claim.id, true, result.providerMessageId, null);
       sent += 1;
     } catch (error) {

@@ -22,6 +22,7 @@ export const CONSOLE_PERMISSIONS = [
   "moderation.decide",
   "banners.write",
   "operators.manage",
+  "legal.queue",
 ] as const;
 export type ConsolePermission = (typeof CONSOLE_PERMISSIONS)[number];
 
@@ -708,6 +709,8 @@ export interface ListingDetail {
     readonly org: { readonly id: string; readonly name: string; readonly slug: string };
     readonly projectName: string | null;
   };
+  /** The named outside reviewer appeals go to (6168), or null while none is appointed. */
+  readonly outsideReviewer: { readonly name: string; readonly organization: string | null } | null;
   readonly reports: readonly {
     readonly id: string;
     readonly reason: string;
@@ -740,8 +743,15 @@ export interface ListingDetail {
     readonly decidedByName: string | null;
     readonly decisionStatement: string | null;
     readonly decidedAt: string | null;
-    /** Whether the signed-in operator may decide it: open, and not their own decision. */
-    readonly decidableByMe: boolean;
+    /** The signed-in operator made the decision appealed. They may still re-review it; the notice says so (6168). */
+    readonly myOwnDecision: boolean;
+    /** What was looked at again; internal, never sent. Null before the rule of 6168. */
+    readonly reReviewNotes: string | null;
+    readonly sameReviewer: boolean;
+    readonly outsideReviewerName: string | null;
+    /** How the appellant was told; null with a re-review on record means they could not be reached. */
+    readonly toldBy: string | null;
+    readonly hasReview: boolean;
   }[];
 }
 
@@ -750,6 +760,7 @@ export function parseListingDetail(raw: unknown): ListingDetail {
   const d = obj(raw);
   const l = obj(d["listing"]);
   const org = obj(l["org"]);
+  const reviewer = d["outside_reviewer"] ? obj(d["outside_reviewer"]) : null;
   return {
     listing: {
       id: str(l["id"]),
@@ -765,6 +776,9 @@ export function parseListingDetail(raw: unknown): ListingDetail {
       org: { id: str(org["id"]), name: str(org["name"]), slug: str(org["slug"]) },
       projectName: strOrNull(l["project"]),
     },
+    outsideReviewer: reviewer
+      ? { name: str(reviewer["name"]), organization: strOrNull(reviewer["organization"]) }
+      : null,
     reports: arr(d["reports"]).map((x) => {
       const r = obj(x);
       return {
@@ -805,7 +819,12 @@ export function parseListingDetail(raw: unknown): ListingDetail {
         decidedByName: strOrNull(r["decided_by_name"]),
         decisionStatement: strOrNull(r["decision_statement"]),
         decidedAt: strOrNull(r["decided_at"]),
-        decidableByMe: bool(r["decidable_by_me"]),
+        myOwnDecision: bool(r["my_own_decision"]),
+        reReviewNotes: strOrNull(r["re_review_notes"]),
+        sameReviewer: bool(r["same_reviewer"]),
+        outsideReviewerName: strOrNull(r["outside_reviewer_name"]),
+        toldBy: strOrNull(r["told_by"]),
+        hasReview: bool(r["has_review"]),
       };
     }),
   };
@@ -859,8 +878,12 @@ export async function decideAppeal(
     readonly appealId: string;
     readonly outcome: "Upheld" | "Reversed";
     readonly statement: string;
+    /** What was looked at again and how the grounds were weighed: the documented re-review (6168). Never sent. */
+    readonly reReviewNotes: string;
     /** Required when reversing a decision to take no action: the new decision. */
     readonly newDecision?: Omit<StatementOfReasons, "statement"> | null;
+    /** While an outside reviewer is appointed, the operator confirms this records their decision. */
+    readonly outsideReviewerDecided?: boolean;
   },
 ): Promise<Result<string>> {
   const n = input.newDecision ?? null;
@@ -871,10 +894,12 @@ export async function decideAppeal(
       p_appeal_id: input.appealId,
       p_outcome: input.outcome,
       p_statement: input.statement,
+      p_re_review_notes: input.reReviewNotes,
       p_action: n?.action ?? null,
       p_ground: n?.ground ?? null,
       p_rule_reference: n?.ruleReference ?? null,
       p_facts: n?.facts ?? null,
+      p_outside_reviewer_decided: input.outsideReviewerDecided ?? false,
     },
     str,
   );

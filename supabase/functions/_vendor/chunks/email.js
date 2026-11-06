@@ -21,6 +21,8 @@ var TEMPLATE_CODES = [
   "subprocessor_notice",
   "party_invitation",
   "approval_link_code",
+  "legal_clock_alert",
+  "moderation_notice",
 ];
 //#endregion
 //#region ../email/src/render.ts

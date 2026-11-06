@@ -298,7 +298,7 @@
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
-        "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
+        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review, because GHXSTSHIP is a small team.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
       }
     },
     "content_report": {
@@ -470,5 +470,30 @@
     "rosterSubject": "{inviterName} invites you onto the {partyName} crew for {projectName}",
     "how": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. The company then sees your profile and project facts. Not expecting this? Ignore it.",
     "action": "Sign in to Gateway"
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {XOS legal queue: {dueSoon, plural, one {# clock is} other {# clocks are}} coming due} one {XOS legal queue: # clock is overdue} other {XOS legal queue: # clocks are overdue}}",
+    "open": "Open the legal queue",
+    "intro": {
+      "operator": "These clocks need you. Open the queue to act on them, and log what you did.",
+      "backup": "You are a backup contact for the legal queue of GHXSTSHIP Industries LLC. These clocks are overdue. Please make sure the owner has seen this.",
+      "reviewer": "These appeals are yours to re-review as outside reviewer for GHXSTSHIP Industries LLC. GHXSTSHIP sends you each file separately."
+    },
+    "item": "{reference}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "matters": {
+      "Data Subject Request": "data subject request",
+      "Privacy Complaint": "privacy complaint",
+      "DMCA Notice": "DMCA notice",
+      "DMCA Counter-Notice": "DMCA counter-notice",
+      "Repeat Infringer Review": "repeat infringer review",
+      "Abuse Report": "abuse report",
+      "Moderation Appeal": "moderation appeal",
+      "Security Report": "security report",
+      "Personal Data Breach": "personal data breach",
+      "Accessibility Complaint": "accessibility complaint",
+      "Government Data Request": "government data request",
+      "Other Promise": "other promise"
+    }
   }
 }

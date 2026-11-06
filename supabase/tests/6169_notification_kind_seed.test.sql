@@ -1,4 +1,4 @@
--- 6059_notification_kind_seed.test.sql
+-- 6169_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -33,7 +33,9 @@ select set_eq(
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
   ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true),
-  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true)$$,
+  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true),
+  ('legal_clock_alert', 'The legal queue''s digest of clocks coming due or overdue, to platform operators, a backup contact or an outside reviewer (ADR 0167).', true),
+  ('moderation_notice', 'The outcome of a moderation decision or appeal, for a person the notification queue cannot reach (ADR 0167).', true)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(

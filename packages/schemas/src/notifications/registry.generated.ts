@@ -168,6 +168,18 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     description:
       "The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).",
   },
+  {
+    code: "legal_clock_alert",
+    transactional: true,
+    description:
+      "The legal queue's digest of clocks coming due or overdue, to platform operators, a backup contact or an outside reviewer (ADR 0167).",
+  },
+  {
+    code: "moderation_notice",
+    transactional: true,
+    description:
+      "The outcome of a moderation decision or appeal, for a person the notification queue cannot reach (ADR 0167).",
+  },
 ];
 
 /** The templates index: every notification kind. */

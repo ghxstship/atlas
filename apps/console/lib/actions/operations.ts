@@ -20,7 +20,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { actionContext } from "@/lib/operator";
-import { failed, field, fromResult, type ActionState } from "@/lib/action-state";
+import { failed, field, fromResult, localInstant, type ActionState } from "@/lib/action-state";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -91,6 +91,7 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
   const appealId = field(form, "appealId");
   const outcome = field(form, "outcome");
   const statement = field(form, "statement");
+  const reReviewNotes = field(form, "reReviewNotes");
   if (
     !Uuid.safeParse(appealId).success ||
     (outcome !== "Upheld" && outcome !== "Reversed") ||
@@ -109,25 +110,23 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
           facts: field(form, "facts"),
         }
       : null;
-  const result = await decideAppeal(ctx.db, { appealId, outcome, statement, newDecision });
+  const result = await decideAppeal(ctx.db, {
+    appealId,
+    outcome,
+    statement,
+    reReviewNotes,
+    newDecision,
+    outsideReviewerDecided: form.get("outsideReviewerDecided") === "on",
+  });
   if (result.ok) {
     revalidatePath(`/moderation/${opportunityId}`);
     revalidatePath("/moderation");
+    revalidatePath("/legal-queue");
   }
   return fromResult(result);
 }
 
 // System banners ---------------------------------------------------------------------------------------------------------
-
-/** A datetime-local value read as an instant in the operator's time zone offset, sent by the form. */
-function instant(local: string, offsetMinutes: string): string | null {
-  if (local === "") return null;
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
-  const offset = Number(offsetMinutes);
-  if (!match || !Number.isInteger(offset) || Math.abs(offset) > 14 * 60) return null;
-  const [, y, mo, d, h, mi] = match.map(Number) as [number, number, number, number, number, number];
-  return new Date(Date.UTC(y, mo - 1, d, h, mi) + offset * 60_000).toISOString();
-}
 
 export async function saveBannerAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await actionContext("banners.write");
@@ -139,8 +138,8 @@ export async function saveBannerAction(_: ActionState, form: FormData): Promise<
   const offset = field(form, "offset") || "0";
   const startsRaw = field(form, "startsAt");
   const endsRaw = field(form, "endsAt");
-  const startsAt = instant(startsRaw, offset);
-  const endsAt = instant(endsRaw, offset);
+  const startsAt = localInstant(startsRaw, offset);
+  const endsAt = localInstant(endsRaw, offset);
   if (!kind || !severity || !audience || message === "") return failed("errors.invalid");
   if ((startsRaw !== "" && !startsAt) || (endsRaw !== "" && !endsAt))
     return failed("errors.invalid");

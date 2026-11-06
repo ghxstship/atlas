@@ -2,13 +2,21 @@
 
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, type ReactNode } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { IDLE, type ActionState } from "@/lib/action-state";
 
 /**
  * A console form over a server action (Section 11.7): it posts natively before hydration, shows the action's error
  * as a sentence from the catalog (a refusal by its rule, else a general one) and confirms success in a live region.
- * The database decides every rule; this only says what it decided.
+ * The database decides every rule; this only says what it decided. Submitting through onSubmit keeps what the operator
+ * typed when the database refuses, which a bare form action would wipe; `action` stays so it still posts unhydrated.
  */
 export function ActionForm({
   action,
@@ -38,6 +46,11 @@ export function ActionForm({
   useEffect(() => {
     if (state.status === "done" && resetOnSuccess) form.current?.reset();
   }, [state, resetOnSuccess]);
+  const keepInput = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
+    startTransition(() => formAction(data));
+  };
   const message =
     state.status === "error"
       ? t.has(state.key as never)
@@ -48,6 +61,7 @@ export function ActionForm({
     <form
       ref={form}
       action={formAction}
+      onSubmit={keepInput}
       className="flex flex-col gap-12"
       aria-label={label}
       data-testid={testId}

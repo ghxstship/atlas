@@ -2037,6 +2037,12 @@ tenant_exceptions:
   - table: app.feedback_submissions
     kind: person-owned
     note: Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).
+  - table: app.legal_queue_events
+    kind: platform
+    note: The log of a legal queue item on the platform team's own work list; its org, when it has one, is on the item (ADR 0167, migration 6165).
+  - table: app.legal_queue_items
+    kind: platform
+    note: Legal and security work of the platform itself, most of it with no tenant; org_id is optional and only says which tenant a fed item concerns (ADR 0167, migration 6165).
   - table: app.organizations
     kind: identity
     note: The tenant itself (Section 4.8.1).

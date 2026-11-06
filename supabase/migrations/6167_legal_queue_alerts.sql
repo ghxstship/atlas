@@ -120,7 +120,7 @@ begin
   -- One digest to each operator holding legal.queue.
   insert into private.platform_emails (template, to_email, locale, args)
   select distinct on (lower(u.email)) 'legal_clock_alert', lower(u.email), private.person_language(o.person_id, null),
-    jsonb_build_object('items', v_lines, 'overdue', v_overdue_count, 'due_soon', v_soon_count, 'audience', 'operator')
+    jsonb_build_object('items', v_lines, 'overdue', v_overdue_count, 'due_soon', v_soon_count, 'audience', 'operator', 'time_zone', private.legal_clock_time_zone())
   from app.platform_operators o
   join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
   join app.people p on p.id = o.person_id
@@ -131,7 +131,7 @@ begin
   if jsonb_array_length(v_overdue_lines) > 0 then
     insert into private.platform_emails (template, to_email, locale, args)
     select 'legal_clock_alert', c.email, 'en-US',
-      jsonb_build_object('items', v_overdue_lines, 'overdue', jsonb_array_length(v_overdue_lines), 'due_soon', 0, 'audience', 'backup')
+      jsonb_build_object('items', v_overdue_lines, 'overdue', jsonb_array_length(v_overdue_lines), 'due_soon', 0, 'audience', 'backup', 'time_zone', private.legal_clock_time_zone())
     from private.legal_alert_contacts c
     where c.removed_at is null;
   end if;
@@ -145,7 +145,7 @@ begin
       jsonb_build_object('items', v_appeal_lines, 'overdue',
         (select count(*) from jsonb_array_elements(v_appeal_lines) as l where (l ->> 'overdue')::boolean),
         'due_soon', (select count(*) from jsonb_array_elements(v_appeal_lines) as l where not (l ->> 'overdue')::boolean),
-        'audience', 'reviewer')
+        'audience', 'reviewer', 'time_zone', private.legal_clock_time_zone())
     from private.legal_outside_reviewers o
     where o.ended_at is null;
   end if;

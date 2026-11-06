@@ -57,3 +57,13 @@ export function expiryFrom(days: string, now: Date = new Date()): string | null 
   if (!(EXPIRY_DAYS as readonly number[]).includes(n)) return null;
   return new Date(now.getTime() + n * 86_400_000).toISOString();
 }
+
+/** A datetime-local value read as an instant in the operator's time zone offset, sent by the form. */
+export function localInstant(local: string, offsetMinutes: string): string | null {
+  if (local === "") return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
+  const offset = Number(offsetMinutes);
+  if (!match || !Number.isInteger(offset) || Math.abs(offset) > 14 * 60) return null;
+  const [, y, mo, d, h, mi] = match.map(Number) as [number, number, number, number, number, number];
+  return new Date(Date.UTC(y, mo - 1, d, h, mi) + offset * 60_000).toISOString();
+}

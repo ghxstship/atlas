@@ -214,7 +214,7 @@ begin
   end if;
   perform private.log_operator_action('legal_queue.viewed', v_item.org_id, 'app.legal_queue_items', v_item.id, null, '{}'::jsonb);
   return private.legal_queue_item_json(v_item, v_now) || jsonb_build_object(
-    'details', v_item.details, 'requester_contact', v_item.requester_contact,
+    'time_zone', private.legal_clock_time_zone(), 'details', v_item.details, 'requester_contact', v_item.requester_contact,
     'extension_reason', v_item.extension_reason, 'court_action_filed', v_item.court_action_filed,
     'subject_name', (select p.full_name from app.people p where p.id = v_item.subject_person_id),
     'related_reference', (select i.reference from app.legal_queue_items i where i.id = v_item.related_item_id),

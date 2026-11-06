@@ -568,6 +568,49 @@ export const joinRequestState = ["Pending", "Approved", "Declined", "Withdrawn"]
 export const journalState = ["Proposed", "Posted", "Canceled"] as const;
 /** app.language_proficiency */
 export const languageProficiency = ["Basic", "Conversational", "Fluent", "Native"] as const;
+/** app.legal_queue_basis */
+export const legalQueueBasis = [
+  "Statute",
+  "Published Promise",
+  "Internal Target",
+  "Customer Clock",
+] as const;
+/** app.legal_queue_clock_unit */
+export const legalQueueClockUnit = ["Hours", "Days", "Business Days"] as const;
+/** app.legal_queue_event_kind */
+export const legalQueueEventKind = [
+  "Received",
+  "First Response",
+  "Note",
+  "State Changed",
+  "Extended",
+  "Source Changed",
+  "Alert Sent",
+] as const;
+/** app.legal_queue_matter */
+export const legalQueueMatter = [
+  "Data Subject Request",
+  "Privacy Complaint",
+  "DMCA Notice",
+  "DMCA Counter-Notice",
+  "Repeat Infringer Review",
+  "Abuse Report",
+  "Moderation Appeal",
+  "Security Report",
+  "Personal Data Breach",
+  "Accessibility Complaint",
+  "Government Data Request",
+  "Other Promise",
+] as const;
+/** app.legal_queue_state */
+export const legalQueueState = [
+  "Received",
+  "In Progress",
+  "Waiting",
+  "Completed",
+  "Refused",
+  "Withdrawn",
+] as const;
 /** app.listing_report_reason */
 export const listingReportReason = [
   "Illegal Content",

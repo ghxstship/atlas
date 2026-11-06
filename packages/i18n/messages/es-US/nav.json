@@ -556,6 +556,8 @@
     "supportSession": "Sesión de soporte",
     "moderation": "Moderación",
     "listing": "Anuncio denunciado",
+    "legalQueue": "Cola legal",
+    "legalQueueItem": "Elemento de la cola legal",
     "banners": "Avisos del sistema",
     "funnels": "Embudos",
     "team": "Equipo de la plataforma",
