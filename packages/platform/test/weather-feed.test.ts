@@ -113,6 +113,17 @@ describe("units", () => {
     });
   });
 
+  it("keeps only Actual alerts: a Test or Exercise message is not a warning", () => {
+    const alert = (id: string, status: string) => ({
+      properties: { id, event: "Tornado Warning", severity: "Extreme", status },
+    });
+    expect(
+      readAlerts({
+        features: [alert("a", "Actual"), alert("t", "Test"), alert("x", "Exercise")],
+      }).map((a) => a.id),
+    ).toEqual(["a"]);
+  });
+
   it("passes on an Update's references, which decide whether it tells anyone", () => {
     expect(readAlerts(fixture("alerts-escalation"))).toMatchObject([
       {
@@ -223,6 +234,43 @@ describe("runNwsFeed", () => {
       { feedId: "feed-1", error: MISSING_USER_AGENT },
       { feedId: "feed-2", error: MISSING_USER_AGENT },
     ]);
+  });
+
+  it("retries a 5xx once, so a passing error does not lose the poll", async () => {
+    const { fetchImpl, calls } = scriptedFetch(ROUTES);
+    let failures = 1;
+    const flaky = (async (input: string | URL, init?: RequestInit) => {
+      if (String(input).includes("/alerts/active") && failures > 0) {
+        failures -= 1;
+        return new Response("{}", { status: 503 });
+      }
+      return fetchImpl(input as string, init);
+    }) as typeof fetch;
+    const { store, recorded, failed } = memoryStore([FEED]);
+    const summary = await runNwsFeed({ fetch: flaky, store, userAgent: "XOS", now: () => NOW });
+    expect(summary).toEqual({ due: 1, succeeded: 1, failed: 0 });
+    expect(failed).toEqual([]);
+    expect(recorded).toHaveLength(1);
+    expect(calls.filter((c) => c.url.includes("/alerts/active"))).toHaveLength(1);
+  });
+
+  it("does not retry a 4xx, and tries a 5xx only twice", async () => {
+    const notFound = scriptedFetch(ROUTES, { "/alerts/active?point=25.7654,-80.1235": 404 });
+    await runNwsFeed({
+      fetch: notFound.fetchImpl,
+      store: memoryStore([FEED]).store,
+      userAgent: "XOS",
+      now: () => NOW,
+    });
+    expect(notFound.calls.filter((c) => c.url.includes("/alerts/active"))).toHaveLength(1);
+    const down = scriptedFetch(ROUTES, { "/alerts/active?point=25.7654,-80.1235": 503 });
+    await runNwsFeed({
+      fetch: down.fetchImpl,
+      store: memoryStore([FEED]).store,
+      userAgent: "XOS",
+      now: () => NOW,
+    });
+    expect(down.calls.filter((c) => c.url.includes("/alerts/active"))).toHaveLength(2);
   });
 
   it("records an NWS error as a failed run and goes on to the next feed", async () => {

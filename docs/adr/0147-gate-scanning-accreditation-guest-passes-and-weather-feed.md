@@ -45,10 +45,13 @@ name), and the AI-drafted induction quiz, anti-passback, lightning networks and 
    code, party), because a collection export reads one view (2030) and an evacuation export with blank names is not
    acceptable. `app.people` hides engaged externals (1275), `app.organizations` a counterparty (0205) and
    `app.engagements` a reader without `opportunities.engagement.read`, so names come from two definer helpers that take
-   values: `private.presence_person_name` and `private.presence_party_name` answer a reader holding
+   values: `private.presence_person_names` and `private.presence_party_names` answer a reader holding
    `credentials.scan_log.read`, `crew.time_entry.read` or `advancing.packet.read` on the project, and give anyone else
-   NULL. `private.presence_clock_person` gives a time entry's person, an id and not a name, for a reader who may not read
-   memberships or engagements, so a clock-in never silently drops off the list. The views scan none of those tables, as
+   no name. `private.presence_clock_people` gives time entries' people, ids and not names, for a reader who may not read
+   memberships or engagements, so a clock-in never silently drops off the list. Each takes arrays and each view calls it
+   once, so the gate runs once per statement: a helper called per row took 33 to 41 seconds at 5,000 rows, past the
+   8-second statement timeout, and would have replaced an evacuation list with an error. A refresh that still fails
+   keeps the last list on screen and says so. The views scan none of those tables, as
    ADR 0016 rule 14 asks. `app.zone_counts_live` counts people scanned in;
    it is not a load count and never feeds the permitted-load alerts of `app.occupancy_counters`. The Issued page's
    checks are not a view: `app.credential_review(ids)` is a definer function that answers only credentials the caller
@@ -107,10 +110,11 @@ name), and the AI-drafted induction quiz, anti-passback, lightning networks and 
    after it ends, sending only the venue's coordinates rounded to 4 decimals and a contact User-Agent. Its readings feed
    the same thresholds as manual readings, but an NWS reading never lowers or clears an alert a Manual reading raised,
    and lowers one it raised itself only down to the level of the hazard's latest Manual reading against the current
-   thresholds; a Manual reading below every threshold removes that floor. An observation more than 2 hours old is not
+   thresholds; a Manual reading below every threshold removes that floor. The floor only holds a standing alert: it never
+   raises one. An observation more than 2 hours old is not
    recorded, so an outage never raises a late alert. Heat is the heat index, or the temperature when the NWS gives none,
    so a raised Heat alert can lower in cooler weather. The station, forecast URL and check time are the worker's: a
-   person's write refuses `weather_feed_worker_fields`. Official alerts are stored as warnings; a CAP Update or Cancel
+   person's write refuses `weather_feed_worker_fields`. A 5xx is retried once. Official Actual alerts are stored as warnings, and a Test or Exercise message is not; a CAP Update or Cancel
    references the alerts it replaces, which end. A new Actual Severe or Extreme alert that replaces no recorded warning
    tells the alert-role people and dispatchers once. So does an Actual Severe or Extreme Update none of whose referenced
    warnings was Severe or Extreme, because a Moderate warning told nobody and its escalation must not stay silent; every

@@ -6,7 +6,7 @@
 // the sustained speed without one) in mph and Heat (the heat index, or the temperature when the NWS gives none, as it
 // does in cooler weather, so a raised Heat alert can still lower) in °F, converted from the unit the NWS names; the
 // active alerts for the point; and the hourly forecast at most once an hour. Only the venue's coordinates, rounded to
-// 4 decimals by the database, leave XOS. The NWS asks every client for a User-Agent naming a contact; without
+// 4 decimals by the database, leave XOS. A 5xx is retried once. The NWS asks every client for a User-Agent naming a contact; without
 // XOS_WEATHER_USER_AGENT nothing is fetched and every due feed records why.
 
 export const NWS_BASE = "https://api.weather.gov";
@@ -123,7 +123,7 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
-/** The active alerts of a point, as the database stores them. */
+/** The active Actual alerts of a point, as the database stores them. */
 export function readAlerts(body: unknown): AlertPayload[] {
   const features = (body as { features?: unknown[] } | null)?.features;
   if (!Array.isArray(features)) throw new Error("The NWS alerts answer has no features list.");
@@ -132,7 +132,9 @@ export function readAlerts(body: unknown): AlertPayload[] {
     const p = (feature as { properties?: Record<string, unknown> }).properties ?? {};
     const id = text(p["id"]);
     const event = text(p["event"]);
-    if (id === null || event === null) continue;
+    const status = text(p["status"]) ?? "Actual";
+    // A Test, Exercise or System message is not a warning: it never shows as official or prefills a hold.
+    if (id === null || event === null || status !== "Actual") continue;
     const references = Array.isArray(p["references"])
       ? (p["references"] as { identifier?: unknown }[])
           .map((r) => text(r.identifier))
@@ -151,7 +153,7 @@ export function readAlerts(body: unknown): AlertPayload[] {
       expires: text(p["expires"]),
       ends: text(p["ends"]),
       sent: text(p["sent"]),
-      status: text(p["status"]) ?? "Actual",
+      status,
       message_type: text(p["messageType"]) ?? "Alert",
       references,
     });
@@ -211,10 +213,13 @@ export async function pollFeed(
   },
 ): Promise<FeedPayload> {
   const base = deps.base ?? NWS_BASE;
+  const request = () => ({
+    headers: { Accept: "application/geo+json", "User-Agent": deps.userAgent },
+  });
   const get = async (url: string): Promise<unknown> => {
-    const response = await deps.fetch(url, {
-      headers: { Accept: "application/geo+json", "User-Agent": deps.userAgent },
-    });
+    let response = await deps.fetch(url, request());
+    // One retry on a 5xx: the NWS answers those in passing, and a miss loses the whole 10-minute poll.
+    if (response.status >= 500) response = await deps.fetch(url, request());
     if (!response.ok)
       throw new Error(`The NWS answered HTTP ${response.status} for ${new URL(url).pathname}.`);
     return response.json();

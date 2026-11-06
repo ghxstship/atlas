@@ -187,6 +187,33 @@ select pg_temp.as_user('frank');
 select app.record_weather_reading(pg_temp.id('prj_a'), 'Wind', 2);
 select pg_temp.as_platform();
 
+-- The floor only holds a standing alert: a threshold lowered after an old manual reading raises nothing on a low NWS reading -------
+select is((select count(*)::int from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 0,
+  'no Wind alert stands');
+update app.weather_thresholds set threshold_value = 1 where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and alert_level = 'Monitor';
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('observation', jsonb_build_object('observed_at', now() + interval '4 minutes 30 seconds', 'wind_mph', 0.5)));
+select is((select count(*)::int from app.weather_alerts where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and cleared_at is null), 0,
+  'an old manual reading that now meets a threshold raises nothing on an NWS reading that does not');
+update app.weather_thresholds set threshold_value = 20 where project_id = pg_temp.id('prj_a') and hazard = 'Wind' and alert_level = 'Monitor';
+
+-- A Test or Exercise message is not a warning ---------------------------------------------------------------------------------------
+select app.record_weather_feed(pg_temp.id('feed'), jsonb_build_object('alerts', jsonb_build_array(
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.t', 'event', 'Tornado Warning', 'severity', 'Extreme', 'status', 'Test', 'message_type', 'Alert'),
+  jsonb_build_object('id', 'urn:oid:2.49.0.1.840.0.x', 'event', 'Tornado Warning', 'severity', 'Extreme', 'status', 'Exercise', 'message_type', 'Alert'))));
+select is((select count(*)::int from app.weather_warnings where provider_alert_id in ('urn:oid:2.49.0.1.840.0.t', 'urn:oid:2.49.0.1.840.0.x')), 0,
+  'a Test or Exercise alert is not recorded as an official warning');
+
+-- Old runs go whichever feed they belong to, on the cron step ----------------------------------------------------------------------
+insert into private.weather_feed_runs (weather_feed_id, ran_at, outcome) values
+  (pg_temp.id('feed'), now() - interval '91 days', 'Succeeded'), (pg_temp.id('feed'), now() - interval '89 days', 'Succeeded');
+update app.weather_feeds set deleted_at = now() where id = pg_temp.id('feed');
+select private.request_weather_feed();
+update app.weather_feeds set deleted_at = null where id = pg_temp.id('feed');
+select is((select count(*)::int from private.weather_feed_runs where weather_feed_id = pg_temp.id('feed') and ran_at < now() - interval '90 days'), 0,
+  'the cron step removes runs past 90 days, even for a feed turned off');
+select is((select count(*)::int from private.weather_feed_runs where weather_feed_id = pg_temp.id('feed') and ran_at between now() - interval '89 days 1 hour' and now() - interval '88 days'), 1,
+  'and keeps younger ones');
+
 -- The worker's fields are the worker's -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 select throws_ok($$update app.weather_feeds set nws_station_id = 'KXXX' where id = (select id from world where key = 'feed')$$,

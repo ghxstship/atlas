@@ -80,9 +80,6 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not private.can_on_project(p_project_id, 'credentials.credential.read') then
-    return false;
-  end if;
   return exists (
       select 1 from app.credentials c
       where c.org_id = p_org_id and c.holder_person_id = p_holder_person_id and c.project_id <> p_project_id
@@ -98,7 +95,7 @@ begin
                          case when p_valid_to is null then null else (p_valid_to at time zone pr.time_zone)::date end, '[]'));
 end;
 $$;
-comment on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) is 'True when the holder, in the same org, has on another project a live credential whose window overlaps, or a live engagement (Onboarding, Blocked, Active or Closing) whose days overlap the window''s days in that project''s time zone (gap G-147); an engagement without a start date is not a booking. Takes values, never a credential id (ADR 0016 rule 14); false for a caller without credentials.credential.read on the project.';
+comment on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) is 'True when the holder, in the same org, has on another project a live credential whose window overlaps, or a live engagement (Onboarding, Blocked, Active or Closing) whose days overlap the window''s days in that project''s time zone (gap G-147); an engagement without a start date is not a booking. Takes values, never a credential id (ADR 0016 rule 14). Not granted to callers: app.credential_review and app.credential_issue_check check credentials.credential.read once before calling it, because a check per row is too slow for a page of badges.';
 revoke all on function private.holder_booked_elsewhere(uuid, uuid, uuid, timestamptz, timestamptz, uuid) from public, anon, authenticated;
 
 create function private.same_name_holders(p_project_id uuid, p_holder_person_id uuid)
@@ -109,9 +106,6 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not private.can_on_project(p_project_id, 'credentials.credential.read') then
-    return 0;
-  end if;
   return (
     select count(distinct c.holder_person_id)::integer
     from app.credentials c
@@ -121,7 +115,7 @@ begin
       and lower(btrim(o.full_name)) = lower(btrim(h.full_name)));
 end;
 $$;
-comment on function private.same_name_holders(uuid, uuid) is 'How many other people hold credentials on the project under the same name, ignoring case and outer spaces: perhaps the same person twice. Takes values (ADR 0016 rule 14); 0 for a caller without credentials.credential.read on the project.';
+comment on function private.same_name_holders(uuid, uuid) is 'How many other people hold credentials on the project under the same name, ignoring case and outer spaces: perhaps the same person twice. Takes values (ADR 0016 rule 14). Not granted to callers: app.credential_review and app.credential_issue_check check credentials.credential.read once before calling it.';
 revoke all on function private.same_name_holders(uuid, uuid) from public, anon, authenticated;
 
 create function private.holder_is_member(p_project_id uuid, p_org_id uuid, p_person_id uuid)
@@ -132,15 +126,12 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not private.can_on_project(p_project_id, 'credentials.credential.read') then
-    return false;
-  end if;
   return exists (select 1 from app.memberships m
                  where m.org_id = p_org_id and m.person_id = p_person_id and m.deleted_at is null
                    and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now()));
 end;
 $$;
-comment on function private.holder_is_member(uuid, uuid, uuid) is 'True when the holder is a current member of the org, for app.credential_review''s holder source; a reader of the project''s credentials need not read the member directory. Takes values (ADR 0016 rule 14); false without credentials.credential.read on the project.';
+comment on function private.holder_is_member(uuid, uuid, uuid) is 'True when the holder is a current member of the org, for app.credential_review''s holder source; a reader of the project''s credentials need not read the member directory. Takes values (ADR 0016 rule 14). Not granted to callers: app.credential_review checks credentials.credential.read once before calling it.';
 revoke all on function private.holder_is_member(uuid, uuid, uuid) from public, anon, authenticated;
 
 create function app.credential_bookings_elsewhere(p_credential_id uuid)
@@ -201,7 +192,9 @@ grant execute on function app.credential_bookings_elsewhere(uuid) to authenticat
 -- A function rather than a security_invoker view: its checks read app.credentials on other projects and other
 -- holders' names, which only a definer can, and a definer helper that re-reads app.credentials from a view that scans
 -- app.credentials is what ADR 0016 rule 14 forbids. Here nothing is a view, so the helpers run as the function's owner,
--- and each row is checked against the caller's credentials.credential.read on its project instead.
+-- and each row's project must be one the caller holds credentials.credential.read on. private.project_ids_with answers
+-- that once for the statement: private.can_on_project per row, several times a row, would take a 500-badge page past the
+-- 8-second statement timeout of `authenticated`.
 create function app.credential_review(p_credential_ids uuid[])
 returns table (
   credential_id uuid,
@@ -242,7 +235,7 @@ as $$
   from app.credentials c
   join app.credential_categories cc on cc.id = c.credential_category_id
   where c.id = any (p_credential_ids[1:500]) and c.deleted_at is null
-    and private.can_on_project(c.project_id, 'credentials.credential.read')
+    and c.project_id in (select private.project_ids_with('credentials.credential.read'))
   order by c.id;
 $$;
 comment on function app.credential_review(uuid[]) is 'The accreditation checks of the listed credentials (gap G-147, ADR 0147 decision 5), for the Issued page''s chips and its Needs attention filter: holder_source (Allocation, Engagement, Member or Direct), other live badges of the holder on the project, other holders with the same name, a live duplicate (only possible from before 2973), unmet requirements now, and whether the holder is booked on another project of the org. Answers only credentials whose project the caller has credentials.credential.read on; the first 500 ids are read.';
@@ -274,12 +267,15 @@ as $$
 declare
   v_category app.credential_categories;
   v_from timestamptz := coalesce(p_valid_from, now());
+  v_reads boolean;
 begin
   perform private.require_person();
   select * into v_category from app.credential_categories c where c.id = p_category_id and c.deleted_at is null;
   if v_category.id is null or not private.can_on_project(v_category.project_id, 'credentials.credential.issue') then
     raise exception using errcode = '42501', message = 'credentials.credential.issue is required on the project';
   end if;
+  -- Other people's names and other projects are for a reader of the project's credentials.
+  v_reads := private.can_on_project(v_category.project_id, 'credentials.credential.read');
   return query
     select case when s.is_met then 'training_expires_first' else 'training_missing' end, not s.is_met, s.requirement_id,
       s.title, null::uuid, null::uuid, null::text
@@ -299,10 +295,10 @@ begin
     join app.credential_categories k on k.id = c.credential_category_id
     where c.project_id = v_category.project_id and c.holder_person_id = p_holder_person_id
       and c.credential_category_id <> p_category_id and c.deleted_at is null and c.revoked_at is null;
-  if private.same_name_holders(v_category.project_id, p_holder_person_id) > 0 then
+  if v_reads and private.same_name_holders(v_category.project_id, p_holder_person_id) > 0 then
     return query select 'same_name_on_project'::text, false, null::uuid, null::text, null::uuid, null::uuid, null::text;
   end if;
-  if private.holder_booked_elsewhere(v_category.org_id, v_category.project_id, p_holder_person_id, v_from, p_valid_to, null) then
+  if v_reads and private.holder_booked_elsewhere(v_category.org_id, v_category.project_id, p_holder_person_id, v_from, p_valid_to, null) then
     return query
       select 'booked_elsewhere'::text, false, null::uuid, null::text, null::uuid,
         case when b.pid in (select private.readable_project_ids()) then b.pid end,

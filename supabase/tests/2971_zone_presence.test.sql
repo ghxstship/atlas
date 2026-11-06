@@ -167,9 +167,9 @@ select is((select count(*)::int from app.people where id = pg_temp.id('ivy')), 0
 -- Callers have no usage on the private schema, and a view reaches the helpers without it, as these views do.
 select pg_temp.as_platform();
 create temporary view presence_answers with (security_invoker = on) as
-  select private.presence_person_name(pg_temp.id('prj_a'), pg_temp.id('ivy')) as person,
-    private.presence_party_name(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) as party,
-    private.presence_party_name(pg_temp.id('prj_a'), pg_temp.id('eng_ivy_b')) as other_project;
+  select (select n.full_name from private.presence_person_names(array[pg_temp.id('prj_a')], array[pg_temp.id('ivy')]) n) as person,
+    (select n.party_name from private.presence_party_names(array[pg_temp.id('prj_a')], array[pg_temp.id('eng_vendor_a')]) n) as party,
+    (select n.party_name from private.presence_party_names(array[pg_temp.id('prj_a')], array[pg_temp.id('eng_ivy_b')]) n) as other_project;
 grant select on presence_answers to public;
 select pg_temp.as_user('xavier');
 select is((select person from presence_answers), null, 'a reader holding none of the three capabilities on the project gets no name');

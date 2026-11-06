@@ -322,9 +322,11 @@ begin
   where t.project_id = p_project_id and t.hazard = p_hazard and t.deleted_at is null
     and ((t.comparison = 'At or Above' and p_value >= t.threshold_value) or (t.comparison = 'At or Below' and p_value <= t.threshold_value))
   order by t.alert_level desc limit 1;
-  -- A station may be miles from the venue: an NWS reading lowers or clears only down to what the hazard's latest Manual
-  -- reading meets against the current thresholds. A Manual reading below every threshold leaves no floor.
-  if p_source = 'NWS' then
+  select * into v_active from app.weather_alerts a where a.project_id = p_project_id and a.hazard = p_hazard and a.cleared_at is null;
+  -- A station may be miles from the venue: while an alert stands, an NWS reading lowers or clears it only down to what
+  -- the hazard's latest Manual reading meets against the current thresholds. A Manual reading below every threshold
+  -- leaves no floor. With no alert standing there is nothing to lower, and only the NWS reading's own level can raise one.
+  if p_source = 'NWS' and v_active.id is not null and (v_level is null or v_level < v_active.alert_level) then
     select t.alert_level into v_floor
     from (select r.reading_value from app.weather_readings r
           where r.project_id = p_project_id and r.hazard = p_hazard and r.source = 'Manual'
@@ -332,11 +334,10 @@ begin
     join app.weather_thresholds t on t.project_id = p_project_id and t.hazard = p_hazard and t.deleted_at is null
       and ((t.comparison = 'At or Above' and m.reading_value >= t.threshold_value) or (t.comparison = 'At or Below' and m.reading_value <= t.threshold_value))
     order by t.alert_level desc limit 1;
-    if v_floor is not null and (v_level is null or v_level < v_floor) then
-      v_level := v_floor;
+    if v_floor is not null then
+      v_level := greatest(v_level, least(v_floor, v_active.alert_level));
     end if;
   end if;
-  select * into v_active from app.weather_alerts a where a.project_id = p_project_id and a.hazard = p_hazard and a.cleared_at is null;
   if v_level is not distinct from v_active.alert_level then
     return;
   end if;
@@ -371,7 +372,7 @@ begin
   end if;
 end;
 $$;
-comment on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) is 'A new weather reading against the project''s thresholds (the logic of 0806 app.record_weather_reading): the highest Monitor, Restrict or Evacuate level it meets raises an alert to the canon roles named for that level and the project''s dispatchers (weather.alert); a reading below every level clears the hazard''s alert. An NWS reading never lowers or clears an alert a Manual reading raised, and lowers or clears one it raised itself only down to the level of the hazard''s latest Manual reading against the current thresholds; a Manual reading below every threshold removes that floor.';
+comment on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) is 'A new weather reading against the project''s thresholds (the logic of 0806 app.record_weather_reading): the highest Monitor, Restrict or Evacuate level it meets raises an alert to the canon roles named for that level and the project''s dispatchers (weather.alert); a reading below every level clears the hazard''s alert. An NWS reading never lowers or clears an alert a Manual reading raised, and lowers or clears one it raised itself only down to the level of the hazard''s latest Manual reading against the current thresholds; a Manual reading below every threshold removes that floor. The floor only holds a standing alert: it never raises one.';
 revoke all on function private.apply_weather_level(uuid, app.weather_hazard, numeric, uuid, app.weather_reading_source) from public, anon, authenticated;
 
 create or replace function app.record_weather_reading(p_project_id uuid, p_hazard app.weather_hazard, p_value numeric, p_observed_at timestamptz default null)
@@ -441,11 +442,10 @@ language sql
 security definer
 set search_path = ''
 as $$
-  delete from private.weather_feed_runs r where r.weather_feed_id = p_feed_id and r.ran_at < now() - interval '90 days';
   insert into private.weather_feed_runs (weather_feed_id, outcome, error)
   values (p_feed_id, 'Failed', left(coalesce(nullif(btrim(p_error), ''), 'The feed failed without a message.'), 500));
 $$;
-comment on function app.record_weather_feed_failure(uuid, text) is 'Records a failed weather feed run with its reason (at most 500 characters), so the Weather page can say the feed is stale. Runs older than 90 days are removed. Service role only.';
+comment on function app.record_weather_feed_failure(uuid, text) is 'Records a failed weather feed run with its reason (at most 500 characters), so the Weather page can say the feed is stale. Service role only.';
 revoke all on function app.record_weather_feed_failure(uuid, text) from public, anon, authenticated;
 grant execute on function app.record_weather_feed_failure(uuid, text) to service_role;
 
@@ -562,6 +562,8 @@ begin
   if jsonb_typeof(p_payload -> 'alerts') = 'array' then
     for v_alert in select * from jsonb_array_elements(p_payload -> 'alerts') loop
       continue when v_alert ->> 'id' is null or coalesce(v_alert ->> 'event', '') = '';
+      -- A Test, Exercise or System message is not a warning: it never shows as official or prefills a hold.
+      continue when coalesce(v_alert ->> 'status', 'Actual') <> 'Actual';
       v_ids := v_ids || (v_alert ->> 'id');
       select * into v_warning from app.weather_warnings w where w.project_id = v_feed.project_id and w.provider_alert_id = v_alert ->> 'id';
       v_new := v_warning.id is null;
@@ -598,7 +600,7 @@ begin
         where project_id = v_feed.project_id and ended_at is null and id <> v_warning.id
           and provider_alert_id in (select jsonb_array_elements_text(v_alert -> 'references'));
       end if;
-      if v_new and (not v_replaces or v_escalates) and coalesce(v_alert ->> 'status', 'Actual') = 'Actual'
+      if v_new and (not v_replaces or v_escalates)
          and coalesce(v_alert ->> 'message_type', 'Alert') <> 'Cancel' and v_warning.severity in ('Extreme', 'Severe') then
         for v_person in
           select distinct ra.person_id from app.role_assignments ra
@@ -637,12 +639,11 @@ begin
     get diagnostics v_forecast = row_count;
   end if;
 
-  delete from private.weather_feed_runs r where r.weather_feed_id = v_feed.id and r.ran_at < now() - interval '90 days';
   insert into private.weather_feed_runs (weather_feed_id, outcome) values (v_feed.id, 'Succeeded');
   return jsonb_build_object('readings', v_readings, 'warnings', cardinality(v_ids), 'notified', v_notified, 'forecast_periods', v_forecast);
 end;
 $$;
-comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200, at most 2 hours old and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the active alerts upserted by the provider''s id, a Cancel, an Update that references them or their absence from the active list ending them, and a new Actual Extreme or Severe alert that replaces no recorded warning, or an Actual Update of that severity none of whose referenced warnings was Extreme or Severe, telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. A malformed time or number refuses weather_feed_payload. Returns counts.';
+comment on function app.record_weather_feed(uuid, jsonb) is 'Records one poll of a project''s NWS feed in one transaction (service role, the weather-feed Edge Function): the cached forecast URL and station; Wind (mph) and Heat (°F) readings with source NWS when present, between 0 and 200, at most 2 hours old and newer than the last NWS reading of the hazard, each through private.apply_weather_level; the Actual alerts (a Test, Exercise or System message is skipped) upserted by the provider''s id, a Cancel, an Update that references them or their absence from the active list ending them, and a new Actual Extreme or Severe alert that replaces no recorded warning, or an Actual Update of that severity none of whose referenced warnings was Extreme or Severe, telling the alert-role people and dispatchers once (weather.warning); the forecast replaced with the next 48 periods; and a Succeeded run. A rerun with the same observation writes no reading. A malformed time or number refuses weather_feed_payload. Returns counts.';
 revoke all on function app.record_weather_feed(uuid, jsonb) from public, anon, authenticated;
 grant execute on function app.record_weather_feed(uuid, jsonb) to service_role;
 
@@ -656,6 +657,8 @@ declare
   v_url text;
   v_key text;
 begin
+  -- Every feed's old runs go, including a feed turned off or outside its window, whose runs nothing else would touch.
+  delete from private.weather_feed_runs r where r.ran_at < now() - interval '90 days';
   if not exists (select 1 from app.weather_feeds f where f.deleted_at is null) then
     return;
   end if;
@@ -672,7 +675,7 @@ begin
   );
 end;
 $$;
-comment on function private.request_weather_feed() is 'pg_cron''s weather step: while any weather feed is on, calls the weather-feed Edge Function with the service key from Vault (xos_worker_key) at the functions URL in Vault (xos_functions_url). Without either it does nothing (infra/runbooks/production.md, Edge Functions).';
+comment on function private.request_weather_feed() is 'pg_cron''s weather step: removes feed runs older than 90 days, whichever feed they belong to, then, while any weather feed is on, calls the weather-feed Edge Function with the service key from Vault (xos_worker_key) at the functions URL in Vault (xos_functions_url). Without either it does nothing (infra/runbooks/production.md, Edge Functions).';
 revoke all on function private.request_weather_feed() from public, anon, authenticated;
 
 select cron.schedule('xos_weather_feed', '*/10 * * * *', 'select private.request_weather_feed()');
