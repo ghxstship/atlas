@@ -136,6 +136,13 @@ function workerOf(form: FormData) {
   return decodeWorker(text(form, "membershipId"));
 }
 
+/** The form's Labor budget line, or null for none; the database decides whether the line fits the shift. */
+function budgetLineOf(form: FormData): string | null | "invalid" {
+  const value = text(form, "budgetLineId");
+  if (value === "") return null;
+  return uuid.safeParse(value).success ? value : "invalid";
+}
+
 export async function createShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const project = uuid.safeParse(form.get("projectId"));
@@ -144,6 +151,8 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
   if (!times.ok) return times.state;
   const worker = workerOf(form);
   if (!worker) return invalid(t, { membershipId: "crew.errors.worker" });
+  const budgetLineId = budgetLineOf(form);
+  if (budgetLineId === "invalid") return invalid(t, { budgetLineId: "crew.errors.budgetLine" });
   const role = text(form, "roleCode");
   const shift = {
     orgId: ctx.org.id,
@@ -152,6 +161,7 @@ export async function createShiftAction(_: State, form: FormData): Promise<State
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
+    budgetLineId,
   };
   // Agency staff are placed in the same transaction that writes their slot, so a refusal leaves no slot behind.
   if (worker.kind === "staff")
@@ -183,11 +193,14 @@ export async function updateShiftAction(_: State, form: FormData): Promise<State
     held !== null && (value === `staff:${held}` || value.startsWith(`staff:${held}:`));
   const worker = unchanged ? null : workerOf(form);
   if (!unchanged && !worker) return invalid(t, { membershipId: "crew.errors.worker" });
+  const budgetLineId = budgetLineOf(form);
+  if (budgetLineId === "invalid") return invalid(t, { budgetLineId: "crew.errors.budgetLine" });
   const times_ = {
     roleCode: role === "" ? null : role,
     startsAt: times.startsAt,
     endsAt: times.endsAt,
     timeZone: times.zone,
+    budgetLineId,
   };
   if (worker === null) return done(ctx.org.slug, await updateShift(db, id.data, times_), t);
   if (worker.kind === "staff" || held !== null) {

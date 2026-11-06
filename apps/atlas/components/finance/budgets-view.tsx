@@ -35,7 +35,6 @@ import { clearConditions, filterBudgetLines, hasConditions } from "@/lib/finance
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { importLinkHref } from "@/lib/imports/import-link";
-import { navContext } from "@/lib/shell/nav-context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -626,7 +625,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
                 purchaseOrders: access.can("procurement.po.read"),
                 invoices: access.can("finance.invoice.read"),
               }}
-              importHref={importLinkHref(ctx.org.slug, navContext(ctx), canWrite, {
+              importHref={importLinkHref(ctx.org.slug, ctx.nav, canWrite, {
                 target: "budget_lines",
                 budgetId: b.id,
               })}

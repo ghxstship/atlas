@@ -188,6 +188,11 @@ export interface RosterShiftSave {
     | { readonly kind: "open" };
   /** Why a person comes off the roster, when they do. */
   readonly reason?: string;
+  /**
+   * The Labor budget line (G-133). Required: app.save_roster_shift writes it unconditionally, so no
+   * caller can clear a link by leaving it out.
+   */
+  readonly budgetLineId: string | null;
 }
 
 /**
@@ -211,6 +216,7 @@ export async function saveRosterShift(
     p_engagement_id: (w.kind === "agency" || w.kind === "staff" ? w.engagementId : null) as string,
     p_roster_entry_id: (w.kind === "staff" ? w.rosterEntryId : null) as string,
     ...(input.reason ? { p_reason: input.reason } : {}),
+    p_budget_line_id: input.budgetLineId as string,
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data });

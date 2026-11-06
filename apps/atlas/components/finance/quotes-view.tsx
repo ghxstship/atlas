@@ -116,7 +116,8 @@ export async function QuotesView({ page }: { page: FinancePage }) {
       const accepted = versions.find((v) => v.state === "Accepted");
       const email = accepted ? await quoteAcceptanceEmail(db, accepted.id) : null;
       const project = projectOf.get(q.projectId);
-      const timeZone = project?.timeZone ?? "UTC";
+      const zone = await db.from("projects").select("time_zone").eq("id", q.projectId).maybeSingle();
+      const timeZone = zone.data?.time_zone ?? "UTC";
       const money = (minor: number | null) => c.money(minor, q.currency);
       const marginPercent =
         q.marginMinor !== null && q.clientTotalMinor ? (q.marginMinor / q.clientTotalMinor) * 100 : null;

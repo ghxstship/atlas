@@ -4,6 +4,7 @@ import {
   getWageHourRule,
   listAgencyEngagements,
   listAssignableRosterEntries,
+  listLaborBudgetLines,
   listShifts,
   listTimeEntries,
   shiftMinutes,
@@ -130,7 +131,7 @@ export async function ShiftsCollection(props: {
   const canWrite = crew.can("crew.shift.write");
   // Planners also read the org's shift templates, for "Plan from template", and the projects they may staff,
   // for the drag board (A132), alongside the shifts rather than after them.
-  const [result, templates, planning] = await Promise.all([
+  const [result, templates, planning, laborResult] = await Promise.all([
     listShifts(db, {
       orgId: crew.orgId,
       from: startOfDayIn(from, zone),
@@ -140,12 +141,18 @@ export async function ShiftsCollection(props: {
     }),
     canWrite ? listShiftTemplates(db, crew.orgId) : null,
     canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
+    // The shift form's and bulk bar's Budget line options: server-rendered, so no client code loads for them.
+    canWrite ? listLaborBudgetLines(db, projectFilter?.id ?? null) : null,
   ]);
   if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
   if (planning && !planning.ok) {
     throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
   }
   const shifts = result.data;
+  const laborLines = laborResult?.ok ? laborResult.data : [];
+  const projectKeyOf = new Map(projects.map((p) => [p.id, p.key]));
+  const laborLineLabel = (l: (typeof laborLines)[number]) =>
+    `${projectKeyOf.get(l.projectId) ?? ""} · ${l.budgetName} · ${l.lineNumber} ${l.description}`;
   const staffable = planning?.ok ? planning.data : new Set<string>();
   const drafts = shifts.filter((s) => s.state === "Draft");
 
@@ -579,6 +586,24 @@ export async function ShiftsCollection(props: {
         value: s ? isoToZoned(s.endsAt, zone) : `${week}T16:00`,
         required: true,
       },
+      {
+        kind: "select",
+        name: "budgetLineId",
+        label: t("crew.fields.budgetLine"),
+        help: t("crew.shifts.budgetLineHelp"),
+        value: s?.budgetLineId ?? "",
+        options: [
+          { value: "", label: t("crew.shifts.noBudgetLine") },
+          // A shift's project is fixed once it exists; a new shift's choice is checked by the database.
+          ...laborLines
+            .filter((l) => !s || l.projectId === s.projectId)
+            .map((l) => ({ value: l.id, label: laborLineLabel(l) })),
+          // The line it holds always shows, so a save never clears it.
+          ...(s?.budgetLineId && !laborLines.some((l) => l.id === s.budgetLineId)
+            ? [{ value: s.budgetLineId, label: t("crew.shifts.currentBudgetLine") }]
+            : []),
+        ],
+      },
     ];
   };
   const swapShift = search["swap"] ? (shifts.find((s) => s.id === search["swap"]) ?? null) : null;
@@ -917,6 +942,14 @@ export async function ShiftsCollection(props: {
                         value: m.membershipId,
                         label: m.name ?? m.membershipId,
                       })),
+                    ],
+                  },
+                  {
+                    key: "budget_line_id",
+                    label: t("crew.fields.budgetLine"),
+                    options: [
+                      { value: null, label: t("crew.shifts.noBudgetLine") },
+                      ...laborLines.map((l) => ({ value: l.id, label: laborLineLabel(l) })),
                     ],
                   },
                 ],

@@ -832,6 +832,8 @@ export interface BudgetSummary {
   readonly name: string;
   readonly currency: string;
   readonly isBaseline: boolean;
+  /** The default markup of the budget's lines in basis points; null is no default. */
+  readonly defaultMarkupBp: number | null;
   readonly lineCount: number;
   readonly unpricedCount: number;
   readonly pricedTotalMinor: number | null;
@@ -851,7 +853,7 @@ export async function listBudgets(
   let query = db
     .from("budgets")
     .select(
-      "id, project_id, name, currency_code, is_baseline, updated_at, project:projects(project_key, name)",
+      "id, project_id, name, currency_code, is_baseline, default_markup_bp, updated_at, project:projects(project_key, name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -884,6 +886,7 @@ export async function listBudgets(
         name: str(b["name"]),
         currency: str(b["currency_code"]).trim(),
         isBaseline: b["is_baseline"] === true,
+        defaultMarkupBp: numOrNull(b["default_markup_bp"]),
         lineCount: num(t["line_count"]),
         unpricedCount: num(t["unpriced_count"]),
         pricedTotalMinor: numOrNull(t["priced_total_minor"]),
