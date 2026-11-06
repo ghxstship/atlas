@@ -20,6 +20,11 @@ export type SpreadsheetGridProps = ReferenceSpreadsheetGridProps & {
   rowKey?: string;
   /** Called with the key of the row whose cell opens for editing, and null when it closes. */
   onEditingChange?: (rowKey: string | null) => void;
+  /**
+   * Called with the key of the row a person selects, once they pick a cell, and whenever the selected
+   * row changes; it follows the row when rows move, and reports null when the row leaves. Needs rowKey.
+   */
+  onSelectionChange?: (rowKey: string | null) => void;
 };
 
 export type BudgetGridProps = ReferenceBudgetGridProps & {

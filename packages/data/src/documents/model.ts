@@ -5,7 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
-/** The twelve Section 11.9 documents and the radio hand-out (R7, ADR 0031 amendment). */
+/** The twelve Section 11.9 documents, the radio hand-out (R7) and the client quote (B13), ADR 0031 amendments. */
 export const DOCUMENT_KINDS = [
   "purchase-order",
   "invoice",
@@ -20,6 +20,7 @@ export const DOCUMENT_KINDS = [
   "final-cost-report",
   "agreement-certificate",
   "radio-handout",
+  "quote",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -57,7 +58,7 @@ export type DataClassification = "Public" | "Internal" | "Confidential" | "Restr
 /**
  * The classification of each generated document: the highest classification among the registered
  * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
- * and time on Confidential and Restricted PDFs. The thirteen record documents print only Internal
+ * and time on Confidential and Restricted PDFs. The record documents print only Internal
  * columns; the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
  */
 export const DOCUMENT_CLASSIFICATION: Readonly<
@@ -76,6 +77,7 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "final-cost-report": "Internal",
   "agreement-certificate": "Internal",
   "radio-handout": "Internal",
+  quote: "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",

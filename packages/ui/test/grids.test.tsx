@@ -171,6 +171,26 @@ describe("SpreadsheetGrid", () => {
       ]);
     });
 
+    it("reports the selected row once a person picks it, following it when rows shift", () => {
+      const onSelectionChange = vi.fn();
+      const { rerender } = render(grid(lines, { onChange: vi.fn(), onSelectionChange }));
+      expect(onSelectionChange).not.toHaveBeenCalled();
+      fireEvent.pointerDown(cellOf("b", 1));
+      fireEvent.click(cellOf("b", 1));
+      expect(onSelectionChange).toHaveBeenLastCalledWith("b");
+      onSelectionChange.mockClear();
+      rerender(
+        grid([{ id: "z", description: "Rigging", amount: 10 }, { ...stage }, { ...sound }], {
+          onChange: vi.fn(),
+          onSelectionChange,
+        }),
+      );
+      expect(onSelectionChange).not.toHaveBeenCalled();
+      fireEvent.pointerDown(cellOf("a", 1));
+      fireEvent.click(cellOf("a", 1));
+      expect(onSelectionChange).toHaveBeenLastCalledWith("a");
+    });
+
     it("drops the open cell when its row is removed", () => {
       const onEditingChange = vi.fn();
       const { rerender } = render(grid(lines, { onEditingChange }));

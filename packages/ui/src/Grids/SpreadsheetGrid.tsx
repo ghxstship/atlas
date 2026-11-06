@@ -77,6 +77,7 @@ export function SpreadsheetGrid({
   onChange,
   rowKey,
   onEditingChange,
+  onSelectionChange,
 }: SpreadsheetGridProps): ReactElement {
   const t = useT();
   const fmt = useFormat();
@@ -110,6 +111,18 @@ export function SpreadsheetGrid({
   const editingKey = rowKey && editing ? keyOf(rows[sel[0]]) : null;
   const reportEditing = useRef(onEditingChange);
   reportEditing.current = onEditingChange;
+  // The row a person selected, reported when it changes and following the row when rows move. The
+  // first cell holds the keyboard focus before anyone picks a row, so nothing reports until then.
+  const [picked, setPicked] = useState(false);
+  const selectedRowKey = rowKey && picked ? keyOf(rows[sel[0]]) || null : null;
+  const reportSelection = useRef(onSelectionChange);
+  reportSelection.current = onSelectionChange;
+  const reportedSelection = useRef<string | null>(null);
+  useEffect(() => {
+    if (reportedSelection.current === selectedRowKey) return;
+    reportedSelection.current = selectedRowKey;
+    reportSelection.current?.(selectedRowKey);
+  }, [selectedRowKey]);
   const reported = useRef<string | null>(null);
   useEffect(() => {
     if (reported.current === editingKey) return;
@@ -246,6 +259,8 @@ export function SpreadsheetGrid({
           aria-label={label}
           aria-rowcount={rows.length + 2}
           onPaste={onPaste}
+          onPointerDownCapture={() => setPicked(true)}
+          onKeyDownCapture={() => setPicked(true)}
           className="w-full border-collapse text-text-13"
         >
           <thead>

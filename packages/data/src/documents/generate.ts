@@ -6,7 +6,12 @@ import type { DocumentKind, DocumentLogo, DocumentModel, Paper } from "./model.t
 import type { Orientation } from "./render.ts";
 import { isEmbeddableImage, renderDocumentPdf } from "./render.ts";
 import { loadDocumentData } from "./sources.ts";
-import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
+import {
+  loadExternalDocumentData,
+  quoteDataFromFields,
+  type ExternalDocumentKind,
+  type QuoteBrandFields,
+} from "./sources-external.ts";
 import {
   DESCRIBE,
   TEMPLATES,
@@ -249,7 +254,60 @@ export async function generateExternalDocument(
 ): Promise<Result<GeneratedDocument>> {
   const loaded = await loadExternalDocumentData(input.db, input.kind, input.id);
   if (!loaded.ok) return loaded;
-  return renderLoaded(input, input.kind, loaded.data.data, loaded.data.orgId, loaded.data.orgName);
+  return renderLoaded(
+    input,
+    input.kind,
+    loaded.data.data,
+    loaded.data.orgId,
+    loaded.data.orgName,
+    loaded.data.brand,
+  );
+}
+
+/**
+ * A quote from the fields of api_public.token_quote, for a signing link's Download PDF. The token
+ * reader already checked the link and code; nothing here reads a record, and the brand comes from the
+ * same fields because anon cannot read app.org_brands.
+ */
+export async function generateTokenQuoteDocument(
+  input: Omit<ExternalGenerateInput, "kind" | "id"> & { readonly quote: Readonly<Record<string, unknown>> },
+): Promise<Result<GeneratedDocument>> {
+  const q = input.quote as Parameters<typeof quoteDataFromFields>[0] & {
+    readonly org_id?: string;
+    readonly org_name?: string;
+    readonly legal_entity_name?: string | null;
+    readonly brand_accent_hex?: string | null;
+    readonly brand_logo_path?: string | null;
+    readonly lines?: Parameters<typeof quoteDataFromFields>[1];
+  };
+  return renderLoaded(input, "quote", quoteDataFromFields(q, q.lines ?? []), q.org_id ?? "", q.org_name ?? "", {
+    legalEntityName: q.legal_entity_name ?? null,
+    accentHex: q.brand_accent_hex ?? null,
+    logoPath: q.brand_logo_path ?? null,
+  });
+}
+
+/** The brand from a record's own fields; the org-brand bucket is public, so anon can fetch the logo. */
+async function brandFromFields(
+  db: XosClient,
+  name: string,
+  fields: QuoteBrandFields,
+  logoAlt: (name: string) => string,
+): Promise<DocumentBrand> {
+  let logo: DocumentLogo | null = null;
+  if (fields.logoPath) {
+    const { data } = await db.storage.from("org-brand").download(fields.logoPath);
+    if (data) {
+      const bytes = new Uint8Array(await data.arrayBuffer());
+      if (isEmbeddableImage(bytes)) logo = { bytes, alt: logoAlt(name) };
+    }
+  }
+  return {
+    name,
+    legalEntity: fields.legalEntityName?.trim() || null,
+    accentHex: fields.accentHex,
+    logo,
+  };
 }
 
 async function renderLoaded<K extends DocumentKind>(
@@ -258,11 +316,13 @@ async function renderLoaded<K extends DocumentKind>(
   data: DocumentDataMap[K],
   orgId: string,
   orgName: string,
+  brandFields?: QuoteBrandFields,
 ): Promise<Result<GeneratedDocument>> {
   const t = documentTranslator(input.messages);
-  const brand = await loadDocumentBrand(input.db, orgId, orgName, (name) =>
-    t("facts.logoAlt", { name }),
-  );
+  const logoAlt = (name: string) => t("facts.logoAlt", { name });
+  const brand = brandFields
+    ? await brandFromFields(input.db, orgName, brandFields, logoAlt)
+    : await loadDocumentBrand(input.db, orgId, orgName, logoAlt);
   const project = "project" in data ? data.project : null;
   const now = input.now ?? new Date();
   const { recordKey } = DESCRIBE[kind](data, now);

@@ -12,7 +12,7 @@ import type { Formatter, Translate } from "./format.ts";
 import type { DocumentBlock, DocumentKind } from "./model.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents and the radio hand-out (ADR 0031). Each kind keeps every
+ * Versioned templates for the twelve Section 11.9 documents, the radio hand-out and the client quote (ADR 0031). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -85,6 +85,39 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly lines: readonly RadioHandoutLine[];
   };
+  /** A quote version: live client prices for a Draft preview, the frozen capture from Sent (B13, G-188). */
+  quote: {
+    readonly project: DocumentProject;
+    readonly quote: QuoteDocument;
+  };
+}
+
+/** What a client quote prints: client-facing fields only, never cost, markup, margin or URID. */
+export interface QuoteDocument {
+  readonly key: string;
+  readonly versionNumber: number;
+  readonly title: string;
+  readonly clientName: string | null;
+  readonly currency: string;
+  readonly validUntil: string;
+  readonly terms: string | null;
+  readonly state: string;
+  /** sent_at, else the version's created_at for a Draft preview: the template's issue time. */
+  readonly issuedAt: string;
+  readonly contentSha256: string | null;
+  readonly lines: readonly {
+    readonly lineNumber: number;
+    readonly description: string;
+    readonly quantity: number;
+    readonly unitBasis: string | null;
+    readonly unitPriceMinor: number | null;
+    readonly amountMinor: number | null;
+  }[];
+  readonly totalMinor: number | null;
+  readonly acceptedAt: string | null;
+  readonly acceptedName: string | null;
+  /** The email a signing link went to; null when signed in to Gateway. Decided by a used token. */
+  readonly acceptedEmail: string | null;
 }
 
 export type DocumentData = { [K in DocumentKind]: DocumentDataMap[K] }[DocumentKind];
@@ -181,6 +214,10 @@ export const DESCRIBE: {
     recordKey: keyed(d.project.key, "RADIOS"),
     issuedAt: generatedAt.toISOString(),
   }),
+  quote: (d) => ({
+    recordKey: `${d.quote.key}-v${d.quote.versionNumber}`,
+    issuedAt: d.quote.issuedAt,
+  }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -204,6 +241,8 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/** The quote template's first version takes effect with the B13 release (ADR 0031 amendment). */
+const V_B13 = "2026-11-01T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -877,6 +916,93 @@ export const TEMPLATES: TemplateRegistry = {
           { kind: "paragraph", text: t("radioHandout.footer") },
         ],
       }),
+    },
+  ],
+  quote: [
+    {
+      version: 1,
+      effectiveFrom: V_B13,
+      build: ({ project, quote }, { t, f }) => {
+        const money = (m: number | null) => f.money(m, quote.currency);
+        const draft = quote.state === "Draft";
+        const accepted = quote.state === "Accepted" && quote.acceptedAt !== null;
+        return {
+          title: t("quote.title", { key: quote.key }),
+          blocks: [
+            { kind: "paragraph", text: quote.title, size: "large" },
+            {
+              kind: "fields",
+              caption: t("common.details"),
+              fields: [
+                field(t("quote.key"), quote.key),
+                field(t("quote.version"), String(quote.versionNumber)),
+                field(t("quote.client"), quote.clientName ?? t("common.none")),
+                field(t("common.project"), projectLabel(project)),
+                field(t("quote.issued"), f.dateTime(quote.issuedAt)),
+                field(t("quote.validUntil"), f.date(quote.validUntil)),
+                field(t("common.currency"), quote.currency),
+                ...(draft ? [field(t("common.state"), t("quote.draftNotSent"))] : []),
+              ],
+            },
+            {
+              kind: "table",
+              caption: t("quote.linesCaption", { key: quote.key }),
+              columns: [
+                { label: t("common.description"), weight: 4 },
+                { label: t("common.quantity"), numeric: true },
+                { label: t("quote.unit") },
+                { label: t("common.unitPrice"), numeric: true, weight: 1.6 },
+                { label: t("common.amount"), numeric: true, weight: 1.6 },
+              ],
+              rows: quote.lines.map((l) => [
+                l.description,
+                f.number(l.quantity),
+                l.unitBasis ?? "",
+                money(l.unitPriceMinor),
+                money(l.amountMinor),
+              ]),
+              footer: [[t("common.total"), "", "", "", money(quote.totalMinor)]],
+              empty: t("common.noLines"),
+            },
+            ...(quote.terms
+              ? [
+                  { kind: "heading" as const, text: t("quote.terms") },
+                  { kind: "paragraph" as const, text: quote.terms },
+                ]
+              : []),
+            { kind: "paragraph", text: t("quote.taxNote") },
+            ...(!draft && quote.contentSha256 && !accepted
+              ? [
+                  {
+                    kind: "fields" as const,
+                    caption: t("quote.fingerprint"),
+                    fields: [field(t("quote.fingerprint"), quote.contentSha256)],
+                  },
+                ]
+              : []),
+            ...(accepted
+              ? [
+                  {
+                    kind: "fields" as const,
+                    caption: t("quote.signature"),
+                    fields: [
+                      field(t("quote.nameAsSigned"), quote.acceptedName ?? t("common.none")),
+                      field(t("quote.signed"), f.dateTime(quote.acceptedAt)),
+                      field(
+                        t("quote.howSigned"),
+                        quote.acceptedEmail
+                          ? t("quote.signedByLink", { email: quote.acceptedEmail })
+                          : t("quote.signedIn"),
+                      ),
+                      field(t("quote.fingerprint"), quote.contentSha256 ?? t("common.none")),
+                    ],
+                  },
+                  { kind: "paragraph" as const, text: t("quote.signatureStatement") },
+                ]
+              : []),
+          ],
+        };
+      },
     },
   ],
 };

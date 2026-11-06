@@ -2,6 +2,7 @@ import { radioHandout } from "../allocations.ts";
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
 import {
+  extendedMinor,
   listChangeOrderLines,
   listChangeOrders,
   listInvoiceLines,
@@ -19,8 +20,9 @@ import {
   listInspections,
 } from "../safety-permits.ts";
 import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
+import { getQuote, quoteAcceptanceEmail } from "../quotes.ts";
 import type { DocumentKind } from "./model.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import type { DocumentDataMap, DocumentProject, QuoteDocument } from "./templates.ts";
 
 /**
  * Loads the data of one document from the existing records, through the caller's own client, so
@@ -267,7 +269,105 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     }
     return ok({ project, agreement: agreement.data });
   },
+
+  /** A quote version as the viewer with finance.budget.read: a Draft reads live prices, Sent and later the capture. */
+  quote: async (db, orgId, id) => {
+    const version = await db
+      .from("quote_versions")
+      .select("id, quote_id, org_id, created_at")
+      .eq("id", id)
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (version.error) return fail(toDataError(version.error));
+    if (!version.data) return fail({ kind: "not-found" });
+    const detail = await getQuote(db, version.data.quote_id);
+    if (!detail.ok) return detail;
+    const shown = detail.data.versions.find((v) => v.id === id);
+    if (!shown) return fail({ kind: "not-found" });
+    // An earlier sent version prints its own capture and frozen title, not the current version's.
+    const lines = await quoteDocumentLines(db, shown.budgetVersionId, detail.data.status.budgetId);
+    if (!lines.ok) return lines;
+    const project = await documentProject(db, orgId, detail.data.status.projectId);
+    if (!project.ok) return project;
+    const email = shown.state === "Accepted" ? await quoteAcceptanceEmail(db, id) : null;
+    if (email && !email.ok) return email;
+    const total = lines.data.some((l) => l.amountMinor === null)
+      ? null
+      : lines.data.reduce((sum, l) => sum + (l.amountMinor ?? 0), 0);
+    return ok({
+      project: project.data,
+      quote: {
+        key: detail.data.status.key,
+        versionNumber: shown.versionNumber,
+        title: shown.sentTitle ?? detail.data.status.title,
+        clientName: shown.sentClientName ?? detail.data.status.clientName,
+        currency: detail.data.status.currency,
+        validUntil: shown.validUntil,
+        terms: shown.terms,
+        state: shown.state,
+        issuedAt: shown.sentAt ?? version.data.created_at,
+        contentSha256: shown.contentSha256,
+        lines: lines.data,
+        totalMinor: lines.data.length === 0 ? null : total,
+        acceptedAt: shown.acceptedAt,
+        acceptedName: shown.acceptedName,
+        acceptedEmail: email?.ok ? email.data : null,
+      },
+    });
+  },
 };
+
+async function quoteDocumentLines(
+  db: XosClient,
+  budgetVersionId: string | null,
+  budgetId: string,
+): Promise<Result<QuoteDocument["lines"]>> {
+  const raw = budgetVersionId
+    ? await db
+        .from("budget_version_lines")
+        .select("line_number, description, quantity, unit_basis, client_unit_price_minor")
+        .eq("budget_version_id", budgetVersionId)
+        .eq("excluded_from_quote", false)
+        .order("line_number")
+    : await db
+        .from("budget_lines")
+        .select("id, line_number, description, quantity, unit_basis")
+        .eq("budget_id", budgetId)
+        .eq("excluded_from_quote", false)
+        .is("deleted_at", null)
+        .order("line_number");
+  if (raw.error) return fail(toDataError(raw.error));
+  const rows = (raw.data ?? []) as unknown as readonly {
+    id?: string;
+    line_number: number;
+    description: string;
+    quantity: number;
+    unit_basis: string | null;
+    client_unit_price_minor?: number | null;
+  }[];
+  let live: ReadonlyMap<string, number | null> = new Map();
+  if (!budgetVersionId) {
+    const prices = await db
+      .from("budget_line_prices")
+      .select("budget_line_id, client_unit_price_minor")
+      .eq("budget_id", budgetId);
+    if (prices.error) return fail(toDataError(prices.error));
+    live = new Map((prices.data ?? []).map((p) => [p.budget_line_id ?? "", p.client_unit_price_minor]));
+  }
+  return ok(
+    rows.map((r) => {
+      const unit = budgetVersionId ? (r.client_unit_price_minor ?? null) : (live.get(r.id ?? "") ?? null);
+      return {
+        lineNumber: r.line_number,
+        description: r.description,
+        quantity: Number(r.quantity),
+        unitBasis: r.unit_basis,
+        unitPriceMinor: unit,
+        amountMinor: extendedMinor(Number(r.quantity), unit),
+      };
+    }),
+  );
+}
 
 export function loadDocumentData<K extends DocumentKind>(
   db: XosClient,
