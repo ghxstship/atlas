@@ -56,7 +56,7 @@ GitHub private reporting is off too (step 5). So after this branch deploys, `SEC
    Vercel's A records for the sites stay as they are. Do not touch the records under `mail.` or `inbound.`, which belong to Resend and to reply by email.
 
 3. **Create the addresses:** `security`, `legal`, `privacy`, `support`, `abuse`, `accessibility` and `copyright`, as groups at [Directory, Groups](https://admin.google.com/ac/groups) so that a second person can be added later. Google's groups refuse outside mail by default: set **Who can post** to "Anyone on the web" on each, or the mail bounces all the same.
-4. **Stop others forging these addresses.** Monitoring only for now, as with `mail.ghxstship.tech` (ADR 0033, decision 46). These records change only the top-level domain:
+4. **Stop others forging these addresses.** Monitoring only for now, as with `mail.ghxstship.tech` (ADR 0033, decision 46). They change no delivery, and `mail.` keeps its own policy:
 
    ```sh
    vercel dns add ghxstship.tech '@' TXT 'v=spf1 include:_spf.google.com ~all' --scope ghxstship
