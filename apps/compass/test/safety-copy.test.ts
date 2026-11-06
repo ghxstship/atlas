@@ -37,6 +37,11 @@ describe("Compass safety wording", () => {
     expect(incidents("en-US")["nearMiss"]).toMatch(/Level 5 - Advisory/);
     expect(incidents("en-US")["nearMiss"]).toMatch(/Near miss/);
     expect(incidents("es-US")["nearMiss"]).toMatch(/Level 5 - Advisory/);
+    // One marker in every language, in the field as it is labelled, so a mixed crew's reports are found by one search.
+    expect(incidents("es-US")["nearMiss"]).toMatch(/Near miss/);
+    for (const locale of ["en-US", "es-US"] as const) {
+      expect(incidents(locale)["nearMiss"]).toContain(String(incidents(locale)["titleLabel"]));
+    }
   });
 
   it("does not imply XOS took a failed unit out of service", () => {

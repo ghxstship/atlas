@@ -524,7 +524,7 @@
     "new": "Reportar incidente",
     "empty": "No hay incidentes en este proyecto. Repórtalo en el momento en que ocurra.",
     "emergencyFirst": "En una emergencia, llama primero a tu número local de emergencias. XOS no avisa a los servicios de emergencia.",
-    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige Level 5 - Advisory y empieza la descripción con Casi accidente, para encontrarlo después.",
+    "nearMiss": "¿Casi accidente? Si pudo lastimar a alguien o causar daños, pero no lo hizo, elige Level 5 - Advisory y empieza Qué pasó con las palabras Near miss, para encontrarlo después.",
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
@@ -669,7 +669,9 @@
     "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí.",
     "update": "Novedad",
     "updateFrom": "Novedad de {org}",
-    "new": "Nuevo"
+    "new": "Nuevo",
+    "crisisAlert": "Alerta de crisis en {project}: {code}",
+    "crisisAllClear": "Fin de alerta en {project}: {code}"
   },
   "more": {
     "title": "Más",

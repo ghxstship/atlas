@@ -524,7 +524,7 @@
     "new": "Report Incident",
     "empty": "No incidents on this project. Report one the moment it happens.",
     "emergencyFirst": "In an emergency, call your local emergency number first. XOS does not alert emergency services.",
-    "nearMiss": "Near miss? If it could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start the description with Near miss, so it can be found later.",
+    "nearMiss": "Near miss? If it could have hurt someone or caused damage but did not, choose Level 5 - Advisory and start What happened with the words Near miss, so it can be found later.",
     "step": "Step {step} of 3",
     "severity": "How serious is it?",
     "location": "Location",
@@ -669,7 +669,9 @@
     "empty": "You're all caught up. Approvals and messages appear here.",
     "update": "Update",
     "updateFrom": "Update from {org}",
-    "new": "New"
+    "new": "New",
+    "crisisAlert": "Crisis alert at {project}: {code}",
+    "crisisAllClear": "All clear at {project}: {code}"
   },
   "more": {
     "title": "More",

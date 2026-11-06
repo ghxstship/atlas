@@ -218,6 +218,8 @@
         "closeOut": "Cierre"
       },
       "blocked": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.",
+      "blockedCompliance": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Abre Cumplimiento para ver lo pendiente.",
+      "blockedHere": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios. Lo pendiente aparece en esta página.",
       "rate": "Tu tarifa",
       "rateHidden": "Se muestra mientras el área de pagos esté abierta",
       "payBasis": "Base de pago",
@@ -379,7 +381,9 @@
       "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
       "insurance": "Certificados de seguro",
       "noInsurance": "No hay certificado de seguro registrado. Cuando la organización lo pida, súbelo en Pasos de cumplimiento en esta página.",
-      "uploadWaiting": "{names}: recibido y en espera de revisión. La organización registra tu certificado después de revisar el archivo.",
+      "noInsuranceYet": "Aún no hay certificado de seguro registrado.",
+      "uploadWaiting": "{names}: recibido y en espera de revisión. Si es tu certificado de seguro, la organización lo registra aquí después de revisarlo.",
+      "uploadPassed": "{names}: revisado y aprobado. Si es tu certificado de seguro, la organización todavía tiene que registrarlo aquí.",
       "current": "Vigente",
       "expired": "Vencido",
       "prequalification": "Precalificación",
@@ -1628,6 +1632,8 @@
         "shiftAssigned": "Nuevo turno: {title}",
         "shiftChanged": "Turno modificado: {title}",
         "messageReceived": "Mensaje nuevo",
+        "crisisAlert": "Alerta de crisis en {project}: {title}. {message}",
+        "crisisAllClear": "Fin de alerta en {project}: {title}",
         "other": "{title}",
         "untitled": "Novedad"
       }

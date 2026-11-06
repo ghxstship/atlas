@@ -3,29 +3,8 @@ import type { XosClient } from "@xos/data";
 import { FyiList, type FyiRow } from "@/components/home/fyi-list";
 import { RegionError, Section } from "@/components/page/page";
 import { formatDateTime } from "@/lib/format";
+import { fyiSentence } from "@/lib/fyi-sentence";
 import type { Translate } from "@/lib/shell/translate";
-
-/** Notification kinds with their own sentence, with their catalog key under gateway.home. */
-const KINDS: Readonly<Record<string, string>> = {
-  "invoice.submitted": "updates.kinds.invoiceSubmitted",
-  "invoice.approved": "updates.kinds.invoiceApproved",
-  "invoice.scheduled": "updates.kinds.invoiceScheduled",
-  "invoice.paid": "updates.kinds.invoicePaid",
-  // Saved-search matches and expiry reminders (A89, migrations 1462 and 1463).
-  "opportunity.matched": "updates.kinds.opportunityMatched",
-  "onboarding.item_expiring": "updates.kinds.onboardingExpiring",
-  "certification.expiring": "updates.kinds.certificationExpiring",
-  "document.expiring": "updates.kinds.documentExpiring",
-  // Offers, shifts and messages (A127, migration 5200).
-  "offer.sent": "fyi.kinds.offerSent",
-  "shift.assigned": "fyi.kinds.shiftAssigned",
-  "shift.changed": "fyi.kinds.shiftChanged",
-  "message.received": "fyi.kinds.messageReceived",
-  // A company entered project details for the person (R5): they open their details here and correct them.
-  "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
-  // P5: an org asks for a badge photo (5822); the item opens Profile, Badge photos.
-  "credential_photo.requested": "updates.kinds.badgePhotoRequested",
-};
 
 /** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
 const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
@@ -55,21 +34,7 @@ export async function ForYourInformation({
       </Section>
     );
   const rows: FyiRow[] = result.data.map((n) => {
-    const key = KINDS[n.kind];
-    const values = {
-      title: n.args["title"] ?? "",
-      orgName: n.args["orgName"] ?? "",
-      searchName: n.args["searchName"] ?? "",
-      expiresOn: n.args["expiresOn"] ?? "",
-      kind: n.args["kind"] ?? "other",
-      actorName: n.args["actorName"] ?? "",
-      projectName: n.args["projectName"] ?? "",
-    };
-    const text = key
-      ? t(`gateway.home.${key}`, values)
-      : values.title
-        ? t("gateway.home.fyi.kinds.other", values)
-        : t("gateway.home.fyi.kinds.untitled");
+    const text = fyiSentence(t, n);
     const path = n.args["gatewayPath"];
     return {
       id: n.id,

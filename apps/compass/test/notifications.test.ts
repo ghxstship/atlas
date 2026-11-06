@@ -1,8 +1,10 @@
+import { getMessages } from "@xos/i18n";
 import { describe, expect, it } from "vitest";
 import {
   actRequest,
   APPROVAL_CATEGORY,
   DEFAULT_ACTION,
+  crisisAlertNotice,
   inboxRecordKey,
   inboxTarget,
   isApprovalTap,
@@ -194,6 +196,36 @@ describe("the in-app Inbox opens notifications the same way", () => {
     expect(inboxRecordKey(row({ lookedUpRecordKey: "NWS-42" }))).toBe("NWS-42");
     expect(inboxRecordKey(row({ args: { recordKey: "NWS-7" } }))).toBe("NWS-7");
     expect(inboxRecordKey(row({ lookedUpRecordKey: "bad" }))).toBeNull();
+  });
+
+  it("reads a crisis alert with what to do, and its all-clear as an all-clear", () => {
+    const args = {
+      title: "Code Red",
+      project: "Summer Series",
+      message: " Clear the north lawn. ",
+    };
+    expect(crisisAlertNotice(row({ kind: "crisis_alert.issued", args }))).toEqual({
+      ended: false,
+      code: "Code Red",
+      project: "Summer Series",
+      message: "Clear the north lawn.",
+    });
+    const { message: _message, ...cleared } = args;
+    expect(crisisAlertNotice(row({ kind: "crisis_alert.ended", args: cleared }))).toEqual({
+      ended: true,
+      code: "Code Red",
+      project: "Summer Series",
+      message: "",
+    });
+    expect(crisisAlertNotice(row())).toBeNull();
+    for (const locale of ["en-US", "es-US"] as const) {
+      const inbox = (
+        getMessages(locale) as unknown as Record<string, Record<string, Record<string, string>>>
+      )["compass"]?.["inbox"];
+      expect(inbox?.["crisisAlert"]).toContain("{project}");
+      expect(inbox?.["crisisAllClear"]).toContain("{code}");
+      expect(inbox?.["crisisAlert"]).not.toEqual(inbox?.["crisisAllClear"]);
+    }
   });
 
   it("opens a Gateway page for what Compass has no screen for, and otherwise only informs", () => {

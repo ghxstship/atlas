@@ -218,6 +218,8 @@
         "closeOut": "Close-out"
       },
       "blocked": "This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.",
+      "blockedCompliance": "This engagement is blocked until every required step passes. Open Compliance to see what is left.",
+      "blockedHere": "This engagement is blocked until every required step passes. What is left is listed on this page.",
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
@@ -379,7 +381,9 @@
       "empty": "No compliance items yet. Insurance and prequalification appear here.",
       "insurance": "Insurance certificates",
       "noInsurance": "No insurance certificate on file. When the organization asks for one, upload it under Compliance steps on this page.",
-      "uploadWaiting": "{names}: received and waiting for review. The organization records your certificate after it has checked the file.",
+      "noInsuranceYet": "No insurance certificate recorded yet.",
+      "uploadWaiting": "{names}: received and waiting for review. If this is your insurance certificate, the organization records it here after checking it.",
+      "uploadPassed": "{names}: reviewed and passed. If this is your insurance certificate, the organization still has to record it here.",
       "current": "Current",
       "expired": "Expired",
       "prequalification": "Prequalification",
@@ -1628,6 +1632,8 @@
         "shiftAssigned": "New shift: {title}",
         "shiftChanged": "Shift changed: {title}",
         "messageReceived": "New message",
+        "crisisAlert": "Crisis alert at {project}: {title}. {message}",
+        "crisisAllClear": "All clear at {project}: {title}",
         "other": "{title}",
         "untitled": "New update"
       }
