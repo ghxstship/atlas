@@ -239,12 +239,10 @@ const VendorIntakeLink = editDefinition(
       collect_payout: z
         .boolean()
         .meta({ description: "True when the intake asks for a payout reference.", example: true }),
-      collect_invoice: z
-        .boolean()
-        .meta({
-          description: "True when a request may carry a first invoice draft.",
-          example: false,
-        }),
+      collect_invoice: z.boolean().meta({
+        description: "True when a request may carry a first invoice draft.",
+        example: false,
+      }),
       token_hint: fields.text("Last four characters of the token, to tell links apart.", "3f9a", 4),
       expires_at: fields.instant(
         "When the link stops opening: within 90 days of when it was made.",
@@ -372,12 +370,10 @@ const FormLink = editDefinition(
         .int()
         .nullable()
         .meta({ description: "Most responses in all, 1 to 10000, or none.", example: null }),
-      one_per_email: z
-        .boolean()
-        .meta({
-          description: "True when each email address answers the link once.",
-          example: true,
-        }),
+      one_per_email: z.boolean().meta({
+        description: "True when each email address answers the link once.",
+        example: true,
+      }),
       failed_attempts: fields.int(
         "Wrong access codes since the link was made or regenerated; it locks at 5.",
         0,
@@ -673,12 +669,10 @@ export const outsideAccessResources: readonly ResourceSpec[] = [
         summary: "Reset a recipient's access code",
         description:
           "Draws a new 6-digit code through app.reset_stakeholder_pack_recipient_code, answered once. Wrong-code attempts reset, which unlocks a locked recipient, and every device grant is dropped.",
-        response: z
-          .object({ access_code: accessCode })
-          .meta({
-            id: "StakeholderPackRecipientCodeReset",
-            description: "A recipient's new access code, shown once.",
-          }),
+        response: z.object({ access_code: accessCode }).meta({
+          id: "StakeholderPackRecipientCodeReset",
+          description: "A recipient's new access code, shown once.",
+        }),
         rpc: "reset_stakeholder_pack_recipient_code",
       }),
       itemAction("revoke", {
@@ -696,13 +690,10 @@ export const outsideAccessResources: readonly ResourceSpec[] = [
         body: z
           .object({
             stakeholder_pack_id: fields.ref("pack to send"),
-            recipient_ids: z
-              .array(fields.uuid("A recipient."))
-              .optional()
-              .meta({
-                description: "Only these recipients; every live recipient when left out.",
-                example: [],
-              }),
+            recipient_ids: z.array(fields.uuid("A recipient.")).optional().meta({
+              description: "Only these recipients; every live recipient when left out.",
+              example: [],
+            }),
           })
           .meta({ id: "StakeholderPackSendRequest", description: "Which recipients to email." }),
         response: z

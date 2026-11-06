@@ -3,14 +3,26 @@ import { CLIENT_ERROR_ROUTES } from "../lib/client-error-routes";
 import { intakeSteps, intakeTaxKinds, todayIn, toMinorUnits } from "../lib/intake-steps";
 import { KNOWN_REFUSALS } from "../lib/action-result";
 
-const base = { roleType: "Contractor", collectTaxForm: false, collectPayout: false, collectInvoice: false, agreement: null } as const;
+const base = {
+  roleType: "Contractor",
+  collectTaxForm: false,
+  collectPayout: false,
+  collectInvoice: false,
+  agreement: null,
+} as const;
 
 describe("the vendor intake wizard's plan", () => {
   it("asks only what the link collects, and always ends on Review", () => {
     expect(intakeSteps(base)).toEqual(["review"]);
     expect(intakeSteps({ ...base, roleType: "Vendor" })).toEqual(["company", "review"]);
     expect(
-      intakeSteps({ roleType: "Vendor", collectTaxForm: true, collectPayout: true, collectInvoice: true, agreement: { title: "MSA" } }),
+      intakeSteps({
+        roleType: "Vendor",
+        collectTaxForm: true,
+        collectPayout: true,
+        collectInvoice: true,
+        agreement: { title: "MSA" },
+      }),
     ).toEqual(["company", "tax", "payout", "agreement", "invoice", "review"]);
   });
 
@@ -41,7 +53,12 @@ describe("what leaves the browser", () => {
 
 describe("intake refusals", () => {
   it("have their own copy", () => {
-    for (const rule of ["payout_reference_bank_number", "vendor_intake_signature", "intake_link_full", "intake_invoice_used"]) {
+    for (const rule of [
+      "payout_reference_bank_number",
+      "vendor_intake_signature",
+      "intake_link_full",
+      "intake_invoice_used",
+    ]) {
       expect(KNOWN_REFUSALS).toContain(rule);
     }
   });

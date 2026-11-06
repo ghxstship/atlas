@@ -14,7 +14,13 @@ import {
   type IntakeOnFileChoice,
   type IntakeResult,
 } from "@/lib/actions/intake";
-import { intakeSteps, intakeTaxKinds, todayIn, toMinorUnits, type IntakeStep } from "@/lib/intake-steps";
+import {
+  intakeSteps,
+  intakeTaxKinds,
+  todayIn,
+  toMinorUnits,
+  type IntakeStep,
+} from "@/lib/intake-steps";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -34,10 +40,7 @@ function Outcome({ outcome }: { outcome: string | null }) {
 }
 
 /** Runs one step's action; on success the wizard moves on. */
-function useStep<T>(
-  run: (data: FormData) => Promise<IntakeResult<T>>,
-  onDone: (value: T) => void,
-) {
+function useStep<T>(run: (data: FormData) => Promise<IntakeResult<T>>, onDone: (value: T) => void) {
   return useActionState(async (_s: StepState, data: FormData) => {
     const result = await run(data);
     if (!result.ok) return { outcome: result.outcome };
@@ -213,7 +216,9 @@ export function IntakeWizard({
       {step === "tax" ? (
         tax ? (
           <div className="flex flex-col gap-12">
-            <p className="m-0 text-text-13">{t("taxOnFile", { kind: tax.kind, last4: tax.last4 })}</p>
+            <p className="m-0 text-text-13">
+              {t("taxOnFile", { kind: tax.kind, last4: tax.last4 })}
+            </p>
             <div className="flex flex-wrap gap-8">
               <Button type="button" variant="ghost" onClick={back}>
                 {t("back")}
@@ -224,7 +229,11 @@ export function IntakeWizard({
             </div>
           </div>
         ) : (
-          <form action={taxAction} onSubmit={keepInputOnSubmit(taxAction)} className="flex flex-col gap-12">
+          <form
+            action={taxAction}
+            onSubmit={keepInputOnSubmit(taxAction)}
+            className="flex flex-col gap-12"
+          >
             <Outcome outcome={taxState.outcome} />
             {onFile?.taxForm ? (
               <div className="flex flex-col gap-8">
@@ -264,19 +273,29 @@ export function IntakeWizard({
               label={t("tin")}
               help={t("tinHelp")}
             />
-            {accountId === null ? <Checkbox id="intake-withholding" name="withholding" label={t("withholding")} /> : null}
+            {accountId === null ? (
+              <Checkbox id="intake-withholding" name="withholding" label={t("withholding")} />
+            ) : null}
             {nav({ label: t("next"), pending: taxPending })}
           </form>
         )
       ) : null}
 
       {step === "payout" ? (
-        <form action={payoutAction} onSubmit={keepInputOnSubmit(payoutAction)} className="flex flex-col gap-12">
+        <form
+          action={payoutAction}
+          onSubmit={keepInputOnSubmit(payoutAction)}
+          className="flex flex-col gap-12"
+        >
           <Outcome outcome={payoutState.outcome} />
-          <p className="m-0 text-text-13 text-text-secondary">{t("payoutIntro", { org: link.orgName })}</p>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("payoutIntro", { org: link.orgName })}
+          </p>
           {onFile?.payout && !payout ? (
             <div className="flex flex-wrap items-center gap-8">
-              <span className="text-text-13">{t("payoutReuse", { reference: onFile.payout.reference })}</span>
+              <span className="text-text-13">
+                {t("payoutReuse", { reference: onFile.payout.reference })}
+              </span>
               <Button
                 type="button"
                 size="sm"
@@ -336,7 +355,12 @@ export function IntakeWizard({
             <Button type="button" variant="ghost" onClick={back}>
               {t("back")}
             </Button>
-            <Button type="button" variant="secondary" disabled={signer.trim() === ""} onClick={next}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={signer.trim() === ""}
+              onClick={next}
+            >
               {t("next")}
             </Button>
           </div>
@@ -356,13 +380,25 @@ export function IntakeWizard({
       ) : null}
 
       {step === "review" ? (
-        <form action={submitAction} onSubmit={keepInputOnSubmit(submitAction)} className="flex flex-col gap-12">
+        <form
+          action={submitAction}
+          onSubmit={keepInputOnSubmit(submitAction)}
+          className="flex flex-col gap-12"
+        >
           <Outcome outcome={submitState.outcome} />
           <ul className="m-0 flex flex-col gap-4 ps-16 text-text-13">
-            {accountId ? <li>{t("reviewAccount", { name: accounts.find((a) => a.id === accountId)?.name ?? t("newAccountName") })}</li> : null}
+            {accountId ? (
+              <li>
+                {t("reviewAccount", {
+                  name: accounts.find((a) => a.id === accountId)?.name ?? t("newAccountName"),
+                })}
+              </li>
+            ) : null}
             {tax ? <li>{t("taxOnFile", { kind: tax.kind, last4: tax.last4 })}</li> : null}
             {payout ? <li>{t("payoutOnFile", { reference: payout.reference })}</li> : null}
-            {link.agreement && signer ? <li>{t("reviewSigned", { name: signer, version: link.agreement.version })}</li> : null}
+            {link.agreement && signer ? (
+              <li>{t("reviewSigned", { name: signer, version: link.agreement.version })}</li>
+            ) : null}
             {lines.length > 0 ? <li>{t("reviewInvoice", { count: lines.length })}</li> : null}
           </ul>
           <div className="flex flex-wrap gap-8">
@@ -425,10 +461,35 @@ function InvoiceStep({
   };
   if (!header) {
     return (
-      <form action={saveHeader} onSubmit={keepInputOnSubmit(saveHeader)} className="flex flex-col gap-12">
-        <Input id="invoice-number" name="number" label={t("invoiceNumber")} maxLength={60} required width="100%" />
-        <Input id="invoice-issued" name="issued" type="date" label={t("issueDate")} defaultValue={today} required />
-        <Input id="invoice-due" name="due" type="date" label={t("dueDate")} defaultValue={today} required />
+      <form
+        action={saveHeader}
+        onSubmit={keepInputOnSubmit(saveHeader)}
+        className="flex flex-col gap-12"
+      >
+        <Input
+          id="invoice-number"
+          name="number"
+          label={t("invoiceNumber")}
+          maxLength={60}
+          required
+          width="100%"
+        />
+        <Input
+          id="invoice-issued"
+          name="issued"
+          type="date"
+          label={t("issueDate")}
+          defaultValue={today}
+          required
+        />
+        <Input
+          id="invoice-due"
+          name="due"
+          type="date"
+          label={t("dueDate")}
+          defaultValue={today}
+          required
+        />
         <Select
           id="invoice-currency"
           name="currency"
@@ -454,9 +515,31 @@ function InvoiceStep({
     <div className="flex flex-col gap-12">
       {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
       <form action={addLine} onSubmit={keepInputOnSubmit(addLine)} className="flex flex-col gap-12">
-        <Input id="line-description" name="description" label={t("lineDescription")} maxLength={500} required width="100%" />
-        <Input id="line-quantity" name="quantity" type="number" min={0} step="any" defaultValue={1} label={t("lineQuantity")} required />
-        <Input id="line-price" name="price" inputMode="decimal" label={t("linePrice")} help={t("linePriceHelp")} />
+        <Input
+          id="line-description"
+          name="description"
+          label={t("lineDescription")}
+          maxLength={500}
+          required
+          width="100%"
+        />
+        <Input
+          id="line-quantity"
+          name="quantity"
+          type="number"
+          min={0}
+          step="any"
+          defaultValue={1}
+          label={t("lineQuantity")}
+          required
+        />
+        <Input
+          id="line-price"
+          name="price"
+          inputMode="decimal"
+          label={t("linePrice")}
+          help={t("linePriceHelp")}
+        />
         <div>
           <Button type="submit" size="sm" variant="secondary">
             {t("addLine")}
@@ -466,8 +549,13 @@ function InvoiceStep({
       {lines.length > 0 ? (
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
           {lines.map((line, index) => (
-            <li key={`${line.description}-${index}`} className="flex items-center justify-between gap-8 py-8 text-text-13">
-              <span>{t("lineSummary", { description: line.description, quantity: line.quantity })}</span>
+            <li
+              key={`${line.description}-${index}`}
+              className="flex items-center justify-between gap-8 py-8 text-text-13"
+            >
+              <span>
+                {t("lineSummary", { description: line.description, quantity: line.quantity })}
+              </span>
               <Button
                 type="button"
                 size="sm"

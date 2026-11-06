@@ -30,7 +30,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * A public form link (B2, ADR 0141): the access code, then a form in windows, then a thank-you. No account is offered.
  * The read answers only key, label, kind, required, choices and show_if: never points, the record kind or the approver.
  */
-export default async function PublicFormPage({ params, searchParams }: PageProps<"/forms/[token]">) {
+export default async function PublicFormPage({
+  params,
+  searchParams,
+}: PageProps<"/forms/[token]">) {
   const { token } = await params;
   if (!FORM_LINK_TOKEN.test(token)) notFound();
   const query = await searchParams;
@@ -39,12 +42,16 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
   const t = await getTranslate();
   const grant = (await cookies()).get(FORM_GRANT_COOKIE)?.value ?? null;
   const path = `/forms/${token}`;
-  const heading = <h1 className="m-0 text-heading-24 font-semibold">{t("gateway.publicForm.title")}</h1>;
+  const heading = (
+    <h1 className="m-0 text-heading-24 font-semibold">{t("gateway.publicForm.title")}</h1>
+  );
   const codeForm = (reason: FormLinkRefusal | null) => (
     <OutsideCodeForm
       action={`${path}/open`}
       intro={t("gateway.publicForm.codeIntro")}
-      refusal={reason && reason !== "form_link_grant" ? t(`gateway.tokens.refusals.${reason}`) : null}
+      refusal={
+        reason && reason !== "form_link_grant" ? t(`gateway.tokens.refusals.${reason}`) : null
+      }
       stop={reason === "form_link_locked" || reason === "form_link_expired"}
     />
   );
@@ -62,7 +69,10 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
     clientAddress: visitorAddress(await headers()),
   });
   if (!read.ok) {
-    observability.logger.error("public form read failed", { route: "/forms/[token]", error: read.error });
+    observability.logger.error("public form read failed", {
+      route: "/forms/[token]",
+      error: read.error,
+    });
     throw new Error("public form read failed");
   }
   if (read.data.refused) {
@@ -72,7 +82,9 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
         {formLinkAsksForCode(read.data.reason) ? (
           codeForm(read.data.reason)
         ) : (
-          <InlineAlert tone="danger">{t(`gateway.tokens.refusals.${read.data.reason}`)}</InlineAlert>
+          <InlineAlert tone="danger">
+            {t(`gateway.tokens.refusals.${read.data.reason}`)}
+          </InlineAlert>
         )}
       </>
     );
@@ -90,7 +102,9 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
       </header>
       <PublicFormFill token={token} fields={form.fields} />
       {form.suppressPoweredBy ? null : (
-        <footer className="text-text-12 text-text-secondary">{t("gateway.publicForm.poweredBy")}</footer>
+        <footer className="text-text-12 text-text-secondary">
+          {t("gateway.publicForm.poweredBy")}
+        </footer>
       )}
     </>
   );

@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(34);
+select plan(36);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -77,6 +77,17 @@ select is(pg_temp.try('dave', format($$select app.create_stakeholder_pack(%L, 'M
   '42501', 'a member without projects.settings.write on the project makes no pack');
 select is(pg_temp.try('xavier', format($$select app.create_stakeholder_pack(%L, 'Theirs', now() + interval '5 days')$$, pg_temp.id('prj_a'))),
   '42501', 'nor does someone of another org');
+-- A partner org reaching the project through a share, even holding the capability, never publishes it.
+select pg_temp.as_platform();
+insert into private.project_role_capabilities (project_role, capability_code) values ('Field Supervisor', 'projects.settings.write') on conflict do nothing;
+select pg_temp.as_user('bob');
+insert into app.project_shares (project_id, partner_organization_id, project_role) values (pg_temp.id('prj_a'), pg_temp.id('org_p'), 'Field Supervisor');
+select pg_temp.as_platform();
+select is(pg_temp.try('paul', format($$select app.create_stakeholder_pack(%L, 'Partner', now() + interval '5 days')$$, pg_temp.id('prj_a'))),
+  '42501', 'a partner-org member reaching the project through a share makes no pack');
+select pg_temp.as_user('paul');
+select is((select count(*)::int from app.stakeholder_packs where project_id = pg_temp.id('prj_a')), 0, 'and reads none');
+select pg_temp.as_platform();
 select is(pg_temp.try('carol', format($$select app.create_stakeholder_pack(%L, 'Old', now() - interval '1 day')$$, pg_temp.id('prj_a'))),
   'stakeholder_pack_expiry_range', 'an expiry in the past is refused');
 select is(pg_temp.try('carol', format($$select app.create_stakeholder_pack(%L, 'Far', now() + interval '91 days')$$, pg_temp.id('prj_a'))),

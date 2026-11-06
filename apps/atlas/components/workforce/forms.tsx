@@ -123,9 +123,7 @@ export async function FormsSection({
         properties={[
           { label: t("forms.submittedAt"), value: when(selected.createdAt) },
           ...(selected.formLinkId
-            ? [
-                { label: t("forms.publicLink.badge"), value: selected.respondentEmail ?? "" },
-              ]
+            ? [{ label: t("forms.publicLink.badge"), value: selected.respondentEmail ?? "" }]
             : []),
           {
             label: t("forms.version"),
@@ -200,7 +198,10 @@ export async function FormsSection({
       cells: {
         form: s.templateName ?? t("forms.form"),
         by: s.formLinkId
-          ? t("forms.publicLink.by", { name: s.respondentName ?? "", email: s.respondentEmail ?? "" })
+          ? t("forms.publicLink.by", {
+              name: s.respondentName ?? "",
+              email: s.respondentEmail ?? "",
+            })
           : (s.submittedByName ?? t("someone")),
         state: submissionState(s, t),
         score: s.score,
@@ -336,7 +337,13 @@ export async function FormsSection({
       >
         {form.state === "Published" && canPublish ? (
           <KitSection id="form-public-link" title={t("forms.publicLink.title")}>
-            <FormLinkAction org={ctx.org.slug} templateId={form.id} fields={form.fields} requiresSignature={form.requiresSignature} requiresLocation={form.requiresLocation} />
+            <FormLinkAction
+              org={ctx.org.slug}
+              templateId={form.id}
+              fields={form.fields}
+              requiresSignature={form.requiresSignature}
+              requiresLocation={form.requiresLocation}
+            />
           </KitSection>
         ) : null}
         {form.state === "Published" ? (

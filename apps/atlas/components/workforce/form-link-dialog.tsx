@@ -68,7 +68,11 @@ export function FormLinkDialog({
         </Button>
       }
     >
-      <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
+      <form
+        action={dispatch}
+        onSubmit={keepInputOnSubmit(dispatch)}
+        className="flex flex-col gap-8"
+      >
         {state.error ? (
           <InlineAlert tone="danger">
             {errors.has?.(state.error) === false ? errors("unexpected") : errors(state.error)}

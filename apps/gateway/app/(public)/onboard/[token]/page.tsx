@@ -8,7 +8,8 @@ import {
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getFormatter } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { getFormatter, getMessages } from "next-intl/server";
 import { IntakeWizard } from "@/components/outside/intake-wizard";
 import { OutsideCodeForm } from "@/components/outside/code-form";
 import { ButtonLink, InlineAlert } from "@/components/ui";
@@ -34,7 +35,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * creates an account, which they do themselves, and the steps run on their session. Never the team's note, the rate,
  * the agreement's body or the org's id.
  */
-export default async function VendorIntakePage({ params, searchParams }: PageProps<"/onboard/[token]">) {
+export default async function VendorIntakePage({
+  params,
+  searchParams,
+}: PageProps<"/onboard/[token]">) {
   const { token } = await params;
   if (!INTAKE_TOKEN.test(token)) notFound();
   const query = await searchParams;
@@ -92,6 +96,11 @@ export default async function VendorIntakePage({ params, searchParams }: PagePro
   const link = read.data;
   const format = await getFormatter();
   const ctx = await getGatewayContext();
+  // The wizard's copy goes only to this page: gatewayOnboarding is not one of Gateway's client namespaces.
+  const messages = (await getMessages()) as unknown as {
+    gateway: { outcomes: unknown };
+    gatewayOnboarding: { intake: unknown };
+  };
   const asks = [
     link.roleType === "Vendor" ? t("gatewayOnboarding.intake.asks.company") : null,
     link.collectTaxForm ? t("gatewayOnboarding.intake.asks.tax") : null,
@@ -121,7 +130,9 @@ export default async function VendorIntakePage({ params, searchParams }: PagePro
           })}
         </p>
       </header>
-      {asked ? <InlineAlert tone="warning">{t(`gateway.tokens.refusals.${asked}`)}</InlineAlert> : null}
+      {asked ? (
+        <InlineAlert tone="warning">{t(`gateway.tokens.refusals.${asked}`)}</InlineAlert>
+      ) : null}
       {link.full ? (
         <InlineAlert tone="warning">{t("gateway.tokens.refusals.intake_link_full")}</InlineAlert>
       ) : ctx === null ? (
@@ -136,22 +147,28 @@ export default async function VendorIntakePage({ params, searchParams }: PagePro
             {t("gatewayOnboarding.intake.signInWhy")}
           </p>
           <div>
-            <ButtonLink
-              variant="primary"
-              href={`/auth/sign-in?next=${encodeURIComponent(path)}`}
-            >
+            <ButtonLink variant="primary" href={`/auth/sign-in?next=${encodeURIComponent(path)}`}>
               {t("gatewayOnboarding.intake.continue")}
             </ButtonLink>
           </div>
         </section>
       ) : (
-        <IntakeWizard
-          token={token}
-          link={link}
-          accounts={ctx.accounts
-            .filter((a) => a.roles.includes("Account Owner") || a.roles.includes("Account Admin"))
-            .map((a) => ({ id: a.id, name: a.name }))}
-        />
+        <NextIntlClientProvider
+          messages={
+            {
+              gateway: { outcomes: messages.gateway.outcomes },
+              gatewayOnboarding: { intake: messages.gatewayOnboarding.intake },
+            } as never
+          }
+        >
+          <IntakeWizard
+            token={token}
+            link={link}
+            accounts={ctx.accounts
+              .filter((a) => a.roles.includes("Account Owner") || a.roles.includes("Account Admin"))
+              .map((a) => ({ id: a.id, name: a.name }))}
+          />
+        </NextIntlClientProvider>
       )}
       {link.suppressPoweredBy ? null : (
         <footer className="text-text-12 text-text-secondary">

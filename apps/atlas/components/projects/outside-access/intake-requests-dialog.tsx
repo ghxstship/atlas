@@ -56,10 +56,24 @@ function Decide({
         maxLength={1000}
       />
       <div className="flex gap-8">
-        <Button type="submit" size="sm" variant="secondary" name="decision" value="approve" loading={pending}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="secondary"
+          name="decision"
+          value="approve"
+          loading={pending}
+        >
           {t("approve")}
         </Button>
-        <Button type="submit" size="sm" variant="ghost" name="decision" value="decline" loading={pending}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="ghost"
+          name="decision"
+          value="decline"
+          loading={pending}
+        >
           {t("decline")}
         </Button>
       </div>
@@ -72,7 +86,13 @@ function Decide({
  * app.vendor_intake_request_party. Tax and payout rows read under their own policies: a holder of the Restricted
  * capabilities sees the kind and last four, everyone else only that one is on file.
  */
-export function IntakeRequestsDialog({ refs, onClose }: { refs: ProjectKeyRef; onClose: () => void }) {
+export function IntakeRequestsDialog({
+  refs,
+  onClose,
+}: {
+  refs: ProjectKeyRef;
+  onClose: () => void;
+}) {
   const t = useTranslations("projects.outsideAccess.requests") as unknown as Translate;
   const format = useFormatter();
   const router = useRouter();
@@ -112,33 +132,50 @@ export function IntakeRequestsDialog({ refs, onClose }: { refs: ProjectKeyRef; o
                 <h3 className="m-0 text-label-13 font-medium">{t(`states.${state}`)}</h3>
                 <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
                   {inState.map((row) => (
-                    <li key={row.request.id} className="flex flex-col gap-8 py-8" data-intake-request={row.request.id}>
+                    <li
+                      key={row.request.id}
+                      className="flex flex-col gap-8 py-8"
+                      data-intake-request={row.request.id}
+                    >
                       <span className="text-text-13">
                         {row.party?.accountName
-                          ? t("partyAccount", { account: row.party.accountName, name: row.party.requesterName })
+                          ? t("partyAccount", {
+                              account: row.party.accountName,
+                              name: row.party.requesterName,
+                            })
                           : (row.party?.requesterName ?? t("someone"))}
                       </span>
                       <span className="text-text-12 text-text-secondary">
                         {[
                           format.dateTime(new Date(row.request.createdAt), { dateStyle: "medium" }),
                           row.onFile.tinLast4
-                            ? t("taxLast4", { kind: row.onFile.taxFormKind ?? "", last4: row.onFile.tinLast4 })
+                            ? t("taxLast4", {
+                                kind: row.onFile.taxFormKind ?? "",
+                                last4: row.onFile.tinLast4,
+                              })
                             : row.request.taxFormId
                               ? t("taxOnFile", { kind: row.onFile.taxFormKind ?? t("taxForm") })
                               : null,
                           row.onFile.payoutLast4
-                            ? t("payoutLast4", { provider: row.onFile.payoutProvider ?? "", last4: row.onFile.payoutLast4 })
+                            ? t("payoutLast4", {
+                                provider: row.onFile.payoutProvider ?? "",
+                                last4: row.onFile.payoutLast4,
+                              })
                             : row.request.payoutAccountId
                               ? t("payoutOnFile")
                               : null,
-                          row.request.signerName ? t("signed", { name: row.request.signerName }) : null,
+                          row.request.signerName
+                            ? t("signed", { name: row.request.signerName })
+                            : null,
                           row.request.hasInvoiceDraft ? t("invoiceDraft") : null,
                         ]
                           .filter((part) => part !== null)
                           .join(" · ")}
                       </span>
                       {row.request.decisionReason ? (
-                        <span className="text-text-12 text-text-secondary">{row.request.decisionReason}</span>
+                        <span className="text-text-12 text-text-secondary">
+                          {row.request.decisionReason}
+                        </span>
                       ) : null}
                       {state === "Pending" ? (
                         <Decide

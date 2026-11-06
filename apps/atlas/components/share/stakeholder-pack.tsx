@@ -104,7 +104,9 @@ export async function PackItemRow({
       </span>
       {item.requiresAcknowledgement && item.available ? (
         signedOn ? (
-          <span className="text-text-12 text-text-secondary">{t("signedOn", { date: signedOn })}</span>
+          <span className="text-text-12 text-text-secondary">
+            {t("signedOn", { date: signedOn })}
+          </span>
         ) : (
           <form method="post" action={`${base}/sign`} className="flex flex-col gap-8">
             <Input

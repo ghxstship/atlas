@@ -27,13 +27,15 @@ const back = (token: string, reason: string | null, cookie?: string) =>
 
 export async function GET(_request: Request, { params }: RouteContext<"/onboard/[token]/open">) {
   const { token } = await params;
-  if (!INTAKE_TOKEN.test(token)) return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  if (!INTAKE_TOKEN.test(token))
+    return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
   return back(token, null);
 }
 
 export async function POST(request: Request, { params }: RouteContext<"/onboard/[token]/open">) {
   const { token } = await params;
-  if (!INTAKE_TOKEN.test(token)) return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  if (!INTAKE_TOKEN.test(token))
+    return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
   const form = await request.formData();
   const code = String(form.get("accessCode") ?? "").trim();
   const opened = await openIntake(publicDb(), {
@@ -52,6 +54,11 @@ export async function POST(request: Request, { params }: RouteContext<"/onboard/
   return back(
     token,
     null,
-    pathGrantCookie(INTAKE_GRANT_COOKIE, intakePath(token), opened.data.grant, opened.data.grantExpiresAt),
+    pathGrantCookie(
+      INTAKE_GRANT_COOKIE,
+      intakePath(token),
+      opened.data.grant,
+      opened.data.grantExpiresAt,
+    ),
   );
 }

@@ -5,7 +5,9 @@ const NOW = new Date("2026-03-01T12:00:00Z");
 
 describe("a pack expiry picked for a day", () => {
   it("ends at the end of that day in a project west of UTC", () => {
-    expect(endOfDayInZone("2026-03-02", "America/Los_Angeles", NOW)).toBe("2026-03-03T07:59:59.000Z");
+    expect(endOfDayInZone("2026-03-02", "America/Los_Angeles", NOW)).toBe(
+      "2026-03-03T07:59:59.000Z",
+    );
   });
 
   it("ends at the end of that day in a project east of UTC", () => {

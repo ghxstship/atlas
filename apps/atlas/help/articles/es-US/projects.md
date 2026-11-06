@@ -35,7 +35,6 @@ Elija **Nuevo proyecto**, indique un nombre, una clave y una zona horaria, y eli
 
 Algunas configuraciones del proyecto están bloqueadas por su organización; la página indica de dónde proviene el valor.
 
-
 ## Acceso externo
 
 La última sección de Configuración del proyecto muestra todo lo que llega al proyecto desde fuera de la organización: enlaces en vivo, enlaces de archivo, enlaces de avance y de firma, invitaciones al equipo, destinatarios de paquetes, enlaces de alta, enlaces de formulario y contrataciones. Cada fila muestra quién lo tiene, su estado, cuándo termina y cuántas veces se abrió. Revoca o regenera desde la fila. Un enlace y un código nuevos se muestran una vez, arriba de la lista, hasta que los descartes.

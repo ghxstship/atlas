@@ -71,8 +71,7 @@ import { dayInZone, endOfDayInZone } from "@/lib/stakeholder-packs/expiry";
  */
 
 export type OutsideResult<T> =
-  | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly error: string };
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: string };
 
 function refused(error: { kind: string; rule?: string }): { ok: false; error: string } {
   if (error.kind === "refusal" && error.rule) return { ok: false, error: error.rule };
@@ -135,7 +134,8 @@ export async function revokeSourceAction(
         return revokeFormLink(db, parsed.data);
       case "advance":
       case "signing": {
-        const rpc = kind === "advance" ? "revoke_advance_token" : "revoke_engagement_document_token";
+        const rpc =
+          kind === "advance" ? "revoke_advance_token" : "revoke_engagement_document_token";
         const { error } = await db.rpc(rpc, { p_token_id: parsed.data });
         return error ? fail(toDataError(error)) : ok("");
       }
@@ -325,9 +325,7 @@ export interface PackItemChoice {
 }
 
 /** What the Items step offers: the project's live links, and its Public or Internal files. */
-export async function packItemChoicesAction(
-  ref: ProjectKeyRef,
-): Promise<
+export async function packItemChoicesAction(ref: ProjectKeyRef): Promise<
   OutsideResult<{
     readonly links: readonly (LiveLink & { readonly title: string })[];
     readonly files: readonly PackItemChoice[];
@@ -488,19 +486,33 @@ export interface IntakeOptions {
   readonly lastDay: string;
 }
 
-export async function intakeOptionsAction(ref: ProjectKeyRef): Promise<OutsideResult<IntakeOptions>> {
+export async function intakeOptionsAction(
+  ref: ProjectKeyRef,
+): Promise<OutsideResult<IntakeOptions>> {
   const ctx = await project(ref);
   if (!ctx) return { ok: false, error: "notFound" };
   const db = ctx.org.viewer.db;
   const xpms = (db as unknown as { schema(name: string): typeof db }).schema("xpms");
   const [rates, classes, types, documents] = await Promise.all([
-    (xpms as never as { from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> } })
+    (
+      xpms as never as {
+        from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> };
+      }
+    )
       .from("rate_card")
       .select("role_code, worker_classification, pay_basis, arrangement, role:role(job_title)"),
-    (xpms as never as { from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> } })
+    (
+      xpms as never as {
+        from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> };
+      }
+    )
       .from("worker_classification")
       .select("code, is_employee"),
-    (xpms as never as { from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> } })
+    (
+      xpms as never as {
+        from(t: string): { select(c: string): Promise<{ data: unknown; error: unknown }> };
+      }
+    )
       .from("dim_counterparty_type")
       .select("counterparty_type"),
     db
@@ -542,10 +554,12 @@ export async function intakeOptionsAction(ref: ProjectKeyRef): Promise<OutsideRe
       counterpartyTypes: ((types.data ?? []) as { counterparty_type: string }[]).map(
         (t) => t.counterparty_type,
       ),
-      documents: ((documents.data ?? []) as unknown as { id: string; title: string }[]).map((d) => ({
-        id: d.id,
-        title: d.title,
-      })),
+      documents: ((documents.data ?? []) as unknown as { id: string; title: string }[]).map(
+        (d) => ({
+          id: d.id,
+          title: d.title,
+        }),
+      ),
       today: dayInZone(0, ctx.project.timeZone),
       lastDay: dayInZone(90, ctx.project.timeZone),
     },
@@ -633,8 +647,14 @@ export async function decideIntakeRequestAction(
 
 // Public form links (Knowledge, Forms) --------------------------------------------------------------------------
 
-export async function formLinkOptionsAction(org: string): Promise<
-  OutsideResult<{ readonly projects: readonly { value: string; label: string }[]; readonly today: string; readonly lastDay: string }>
+export async function formLinkOptionsAction(
+  org: string,
+): Promise<
+  OutsideResult<{
+    readonly projects: readonly { value: string; label: string }[];
+    readonly today: string;
+    readonly lastDay: string;
+  }>
 > {
   const ctx = await getOrgContext(org);
   if (!ctx) return { ok: false, error: "notFound" };

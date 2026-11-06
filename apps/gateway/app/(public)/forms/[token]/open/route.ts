@@ -26,13 +26,15 @@ const back = (token: string, reason: string | null, cookie?: string) =>
 
 export async function GET(_request: Request, { params }: RouteContext<"/forms/[token]/open">) {
   const { token } = await params;
-  if (!FORM_LINK_TOKEN.test(token)) return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  if (!FORM_LINK_TOKEN.test(token))
+    return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
   return back(token, null);
 }
 
 export async function POST(request: Request, { params }: RouteContext<"/forms/[token]/open">) {
   const { token } = await params;
-  if (!FORM_LINK_TOKEN.test(token)) return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  if (!FORM_LINK_TOKEN.test(token))
+    return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
   const form = await request.formData();
   const code = String(form.get("accessCode") ?? "").trim();
   const opened = await openFormLink(publicDb(), {
@@ -51,6 +53,11 @@ export async function POST(request: Request, { params }: RouteContext<"/forms/[t
   return back(
     token,
     null,
-    pathGrantCookie(FORM_GRANT_COOKIE, formLinkPath(token), opened.data.grant, opened.data.grantExpiresAt),
+    pathGrantCookie(
+      FORM_GRANT_COOKIE,
+      formLinkPath(token),
+      opened.data.grant,
+      opened.data.grantExpiresAt,
+    ),
   );
 }

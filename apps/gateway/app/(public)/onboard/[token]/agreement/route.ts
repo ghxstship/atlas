@@ -3,7 +3,12 @@ import { INTAKE_TOKEN, intakeAgreementTicket, intakePath } from "@xos/data/vendo
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 import { observability } from "@/lib/observability";
-import { INTAKE_GRANT_COOKIE, PUBLIC_HEADERS, publicDb, visitorAddress } from "@/lib/outside/public";
+import {
+  INTAKE_GRANT_COOKIE,
+  PUBLIC_HEADERS,
+  publicDb,
+  visitorAddress,
+} from "@/lib/outside/public";
 
 /**
  * Downloads an intake link's pinned agreement version (B2, ADR 0141): a POST, since each one logs. A 2-minute ticket
@@ -11,13 +16,20 @@ import { INTAKE_GRANT_COOKIE, PUBLIC_HEADERS, publicDb, visitorAddress } from "@
  */
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request, { params }: RouteContext<"/onboard/[token]/agreement">) {
+export async function POST(
+  request: Request,
+  { params }: RouteContext<"/onboard/[token]/agreement">,
+) {
   const { token } = await params;
-  if (!INTAKE_TOKEN.test(token)) return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  if (!INTAKE_TOKEN.test(token))
+    return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
   const back = (reason: string) =>
     new Response(null, {
       status: 303,
-      headers: { ...PUBLIC_HEADERS, Location: `${intakePath(token)}?reason=${encodeURIComponent(reason)}` },
+      headers: {
+        ...PUBLIC_HEADERS,
+        Location: `${intakePath(token)}?reason=${encodeURIComponent(reason)}`,
+      },
     });
   const issued = await intakeAgreementTicket(publicDb(), {
     token,

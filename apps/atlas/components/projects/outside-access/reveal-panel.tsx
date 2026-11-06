@@ -32,7 +32,13 @@ function CopyField({ id, label, value }: { id: string; label: string; value: str
  * The one-time reveal (B2, ADR 0141): a new link, code and QR code. It lives in client state above the list, never in
  * a row a refresh replaces, and stays through router.refresh until dismissed. A hashed token cannot be redrawn later.
  */
-export function RevealPanel({ revealed, onDismiss }: { revealed: Revealed; onDismiss: () => void }) {
+export function RevealPanel({
+  revealed,
+  onDismiss,
+}: {
+  revealed: Revealed;
+  onDismiss: () => void;
+}) {
   const t = useTranslations("projects.outsideAccess.reveal") as unknown as (
     key: string,
     values?: Record<string, string | number>,

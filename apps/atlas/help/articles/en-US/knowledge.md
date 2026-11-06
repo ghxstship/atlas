@@ -19,7 +19,6 @@ order: 32
 - **Forms**: build forms with conditional logic, required photos and signatures. Crew can complete them in Compass, offline, and each submission becomes a record of the right kind.
 - **Training**: build short courses for your crew.
 
-
 ## Public form links
 
 A Published form without a photo, signature or GPS stamp can have a **Public link**. People outside the organization open it with an access code and answer without an account. A response becomes a record only when someone approves it. Responses show in Submissions with a Public link label.

@@ -35,7 +35,6 @@ Choose **New project**, give it a name, a project key and a time zone, and pick 
 
 Project settings hold the name, dates, currency and time zone. Some settings are locked by your organization; the page shows where a locked value comes from.
 
-
 ## Outside access
 
 The last section of Project settings lists everything that reaches the project from outside the organization: live links, file links, advance and signing links, roster invitations, stakeholder pack recipients, intake links, form links and engagements. Each row shows who has it, its state, when it ends and how often it was opened. Revoke or regenerate from the row. A new link and code show once, above the list, until you dismiss them.

@@ -32,7 +32,9 @@ interface Terms {
   agreementDocumentId: string;
 }
 
-const uniq = (values: readonly (string | null)[]) => [...new Set(values.filter((v): v is string => !!v))];
+const uniq = (values: readonly (string | null)[]) => [
+  ...new Set(values.filter((v): v is string => !!v)),
+];
 
 /**
  * A new vendor intake link (B2, ADR 0141), in three steps, each its own dialog body with only the current step mounted,
@@ -75,14 +77,29 @@ export function IntakeLinkDialog({
 
   const rows = useMemo(() => options?.rateCard ?? [], [options]);
   const roles = useMemo(
-    () => uniq(rows.map((r) => r.roleCode)).map((code) => ({ value: code, label: rows.find((r) => r.roleCode === code)?.roleLabel ?? code })),
+    () =>
+      uniq(rows.map((r) => r.roleCode)).map((code) => ({
+        value: code,
+        label: rows.find((r) => r.roleCode === code)?.roleLabel ?? code,
+      })),
     [rows],
   );
-  const classes = uniq(rows.filter((r) => r.roleCode === terms.roleCode).map((r) => r.classification));
-  const bases = uniq(rows.filter((r) => r.roleCode === terms.roleCode && r.classification === terms.classification).map((r) => r.payBasis));
+  const classes = uniq(
+    rows.filter((r) => r.roleCode === terms.roleCode).map((r) => r.classification),
+  );
+  const bases = uniq(
+    rows
+      .filter((r) => r.roleCode === terms.roleCode && r.classification === terms.classification)
+      .map((r) => r.payBasis),
+  );
   const arrangements = uniq(
     rows
-      .filter((r) => r.roleCode === terms.roleCode && r.classification === terms.classification && r.payBasis === terms.payBasis)
+      .filter(
+        (r) =>
+          r.roleCode === terms.roleCode &&
+          r.classification === terms.classification &&
+          r.payBasis === terms.payBasis,
+      )
       .map((r) => r.arrangement),
   );
 
@@ -98,7 +115,8 @@ export function IntakeLinkDialog({
         startDate: who.startDate,
         endDate: who.endDate === "" ? null : who.endDate,
         expiresOn: String(data.get("expiresOn") ?? ""),
-        counterpartyType: who.roleType === "Vendor" && who.counterpartyType !== "" ? who.counterpartyType : null,
+        counterpartyType:
+          who.roleType === "Vendor" && who.counterpartyType !== "" ? who.counterpartyType : null,
         agreementDocumentId: terms.agreementDocumentId === "" ? null : terms.agreementDocumentId,
         instructions: who.instructions === "" ? null : who.instructions,
         note: null,
@@ -132,7 +150,9 @@ export function IntakeLinkDialog({
     >
       <div className="flex flex-col gap-16">
         {refusal ? (
-          <InlineAlert tone="danger">{errors.has?.(refusal) === false ? errors("unexpected") : errors(refusal)}</InlineAlert>
+          <InlineAlert tone="danger">
+            {errors.has?.(refusal) === false ? errors("unexpected") : errors(refusal)}
+          </InlineAlert>
         ) : null}
         {step === 1 ? (
           <form
@@ -160,14 +180,34 @@ export function IntakeLinkDialog({
               setStep(2);
             })}
           >
-            <Input id="intake-title" name="title" label={t("linkTitle")} defaultValue={who.title} maxLength={120} required width="100%" />
-            <Textarea id="intake-instructions" name="instructions" label={t("instructions")} help={t("instructionsHelp")} defaultValue={who.instructions} maxLength={2000} />
+            <Input
+              id="intake-title"
+              name="title"
+              label={t("linkTitle")}
+              defaultValue={who.title}
+              maxLength={120}
+              required
+              width="100%"
+            />
+            <Textarea
+              id="intake-instructions"
+              name="instructions"
+              label={t("instructions")}
+              help={t("instructionsHelp")}
+              defaultValue={who.instructions}
+              maxLength={2000}
+            />
             <Select
               id="intake-role-type"
               name="roleType"
               label={t("roleType")}
               value={who.roleType}
-              onChange={(event) => setWho((w) => ({ ...w, roleType: event.target.value === "Contractor" ? "Contractor" : "Vendor" }))}
+              onChange={(event) =>
+                setWho((w) => ({
+                  ...w,
+                  roleType: event.target.value === "Contractor" ? "Contractor" : "Vendor",
+                }))
+              }
               options={[
                 { value: "Vendor", label: t("roleTypes.Vendor") },
                 { value: "Contractor", label: t("roleTypes.Contractor") },
@@ -183,8 +223,21 @@ export function IntakeLinkDialog({
                 options={(options?.counterpartyTypes ?? []).map((c) => ({ value: c, label: c }))}
               />
             ) : null}
-            <Input id="intake-start" name="startDate" type="date" label={t("startDate")} defaultValue={who.startDate} required />
-            <Input id="intake-end" name="endDate" type="date" label={t("endDate")} defaultValue={who.endDate} />
+            <Input
+              id="intake-start"
+              name="startDate"
+              type="date"
+              label={t("startDate")}
+              defaultValue={who.startDate}
+              required
+            />
+            <Input
+              id="intake-end"
+              name="endDate"
+              type="date"
+              label={t("endDate")}
+              defaultValue={who.endDate}
+            />
             <div>
               <Button type="submit" variant="primary">
                 {t("next")}
@@ -198,7 +251,15 @@ export function IntakeLinkDialog({
               label={t("role")}
               placeholder={t("pick")}
               value={terms.roleCode}
-              onChange={(event) => setTerms({ ...terms, roleCode: event.target.value, classification: "", payBasis: "", arrangement: "" })}
+              onChange={(event) =>
+                setTerms({
+                  ...terms,
+                  roleCode: event.target.value,
+                  classification: "",
+                  payBasis: "",
+                  arrangement: "",
+                })
+              }
               options={roles}
             />
             <Select
@@ -207,7 +268,14 @@ export function IntakeLinkDialog({
               label={t("classification")}
               placeholder={t("pick")}
               value={terms.classification}
-              onChange={(event) => setTerms({ ...terms, classification: event.target.value, payBasis: "", arrangement: "" })}
+              onChange={(event) =>
+                setTerms({
+                  ...terms,
+                  classification: event.target.value,
+                  payBasis: "",
+                  arrangement: "",
+                })
+              }
               options={classes.map((c) => ({ value: c, label: c }))}
             />
             <Select
@@ -216,7 +284,9 @@ export function IntakeLinkDialog({
               label={t("payBasis")}
               placeholder={t("pick")}
               value={terms.payBasis}
-              onChange={(event) => setTerms({ ...terms, payBasis: event.target.value, arrangement: "" })}
+              onChange={(event) =>
+                setTerms({ ...terms, payBasis: event.target.value, arrangement: "" })
+              }
               options={bases.map((c) => ({ value: c, label: c }))}
             />
             <Select
@@ -234,19 +304,31 @@ export function IntakeLinkDialog({
               help={t("agreementHelp")}
               value={terms.agreementDocumentId}
               onChange={(event) => setTerms({ ...terms, agreementDocumentId: event.target.value })}
-              options={[{ value: "", label: t("noAgreement") }, ...(options?.documents ?? []).map((d) => ({ value: d.id, label: d.title }))]}
+              options={[
+                { value: "", label: t("noAgreement") },
+                ...(options?.documents ?? []).map((d) => ({ value: d.id, label: d.title })),
+              ]}
             />
             <div className="flex gap-8">
               <Button type="button" variant="secondary" onClick={() => setStep(1)}>
                 {t("back")}
               </Button>
-              <Button type="button" variant="primary" disabled={!terms.roleCode || !terms.classification} onClick={() => setStep(3)}>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={!terms.roleCode || !terms.classification}
+                onClick={() => setStep(3)}
+              >
                 {t("next")}
               </Button>
             </div>
           </div>
         ) : (
-          <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
+          <form
+            action={dispatch}
+            onSubmit={keepInputOnSubmit(dispatch)}
+            className="flex flex-col gap-8"
+          >
             <MultiSelect
               id="intake-collect"
               label={t("collect")}
@@ -268,7 +350,15 @@ export function IntakeLinkDialog({
               max={options?.lastDay}
               required
             />
-            <Input id="intake-max" name="maxRequests" type="number" min={1} max={500} defaultValue={50} label={t("maxRequests")} />
+            <Input
+              id="intake-max"
+              name="maxRequests"
+              type="number"
+              min={1}
+              max={500}
+              defaultValue={50}
+              label={t("maxRequests")}
+            />
             <div className="flex gap-8">
               <Button type="button" variant="secondary" onClick={() => setStep(2)}>
                 {t("back")}

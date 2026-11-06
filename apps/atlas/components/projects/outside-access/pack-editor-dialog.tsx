@@ -70,7 +70,9 @@ function DetailsStep({
     return CLEAN;
   }, CLEAN);
   const defaultExpiry = pack
-    ? new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" }).format(new Date(pack.expiresAt))
+    ? new Intl.DateTimeFormat("en-CA", { timeZone, dateStyle: "short" }).format(
+        new Date(pack.expiresAt),
+      )
     : dayInZone(30, timeZone);
   return (
     <form
@@ -80,9 +82,32 @@ function DetailsStep({
       key={pack?.id ?? "new"}
     >
       <Refusal error={state.error} />
-      <Input id="pack-name" name="name" label={t("name")} defaultValue={pack?.name ?? ""} maxLength={120} required width="100%" />
-      <Textarea id="pack-message" name="message" label={t("message")} help={t("messageHelp")} defaultValue={pack?.message ?? ""} maxLength={2000} />
-      <Input id="pack-note" name="note" label={t("note")} help={t("noteHelp")} defaultValue={pack?.note ?? ""} maxLength={200} width="100%" />
+      <Input
+        id="pack-name"
+        name="name"
+        label={t("name")}
+        defaultValue={pack?.name ?? ""}
+        maxLength={120}
+        required
+        width="100%"
+      />
+      <Textarea
+        id="pack-message"
+        name="message"
+        label={t("message")}
+        help={t("messageHelp")}
+        defaultValue={pack?.message ?? ""}
+        maxLength={2000}
+      />
+      <Input
+        id="pack-note"
+        name="note"
+        label={t("note")}
+        help={t("noteHelp")}
+        defaultValue={pack?.note ?? ""}
+        maxLength={200}
+        width="100%"
+      />
       <Input
         id="pack-expires"
         name="expiresOn"
@@ -104,9 +129,19 @@ function DetailsStep({
 }
 
 /** Adding one item at a time keeps the screen under seven fields; the list is read-only with Remove and order controls. */
-function ItemsStep({ refs, data, onChanged }: { refs: ProjectKeyRef; data: PackEditorData; onChanged: () => void }) {
+function ItemsStep({
+  refs,
+  data,
+  onChanged,
+}: {
+  refs: ProjectKeyRef;
+  data: PackEditorData;
+  onChanged: () => void;
+}) {
   const t = useLabels();
-  const [choices, setChoices] = useState<{ value: string; label: string; expiresAt: string | null }[] | null>(null);
+  const [choices, setChoices] = useState<
+    { value: string; label: string; expiresAt: string | null }[] | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   useEffect(() => {
@@ -116,8 +151,16 @@ function ItemsStep({ refs, data, onChanged }: { refs: ProjectKeyRef; data: PackE
         return;
       }
       setChoices([
-        ...result.data.links.map((l) => ({ value: `link:${l.id}`, label: t("linkChoice", { title: l.title }), expiresAt: l.expiresAt })),
-        ...result.data.files.map((f) => ({ value: `file:${f.id}`, label: t("fileChoice", { title: f.title }), expiresAt: null })),
+        ...result.data.links.map((l) => ({
+          value: `link:${l.id}`,
+          label: t("linkChoice", { title: l.title }),
+          expiresAt: l.expiresAt,
+        })),
+        ...result.data.files.map((f) => ({
+          value: `file:${f.id}`,
+          label: t("fileChoice", { title: f.title }),
+          expiresAt: null,
+        })),
       ]);
     });
   }, [refs, t]);
@@ -150,7 +193,11 @@ function ItemsStep({ refs, data, onChanged }: { refs: ProjectKeyRef; data: PackE
     <div className="flex flex-col gap-16">
       <Refusal error={error ?? state.error} />
       {soon ? <InlineAlert tone="warning">{t("linkExpiresFirst")}</InlineAlert> : null}
-      <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
+      <form
+        action={dispatch}
+        onSubmit={keepInputOnSubmit(dispatch)}
+        className="flex flex-col gap-8"
+      >
         <Select
           id="pack-item-subject"
           name="subject"
@@ -158,7 +205,14 @@ function ItemsStep({ refs, data, onChanged }: { refs: ProjectKeyRef; data: PackE
           placeholder={choices === null ? t("loading") : t("itemPick")}
           options={(choices ?? []).map((c) => ({ value: c.value, label: c.label }))}
         />
-        <Input id="pack-item-title" name="title" label={t("itemTitle")} maxLength={200} required width="100%" />
+        <Input
+          id="pack-item-title"
+          name="title"
+          label={t("itemTitle")}
+          maxLength={200}
+          required
+          width="100%"
+        />
         <Checkbox id="pack-item-ack" name="acknowledge" label={t("acknowledge")} />
         <div>
           <Button type="submit" variant="primary" loading={adding}>
@@ -177,10 +231,22 @@ function ItemsStep({ refs, data, onChanged }: { refs: ProjectKeyRef; data: PackE
                 {item.requiresAcknowledgement ? ` · ${t("asksAcknowledge")}` : ""}
               </span>
               <span className="flex gap-4">
-                <Button type="button" size="sm" variant="ghost" disabled={index === 0 || pending} onClick={() => move(index, -1)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={index === 0 || pending}
+                  onClick={() => move(index, -1)}
+                >
                   {t("moveUp")}
                 </Button>
-                <Button type="button" size="sm" variant="ghost" disabled={index === data.items.length - 1 || pending} onClick={() => move(index, 1)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={index === data.items.length - 1 || pending}
+                  onClick={() => move(index, 1)}
+                >
                   {t("moveDown")}
                 </Button>
                 <Button
@@ -232,10 +298,36 @@ function RecipientsStep({
   return (
     <div className="flex flex-col gap-16">
       <Refusal error={state.error} />
-      <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
-        <Input id="pack-recipient-name" name="fullName" label={t("recipientName")} maxLength={200} required width="100%" />
-        <Input id="pack-recipient-email" name="email" type="email" label={t("recipientEmail")} maxLength={320} required width="100%" />
-        <Input id="pack-recipient-label" name="label" label={t("recipientLabel")} help={t("recipientLabelHelp")} maxLength={80} width="100%" />
+      <form
+        action={dispatch}
+        onSubmit={keepInputOnSubmit(dispatch)}
+        className="flex flex-col gap-8"
+      >
+        <Input
+          id="pack-recipient-name"
+          name="fullName"
+          label={t("recipientName")}
+          maxLength={200}
+          required
+          width="100%"
+        />
+        <Input
+          id="pack-recipient-email"
+          name="email"
+          type="email"
+          label={t("recipientEmail")}
+          maxLength={320}
+          required
+          width="100%"
+        />
+        <Input
+          id="pack-recipient-label"
+          name="label"
+          label={t("recipientLabel")}
+          help={t("recipientLabelHelp")}
+          maxLength={80}
+          width="100%"
+        />
         <div>
           <Button type="submit" variant="primary" loading={pending}>
             {t("addRecipient")}
@@ -253,7 +345,13 @@ function RecipientsStep({
                 {r.label ? ` · ${r.label}` : ""}
               </span>
               <span className="text-text-12 text-text-secondary">
-                {r.revokedAt ? t("recipientRevoked") : r.unsubscribedAt ? t("recipientStopped") : r.failedAttempts >= 5 ? t("recipientLocked") : ""}
+                {r.revokedAt
+                  ? t("recipientRevoked")
+                  : r.unsubscribedAt
+                    ? t("recipientStopped")
+                    : r.failedAttempts >= 5
+                      ? t("recipientLocked")
+                      : ""}
               </span>
             </li>
           ))}
@@ -263,7 +361,17 @@ function RecipientsStep({
   );
 }
 
-function DeliveryStep({ refs, data, timeZone, onChanged }: { refs: ProjectKeyRef; data: PackEditorData; timeZone: string; onChanged: () => void }) {
+function DeliveryStep({
+  refs,
+  data,
+  timeZone,
+  onChanged,
+}: {
+  refs: ProjectKeyRef;
+  data: PackEditorData;
+  timeZone: string;
+  onChanged: () => void;
+}) {
   const t = useLabels();
   const [cadence, setCadence] = useState<string>(data.schedule?.cadence ?? "Off");
   const [sent, setSent] = useState<number | null>(null);
@@ -310,14 +418,21 @@ function DeliveryStep({ refs, data, timeZone, onChanged }: { refs: ProjectKeyRef
           )}
         </div>
       </div>
-      <form action={dispatch} onSubmit={keepInputOnSubmit(dispatch)} className="flex flex-col gap-8">
+      <form
+        action={dispatch}
+        onSubmit={keepInputOnSubmit(dispatch)}
+        className="flex flex-col gap-8"
+      >
         <Select
           id="pack-cadence"
           name="cadence"
           label={t("cadence")}
           value={cadence}
           onChange={(event) => setCadence(event.target.value)}
-          options={["Off", "Daily", "Weekly", "Monthly"].map((c) => ({ value: c, label: t(`cadences.${c}`) }))}
+          options={["Off", "Daily", "Weekly", "Monthly"].map((c) => ({
+            value: c,
+            label: t(`cadences.${c}`),
+          }))}
         />
         {cadence === "Off" ? null : (
           <Select
@@ -326,7 +441,10 @@ function DeliveryStep({ refs, data, timeZone, onChanged }: { refs: ProjectKeyRef
             name="localHour"
             label={t("hour", { zone: data.schedule?.timeZone ?? timeZone })}
             value={String(data.schedule?.localHour ?? 9)}
-            options={Array.from({ length: 24 }, (_, h) => ({ value: String(h), label: `${String(h).padStart(2, "0")}:00` }))}
+            options={Array.from({ length: 24 }, (_, h) => ({
+              value: String(h),
+              label: `${String(h).padStart(2, "0")}:00`,
+            }))}
           />
         )}
         {cadence === "Weekly" ? (
@@ -335,7 +453,10 @@ function DeliveryStep({ refs, data, timeZone, onChanged }: { refs: ProjectKeyRef
             name="weekday"
             label={t("weekday")}
             value={String(data.schedule?.weekday ?? 1)}
-            options={[1, 2, 3, 4, 5, 6, 7].map((d) => ({ value: String(d), label: t(`weekdays.${d}`) }))}
+            options={[1, 2, 3, 4, 5, 6, 7].map((d) => ({
+              value: String(d),
+              label: t(`weekdays.${d}`),
+            }))}
           />
         ) : null}
         {cadence === "Monthly" ? (
@@ -344,7 +465,10 @@ function DeliveryStep({ refs, data, timeZone, onChanged }: { refs: ProjectKeyRef
             name="monthDay"
             label={t("monthDay")}
             value={String(data.schedule?.monthDay ?? 1)}
-            options={Array.from({ length: 28 }, (_, d) => ({ value: String(d + 1), label: String(d + 1) }))}
+            options={Array.from({ length: 28 }, (_, d) => ({
+              value: String(d + 1),
+              label: String(d + 1),
+            }))}
           />
         ) : null}
         <div>
@@ -361,7 +485,9 @@ function ActivityStep({ data, timeZone }: { data: PackEditorData; timeZone: stri
   const t = useLabels();
   const format = useFormatter();
   const date = (iso: string | null) =>
-    iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone }) : "";
+    iso
+      ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short", timeZone })
+      : "";
   const byId = new Map(data.activity.map((a) => [a.recipientId, a]));
   const itemTitle = new Map(data.items.map((i) => [i.id, i.title]));
   return (
@@ -369,11 +495,21 @@ function ActivityStep({ data, timeZone }: { data: PackEditorData; timeZone: stri
       <table role="grid" aria-label={t("activity")} className="w-full text-text-13">
         <thead>
           <tr className="text-start text-text-12 text-text-secondary">
-            <th scope="col" className="text-start">{t("recipientName")}</th>
-            <th scope="col" className="text-start">{t("opensColumn")}</th>
-            <th scope="col" className="text-start">{t("lastOpenedColumn")}</th>
-            <th scope="col" className="text-start">{t("viewedColumn")}</th>
-            <th scope="col" className="text-start">{t("downloadsColumn")}</th>
+            <th scope="col" className="text-start">
+              {t("recipientName")}
+            </th>
+            <th scope="col" className="text-start">
+              {t("opensColumn")}
+            </th>
+            <th scope="col" className="text-start">
+              {t("lastOpenedColumn")}
+            </th>
+            <th scope="col" className="text-start">
+              {t("viewedColumn")}
+            </th>
+            <th scope="col" className="text-start">
+              {t("downloadsColumn")}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -397,7 +533,11 @@ function ActivityStep({ data, timeZone }: { data: PackEditorData; timeZone: stri
           <ul className="m-0 flex list-none flex-col gap-4 p-0 text-text-13">
             {data.signatures.map((s) => (
               <li key={`${s.recipientId}-${s.itemId}`}>
-                {t("signatureLine", { name: s.signerName, item: itemTitle.get(s.itemId) ?? "", date: date(s.occurredAt) })}
+                {t("signatureLine", {
+                  name: s.signerName,
+                  item: itemTitle.get(s.itemId) ?? "",
+                  date: date(s.occurredAt),
+                })}
               </li>
             ))}
           </ul>
@@ -480,7 +620,8 @@ export function PackEditorDialog({
         </ul>
       );
     }
-    if (data === null) return <p className="m-0 text-text-13 text-text-secondary">{t("loading")}</p>;
+    if (data === null)
+      return <p className="m-0 text-text-13 text-text-secondary">{t("loading")}</p>;
     return (
       <div className="flex flex-col gap-16">
         <nav aria-label={t("steps")} className="flex flex-wrap gap-4">
@@ -512,7 +653,12 @@ export function PackEditorDialog({
           <span className="flex flex-col gap-8">
             <span className="text-text-12">{t("revokeConfirm")}</span>
             <span className="flex gap-8">
-              <Button type="button" size="sm" variant="secondary" onClick={() => setConfirmRevoke(false)}>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setConfirmRevoke(false)}
+              >
                 {t("cancel")}
               </Button>
               <Button

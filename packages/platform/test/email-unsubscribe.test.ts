@@ -41,7 +41,9 @@ describe("email-unsubscribe with a stakeholder pack token", () => {
   it("sends a GET to the confirm page without acting", async () => {
     const response = await handler(new Request(url(PACK)));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe(`https://atlas.test/share/pack/unsubscribe/${PACK}`);
+    expect(response.headers.get("location")).toBe(
+      `https://atlas.test/share/pack/unsubscribe/${PACK}`,
+    );
     expect(rpc).not.toHaveBeenCalled();
   });
 

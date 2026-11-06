@@ -46,7 +46,10 @@ const REVOKE: Partial<Record<OutsideAccessSource, { kind: RevokeKind; can: keyof
 };
 
 const REGENERATE: Partial<
-  Record<OutsideAccessSource, { kind: "view" | "display" | "intake" | "form"; can: keyof OutsideCan }>
+  Record<
+    OutsideAccessSource,
+    { kind: "view" | "display" | "intake" | "form"; can: keyof OutsideCan }
+  >
 > = {
   "Live view link": { kind: "view", can: "live" },
   "Display link": { kind: "display", can: "live" },
@@ -155,10 +158,19 @@ function Row({
             </Button>
           </span>
         </span>
-      ) : canRevoke || canRegenerate || canReset || row.source === "Engagement" || row.source === "Roster invitation" ? (
+      ) : canRevoke ||
+        canRegenerate ||
+        canReset ||
+        row.source === "Engagement" ||
+        row.source === "Roster invitation" ? (
         <span className="flex flex-wrap gap-8">
           {canRegenerate ? (
-            <Button type="button" size="sm" variant="ghost" onClick={() => setConfirm("regenerate")}>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirm("regenerate")}
+            >
               {t("regenerate")}
             </Button>
           ) : null}
@@ -207,7 +219,10 @@ export function OutsideAccessClient({
 }: {
   refs: ProjectKeyRef;
   timeZone: string;
-  groups: readonly { readonly source: OutsideAccessSource; readonly rows: readonly OutsideAccessRow[] }[];
+  groups: readonly {
+    readonly source: OutsideAccessSource;
+    readonly rows: readonly OutsideAccessRow[];
+  }[];
   can: OutsideCan;
 }) {
   const t = useTranslations("projects.outsideAccess") as unknown as Translate;

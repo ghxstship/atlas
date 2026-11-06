@@ -25,8 +25,7 @@ import { getGatewayContext } from "@/lib/shell/context";
  */
 
 export type IntakeResult<T> =
-  | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly outcome: string };
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly outcome: string };
 
 const token = z.string().regex(/^xvin_[0-9a-f]{64}$/);
 const id = z.uuid();
@@ -134,7 +133,9 @@ export async function intakePayoutAction(
     accountId: input.accountId,
     clientAddress: link.clientAddress,
   });
-  return added.ok ? { ok: true, data: added.data } : { ok: false, outcome: outcomeFor(added.error) };
+  return added.ok
+    ? { ok: true, data: added.data }
+    : { ok: false, outcome: outcomeFor(added.error) };
 }
 
 export async function intakeSubmitAction(
