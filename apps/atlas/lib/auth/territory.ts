@@ -4,7 +4,7 @@ import { getLocale } from "next-intl/server";
 import { currentOffering } from "@/lib/offering";
 
 /**
- * What signup says about where XOS is offered (ADR 0156), in the reader's language. The names come from the database's
+ * What signup says about where XOS is offered (ADR 0160), in the reader's language. The names come from the database's
  * territories, so opening one changes these sentences with no code change.
  */
 

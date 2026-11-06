@@ -80,7 +80,7 @@ describe("resolved settings", () => {
     expect(language("es-US", "Personal")).toBe("es-US");
     // The platform default is nobody's choice: the device's language stands.
     expect(language("en-US", "Default")).toBeNull();
-    // A Beta locale (ADR 0053) someone chose applies only while its territory is open (ADR 0156), which languageOf is
+    // A Beta locale (ADR 0053) someone chose applies only while its territory is open (ADR 0160), which languageOf is
     // told; a language XOS does not ship never does.
     expect(language("fr-FR", "Personal")).toBeNull();
     expect(

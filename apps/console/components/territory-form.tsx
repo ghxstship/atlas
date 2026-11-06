@@ -38,6 +38,7 @@ export function TerritoryForm({
       submitLabel={t("territories.save")}
       successLabel={t("territories.saved")}
       label={t("territories.add")}
+      variant="secondary"
       testId="territory-form"
     >
       <Input

@@ -590,7 +590,7 @@ describe("seats and add-ons (ADR 0035)", () => {
     expect(() => extraSeatLookupKeyFor(registry, "access", "Monthly")).toThrow(/free/);
   });
 
-  it("names the currency and turns adaptive pricing off, so Stripe never picks one from where the buyer seems to be (ADR 0156)", async () => {
+  it("names the currency and turns adaptive pricing off, so Stripe never picks one from where the buyer seems to be (ADR 0160)", async () => {
     const plan = lookupKeyFor(registry, "pro", "Monthly");
     const { client, calls } = fakeStripe({ [plan]: "price_pro" });
     const request = {

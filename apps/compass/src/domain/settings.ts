@@ -68,7 +68,7 @@ export function compassValuesFromRows(
 /**
  * The language Compass renders in: locale.language as resolved for the person (their org's when it locks it,
  * else their own from any device or shell, else their org's), or null to keep the device's language. Only a language
- * offered now counts (ADR 0156): a saved choice of a closed territory's language reads as no choice.
+ * offered now counts (ADR 0160): a saved choice of a closed territory's language reads as no choice.
  */
 export function languageOf(
   values: ResolvedValues,

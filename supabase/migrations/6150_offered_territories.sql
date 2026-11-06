@@ -1,5 +1,5 @@
 -- 6150_offered_territories.sql
--- Launch offers XOS in the United States only (ADR 0156, legal review issue 3). GDPR Recital 23 names currency and
+-- Launch offers XOS in the United States only (ADR 0160, legal review issue 3). GDPR Recital 23 names currency and
 -- language as signs of an intent to offer, so a closed territory's prices and languages stay switched off, and no
 -- organization starts outside an offered territory, without deleting anything that opens the territory later.
 --   * private.territories is the one source of truth: each territory's countries, price book currencies and languages,
@@ -46,7 +46,7 @@ create table private.territories (
 );
 create index territories_changed_by_idx on private.territories (changed_by);
 
-comment on table private.territories is 'The one source of truth for where XOS is offered (ADR 0156): each territory''s countries, the price book currencies and languages that open with it, and whether it is offered. Closed territories keep their row, so opening one needs no code. Written only by the console RPCs, which log every change to app.platform_operator_actions. Read through api_public.offered_territories.';
+comment on table private.territories is 'The one source of truth for where XOS is offered (ADR 0160): each territory''s countries, the price book currencies and languages that open with it, and whether it is offered. Closed territories keep their row, so opening one needs no code. Written only by the console RPCs, which log every change to app.platform_operator_actions. Read through api_public.offered_territories.';
 comment on column private.territories.code is 'Territory code: an ISO country code for a single country, or a short name such as EEA.';
 comment on column private.territories.name_en is 'Name in English, as it reads in "XOS is offered to organizations in ...".';
 comment on column private.territories.name_es is 'Name in Spanish, for the same sentence.';
@@ -64,16 +64,16 @@ grant select on private.territories to service_role;
 
 insert into private.territories (code, name_en, name_es, country_codes, currency_codes, locale_codes, offered, change_reason) values
   ('US', 'the United States', 'los Estados Unidos', array['US', 'PR', 'VI', 'GU', 'AS', 'MP'], array['USD'], array['en-US', 'es-US'], true,
-    'Launch offers XOS in the United States only (ADR 0156).'),
+    'Launch offers XOS in the United States only (ADR 0160).'),
   ('EEA', 'the European Economic Area', 'el Espacio Económico Europeo',
     array['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO'],
-    array['EUR'], array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch: no representative is appointed (ADR 0156).'),
-  ('GB', 'the United Kingdom', 'el Reino Unido', array['GB'], array['GBP'], '{}', false, 'Closed at launch: no representative is appointed (ADR 0156).'),
-  ('CH', 'Switzerland', 'Suiza', array['CH'], '{}', array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch (ADR 0156).'),
-  ('CA', 'Canada', 'Canadá', array['CA'], array['CAD'], array['fr-FR'], false, 'Closed at launch (ADR 0156).'),
-  ('AU', 'Australia', 'Australia', array['AU'], array['AUD'], '{}', false, 'Closed at launch (ADR 0156).'),
-  ('BR', 'Brazil', 'Brasil', array['BR'], '{}', array['pt-BR'], false, 'Closed at launch (ADR 0156).'),
-  ('JP', 'Japan', 'Japón', array['JP'], '{}', array['ja-JP'], false, 'Closed at launch (ADR 0156).');
+    array['EUR'], array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch: no representative is appointed (ADR 0160).'),
+  ('GB', 'the United Kingdom', 'el Reino Unido', array['GB'], array['GBP'], '{}', false, 'Closed at launch: no representative is appointed (ADR 0160).'),
+  ('CH', 'Switzerland', 'Suiza', array['CH'], '{}', array['fr-FR', 'de-DE', 'it-IT'], false, 'Closed at launch (ADR 0160).'),
+  ('CA', 'Canada', 'Canadá', array['CA'], array['CAD'], array['fr-FR'], false, 'Closed at launch (ADR 0160).'),
+  ('AU', 'Australia', 'Australia', array['AU'], array['AUD'], '{}', false, 'Closed at launch (ADR 0160).'),
+  ('BR', 'Brazil', 'Brasil', array['BR'], '{}', array['pt-BR'], false, 'Closed at launch (ADR 0160).'),
+  ('JP', 'Japan', 'Japón', array['JP'], '{}', array['ja-JP'], false, 'Closed at launch (ADR 0160).');
 
 create or replace function api_public.offered_territories()
 returns table (code text, name_en text, name_es text, country_codes text[], currency_codes text[], locale_codes text[])
@@ -87,7 +87,7 @@ as $$
   where t.offered
   order by t.code = 'US' desc, t.code;
 $$;
-comment on function api_public.offered_territories() is 'The territories XOS is offered in now, with their countries, currencies and languages (ADR 0156). Public configuration: signed-out pages choose their languages from it. A reader that cannot reach it falls back to the United States alone (@xos/data/territories).';
+comment on function api_public.offered_territories() is 'The territories XOS is offered in now, with their countries, currencies and languages (ADR 0160). Public configuration: signed-out pages choose their languages from it. A reader that cannot reach it falls back to the United States alone (@xos/data/territories).';
 revoke all on function api_public.offered_territories() from public;
 grant execute on function api_public.offered_territories() to anon, authenticated, service_role;
 
@@ -110,7 +110,7 @@ begin
     'USD');
 end;
 $$;
-comment on function app.org_checkout_currency(uuid) is 'The currency Stripe Checkout opens in for the org: the first currency of the offered territory holding its stated country, else USD. Checkout always names it, so Stripe never picks a currency from where the buyer seems to be (ADR 0156).';
+comment on function app.org_checkout_currency(uuid) is 'The currency Stripe Checkout opens in for the org: the first currency of the offered territory holding its stated country, else USD. Checkout always names it, so Stripe never picks a currency from where the buyer seems to be (ADR 0160).';
 revoke all on function app.org_checkout_currency(uuid) from public, anon;
 grant execute on function app.org_checkout_currency(uuid) to authenticated, service_role;
 
@@ -146,7 +146,7 @@ create index territory_exceptions_granted_by_idx on private.territory_exceptions
 create index territory_exceptions_revoked_by_idx on private.territory_exceptions (revoked_by);
 create index territory_exceptions_org_id_idx on private.territory_exceptions (org_id);
 
-comment on table private.territory_exceptions is 'A recorded exception that allows one organization outside an offered territory, for a signed contract (ADR 0156). An operator names the first Owner''s email, the country and the contract; the org that person starts uses it once. Revoked once, never edited. Written only by the console RPCs and the org creation RPCs.';
+comment on table private.territory_exceptions is 'A recorded exception that allows one organization outside an offered territory, for a signed contract (ADR 0160). An operator names the first Owner''s email, the country and the contract; the org that person starts uses it once. Revoked once, never edited. Written only by the console RPCs and the org creation RPCs.';
 comment on column private.territory_exceptions.id is 'Exception id.';
 comment on column private.territory_exceptions.owner_email is 'Email of the person who will be the organization''s first Owner, in lower case.';
 comment on column private.territory_exceptions.country_code is 'Country the organization is allowed in.';
@@ -256,7 +256,7 @@ begin
   return v_org;
 end;
 $$;
-comment on function app.create_organization(text, text, text) is 'Creates an organization with the signed-in person as its Owner, in one transaction, in the country they state; omitted, the caller states the United States. A country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0156). It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7), and receives its editable copy of the XOS Standard Library (Section 7.2). Returns the org id.';
+comment on function app.create_organization(text, text, text) is 'Creates an organization with the signed-in person as its Owner, in one transaction, in the country they state; omitted, the caller states the United States. A country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0160). It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7), and receives its editable copy of the XOS Standard Library (Section 7.2). Returns the org id.';
 revoke all on function app.create_organization(text, text, text) from public, anon;
 grant execute on function app.create_organization(text, text, text) to authenticated, service_role;
 
@@ -300,7 +300,7 @@ begin
   return query select v_org, v_invite, v_token;
 end;
 $$;
-comment on function app.create_client_organization(uuid, text, text, text, text, text) is 'Partner console (Section 4.6.1): creates a client org under the partner on the given plan, in the country the partner states (omitted, the United States), with its editable copy of the XOS Standard Library (Section 7.2), and an Owner invite for the client. A country outside the offered territories is refused territory_not_offered unless an exception names the client''s Owner and country (ADR 0156). Partner staff gain no access to the client org. The token is returned once.';
+comment on function app.create_client_organization(uuid, text, text, text, text, text) is 'Partner console (Section 4.6.1): creates a client org under the partner on the given plan, in the country the partner states (omitted, the United States), with its editable copy of the XOS Standard Library (Section 7.2), and an Owner invite for the client. A country outside the offered territories is refused territory_not_offered unless an exception names the client''s Owner and country (ADR 0160). Partner staff gain no access to the client org. The token is returned once.';
 revoke all on function app.create_client_organization(uuid, text, text, text, text, text) from public, anon;
 grant execute on function app.create_client_organization(uuid, text, text, text, text, text) to authenticated, service_role;
 
@@ -341,7 +341,7 @@ begin
   return p_account_id;
 end;
 $$;
-comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country they state (omitted, the United States); a country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0156). Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
+comment on function app.subscribe_external_account(uuid, text) is 'Journey 60: the Account Owner of an external account starts using Atlas with it, in the country they state (omitted, the United States); a country outside the offered territories is refused territory_not_offered unless an exception names this person and country (ADR 0160). Starts a 14-day Pro trial with no card (Section 14.7), makes the caller the Owner of the same organization row, so its profile, ratings, engagements and counterparty history carry over with no duplicate, and gives it its editable copy of the XOS Standard Library (Section 7.2). Refuses account_already_subscribed (XR001) for an org that already subscribes; anyone but an Account Owner gets 42501.';
 revoke all on function app.subscribe_external_account(uuid, text) from public, anon;
 grant execute on function app.subscribe_external_account(uuid, text) to authenticated, service_role;
 

@@ -140,7 +140,7 @@ export type Phase =
 export interface CompassContextValue {
   readonly config: CompassConfig;
   readonly client: SupabaseClient;
-  /** The languages offered now (ADR 0156). */
+  /** The languages offered now (ADR 0160). */
   readonly offeredLocales: readonly Locale[];
   readonly phase: Phase;
   readonly resolved: ResolvedIdentity | null;
@@ -689,7 +689,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     };
   }, [client, engine, phase.kind, network.isConnected, orgId, projectId, settledSettings]);
 
-  // Where XOS is offered decides which languages count (ADR 0156). Unreachable, only the launch languages do.
+  // Where XOS is offered decides which languages count (ADR 0160). Unreachable, only the launch languages do.
   const [offeredLocales, setOfferedLocales] = useState<readonly Locale[]>(launchLocales);
   useEffect(() => {
     let live = true;

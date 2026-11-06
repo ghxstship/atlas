@@ -118,7 +118,7 @@ export async function setClientPriceAction(
     .object({
       client: z.uuid(),
       amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
-      // A closed territory's currency is not a price anyone can set (ADR 0156).
+      // A closed territory's currency is not a price anyone can set (ADR 0160).
       currency: z.enum(offering.currencies as [string, ...string[]]),
     })
     .safeParse({

@@ -22,6 +22,7 @@ import {
   sectionSettings,
   settingOf,
   sourceKey,
+  withOfferedChoices,
 } from "../src/settings/preferences";
 
 /**
@@ -142,6 +143,13 @@ describe("how a setting is edited on a phone", () => {
     expect(controlOf(def("me.out_of_office.starts_on"))).toBe("date");
     expect(controlOf(def("me.out_of_office.auto_reply"))).toBe("multiline");
     expect(controlOf(def("workforce.work_phone"))).toBe("text");
+  });
+
+  it("offers only the languages of open territories, and leaves every other setting alone (ADR 0160)", () => {
+    const language = withOfferedChoices(def("locale.language"), ["en-US", "es-US"]);
+    expect(language.type === "choice" ? language.choices : []).toEqual(["en-US", "es-US"]);
+    expect(controlOf(language)).toBe("segments");
+    expect(withOfferedChoices(def("me.text_size"), [])).toBe(def("me.text_size"));
   });
 });
 

@@ -18,7 +18,7 @@ import { isPseudoLocale, type PseudoLocale } from "./pseudo";
  * Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP; Section 15, ADR 0053) are chosen, never guessed:
  * the cookie and a chosen locale.language accept them, but the browser's languages match launch
  * locales only, because a Beta catalog may still read mostly en-US. A Beta locale counts only while a territory that
- * holds it is open (`offered`, ADR 0156): a saved choice of a closed one reads as no choice. The default is closed.
+ * holds it is open (`offered`, ADR 0160): a saved choice of a closed one reads as no choice. The default is closed.
  */
 
 export const LOCALE_COOKIE = "xos-locale";

@@ -10,7 +10,7 @@
  *     them Beta until a native reviewer signs them off in packages/i18n/REVIEW.md.
  *
  * Shipping a locale is not offering it. A Beta locale is a choice only while a territory that holds it is open
- * (private.territories, ADR 0156), because a language with the ability to order in it is a sign of offering XOS there
+ * (private.territories, ADR 0160), because a language with the ability to order in it is a sign of offering XOS there
  * (GDPR Recital 23). Readers take the offered list from `offeredLocaleList`, whose default is the launch locales.
  */
 export const launchLocales = ["en-US", "es-US"] as const;

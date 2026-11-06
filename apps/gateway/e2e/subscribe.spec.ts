@@ -41,7 +41,7 @@ test("journey 60: a vendor company starts Atlas with its own record, history int
   await offer.getByRole("button", { name: `Use ${company.name} in Atlas` }).click();
   await expect(offer.getByText("Accept the terms to start Atlas with this company.")).toBeVisible();
   await offer.getByRole("checkbox").check();
-  // The company's country is a question, and a closed territory's is refused with nothing changed (ADR 0156).
+  // The company's country is a question, and a closed territory's is refused with nothing changed (ADR 0160).
   await offer.getByRole("button", { name: `Use ${company.name} in Atlas` }).click();
   await expect(
     offer.getByText("Choose the country where this company is established.", { exact: true }),

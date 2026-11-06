@@ -39,7 +39,7 @@ export async function setLocale(locale: string): Promise<void> {
   const allowed = selectableLocales(process.env.NODE_ENV === "production", locales) as string[];
   const chosen = z.enum(allowed as [string, ...string[]]).parse(locale);
   await setPreference(LOCALE_COOKIE, chosen);
-  // Offered locales (ADR 0053, ADR 0156) are saved for the other shells; a pseudo-locale stays on this device.
+  // Offered locales (ADR 0053, ADR 0160) are saved for the other shells; a pseudo-locale stays on this device.
   if (isLocale(chosen)) await rememberPersonally("locale.language", chosen);
 }
 

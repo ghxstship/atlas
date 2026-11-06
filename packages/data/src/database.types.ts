@@ -35452,6 +35452,7 @@ export type Database = {
       };
       organizations: {
         Row: {
+          country_code: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -35465,6 +35466,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          country_code?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -35477,6 +35479,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          country_code?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -71952,6 +71955,49 @@ export type Database = {
         };
         Returns: string;
       };
+      console_grant_territory_exception: {
+        Args: {
+          p_contract_reference: string;
+          p_contract_signed_on: string;
+          p_country_code: string;
+          p_owner_email: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      console_list_territories: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          change_reason: string;
+          changed_at: string;
+          changed_by_name: string;
+          code: string;
+          country_codes: string[];
+          currency_codes: string[];
+          locale_codes: string[];
+          name_en: string;
+          name_es: string;
+          offered: boolean;
+        }[];
+      };
+      console_list_territory_exceptions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          contract_reference: string;
+          contract_signed_on: string;
+          country_code: string;
+          granted_at: string;
+          granted_by_name: string;
+          id: string;
+          org_id: string;
+          org_name: string;
+          owner_email: string;
+          reason: string;
+          revoke_reason: string;
+          revoked_at: string;
+          used_at: string;
+        }[];
+      };
       console_listing_detail: { Args: { p_opportunity_id: string }; Returns: Json };
       console_moderation_queue: {
         Args: { p_open?: boolean };
@@ -71988,10 +72034,24 @@ export type Database = {
         }[];
       };
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
+      console_orgs_outside_territories: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          country_code: string;
+          exception_contract: string;
+          id: string;
+          name: string;
+          slug: string;
+        }[];
+      };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
+        Returns: string;
+      };
+      console_revoke_territory_exception: {
+        Args: { p_id: string; p_reason: string };
         Returns: string;
       };
       console_save_banner: {
@@ -72006,6 +72066,18 @@ export type Database = {
           p_message_es: string;
           p_severity: Database["app"]["Enums"]["system_banner_severity"];
           p_starts_at: string;
+        };
+        Returns: string;
+      };
+      console_save_territory: {
+        Args: {
+          p_code: string;
+          p_country_codes: string[];
+          p_currency_codes: string[];
+          p_locale_codes: string[];
+          p_name_en: string;
+          p_name_es: string;
+          p_reason: string;
         };
         Returns: string;
       };
@@ -72052,6 +72124,10 @@ export type Database = {
           p_plan_code: string;
           p_reason: string;
         };
+        Returns: string;
+      };
+      console_set_territory_offered: {
+        Args: { p_code: string; p_offered: boolean; p_reason: string };
         Returns: string;
       };
       console_support_sessions: {
@@ -72186,6 +72262,7 @@ export type Database = {
       };
       create_client_organization: {
         Args: {
+          p_country_code?: string;
           p_name: string;
           p_owner_email: string;
           p_partner_org_id: string;
@@ -72275,7 +72352,10 @@ export type Database = {
         };
         Returns: string;
       };
-      create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
+      create_organization: {
+        Args: { p_country_code?: string; p_name: string; p_slug: string };
+        Returns: string;
+      };
       create_person_calendar_feed: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -73706,6 +73786,7 @@ export type Database = {
           white_label_until: string;
         }[];
       };
+      org_checkout_currency: { Args: { p_org_id: string }; Returns: string };
       org_export_tables: {
         Args: { p_org_id: string };
         Returns: {
@@ -75896,7 +75977,10 @@ export type Database = {
           subscribed: boolean;
         }[];
       };
-      subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
+      subscribe_external_account: {
+        Args: { p_account_id: string; p_country_code?: string };
+        Returns: string;
+      };
       subscription_pause_status: {
         Args: { p_org_id: string };
         Returns: {

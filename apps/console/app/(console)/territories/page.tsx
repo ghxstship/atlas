@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Where XOS is offered (ADR 0156): the one place an operator opens or closes a territory, and records an exception for a
+ * Where XOS is offered (ADR 0160): the one place an operator opens or closes a territory, and records an exception for a
  * signed contract. Opening one changes prices, languages and signup within a minute, with no code change.
  */
 export default async function TerritoriesPage() {
@@ -191,6 +191,7 @@ export default async function TerritoriesPage() {
               submitLabel={t("territories.grant")}
               successLabel={t("territories.granted")}
               label={t("territories.grantTitle")}
+              variant="secondary"
               testId="territory-exception-form"
             >
               <Input

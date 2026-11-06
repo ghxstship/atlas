@@ -1,7 +1,7 @@
 import { launchLocales, offeredLocaleList, type Locale } from "./locales.ts";
 
 /**
- * Where XOS is offered (ADR 0156). private.territories in the database is the one source of truth, and an operator changes
+ * Where XOS is offered (ADR 0160). private.territories in the database is the one source of truth, and an operator changes
  * it in the console with no code change; api_public.offered_territories is how every shell reads it. This module is
  * only the reader. Its default is the launch state, the United States alone, and a failed read gives the default, so the
  * failure mode is a closed territory rather than an open one.
@@ -115,13 +115,16 @@ export function createOfferingReader(
   connect: () => OfferingClient,
   production: boolean,
 ): () => Promise<Offering> {
-  return createOfferingCache(async () => {
-    try {
-      return await readOffering(connect());
-    } catch {
-      return DEFAULT_OFFERING;
-    }
-  }, production ? OFFERING_CACHE_SECONDS : 0);
+  return createOfferingCache(
+    async () => {
+      try {
+        return await readOffering(connect());
+      } catch {
+        return DEFAULT_OFFERING;
+      }
+    },
+    production ? OFFERING_CACHE_SECONDS : 0,
+  );
 }
 
 /** The offered territories' names in the reader's language, for "XOS is offered to organizations in ...". */

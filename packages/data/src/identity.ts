@@ -158,7 +158,7 @@ export async function createOrganization(
   input: {
     readonly name: string;
     readonly slug: string;
-    /** The country the creator states it is established in (ADR 0156); the database defaults to US. */
+    /** The country the creator states it is established in (ADR 0160); the database defaults to US. */
     readonly countryCode?: string;
   },
 ): Promise<Result<{ orgId: string }>> {

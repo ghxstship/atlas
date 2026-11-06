@@ -53,7 +53,7 @@ export interface CheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
-  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
   readonly currency?: string;
   /**
    * End of the org's running XOS trial (app.subscriptions.trial_ends_at, Section 14.7). Checkout then
@@ -126,7 +126,7 @@ function opened(session: {
  *
  * The session names its currency and turns adaptive pricing off. The prices carry a currency option for every price book
  * currency, and left to itself Stripe shows one from where the buyer seems to be, which would offer a closed territory's
- * prices to anyone browsing from it (ADR 0156).
+ * prices to anyone browsing from it (ADR 0160).
  */
 export async function createCheckoutSession(
   stripe: StripeClient,
@@ -179,7 +179,7 @@ export interface AddonCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
-  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
   readonly currency?: string;
 }
 

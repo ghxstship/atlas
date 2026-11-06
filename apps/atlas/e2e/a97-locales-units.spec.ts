@@ -69,7 +69,7 @@ async function clearPreference(page: Page, label: string) {
   await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 }
 
-/** Opens or closes the territories that hold the Beta locales, as an operator does in the console (ADR 0156). */
+/** Opens or closes the territories that hold the Beta locales, as an operator does in the console (ADR 0160). */
 async function setBetaTerritories(offered: boolean): Promise<void> {
   const client = new pg.Client({
     connectionString:

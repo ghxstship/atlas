@@ -74,7 +74,7 @@ export default async function BillingSettingsPage({
       maximumFractionDigits: minor % 100 === 0 ? 0 : 2,
     });
   const full = usage.limit !== null && usage.used >= usage.limit;
-  // Only the currencies of open territories are mentioned (ADR 0156).
+  // Only the currencies of open territories are mentioned (ADR 0160).
   const offering = await currentOffering();
   const otherCurrencies = offering.currencies.filter((c) => c !== "USD");
   const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month");

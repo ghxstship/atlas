@@ -43,7 +43,7 @@ function clientAnswering(answer: { data: unknown; error: unknown }): OfferingCli
   return { schema: () => ({ rpc: () => Promise.resolve(answer) }) };
 }
 
-describe("where XOS is offered (ADR 0156)", () => {
+describe("where XOS is offered (ADR 0160)", () => {
   it("defaults to the United States alone, in dollars, in the launch languages", () => {
     expect(DEFAULT_OFFERING.territories.map((t) => t.code)).toEqual(["US"]);
     expect(DEFAULT_OFFERING.currencies).toEqual(["USD"]);
@@ -55,15 +55,15 @@ describe("where XOS is offered (ADR 0156)", () => {
   it("keeps the default equal to what migration 6150 seeds as open", () => {
     const us = DEFAULT_OFFERING.territories[0];
     const countries = (us?.countries ?? []).map((c) => `'${c}'`).join(", ");
-    expect(migration).toContain(`('US', 'the United States', 'los Estados Unidos', array[${countries}], array['USD'], array['en-US', 'es-US'], true`);
+    expect(migration).toContain(
+      `('US', 'the United States', 'los Estados Unidos', array[${countries}], array['USD'], array['en-US', 'es-US'], true`,
+    );
     // Only the US row is seeded open.
     expect(migration.match(/\btrue,\n\s+'/g)).toHaveLength(1);
   });
 
   it("reads what the database offers, adding its currencies and languages", async () => {
-    const offering = await readOffering(
-      clientAnswering({ data: [US_ROW, EEA_ROW], error: null }),
-    );
+    const offering = await readOffering(clientAnswering({ data: [US_ROW, EEA_ROW], error: null }));
     expect(offering.currencies).toEqual(["USD", "EUR"]);
     expect(offering.locales).toEqual(["en-US", "es-US", "fr-FR", "de-DE"]);
     expect(offering.countries).toEqual(["US", "DE", "FR"]);

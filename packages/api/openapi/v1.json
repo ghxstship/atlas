@@ -36031,6 +36031,12 @@
             "pattern": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
             "description": "URL slug; reserved and taken slugs are refused.",
             "example": "northwind-live"
+          },
+          "country_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.",
+            "example": "US"
           }
         },
         "required": ["name", "slug"],
@@ -36088,6 +36094,12 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Plan code from `plans.yaml`; defaults to access.",
             "example": "access"
+          },
+          "country_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.",
+            "example": "US"
           }
         },
         "required": ["name", "slug", "owner_email"],
@@ -124525,13 +124537,17 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-rpc": "app.create_organization",
         "summary": "Create an organization",
-        "description": "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422, as is a country outside the territories XOS is offered in (`territory_not_offered`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Northwind Live", "slug": "northwind-live" },
+              "example": {
+                "name": "Northwind Live",
+                "slug": "northwind-live",
+                "country_code": "US"
+              },
               "schema": { "$ref": "#/components/schemas/CreateOrganizationRequest" }
             }
           }
@@ -124701,7 +124717,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-rpc": "app.create_client_organization",
         "summary": "Create a client organization",
-        "description": "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. The invite token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. A country outside the territories XOS is offered in is refused with 422 (`territory_not_offered`). The invite token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -124711,7 +124727,8 @@
                 "name": "Harbor City Events",
                 "slug": "northwind-live",
                 "owner_email": "alex.rivera@northwindlive.example",
-                "plan_code": "access"
+                "plan_code": "access",
+                "country_code": "US"
               },
               "schema": { "$ref": "#/components/schemas/CreateClientOrganizationRequest" }
             }

@@ -24635,7 +24635,7 @@ export class OrganizationsResource extends $Resource {
   /**
    * Create an organization
    *
-   * Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422, as is a country outside the territories XOS is offered in (`territory_not_offered`). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /organizations` (operation `organizations.create`).
    * Requires the capability `me.account.write`.
@@ -24694,7 +24694,7 @@ export class OrganizationsResource extends $Resource {
   /**
    * Create a client organization
    *
-   * Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. The invite token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. A country outside the territories XOS is offered in is refused with 422 (`territory_not_offered`). The invite token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /organizations/clients` (operation `organizations.createClient`).
    * Requires the capability `org.partner.manage`.

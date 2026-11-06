@@ -55,7 +55,7 @@ export function ClientOrgsView({
   rows: readonly ClientRow[];
   creating: boolean;
   detail: ClientDetail | null;
-  /** The currencies offered now, for a client's price (ADR 0156). */
+  /** The currencies offered now, for a client's price (ADR 0160). */
   currencies: readonly string[];
   /** Every country by name, for where a new client is established. */
   countries: readonly { value: string; label: string }[];

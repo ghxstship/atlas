@@ -389,7 +389,7 @@ const inviteToken = z.string().min(1).meta({
   example: "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e",
 });
 
-/** Where the caller states an organization is established (ADR 0156). Optional, so API v1 stays additive. */
+/** Where the caller states an organization is established (ADR 0160). Optional, so API v1 stays additive. */
 const countryCode = z
   .string()
   .regex(/^[A-Z]{2}$/)

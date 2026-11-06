@@ -313,7 +313,7 @@ describe("Beta targets (ADR 0053)", () => {
     expect(messages.some((m) => m.startsWith("app.save:"))).toBe(false);
   });
 
-  it("leaves a closed territory's locale alone unless it is named (ADR 0156)", async () => {
+  it("leaves a closed territory's locale alone unless it is named (ADR 0160)", async () => {
     const repo = betaRepo();
     const config = JSON.parse(repo.read("packages/i18n/translation/config.json")) as object;
     repo.write("packages/i18n/translation/config.json", {

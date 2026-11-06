@@ -26784,6 +26784,11 @@ export interface CreateOrganizationRequest {
    * Pattern: `^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$`.
    */
   readonly slug: string;
+  /**
+   * ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly country_code?: string;
 }
 
 /**
@@ -26831,6 +26836,11 @@ export interface CreateClientOrganizationRequest {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly plan_code?: string;
+  /**
+   * ISO 3166-1 alpha-2 country the organization is established in, stated by the caller. Omitted, the caller states the United States (`US`). A country outside the territories XOS is offered in is refused with 422 `territory_not_offered`.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly country_code?: string;
 }
 
 /**

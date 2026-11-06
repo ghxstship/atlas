@@ -12,7 +12,7 @@ import { actionContext } from "@/lib/operator";
 import { failed, field, fromResult, type ActionState } from "@/lib/action-state";
 
 /**
- * Where XOS is offered (ADR 0156, migration 6150): open or close a territory, edit one, and record or withdraw an
+ * Where XOS is offered (ADR 0160, migration 6150): open or close a territory, edit one, and record or withdraw an
  * exception for a signed contract. Each action checks the operator and the second factor first and the database checks
  * them again; every change lands in the console ledger with its reason.
  */

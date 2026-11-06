@@ -264,7 +264,7 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
   });
   if (!created.ok) {
     const error = created.error;
-    // Nothing was created. The person reads why, and what still works for them (ADR 0156).
+    // Nothing was created. The person reads why, and what still works for them (ADR 0160).
     if (error.kind === "refusal" && error.rule === "territory_not_offered") {
       return {
         error: "territory_not_offered",

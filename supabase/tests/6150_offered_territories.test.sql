@@ -1,4 +1,4 @@
--- pgTAP: migration 6150, the offered territories (ADR 0156). Only the United States is offered by default; an organization
+-- pgTAP: migration 6150, the offered territories (ADR 0160). Only the United States is offered by default; an organization
 -- cannot start outside an offered territory through any of the three creation paths; an invited person outside the US
 -- is untouched; an operator opens or closes a territory and records a one-use exception, each on the console ledger.
 begin;
@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(50);
+select plan(58);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -40,6 +40,9 @@ select ok(not exists (select 1 from unnest(array['USD', 'EUR', 'GBP', 'CAD', 'AU
 select ok(exists (select 1 from private.setting_choices where setting_key = 'locale.language' and choice = 'fr-FR'), 'and the settings registry keeps the Beta languages');
 
 -- Signup -----------------------------------------------------------------------------------------------------------------
+create temporary table k (key text primary key, id uuid);
+grant select, insert on k to public;
+
 select pg_temp.as_user('una');
 select ok(app.create_organization('Una Staging', 'una-staging', 'US') is not null, 'an organization in the United States starts');
 select is((select country_code from app.organizations where slug = 'una-staging'), 'US', 'and records the country stated');
@@ -57,13 +60,14 @@ select throws_ok($$select app.create_organization('Nowhere', 'nowhere-org', null
   'organization_country_invalid: Choose the country the organization is established in.', 'a null country is not a way around the question');
 
 -- A Gateway company account starts Atlas: the same gate ------------------------------------------------------------------
-select lives_ok($$select app.create_external_account('Vogel Rigging', 'vogel-rigging', 'For-Profit')$$, 'a Gateway company account carries no plan, so it is not gated');
-select throws_ok($$select app.subscribe_external_account((select id from app.organizations where slug = 'vogel-rigging'), 'DE')$$, 'XR001',
+insert into k select 'acct', app.create_external_account('Vogel Rigging', 'vogel-rigging', 'For-Profit');
+select ok((select id from k where key = 'acct') is not null, 'a Gateway company account carries no plan, so it is not gated');
+select throws_ok($$select app.subscribe_external_account((select id from k where key = 'acct'), 'DE')$$, 'XR001',
   'territory_not_offered: XOS is not offered to organizations in this country.', 'but it cannot start Atlas from Germany');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.subscriptions s join app.organizations o on o.id = s.org_id where o.slug = 'vogel-rigging'), 0, 'and has no subscription after the refusal');
 select pg_temp.as_user('liesel');
-select ok(app.subscribe_external_account((select id from app.organizations where slug = 'vogel-rigging'), 'US') is not null, 'it can start Atlas from the United States');
+select ok(app.subscribe_external_account((select id from k where key = 'acct'), 'US') is not null, 'it can start Atlas from the United States');
 select is((select country_code from app.organizations where slug = 'vogel-rigging'), 'US', 'and records the country');
 
 -- A partner's client ------------------------------------------------------------------------------------------------------
@@ -74,7 +78,7 @@ select throws_ok(format($$select * from app.create_client_organization(%L, 'Klie
 -- Being invited is not being offered XOS -----------------------------------------------------------------------------------
 select pg_temp.join_org('alice', 'org_a', 'tomas', 'member');
 select pg_temp.as_user('tomas');
-select ok(pg_temp.id('org_a') in (select private.my_org_ids()), 'a crew member abroad joins a US organization by invitation, with no country asked');
+select is((select count(*)::int from app.memberships m where m.org_id = pg_temp.id('org_a') and m.person_id = pg_temp.id('tomas')), 1, 'a crew member abroad joins a US organization by invitation, with no country asked');
 select is((select count(*)::int from app.organizations where id = pg_temp.id('org_a')), 1, 'and reads it like anyone else');
 
 -- Checkout ------------------------------------------------------------------------------------------------------------------

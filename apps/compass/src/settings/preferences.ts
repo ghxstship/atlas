@@ -110,7 +110,7 @@ export function settingOf(def: SettingDefinition, row: Row | undefined): Persona
   };
 }
 
-/** The setting as this phone offers it: the registry keeps every language, and only offered ones are choices (ADR 0156). */
+/** The setting as this phone offers it: the registry keeps every language, and only offered ones are choices (ADR 0160). */
 export function withOfferedChoices(
   def: SettingDefinition,
   offered: readonly string[],

@@ -111,6 +111,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0140](0140-site-plan-states-drawings-annotations-and-signage.md)   | Site Plan States, Drawings, Annotations and the Signage Register                 | Accepted |
 | [0144][adr-0144]                                                    | Travel, Lodging, Ground Transport and Local Contacts                             | Accepted |
 | [0145](0145-change-tracking.md)                                     | Change Tracking Is Computed From the Ledger Against One Instant per Person       | Accepted |
+| [0160](0160-offered-territories-united-states-launch.md)            | One Source of Truth for Offered Territories, With a United States Launch         | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

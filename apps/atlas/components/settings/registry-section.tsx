@@ -56,7 +56,7 @@ function options(
   offeredLocales: readonly string[],
 ) {
   if (def.type === "choice") {
-    // The registry keeps every language; only those of open territories are choices (ADR 0156).
+    // The registry keeps every language; only those of open territories are choices (ADR 0160).
     const choices =
       def.key === "locale.language"
         ? def.choices.filter((c) => offeredLocales.includes(c))

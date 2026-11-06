@@ -10,7 +10,7 @@ function localDb(): pg.Client {
 }
 
 /**
- * The United States launch (ADR 0156). Signup asks the organization's country and creates nothing outside an offered
+ * The United States launch (ADR 0160). Signup asks the organization's country and creates nothing outside an offered
  * territory, with a plain sentence that says so; a closed territory's currencies and languages are not offered; an
  * invited person abroad is untouched; and nothing about this reads where a person seems to be.
  */
@@ -32,7 +32,9 @@ test("an organization outside an offered territory is not created, and the page 
   await page.getByRole("checkbox").check();
 
   // The country is a question, with no answer chosen for the person.
-  const country = page.getByLabel("Country where your organization is established", { exact: true });
+  const country = page.getByLabel("Country where your organization is established", {
+    exact: true,
+  });
   await expect(country).toHaveValue("");
   await page.getByRole("button", { name: "Create organization", exact: true }).click();
   await expect(
@@ -81,7 +83,9 @@ test("a closed territory's currencies and languages are not offered", async ({ p
 
   // The language menu holds English and Spanish.
   await page.getByRole("button", { name: "Account" }).first().click();
-  await expect(page.getByRole("menuitem", { name: "Español (EE. UU.)", exact: false })).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Español (EE. UU.)", exact: false }),
+  ).toBeVisible();
   for (const closed of ["Français", "Deutsch", "Italiano", "Português", "日本語"]) {
     await expect(page.getByRole("menuitem", { name: closed, exact: false })).toHaveCount(0);
   }
@@ -127,7 +131,9 @@ test("a crew member abroad, invited by a US organization, signs up and works wit
   await db.connect();
   let token = "";
   try {
-    const issued = await db.query<{ token: string }>("select private.issue_invite_token() as token");
+    const issued = await db.query<{ token: string }>(
+      "select private.issue_invite_token() as token",
+    );
     token = issued.rows[0]?.token ?? "";
     await db.query(
       `insert into app.invites (org_id, email, role_id, token_hash, expires_at, invited_by)

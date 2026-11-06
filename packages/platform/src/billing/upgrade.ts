@@ -91,7 +91,7 @@ export interface PlanCheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
-  /** The currency to charge in (app.org_checkout_currency, ADR 0156); USD when not given. */
+  /** The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. */
   readonly currency?: string;
   /** The current time, for tests. */
   readonly now?: Date;

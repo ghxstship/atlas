@@ -559,6 +559,14 @@ How it behaves:
 
 Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
 
+## Where XOS is offered (OWNER and platform team)
+
+XOS launches in the United States only (ADR 0160). `private.territories` is the one source of truth, and an Administrator opens or closes a territory on the console's Territories page, with a reason, with no deploy. Signup, prices and languages follow within a minute. Before opening a territory, do what the table in ADR 0160 lists for it. After a territory opens, run `pnpm --filter @xos/i18n translate --locale <code>` if its language should read translated, and rerun nothing in Stripe: every price already carries its currency.
+
+The owner keeps the app stores in step: App Store Connect and Google Play availability set to the United States only. A worker abroad whose store account is in another country cannot download Compass from a United States listing and uses Gateway on the web, or the app already on their phone.
+
+The console's list of organizations outside the offered territories is the review to do before launch and after any close: an organization from before the question has no recorded country.
+
 ## Machine translation (OWNER, Google Cloud Translation)
 
 Google Cloud Translation reviews es-US and produces every other translation (ADR 0037). The owner sets it up once and runs it. Authentication is Application Default Credentials: a gcloud login on the owner's machine, and Workload Identity Federation in GitHub Actions. No service account key, API key or other secret is created or stored anywhere.

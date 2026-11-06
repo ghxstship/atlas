@@ -149,7 +149,7 @@ async function RegistrySettings({ ctx, t, node, locale }: SectionProps) {
               setHere={source === "Personal"}
               options={
                 def.type === "choice"
-                  ? // The registry keeps every language; only those of open territories are choices (ADR 0156).
+                  ? // The registry keeps every language; only those of open territories are choices (ADR 0160).
                     (def.key === "locale.language"
                       ? def.choices.filter((c) => offeredLocales.includes(c))
                       : def.choices

@@ -166,7 +166,7 @@ describe("locale", () => {
       "es-US",
     );
     expect(negotiateLocale({ cookie: "en-XA", acceptLanguage: "fr", production })).toBe("en-US");
-    // Beta locales come from the person's choice only (ADR 0053), and only while their territory is open (ADR 0156).
+    // Beta locales come from the person's choice only (ADR 0053), and only while their territory is open (ADR 0160).
     expect(negotiateLocale({ cookie: "fr-FR", production, offered: ["en-US", "fr-FR"] })).toBe(
       "fr-FR",
     );

@@ -240,7 +240,7 @@ export async function getSubscriptionPause(
   });
 }
 
-/** The currency Stripe Checkout opens in for the org (ADR 0156); USD when the answer cannot be read. */
+/** The currency Stripe Checkout opens in for the org (ADR 0160); USD when the answer cannot be read. */
 export async function orgCheckoutCurrency(db: XosClient, orgId: string): Promise<string> {
   const { data, error } = await untyped(db).rpc("org_checkout_currency", { p_org_id: orgId });
   return !error && typeof data === "string" && data !== "" ? data : "USD";

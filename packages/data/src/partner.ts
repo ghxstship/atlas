@@ -66,7 +66,7 @@ export interface NewClientOrg {
   readonly slug: string;
   readonly ownerEmail: string;
   readonly planCode: string;
-  /** The country the partner states the client is established in (ADR 0156). */
+  /** The country the partner states the client is established in (ADR 0160). */
   readonly countryCode: string;
 }
 

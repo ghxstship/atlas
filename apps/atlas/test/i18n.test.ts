@@ -46,7 +46,7 @@ describe("locale negotiation", () => {
     ).toBe("es-US");
     expect(lockedLocale(org("es-US", true))).toBe("es-US");
     expect(lockedLocale(org("es-US"))).toBeNull();
-    // An org may lock a Beta locale of an open territory (ADR 0053, ADR 0156), whose catalog loads on demand; never one
+    // An org may lock a Beta locale of an open territory (ADR 0053, ADR 0160), whose catalog loads on demand; never one
     // of a closed territory, nor a language XOS does not ship.
     expect(lockedLocale(org("fr-FR", true), OPEN)).toBe("fr-FR");
     expect(lockedLocale(org("fr-FR", true))).toBeNull();
@@ -108,7 +108,7 @@ describe("locale negotiation", () => {
     expect(
       negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true, offered: OPEN }),
     ).toBe("fr-FR");
-    // Its territory closed, a saved choice reads as no choice (ADR 0156), and the code stays.
+    // Its territory closed, a saved choice reads as no choice (ADR 0160), and the code stays.
     expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
       "en-US",
     );

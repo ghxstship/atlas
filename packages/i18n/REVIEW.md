@@ -26,3 +26,6 @@ the sign-off is recorded here. ADR 0006 and ADR 0014 (open decision 11) point to
    "Signed off". A Beta locale then loses its Beta mark in the language picker: move it from `betaLocales` to
    `launchLocales` in `src/locales.ts` and drop `partial` from its target in `translation/config.json`, so the
    catalog tests hold it complete and strict (ADR 0053).
+
+A Beta locale is offered as a choice only while a territory that holds it is open (ADR 0160); its target is marked
+`closed` in `translation/config.json` until then, and sign-off does not open it.

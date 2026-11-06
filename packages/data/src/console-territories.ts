@@ -3,7 +3,7 @@ import type { Result } from "./result.ts";
 import { bool, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 
 /**
- * The console's view of where XOS is offered (ADR 0156, migration 6150). Reads need tenants.read; every change needs
+ * The console's view of where XOS is offered (ADR 0160, migration 6150). Reads need tenants.read; every change needs
  * territories.write and a reason, and lands on the console ledger with the operator. The shells read the offered
  * territories through @xos/i18n/offering instead.
  */
