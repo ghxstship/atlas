@@ -119,7 +119,12 @@ function accountStore(
 ) {
   const recorded: Parameters<CheckoutAccountStore["record"]>[0][] = [];
   const begun: Parameters<CheckoutAccountStore["begin"]>[0][] = [];
+  const consents: Parameters<CheckoutAccountStore["recordConsent"]>[0][] = [];
   const store: CheckoutAccountStore = {
+    async recordConsent(input) {
+      consents.push(input);
+      return `consent-${String(consents.length)}`;
+    },
     async begin(input) {
       begun.push(input);
       if (options.refuse !== undefined) throw new Error(options.refuse);
@@ -138,7 +143,7 @@ function accountStore(
       return options.customerId ?? "cus_none";
     },
   };
-  return { store, recorded, begun };
+  return { store, recorded, begun, consents };
 }
 
 const request = {
@@ -149,10 +154,64 @@ const request = {
   customerEmail: "owner@northwind.test",
   successUrl: "https://atlas.test/northwind/settings/billing-and-plan?checkout=done",
   cancelUrl: "https://atlas.test/northwind/settings/billing-and-plan?checkout=canceled",
+  consent: () => ({
+    amountMinor: 14900,
+    currency: "USD" as const,
+    nextChargeOn: "2026-10-23",
+    textVersion: "2026-11-06",
+    locale: "en-US",
+    statement: "Core renews automatically every month.",
+    initials: null,
+  }),
   now: new Date("2026-10-23T12:00:00Z"),
 };
 
 describe("startPlanCheckout", () => {
+  it("records what the Owner agreed to, after the checks and before Stripe, and repeats it on Stripe's page", async () => {
+    const stripe = fakeStripe();
+    const account = accountStore({ trialEndsAt: "2026-11-05T05:00:00Z" });
+    const seen: (string | null)[] = [];
+    await startPlanCheckout(stripe.client, registry, account.store, {
+      ...request,
+      consent: ({ trialEndsAt }) => {
+        seen.push(trialEndsAt);
+        return request.consent();
+      },
+    });
+    expect(seen).toEqual(["2026-11-05T05:00:00Z"]);
+    expect(account.consents).toEqual([
+      {
+        orgId: "org-1",
+        planCode: "core",
+        interval: "Monthly",
+        livemode: false,
+        consent: request.consent(),
+      },
+    ]);
+    const created = stripe.calls.find((c) => c.method === "checkout.sessions.create");
+    expect(JSON.stringify(created)).toContain("Core renews automatically every month.");
+  });
+
+  it("records no consent and calls no Stripe when the database refuses or the terms changed", async () => {
+    const stripe = fakeStripe();
+    const refused = accountStore({ refuse: "step_up_required" });
+    await expect(
+      startPlanCheckout(stripe.client, registry, refused.store, request),
+    ).rejects.toThrow("step_up_required");
+    expect(refused.consents).toEqual([]);
+    const account = accountStore();
+    await expect(
+      startPlanCheckout(stripe.client, registry, account.store, {
+        ...request,
+        consent: () => {
+          throw new Error("renewal_terms_changed");
+        },
+      }),
+    ).rejects.toThrow("renewal_terms_changed");
+    expect(account.consents).toEqual([]);
+    expect(stripe.calls.filter((c) => c.method === "checkout.sessions.create")).toEqual([]);
+  });
+
   it("opens an org's first checkout with the Owner's email and carries the rest of its trial", async () => {
     const stripe = fakeStripe();
     const account = accountStore({ trialEndsAt: "2026-11-05T05:00:00Z" });

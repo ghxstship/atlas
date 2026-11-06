@@ -886,7 +886,7 @@
   },
   "lifecycle": {
     "title": "Cancelar la organización",
-    "description": "Cancelar termina la suscripción. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
+    "description": "Al cancelar, cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
     "loadError": "No se pudo cargar el estado de la organización.",
     "ownerOnly": "Solo el Propietario cancela la organización o descarga la exportación completa.",
     "banner": "Esta organización está cancelada y en solo lectura {days, plural, one {# día más} other {# días más}}, hasta el {until}. El Propietario puede descargar la exportación completa en Configuración, Zona de peligro.",

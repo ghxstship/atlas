@@ -1190,7 +1190,7 @@
       "redirecting": "Abriendo Stripe…",
       "portal": {
         "title": "Portal de facturación",
-        "body": "Cambia el plan o el método de pago, descarga facturas o cancela en el portal de facturación de Stripe. Un plan cancelado sigue hasta el final del periodo pagado, y luego la organización pasa a Access.",
+        "body": "Cambia el plan o el método de pago y descarga facturas en el portal de facturación de Stripe.",
         "bodyEnded": "Descarga facturas anteriores y actualiza los datos de facturación en el portal de facturación de Stripe.",
         "period": "Facturación {term, select, Annual {anual} other {mensual}}. El periodo actual termina el {date}.",
         "open": "Abrir el portal de facturación"
@@ -1208,7 +1208,13 @@
         "checkout_completed": "Acaba de completarse un pago de esta organización. El plan que se muestra aquí se actualiza en un momento.",
         "billing_price_missing": "Este plan aún no está a la venta en Stripe. Inténtalo más tarde o contacta con soporte.",
         "billing_no_customer": "Esta organización aún no ha pagado con Stripe. Elige un plan primero.",
-        "other": "La facturación no se completó. Inténtalo de nuevo o contacta con soporte."
+        "other": "La facturación no se completó. Inténtalo de nuevo o contacta con soporte.",
+        "renewal_consent_required": "Acepta las condiciones de renovación para continuar.",
+        "renewal_initials_required": "Escribe tus iniciales para aceptar una renovación anual.",
+        "renewal_terms_changed": "Estas condiciones cambiaron. Lee las nuevas en esta página y vuelve a aceptarlas.",
+        "renewal_price_mismatch": "El precio cambió. Vuelve a cargar la página e inténtalo de nuevo.",
+        "renewal_date_range": "La fecha del primer cargo cambió. Vuelve a cargar la página e inténtalo de nuevo.",
+        "billing_no_subscription": "Esta organización no tiene un plan de pago que terminar."
       },
       "errors": {
         "input": "Elige un plan y un periodo de facturación.",
@@ -1234,7 +1240,38 @@
         "buy": "Comprar un paquete"
       },
       "foundingOffer": "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
-      "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar."
+      "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar.",
+      "checkoutTerms": "Se renueva automáticamente hasta que lo termines. Te enviamos las condiciones por correo y puedes terminar el plan en esta página en cualquier momento.",
+      "renewal": {
+        "title": "Revisa el plan {plan}",
+        "statementMonthly": "{plan} se renueva automáticamente cada mes por {price} al mes en dólares estadounidenses, más impuestos, hasta que lo canceles. Tu primer cargo de {price} es el {date}, y luego se cobra a tu método de pago cada mes ese mismo día. Si Checkout muestra otra moneda, se aplica ese importe. Un código promocional cambia el precio solo durante el período que indica, y solo podemos cambiar el precio en una renovación después de avisarte con 30 días de antelación. Para cancelar, elige Terminar plan en Configuración, Facturación y plan en cualquier momento. La próxima renovación se detiene y el plan sigue activo hasta el final del período que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija.",
+        "statementAnnual": "{plan} se renueva automáticamente cada año por {price} al año en dólares estadounidenses, más impuestos, hasta que lo canceles. Tu primer cargo de {price} es el {date}, y luego se cobra a tu método de pago cada año ese mismo día. Si Checkout muestra otra moneda, se aplica ese importe. Un código promocional cambia el precio solo durante el período que indica, y solo podemos cambiar el precio en una renovación después de avisarte con 30 días de antelación. Te enviamos un recordatorio por correo 30 días antes de cada renovación. Para cancelar, elige Terminar plan en Configuración, Facturación y plan en cualquier momento. La próxima renovación se detiene y el plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija.",
+        "agree": "Acepto estas condiciones de renovación y autorizo a XOS a cobrar a mi método de pago mediante Stripe hasta que cancele.",
+        "initials": "Tus iniciales",
+        "initialsHelp": "Un plan anual se renueva por un año completo, así que te pedimos que pongas tus iniciales en estas condiciones.",
+        "continue": "Aceptar y continuar al pago",
+        "back": "Volver a los planes",
+        "planNames": {
+          "core": "Core",
+          "pro": "Pro",
+          "team": "Team"
+        }
+      },
+      "endPlan": {
+        "title": "Terminar el plan",
+        "body": "Detiene la próxima renovación. El plan sigue funcionando hasta el final del período que pagaste y luego la organización pasa al plan Access con sus datos intactos. No se te volverá a cobrar. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija.",
+        "submit": "Terminar plan",
+        "sent": "Tu solicitud se envió a Stripe."
+      },
+      "stripeCancel": {
+        "acceptedTitle": "Suscripción cancelada",
+        "acceptedBody": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija.",
+        "queuedTitle": "Cancelación aún sin confirmar",
+        "queuedBody": "Enviamos tu cancelación a Stripe y todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe al buzón de soporte y te lo reembolsaremos.",
+        "endingTitle": "Este plan va a terminar",
+        "endingBody": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el {date} y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha.",
+        "endingBodyNoDate": "Stripe aceptó tu solicitud. El plan sigue funcionando hasta el final del período que pagaste y no se te volverá a cobrar. Para conservar el plan, renuévalo en el portal de facturación antes de esa fecha."
+      }
     },
     "organizations": {
       "leave": "Salir",

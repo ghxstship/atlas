@@ -26,6 +26,7 @@ export {
   PriceNotFoundError,
   createPortalSession,
   findPortalConfiguration,
+  stripeTrialEnd,
   type OpenedCheckout,
 } from "./checkout.ts";
 export {
@@ -45,3 +46,21 @@ export {
   type PauseAccountStore,
   type PauseRefusalRule,
 } from "./pause.ts";
+export {
+  runStripeCancellations,
+  sendStripeCancel,
+  stripeCancelIdempotencyKey,
+  type BillingAlert,
+  type BillingAlertSink,
+  type StripeCancelJob,
+  type StripeCancelMode,
+  type StripeCancelOutcome,
+  type StripeCancellationRun,
+  type StripeCancellationStore,
+} from "./cancel.ts";
+export {
+  CHECKOUT_MESSAGE_MAX,
+  RENEWAL_TERMS_VERSION,
+  firstChargeOn,
+  type RenewalConsent,
+} from "./renewal.ts";

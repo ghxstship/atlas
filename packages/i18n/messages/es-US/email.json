@@ -141,6 +141,26 @@
       "resumed": {
         "subject": "Su organización se reanudó",
         "body": "La pausa terminó. La organización vuelve a permitir cambios y la facturación continúa."
+      },
+      "purchase_confirmed": {
+        "subject": "Tu plan {plan} está confirmado",
+        "body": "Tu plan {plan} se renueva automáticamente cada {term, select, Annual {año} other {mes}} por {price}, más impuestos, hasta que lo canceles. El próximo cargo es el {nextChargeOn, date, long}. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del período que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
+      },
+      "renewal_reminder": {
+        "subject": "Tu plan {plan} se renueva el {renewsOn, date, long}",
+        "body": "Tu plan anual {plan} se renueva automáticamente por otro año el {renewsOn, date, long}, y se cargarán {price}, más impuestos, a tu método de pago. Para detenerlo, elige Terminar plan en Configuración, Facturación y plan en cualquier momento antes de esa fecha. El plan sigue activo hasta el final del año que pagaste. Las tarifas ya pagadas no se reembolsan, salvo que la ley lo exija."
+      },
+      "cancellation_confirmed": {
+        "subject": "Tu suscripción está cancelada",
+        "body": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija. Si recibes un cargo después de cancelar, escribe al buzón de soporte y te lo reembolsaremos."
+      },
+      "plan_ending": {
+        "subject": "Tu plan {plan} termina el {endsOn, date, long}",
+        "body": "Stripe aceptó tu solicitud. Tu plan {plan} no se renovará y no se te volverá a cobrar. Sigue funcionando hasta el {endsOn, date, long}, y luego la organización pasa al plan Access con sus datos intactos. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija."
+      },
+      "cancellation_delayed": {
+        "subject": "Tu cancelación aún no está confirmada",
+        "body": "Enviamos tu cancelación a Stripe, nuestro proveedor de pagos, y todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente, nuestro equipo ya recibió la alerta y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe al buzón de soporte y te lo reembolsaremos."
       }
     },
     "message": {

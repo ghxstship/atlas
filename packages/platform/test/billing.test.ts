@@ -100,6 +100,10 @@ function memoryStore(
     failSync?: boolean;
     /** Checkout sessions Atlas opened, which finishCheckout knows. */
     opened?: string[];
+    /** What reconciliation answers; proceed unless a test says otherwise. */
+    reconcile?: string;
+    failReconcile?: boolean;
+    failCharge?: boolean;
   } = {},
 ) {
   const events = new Map<
@@ -109,7 +113,24 @@ function memoryStore(
   const syncs: Parameters<BillingStore["syncSubscription"]>[0][] = [];
   const purchases: Parameters<BillingStore["recordAddonPurchase"]>[0][] = [];
   const finished: { sessionId: string; state: string }[] = [];
+  const reconciled: Parameters<BillingStore["reconcileSubscription"]>[0][] = [];
+  const terms: Parameters<BillingStore["noteSubscriptionTerms"]>[0][] = [];
+  const charges: Parameters<BillingStore["noteCharge"]>[0][] = [];
   const store: BillingStore = {
+    async reconcileSubscription(input) {
+      if (options.failReconcile) throw new Error("reconcile failed");
+      reconciled.push(input);
+      return options.reconcile ?? "proceed";
+    },
+    async noteSubscriptionTerms(input) {
+      terms.push(input);
+      return true;
+    },
+    async noteCharge(input) {
+      if (options.failCharge) throw new Error("charge failed");
+      charges.push(input);
+      return input.amountMinor > 0;
+    },
     async finishCheckout(sessionId, state) {
       finished.push({ sessionId, state });
       return (options.opened ?? []).includes(sessionId);
@@ -151,7 +172,7 @@ function memoryStore(
       return input.status === "past_due" ? "past_due" : "active";
     },
   };
-  return { store, events, syncs, purchases, finished };
+  return { store, events, syncs, purchases, finished, reconciled, terms, charges };
 }
 
 function subscriptionEvent(
@@ -517,7 +538,7 @@ describe("Stripe webhook", () => {
     const cases = [
       { event: subscriptionEvent({ id: "evt_live", livemode: true }), reason: /mode/ },
       {
-        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.paid" },
+        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.created" },
         reason: /No action/,
       },
       { event: subscriptionEvent({ id: "evt_noorg", orgId: null }), reason: /no org/ },

@@ -886,7 +886,7 @@
   },
   "lifecycle": {
     "title": "Cancel the organization",
-    "description": "Canceling ends the subscription. The organization is read-only for 30 days with the full export available, then its data is deleted at day 90.",
+    "description": "Canceling ends any paid subscription in Stripe at once, with no further charges. Time you already paid for is not refunded unless the law requires it. The organization is read-only for 30 days with the full export available, then its data is deleted at day 90.",
     "loadError": "The organization's status could not be loaded.",
     "ownerOnly": "Only the Owner cancels the organization or takes the full export.",
     "banner": "This organization is canceled and read-only for {days, plural, one {# more day} other {# more days}}, until {until}. The Owner can download the full export in Settings, Danger zone.",

@@ -59,6 +59,11 @@ export interface CheckoutRequest {
    * trialing subscription to active at once, so adding a card converts the trial.
    */
   readonly trialEnd?: string;
+  /**
+   * The renewal terms the Owner agreed to, shown again above Stripe's pay button (ADR 0156), so the same disclosure stands
+   * next to the point of payment. Stripe limits it to 1,200 characters.
+   */
+  readonly renewalMessage?: string;
   /** The current time, for tests. */
   readonly now?: Date;
 }
@@ -156,6 +161,9 @@ export async function createCheckoutSession(
     tax_id_collection: { enabled: true },
     success_url: request.successUrl,
     cancel_url: request.cancelUrl,
+    ...(request.renewalMessage === undefined
+      ? {}
+      : { custom_text: { submit: { message: request.renewalMessage } } }),
     ...customerFields(request),
   });
   return opened(session);
