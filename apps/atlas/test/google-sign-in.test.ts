@@ -102,6 +102,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   outdated = false;
+  confirmed = true;
   refusals = [];
   jar.values.clear();
   settings = { google: true, apple: false, azure: false };
@@ -116,6 +117,7 @@ beforeEach(() => {
       return tokenAnswer();
     }
     if (url.pathname === "/rest/v1/rpc/minimum_age_outdated") return json(outdated);
+    if (url.pathname === "/rest/v1/rpc/minimum_age_confirmed") return json(confirmed);
     if (url.pathname === "/rest/v1/rpc/record_age_refusal") {
       refusals.push(JSON.parse(String(init?.body)));
       return json(true);
@@ -130,6 +132,8 @@ afterEach(() => {
 
 /** Whether the person holds only a confirmation at the earlier age of 16. */
 let outdated = false;
+/** Whether the person has answered 18 or older. */
+let confirmed = true;
 /** Refusals counted through api_public.record_age_refusal. */
 let refusals: Record<string, unknown>[] = [];
 
@@ -356,6 +360,16 @@ describe("the minimum age of 18 (ADR 0156)", () => {
     const landed = await callback(back.searchParams.toString());
     expect(landed.pathname).toBe("/auth/age");
     expect(landed.searchParams.get("next")).toBe("/auth/invite/xlnk_abc123");
+  });
+
+  it("asks a first Google sign-in before anything else", async () => {
+    confirmed = false;
+    const to = await startWith({ provider: "google", next: "/auth/organization" });
+    const back = new URL(to.searchParams.get("redirect_to") ?? "");
+    back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000003");
+    const landed = await callback(back.searchParams.toString());
+    expect(landed.pathname).toBe("/auth/age");
+    expect(landed.searchParams.get("next")).toBe("/auth/organization");
   });
 
   it("makes no account for an answer of under 18, and counts it without the name or email", async () => {

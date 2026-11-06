@@ -1,4 +1,4 @@
-import { minimumAgeOutdated } from "@xos/data/consent";
+import { minimumAgeConfirmed, minimumAgeOutdated } from "@xos/data/consent";
 import { joinBySsoSession } from "@xos/data/identity-providers";
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
@@ -57,7 +57,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     if (joined.ok && joined.data && next === "/") return goTo(`/${joined.data.slug}/home`);
   }
-  // Someone who confirmed the earlier age of 16 answers again at 18 (migration 6155).
-  if (await minimumAgeOutdated(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  // A provider creates the account before any form, and someone who confirmed the earlier age of 16
+  // answers again at 18 (ADR 0156). A failed read lets them on: the org and invite steps still ask.
+  const age = oauth ? await minimumAgeConfirmed(db) : null;
+  if ((age?.ok && !age.data) || (await minimumAgeOutdated(db))) {
+    return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  }
   return goTo(next);
 }

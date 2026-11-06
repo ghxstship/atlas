@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
-import { minimumAgeOutdated } from "@xos/data/consent";
+import { minimumAgeConfirmed, minimumAgeOutdated } from "@xos/data/consent";
 import { clientIp, missingSignUpAcceptances, recordPendingAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
@@ -51,7 +51,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (oauth && (await missingSignUpAcceptances(db)).length > 0) {
     return goTo(next === HOME ? "/auth/terms" : `/auth/terms?next=${encodeURIComponent(next)}`);
   }
-  // Someone who confirmed the earlier age of 16 answers again at 18 (migration 6155).
-  if (await minimumAgeOutdated(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  // A provider's account that accepted the terms long ago, or someone who confirmed the earlier age of
+  // 16, answers again at 18 (ADR 0156).
+  const age = oauth ? await minimumAgeConfirmed(db) : null;
+  if ((age?.ok && !age.data) || (await minimumAgeOutdated(db))) {
+    return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  }
   return goTo(next);
 }

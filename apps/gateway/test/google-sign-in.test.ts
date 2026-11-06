@@ -205,6 +205,7 @@ describe("Gateway: Continue with Google", () => {
 
   it("exchanges the code and lands on next with the session cookie set", async () => {
     accepted = [{ document_slug: "worker-terms" }];
+    ages = [{ p_surface: "Gateway" }];
     const start = await startWith({ provider: "google", next: "/work/engagements/eng_1" });
     const back = new URL(start.searchParams.get("redirect_to") ?? "");
     back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000127");
@@ -257,8 +258,16 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     expect(`${home.pathname}${home.search}`).toBe("/auth/terms");
   });
 
-  it("lets an account through that accepted them, or whose acceptance is about to be written", async () => {
+  it("asks an account that accepted them but never answered the age", async () => {
     accepted = [{ document_slug: "worker-terms" }];
+    const to = await signedInWithGoogle("/auth/claim");
+    expect(to.pathname).toBe("/auth/age");
+    expect(to.searchParams.get("next")).toBe("/auth/claim");
+  });
+
+  it("lets an account through that accepted them and answered, or whose acceptance is about to be written", async () => {
+    accepted = [{ document_slug: "worker-terms" }];
+    ages = [{ p_surface: "Gateway" }];
     expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
     accepted = [];
     userMetadata = {
