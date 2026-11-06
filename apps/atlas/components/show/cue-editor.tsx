@@ -226,9 +226,7 @@ export function CueEditor({
           </div>
         }
         // The cue's custom fields (2920) save on their own, under A117's rules, outside the cue's forms.
-        {...(hasCueFields
-          ? { fields: <CustomFieldsSection table="app.cues" id={cue.id} /> }
-          : {})}
+        {...(hasCueFields ? { fields: <CustomFieldsSection table="app.cues" id={cue.id} /> } : {})}
       />
     </div>
   );

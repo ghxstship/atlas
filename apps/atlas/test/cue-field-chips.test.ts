@@ -60,7 +60,9 @@ describe("cue field chips", () => {
       key: "look",
       label: "Look",
       dataType: "Choice",
-      choices: [{ id: "c1", label: "Warm", colorKey: "cat-2" }] as unknown as CustomField["choices"],
+      choices: [
+        { id: "c1", label: "Warm", colorKey: "cat-2" },
+      ] as unknown as CustomField["choices"],
     });
     const chips = cueFieldChips(
       [look, field({})],

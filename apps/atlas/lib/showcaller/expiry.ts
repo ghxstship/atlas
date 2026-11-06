@@ -6,11 +6,7 @@ import { fromLocalInput, toLocalInput } from "@/components/work/format";
  * time zone, so a link picked for the show day outlives the show, kept inside the 14 days the database allows, so the
  * last day offered is never refused. A plain helper outside the "use server" actions, as lib/live-links/expiry.ts is.
  */
-export function showcallerExpiryFor(
-  day: string,
-  timeZone: string,
-  now: Date = new Date(),
-): string {
+export function showcallerExpiryFor(day: string, timeZone: string, now: Date = new Date()): string {
   const end = Date.parse(fromLocalInput(`${day}T23:59`, timeZone) ?? "");
   const ceiling = now.getTime() + MAX_SHOWCALLER_LINK_DAYS * 86_400_000 - 60_000;
   return new Date(Math.min(end, ceiling)).toISOString();
