@@ -1,4 +1,4 @@
--- 3042_contract_intake_apply.sql
+-- 6272_contract_intake_apply.sql
 -- B15 contracts and riders into Artist bookings (RRR-239, parity gap G-177; ADR 0154). Extraction proposes one
 -- engagements.createFromContract suggestion per document on a request about the project; the review groups them by act,
 -- and the person chooses the party and the terms. Aurora never creates a person, account or counterparty. No table,

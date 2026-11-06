@@ -1,4 +1,4 @@
--- 3032_gate_setup_checks.sql
+-- 6262_gate_setup_checks.sql
 -- B14 Event types and project setup (RRR-238; parity gaps G-250 and G-266; ADR 0153 decision D3; block 6260 to 3039).
 -- Setup completeness is checked in the database, beside the gate's blocking criteria: a gate of a typed project passes
 -- only once every Required document type and every required field of its event type due by that gate is satisfied.

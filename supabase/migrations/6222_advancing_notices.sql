@@ -1,4 +1,4 @@
--- 2742_advancing_notices.sql
+-- 6222_advancing_notices.sql
 -- R11 Advancing notices (RRR-192; Section 11.11, owner decision 6). The advancing events the approved report lists that
 -- no other package already announces. Each emitter goes through private.notify in the producing org and never tells the
 -- person who acted; 2749 seeds the kinds.

@@ -19,8 +19,8 @@ settings:
     help: settings.fields.advancingReminders.help
     pages: { org: settings.gateway-and-marketplace }
     enforced_by:
-      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
-        test: supabase/tests/2741_advance_reminders.test.sql
+      - consumer: supabase/migrations/6221_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/6221_advance_reminders.test.sql
   - key: advancing.reminder_days_before
     type: integer
     min: 1
@@ -33,8 +33,8 @@ settings:
     help: settings.fields.advancingReminderDaysBefore.help
     pages: { org: settings.gateway-and-marketplace }
     enforced_by:
-      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
-        test: supabase/tests/2741_advance_reminders.test.sql
+      - consumer: supabase/migrations/6221_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/6221_advance_reminders.test.sql
   - key: advancing.overdue_reminder_every_days
     type: integer
     min: 0
@@ -47,5 +47,5 @@ settings:
     help: settings.fields.advancingOverdueEvery.help
     pages: { org: settings.gateway-and-marketplace }
     enforced_by:
-      - consumer: supabase/migrations/2741_advance_reminders.sql#private.send_advance_reminders
-        test: supabase/tests/2741_advance_reminders.test.sql
+      - consumer: supabase/migrations/6221_advance_reminders.sql#private.send_advance_reminders
+        test: supabase/tests/6221_advance_reminders.test.sql

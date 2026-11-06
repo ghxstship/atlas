@@ -1,4 +1,4 @@
--- 2741_advance_reminders.sql
+-- 6221_advance_reminders.sql
 -- R11 Automatic advance reminders (RRR-192; Section 11.11, owner decision 6).
 --
 --   1. The three settings of packages/schemas/settings/r11.yaml, pasted from `pnpm --filter @xos/schemas settings:sql

@@ -4,8 +4,8 @@
 - Date: 2026-10-31
 - Decider: Owner, through the competitor parity audit approved on 2026-10-28 and the deferred-theme package B3
   (RRR-227), fast-forwarded on 2026-10-30
-- Migrations: `2920_cue_rundown_depth.sql`, `2921_segment_library.sql`, `2922_show_channels.sql`,
-  `2923_showcaller_links.sql`, `2924_showcaller_link_access.sql`, `2925_showcaller_link_channels.sql`
+- Migrations: `6240_cue_rundown_depth.sql`, `6241_segment_library.sql`, `6242_show_channels.sql`,
+  `6243_showcaller_links.sql`, `6244_showcaller_link_access.sql`, `6245_showcaller_link_channels.sql`
 - Gaps closed: G-73 (user-defined cue columns with per-audience visibility, a script field, segment colors and a
   library of reusable segments), G-79 (show chat beside the running cue, with clients excluded) and G-80 (a
   showcaller portal with an access code per stage that edits the rundown live, cues departments and runs the clock)

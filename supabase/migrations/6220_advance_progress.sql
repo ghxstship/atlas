@@ -1,4 +1,4 @@
--- 2740_advance_progress.sql
+-- 6220_advance_progress.sql
 -- R11 Advancing heatmap (RRR-192; Section 11.11, ADR 0100 and 0103; owner decisions 4, 5 and 8). Every outstanding
 -- advancing item on one screen: who has answered which section, how ready each person on a roster is, and where each
 -- party's allocations stand. Everything here is computed from the rows that own each state and nothing is stored.

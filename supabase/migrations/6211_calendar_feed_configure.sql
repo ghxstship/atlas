@@ -1,4 +1,4 @@
--- 2961_calendar_feed_configure.sql
+-- 6211_calendar_feed_configure.sql
 -- B7 (RRR-231, ADR 0146 decisions 1 and 2; gap G-50). Feeds are named and filtered through RPCs only, and the
 -- audience rule that feeds and day sheets share lives here, in SQL alone.
 --

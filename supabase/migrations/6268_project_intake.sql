@@ -1,4 +1,4 @@
--- 3038_project_intake.sql
+-- 6268_project_intake.sql
 -- B14 Event types and project setup (RRR-238; parity gaps G-250, G-252 and G-262; ADR 0153; block 6260 to 3039). The
 -- staged intake wizard's save: one transaction that creates the project from the event type's template, a chosen
 -- template or nothing, sets its event type and bands, lays its Load In and Load Out days, and copies the chosen parts of

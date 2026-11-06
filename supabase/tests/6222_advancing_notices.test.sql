@@ -1,7 +1,7 @@
 -- pgTAP: migration 6222 (R11), advancing notices. Each kind fires on its event, to the right people and never to the
 -- person who acted: advance_submission.returned to the recipient's people; submittal.returned to the vendor's Owner and
 -- Advancing Lead, not an unassigned Account Member; roster_entry.removed and roster_entry.facts_requested to the person;
--- roster_entry.share_revoked to the project's packet readers; credential.revoked to the holder (2742_credential_revoked_cascades.test.sql
+-- roster_entry.share_revoked to the project's packet readers; credential.revoked to the holder (6222_credential_revoked_cascades.test.sql
 -- covers R7's cascades, which do not send it). A rostered person who
 -- is no account member gets Email and Push deliveries through private.party_org_ids, which keeps A127's open-offer
 -- branch beside R4's roster branch.
@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
-\ir 2654_project_facts_world.psql
+\ir 4654_project_facts_world.psql
 
 select no_plan();
 

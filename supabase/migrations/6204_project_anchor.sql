@@ -1,4 +1,4 @@
--- 2934_project_anchor.sql
+-- 6204_project_anchor.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-44; ADR 0143 decision 4; ADR 0111; ADR 0022 block 6200 to 6209). Anchor
 -- offset scheduling: a project's plan counts from its anchor day (projects.anchor_on, 1180, usually the show day), and
 -- moving the anchor moves the plan with it.

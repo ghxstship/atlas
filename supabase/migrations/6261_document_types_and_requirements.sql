@@ -1,4 +1,4 @@
--- 3031_document_types_and_requirements.sql
+-- 6261_document_types_and_requirements.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-266; ADR 0153 decisions D3 and D7; block 6260 to 3039).
 -- Document types an org files its project documents under, the documents each event type needs, and the progress view
 -- that shows how far a project's setup has come.

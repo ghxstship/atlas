@@ -1,4 +1,4 @@
--- 2923_showcaller_links.sql
+-- 6243_showcaller_links.sql
 -- B3 Showcaller portal (RRR-227, ADR 0142; parity gap G-80). A showcaller link lets someone with no account call one
 -- running order (one stage's show day: its scope node is the stage, its show_date the day) and edit it live, with an
 -- access code, as an Atlas showcaller would. This migration holds the links; 6244 the anonymous reads and writes and 6245

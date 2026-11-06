@@ -1,4 +1,4 @@
--- 2960_calendar_feed_filters.sql
+-- 6210_calendar_feed_filters.sql
 -- B7 Day sheets, books, calendar feeds and wrap-up report (RRR-231, ADR 0146 decision 1; gap G-50). A member keeps
 -- several named feeds, each with saved content sources (cues included) and, on a project feed, an audience of
 -- people, one team or one canon department and a show department.

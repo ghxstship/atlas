@@ -1,4 +1,4 @@
--- 2930_b4_scheduling_depth.sql
+-- 6200_b4_scheduling_depth.sql
 -- B4 Scheduling depth (RRR-228, ADR 0143). Demo data for day types, the anchor, workload and clashes on the Demo Summer
 -- Series (0107, 0108): its anchor day, a Load In, a Show and a split Load Out and Travel day, effort estimates on three
 -- open tasks, and a side-stage running order on the show day where the headliner (Demo Multi Role, 1080) is also booked

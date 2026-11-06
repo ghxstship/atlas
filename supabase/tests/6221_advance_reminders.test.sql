@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
-\ir 2654_project_facts_world.psql
+\ir 4654_project_facts_world.psql
 
 select no_plan();
 
@@ -177,7 +177,7 @@ select results_eq(format($$select sent, skipped from app.send_advance_reminder_n
 select pg_temp.as_platform();
 
 -- Org deletion and the sandbox purge -----------------------------------------------------------------------------------------------
--- Both purges refuse any marked row outside the org (2741_reminder_ledgers_purge.test.sql purges one of each).
+-- Both purges refuse any marked row outside the org (6221_reminder_ledgers_purge.test.sql purges one of each).
 select ok((select bool_and(org_id = pg_temp.id('org_a')) from private.advance_reminders_sent), 'a packet reminder''s ledger row carries the org');
 select is((select count(*)::int from pg_catalog.pg_constraint k
   where k.contype = 'f' and k.conrelid in ('private.advance_reminders_sent'::regclass, 'private.roster_fact_reminders_sent'::regclass)

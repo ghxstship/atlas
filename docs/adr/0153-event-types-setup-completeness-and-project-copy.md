@@ -4,9 +4,9 @@
 - Date: 2026-10-31
 - Decider: Owner, through the competitor parity audit approved on 2026-10-28 (deferred theme "Event types and project
   setup", package B14, RRR-238; gaps G-250, G-252, G-262, G-266 and G-268), fast-forward approved on 2026-10-30
-- Migrations: `3030_event_types.sql`, `3031_document_types_and_requirements.sql`, `3032_gate_setup_checks.sql`,
-  `3033_project_site_windows.sql`, `3034_record_reviews.sql`, `3035_file_version_reviews.sql`,
-  `3036_project_copy.sql`, `3037_roster_copy.sql`, `3038_project_intake.sql`
+- Migrations: `6260_event_types.sql`, `6261_document_types_and_requirements.sql`, `6262_gate_setup_checks.sql`,
+  `6263_project_site_windows.sql`, `6264_record_reviews.sql`, `6265_file_version_reviews.sql`,
+  `6266_project_copy.sql`, `6267_roster_copy.sql`, `6268_project_intake.sql`
 - Builds on: ADR 0143 (scheduling depth, B4: project days), ADR 0101 (the roster belongs to the party, R4), ADR 0104
   (the supply bridge and its site window, R7a), ADR 0111 (templates without dates, P8), A117 (required custom fields)
 - Cites: ADR 0110 (Trash), ADR 0068 (denormalization register), ADR 0022 (migration ranges), ADR 0019 (api_external

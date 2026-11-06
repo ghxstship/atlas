@@ -1,4 +1,4 @@
--- 3041_itinerary_apply.sql
+-- 6271_itinerary_apply.sql
 -- B15 itineraries into travel segments (RRR-239, parity gap G-59; ADR 0154). Extraction proposes one travelSegments.create
 -- suggestion per passenger and segment on a request about the project; the person picks each traveler and adds the lines
 -- they keep. No table, column or view is added: segments are ordinary app.travel_segments rows under their own guards.

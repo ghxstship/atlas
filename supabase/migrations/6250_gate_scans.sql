@@ -1,4 +1,4 @@
--- 2970_gate_scans.sql
+-- 6250_gate_scans.sql
 -- B8 Access control (RRR-232, gap G-145, ADR 0147 decisions 1 and 2). Gate scans gain a direction, the database's
 -- reason for a refusal and a supervisor override:
 --

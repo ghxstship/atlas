@@ -1,4 +1,4 @@
--- 3030_event_types.sql
+-- 6260_event_types.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-250; ADR 0153 decisions D2 and D7; block 6260 to 3039). An
 -- org's event types: each names a kind of event the org produces (a festival, a gala, a trade show), picks the
 -- template a new project starts from by its scale and audience bands, and carries a set of project custom fields

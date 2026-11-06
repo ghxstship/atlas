@@ -1,4 +1,4 @@
--- 2922_show_channels.sql
+-- 6242_show_channels.sql
 -- B3 Show channels (RRR-227, ADR 0142 decision 10; parity gap G-79). The crew talks beside the running cue in a show
 -- channel: the chat of a Project group (0800) marked show_channel, at most one live per project. Clients never take
 -- part, at any of the four doors, and they do not read the group row either.

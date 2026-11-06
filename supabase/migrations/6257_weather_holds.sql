@@ -1,4 +1,4 @@
--- 2977_weather_holds.sql
+-- 6257_weather_holds.sql
 -- B8 Weather hold and all-clear (RRR-232, gap G-150, ADR 0147 decision 9). A dispatcher calls a weather hold with a
 -- message and gives the all-clear when it is over. Holds have their own table, because app.crisis_alerts (0353)
 -- requires a canon emergency code and the canon has no weather code.

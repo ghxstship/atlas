@@ -1,4 +1,4 @@
--- 3034_record_reviews.sql
+-- 6264_record_reviews.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-268; ADR 0153 decision D5; block 6260 to 3039). Task
 -- reviews as a done-gate: a record flagged requires_review reaches Complete only after the latest Approval record
 -- about it is decided Approved. Invariant 18 is unchanged: private.guard_record_approval (0311) still refuses the
@@ -538,7 +538,7 @@ create trigger t41_record_approval_fixed before update on app.record_approval
   for each row execute function private.guard_record_approval_fixed();
 
 -- Acting on a review request from Inbox -------------------------------------------------------------------------------------------
--- Restated from A127's 2200_one_tap_actions.sql, the latest definition, with the app.records branch.
+-- Restated from A127's 5200_one_tap_actions.sql, the latest definition, with the app.records branch.
 
 create or replace function app.act_on_notification(p_notification_id uuid, p_action text, p_comment text default null)
 returns uuid

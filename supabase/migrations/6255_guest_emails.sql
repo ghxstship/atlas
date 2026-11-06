@@ -1,4 +1,4 @@
--- 2975_guest_emails.sql
+-- 6255_guest_emails.sql
 -- B8 Bulk guest emails with passes (RRR-232, gap G-71, ADR 0147 decision 7). Staff email the guests they select: an
 -- invitation, their pass (the guest-pass PDF attached) or a message. The org sends them through its own outbox:
 --

@@ -105,7 +105,7 @@ describe("the registry follows the migrations", () => {
   const workflows = [
     ...(
       read("supabase/migrations/1532_product_analytics.sql") +
-      read("supabase/migrations/2745_advancing_funnels.sql")
+      read("supabase/migrations/6225_advancing_funnels.sql")
     ).matchAll(/\('((?:atlas|gateway|compass)\.[a-z_]+)', '(Atlas|Gateway|Compass)'/g),
   ].map((m) => [m[1] ?? "", m[2] ?? ""]);
 

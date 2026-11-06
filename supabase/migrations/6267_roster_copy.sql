@@ -1,4 +1,4 @@
--- 3037_roster_copy.sql
+-- 6267_roster_copy.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-252; ADR 0153 decision D4; ADR 0101; block 6260 to 3039).
 -- Reusing a roster from a past event, on the party's side in Gateway. The roster belongs to the party (ADR 0101; owner
 -- decisions 0, 1 and 4), so the org never copies it: only someone who manages both rosters reuses one, and every reused

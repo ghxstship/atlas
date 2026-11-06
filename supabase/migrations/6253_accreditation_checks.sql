@@ -1,4 +1,4 @@
--- 2973_accreditation_checks.sql
+-- 6253_accreditation_checks.sql
 -- B8 One accreditation list (RRR-232, gap G-147, ADR 0147 decision 5). The Issued page is the one list of everyone
 -- accredited on a project, crew, members, party and roster people alike; guests stay on the guest list with passes
 -- (6254). This migration:

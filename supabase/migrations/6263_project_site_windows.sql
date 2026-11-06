@@ -1,4 +1,4 @@
--- 3033_project_site_windows.sql
+-- 6263_project_site_windows.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-262; ADR 0153 decision D1; ADR 0143 decision 1; block 6260
 -- to 3039). Bump-in and bump-out windows. ADR 0143 decision 1 (B4) derives them from a project's days and stores no
 -- second load-in or load-out date, so nothing is stored here (ADR 0153 C1):
@@ -56,7 +56,7 @@ revoke all on function private.project_bump_windows(uuid) from public, anon;
 grant execute on function private.project_bump_windows(uuid) to authenticated, service_role;
 
 -- The site window, bump windows first --------------------------------------------------------------------------------------------
--- Restated from 2683_hire_views_and_warnings.sql, its only definition, with the bump windows taking precedence.
+-- Restated from 4683_hire_views_and_warnings.sql, its only definition, with the bump windows taking precedence.
 
 create or replace function private.project_site_window(p_project_id uuid)
 returns tstzrange

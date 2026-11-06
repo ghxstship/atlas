@@ -1,4 +1,4 @@
--- 2935_workload.sql
+-- 6205_workload.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-45; ADR 0143 decisions 5 to 7; ADR 0103; ADR 0022 block 6200 to 6209). The
 -- workload view: hours per person per day from shifts and task estimates, computed at read time and never stored.
 --

@@ -1,4 +1,4 @@
--- 2963_day_sheet_audience.sql
+-- 6213_day_sheet_audience.sql
 -- B7 (RRR-231, ADR 0146 decisions 2 and 3; gap G-52). A day sheet prints for one team or one canon department with
 -- only that audience's calls and records. The audience rule is the one calendar feeds use (6211), in SQL alone.
 --

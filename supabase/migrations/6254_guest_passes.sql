@@ -1,4 +1,4 @@
--- 2974_guest_passes.sql
+-- 6254_guest_passes.sql
 -- B8 Guest passes (RRR-232, gap G-68, ADR 0147 decision 6). Guests get passes, not credentials:
 --
 --   * app.guest_list_entries gains the pass type (an Access category of the same project, such as GUEST or VIP), a

@@ -1,4 +1,4 @@
--- 2976_weather_feed.sql
+-- 6256_weather_feed.sql
 -- B8 Weather feed (RRR-232, gap G-150, ADR 0147 decision 8). For a US venue with a location, the weather-feed Edge
 -- Function polls the US National Weather Service every 10 minutes during the project window (three days before it
 -- starts to the day after it ends, in the project's time zone): the latest observation of the nearest station, the

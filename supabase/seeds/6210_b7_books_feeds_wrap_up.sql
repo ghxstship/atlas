@@ -1,4 +1,4 @@
--- 2960_b7_books_feeds_wrap_up.sql
+-- 6210_b7_books_feeds_wrap_up.sql
 -- B7 Day sheets, books, calendar feeds and wrap-up report (RRR-231, ADR 0146). Demo data on the Opening Night project
 -- (0108): three day sheets around show day (two published), the Production team (0010) and a Production department
 -- group, two named project feeds of the owner (Show calls with cues for the Production team, Lighting crew with the

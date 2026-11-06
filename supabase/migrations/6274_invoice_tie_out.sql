@@ -1,4 +1,4 @@
--- 3044_invoice_tie_out.sql
+-- 6274_invoice_tie_out.sql
 -- B15 invoice and receipt lines, tie-out and vendor history (RRR-239, parity gap G-225; ADR 0154). An invoice keeps the total
 -- it printed as a fact, and the residual against its lines is computed, never stored (ADR 0103 style). The residual is a
 -- warning: it never blocks approval or posting and does not touch app.invoice_matches.

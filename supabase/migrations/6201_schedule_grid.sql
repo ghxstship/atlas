@@ -1,4 +1,4 @@
--- 2931_schedule_grid.sql
+-- 6201_schedule_grid.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-41; ADR 0143 decision 3; ADR 0022 block 6200 to 6209). The schedule grid:
 -- a day's records, or a running order's cues, typed into rows like a spreadsheet and saved in one transaction.
 --

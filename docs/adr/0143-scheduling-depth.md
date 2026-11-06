@@ -4,8 +4,8 @@
 - Date: 2026-10-30
 - Decider: Owner, through the competitor parity audit approved on 2026-10-28 (deferred theme "Scheduling depth",
   package B4, RRR-228; gaps G-38, G-41, G-42, G-43, G-44, G-45, G-46 and G-47)
-- Migrations: `2930_project_days.sql`, `2931_schedule_grid.sql`, `2932_day_templates.sql`,
-  `2933_day_template_rpcs.sql`, `2934_project_anchor.sql`, `2935_workload.sql`, `2936_schedule_clashes.sql`
+- Migrations: `6200_project_days.sql`, `6201_schedule_grid.sql`, `6202_day_templates.sql`,
+  `6203_day_template_rpcs.sql`, `6204_project_anchor.sql`, `6205_workload.sql`, `6206_schedule_clashes.sql`
 - Builds on: ADR 0063 (crew scheduling, A132), ADR 0111 (reschedules push successors, A133 and P8), ADR 0131 (show
   calling, P2), ADR 0102 (project facts, R5)
 - Cites: ADR 0103 (computed statuses), ADR 0110 (Trash), ADR 0068 (denormalization register), ADR 0044 (bulk edit),

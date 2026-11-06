@@ -1,4 +1,4 @@
--- 2925_showcaller_link_channels.sql
+-- 6245_showcaller_link_channels.sql
 -- B3 Showcaller portal (RRR-227, ADR 0142). The portal updates while it is open, the way P1's live links do (3782):
 -- each link has a private broadcast channel, xcall:<channel key>, that only the database sends to. A statement trigger
 -- on each table the portal shows sends a ping that carries nothing of the rows, and the portal rereads through

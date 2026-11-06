@@ -1,4 +1,4 @@
--- 2962_calendar_feed_cues.sql
+-- 6212_calendar_feed_cues.sql
 -- B7 (RRR-231, ADR 0146 decisions 1 and 2; gap G-50). Feeds serve their saved sources and audience, and cues.
 --
 --   * api_public.calendar_feed, from its latest definition (6111, P2) verbatim, with these changes:

@@ -1,4 +1,4 @@
--- 2924_showcaller_link_access.sql
+-- 6244_showcaller_link_access.sql
 -- B3 Showcaller portal (RRR-227, ADR 0142). The anonymous side of showcaller links (6243): token RPCs in the sense of
 -- Section 7.5 invariant 8 (ADR 0033 decision 56). Each needs the token, a device grant earned with the access code, and
 -- stays within the link's one running order. Execute is granted to anon.

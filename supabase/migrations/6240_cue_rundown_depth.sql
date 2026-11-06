@@ -1,4 +1,4 @@
--- 2920_cue_rundown_depth.sql
+-- 6240_cue_rundown_depth.sql
 -- B3 Run-of-show depth (RRR-227, ADR 0142; parity gap G-73). A running order gets the depth of a rundown tool: columns
 -- the org defines, color-coded choices, a script for each cue and a color for each segment.
 --

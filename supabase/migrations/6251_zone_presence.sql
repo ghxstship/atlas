@@ -1,4 +1,4 @@
--- 2971_zone_presence.sql
+-- 6251_zone_presence.sql
 -- B8 Live counts and muster lists (RRR-232, gaps G-145 and G-149, ADR 0147 decision 3). Who is in which zone now, read
 -- from the gate scans and from geofenced clock-ins, as views that run as their reader (security_invoker), so the row
 -- level security of the tables they read decides the rows:

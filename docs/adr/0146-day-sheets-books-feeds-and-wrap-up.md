@@ -4,8 +4,8 @@
 - Date: 2026-10-30
 - Decider: Owner, through the competitor parity audit and its deferred themes approved on 2026-10-28 (package B7,
   RRR-231; gaps G-50, G-52, G-54 and G-267)
-- Migrations: `2960_calendar_feed_filters.sql`, `2961_calendar_feed_configure.sql`, `2962_calendar_feed_cues.sql`,
-  `2963_day_sheet_audience.sql`, `2964_document_books.sql`, `2965_project_debriefs.sql`
+- Migrations: `6210_calendar_feed_filters.sql`, `6211_calendar_feed_configure.sql`, `6212_calendar_feed_cues.sql`,
+  `6213_day_sheet_audience.sql`, `6214_document_books.sql`, `6215_project_debriefs.sql`
 - Amends: ADR 0031 (decision 3, the document kinds), ADR 0040 (items 4 and 5)
 - Cites: ADR 0131 (TBC starts, run of show version 2), ADR 0110 (Trash), ADR 0068 (denormalization register), ADR 0003
   (one org's record under its own brand), Section 4.7 (Aurora), EU AI Act Article 50

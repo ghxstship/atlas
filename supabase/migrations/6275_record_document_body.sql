@@ -1,4 +1,4 @@
--- 3045_record_document_body.sql
+-- 6275_record_document_body.sql
 -- B15 governance drafts (RRR-239, parity gap G-240; ADR 0154). A Document record has only a storage URI and a version label
 -- (0311), and app.documents has no text column (ADR 0044), so an event plan, brief, approval pack or waste plan has nowhere
 -- to live. The body is saved through the same extension path as version_label; a draft fills the editor and the editor's

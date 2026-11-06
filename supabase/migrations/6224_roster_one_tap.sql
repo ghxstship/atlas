@@ -1,4 +1,4 @@
--- 2744_roster_one_tap.sql
+-- 6224_roster_one_tap.sql
 -- R11 One-tap answers to a roster invitation (RRR-192; A127, ADR 0106, Section 11.10 rule 5). R4's
 -- roster_entry.invited (2642) tells a person they were put on a crew roster; it now carries the actions A127 gives
 -- offers. Each function is recreated from its latest definition (5861, or 5200 for the awaiting list) with the roster branch added; nothing else

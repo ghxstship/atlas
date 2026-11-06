@@ -1,4 +1,4 @@
--- 3040_aurora_intake_scope.sql
+-- 6270_aurora_intake_scope.sql
 -- B15 Aurora intake and drafting extensions (RRR-239; parity gaps G-59, G-177, G-173, G-225, G-240; ADR 0154). An intake
 -- is its open suggestions: extraction requests with subject app.projects/<project>, which last 7 days and belong to the
 -- person who asked (ADR 0154 D3), so there is no batch table and a reload resumes the review.

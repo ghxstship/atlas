@@ -1,4 +1,4 @@
--- 2936_schedule_clashes.sql
+-- 6206_schedule_clashes.sql
 -- B4 Scheduling depth (RRR-228; parity gaps G-46 and G-47; ADR 0143 decisions 5, 6 and 8; ADR 0103; ADR 0022 block 6200
 -- to 2939). Cross-production conflicts and running-order clashes, computed at read time and never stored. SQL returns
 -- candidate facts; packages/data/src/schedule-clashes.ts (classifyClash) applies the org's thresholds and decides each

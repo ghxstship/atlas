@@ -1,4 +1,4 @@
--- 2933_day_template_rpcs.sql
+-- 6203_day_template_rpcs.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-42; ADR 0143 decisions 2 and 3; ADR 0022 block 6200 to 6209). Laying a
 -- day template onto a day, and saving a day as one. Both run as the caller (security invoker), so row level security
 -- and every guard of records and cues decide exactly as for rows typed by hand, as app.apply_template does (6121).

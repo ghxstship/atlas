@@ -1,4 +1,4 @@
--- 2930_project_days.sql
+-- 6200_project_days.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-38; ADR 0143 decision 1; ADR 0022 block 6200 to 6209). Day types: a
 -- project's days, each a Load In, Show, Load Out, Travel, Off, Rehearsal or Other day, with up to four segments on a
 -- split day (a Load Out in the morning and Travel in the afternoon). Schedules, calendars, day sheets and the portfolio

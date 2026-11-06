@@ -1,4 +1,4 @@
--- 2972_credential_requirements.sql
+-- 6252_credential_requirements.sql
 -- B8 Training required before a badge (RRR-232, gap G-148, ADR 0147 decision 4). A credential category can require a
 -- training course or a certification. Issuing the category to someone who does not meet every requirement now is
 -- refused (credential_training_incomplete), whether the badge is issued directly, through app.issue_allocation (R7) or

@@ -1,4 +1,4 @@
--- 3036_project_copy.sql
+-- 6266_project_copy.sql
 -- B14 Event types and project setup (RRR-238; parity gap G-252; ADR 0153 decision D4; block 6260 to 3039). Copy from
 -- the last event: a direct project-to-project copy of the org-owned setup of a past project, shifted by a number of
 -- days on the project's wall clock. Templates are not widened.

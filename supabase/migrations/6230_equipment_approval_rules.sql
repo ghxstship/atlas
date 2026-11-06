@@ -1,4 +1,4 @@
--- 2863_equipment_approval_rules.sql
+-- 6230_equipment_approval_rules.sql
 -- P9b Equipment approval rules (RRR-223, gap G-31, ADR 0138), the part of P9 that waits on R7's allocations. An
 -- Equipment rule gates a radio or cart request from an advance before a reviewer may approve it:
 --

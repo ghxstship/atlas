@@ -1,4 +1,4 @@
--- 2932_day_templates.sql
+-- 6202_day_templates.sql
 -- B4 Scheduling depth (RRR-228; parity gap G-42; ADR 0143 decision 2; ADR 0022 block 6200 to 6209). Day templates: a
 -- day's records and cues saved once (a show day, a load-in day) and laid onto another day through a reviewable dry run
 -- (6203). They follow 1032's template patterns in tables of their own: v1 freezes Template.template_kind to
