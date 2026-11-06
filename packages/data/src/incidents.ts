@@ -875,6 +875,10 @@ export interface CrisisAlert {
   readonly peopleTold: number | null;
   /** How many of them were clocked in on the project then. */
   readonly peopleToldOnSite: number | null;
+  /** People the database's worker still has to tell (6070). */
+  readonly peopleWaiting: number | null;
+  /** People it could not be sent to after three tries (6070). */
+  readonly peopleNotSent: number | null;
 }
 
 export async function listCrisisAlerts(
@@ -884,7 +888,7 @@ export async function listCrisisAlerts(
   let query = db
     .from("crisis_alerts")
     .select(
-      "id, project_id, emergency_code, message, issued_at, ended_at, people_told, people_told_on_site, project:projects!crisis_alerts_project_id_fkey(project_key)",
+      "id, project_id, emergency_code, message, issued_at, ended_at, people_told, people_told_on_site, people_waiting, people_not_sent, project:projects!crisis_alerts_project_id_fkey(project_key)",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
@@ -903,6 +907,8 @@ export async function listCrisisAlerts(
         ended_at: string | null;
         people_told: number | null;
         people_told_on_site: number | null;
+        people_waiting: number | null;
+        people_not_sent: number | null;
         project: { project_key: string } | null;
       }[]
     ).map((r) => ({
@@ -915,14 +921,16 @@ export async function listCrisisAlerts(
       endedAt: r.ended_at,
       peopleTold: r.people_told,
       peopleToldOnSite: r.people_told_on_site,
+      peopleWaiting: r.people_waiting,
+      peopleNotSent: r.people_not_sent,
     })),
   );
 }
 
 /**
  * Announces a crisis alert under a global code (safety.incident.dispatch on the project). The database tells the people
- * on the project as the row is written (6070) and returns how many it reached: the caller reports those counts as they
- * are, zero included.
+ * on the project as the row is written, for as long as the statement may spend, and returns how many it reached and how
+ * many its worker still has to tell (6070): the caller reports those counts as they are, zero included.
  */
 export async function issueCrisisAlert(
   db: XosClient,
@@ -932,7 +940,9 @@ export async function issueCrisisAlert(
     readonly emergencyCode: string;
     readonly message: string;
   },
-): Promise<Result<{ id: string; peopleTold: number; peopleToldOnSite: number }>> {
+): Promise<
+  Result<{ id: string; peopleTold: number; peopleToldOnSite: number; peopleWaiting: number }>
+> {
   const { data, error } = await db
     .from("crisis_alerts")
     .insert({
@@ -941,13 +951,14 @@ export async function issueCrisisAlert(
       emergency_code: input.emergencyCode,
       message: input.message.trim(),
     })
-    .select("id, people_told, people_told_on_site")
+    .select("id, people_told, people_told_on_site, people_waiting")
     .single();
   if (error) return fail(toDataError(error));
   return ok({
     id: data.id,
     peopleTold: data.people_told ?? 0,
     peopleToldOnSite: data.people_told_on_site ?? 0,
+    peopleWaiting: data.people_waiting ?? 0,
   });
 }
 

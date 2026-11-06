@@ -590,12 +590,14 @@ describe("emergency codes and crisis alerts", () => {
       ended_at: null,
       people_told: 12,
       people_told_on_site: 5,
+      people_waiting: 3,
+      people_not_sent: 1,
       project: { project_key: "NWL" },
     };
     const { db, calls } = client({
       "from:crisis_alerts": [
         okResponse([alert, { ...alert, id: "a2", project: null, people_told: null }]),
-        okResponse({ id: "a3", people_told: 0, people_told_on_site: 0 }),
+        okResponse({ id: "a3", people_told: 0, people_told_on_site: 0, people_waiting: 0 }),
         okResponse([{ id: "a3" }]),
         okResponse([]),
         down,
@@ -607,12 +609,14 @@ describe("emergency codes and crisis alerts", () => {
     expect(listed.ok && listed.data.map((a) => a.projectKey)).toEqual(["NWL", ""]);
     // An alert from before 6070 says nothing about who was told, which is not the same as zero.
     expect(listed.ok && listed.data.map((a) => a.peopleTold)).toEqual([12, null]);
+    expect(listed.ok && listed.data[0]?.peopleWaiting).toBe(3);
+    expect(listed.ok && listed.data[0]?.peopleNotSent).toBe(1);
     expect(calls[0]?.steps).toContainEqual(["is", ["ended_at", null]]);
     const input = { orgId: "o1", projectId: "j1", emergencyCode: "CODE_RED", message: " Go. " };
     // Nobody reached reads as zero, for the confirmation to say so.
     expect(await issueCrisisAlert(db, input)).toEqual({
       ok: true,
-      data: { id: "a3", peopleTold: 0, peopleToldOnSite: 0 },
+      data: { id: "a3", peopleTold: 0, peopleToldOnSite: 0, peopleWaiting: 0 },
     });
     expect((await endCrisisAlert(db, "a3")).ok).toBe(true);
     expect((await endCrisisAlert(db, "a3")).ok).toBe(false);

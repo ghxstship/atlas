@@ -27,6 +27,7 @@ import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { ActionForm } from "@/components/operations/action-form";
+import { alertReach } from "@/lib/incidents/alert-reach";
 import {
   chooseProjectNotice,
   dateTime,
@@ -1151,15 +1152,12 @@ function AlertsPanel({
                 {a.peopleTold !== null ? (
                   <span
                     className={
-                      a.peopleTold === 0
+                      a.peopleTold === 0 || (a.peopleNotSent ?? 0) > 0
                         ? "text-text-13 font-medium text-danger-text"
                         : "text-text-13 text-text-secondary"
                     }
                   >
-                    {t("incidents.alerts.reach", {
-                      count: a.peopleTold,
-                      onSite: a.peopleToldOnSite ?? 0,
-                    })}
+                    {alertReach(t, a)}
                   </span>
                 ) : null}
               </span>
@@ -1229,12 +1227,7 @@ function AlertsPanel({
                     a.projectKey,
                     a.message,
                     dateTime(format, a.issuedAt),
-                    a.peopleTold !== null
-                      ? t("incidents.alerts.reach", {
-                          count: a.peopleTold,
-                          onSite: a.peopleToldOnSite ?? 0,
-                        })
-                      : null,
+                    a.peopleTold !== null ? alertReach(t, a) : null,
                   )}
                 </li>
               ))}

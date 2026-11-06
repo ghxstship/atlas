@@ -308,8 +308,9 @@ export async function issueAlertAction(_: ActionState, form: FormData): Promise<
   return done(ctx.org.slug, {
     count: String(result.data.peopleTold),
     onSite: String(result.data.peopleToldOnSite),
-    // An alert that reached nobody is recorded, not a success: the form says so as a warning.
-    ...(result.data.peopleTold === 0 ? { tone: "warning" } : {}),
+    waiting: String(result.data.peopleWaiting),
+    // An alert that reached nobody, or not everyone yet, is recorded, not a success: the form says so as a warning.
+    ...(result.data.peopleTold === 0 || result.data.peopleWaiting > 0 ? { tone: "warning" } : {}),
   });
 }
 
