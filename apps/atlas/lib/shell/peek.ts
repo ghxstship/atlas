@@ -58,6 +58,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "schedule.clashes",
   "schedule.days",
   "schedule.workload",
+  "site-ops.muster",
   "site-ops.weather",
   "trash",
 ]);

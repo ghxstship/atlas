@@ -1,4 +1,4 @@
-import { ScanLogSection } from "@/components/credentials/sections";
+import { ScanLogSection } from "@/components/credentials/scan-log-section";
 import { loadModulePage } from "@/lib/operations/context";
 
 /** The scan log (Section 4.2): every scan with the decision the database made, and a scan desk. */

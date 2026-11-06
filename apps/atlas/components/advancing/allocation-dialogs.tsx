@@ -61,9 +61,15 @@ function useDialogAction(action: Action, onDone: () => void) {
 
 function Refusal({ state }: { state: AdvancingState }) {
   const errors = useCopy("advancing.errors");
+  const missing = state.detail?.missing ?? [];
+  const duplicates = state.detail?.duplicates ?? [];
   return state.error ? (
     <InlineAlert tone="danger" title={errors("title")}>
       {errors(state.error)}
+      {missing.length > 0 ? ` ${errors("detailMissing", { titles: missing.join(", ") })}` : ""}
+      {duplicates.length > 0
+        ? ` ${errors("detailExisting", { numbers: duplicates.join(", ") })}`
+        : ""}
     </InlineAlert>
   ) : null;
 }

@@ -1155,6 +1155,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "storage_location",
     "project_id",
   ]),
+  // B8's muster list (6251, G-149), with the names on screen, filtered by the page's project and zone.
+  "site_ops/muster": source(
+    "app.muster_list",
+    [
+      "full_name",
+      "guest_name",
+      "zone_code",
+      "zone_name",
+      "entered_at",
+      "source",
+      "category_code",
+      "credential_number",
+      "party_name",
+      "plus_ones",
+      "door",
+      "project_id",
+    ],
+    { filters: { zone: "zone_id" } },
+  ),
   "site_ops/occupancy": source("app.occupancy_counters", [
     "name",
     "current_count",

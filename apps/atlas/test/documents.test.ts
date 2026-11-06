@@ -42,9 +42,9 @@ describe("generated document links (Section 11.9)", () => {
     });
     expect(path.startsWith("/acme/")).toBe(true);
     const [route = ""] = path.slice("/acme/".length).split("?");
-    // A project tab (the wrap-up, B7) lives under the project's dynamic segment.
-    const file = route.replace(/^p\/NWF26\//, "p/[projectKey]/");
-    expect(existsSync(`${app}${file}/page.tsx`), route).toBe(true);
+    // A project tab's page sits under p/[projectKey] (the wrap-up, B7; the guest pass opens the project's guest list).
+    const folder = route.replace(/^p\/[^/]+\//, "p/[projectKey]/");
+    expect(existsSync(`${app}${folder}/page.tsx`), route).toBe(true);
     expect(path).toMatch(/\?(peek|project|wrap)=/);
   });
 

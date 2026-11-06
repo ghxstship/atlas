@@ -164,6 +164,9 @@ export function inboxTarget(
   return null;
 }
 
+/** An ISO 8601 instant, as message arguments carry them for date and time formats. */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+
 function date(value: string | undefined): Date | null {
   if (!value) return null;
   const d = new Date(value);
@@ -192,6 +195,13 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
+  // Any other ISO instant is a date for a `{x, time}` or `{x, date}` format, as the email and push copy reads it
+  // (packages/platform notificationArgs): a late weather hold's called_at (6257).
+  for (const [key, value] of Object.entries(a)) {
+    if (key !== "startsAt" && typeof value === "string" && ISO_INSTANT.test(value)) {
+      out[key] = new Date(value);
+    }
+  }
   const waitingSince = date(a["waitingSince"]);
   if (waitingSince) out["waitingSince"] = waitingSince;
   else if (item.kind === "approval.reminder") return null;

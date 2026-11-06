@@ -1,7 +1,9 @@
 import { bulkUpdate, sameValueRows, type BulkOutcome } from "./bulk.ts";
 import type { Database, XosClient } from "./client.ts";
+import { credentialIssueCheck } from "./credentials.ts";
 import { Constants, type Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Advance allocations (R7, migrations 4690 to 4697, ADR 0103 and 0104), imported as `@xos/data/allocations`. A
@@ -928,4 +930,58 @@ export async function listUnitReservations(
       ];
     }),
   );
+}
+
+// What a refused badge issue lacked (B8, 6252 and 6253) ----------------------------------------------------------------
+
+/**
+ * When app.issue_allocation refuses a badge (credential_training_incomplete or credential_duplicate), what the Issue
+ * dialog names: the titles of the holder's unmet requirements and the number of the live badge it would duplicate,
+ * read from app.credential_issue_check for the allocation's category and holder (a roster entry's person, else the
+ * engaged person). Empty when the caller cannot read them, so the dialog falls back to its plain sentence.
+ */
+export async function issueRefusalDetail(
+  db: XosClient,
+  input: {
+    readonly allocationId: string;
+    readonly validFrom?: string | null;
+    readonly validTo?: string | null;
+  },
+): Promise<{ readonly missing: readonly string[]; readonly duplicates: readonly string[] }> {
+  const none = { missing: [], duplicates: [] };
+  const client = untyped(db);
+  const allocation = await client
+    .from("advance_allocations")
+    .select("credential_category_id, roster_entry_id, engagement_id")
+    .eq("id", input.allocationId)
+    .maybeSingle();
+  const row = allocation.data as {
+    credential_category_id: string | null;
+    roster_entry_id: string | null;
+    engagement_id: string | null;
+  } | null;
+  if (allocation.error || !row?.credential_category_id) return none;
+  const holder = row.roster_entry_id
+    ? await client
+        .from("roster_entry_people")
+        .select("person_id")
+        .eq("id", row.roster_entry_id)
+        .maybeSingle()
+    : await client
+        .from("engagements")
+        .select("person_id")
+        .eq("id", row.engagement_id ?? "")
+        .maybeSingle();
+  const personId = (holder.data as { person_id: string | null } | null)?.person_id ?? null;
+  if (holder.error || !personId) return none;
+  const checks = await credentialIssueCheck(db, {
+    categoryId: row.credential_category_id,
+    holderPersonId: personId,
+    validFrom: input.validFrom ?? null,
+    validTo: input.validTo ?? null,
+  });
+  if (!checks.ok) return none;
+  const titles = (code: string) =>
+    checks.data.filter((c) => c.code === code && c.title !== null).map((c) => c.title as string);
+  return { missing: titles("training_missing"), duplicates: titles("duplicate") };
 }

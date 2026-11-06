@@ -236,7 +236,8 @@
       "_me_notification_matrix": "Opción de notificación",
       "_me_notification_settings": "Horas de silencio y resumen",
       "_me_party_preferences": "Opción de notificación",
-      "_me_quiet_hours": "Horas de silencio"
+      "_me_quiet_hours": "Horas de silencio",
+      "weather_holds": "Suspensión por clima"
     },
     "punchActions": {
       "in": "Registrar entrada",
@@ -281,10 +282,27 @@
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
       "expenseReceipt": "Gasto: {description}, {day}",
-      "proofPhoto": "Foto de comprobación de cumplimiento, {time}"
+      "proofPhoto": "Foto de comprobación de cumplimiento, {time}",
+      "accessExit": "Escaneo de salida a las {time}",
+      "accessExitZone": "Escaneo de salida en {zone}, {time}",
+      "accessOverride": "Anular un escaneo denegado: {reason}",
+      "weatherHold": "Suspender por clima",
+      "weatherAllClear": "Dar fin a la suspensión por clima"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
-    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
+    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor.",
+    "refusedScanNotDenied": "El servidor dejó pasar a esta persona de todos modos; no hacía falta autorizarla.",
+    "refusedScanOverrideRevoked": "Nunca se deja pasar una credencial revocada.",
+    "refusedScanOverrideStale": "La denegación tenía más de 15 minutos. Escanee la credencial de nuevo.",
+    "refusedScanOverrideTaken": "Otra persona ya autorizó esta denegación.",
+    "refusedScanOverrideSelf": "Nadie autoriza la denegación de su propia credencial. Pida a otro supervisor.",
+    "refusedWeatherHoldOpen": "Ya había una suspensión por clima abierta en este proyecto.",
+    "refusedWeatherHoldClosed": "Esta suspensión por clima ya tenía su aviso de fin.",
+    "refusedWeatherHoldStale": "Este fin de suspensión se creó más de 10 minutos antes de llegar al servidor y no se envió. Revise el clima y vuelva a darlo.",
+    "refusedWeatherHoldIdTaken": "Otra suspensión ya usa este identificador.",
+    "settledTitle": "Resuelto sin su cambio",
+    "settledScanNotDenied": "El servidor dejó pasar a esta persona al subir el escaneo, así que la autorización que dejó en cola no hacía falta y no se envió.",
+    "settledDismiss": "Descartar"
   },
   "today": {
     "title": "Hoy",
@@ -519,7 +537,19 @@
       "tagAdded": "Etiqueta agregada",
       "tagSkipped": "Ya etiquetada, o la línea está completa",
       "queued": "{count} recibidas; se sincroniza cuando tengas conexión"
-    }
+    },
+    "directionLabel": "Sentido del escaneo en esta zona",
+    "in": "Entrada",
+    "out": "Salida",
+    "exitRecorded": "Salida registrada",
+    "insideNow": "Adentro ahora: {count}",
+    "insideNowNote": "Personas que entraron a esta zona con escaneo. Aquí no se cuentan los registros de entrada ni los invitados registrados en las puertas.",
+    "override": "Anular",
+    "overrideTitle": "Dejar pasar a esta persona",
+    "overrideReason": "Motivo",
+    "overrideReasonHelp": "Indica por qué, en 1 a 300 caracteres.",
+    "overrideSubmit": "Dejar pasar",
+    "overrideQueued": "Anulación registrada"
   },
   "incidents": {
     "title": "Incidentes",

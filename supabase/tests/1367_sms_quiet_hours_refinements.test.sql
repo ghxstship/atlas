@@ -42,8 +42,8 @@ select ok(not private.bypasses_quiet_hours('account.session_signed_out', '{}'::j
   and not private.bypasses_quiet_hours('billing.payment_failed', '{}'::jsonb, now()),
   'an urgent category alone does not bypass quiet hours');
 -- ADR 0033 decision 62 (1620) added a new shift within 12 hours, security changes (with a recovery code used) and
--- emergency access.
-select is((select count(*)::integer from private.notification_quiet_hours_bypass), 8, 'the list is short: eight kinds');
+-- emergency access. B8 (2979) added the official weather warning, the weather hold and its all-clear.
+select is((select count(*)::integer from private.notification_quiet_hours_bypass), 11, 'the list is short: eleven kinds');
 
 -- 2. The recipient's time zone, never UTC -----------------------------------------------------------------------------
 select is(private.recipient_time_zone(pg_temp.id('org_p'), pg_temp.id('paul'), null), null::text,

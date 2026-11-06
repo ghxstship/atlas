@@ -716,6 +716,8 @@ export async function requestAdvanceGuest(
     readonly guestName: string;
     readonly plusOnes: number;
     readonly note?: string | null;
+    /** Where the production sends the guest's pass (B8, 6254); refused as guest_email_format when malformed. */
+    readonly guestEmail?: string | null;
   },
 ): Promise<Result<{ refused: false; guestEntryId: string } | TokenRefusal>> {
   const result = await rows<{
@@ -727,6 +729,7 @@ export async function requestAdvanceGuest(
     p_guest_name: input.guestName,
     p_plus_ones: input.plusOnes,
     p_note: input.note?.trim() ? input.note.trim() : null,
+    p_guest_email: input.guestEmail?.trim() ? input.guestEmail.trim().toLowerCase() : null,
   });
   if (!result.ok) return result;
   const row = firstOf(result.data, (r) => r.guest_entry_id !== null);
@@ -819,4 +822,17 @@ export async function submitAdvanceRoster(
   const row = firstOf(result.data, (r) => r.submitted !== null);
   if (isRefusal(row)) return ok(row);
   return ok({ refused: false, submitted: row.submitted as number });
+}
+
+/**
+ * Stops a guest's emails from the org that sent them (B8, api_public.unsubscribe_guest_email, 6255). Needs a POST:
+ * the RPC refuses a read-only call. Returns the org's name, or null for an unknown token, which changes nothing.
+ */
+export async function unsubscribeGuestEmail(
+  db: XosClient,
+  token: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await publicSchema(db).rpc("unsubscribe_guest_email", { p_token: token });
+  if (error) return fail(toDataError(error));
+  return ok(typeof data === "string" ? data : null);
 }

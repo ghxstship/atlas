@@ -426,7 +426,9 @@
       "plus_ones": "Acompañantes",
       "note": "Nota para la puerta",
       "scope_node_id": "Show",
-      "counterparty_id": "En la lista de"
+      "counterparty_id": "En la lista de",
+      "guest_email": "Correo del invitado",
+      "table_label": "Mesa"
     },
     "dryRun": {
       "title": "Simulación",
@@ -485,7 +487,8 @@
       "unknown_party": "ninguna empresa de esta organización tiene este nombre",
       "too_long": "demasiado largo",
       "duplicate_in_file": "repite una fila anterior",
-      "other": "no se acepta"
+      "other": "no se acepta",
+      "invalid_email": "no es una dirección de correo"
     },
     "commit": {
       "title": "Confirmar",
@@ -742,7 +745,10 @@
         "assigned": "Capacitación asignada"
       },
       "weather": {
-        "alert": "Alerta meteorológica"
+        "alert": "Alerta meteorológica",
+        "warning": "Aviso oficial de clima",
+        "hold": "Suspensión por clima",
+        "all_clear": "Fin de la suspensión por clima"
       },
       "opportunity": {
         "matched": "Nueva oportunidad coincidente"
@@ -790,6 +796,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "guest": {
+        "arrived": "Llegó tu invitado"
       },
       "advance_packet": {
         "reminder": "Recordatorio de avance"

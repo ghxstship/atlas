@@ -69,7 +69,8 @@ export function ActionForm({
       action={run}
       onSubmit={(event) => {
         // Submitting through a transition instead of the form action keeps what the person typed
-        // when the action is refused; React resets a form after a form action.
+        // when the action is refused; React resets a form after a form action. `action` stays on the
+        // form for a click before hydration, which would otherwise be a native GET.
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         startTransition(() => run(data));
@@ -100,7 +101,7 @@ export function ActionForm({
 }
 
 /** Action results travel as strings; counts become numbers again so ICU plurals select by them. */
-function messageValues(
+export function messageValues(
   result: Readonly<Record<string, string>> | undefined,
 ): Record<string, string | number> {
   const values: Record<string, string | number> = {};

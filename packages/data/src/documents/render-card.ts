@@ -2,11 +2,13 @@ import type { CardPaper, DocumentBlock } from "./model.ts";
 import { isEmbeddableImage, MUTED, RULE, TaggedWriter, TEXT } from "./render.ts";
 
 /**
- * The card layout of the credential badge (P5, ADR 0031 amendment): A6 and the CR80 ID-1 card, one page each,
- * tagged PDF/UA-1 like every page document. The template builds the blocks already in card order (portrait, the
- * holder's name as a heading, the scan code, compact paragraphs and, on A6, the fields table); this layout places
- * them by kind with the card's metrics and never reads a label or a position. The portrait and the scan code share a
- * row; the scan code is the only QR on a card, since two codes on a 54 mm card send gate staff to the wrong one.
+ * The card layout of the credential badge (P5) and the guest pass (B8), per the ADR 0031 amendments: A6 and the CR80
+ * ID-1 card, one page each, tagged PDF/UA-1 like every page document. The template builds the blocks already in card
+ * order (the badge: portrait, the holder's name as a heading, the scan code, compact paragraphs and, on A6, the
+ * fields table; the guest pass: the guest's name, the scan code and compact paragraphs); this layout places them by
+ * kind with the card's metrics and never reads a label or a position. The portrait and the scan code share a row; a
+ * card without a portrait centres the scan code in its row. The scan code is the only QR on a card, since two codes
+ * on a 54 mm card send gate staff to the wrong one.
  * Server only: loaded by render.ts, which loads pdfkit on first use.
  */
 
@@ -57,6 +59,8 @@ export class CardRenderer extends TaggedWriter {
   private readonly metrics: CardMetrics;
   /** Where the portrait and scan code row starts, once a block of the row is drawn. */
   private rowTop: number | null = null;
+  /** False for a card without a portrait (the guest pass): the row is as tall as the code and the code is centred. */
+  private readonly hasPortrait: boolean;
 
   constructor(
     doc: ConstructorParameters<typeof TaggedWriter>[0],
@@ -66,6 +70,7 @@ export class CardRenderer extends TaggedWriter {
   ) {
     super(doc, model, parent);
     this.metrics = METRICS[paper];
+    this.hasPortrait = model.blocks.some((b) => b.kind === "portrait");
   }
 
   render(): void {
@@ -139,7 +144,9 @@ export class CardRenderer extends TaggedWriter {
       }
       case "scan-code": {
         const top = this.row();
-        const x = this.left + this.width - m.qr;
+        const x = this.hasPortrait
+          ? this.left + this.width - m.qr
+          : this.left + (this.width - m.qr) / 2;
         this.qr(block.payload, x, top, m.qr, block.alt);
         this.style("regular", m.caption, MUTED);
         this.text(this.root, "P", block.caption, {
@@ -169,7 +176,7 @@ export class CardRenderer extends TaggedWriter {
       }
       case "image":
       case "table":
-        // The badge template puts neither on a card; a page document never reaches this layout.
+        // No card template puts either on a card; a page document never reaches this layout.
         throw new Error(`A ${block.kind} block does not fit on a card.`);
     }
   }
@@ -180,7 +187,7 @@ export class CardRenderer extends TaggedWriter {
     if (this.rowTop !== null) return this.rowTop;
     const top: number = doc.y;
     const captionRoom = m.caption * 2.6 + 2;
-    doc.y = top + Math.max(m.portrait[1], m.qr + captionRoom) + m.gap;
+    doc.y = top + Math.max(this.hasPortrait ? m.portrait[1] : 0, m.qr + captionRoom) + m.gap;
     this.rowTop = top;
     return top;
   }

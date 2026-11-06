@@ -116,7 +116,9 @@
     "asset_reserved_for_other": "This unit is held for someone else now.",
     "availability_window": "Choose dates from a start to a later end, at most 400 days apart.",
     "bulk_decision_final": "An allocation is decided once. Withdraw it instead of undoing the decision.",
+    "credential_duplicate": "This person already holds a live badge of this category for an overlapping window. Revoke the earlier badge first, or issue for another window.",
     "credential_self_issue": "You never issue a credential to yourself.",
+    "credential_training_incomplete": "This person has not completed the training or certifications this badge requires. Record them first, then issue.",
     "credential_vehicle_not_holders": "Choose the holder's own vehicle on this engagement.",
     "credential_vehicle_not_parking": "Only a parking pass names a vehicle.",
     "custody_not_reserved_holder": "That unit or quantity is held for someone else.",
@@ -154,6 +156,16 @@
     "advance_dock_zone": "Choose a live dock zone.",
     "dock_slot_overlap": "Another slot holds that dock then. Choose another dock or move the slot.",
     "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations.",
+    "guest_pass_category": "A pass type is an Access category of this project. Choose one from the list.",
+    "guest_host_not_on_project": "A host is a member of your organization or engaged on this project. Choose someone from the list.",
+    "guest_entry_production_fields": "The pass type, table and host are set by the production.",
+    "guest_entry_checked_in": "A checked-in guest keeps their pass type, table, host and email.",
+    "guest_email_batch": "Email 1 to 500 guests at a time.",
+    "guest_email_rate": "Your organization can email up to 2,000 guests a day. Send the rest tomorrow.",
+    "guest_email_message": "A message needs a subject of up to 150 characters and a text of up to 5,000.",
+    "guest_email_format": "Enter one email address for the guest, or leave it empty.",
+    "detailMissing": "Missing: {titles}.",
+    "detailExisting": "Existing badge: {numbers}.",
     "advance_track_empty": "No section of the packet is on this track.",
     "advance_track_incomplete": "Every section on the track must be accepted, complete or not applicable before it is signed off.",
     "advance_track_signed_off": "This track is signed off already. Revoke the sign-off to sign it again.",
@@ -541,7 +553,9 @@
       "guest": "Guest",
       "plusOnes": "Plus-ones",
       "show": "Show",
-      "from": "List of"
+      "from": "List of",
+      "passType": "Pass type",
+      "table": "Table"
     },
     "states": {
       "Requested": "Requested",
@@ -570,9 +584,81 @@
       "decline": "Decline {name}",
       "checkIn": "Check in {name}",
       "edit": "Edit {name}",
-      "remove": "Remove {name}"
+      "remove": "Remove {name}",
+      "approved": "{name} is approved.",
+      "declined": "{name} is declined.",
+      "checkedIn": "{name} is checked in.",
+      "removed": "{name} is removed from the list."
     },
-    "import": "Import guests"
+    "import": "Import guests",
+    "pass": {
+      "type": "Pass type",
+      "typeHelp": "An Access category of this project, such as GUEST or VIP.",
+      "noType": "No pass type",
+      "table": "Table",
+      "tableHelp": "Optional. A table or seat, up to 60 characters.",
+      "host": "Host",
+      "hostHelp": "Optional. The person hosting this guest hears when they arrive.",
+      "noHost": "No host",
+      "email": "Email",
+      "emailHelp": "We send their pass here.",
+      "code": "Pass code",
+      "print": "Print pass",
+      "download": "Download pass",
+      "notApproved": "A pass is issued once the guest is approved.",
+      "edit": "Pass details for {name}",
+      "emailError": "Enter one email address, or leave it empty.",
+      "someHost": "A host on this project"
+    },
+    "email": {
+      "action": "Email guests",
+      "title": "Email guests",
+      "what": "Send the selected guests an invitation, their pass, or a message. Guests without an email, and addresses that asked not to hear from your organization, are skipped.",
+      "kind": "What to send",
+      "kinds": {
+        "Invitation": "Invitation",
+        "Pass": "Their pass",
+        "Message": "A message"
+      },
+      "subject": "Subject",
+      "subjectHelp": "Up to 150 characters.",
+      "body": "Message",
+      "bodyHelp": "Up to 5,000 characters.",
+      "note": "Note",
+      "noteHelp": "Optional. Added below the invitation or pass.",
+      "language": "Email language",
+      "preview": "Preview",
+      "willSkip": "{count, plural, one {# guest will be skipped} other {# guests will be skipped}}",
+      "audience": "Send to",
+      "audienceAll": "{count, plural, one {The # guest on this list} other {All # guests on this list}}",
+      "audienceChosen": "Guests I choose",
+      "batchFirst": "One send reaches at most {count} guests. This one goes to the first {count} who can get it; choose guests to send the rest.",
+      "batchOver": "One send reaches at most {count} guests. Remove some, then send the rest next.",
+      "willSuppress": "{count, plural, one {# address asked not to get email} other {# addresses asked not to get email}}",
+      "confirm": "{count, plural, one {Send to # guest} other {Send to # guests}}",
+      "sent": "{count, plural, one {Queued for # guest} other {Queued for # guests}}",
+      "sendsTitle": "Guest emails",
+      "states": {
+        "Queued": "Queued",
+        "Sending": "Sending",
+        "Sent": "Sent",
+        "Failed": "Failed",
+        "Suppressed": "Suppressed",
+        "Skipped": "Skipped"
+      },
+      "skipReasons": {
+        "NoEmail": "No email",
+        "NotLive": "No longer on the list",
+        "NoPass": "Not approved"
+      },
+      "recipients": "Guests",
+      "previews": {
+        "Invitation": "You are on the guest list for {project}. Your name is at the door; bring a photo ID.",
+        "Pass": "Your pass for {project} is attached. Show it at the door, on your phone or printed.",
+        "Message": "Your subject and message, sent from your organization with an unsubscribe link and its postal address."
+      },
+      "removedGuest": "A guest no longer listed"
+    }
   },
   "crew": {
     "sentence": "The people each party puts on its engagements. Accept or return each submitted entry.",

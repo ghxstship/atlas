@@ -62,8 +62,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // allocation kinds (4698), A127's offer.sent (5200), P5's badge photo request (5822), P9's approval.reminder
     // and approval.link_code (5862, 5861), and B16's billing.paused, billing.resumed and agent.change_proposed
     // (6051, 6052), B5's accommodation_block.release_due and transfer.assigned (5947), and P8's
-    // availability.requested (6123), and R11's seven advancing reminders and notices (6221, 6222).
-    expect(registry.kinds).toHaveLength(81);
+    // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
+    // three weather kinds (6256, 6257).
+    expect(registry.kinds).toHaveLength(85);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -87,7 +88,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     });
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
     // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
-    // emergency access.
+    // emergency access. B8 (ADR 0147) adds the official weather warning, the weather hold and its all-clear.
     expect(
       registry.kinds
         .filter((k) => k.quietHoursBypass !== null)
@@ -98,6 +99,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["incident.reported", null],
       ["occupancy.threshold", null],
       ["weather.alert", null],
+      ["weather.warning", null],
+      ["weather.hold", null],
+      ["weather.all_clear", null],
       ["account.security_changed", null],
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],

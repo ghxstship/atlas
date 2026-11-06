@@ -15,6 +15,7 @@ import {
   BADGE_V2_FROM,
   badgeScanPayload,
   DESCRIBE,
+  guestPassScanPayload,
   TEMPLATES,
   keyOf,
   templateFor,
@@ -117,8 +118,8 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, and B7's wrap-up report.
-    expect(DOCUMENT_KINDS).toHaveLength(16);
+    // The twelve of Section 11.9, R7's radio hand-out, B1's site plan and signage build sheet, B7's wrap-up report and B8's guest pass.
+    expect(DOCUMENT_KINDS).toHaveLength(17);
     expect(DOCUMENT_KINDS).toEqual(
       expect.arrayContaining([
         "purchase-order",
@@ -184,6 +185,10 @@ describe("data mapping", () => {
     expect(d("final-cost-report")).toEqual({ recordKey: "NWF26-FCR", issuedAt: NOW.toISOString() });
     expect(d("agreement-certificate").issuedAt).toBe("2026-09-20T18:12:00Z");
     expect(d("radio-handout")).toEqual({ recordKey: "NWF26-RADIOS", issuedAt: NOW.toISOString() });
+    expect(d("guest-pass")).toEqual({
+      recordKey: "GP-ABCDEFGHIJ",
+      issuedAt: "2027-05-20T18:00:00Z",
+    });
   });
 
   it("falls back for unnumbered invoices and drafts", () => {
@@ -450,7 +455,9 @@ describe("the credential badge on four sizes (P5)", () => {
   it("prints the badge on Letter, A4, A6 and CR80, and every other kind on Letter and A4 only", () => {
     expect(printSizesFor("credential-badge")).toEqual(["letter", "a4", "a6", "cr80"]);
     expect(printSizesFor("invoice")).toEqual(["letter", "a4"]);
+    expect(printSizesFor("guest-pass")).toEqual(["a6", "cr80", "letter", "a4"]);
     expect(isPrintSizeFor("credential-badge", "cr80")).toBe(true);
+    expect(isPrintSizeFor("guest-pass", "a6")).toBe(true);
     expect(isPrintSizeFor("invoice", "cr80")).toBe(false);
     expect(isPaper("cr80")).toBe(false);
   });
@@ -548,6 +555,96 @@ describe("the credential badge on four sizes (P5)", () => {
   it("names the badge files by size", () => {
     expect(documentFileName("credential-badge", "CR-000042", "cr80")).toBe(
       "credential-badge-CR-000042-cr80.pdf",
+    );
+  });
+});
+
+describe("the guest pass (B8)", () => {
+  const pass = (paper: PrintSize, locale = "en-US", data = FIXTURES["guest-pass"]) =>
+    buildDocumentModel("guest-pass", data, {
+      locale,
+      messages: locale === "es-US" ? ES : EN,
+      brand: BRAND,
+      recordUrl: "https://atlas.example.test/r",
+      now: NOW,
+      paper,
+    });
+
+  it("encodes the door code as XOSGP1 with the pass code", () => {
+    expect(guestPassScanPayload("GP-ABCDEFGHIJ")).toBe("XOSGP1:GP-ABCDEFGHIJ");
+  });
+
+  it("builds the card in card order with no portrait: name, code, pass type, show, plus-ones, table, code", () => {
+    for (const paper of ["a6", "cr80"] as const) {
+      const model = pass(paper);
+      expect(model.blocks.map((b) => b.kind)).toEqual([
+        "heading",
+        "scan-code",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+        "paragraph",
+      ]);
+      expect(model.blocks[0]).toEqual({
+        kind: "heading",
+        text: FIXTURES["guest-pass"].guest.guestName,
+      });
+      expect(model.blocks[1]).toMatchObject({
+        kind: "scan-code",
+        payload: "XOSGP1:GP-ABCDEFGHIJ",
+        alt: "Door code for guest pass GP-ABCDEFGHIJ",
+      });
+      const text = model.blocks.flatMap((b) => (b.kind === "paragraph" ? [b.text] : []));
+      expect(text).toEqual([
+        "VIP Guest (VIP)",
+        "Main Stage, Night 1, June 4, 2027",
+        "Admits 2 more",
+        "Table: Table 4",
+        "GP-ABCDEFGHIJ",
+      ]);
+      expect(model.title).toBe(`Guest pass: ${FIXTURES["guest-pass"].guest.guestName}`);
+    }
+  });
+
+  it("leaves out plus-ones and the table when there are none, and names the project without a show", () => {
+    const bare = {
+      ...FIXTURES["guest-pass"],
+      guest: {
+        ...FIXTURES["guest-pass"].guest,
+        plusOnes: 0,
+        tableLabel: null,
+        showName: null,
+        passCategoryName: null,
+        passCategoryCode: null,
+      },
+    };
+    const text = pass("a6", "en-US", bare).blocks.flatMap((b) =>
+      b.kind === "paragraph" ? [b.text] : [],
+    );
+    expect(text).toEqual([
+      "Guest",
+      `${FIXTURES["guest-pass"].project.name}, June 4, 2027`,
+      "GP-ABCDEFGHIJ",
+    ]);
+  });
+
+  it("reads in Spanish", () => {
+    const text = pass("a6", "es-US").blocks.flatMap((b) =>
+      b.kind === "paragraph" ? [b.text] : [],
+    );
+    expect(text).toContain("Admite 2 personas más");
+    expect(text).toContain("Mesa: Table 4");
+  });
+
+  it("adds the door note on Letter and A4 only", () => {
+    expect(pass("letter").blocks.at(-1)).toMatchObject({ kind: "paragraph" });
+    expect(pass("letter").blocks).toHaveLength(pass("a6").blocks.length + 1);
+  });
+
+  it("names the pass file by its code and size", () => {
+    expect(documentFileName("guest-pass", "GP-ABCDEFGHIJ", "a6")).toBe(
+      "guest-pass-GP-ABCDEFGHIJ-a6.pdf",
     );
   });
 });

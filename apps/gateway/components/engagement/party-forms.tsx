@@ -32,6 +32,15 @@ export function GuestRequestForm({ engagementId }: { engagementId: string }) {
           defaultValue="0"
           label={t("guest.plusOnes")}
         />
+        <Input
+          id="guest-email"
+          name="guestEmail"
+          type="email"
+          autoComplete="off"
+          maxLength={320}
+          label={t("guest.email")}
+          help={t("guest.emailHelp")}
+        />
       </div>
       <Textarea
         id="guest-note"

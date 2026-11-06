@@ -1,28 +1,21 @@
 import {
-  CREDENTIAL_STATUSES,
-  credentialStatus,
   getCredentialCategory,
-  getIssuedCredential,
   listAccessGrid,
   listAccessLevels,
-  listAccessScans,
+  listCategoryRequirements,
   listCredentialCategories,
-  listIssuedCredentials,
   listProjectZones,
   type AccessGridEntry,
-  type AccessScan,
+  type CategoryRequirement,
   type CredentialCategory,
-  type CredentialStatus,
-  type IssuedCredential,
-  type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
 import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
 import { printSizesFor } from "@xos/data/documents/model";
-import { approvalBySubject, listSubjectApprovals, type SubjectApproval } from "@xos/data/workflow";
+import { listCertifications } from "@xos/data/people";
+import { listTrainingCourses } from "@xos/data/workforce-training";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
-import type { ReactNode } from "react";
 import {
   chooseProjectNotice,
   dateTime,
@@ -32,47 +25,36 @@ import {
   RecordMissing,
   sectionHref,
   unwrap,
-  type Format,
 } from "@/components/operations/chrome";
 import { ActionForm } from "@/components/operations/action-form";
+import { ReportedActionForm } from "@/components/operations/reported-action-form";
+import { ResultRegion } from "@/components/operations/result-region";
 import { SelectField, TextField } from "@/components/operations/fields";
 import {
   joined,
-  OpsBoard,
   OpsList,
   OpsTable,
   param,
   Properties,
   RecordSection,
-  ToneChip,
   type Column,
 } from "@/components/operations/kit";
 import { RecordCollab } from "@/components/operations/record-collab";
-import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
+  addRequirementAction,
   archiveCategoryAction,
   createCategoryAction,
   grantZoneAccessAction,
-  issueCredentialAction,
-  recordScanAction,
-  removeCredentialPhotoAction,
-  requestCredentialPhotosAction,
-  revokeCredentialAction,
+  removeRequirementAction,
   updateCategoryAction,
-  updateWindowAction,
   updateZoneAccessAction,
   withdrawZoneAccessAction,
 } from "@/lib/credentials/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
-import { AccessMatrixEditor, CredentialBadge } from "./client";
-import { ScanIntakeQueue } from "./scan-intake";
-import { DocumentActions } from "@/components/documents/document-actions";
+import { AccessMatrixEditor } from "./client";
 import { CollectionPage } from "@/components/platform/collection-page";
-import { env } from "@/lib/env";
-import { gatewayUrl } from "@/lib/gateway-url";
-import { BadgePrint, PHOTO_TONE } from "./badge-print";
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -80,13 +62,6 @@ import { BadgePrint, PHOTO_TONE } from "./badge-print";
  * switcher and primary action, the filter bar, the view, and the side peek or full page of the
  * record named in the URL. The org pages and the project tab share these sections.
  */
-
-const STATUS_TONE: Record<CredentialStatus, "success" | "accent" | "neutral" | "danger"> = {
-  active: "success",
-  scheduled: "accent",
-  expired: "neutral",
-  revoked: "danger",
-};
 
 // Categories -------------------------------------------------------------------------------------
 
@@ -287,6 +262,7 @@ async function CategoryRecord({
           {t("credentials.categories.issuedSummary", { count: c.activeCount })}
         </p>
       </RecordSection>
+      <RequirementsSection page={page} categoryId={c.id} canWrite={canWrite} />
       {canWrite ? (
         <>
           <RecordSection id="category-edit" title={t("credentials.common.edit")}>
@@ -344,610 +320,98 @@ async function CategoryRecord({
   );
 }
 
-// Issued -----------------------------------------------------------------------------------------
-
-export async function IssuedSection({ page }: { page: ModulePage }) {
-  const t = page.t;
-  const section = "issued";
-  const format = await getFormatter();
-  const { views, view } = chooseView("credentials.issued", param(page.search, "view"));
-  const statusFilter = param(page.search, "status") as CredentialStatus | undefined;
-  const categoryFilter = param(page.search, "category");
-  const [all, categories] = await Promise.all([
-    listIssuedCredentials(page.ctx.viewer.db, {
-      orgId: page.ctx.org.id,
-      ...(page.project ? { projectId: page.project.id } : {}),
-      ...(categoryFilter ? { categoryId: categoryFilter } : {}),
-    }),
-    listCredentialCategories(page.ctx.viewer.db, {
-      orgId: page.ctx.org.id,
-      ...(page.project ? { projectId: page.project.id } : {}),
-    }),
-  ]);
-  const now = new Date();
-  const issued = unwrap(all, "issued credentials").filter(
-    (c) => !statusFilter || credentialStatus(c, now) === statusFilter,
-  );
-  // P9: a pass a project's approval rule holds scans Denied until approved (5860); its state shows beside the status.
-  const approvals = await listSubjectApprovals(page.ctx.viewer.db, {
-    credentialIds: issued.map((c) => c.id),
-  });
-  const approvalOf = approvalBySubject(approvals.ok ? approvals.data : []);
-  const categoryList = unwrap(categories, "credential categories");
-  const peekId = param(page.search, "peek");
-  const creating = param(page.search, "create") === "1";
-  const printing = param(page.search, "print") === "1";
-  const canIssue = can(page, "credentials.credential.issue");
-  const title = t("nav.atlas.pages.credentials.issued");
-  const peekHref = (c: IssuedCredential) =>
-    sectionHref(page, { peek: c.id, full: undefined, create: undefined, section });
-  const status = (c: IssuedCredential) => {
-    const s = credentialStatus(c, now);
-    return <ToneChip tone={STATUS_TONE[s]}>{t(`credentials.issued.status.${s}`)}</ToneChip>;
-  };
-  const holder = (c: IssuedCredential) => c.holderName ?? t("credentials.common.unnamed");
-  const approval = (c: IssuedCredential) => approvalChip(t, approvalOf.get(c.id));
-
-  const columns: Column<IssuedCredential>[] = [
-    {
-      key: "number",
-      label: t("credentials.issued.number"),
-      primary: true,
-      render: (c) => <span className="font-mono">{c.number}</span>,
-    },
-    { key: "holder", label: t("credentials.issued.holder"), primary: true, render: holder },
-    {
-      key: "category",
-      label: t("credentials.issued.category"),
-      render: (c) => `${c.categoryCode} · ${c.categoryName}`,
-    },
-    { key: "project", label: t("credentials.common.project"), render: (c) => c.projectKey },
-    {
-      key: "validTo",
-      label: t("credentials.issued.validTo"),
-      render: (c) => (c.validTo ? dateTime(format, c.validTo) : t("credentials.issued.openEnded")),
-    },
-    { key: "status", label: t("credentials.issued.statusLabel"), primary: true, render: status },
-    { key: "approval", label: t("credentials.issued.approval.label"), render: approval },
-  ];
-
-  let body: ReactNode;
-  if (issued.length === 0) {
-    body = (
-      <EmptyStateLink
-        icon="IdCard"
-        sentence={t(
-          statusFilter || categoryFilter
-            ? "credentials.issued.emptyFiltered"
-            : "credentials.issued.empty",
-        )}
-        actionLabel={t("credentials.issued.new")}
-        href={sectionHref(page, { create: "1", section })}
-      />
-    );
-  } else if (view === "board") {
-    body = (
-      <OpsBoard
-        label={title}
-        columns={CREDENTIAL_STATUSES.map((s) => ({
-          key: s,
-          label: t(`credentials.issued.status.${s}`),
-          empty: t("credentials.issued.boardEmpty"),
-          items: issued
-            .filter((c) => credentialStatus(c, now) === s)
-            .map((c) => ({
-              key: c.id,
-              href: peekHref(c),
-              title: holder(c),
-              meta: `${c.number} · ${c.categoryCode}`,
-            })),
-        }))}
-      />
-    );
-  } else if (view === "list") {
-    body = (
-      <OpsList
-        label={title}
-        items={issued.map((c) => ({
-          key: c.id,
-          href: peekHref(c),
-          title: holder(c),
-          meta: `${c.number} · ${c.categoryCode} · ${c.projectKey}`,
-          trailing: (
-            <span className="flex flex-wrap items-center gap-4">
-              {approval(c)}
-              {status(c)}
-            </span>
-          ),
-        }))}
-      />
-    );
-  } else {
-    body = (
-      <OpsTable
-        caption={title}
-        columns={columns}
-        rows={issued}
-        rowKey={(c) => c.id}
-        rowHref={peekHref}
-        selected={peekId}
-      />
-    );
-  }
-
-  return (
-    <CollectionPage
-      header={
-        <Header
-          page={page}
-          section={section}
-          title={title}
-          count={issued.length}
-          views={views}
-          view={view}
-          action={
-            <span className="inline-flex flex-wrap items-center gap-8">
-              {issued.length > 0 ? (
-                <ButtonLink
-                  href={sectionHref(page, {
-                    print: "1",
-                    peek: undefined,
-                    create: undefined,
-                    section,
-                  })}
-                >
-                  {t("credentials.print.action")}
-                </ButtonLink>
-              ) : null}
-              {canIssue ? (
-                <ButtonLink
-                  href={sectionHref(page, { create: "1", peek: undefined, section })}
-                  variant="primary"
-                >
-                  {t("credentials.issued.new")}
-                </ButtonLink>
-              ) : null}
-            </span>
-          }
-        />
-      }
-    >
-      <ProjectFilter
-        page={page}
-        section={section}
-        extra={[
-          {
-            name: "status",
-            label: t("credentials.issued.statusLabel"),
-            value: statusFilter ?? "",
-            options: [
-              { value: "", label: t("credentials.issued.anyStatus") },
-              ...CREDENTIAL_STATUSES.map((s) => ({
-                value: s,
-                label: t(`credentials.issued.status.${s}`),
-              })),
-            ],
-          },
-        ]}
-      />
-      {creating && canIssue ? (
-        page.project ? (
-          <IssueForm page={page} project={page.project} categories={categoryList} />
-        ) : (
-          chooseProjectNotice(page, section)
-        )
-      ) : null}
-      {printing ? <BadgePrint page={page} credentials={issued} section={section} /> : null}
-      {body}
-      {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
-    </CollectionPage>
-  );
-}
-
-const APPROVAL_TONE = { "In Review": "warning", Approved: "success", Rejected: "danger" } as const;
-
-/** A pass's approval state (P9): Awaiting approval, Approved or Rejected; nothing without one, or once withdrawn. */
-function approvalChip(t: ModulePage["t"], a: SubjectApproval | undefined): ReactNode {
-  if (!a || a.state === "Canceled") return null;
-  const key =
-    a.state === "In Review" ? "waiting" : a.state === "Approved" ? "approved" : "rejected";
-  return (
-    <ToneChip tone={APPROVAL_TONE[a.state]}>{t(`credentials.issued.approval.${key}`)}</ToneChip>
-  );
-}
-
-async function IssueForm({
-  page,
-  project,
-  categories,
-}: {
-  page: ModulePage;
-  project: OperationsProject;
-  categories: readonly CredentialCategory[];
-}) {
-  const t = page.t;
-  if (categories.length === 0) {
-    return (
-      <EmptyStateLink
-        icon="IdCard"
-        sentence={t("credentials.issued.needsCategory")}
-        actionLabel={t("credentials.categories.new")}
-        href={
-          `/${page.ctx.org.slug}/credentials/categories?project=${project.key}&create=1` as Route
-        }
-      />
-    );
-  }
-  // Members and the people engaged on the project (R1); a badge under an engagement names its person.
-  const me = page.ctx.viewer.person?.id;
-  const holders = (await projectPeople(page.ctx, project.id)).filter((p) => p.personId !== me);
-  return (
-    <RecordSection id="issue-credential" title={t("credentials.issued.new")}>
-      <ActionForm
-        action={issueCredentialAction}
-        hidden={{ org: page.ctx.org.slug, projectId: project.id, timeZone: project.timeZone }}
-        submitLabel={t("credentials.issued.issue")}
-        successKey="credentials.issued.issuedAs"
-        layout="inline"
-        resetOnSuccess
-      >
-        <SelectField
-          id="issue-category"
-          name="categoryId"
-          label={t("credentials.issued.category")}
-          options={categories.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` }))}
-          required
-        />
-        <SelectField
-          id="issue-holder"
-          name="holderPersonId"
-          label={t("credentials.issued.holder")}
-          help={t("credentials.issued.holderHelp")}
-          options={holders.map((p) => ({
-            value: p.personId,
-            label: projectPersonLabel(t, p, t("credentials.common.unnamed")),
-          }))}
-          required
-        />
-        <TextField
-          id="issue-from"
-          name="validFrom"
-          type="datetime-local"
-          label={t("credentials.issued.validFrom")}
-          help={t("credentials.common.timeZoneHelp", { zone: project.timeZone })}
-        />
-        <TextField
-          id="issue-to"
-          name="validTo"
-          type="datetime-local"
-          label={t("credentials.issued.validTo")}
-          help={t("credentials.issued.validToHelp")}
-        />
-      </ActionForm>
-    </RecordSection>
-  );
-}
-
-async function CredentialRecord({
-  page,
-  id,
-  section,
-}: {
-  page: ModulePage;
-  id: string;
-  section: string;
-}) {
-  const t = page.t;
-  const format = await getFormatter();
-  const closeHref = sectionHref(page, { peek: undefined, full: undefined, section });
-  const result = await getIssuedCredential(page.ctx.viewer.db, id);
-  if (!result.ok) return <RecordMissing page={page} closeHref={closeHref} />;
-  const c = result.data;
-  const project = page.projects.find((p) => p.id === c.projectId);
-  const timeZone = project?.timeZone ?? "UTC";
-  const [scans, grid] = await Promise.all([
-    listAccessScans(page.ctx.viewer.db, { orgId: page.ctx.org.id, credentialId: c.id, limit: 20 }),
-    project
-      ? listAccessGrid(page.ctx.viewer.db, page.ctx.org.id, project.id)
-      : Promise.resolve(null),
-  ]);
-  const status = credentialStatus(c);
-  const zones = grid?.ok
-    ? [...new Set(grid.data.filter((g) => g.categoryId === c.categoryId).map((g) => g.zoneCode))]
-    : [];
-  const canRevoke = can(page, "credentials.credential.revoke") && status !== "revoked";
-  const canEdit = can(page, "credentials.credential.issue") && status !== "revoked";
-  return (
-    <RecordChrome
-      page={page}
-      full={param(page.search, "full") === "1"}
-      title={c.holderName ?? t("credentials.common.unnamed")}
-      recordKey={c.number}
-      kindLabel={t("credentials.issued.kind")}
-      closeHref={closeHref}
-      fullHref={sectionHref(page, { peek: c.id, full: "1", section })}
-      properties={
-        <Properties
-          label={t("credentials.common.properties")}
-          rows={[
-            {
-              label: t("credentials.issued.statusLabel"),
-              value: (
-                <ToneChip tone={STATUS_TONE[status]}>
-                  {t(`credentials.issued.status.${status}`)}
-                </ToneChip>
-              ),
-            },
-            {
-              label: t("credentials.issued.category"),
-              value: `${c.categoryCode} · ${c.categoryName}`,
-            },
-            { label: t("credentials.common.project"), value: c.projectKey },
-            {
-              label: t("credentials.issued.validFrom"),
-              value: dateTime(format, c.validFrom, timeZone),
-            },
-            {
-              label: t("credentials.issued.validTo"),
-              value: c.validTo
-                ? dateTime(format, c.validTo, timeZone)
-                : t("credentials.issued.openEnded"),
-            },
-            {
-              label: t("credentials.issued.issuedBy"),
-              value: c.issuedByName ?? t("credentials.common.unnamed"),
-            },
-            ...(c.revokedAt
-              ? [
-                  {
-                    label: t("credentials.issued.revokedAt"),
-                    value: `${dateTime(format, c.revokedAt, timeZone)} · ${c.revokedByName ?? ""}`,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      }
-    >
-      <RecordSection id="credential-badge" title={t("credentials.issued.badge")}>
-        <CredentialBadge
-          org={page.ctx.org.name}
-          name={c.holderName ?? t("credentials.common.unnamed")}
-          role={c.categoryName}
-          category={c.categoryCode}
-          categoryColor={1}
-          credentialKey={c.number}
-          payload={c.number}
-          zones={zones}
-          validFrom={dateTime(format, c.validFrom, timeZone)}
-          validTo={
-            c.validTo ? dateTime(format, c.validTo, timeZone) : t("credentials.issued.openEnded")
-          }
-        />
-        <DocumentActions
-          org={page.ctx.org.slug}
-          kind="credential-badge"
-          id={c.id}
-          sizes={printSizesFor("credential-badge")}
-        />
-      </RecordSection>
-      <BadgePhotoSection page={page} credential={c} timeZone={timeZone} />
-      {canEdit ? (
-        <RecordSection id="credential-window" title={t("credentials.issued.windowHeading")}>
-          <ActionForm
-            action={updateWindowAction}
-            hidden={{ org: page.ctx.org.slug, id: c.id, timeZone }}
-            submitLabel={t("credentials.common.save")}
-            successKey="credentials.common.saved"
-            layout="inline"
-          >
-            <TextField
-              id="window-from"
-              name="validFrom"
-              type="datetime-local"
-              required
-              label={t("credentials.issued.validFrom")}
-              defaultValue={instantToLocal(c.validFrom, timeZone)}
-              help={t("credentials.common.timeZoneHelp", { zone: timeZone })}
-            />
-            <TextField
-              id="window-to"
-              name="validTo"
-              type="datetime-local"
-              label={t("credentials.issued.validTo")}
-              defaultValue={instantToLocal(c.validTo, timeZone)}
-              help={t("credentials.issued.validToHelp")}
-            />
-          </ActionForm>
-        </RecordSection>
-      ) : null}
-      {canRevoke ? (
-        <RecordSection id="credential-revoke" title={t("credentials.issued.revokeHeading")}>
-          <ActionForm
-            action={revokeCredentialAction}
-            hidden={{ org: page.ctx.org.slug, id: c.id }}
-            submitLabel={t("credentials.issued.revoke")}
-            successKey="credentials.issued.revoked"
-            variant="danger"
-          >
-            <label className="flex items-center gap-8 text-text-13">
-              <input type="checkbox" name="confirm" required className="size-16" />
-              {t("credentials.issued.revokeConfirm", { number: c.number })}
-            </label>
-          </ActionForm>
-        </RecordSection>
-      ) : null}
-      <RecordSection id="credential-scans" title={t("credentials.issued.recentScans")}>
-        {scans.ok && scans.data.length > 0 ? (
-          <ScanRows page={page} scans={scans.data} format={format} />
-        ) : (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {scans.ok ? t("credentials.issued.noScans") : t("credentials.issued.scansHidden")}
-          </p>
-        )}
-      </RecordSection>
-      <RecordCollab
-        page={page}
-        table="app.credentials"
-        id={c.id}
-        canChange={can(page, "credentials.credential.issue")}
-      />
-    </RecordChrome>
-  );
-}
-
 /**
- * The badge photo of a credential (P5): the photo its badge prints and where it came from, with a thumbnail, and
- * for issuers a request to the holder, the Gateway link to send them, and removal once the photo's scan finished (an
- * issuer cannot delete an object before it scans Clean, 5821). A revoked or expired credential prints no photo, so it
- * shows only that.
+ * The category's Required before issue (B8, 6252): the courses and certifications a person must hold before it is
+ * issued to them, from the org's Published courses and its certifications. Issuing to someone who does not meet one
+ * is refused (credential_training_incomplete).
  */
-async function BadgePhotoSection({
+async function RequirementsSection({
   page,
-  credential: c,
-  timeZone,
+  categoryId,
+  canWrite,
 }: {
   page: ModulePage;
-  credential: IssuedCredential;
-  timeZone: string;
+  categoryId: string;
+  canWrite: boolean;
 }) {
   const t = page.t;
-  const format = await getFormatter();
-  const rows = await badgePhotos(page.ctx.viewer.db, [c.id]);
-  const row = rows.ok ? rows.data[0] : undefined;
-  const name = c.holderName ?? t("credentials.common.unnamed");
-  if (!row) {
-    return (
-      <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
-        <p className="m-0 text-text-13 text-text-secondary">{t("credentials.photo.notLive")}</p>
-      </RecordSection>
-    );
-  }
-  const thumbnail = await badgePhotoThumbnail(page.ctx.viewer.db, row);
-  const canIssue = can(page, "credentials.credential.issue");
-  const link = env().GATEWAY_SITE_URL ? gatewayUrl("/profile/badge-photos") : null;
-  const when = row.providedAt
-    ? t("credentials.photo.providedOn", { date: dateTime(format, row.providedAt, timeZone) })
-    : row.requestedAt
-      ? t("credentials.photo.requestedOn", { date: dateTime(format, row.requestedAt, timeZone) })
-      : null;
+  const db = page.ctx.viewer.db;
+  const [requirements, courses, certifications] = await Promise.all([
+    listCategoryRequirements(db, categoryId),
+    canWrite ? listTrainingCourses(db, page.ctx.org.id) : Promise.resolve(null),
+    canWrite ? listCertifications(db, page.ctx.org.id) : Promise.resolve(null),
+  ]);
+  const list: readonly CategoryRequirement[] = requirements.ok ? requirements.data : [];
+  const taken = new Set(list.flatMap((r) => [r.trainingCourseId, r.certificationId]));
+  const options = [
+    ...(courses?.ok ? courses.data : [])
+      .filter((c) => c.state === "Published" && !taken.has(c.id))
+      .map((c) => ({
+        value: `course:${c.id}`,
+        label: `${t("credentials.requirements.course")}: ${c.title}`,
+      })),
+    ...(certifications?.ok ? certifications.data : [])
+      .filter((c) => !taken.has(c.id))
+      .map((c) => ({
+        value: `certification:${c.id}`,
+        label: `${t("credentials.requirements.certification")}: ${c.name}`,
+      })),
+  ];
   return (
-    <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
-      <div className="flex flex-wrap items-start gap-12">
-        {thumbnail ? (
-          // A 60-second signed link (or a public profile photo); next/image would cache it past its expiry.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbnail}
-            alt={t("credentials.photo.thumbnailAlt", { name })}
-            width={72}
-            height={96}
-            className="h-96 w-72 rounded-md border border-border object-contain"
+    <RecordSection id="category-requirements" title={t("credentials.requirements.title")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("credentials.requirements.what")}</p>
+      <ResultRegion>
+        {list.length === 0 ? (
+          <p className="m-0 text-text-13">{t("credentials.requirements.empty")}</p>
+        ) : (
+          <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
+            {list.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-8">
+                <span>
+                  {t(
+                    r.trainingCourseId
+                      ? "credentials.requirements.course"
+                      : "credentials.requirements.certification",
+                  )}
+                  : {r.title}
+                </span>
+                {canWrite ? (
+                  <ReportedActionForm
+                    action={removeRequirementAction}
+                    hidden={{ org: page.ctx.org.slug, id: r.id }}
+                    submitLabel={t("credentials.requirements.remove")}
+                    successKey="credentials.requirements.removed"
+                    variant="ghost"
+                    layout="inline"
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </ResultRegion>
+      {canWrite && options.length > 0 ? (
+        <ActionForm
+          action={addRequirementAction}
+          hidden={{ org: page.ctx.org.slug, categoryId }}
+          submitLabel={t("credentials.requirements.add")}
+          variant="secondary"
+          layout="inline"
+        >
+          <SelectField
+            id={`requirement-${categoryId}`}
+            name="requirement"
+            label={t("credentials.requirements.kind")}
+            options={options}
+            required
           />
-        ) : null}
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <span className="inline-flex items-center gap-8 text-text-13">
-            <span className="text-text-secondary">{t("credentials.photo.stateLabel")}</span>
-            <ToneChip tone={PHOTO_TONE[row.state]}>
-              {t(`credentials.photo.states.${row.state}`)}
-            </ToneChip>
-          </span>
-          <p className="m-0 text-text-13 text-text-secondary">
-            {t(`credentials.photo.stateHelp.${row.state}`)}
-            {when ? ` ${when}.` : null}
-          </p>
-        </div>
-      </div>
-      {canIssue ? (
-        <div className="flex flex-col gap-12">
-          {row.state !== "Provided" && row.state !== "Scanning" ? (
-            <ActionForm
-              action={requestCredentialPhotosAction}
-              hidden={{ org: page.ctx.org.slug, id: c.id }}
-              submitLabel={t("credentials.photo.request")}
-              successKey="credentials.photo.requestDone"
-              variant="secondary"
-              layout="inline"
-            />
-          ) : null}
-          {link ? (
-            <div className="flex w-full max-w-full flex-col gap-4">
-              <label
-                htmlFor="credential-photo-link"
-                className="text-text-12 font-medium text-text-secondary"
-              >
-                {t("credentials.photo.copyLink")}
-              </label>
-              <input
-                id="credential-photo-link"
-                type="text"
-                readOnly
-                value={link}
-                aria-describedby="credential-photo-link-help"
-                className="h-control-md w-full rounded-control border border-border-control bg-bg-surface px-8 font-mono text-text-13"
-              />
-              <span id="credential-photo-link-help" className="text-text-12 text-text-secondary">
-                {t("credentials.photo.copyLinkHelp")}
-              </span>
-            </div>
-          ) : null}
-          {row.state === "Scanning" ? (
-            <p className="m-0 text-text-12 text-text-secondary">
-              {t("credentials.photo.removeAfterScan")}
-            </p>
-          ) : null}
-          {row.source && (row.state === "Provided" || row.state === "Refused") ? (
-            <ActionForm
-              action={removeCredentialPhotoAction}
-              hidden={{ org: page.ctx.org.slug, personId: c.holderPersonId }}
-              submitLabel={t("credentials.photo.remove")}
-              successKey="credentials.photo.removed"
-              variant="danger"
-            >
-              <label className="flex items-center gap-8 text-text-13">
-                <input type="checkbox" name="confirm" required className="size-16" />
-                {t("credentials.photo.removeConfirm", { name })}
-              </label>
-            </ActionForm>
-          ) : null}
-        </div>
+        </ActionForm>
       ) : null}
     </RecordSection>
   );
 }
 
-function ScanRows({
-  page,
-  scans,
-  format,
-}: {
-  page: ModulePage;
-  scans: readonly AccessScan[];
-  format: Format;
-}) {
-  return (
-    <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-      {scans.map((s) => (
-        <li
-          key={s.id}
-          className="flex flex-wrap items-center justify-between gap-8 py-6 text-text-13"
-        >
-          <span>{joined(s.zoneCode, dateTime(format, s.scannedAt))}</span>
-          <ResultChip page={page} result={s.result} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ResultChip({ page, result }: { page: ModulePage; result: AccessScan["result"] }) {
-  return (
-    <ToneChip tone={result === "Granted" ? "success" : "danger"}>
-      {page.t(result === "Granted" ? "credentials.scans.granted" : "credentials.scans.denied")}
-    </ToneChip>
-  );
-}
-
+/** The chips of a credential's accreditation checks (B8, 6253), and none when nothing needs attention. */
 // Access grid ------------------------------------------------------------------------------------
 
 export async function AccessGridSection({ page }: { page: ModulePage }) {
@@ -1237,164 +701,6 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
             </RecordSection>
           ) : null}
         </>
-      )}
-    </CollectionPage>
-  );
-}
-
-// Scan log ---------------------------------------------------------------------------------------
-
-export async function ScanLogSection({ page }: { page: ModulePage }) {
-  const t = page.t;
-  const section = "scan-log";
-  const format = await getFormatter();
-  const { views, view } = chooseView("credentials.scan-log", param(page.search, "view"));
-  const resultFilter = param(page.search, "result");
-  const scanResult =
-    resultFilter === "Granted" || resultFilter === "Denied" ? resultFilter : undefined;
-  const scans = unwrap(
-    await listAccessScans(page.ctx.viewer.db, {
-      orgId: page.ctx.org.id,
-      ...(page.project ? { projectId: page.project.id } : {}),
-      ...(scanResult ? { result: scanResult } : {}),
-    }),
-    "scans",
-  );
-  const title = t("nav.atlas.pages.credentials.scanLog");
-  const canScan = can(page, "credentials.scan.write");
-  const zones =
-    page.project && canScan
-      ? unwrap(
-          await listProjectZones(page.ctx.viewer.db, page.ctx.org.id, page.project.venueId),
-          "zones",
-        )
-      : [];
-  const timeZone = page.project?.timeZone;
-
-  const columns: Column<AccessScan>[] = [
-    {
-      key: "when",
-      label: t("credentials.scans.when"),
-      primary: true,
-      render: (s) => dateTime(format, s.scannedAt, timeZone),
-    },
-    {
-      key: "number",
-      label: t("credentials.issued.number"),
-      render: (s) => <span className="font-mono">{s.credentialNumber}</span>,
-    },
-    {
-      key: "holder",
-      label: t("credentials.issued.holder"),
-      primary: true,
-      render: (s) => s.holderName ?? t("credentials.common.unnamed"),
-    },
-    {
-      key: "zone",
-      label: t("credentials.grid.zone"),
-      render: (s) => `${s.zoneCode} · ${s.zoneName}`,
-    },
-    { key: "project", label: t("credentials.common.project"), render: (s) => s.projectKey },
-    {
-      key: "result",
-      label: t("credentials.scans.result"),
-      primary: true,
-      render: (s) => <ResultChip page={page} result={s.result} />,
-    },
-  ];
-
-  return (
-    <CollectionPage
-      header={
-        <Header
-          page={page}
-          section={section}
-          title={title}
-          count={scans.length}
-          views={views}
-          view={view}
-        />
-      }
-    >
-      <ProjectFilter
-        page={page}
-        section={section}
-        extra={[
-          {
-            name: "result",
-            label: t("credentials.scans.result"),
-            value: scanResult ?? "",
-            options: [
-              { value: "", label: t("credentials.scans.anyResult") },
-              { value: "Granted", label: t("credentials.scans.granted") },
-              { value: "Denied", label: t("credentials.scans.denied") },
-            ],
-          },
-        ]}
-      />
-      {canScan && page.project && zones.length > 0 ? (
-        <RecordSection id="scan-desk" title={t("credentials.scans.deskHeading")}>
-          <p className="m-0 text-text-13 text-text-secondary">{t("credentials.scans.deskHelp")}</p>
-          <ActionForm
-            action={recordScanAction}
-            hidden={{ org: page.ctx.org.slug }}
-            submitLabel={t("credentials.scans.check")}
-            successKey="credentials.scans.decided"
-            layout="inline"
-            resetOnSuccess
-          >
-            <SelectField
-              id="scan-zone"
-              name="zoneId"
-              label={t("credentials.grid.zone")}
-              options={zones.map((z) => ({
-                value: z.id,
-                label: joined(z.code, z.name, z.venueName),
-              }))}
-              required
-            />
-            <TextField
-              id="scan-number"
-              name="credentialNumber"
-              label={t("credentials.scans.number")}
-              help={t("credentials.scans.numberHelp")}
-              required
-              maxLength={40}
-            />
-          </ActionForm>
-        </RecordSection>
-      ) : null}
-      <ScanIntakeQueue page={page} />
-      {scans.length === 0 ? (
-        <EmptyStateLink
-          icon="ScanLine"
-          sentence={t(scanResult ? "credentials.scans.emptyFiltered" : "credentials.scans.empty")}
-          actionLabel={t("credentials.scans.toIssued")}
-          href={
-            `/${page.ctx.org.slug}/credentials/issued${page.project ? `?project=${page.project.key}` : ""}` as Route
-          }
-        />
-      ) : view === "list" ? (
-        <OpsList
-          label={title}
-          items={scans.map((s) => ({
-            key: s.id,
-            href: `/${page.ctx.org.slug}/credentials/issued?project=${s.projectKey}&peek=${s.credentialId}` as Route,
-            title: `${s.holderName ?? t("credentials.common.unnamed")} · ${s.zoneCode}`,
-            meta: `${s.credentialNumber} · ${dateTime(format, s.scannedAt, timeZone)}`,
-            trailing: <ResultChip page={page} result={s.result} />,
-          }))}
-        />
-      ) : (
-        <OpsTable
-          caption={title}
-          columns={columns}
-          rows={scans}
-          rowKey={(s) => s.id}
-          rowHref={(s) =>
-            `/${page.ctx.org.slug}/credentials/issued?project=${s.projectKey}&peek=${s.credentialId}` as Route
-          }
-        />
       )}
     </CollectionPage>
   );

@@ -19,7 +19,12 @@ function sources(dir: string): string[] {
   );
 }
 
-const code = [...sources(join(root, "app")), ...sources(join(root, "src"))].join("\n");
+// The Workforce Suite screens Compass mounts (app/workforce) render from @xos/workforce-native, so their ids count.
+const code = [
+  ...sources(join(root, "app")),
+  ...sources(join(root, "src")),
+  ...sources(join(root, "../../packages/workforce-native/src")),
+].join("\n");
 
 /** Test ids built at runtime from a prefix and a value (tabs, menu rows, options, keypad keys). */
 const DYNAMIC = [

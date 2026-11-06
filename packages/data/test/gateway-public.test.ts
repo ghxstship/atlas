@@ -9,6 +9,7 @@ import {
   storeAdvanceUpload,
   submitAdvanceRoster,
   submitAdvanceTyped,
+  unsubscribeGuestEmail,
 } from "../src/gateway-public.ts";
 import type { XosClient } from "../src/client.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
@@ -329,6 +330,21 @@ describe("token calls (R10)", () => {
       data: { refused: true, reason: "guest_list_cap" },
     });
     expect((await requestAdvanceGuest(db, guest)).ok).toBe(false);
+  });
+
+  it("stops a guest's emails through api_public, the org name or null either way (B8)", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:api_public.unsubscribe_guest_email": [
+        okResponse("Northwind Live"),
+        okResponse(null),
+        errorResponse("25006", "cannot execute INSERT in a read-only transaction"),
+      ],
+    });
+    expect(await unsubscribeGuestEmail(db, "tok")).toEqual({ ok: true, data: "Northwind Live" });
+    expect(calls[0]?.target).toBe("rpc:api_public.unsubscribe_guest_email");
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({ p_token: "tok" });
+    expect(await unsubscribeGuestEmail(db, "unknown")).toEqual({ ok: true, data: null });
+    expect((await unsubscribeGuestEmail(db, "tok")).ok).toBe(false);
   });
 
   it("lists, invites and submits the roster, masked until a person accepts", async () => {

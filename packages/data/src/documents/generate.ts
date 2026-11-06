@@ -9,13 +9,7 @@ import type { Orientation } from "./render.ts";
 import { isEmbeddableImage, MAX_BATCH, renderDocumentPdf, streamDocumentsPdf } from "./render.ts";
 import { documentProject, loadDocumentData, type LoadOptions } from "./sources.ts";
 import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
-import {
-  DESCRIBE,
-  TEMPLATES,
-  templateFor,
-  type DocumentDataMap,
-  type TemplateRegistry,
-} from "./templates.ts";
+import { DESCRIBE, type DocumentDataMap } from "./templates.ts";
 
 /**
  * The document pipeline (Section 11.9, ADR 0031): load the record as the caller, pick the template
@@ -23,24 +17,9 @@ import {
  * tagged PDF/UA-1. Server only.
  */
 
-export type DocumentBrand = DocumentModel["brand"];
+import { buildDocumentModel, type DocumentBrand } from "./build.ts";
 
-export interface BuildOptions {
-  readonly locale: string;
-  /** The `documents` namespace of the caller's catalog. */
-  readonly messages: unknown;
-  readonly brand: DocumentBrand;
-  readonly recordUrl: string;
-  readonly now?: Date;
-  /** Defaults to the shipped templates; tests pass their own versions. */
-  readonly registry?: TemplateRegistry;
-  /** The Section 8.6 watermark text for a Confidential or Restricted copy (see watermarkText). */
-  readonly watermark?: string;
-  /** The size it prints on, which chooses the template version (templateFor); Letter when not given. */
-  readonly paper?: PrintSize;
-  /** The request's search params, which the site plan and build sheet templates read (B1). */
-  readonly options?: Readonly<Record<string, string | undefined>>;
-}
+export { buildDocumentModel, type BuildOptions, type DocumentBrand } from "./build.ts";
 
 /**
  * The Section 8.6 watermark line: who received the copy and when, in the reader's language and the
@@ -57,53 +36,6 @@ export function watermarkText(
   const t = documentTranslator(messages);
   const f = formatter(locale, timeZone, t);
   return t("facts.watermark", { email, time: f.dateTime(at.toISOString()) });
-}
-
-/** The model of one document from loaded record data. Pure, so tests and the veraPDF check use it. */
-export function buildDocumentModel<K extends DocumentKind>(
-  kind: K,
-  data: DocumentDataMap[K],
-  options: BuildOptions,
-): DocumentModel {
-  const now = options.now ?? new Date();
-  const t = documentTranslator(options.messages);
-  const { recordKey, issuedAt } = DESCRIBE[kind](data, now);
-  const timeZone = "project" in data && data.project ? data.project.timeZone : "UTC";
-  const f = formatter(options.locale, timeZone, t);
-  const paper = options.paper ?? "letter";
-  const audience = "audience" in data && data.audience !== null && data.audience !== undefined;
-  const template = templateFor((options.registry ?? TEMPLATES)[kind], issuedAt, paper, {
-    audience,
-  });
-  const out = template.build(data, {
-    t,
-    f,
-    generatedAt: now,
-    paper,
-    options: options.options ?? {},
-  });
-  return {
-    kind,
-    lang: options.locale,
-    title: out.title,
-    brand: options.brand,
-    facts: {
-      recordKey,
-      templateVersion: template.version,
-      generatedAt: f.dateTime(now.toISOString()),
-      generatedAtIso: now.toISOString(),
-      recordUrl: options.recordUrl,
-      labels: {
-        recordKey: t("facts.recordKey"),
-        version: t("facts.version"),
-        generatedAt: t("facts.generatedAt"),
-        qrAlt: t("facts.qrAlt", { key: recordKey }),
-        page: (page, total) => t("facts.page", { page, total }),
-      },
-    },
-    blocks: out.blocks,
-    ...(options.watermark ? { watermark: { text: options.watermark } } : {}),
-  };
 }
 
 export interface SharedImageInput {

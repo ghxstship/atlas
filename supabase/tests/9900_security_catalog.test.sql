@@ -81,7 +81,7 @@ $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_vers
   ('open_showcaller_link'), ('showcaller_call_cue'), ('showcaller_channel_open'), ('showcaller_move_cue'), ('showcaller_remove_cue'),
   ('showcaller_run'), ('showcaller_save_cue'), ('showcaller_save_cue_calls'), ('showcaller_shift_plan'), ('showcaller_standby_cue'),
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
-  ('unsubscribe_subprocessor_notices'), ('verify_certification'),
+  ('unsubscribe_guest_email'), ('unsubscribe_subprocessor_notices'), ('verify_certification'),
   -- P9 (5861, ADR 0138): the signed-out approval link page, with its emailed access code.
   ('read_approval_link'), ('request_approval_link_code'), ('preview_approval_link'), ('use_approval_link')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');

@@ -149,7 +149,7 @@ from unnest(array[
   'api_public.submit_advance_typed(text, text, uuid, text, text, jsonb, uuid[])',
   'api_public.begin_advance_upload(text, text, uuid, text, text, integer)',
   'api_public.finish_advance_upload(text, text, uuid, text, text)',
-  'api_public.request_advance_guest(text, text, uuid, text, integer, text)',
+  'api_public.request_advance_guest(text, text, uuid, text, integer, text, text)',
   'api_public.advance_roster(text, text, uuid)',
   'api_public.invite_advance_roster_member(text, text, uuid, text, text, timestamptz, timestamptz, text)',
   'api_public.submit_advance_roster(text, text, uuid)']) f;

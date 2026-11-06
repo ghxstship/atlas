@@ -1,4 +1,5 @@
 import { credentialStatus, type IssuedCredential } from "../credentials.ts";
+import type { GuestPass } from "../advancing.ts";
 import type { RadioHandoutLine } from "../allocations.ts";
 import type { ChangeOrder, ChangeOrderLine, Invoice, InvoiceLine } from "../finance.ts";
 import type { BeoDetail } from "../hospitality.ts";
@@ -39,7 +40,7 @@ import type { Orientation } from "./render.ts";
 /**
  * Versioned templates for the Section 11.9 record documents (ADR 0031): the twelve of 4.0, the radio hand-out (R7), from
  * B1 the site plan export and the signage build sheet (places-templates.ts), the wrap-up report and a book's cover (B7,
- * ADR 0146). Each kind keeps every
+ * ADR 0146) and the guest pass (B8). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -145,6 +146,8 @@ export interface DocumentDataMap {
     readonly measurements: WrapUpMeasurements | "unavailable";
     readonly incidents: IncidentsReport | "unavailable";
   };
+  /** An approved guest's pass (B8, G-68): no credential, a pass code the door scans. */
+  "guest-pass": { readonly project: DocumentProject; readonly guest: GuestPass };
 }
 
 /** The day's schedule a day sheet prints from version 3 (B7). */
@@ -344,6 +347,7 @@ export const DESCRIBE: {
     recordKey: keyed(d.project.key, "WRAP"),
     issuedAt: d.debrief?.completedAt ?? generatedAt.toISOString(),
   }),
+  "guest-pass": (d) => ({ recordKey: d.guest.passCode, issuedAt: d.guest.decidedAt }),
 };
 
 /** A book's record key: the project key and the first eight characters of the book's id (B7). */
@@ -807,6 +811,16 @@ export const BOOK_COVER_TEMPLATES: readonly BookCoverTemplate[] = [
     }),
   },
 ];
+
+/**
+ * When the guest pass (B8) takes effect. It has one version, so every pass renders it; the instant is fixed, no
+ * earlier than the planned production release that ships it, as BADGE_V2_FROM is, so a later version has a clear
+ * boundary (ADR 0031 decision 3).
+ */
+export const GUEST_PASS_V1_FROM = "2027-02-01T00:00:00Z";
+
+/** The code a door scans on a guest pass (B8): Compass reads it as the guest by their pass code. */
+export const guestPassScanPayload = (passCode: string) => `XOSGP1:${passCode}`;
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -1669,4 +1683,65 @@ export const TEMPLATES: TemplateRegistry = {
   "site-plan": [{ version: 1, effectiveFrom: V1, build: buildSitePlan }],
   "signage-build-sheet": [{ version: 1, effectiveFrom: V1, build: buildSignageSheet }],
   "wrap-up-report": [{ version: 1, effectiveFrom: V1, build: wrapUpV1 }],
+  "guest-pass": [
+    {
+      version: 1,
+      effectiveFrom: GUEST_PASS_V1_FROM,
+      papers: ["a6", "cr80", "letter", "a4"],
+      build: ({ project, guest }, { t, f, paper }) => {
+        // Card order (render-card.ts): the guest's name, the scan code, then compact paragraphs. No portrait: a guest
+        // pass names a guest, it does not identify a holder.
+        const passType =
+          guest.passCategoryName !== null
+            ? t("guestPass.passType", {
+                name: guest.passCategoryName,
+                code: guest.passCategoryCode ?? "",
+              })
+            : t("guestPass.guest");
+        const show = guest.showName ?? project.name;
+        const blocks: DocumentBlock[] = [
+          { kind: "heading", text: guest.guestName },
+          {
+            kind: "scan-code",
+            payload: guestPassScanPayload(guest.passCode),
+            alt: t("guestPass.scanAlt", { code: guest.passCode }),
+            caption: t("guestPass.scanCaption"),
+          },
+          { kind: "paragraph", text: passType, size: "large" },
+          {
+            kind: "paragraph",
+            text: guest.showDay
+              ? t("guestPass.showOn", { show, date: f.day(guest.showDay) })
+              : show,
+          },
+          ...(guest.plusOnes > 0
+            ? [
+                {
+                  kind: "paragraph" as const,
+                  text:
+                    guest.plusOnes === 1
+                      ? t("guestPass.admitsOne")
+                      : t("guestPass.admitsOther", { count: f.number(guest.plusOnes) }),
+                },
+              ]
+            : []),
+          ...(guest.tableLabel
+            ? [
+                {
+                  kind: "paragraph" as const,
+                  text: t("guestPass.table", { table: guest.tableLabel }),
+                },
+              ]
+            : []),
+          { kind: "paragraph", text: guest.passCode },
+        ];
+        return {
+          title: t("guestPass.title", { name: guest.guestName }),
+          blocks: isCardPaper(paper)
+            ? blocks
+            : [...blocks, { kind: "paragraph", text: t("guestPass.scanNote") }],
+        };
+      },
+    },
+  ],
 };

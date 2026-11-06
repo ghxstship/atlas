@@ -1,11 +1,8 @@
 import type { Route } from "next";
 import Link from "next/link";
-import {
-  AccessGridSection,
-  CategoriesSection,
-  IssuedSection,
-  ScanLogSection,
-} from "@/components/credentials/sections";
+import { IssuedSection } from "@/components/credentials/issued-section";
+import { ScanLogSection } from "@/components/credentials/scan-log-section";
+import { AccessGridSection, CategoriesSection } from "@/components/credentials/sections";
 import { hrefWith, param } from "@/components/operations/kit";
 import { loadProjectTab } from "@/lib/operations/context";
 

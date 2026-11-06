@@ -5,6 +5,7 @@ import {
   isDocumentKind,
   isPrintSizeFor,
   needsWatermark,
+  printSizesFor,
 } from "@xos/data/documents/model";
 import { isLocale } from "@xos/i18n";
 import { loadMessages } from "@xos/i18n/load";
@@ -23,10 +24,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /**
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
  * viewer's own row level security and must belong to this org, so anyone who cannot open the record
- * gets 404 (ADR 0003). `?paper=a4` prints on A4, and the credential badge also on `a6` and `cr80` cards (P5); any
- * other size prints on US Letter. The site plan and the signage build sheet also read their layers, legend and state
- * filter from the query, and print lengths and sizes in the viewer's units (locale.units, B1). Rendered on the server
- * only.
+ * gets 404 (ADR 0003). `?paper=a4` prints on A4, and the credential badge (P5) and the guest pass (B8) also on `a6`
+ * and `cr80` cards; any other size prints on the kind's default, US Letter, or A6 for the guest pass. The site plan and
+ * the signage build sheet also read their layers, legend and state filter from the query, and print lengths and sizes
+ * in the viewer's units (locale.units, B1). Rendered on the server only.
  * A Confidential or Restricted document carries the viewer's email and the time (Section 8.6).
  * A day sheet prints for one audience (B7, ADR 0146 decision 3): `?team=<uuid>` or `?department=<code>`, and
  * `&dept=<slug>` keeps only the cues with that show department's call; such a copy always renders version 2.
@@ -45,8 +46,10 @@ export async function GET(
   const search = new URL(request.url).searchParams;
   const audience = kind === "day-sheet" ? daySheetAudience(search) : null;
   if (audience === "bad") return new Response(null, { status: 400 });
-  const paperParam = search.get("paper") ?? "letter";
-  const paper = isPrintSizeFor(kind, paperParam) ? paperParam : "letter";
+  // The kind's first size is its default: Letter for every page document, A6 for the guest pass (B8).
+  const fallback = printSizesFor(kind)[0] ?? "letter";
+  const paperParam = search.get("paper") ?? fallback;
+  const paper = isPrintSizeFor(kind, paperParam) ? paperParam : fallback;
   const negotiated = await getLocale();
   const locale = isLocale(negotiated) ? negotiated : "en-US";
   const site = env().ATLAS_SITE_URL;

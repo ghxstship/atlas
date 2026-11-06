@@ -1,0 +1,9 @@
+{
+  "type": "Feature",
+  "properties": {
+    "timestamp": "2027-06-02T18:53:00+00:00",
+    "windSpeed": { "unitCode": "wmoUnit:m_s-1", "value": 5 },
+    "windGust": { "unitCode": "wmoUnit:km_h-1", "value": null },
+    "heatIndex": { "unitCode": "wmoUnit:degF", "value": 99 }
+  }
+}

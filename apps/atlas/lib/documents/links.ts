@@ -49,6 +49,8 @@ export function atlasRecordPath(
       return `${o}/places/signage?project=${id}`;
     case "wrap-up-report":
       return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/reports?wrap=1`;
+    case "guest-pass":
+      return `${o}/p/${encodeURIComponent(record.projectKey ?? "")}/advancing?peek=${id}&section=guests`;
   }
 }
 

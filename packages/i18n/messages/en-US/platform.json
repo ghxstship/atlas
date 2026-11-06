@@ -426,7 +426,9 @@
       "plus_ones": "Plus-ones",
       "note": "Note for the door",
       "scope_node_id": "Show",
-      "counterparty_id": "On the list of"
+      "counterparty_id": "On the list of",
+      "guest_email": "Guest email",
+      "table_label": "Table"
     },
     "dryRun": {
       "title": "Dry run",
@@ -485,7 +487,8 @@
       "unknown_party": "no company of this org has this name",
       "too_long": "too long",
       "duplicate_in_file": "repeats an earlier row",
-      "other": "not accepted"
+      "other": "not accepted",
+      "invalid_email": "not one email address"
     },
     "commit": {
       "title": "Commit",
@@ -742,7 +745,10 @@
         "assigned": "Training assigned"
       },
       "weather": {
-        "alert": "Weather alert"
+        "alert": "Weather alert",
+        "warning": "Official weather warning",
+        "hold": "Weather hold",
+        "all_clear": "Weather all-clear"
       },
       "opportunity": {
         "matched": "New opportunity match"
@@ -790,6 +796,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "guest": {
+        "arrived": "Your guest arrived"
       },
       "advance_packet": {
         "reminder": "Advance reminder"

@@ -117,9 +117,11 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 | [0143](0143-scheduling-depth.md)                                    | Scheduling Depth: Day Types, Day Templates, the Anchor and Computed Clashes      | Accepted |
 | [0146](0146-day-sheets-books-feeds-and-wrap-up.md)                  | Day Sheets by Audience, Books, Named Calendar Feeds and the Wrap-up Report       | Proposed |
+| [0147][adr-0147]                                                    | Gate Scanning, Accreditation Checks, Guest Passes and the Weather Feed           | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 
 [adr-0105]: 0105-allergies-restricted-and-workforce-role-capabilities.md
 [adr-0142]: 0142-run-of-show-depth-show-channels-and-showcaller-links.md
 [adr-0144]: 0144-travel-lodging-ground-transport-and-local-contacts.md
+[adr-0147]: 0147-gate-scanning-accreditation-guest-passes-and-weather-feed.md

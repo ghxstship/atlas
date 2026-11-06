@@ -13,7 +13,7 @@ import type { OrgContext } from "@/lib/shell/context";
  * operations pages.
  */
 
-export const REFUSALS = "workforce.refusals";
+export { REFUSALS } from "./refusals";
 
 export function workforceCopy(): Promise<Copy> {
   return getCopy("workforce");

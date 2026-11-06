@@ -353,6 +353,32 @@ describe("refusal reasons in words (simulator defect: raw RLS text in the queue)
       values: { reason: "Time entries of one person cannot overlap." },
     });
   });
+  it("words B8's gate override and weather hold refusals in the device's language", () => {
+    expect(
+      refusalReason({
+        code: "XR001",
+        message: "scan_not_denied: Only a Denied In scan is overridden.",
+      }),
+    ).toEqual({ key: "refusedScanNotDenied", values: {} });
+    expect(
+      refusalReason({
+        code: "XR001",
+        message: "weather_hold_stale: This hold was made more than 10 minutes ago.",
+      }),
+    ).toEqual({ key: "refusedWeatherHoldStale", values: {} });
+    for (const locale of ["en-US", "es-US"] as const) {
+      const queue = (
+        getMessages(locale) as unknown as { compass: { queue: Record<string, string> } }
+      ).compass.queue;
+      for (const key of [
+        "refusedScanNotDenied",
+        "refusedScanOverrideStale",
+        "refusedWeatherHoldStale",
+        "refusedWeatherHoldIdTaken",
+      ])
+        expect(typeof queue[key], `${locale} ${key}`).toBe("string");
+    }
+  });
   it("turns a permission refusal into a plain sentence", () => {
     const r = refusalReason({
       code: "42501",

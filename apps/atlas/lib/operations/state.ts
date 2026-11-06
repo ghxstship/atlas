@@ -55,6 +55,17 @@ export const KNOWN_RULES = [
   "credential_photo_not_issuer",
   "credential_photo_scanning",
   "credential_photo_unscanned",
+  // B8 gate scans and accreditation checks (6250 to 6253).
+  "credential_training_incomplete",
+  "credential_duplicate",
+  "credential_requirement_course_state",
+  "scan_not_denied",
+  "scan_override_revoked",
+  "scan_override_stale",
+  "scan_override_taken",
+  "scan_override_self",
+  "scan_override_reason",
+  "scan_override_rpc",
 ] as const;
 
 const KNOWN = new Set<string>(KNOWN_RULES);

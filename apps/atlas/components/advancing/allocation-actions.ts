@@ -7,6 +7,7 @@ import {
   decideAllocation,
   getAssetClassAvailability,
   issueAllocation,
+  issueRefusalDetail,
   listAllocationAllowances,
   listAllocationHolders,
   listProjectRadioChannels,
@@ -420,7 +421,21 @@ export async function issueAllocationAction(
     allocationId: parsed.data.id,
     items,
   });
-  if (!result.ok) return { error: errorKey(result.error) };
+  if (!result.ok) {
+    const error = errorKey(result.error);
+    if (error === "credential_training_incomplete" || error === "credential_duplicate") {
+      const first = items[0];
+      const detail = await issueRefusalDetail(ctx.viewer.db, {
+        allocationId: parsed.data.id,
+        validFrom: first?.kind === "credential" ? (first.validFrom ?? null) : null,
+        validTo: first?.kind === "credential" ? (first.validTo ?? null) : null,
+      });
+      return detail.missing.length > 0 || detail.duplicates.length > 0
+        ? { error, detail }
+        : { error };
+    }
+    return { error };
+  }
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return { ok: true };
 }
