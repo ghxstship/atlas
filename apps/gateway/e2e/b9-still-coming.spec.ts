@@ -24,10 +24,11 @@ async function askAboutShift(title: string): Promise<string> {
     `select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id', $1::uuid, 'Draft', 'Published', 'Published for the journey.')`,
     [id],
   );
+  // Directly, as the fixture's engagement is still Onboarding and app.accept_engaged_shift needs an operational one; the
+  // answer itself does not.
   await sql(
-    `select app.accept_engaged_shift($1::uuid, 'Accepted for the journey.')`,
+    `select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id', $1::uuid, 'Published', 'Accepted', 'Accepted for the journey.')`,
     [id],
-    DEMO.crew,
   );
   await sql(
     `insert into app.shift_responses (project_id, shift_id, person_id, ask_kind) values ($1, $2, $3, 'Reconfirmation')`,
