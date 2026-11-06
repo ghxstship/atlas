@@ -105,7 +105,8 @@ false` only when the recipient answers through such a step and has no active mem
    rule is theirs. A rule on a class with no offering is refused at activation (`approval_rule_class_no_offering`),
    since no request could reach it.
    Readers of allocations (`advancing.packet.read`, R7's read rule) read the approval as `assets.asset.read` does, and
-   `advancing.packet.write` is the subject's writer. Allocations show the approval's state in the row, the table and
+   `advancing.packet.write` is the subject's writer; `app.my_capabilities_on_project` answers advancing capabilities
+   too, so Approvals offers Withdraw per project where the database allows it. Allocations show the approval's state in the row, the table and
    the peek; there is no second allocation-approval screen.
 
 ## Consequences

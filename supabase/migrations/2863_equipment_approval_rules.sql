@@ -18,6 +18,8 @@
 --   * The approval helpers of 2860 and 2862 learn the allocation: its holder is the beneficiary, its readers read the
 --     approval, advancing.packet.write is the subject's writer, its title is "{class} x{quantity}", and a Withdrawn or
 --     decided allocation is no longer reminded. Equipment rules may now be activated, for a class an offering provides.
+--   * app.my_capabilities_on_project (0470) also answers advancing capabilities, so Approvals can offer Withdraw to the
+--     person private.is_subject_writer lets withdraw on that project.
 --   * private.party_org_ids takes both of its open-work definitions: A127's applicants with an open offer (2200) and R4's
 --     roster entries (2641). Each was written from 1131 alone, so whichever sorts last would drop the other.
 -- subject_approvals stays out of Trash (2860): an approval is withdrawn by Cancel, never restored.
@@ -582,7 +584,27 @@ $$;
 comment on function private.party_org_ids(uuid) is 'Orgs a person works with as an external party: through an engagement of their own, an active membership in an external account the org holds as a counterparty, an application of their own with an offer still open (A127), so the offer''s notices reach them, or a live roster entry on one of the org''s engagements (R4).';
 revoke all on function private.party_org_ids(uuid) from public, anon, authenticated;
 
--- 10. Trash ---------------------------------------------------------------------------------------------------------------------------
+-- 10. Which advancing capabilities a person holds on a project (from 0470) --------------------------------------------------------
+
+-- 0470 answers credentials, safety and restricted-data capabilities only. Approvals asks for advancing.packet.write per
+-- project: reach is what decides it, since a Member or Field role holds it only on projects they are assigned to.
+create or replace function app.my_capabilities_on_project(p_project_id uuid, p_capabilities text[])
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(c order by c), '{}')
+  from unnest(p_capabilities) c
+  where (c like 'credentials.%' or c like 'safety.%' or c like 'data.restricted.%' or c like 'advancing.%')
+    and private.can_on_project(p_project_id, c);
+$$;
+comment on function app.my_capabilities_on_project(uuid, text[]) is 'Which of the named credentials, safety, advancing and restricted-data capabilities the signed-in person may use on a project. Only shapes which controls the apps show; row level security and the RPCs still decide every write.';
+revoke all on function app.my_capabilities_on_project(uuid, text[]) from public, anon;
+grant execute on function app.my_capabilities_on_project(uuid, text[]) to authenticated, service_role;
+
+-- 11. Trash ---------------------------------------------------------------------------------------------------------------------------
 
 -- subject_approvals keeps 2860's Trash exclusion: an approval is withdrawn by Cancel, with its reason, and is never restored.
 select private.sync_trash_tables();

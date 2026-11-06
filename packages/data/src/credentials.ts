@@ -848,7 +848,7 @@ export async function recordScan(
 
 // Capabilities ---------------------------------------------------------------------------------
 
-/** Every credentials and safety capability the module pages offer controls for. */
+/** Every credentials and safety capability the module pages offer controls for, and advance-request writing for Approvals. */
 export const MODULE_CAPABILITIES = [
   "credentials.credential.read",
   "credentials.category.write",
@@ -869,8 +869,8 @@ export type ModuleCapability = (typeof MODULE_CAPABILITIES)[number];
 
 /**
  * Which module capabilities the signed-in person may use on a project
- * (app.my_capabilities_on_project, migration 0470). It only decides which controls to show; the
- * database still decides each write.
+ * (app.my_capabilities_on_project, migrations 0470 and 2863). It only decides which controls to
+ * show; the database still decides each write.
  */
 export async function myModuleCapabilities(
   db: XosClient,

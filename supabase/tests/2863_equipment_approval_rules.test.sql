@@ -6,7 +6,8 @@
 -- rejected step declines the allocation with "Rejected at {step}: {comment}"; withdrawing or declining the allocation
 -- or deleting it withdraws an approval in review, and nobody is reminded about it; withdrawing the approval withdraws
 -- the request whoever does it (the requester, the subject's writer, a rule writer who also reviews), so a reviewer can
--- never approve a request no step approved, and anyone else is refused; a rule on a class with no offering does not
+-- never approve a request no step approved, and anyone else is refused; the capability read behind Approvals' Withdraw
+-- answers the subject's writer on the projects they write, and no one else; a rule on a class with no offering does not
 -- activate; readers of allocations read the approval, an outsider does not.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -15,7 +16,7 @@ set search_path = extensions, public;
 \ir 2654_project_facts_world.psql
 \ir 2691_allocation_world.psql
 
-select plan(76);
+select plan(82);
 
 create function pg_temp.approval_of(p_allocation text) returns uuid
 language sql security definer as $$
@@ -245,6 +246,23 @@ select throws_ok(format($$select app.cancel_subject_approval(%L, 'Not mine to wi
   'and is refused');
 select is(pg_temp.state_of(pg_temp.id('a_no')), 'Requested', 'the request stays Requested');
 select is(pg_temp.approval_state('a_no'), 'In Review', 'and its approval In Review');
+
+-- Approvals shows Withdraw from this read, so it answers exactly where private.is_subject_writer does, reach included.
+insert into world select 'a_show', pg_temp.alloc('request', 'carol', 'e_kai', 'class', 'cls_radio', 1);
+select pg_temp.as_user('dave');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['advancing.packet.write']), array['advancing.packet.write'],
+  'the capability read answers a Member assigned to the project');
+select ok(pg_temp.is_subject_writer('a_show'), 'as the withdraw rule does');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a2'), array['advancing.packet.write']), '{}'::text[],
+  'and not on a project they are not assigned to');
+select pg_temp.as_user('frank');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['advancing.packet.write']), array['advancing.packet.write'],
+  'it answers a Field lead assigned to the project');
+select pg_temp.as_user('gina');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['advancing.packet.write']), '{}'::text[],
+  'and not a Viewer, whom the withdraw rule refuses above');
+select is(app.my_capabilities_on_project(pg_temp.id('prj_a'), array['org.members.manage']), '{}'::text[],
+  'and it still answers only module capabilities');
 
 -- A rule that could never fire does not activate.
 select pg_temp.as_user('alice');
