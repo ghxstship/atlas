@@ -688,7 +688,9 @@ async function FulfillmentRecord({
 
       {travel?.ok ? (
         <Section id={`travel-${f.id}`} title={t("fulfillments.travel.title")}>
-          {canWrite && !closed ? <ItineraryEntry projectId={f.projectId} fulfillmentId={f.id} /> : null}
+          {canWrite && !closed ? (
+            <ItineraryEntry projectId={f.projectId} fulfillmentId={f.id} />
+          ) : null}
           {travel.data.length === 0 ? (
             <p className="m-0 text-text-13 text-text-secondary">{t("fulfillments.travel.empty")}</p>
           ) : (

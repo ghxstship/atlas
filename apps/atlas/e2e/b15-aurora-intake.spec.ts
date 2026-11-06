@@ -45,7 +45,10 @@ const post = async (path: string, data: unknown) => {
 };
 
 const switches = (on: readonly string[]) =>
-  post("/api/v1/ai-settings/save", Object.fromEntries(FEATURES.map((f) => [`${f}_enabled`, on.includes(f)])));
+  post(
+    "/api/v1/ai-settings/save",
+    Object.fromEntries(FEATURES.map((f) => [`${f}_enabled`, on.includes(f)])),
+  );
 
 const textFile = (name: string, text: string) => ({
   name,
@@ -59,9 +62,9 @@ test.beforeAll(async ({ browser }, testInfo) => {
   await signIn(page, "owner@example.com");
   await switches(FEATURES);
   const response = await page.request.get("/api/v1/projects?limit=100&fields=id,project_key");
-  const row = ((await response.json()) as { data: { id: string; project_key: string }[] }).data.find(
-    (p) => p.project_key === "NWS",
-  );
+  const row = (
+    (await response.json()) as { data: { id: string; project_key: string }[] }
+  ).data.find((p) => p.project_key === "NWS");
   project = row?.id ?? "";
   projectKey = row?.project_key ?? "";
   expect(project).not.toBe("");
@@ -81,16 +84,20 @@ test("itineraries: a confirmation with two passengers and a leg becomes segments
   // A far-future departure unique to this run, so a retry never meets its own segment.
   const day = 10 + (Date.now() % 18);
   // The peek is addressed by the display key, not by the id.
-  await page.goto(`/${ORG}/hospitality/fulfillments?peek=NWS-${String(fulfillment["fulfillment_number"])}`);
+  await page.goto(
+    `/${ORG}/hospitality/fulfillments?peek=NWS-${String(fulfillment["fulfillment_number"])}`,
+  );
   await settle(page);
   await page.getByRole("button", { name: "Read Itineraries", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Read Itineraries", exact: true });
-  await panel.getByLabel("Files", { exact: true }).setInputFiles(
-    textFile(
-      "trip.txt",
-      `Passenger: Dana Kim\nFlight GA ${day} Mar ${day} 2029 08:15 MIA to ORD Mar ${day} 2029 10:30\n`,
-    ),
-  );
+  await panel
+    .getByLabel("Files", { exact: true })
+    .setInputFiles(
+      textFile(
+        "trip.txt",
+        `Passenger: Dana Kim\nFlight GA ${day} Mar ${day} 2029 08:15 MIA to ORD Mar ${day} 2029 10:30\n`,
+      ),
+    );
   await expect(panel.getByTestId("intake-allowance")).toContainText("This uses 1");
   await expectAccessible(page);
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
@@ -125,10 +132,15 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
   await settle(page);
   await page.getByRole("button", { name: "Read Contracts and Riders", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Read Contracts and Riders", exact: true });
-  await panel.getByLabel("Files", { exact: true }).setInputFiles([
-    textFile("agreement.txt", `ARTIST BOOKING AGREEMENT\nArtist: ${act}\nPerformance date: 2029-06-05\nGuarantee: USD 7,500.00\n`),
-    textFile("rider.txt", `TECHNICAL RIDER\nArtist: ${act}\n`),
-  ]);
+  await panel
+    .getByLabel("Files", { exact: true })
+    .setInputFiles([
+      textFile(
+        "agreement.txt",
+        `ARTIST BOOKING AGREEMENT\nArtist: ${act}\nPerformance date: 2029-06-05\nGuarantee: USD 7,500.00\n`,
+      ),
+      textFile("rider.txt", `TECHNICAL RIDER\nArtist: ${act}\n`),
+    ]);
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(panel.getByTestId("contract-group").filter({ hasText: act })).toHaveCount(1);
   await expect(panel.getByTestId("printed-fee").first()).toContainText("7,500");
@@ -141,7 +153,9 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
   const terms = panel.getByLabel("Terms", { exact: true });
   const labels = await terms.locator("option").allTextContents();
   await terms.selectOption({ label: labels.find((l) => l.includes("Day Rate")) ?? "" });
-  await expect(panel.getByText("This fee is a total. Enter the rate per unit.").first()).toBeVisible();
+  await expect(
+    panel.getByText("This fee is a total. Enter the rate per unit.").first(),
+  ).toBeVisible();
   const party = group.getByLabel("Party", { exact: true });
   const parties = await party.locator("option").allTextContents();
   await party.selectOption({ label: parties.find((p) => p === act) ?? parties[1] ?? "" });
@@ -163,9 +177,14 @@ test("invoices: a printed total and its lines show a residual, which warns and b
   const sheet = page.getByRole("dialog", { name: "New invoice" });
   await sheet.getByRole("button", { name: "Fill from an invoice" }).click();
   const panel = page.getByRole("dialog", { name: "Read an invoice with Aurora" });
-  await panel.locator('input[type="file"]').setInputFiles(
-    textFile("bill.txt", `Invoice ${number}\nCurrency: USD\nLine: 2 x Wedge monitor rental @ 450.00\nTax 80.00\nTotal 1,080.00\n`),
-  );
+  await panel
+    .locator('input[type="file"]')
+    .setInputFiles(
+      textFile(
+        "bill.txt",
+        `Invoice ${number}\nCurrency: USD\nLine: 2 x Wedge monitor rental @ 450.00\nTax 80.00\nTotal 1,080.00\n`,
+      ),
+    );
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await panel.getByRole("button", { name: "Fill the form" }).click();
   await expect(sheet.getByLabel("Invoice number", { exact: true })).toHaveValue(number);
@@ -191,15 +210,31 @@ test("invoices: a printed total and its lines show a residual, which warns and b
 });
 
 test("advance answers: an answer from inbox mail is accepted, and a second person reviews it", async () => {
-  const packet = await post("/api/v1/advance-packets", { project_id: project, title: `B15 Advance ${uniqueId()}` });
+  const packet = await post("/api/v1/advance-packets", {
+    project_id: project,
+    title: `B15 Advance ${uniqueId()}`,
+  });
   const id = String(packet["id"]);
-  const section = await post("/api/v1/advance-sections", { advance_packet_id: id, position: 1, title: "Hospitality", prompt: "Needs." });
-  await post("/api/v1/advance-sections", { advance_packet_id: id, position: 2, title: "Parking", prompt: "Vehicles." });
+  const section = await post("/api/v1/advance-sections", {
+    advance_packet_id: id,
+    position: 1,
+    title: "Hospitality",
+    prompt: "Needs.",
+  });
+  await post("/api/v1/advance-sections", {
+    advance_packet_id: id,
+    position: 2,
+    title: "Parking",
+    prompt: "Vehicles.",
+  });
   const [recipient] = await sql<{ person_id: string }>(
     "select m.person_id from app.memberships m where m.org_id = (select org_id from app.projects where id = $1) and m.deleted_at is null limit 1",
     [project],
   );
-  await post("/api/v1/advance-recipients", { advance_packet_id: id, person_id: recipient?.person_id });
+  await post("/api/v1/advance-recipients", {
+    advance_packet_id: id,
+    person_id: recipient?.person_id,
+  });
   await post(`/api/v1/advance-packets/${id}/send`, {});
   // The mail arrives through the inbound function's own RPC, seeded by service role.
   const [address] = await sql<{ local_part: string }>(
@@ -220,7 +255,10 @@ test("advance answers: an answer from inbox mail is accepted, and a second perso
   );
   await page.goto(`/${ORG}/advancing/packets?peek=${id}`);
   await settle(page);
-  await page.getByRole("button", { name: "Draft Answers from a Reply", exact: true }).first().click();
+  await page
+    .getByRole("button", { name: "Draft Answers from a Reply", exact: true })
+    .first()
+    .click();
   const panel = page.getByRole("dialog").filter({ hasText: "Draft Answers for" });
   await expect(panel.getByText("advance@example.com").first()).toBeVisible();
   await expectAccessible(page);
@@ -238,26 +276,51 @@ test("advance answers: an answer from inbox mail is accepted, and a second perso
   await panel.getByRole("button", { name: "Close" }).last().click();
   await page.reload();
   await settle(page);
-  await expect(page.getByTestId("answer-source").first()).toContainText("Drafted by Aurora, accepted by");
+  await expect(page.getByTestId("answer-source").first()).toContainText(
+    "Drafted by Aurora, accepted by",
+  );
   await expect(page.getByTestId("answer-source").first()).toContainText("two cases of water");
 });
 
 test("governance: a waste plan draft fills the Document record's editor, and Save is the write", async () => {
   const title = `B15 Plan ${uniqueId()}`;
-  const record = await post("/api/v1/records", { project_id: project, record_kind: "Document", record_subtype: "Plan", title });
+  const record = await post("/api/v1/records", {
+    project_id: project,
+    record_kind: "Document",
+    record_subtype: "Plan",
+    title,
+  });
   await page.goto(`/${ORG}/r/${projectKey}-${String(record["record_number"])}`);
   await settle(page);
   await page.getByRole("button", { name: "Draft with Aurora", exact: true }).click();
-  const panel = page.getByRole("dialog").filter({ has: page.getByLabel("What should the draft say?", { exact: true }) });
+  const panel = page
+    .getByRole("dialog")
+    .filter({ has: page.getByLabel("What should the draft say?", { exact: true }) });
   await panel.getByLabel("Draft", { exact: true }).selectOption("waste_plan");
-  await panel.getByLabel("What should the draft say?", { exact: true }).fill("Draft the waste plan.");
+  await panel
+    .getByLabel("What should the draft say?", { exact: true })
+    .fill("Draft the waste plan.");
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await panel.getByRole("button", { name: "Use this draft" }).click();
   await expect(page.locator('textarea[name="body"]')).toHaveValue(/Unmeasured/);
-  const before = await sql<{ body: string | null }>("select body from app.record_document where record_id = $1", [String(record["id"])]);
+  const before = await sql<{ body: string | null }>(
+    "select body from app.record_document where record_id = $1",
+    [String(record["id"])],
+  );
   expect(before[0]?.body ?? null).toBeNull();
-  await page.locator('form:has(textarea[name="body"])').getByRole("button", { name: "Save" }).click();
+  await page
+    .locator('form:has(textarea[name="body"])')
+    .getByRole("button", { name: "Save" })
+    .click();
   await expect
-    .poll(async () => (await sql<{ body: string | null }>("select body from app.record_document where record_id = $1", [String(record["id"])]))[0]?.body ?? "")
+    .poll(
+      async () =>
+        (
+          await sql<{ body: string | null }>(
+            "select body from app.record_document where record_id = $1",
+            [String(record["id"])],
+          )
+        )[0]?.body ?? "",
+    )
     .toContain("Unmeasured");
 });

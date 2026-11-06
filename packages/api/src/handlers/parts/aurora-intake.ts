@@ -29,7 +29,9 @@ export async function readInboxMessage(
   const message = (
     await run<Row[]>(
       from(context.db, "inbound_messages")
-        .select("id, purpose, inbound_status, discarded_at, from_address, body_text, inbound_address_id")
+        .select(
+          "id, purpose, inbound_status, discarded_at, from_address, body_text, inbound_address_id",
+        )
         .eq("id", id)
         .is("deleted_at", null),
     )
@@ -108,7 +110,10 @@ export async function governanceTarget(
   const response = await api.get(`/records/${target.id}`, {});
   if (response.status !== 200) throw notFound("The record is not visible to you.");
   const record = response.body as Row;
-  if (record["record_kind"] !== "Document" || record["record_subtype"] !== GOVERNANCE_SUBTYPE[kind]) {
+  if (
+    record["record_kind"] !== "Document" ||
+    record["record_subtype"] !== GOVERNANCE_SUBTYPE[kind]
+  ) {
     throw mismatch();
   }
   return { id: target.id, projectId: String(record["project_id"]) };

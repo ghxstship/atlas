@@ -543,7 +543,11 @@ async function PacketPage({
                     <span className="text-label-13 font-medium">{name}</span>
                     <span className="flex items-center gap-8">
                       {sent && can.review ? (
-                        <AdvanceDraftEntry recipientId={r.id} recipientName={name} inbox={draftInbox} />
+                        <AdvanceDraftEntry
+                          recipientId={r.id}
+                          recipientName={name}
+                          inbox={draftInbox}
+                        />
                       ) : null}
                       {can.write ? (
                         <RemoveRecipientButton org={org} recipientId={r.id} name={name} />

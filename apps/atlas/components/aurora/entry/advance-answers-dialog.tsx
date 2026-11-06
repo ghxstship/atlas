@@ -46,9 +46,13 @@ export function AdvanceAnswersDialog({
   const { client, availability, check } = useAurora("drafting", open);
   const [source, setSource] = useState(inbox[0]?.id ?? FILE_SOURCE);
   const [file, setFile] = useState<File | null>(null);
-  const [records, setRecords] = useState<readonly AuroraPreviewRecord[] | "loading" | "error">("loading");
+  const [records, setRecords] = useState<readonly AuroraPreviewRecord[] | "loading" | "error">(
+    "loading",
+  );
   const [phase, setPhase] = useState<
-    { kind: "compose" } | { kind: "sending" } | { kind: "done"; outcome: Outcome<AuroraAdvanceAnswers> }
+    | { kind: "compose" }
+    | { kind: "sending" }
+    | { kind: "done"; outcome: Outcome<AuroraAdvanceAnswers> }
   >({ kind: "compose" });
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [quantities, setQuantities] = useState<Record<string, number[]>>({});
@@ -91,15 +95,11 @@ export function AdvanceAnswersDialog({
     const outcome = outcomeOf(
       await client.draftAdvanceAnswers({
         advance_recipient_id: recipientId,
-        ...(fromMail
-          ? { inbound_message_id: source }
-          : await fileSource(file as File)),
+        ...(fromMail ? { inbound_message_id: source } : await fileSource(file as File)),
       }),
     );
     if (outcome.kind === "answer") {
-      setTexts(
-        Object.fromEntries(outcome.answer.answers.map((a) => [a.section_id, a.text ?? ""])),
-      );
+      setTexts(Object.fromEntries(outcome.answer.answers.map((a) => [a.section_id, a.text ?? ""])));
       setQuantities(
         Object.fromEntries(
           outcome.answer.answers.map((a) => [a.section_id, a.lines.map((l) => l.quantity ?? 0)]),
@@ -143,7 +143,9 @@ export function AdvanceAnswersDialog({
   const titleOf = (sectionId: string) =>
     answer?.answer.sections.find((s) => s.id === sectionId)?.title ?? "";
   const choiceOf = (a: Answer, choiceId: string | undefined) =>
-    answer?.answer.sections.find((s) => s.id === a.section_id)?.choices.find((c) => c.id === choiceId)?.name ?? "";
+    answer?.answer.sections
+      .find((s) => s.id === a.section_id)
+      ?.choices.find((c) => c.id === choiceId)?.name ?? "";
   const when = (iso: string | undefined) =>
     iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "";
   const message = inbox.find((m) => m.id === source);
@@ -191,7 +193,10 @@ export function AdvanceAnswersDialog({
           <div className="flex flex-col gap-12">
             <AiGenerated model={answer.model} />
             <p className="m-0 text-text-13">{t("intake.advanceDraft.secondPerson")}</p>
-            <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("intake.advanceDraft.answers")}>
+            <ul
+              className="m-0 flex list-none flex-col gap-12 p-0"
+              aria-label={t("intake.advanceDraft.answers")}
+            >
               {answer.answer.answers.map((a) => {
                 const decision = decided[a.section_id];
                 return (
@@ -209,7 +214,9 @@ export function AdvanceAnswersDialog({
                         rows={4}
                         disabled={decision !== undefined}
                         value={texts[a.section_id] ?? ""}
-                        onChange={(e) => setTexts((v) => ({ ...v, [a.section_id]: e.target.value }))}
+                        onChange={(e) =>
+                          setTexts((v) => ({ ...v, [a.section_id]: e.target.value }))
+                        }
                       />
                     ) : (
                       <ul className="m-0 flex list-none flex-col gap-4 p-0">
@@ -226,7 +233,9 @@ export function AdvanceAnswersDialog({
                                   const value = Number(e.target.value);
                                   setQuantities((q) => ({
                                     ...q,
-                                    [a.section_id]: (q[a.section_id] ?? []).map((n, j) => (j === i ? value : n)),
+                                    [a.section_id]: (q[a.section_id] ?? []).map((n, j) =>
+                                      j === i ? value : n,
+                                    ),
                                   }));
                                 }}
                               />
@@ -249,11 +258,17 @@ export function AdvanceAnswersDialog({
                     </p>
                     <p className="m-0 text-text-12 text-text-secondary">
                       {answer.answer.source.kind === "Project Inbox"
-                        ? t("intake.advanceDraft.fromSender", { from: answer.answer.source.from_address })
-                        : t("intake.advanceDraft.fromFile", { name: answer.answer.source.file_name })}
+                        ? t("intake.advanceDraft.fromSender", {
+                            from: answer.answer.source.from_address,
+                          })
+                        : t("intake.advanceDraft.fromFile", {
+                            name: answer.answer.source.file_name,
+                          })}
                     </p>
                     {a.excerpt_checked ? null : (
-                      <p className="m-0 text-text-12 text-text-secondary">{t("intake.advanceDraft.checkFile")}</p>
+                      <p className="m-0 text-text-12 text-text-secondary">
+                        {t("intake.advanceDraft.checkFile")}
+                      </p>
                     )}
                     {decision ? (
                       <Tag tone={decision === "accepted" ? "success" : "neutral"}>
@@ -279,8 +294,13 @@ export function AdvanceAnswersDialog({
               </InlineAlert>
             ) : null}
             {answer.answer.unanswered.length > 0 ? (
-              <section className="flex flex-col gap-4" aria-label={t("intake.advanceDraft.unanswered")}>
-                <h3 className="m-0 text-text-13 font-semibold">{t("intake.advanceDraft.unanswered")}</h3>
+              <section
+                className="flex flex-col gap-4"
+                aria-label={t("intake.advanceDraft.unanswered")}
+              >
+                <h3 className="m-0 text-text-13 font-semibold">
+                  {t("intake.advanceDraft.unanswered")}
+                </h3>
                 <ul className="m-0 flex list-disc flex-col gap-2 ps-16 text-text-12">
                   {answer.answer.unanswered.map((u) => (
                     <li key={u.section_id}>

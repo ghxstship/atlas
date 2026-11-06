@@ -414,7 +414,14 @@ export interface AuroraClient {
     fields?: readonly AuroraFilterField[];
   }): Promise<AuroraCall<AuroraApiResult<AuroraBuiltFilter>>>;
   extract(input: {
-    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote" | "itinerary" | "contract";
+    kind:
+      | "rider"
+      | "insurance_certificate"
+      | "invoice"
+      | "receipt"
+      | "quote"
+      | "itinerary"
+      | "contract";
     document_id?: string | null;
     /** The project read for, required for an itinerary or a contract. */
     project_id?: string;
@@ -624,7 +631,10 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     draft: ((input: unknown) => call("POST", "/aurora/draft", input)) as AuroraClient["draft"],
     applyDraft: (input) => call("POST", "/aurora/apply-draft", input),
     intakeOptions: ({ kind, project_id }) =>
-      call("GET", `/aurora/intake-options?kind=${kind}&project_id=${encodeURIComponent(project_id)}`),
+      call(
+        "GET",
+        `/aurora/intake-options?kind=${kind}&project_id=${encodeURIComponent(project_id)}`,
+      ),
     openProposals: ({ project_id, operation_id }) =>
       call(
         "GET",

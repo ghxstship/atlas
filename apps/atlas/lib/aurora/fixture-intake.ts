@@ -66,8 +66,16 @@ function readContract(request: ModelRequest, text: string): ModelResponse {
   const lines = text.split("\n").map((l) => l.trim());
   const first = lines[0] ?? "";
   const fields = [
-    value("document_type", /RIDER/.test(first) ? "Rider" : /AGREEMENT|CONTRACT/.test(first) ? "Contract" : "Other", first),
-    value("title", first.replace(/\b\w+/g, (w) => w[0] + w.slice(1).toLowerCase()), first),
+    value(
+      "document_type",
+      /RIDER/.test(first) ? "Rider" : /AGREEMENT|CONTRACT/.test(first) ? "Contract" : "Other",
+      first,
+    ),
+    value(
+      "title",
+      first.replace(/\b\w+/g, (w) => w[0] + w.slice(1).toLowerCase()),
+      first,
+    ),
   ];
   for (const line of lines) {
     const act = /^Artist: (.+)$/.exec(line);
@@ -76,7 +84,13 @@ function readContract(request: ModelRequest, text: string): ModelResponse {
     if (date?.[1]) fields.push(value("start_date", date[1], line));
     const fee = /^Guarantee: ([A-Z]{3}) ([\d,]+)\.(\d{2})$/.exec(line);
     if (fee?.[1] && request.system.includes("agreed_rate_minor")) {
-      fields.push(value("agreed_rate_minor", Number(`${(fee[2] ?? "").replaceAll(",", "")}${fee[3] ?? ""}`), line));
+      fields.push(
+        value(
+          "agreed_rate_minor",
+          Number(`${(fee[2] ?? "").replaceAll(",", "")}${fee[3] ?? ""}`),
+          line,
+        ),
+      );
       fields.push(value("agreed_rate_currency_code", fee[1], line));
     }
   }
@@ -155,7 +169,9 @@ export function fixtureAdvanceAnswers(request: ModelRequest, text: string): Mode
     } else if (section.kind === "Schedule Window") {
       const line = lines.find((l) => l.startsWith("Window "));
       const m = line
-        ? /^Window ([A-Z][a-z]{2}) (\d{1,2}) (\d{4}) (\d{2}:\d{2}) to ([A-Z][a-z]{2}) (\d{1,2}) (\d{4}) (\d{2}:\d{2})$/.exec(line)
+        ? /^Window ([A-Z][a-z]{2}) (\d{1,2}) (\d{4}) (\d{2}:\d{2}) to ([A-Z][a-z]{2}) (\d{1,2}) (\d{4}) (\d{2}:\d{2})$/.exec(
+            line,
+          )
         : null;
       if (m && line) {
         const [, mo1, d1, y1, t1, mo2, d2, y2, t2] = m as unknown as string[];

@@ -98,7 +98,9 @@ describe("tieOut", () => {
   });
 
   it("is not checkable, naming what is missing", () => {
-    expect(tieOut({ lines: [{ quantity: 1, unitPriceMinor: null }], printedTotalMinor: 100 })).toMatchObject({
+    expect(
+      tieOut({ lines: [{ quantity: 1, unitPriceMinor: null }], printedTotalMinor: 100 }),
+    ).toMatchObject({
       status: "not_checkable",
       residualMinor: null,
       missing: [{ field: "unit_price_minor", line: 1 }],

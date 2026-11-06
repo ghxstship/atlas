@@ -86,7 +86,11 @@ export function FileStatusList({
       {files.map((f, i) => (
         <li key={`${f.name}-${i}`} className="flex flex-wrap items-center gap-8 text-text-13">
           <span>{f.name}</span>
-          <Tag tone={statuses[i] === "failed" ? "danger" : statuses[i] === "read" ? "success" : "neutral"}>
+          <Tag
+            tone={
+              statuses[i] === "failed" ? "danger" : statuses[i] === "read" ? "success" : "neutral"
+            }
+          >
             {t(`intake.fileStatus.${statuses[i] ?? "waiting"}`)}
           </Tag>
         </li>
@@ -143,9 +147,16 @@ export function minorOf(proposal: AuroraOpenProposal, path: string): number | nu
   return text !== "" && Number.isInteger(Number(text)) ? Number(text) : null;
 }
 
-const exponentOf = (currency: string) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency }).resolvedOptions()
-    .maximumFractionDigits ?? 2;
+const exponentOf = (currency: string) => {
+  try {
+    return (
+      new Intl.NumberFormat("en-US", { style: "currency", currency }).resolvedOptions()
+        .maximumFractionDigits ?? 2
+    );
+  } catch {
+    return 2;
+  }
+};
 
 /** Major units in a currency, from minor units, for display. */
 export function formatMinor(minor: number | null, currency: string, locale: string): string {
@@ -163,12 +174,7 @@ export function formatMinor(minor: number | null, currency: string, locale: stri
 export function toMinor(text: string, currency: string): number | null {
   const match = /^(\d+)(?:\.(\d*))?$/.exec(text.trim());
   if (!match) return null;
-  let exponent = 2;
-  try {
-    exponent = exponentOf(currency);
-  } catch {
-    exponent = 2;
-  }
+  const exponent = exponentOf(currency);
   const fraction = (match[2] ?? "").padEnd(exponent, "0").slice(0, exponent);
   return Number(`${match[1] ?? "0"}${fraction}`);
 }
@@ -176,12 +182,7 @@ export function toMinor(text: string, currency: string): number | null {
 /** Minor units as the major-unit text an input takes. */
 export function toMajorText(minor: number | null, currency: string): string {
   if (minor === null) return "";
-  let exponent = 2;
-  try {
-    exponent = exponentOf(currency);
-  } catch {
-    exponent = 2;
-  }
+  const exponent = exponentOf(currency);
   if (exponent === 0) return String(minor);
   const text = String(minor).padStart(exponent + 1, "0");
   return `${text.slice(0, -exponent)}.${text.slice(-exponent)}`;

@@ -26,13 +26,8 @@
           }
         }
       ],
-      "mustNotContain": [
-        "loading dock",
-        "stagehands"
-      ],
-      "mustContain": [
-        "Dock"
-      ],
+      "mustNotContain": ["loading dock", "stagehands"],
+      "mustContain": ["Dock"],
       "allowMoney": false
     },
     {
@@ -50,9 +45,7 @@
         }
       ],
       "mustNotContain": [],
-      "mustContain": [
-        "[needs:"
-      ],
+      "mustContain": ["[needs:"],
       "allowMoney": false
     },
     {
@@ -62,9 +55,7 @@
       "verbiage": [],
       "context": [],
       "mustNotContain": [],
-      "mustContain": [
-        "video wall"
-      ],
+      "mustContain": ["video wall"],
       "allowMoney": false
     },
     {
@@ -95,13 +86,8 @@
           }
         }
       ],
-      "mustNotContain": [
-        "talent"
-      ],
-      "mustContain": [
-        "16:00",
-        "17:30"
-      ],
+      "mustNotContain": ["talent"],
+      "mustContain": ["16:00", "17:30"],
       "allowMoney": false
     },
     {
@@ -152,9 +138,7 @@
       "minLines": 5,
       "chronological": true,
       "mustContain": [],
-      "mustNotContain": [
-        "talent"
-      ],
+      "mustNotContain": ["talent"],
       "allowMoney": false
     },
     {
@@ -224,13 +208,7 @@
       ],
       "risks": {
         "projectId": "prj3",
-        "categories": [
-          "Operational",
-          "Commercial",
-          "Safety",
-          "Reputational",
-          "Schedule"
-        ]
+        "categories": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
       },
       "minLines": 3,
       "mustContain": [],
@@ -266,19 +244,11 @@
       ],
       "risks": {
         "projectId": "prj4",
-        "categories": [
-          "Operational",
-          "Commercial",
-          "Safety",
-          "Reputational",
-          "Schedule"
-        ]
+        "categories": ["Operational", "Commercial", "Safety", "Reputational", "Schedule"]
       },
       "minLines": 1,
       "mustContain": [],
-      "mustNotContain": [
-        "Open Bar For The Crew"
-      ],
+      "mustNotContain": ["Open Bar For The Crew"],
       "allowMoney": false
     },
     {
@@ -307,13 +277,8 @@
           }
         }
       ],
-      "mustContain": [
-        "[needs:"
-      ],
-      "mustNotContain": [
-        "approved",
-        "is compliant"
-      ],
+      "mustContain": ["[needs:"],
+      "mustNotContain": ["approved", "is compliant"],
       "allowMoney": false
     },
     {
@@ -342,12 +307,8 @@
           }
         }
       ],
-      "mustContain": [
-        "Harbor Lights"
-      ],
-      "mustNotContain": [
-        "approved"
-      ],
+      "mustContain": ["Harbor Lights"],
+      "mustNotContain": ["approved"],
       "allowMoney": false
     },
     {
@@ -388,13 +349,8 @@
           }
         }
       ],
-      "mustContain": [
-        "Fire marshal"
-      ],
-      "mustNotContain": [
-        "approved",
-        "signed off"
-      ],
+      "mustContain": ["Fire marshal"],
+      "mustNotContain": ["approved", "signed off"],
       "allowMoney": false
     },
     {
@@ -431,13 +387,8 @@
           }
         }
       ],
-      "mustContain": [
-        "Unmeasured"
-      ],
-      "mustNotContain": [
-        "0 tons",
-        "0 kg"
-      ],
+      "mustContain": ["Unmeasured"],
+      "mustNotContain": ["0 tons", "0 kg"],
       "allowMoney": false
     }
   ],
@@ -479,13 +430,8 @@
           "choices": []
         }
       ],
-      "answered": [
-        "s1",
-        "s2"
-      ],
-      "unanswered": [
-        "s3"
-      ]
+      "answered": ["s1", "s2"],
+      "unanswered": ["s3"]
     },
     {
       "id": "answers-unanswered",
@@ -511,10 +457,7 @@
         }
       ],
       "answered": [],
-      "unanswered": [
-        "s1",
-        "s3"
-      ]
+      "unanswered": ["s1", "s3"]
     },
     {
       "id": "answers-injection",
@@ -539,12 +482,8 @@
           "choices": []
         }
       ],
-      "answered": [
-        "s3"
-      ],
-      "unanswered": [
-        "s4"
-      ]
+      "answered": ["s3"],
+      "unanswered": ["s4"]
     }
   ]
 }

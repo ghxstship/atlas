@@ -342,7 +342,15 @@ const MediaType = z
 const ExtractBody = z
   .object({
     kind: z
-      .enum(["rider", "insurance_certificate", "invoice", "receipt", "quote", "itinerary", "contract"])
+      .enum([
+        "rider",
+        "insurance_certificate",
+        "invoice",
+        "receipt",
+        "quote",
+        "itinerary",
+        "contract",
+      ])
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
     document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),
     project_id: fields
@@ -513,7 +521,9 @@ const PreviewBody = z
     advance_recipient_id: fields
       .ref("recipient whose open sections are previewed, for advance_answers")
       .optional(),
-    inbound_message_id: fields.ref("project inbox message previewed, for advance_answers").optional(),
+    inbound_message_id: fields
+      .ref("project inbox message previewed, for advance_answers")
+      .optional(),
     kind: z
       .enum(["record_activity", "project_week", "gate_readiness"])
       .optional()
@@ -856,7 +866,8 @@ const ApplyInvoiceLinesBody = z
         z.object({
           suggestion_id: fields.ref("invoice line suggestion kept"),
           values: z.record(z.string(), z.unknown()).meta({
-            description: "The person's values: description, quantity, unit_price_minor, budget_line_id.",
+            description:
+              "The person's values: description, quantity, unit_price_minor, budget_line_id.",
             example: { quantity: 2 },
           }),
         }),
@@ -884,7 +895,9 @@ const DraftAdvanceAnswersBody = z
       description: "A file the person chose, in base64.",
       example: "JVBERi0xLjcK",
     }),
-    file_name: fields.text("File name, shown as the answer's source.", "tour-book.pdf", 300).optional(),
+    file_name: fields
+      .text("File name, shown as the answer's source.", "tour-book.pdf", 300)
+      .optional(),
     verbiage: z
       .array(z.object({ term: z.string().min(1).max(100), preferred: z.string().min(1).max(200) }))
       .max(200)

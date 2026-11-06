@@ -714,7 +714,10 @@ export interface AdvanceAnswersDraft {
   /** Sections the source does not answer, with what is missing, never invented. */
   readonly unanswered: readonly { readonly section_id: string; readonly missing: string }[];
   /** Answers that broke a rule, dropped and reported, never repaired. */
-  readonly dropped: readonly { readonly section_id: string; readonly reason: AdvanceAnswerDropReason }[];
+  readonly dropped: readonly {
+    readonly section_id: string;
+    readonly reason: AdvanceAnswerDropReason;
+  }[];
 }
 
 const AdvanceAnswersSchema = z.object({
@@ -871,7 +874,7 @@ export async function draftAdvanceAnswers(
           else text = value;
         } else {
           if (raw.lines.length === 0) broke = "lines";
-          if ((raw.lines.length > (section.max_lines ?? 0))) broke = "too_many";
+          if (raw.lines.length > (section.max_lines ?? 0)) broke = "too_many";
           for (const line of raw.lines) {
             if (broke) break;
             if (section.kind === "Schedule Window") {
@@ -880,12 +883,7 @@ export async function draftAdvanceAnswers(
                 : null;
               const to =
                 from && line.local_end
-                  ? readLocalDateTime(
-                      line.local_end,
-                      excerpt,
-                      from.value.slice(0, 10),
-                      from.value,
-                    )
+                  ? readLocalDateTime(line.local_end, excerpt, from.value.slice(0, 10), from.value)
                   : null;
               const start =
                 from && zonedInstant(from.value.slice(0, 10), from.value.slice(11), input.timeZone);

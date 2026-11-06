@@ -12,10 +12,17 @@ import {
 import { tieOut } from "../src/intake.ts";
 import { context, memoryStore, ScriptedModel, toolCall } from "./fakes.ts";
 
-const document = (data: string) => ({ type: "document" as const, mediaType: "text/plain" as const, data });
+const document = (data: string) => ({
+  type: "document" as const,
+  mediaType: "text/plain" as const,
+  data,
+});
 const field = (fields: readonly ProposedField[], path: string) =>
   fields.find((f) => f.field_path === path);
-const cutOff = (name: string, input: unknown) => ({ ...toolCall(name, input), stopReason: "max_tokens" as const });
+const cutOff = (name: string, input: unknown) => ({
+  ...toolCall(name, input),
+  stopReason: "max_tokens" as const,
+});
 
 const segment = (over: Record<string, unknown> = {}) => ({
   passengers: [{ name: "Ivy Marchetti" }],
@@ -52,12 +59,17 @@ describe("itinerary extraction", () => {
   it("expands passengers: two passengers on two legs are four lines, and nothing is written", async () => {
     const { result, proposals, log } = await itinerary([
       segment({ passengers: [{ name: "Ivy Marchetti" }, { name: "Arturo Bell" }] }),
-      segment({ passengers: [{ name: "Ivy Marchetti" }, { name: "Arturo Bell" }], service_identifier: "GA 101" }),
+      segment({
+        passengers: [{ name: "Ivy Marchetti" }, { name: "Arturo Bell" }],
+        service_identifier: "GA 101",
+      }),
     ]);
     expect(result.kind).toBe("answer");
     expect(proposals).toHaveLength(4);
     expect(proposals.every((p) => p.operationId === "travelSegments.create")).toBe(true);
-    expect(proposals.flatMap((p) => p.fields).some((f) => f.field_path === "person_id")).toBe(false);
+    expect(proposals.flatMap((p) => p.fields).some((f) => f.field_path === "person_id")).toBe(
+      false,
+    );
     expect(log.begun[0]?.subject).toEqual({ table: "app.projects", id: "p1" });
   });
 
@@ -71,8 +83,18 @@ describe("itinerary extraction", () => {
     const { proposals } = await itinerary([
       segment({
         passengers: [
-          { name: "Ivy Marchetti", price_minor: 90000, currency_code: "USD", price_excerpt: "Total paid USD 900.00" },
-          { name: "Arturo Bell", price_minor: 45000, currency_code: "USD", price_excerpt: "BELL/ARTURO fare USD 450.00" },
+          {
+            name: "Ivy Marchetti",
+            price_minor: 90000,
+            currency_code: "USD",
+            price_excerpt: "Total paid USD 900.00",
+          },
+          {
+            name: "Arturo Bell",
+            price_minor: 45000,
+            currency_code: "USD",
+            price_excerpt: "BELL/ARTURO fare USD 450.00",
+          },
         ],
       }),
     ]);
@@ -82,9 +104,13 @@ describe("itinerary extraction", () => {
   });
 
   it("infers a missing year from the project's today, as its own boolean field", async () => {
-    const { proposals } = await itinerary(
-      [segment({ departs_local: "2020-03-12T08:15", arrives_local: "2020-03-12T10:30", source_excerpt: "GA 100 Mar 12 08:15 MIA to ORD Mar 12 10:30" })],
-    );
+    const { proposals } = await itinerary([
+      segment({
+        departs_local: "2020-03-12T08:15",
+        arrives_local: "2020-03-12T10:30",
+        source_excerpt: "GA 100 Mar 12 08:15 MIA to ORD Mar 12 10:30",
+      }),
+    ]);
     const fields = proposals[0]?.fields ?? [];
     expect(field(fields, "departs_local")?.value).toBe("2027-03-12T08:15");
     expect(field(fields, "year_inferred")).toMatchObject({ value: true, confidence: 1 });
@@ -92,7 +118,13 @@ describe("itinerary extraction", () => {
 
   it("reads a Dec 31 to Jan 1 flight read on Jan 2 as one night, not a year apart", async () => {
     const { proposals } = await itinerary(
-      [segment({ departs_local: "2026-12-31T23:30", arrives_local: "2027-01-01T01:10", source_excerpt: "GA 7 Dec 31 23:30 MIA to ORD Jan 1 01:10" })],
+      [
+        segment({
+          departs_local: "2026-12-31T23:30",
+          arrives_local: "2027-01-01T01:10",
+          source_excerpt: "GA 7 Dec 31 23:30 MIA to ORD Jan 1 01:10",
+        }),
+      ],
       "2027-01-02",
     );
     const fields = proposals[0]?.fields ?? [];
@@ -102,9 +134,14 @@ describe("itinerary extraction", () => {
 
   it("drops an invalid zone with its reason, +05:00 and EST among them", async () => {
     for (const zone of ["+05:00", "EST", "Mars/Olympus"]) {
-      const { result, proposals } = await itinerary([segment({ departs_time_zone: zone }), segment({ service_identifier: "GA 2" })]);
+      const { result, proposals } = await itinerary([
+        segment({ departs_time_zone: zone }),
+        segment({ service_identifier: "GA 2" }),
+      ]);
       expect(proposals).toHaveLength(1);
-      expect(result.kind === "answer" && result.value.dropped).toEqual([{ line: 1, reason: "zone" }]);
+      expect(result.kind === "answer" && result.value.dropped).toEqual([
+        { line: 1, reason: "zone" },
+      ]);
     }
   });
 
@@ -116,7 +153,10 @@ describe("itinerary extraction", () => {
 
   it("drops an arrival before its departure", async () => {
     const { result, proposals } = await itinerary([
-      segment({ arrives_local: "2027-03-12T05:00", source_excerpt: "GA 100 Mar 12 2027 08:15 MIA to ORD Mar 12 2027 05:00" }),
+      segment({
+        arrives_local: "2027-03-12T05:00",
+        source_excerpt: "GA 100 Mar 12 2027 08:15 MIA to ORD Mar 12 2027 05:00",
+      }),
       segment({ service_identifier: "GA 2" }),
     ]);
     expect(proposals).toHaveLength(1);
@@ -124,9 +164,14 @@ describe("itinerary extraction", () => {
   });
 
   it("drops a line past a column's length, never repairing it", async () => {
-    const { result, proposals } = await itinerary([segment({ service_identifier: "X".repeat(41) }), segment({ service_identifier: "GA 2" })]);
+    const { result, proposals } = await itinerary([
+      segment({ service_identifier: "X".repeat(41) }),
+      segment({ service_identifier: "GA 2" }),
+    ]);
     expect(proposals).toHaveLength(1);
-    expect(result.kind === "answer" && result.value.dropped).toEqual([{ line: 1, reason: "length" }]);
+    expect(result.kind === "answer" && result.value.dropped).toEqual([
+      { line: 1, reason: "length" },
+    ]);
   });
 
   it("computes instants in each place's own zone, across a change of the clocks", async () => {
@@ -145,7 +190,9 @@ describe("itinerary extraction", () => {
 
   it("caps a document at 40 lines after expansion and reports the rest", async () => {
     const passengers = Array.from({ length: 7 }, (_, i) => ({ name: `Person ${i}` }));
-    const { result, proposals } = await itinerary(Array.from({ length: 6 }, (_, i) => segment({ passengers, service_identifier: `GA ${i}` })));
+    const { result, proposals } = await itinerary(
+      Array.from({ length: 6 }, (_, i) => segment({ passengers, service_identifier: `GA ${i}` })),
+    );
     expect(proposals).toHaveLength(40);
     expect(result.kind === "answer" && result.value.too_many).toBe(2);
   });
@@ -177,18 +224,31 @@ describe("a tool call cut off at the token limit stores nothing", () => {
 
 describe("readLocalDateTime", () => {
   it("needs the month, day and time word for word", () => {
-    expect(readLocalDateTime("2027-03-12T08:15", "Mar 12 2027 at 8:15 am", "2027-01-01")).toEqual({ value: "2027-03-12T08:15", yearInferred: false });
-    expect(readLocalDateTime("2027-03-12T08:15", "12MAR 0815", "2027-01-01")).toEqual({ value: "2027-03-12T08:15", yearInferred: true });
+    expect(readLocalDateTime("2027-03-12T08:15", "Mar 12 2027 at 8:15 am", "2027-01-01")).toEqual({
+      value: "2027-03-12T08:15",
+      yearInferred: false,
+    });
+    expect(readLocalDateTime("2027-03-12T08:15", "12MAR 0815", "2027-01-01")).toEqual({
+      value: "2027-03-12T08:15",
+      yearInferred: true,
+    });
     expect(readLocalDateTime("2027-03-12T08:15", "Mar 13 08:15", "2027-01-01")).toBeNull();
     expect(readLocalDateTime("2027-03-12T08:15", "Mar 12", "2027-01-01")).toBeNull();
   });
 
   it("counts an arrival printed +1 from its departure", () => {
-    expect(readLocalDateTime("2027-03-13T01:10", "arrives 01:10 +1", "2027-03-12", "2027-03-12T23:30")).toEqual({ value: "2027-03-13T01:10", yearInferred: false });
+    expect(
+      readLocalDateTime("2027-03-13T01:10", "arrives 01:10 +1", "2027-03-12", "2027-03-12T23:30"),
+    ).toEqual({ value: "2027-03-13T01:10", yearInferred: false });
   });
 });
 
-const rawField = (path: string, value: unknown, excerpt: string | null = null, missing: string | null = null) => ({
+const rawField = (
+  path: string,
+  value: unknown,
+  excerpt: string | null = null,
+  missing: string | null = null,
+) => ({
   field_path: path,
   value,
   confidence: value === null ? null : 0.9,
@@ -227,7 +287,10 @@ describe("contract extraction", () => {
     expect(hidden.fields.some((f) => f.field_path.startsWith("agreed_rate"))).toBe(false);
     const shown = await contract(FEE, true);
     expect(shown.model.requests[0]?.system).toContain("agreed_rate_minor");
-    expect(field(shown.fields, "agreed_rate_minor")).toMatchObject({ value: 750000, source_excerpt: "Guarantee: USD 7,500.00" });
+    expect(field(shown.fields, "agreed_rate_minor")).toMatchObject({
+      value: 750000,
+      source_excerpt: "Guarantee: USD 7,500.00",
+    });
     expect(field(shown.fields, "agreed_rate_currency_code")?.value).toBe("USD");
   });
 
@@ -237,12 +300,16 @@ describe("contract extraction", () => {
     expect(log.completed[0]?.output).not.toMatch(/7,500|Owls/);
   });
 
-  it.each([
-    ["the currency excerpt", rawField("agreed_rate_currency_code", "USD", "USD 50,000")],
-  ])("keeps %s behind the fee's path", async (_name, raw) => {
-    const hidden = await contract([rawField("document_type", "Contract", "AGREEMENT"), raw], false);
-    expect(JSON.stringify(hidden.fields)).not.toContain("50,000");
-  });
+  it.each([["the currency excerpt", rawField("agreed_rate_currency_code", "USD", "USD 50,000")]])(
+    "keeps %s behind the fee's path",
+    async (_name, raw) => {
+      const hidden = await contract(
+        [rawField("document_type", "Contract", "AGREEMENT"), raw],
+        false,
+      );
+      expect(JSON.stringify(hidden.fields)).not.toContain("50,000");
+    },
+  );
 
   it("turns a money amount in any other field into NO_ANSWER with no excerpt", async () => {
     const { fields } = await contract(
@@ -265,7 +332,10 @@ describe("contract extraction", () => {
 
   it("stores fixed sentences, never the model's missing text", async () => {
     const { fields } = await contract(
-      [rawField("document_type", "Contract", "AGREEMENT"), rawField("start_date", null, null, "The fee of USD 50,000 has no date.")],
+      [
+        rawField("document_type", "Contract", "AGREEMENT"),
+        rawField("start_date", null, null, "The fee of USD 50,000 has no date."),
+      ],
       false,
     );
     expect(field(fields, "start_date")?.missing).not.toContain("50,000");
@@ -306,40 +376,78 @@ const invoiceInput = {
     rawField("printed_tax_minor", 8000, "Tax 80.00"),
   ],
   lines: [
-    { description: "Wedge monitor rental", quantity: 2, price_minor: 45000, source_excerpt: "2 x Wedge monitor rental @ 450.00", confidence: 0.9, missing: [] },
-    { description: "Delivery", quantity: 1, price_minor: 10000, source_excerpt: "1 x Delivery @ 100.00", confidence: 0.9, missing: [] },
+    {
+      description: "Wedge monitor rental",
+      quantity: 2,
+      price_minor: 45000,
+      source_excerpt: "2 x Wedge monitor rental @ 450.00",
+      confidence: 0.9,
+      missing: [],
+    },
+    {
+      description: "Delivery",
+      quantity: 1,
+      price_minor: 10000,
+      source_excerpt: "1 x Delivery @ 100.00",
+      confidence: 0.9,
+      missing: [],
+    },
   ],
 };
 
 describe("invoice and receipt lines", () => {
   it("proposes the header, each line and the printed tax as a line; shown values stay out", async () => {
     const { result, proposals } = await amounts("invoice", invoiceInput);
-    expect(proposals.map((p) => p.operationId)).toEqual(["invoices.create", "invoiceLines.create", "invoiceLines.create", "invoiceLines.create"]);
+    expect(proposals.map((p) => p.operationId)).toEqual([
+      "invoices.create",
+      "invoiceLines.create",
+      "invoiceLines.create",
+      "invoiceLines.create",
+    ]);
     expect(field(proposals[0]?.fields ?? [], "printed_total_minor")?.value).toBe(108000);
     expect(field(proposals[0]?.fields ?? [], "vendor_name")).toBeUndefined();
     expect(field(proposals[0]?.fields ?? [], "printed_tax_minor")).toBeUndefined();
-    expect(result.kind === "answer" && result.value.read?.["vendor_name"]?.value).toBe("Bayside Audio");
+    expect(result.kind === "answer" && result.value.read?.["vendor_name"]?.value).toBe(
+      "Bayside Audio",
+    );
     const tax = proposals[3]?.fields ?? [];
     expect(field(tax, "description")?.value).toBe("Tax");
-    expect(field(tax, "unit_price_minor")).toMatchObject({ value: 8000, source_excerpt: "Tax 80.00" });
+    expect(field(tax, "unit_price_minor")).toMatchObject({
+      value: 8000,
+      source_excerpt: "Tax 80.00",
+    });
   });
 
   it("ties with the tax row kept, and equals the SQL with it unchecked", async () => {
     const { result, proposals } = await amounts("invoice", invoiceInput);
-    expect(result.kind === "answer" && result.value.tie_out).toMatchObject({ status: "ties", residualMinor: 0 });
+    expect(result.kind === "answer" && result.value.tie_out).toMatchObject({
+      status: "ties",
+      residualMinor: 0,
+    });
     // The panel leaves printed tax out of the tie-out, so unchecking the row shows what app.invoice_tie_out will.
     const lines = proposals.slice(1).map((p) => ({
       quantity: field(p.fields, "quantity")?.value as number,
       unitPriceMinor: field(p.fields, "unit_price_minor")?.value as number,
     }));
     expect(tieOut({ lines, printedTotalMinor: 108000 }).residualMinor).toBe(0);
-    expect(tieOut({ lines: lines.slice(0, 2), printedTotalMinor: 108000 }).residualMinor).toBe(8000);
+    expect(tieOut({ lines: lines.slice(0, 2), printedTotalMinor: 108000 }).residualMinor).toBe(
+      8000,
+    );
   });
 
   it("makes a value the line's excerpt does not show NO_ANSWER", async () => {
     const { proposals } = await amounts("invoice", {
       ...invoiceInput,
-      lines: [{ description: "Delivery", quantity: 3, price_minor: 99900, source_excerpt: "1 x Delivery @ 100.00", confidence: 0.9, missing: [] }],
+      lines: [
+        {
+          description: "Delivery",
+          quantity: 3,
+          price_minor: 99900,
+          source_excerpt: "1 x Delivery @ 100.00",
+          confidence: 0.9,
+          missing: [],
+        },
+      ],
     });
     expect(field(proposals[1]?.fields ?? [], "quantity")?.refusal).toBe("NO_ANSWER");
     expect(field(proposals[1]?.fields ?? [], "unit_price_minor")?.refusal).toBe("NO_ANSWER");
@@ -355,25 +463,70 @@ describe("invoice and receipt lines", () => {
       ],
       read: [rawField("printed_tax_minor", 240, "Tax 2.40")],
       lines: [
-        { description: "Gaff tape", quantity: 2, price_minor: 2400, source_excerpt: "Gaff tape 2 x 24.00", confidence: 0.9, missing: [] },
-        { description: "Zip ties", quantity: null, price_minor: 600, source_excerpt: "Zip ties 6.00", confidence: 0.9, missing: [] },
+        {
+          description: "Gaff tape",
+          quantity: 2,
+          price_minor: 2400,
+          source_excerpt: "Gaff tape 2 x 24.00",
+          confidence: 0.9,
+          missing: [],
+        },
+        {
+          description: "Zip ties",
+          quantity: null,
+          price_minor: 600,
+          source_excerpt: "Zip ties 6.00",
+          confidence: 0.9,
+          missing: [],
+        },
       ],
     });
     expect(proposals).toHaveLength(1);
     expect(result.kind === "answer" && result.value.line_items).toHaveLength(2);
-    expect(result.kind === "answer" && result.value.tie_out).toMatchObject({ status: "ties", printedTaxMinor: 240 });
+    expect(result.kind === "answer" && result.value.tie_out).toMatchObject({
+      status: "ties",
+      printedTaxMinor: 240,
+    });
   });
 });
 
 const SECTIONS: readonly DraftableSection[] = [
-  { id: "s_text", title: "Hospitality", prompt: "Tell us.", kind: "Text", window_kind: null, max_lines: null, choices: [] },
-  { id: "s_win", title: "Load In", prompt: null, kind: "Schedule Window", window_kind: "Load In", max_lines: 1, choices: [] },
-  { id: "s_item", title: "Radios", prompt: null, kind: "Item Request", window_kind: null, max_lines: 1, choices: [{ id: "c_radio", name: "Radio" }] },
+  {
+    id: "s_text",
+    title: "Hospitality",
+    prompt: "Tell us.",
+    kind: "Text",
+    window_kind: null,
+    max_lines: null,
+    choices: [],
+  },
+  {
+    id: "s_win",
+    title: "Load In",
+    prompt: null,
+    kind: "Schedule Window",
+    window_kind: "Load In",
+    max_lines: 1,
+    choices: [],
+  },
+  {
+    id: "s_item",
+    title: "Radios",
+    prompt: null,
+    kind: "Item Request",
+    window_kind: null,
+    max_lines: 1,
+    choices: [{ id: "c_radio", name: "Radio" }],
+  },
 ];
 
-const MAIL = "Hospitality: two cases of water. We load in Mar 14 2027 01:30 to Mar 14 2027 03:30. We need 4 radios.";
+const MAIL =
+  "Hospitality: two cases of water. We load in Mar 14 2027 01:30 to Mar 14 2027 03:30. We need 4 radios.";
 
-const answers = async (input: unknown, source?: Parameters<typeof draftAdvanceAnswers>[1]["source"]) => {
+const answers = async (
+  input: unknown,
+  source?: Parameters<typeof draftAdvanceAnswers>[1]["source"],
+) => {
   const { store, log } = memoryStore();
   const model = new ScriptedModel([toolCall("draft_advance_answers", input)]);
   const result = await draftAdvanceAnswers(context(model, store), {
@@ -388,7 +541,12 @@ const answers = async (input: unknown, source?: Parameters<typeof draftAdvanceAn
   return { result, log, model, proposals: log.proposed.map((p) => p.change) };
 };
 
-const textAnswer = { section_id: "s_text", text: "Two cases of water.", source_excerpt: "Hospitality: two cases of water.", confidence: 0.9 };
+const textAnswer = {
+  section_id: "s_text",
+  text: "Two cases of water.",
+  source_excerpt: "Hospitality: two cases of water.",
+  confidence: 0.9,
+};
 
 describe("drafted advance answers", () => {
   it("sends only the source, the sections and choices, the zone and the verbiage library", async () => {
@@ -407,8 +565,20 @@ describe("drafted advance answers", () => {
     const { proposals, result } = await answers({
       answers: [
         textAnswer,
-        { section_id: "s_win", lines: [{ local_start: "2027-03-14T01:30", local_end: "2027-03-14T03:30", note: "gate B" }], source_excerpt: "We load in Mar 14 2027 01:30 to Mar 14 2027 03:30.", confidence: 0.8 },
-        { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 4 }], source_excerpt: "We need 4 radios.", confidence: 0.8 },
+        {
+          section_id: "s_win",
+          lines: [
+            { local_start: "2027-03-14T01:30", local_end: "2027-03-14T03:30", note: "gate B" },
+          ],
+          source_excerpt: "We load in Mar 14 2027 01:30 to Mar 14 2027 03:30.",
+          confidence: 0.8,
+        },
+        {
+          section_id: "s_item",
+          lines: [{ choice_id: "c_radio", quantity: 4 }],
+          source_excerpt: "We need 4 radios.",
+          confidence: 0.8,
+        },
       ],
       unanswered: [],
     });
@@ -417,43 +587,115 @@ describe("drafted advance answers", () => {
       ["advanceAnswers.record", "s_win"],
       ["advanceAnswers.record", "s_item"],
     ]);
-    expect(field(proposals[0]?.fields ?? [], "source_kind")).toMatchObject({ value: "Project Inbox", source_excerpt: "Hospitality: two cases of water." });
+    expect(field(proposals[0]?.fields ?? [], "source_kind")).toMatchObject({
+      value: "Project Inbox",
+      source_excerpt: "Hospitality: two cases of water.",
+    });
     expect(field(proposals[0]?.fields ?? [], "inbound_message_id")?.value).toBe("m1");
     // A window across the change of the clocks, in the project's zone; its note is dropped, not offered.
     expect(field(proposals[1]?.fields ?? [], "lines")?.value).toEqual([
-      { needed_window_start: "2027-03-14T06:30:00.000Z", needed_window_end: "2027-03-14T07:30:00.000Z", window_zone: "America/New_York" },
+      {
+        needed_window_start: "2027-03-14T06:30:00.000Z",
+        needed_window_end: "2027-03-14T07:30:00.000Z",
+        window_zone: "America/New_York",
+      },
     ]);
     expect(result.kind === "answer" && result.value.unanswered).toEqual([]);
   });
 
   it("drops an excerpt the mail does not hold, and reports it", async () => {
     const { result } = await answers({
-      answers: [textAnswer, { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 4 }], source_excerpt: "We need 4 radios please.", confidence: 0.8 }],
+      answers: [
+        textAnswer,
+        {
+          section_id: "s_item",
+          lines: [{ choice_id: "c_radio", quantity: 4 }],
+          source_excerpt: "We need 4 radios please.",
+          confidence: 0.8,
+        },
+      ],
       unanswered: [],
     });
-    expect(result.kind === "answer" && result.value.dropped).toEqual([{ section_id: "s_item", reason: "excerpt" }]);
+    expect(result.kind === "answer" && result.value.dropped).toEqual([
+      { section_id: "s_item", reason: "excerpt" },
+    ]);
   });
 
   it("normalizes whitespace when it looks for the excerpt", async () => {
-    const { result } = await answers({ answers: [{ ...textAnswer, source_excerpt: "Hospitality:   two cases\nof water." }], unanswered: [] });
+    const { result } = await answers({
+      answers: [{ ...textAnswer, source_excerpt: "Hospitality:   two cases\nof water." }],
+      unanswered: [],
+    });
     expect(result.kind === "answer" && result.value.dropped).toEqual([]);
   });
 
   it.each([
-    ["a foreign section", { section_id: "nope", text: "x", source_excerpt: "We need 4 radios.", confidence: 0.8 }, "section"],
-    ["a foreign choice", { section_id: "s_item", lines: [{ choice_id: "c_other", quantity: 4 }], source_excerpt: "We need 4 radios.", confidence: 0.8 }, "choice"],
-    ["a quantity the excerpt does not show", { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 9 }], source_excerpt: "We need 4 radios.", confidence: 0.8 }, "quantity"],
-    ["lines beyond max_lines", { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 4 }, { choice_id: "c_radio", quantity: 4 }], source_excerpt: "We need 4 radios.", confidence: 0.8 }, "too_many"],
-    ["no excerpt at all", { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 4 }], confidence: 0.8 }, "excerpt"],
-    ["a window ending before it starts", { section_id: "s_win", lines: [{ local_start: "2027-03-14T03:30", local_end: "2027-03-14T01:30" }], source_excerpt: "We load in Mar 14 2027 01:30 to Mar 14 2027 03:30.", confidence: 0.8 }, "time"],
+    [
+      "a foreign section",
+      { section_id: "nope", text: "x", source_excerpt: "We need 4 radios.", confidence: 0.8 },
+      "section",
+    ],
+    [
+      "a foreign choice",
+      {
+        section_id: "s_item",
+        lines: [{ choice_id: "c_other", quantity: 4 }],
+        source_excerpt: "We need 4 radios.",
+        confidence: 0.8,
+      },
+      "choice",
+    ],
+    [
+      "a quantity the excerpt does not show",
+      {
+        section_id: "s_item",
+        lines: [{ choice_id: "c_radio", quantity: 9 }],
+        source_excerpt: "We need 4 radios.",
+        confidence: 0.8,
+      },
+      "quantity",
+    ],
+    [
+      "lines beyond max_lines",
+      {
+        section_id: "s_item",
+        lines: [
+          { choice_id: "c_radio", quantity: 4 },
+          { choice_id: "c_radio", quantity: 4 },
+        ],
+        source_excerpt: "We need 4 radios.",
+        confidence: 0.8,
+      },
+      "too_many",
+    ],
+    [
+      "no excerpt at all",
+      { section_id: "s_item", lines: [{ choice_id: "c_radio", quantity: 4 }], confidence: 0.8 },
+      "excerpt",
+    ],
+    [
+      "a window ending before it starts",
+      {
+        section_id: "s_win",
+        lines: [{ local_start: "2027-03-14T03:30", local_end: "2027-03-14T01:30" }],
+        source_excerpt: "We load in Mar 14 2027 01:30 to Mar 14 2027 03:30.",
+        confidence: 0.8,
+      },
+      "time",
+    ],
   ])("drops %s and keeps the rest", async (_name, bad, reason) => {
     const { result, proposals } = await answers({ answers: [textAnswer, bad], unanswered: [] });
     expect(proposals).toHaveLength(1);
-    expect(result.kind === "answer" && result.value.dropped).toEqual([{ section_id: (bad as { section_id: string }).section_id, reason }]);
+    expect(result.kind === "answer" && result.value.dropped).toEqual([
+      { section_id: (bad as { section_id: string }).section_id, reason },
+    ]);
   });
 
   it("lists what is left unanswered, with the model's reason or a plain one", async () => {
-    const { result } = await answers({ answers: [textAnswer], unanswered: [{ section_id: "s_win", missing: "No load-in time is given." }] });
+    const { result } = await answers({
+      answers: [textAnswer],
+      unanswered: [{ section_id: "s_win", missing: "No load-in time is given." }],
+    });
     expect(result.kind === "answer" && result.value.unanswered).toEqual([
       { section_id: "s_win", missing: "No load-in time is given." },
       { section_id: "s_item", missing: "The source does not answer this section." },
@@ -490,37 +732,63 @@ describe("drafted advance answers", () => {
     expect(text.result.kind).toBe("no-answer");
     const pdf = await answers(
       { answers: [{ ...textAnswer, source_excerpt: "anything" }], unanswered: [] },
-      { kind: "File", fileName: "reply.pdf", document: { type: "document", mediaType: "application/pdf", data: "JVBERi0=" } },
+      {
+        kind: "File",
+        fileName: "reply.pdf",
+        document: { type: "document", mediaType: "application/pdf", data: "JVBERi0=" },
+      },
     );
-    expect(pdf.result.kind === "answer" && pdf.result.value.answers[0]?.excerpt_checked).toBe(false);
+    expect(pdf.result.kind === "answer" && pdf.result.value.answers[0]?.excerpt_checked).toBe(
+      false,
+    );
     expect(field(pdf.proposals[0]?.fields ?? [], "file_name")?.value).toBe("reply.pdf");
   });
 });
 
 describe("governance drafts", () => {
-  it.each(["event_plan", "event_brief", "approval_pack", "waste_plan"] as const)("%s goes through draft() with no suggestions", async (kind) => {
-    const { store, log } = memoryStore();
-    const model = new ScriptedModel([toolCall("draft", { title: "Plan", body: "## Overview\n[needs: the capacity]", gaps: ["the capacity"] })]);
-    const result = await draft(context(model, store), {
-      kind,
-      instructions: "Draft it.",
-      context: [{ id: "p1", table: "app.projects", data: { name: "Harbor" } }],
-      verbiage: [],
-      neverSend: new NeverSendList([]),
-      subject: { table: "app.records", id: "r1" },
-    });
-    expect(result.kind === "answer" && result.value.gaps).toEqual(["the capacity"]);
-    expect(log.proposed).toHaveLength(0);
-    expect(log.begun[0]?.subject).toEqual({ table: "app.records", id: "r1" });
-  });
+  it.each(["event_plan", "event_brief", "approval_pack", "waste_plan"] as const)(
+    "%s goes through draft() with no suggestions",
+    async (kind) => {
+      const { store, log } = memoryStore();
+      const model = new ScriptedModel([
+        toolCall("draft", {
+          title: "Plan",
+          body: "## Overview\n[needs: the capacity]",
+          gaps: ["the capacity"],
+        }),
+      ]);
+      const result = await draft(context(model, store), {
+        kind,
+        instructions: "Draft it.",
+        context: [{ id: "p1", table: "app.projects", data: { name: "Harbor" } }],
+        verbiage: [],
+        neverSend: new NeverSendList([]),
+        subject: { table: "app.records", id: "r1" },
+      });
+      expect(result.kind === "answer" && result.value.gaps).toEqual(["the capacity"]);
+      expect(log.proposed).toHaveLength(0);
+      expect(log.begun[0]?.subject).toEqual({ table: "app.records", id: "r1" });
+    },
+  );
 
   it("tells a waste plan to write Unmeasured and never to state approval", async () => {
     const { store } = memoryStore();
-    const model = new ScriptedModel([toolCall("draft", { title: "W", body: "x", gaps: [] }), toolCall("draft", { title: "A", body: "x", gaps: [] })]);
-    const base = { instructions: "Draft it.", context: [], verbiage: [], neverSend: new NeverSendList([]), subject: null };
+    const model = new ScriptedModel([
+      toolCall("draft", { title: "W", body: "x", gaps: [] }),
+      toolCall("draft", { title: "A", body: "x", gaps: [] }),
+    ]);
+    const base = {
+      instructions: "Draft it.",
+      context: [],
+      verbiage: [],
+      neverSend: new NeverSendList([]),
+      subject: null,
+    };
     await draft(context(model, store), { ...base, kind: "waste_plan" });
     await draft(context(model, store), { ...base, kind: "approval_pack" });
     expect(model.requests[0]?.system).toContain("write Unmeasured");
-    expect(model.requests[1]?.system).toContain("Never state that anything is approved, signed or compliant");
+    expect(model.requests[1]?.system).toContain(
+      "Never state that anything is approved, signed or compliant",
+    );
   });
 });

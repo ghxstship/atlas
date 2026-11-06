@@ -188,7 +188,8 @@ describe("eval suite", () => {
 
   it("holds B15's cases, every new kind covered, with thresholds unchanged", () => {
     const kinds = new Set(extractionSet.cases.map((c) => c.kind));
-    for (const kind of ["itinerary", "contract", "invoice", "receipt"]) expect(kinds).toContain(kind);
+    for (const kind of ["itinerary", "contract", "invoice", "receipt"])
+      expect(kinds).toContain(kind);
     const drafted = new Set(draftingSet.cases.map((c) => c.kind));
     for (const kind of ["event_plan", "event_brief", "approval_pack", "waste_plan"]) {
       expect(drafted).toContain(kind);

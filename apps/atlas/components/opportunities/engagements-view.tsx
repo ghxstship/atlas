@@ -107,9 +107,15 @@ export async function EngagementsView({
   const projects = books
     ? projectId
       ? [{ id: projectId, label: "" }]
-      : ((await ctx.viewer.db.from("projects").select("id, name").is("deleted_at", null).order("name")).data ?? []).map(
-          (p) => ({ id: p.id, label: p.name }),
-        )
+      : (
+          (
+            await ctx.viewer.db
+              .from("projects")
+              .select("id, name")
+              .is("deleted_at", null)
+              .order("name")
+          ).data ?? []
+        ).map((p) => ({ id: p.id, label: p.name }))
     : [];
   const importHref = isNodeVisible(sitemap, "import", ctx.nav)
     ? (nodeHref("import", { org: ctx.org.slug }) ?? null)

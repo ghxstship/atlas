@@ -107,8 +107,7 @@ export function InvoiceLinesDialog({
   const money = (minor: number | null) => formatMinor(minor, currencyCode, locale);
   const needsCheck = result.status === "residual";
   const historyOf = (row: Row) => {
-    const position =
-      rows.filter((r) => r.description !== "").findIndex((r) => r.id === row.id) + 1;
+    const position = rows.filter((r) => r.description !== "").findIndex((r) => r.id === row.id) + 1;
     return history.filter((h) => h.description_index === position);
   };
 
@@ -162,7 +161,9 @@ export function InvoiceLinesDialog({
       >
         <ProblemAlert t={t} problem={problem} />
         {added !== null ? (
-          <InlineAlert tone="success">{t("intake.invoiceLines.added", { count: added })}</InlineAlert>
+          <InlineAlert tone="success">
+            {t("intake.invoiceLines.added", { count: added })}
+          </InlineAlert>
         ) : (
           <div className="flex flex-col gap-12">
             <AiGenerated model={null} />
@@ -187,7 +188,10 @@ export function InvoiceLinesDialog({
                 onChange={(e) => setChecked(e.currentTarget.checked)}
               />
             ) : null}
-            <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("intake.invoiceLines.lines")}>
+            <ul
+              className="m-0 flex list-none flex-col gap-12 p-0"
+              aria-label={t("intake.invoiceLines.lines")}
+            >
               {rows.map((r, i) => (
                 <li
                   key={r.id}
@@ -199,10 +203,28 @@ export function InvoiceLinesDialog({
                     checked={r.keep}
                     onChange={(e) => set(r.id, { keep: e.currentTarget.checked })}
                   />
-                  <Input id={`${id}-d-${r.id}`} label={t("extract.lineDescription", { n: i + 1 })} width="100%" value={r.description} onChange={(e) => set(r.id, { description: e.target.value })} />
+                  <Input
+                    id={`${id}-d-${r.id}`}
+                    label={t("extract.lineDescription", { n: i + 1 })}
+                    width="100%"
+                    value={r.description}
+                    onChange={(e) => set(r.id, { description: e.target.value })}
+                  />
                   <div className="flex flex-wrap gap-8">
-                    <Input id={`${id}-q-${r.id}`} label={t("extract.lineQuantity")} inputMode="decimal" value={r.quantity} onChange={(e) => set(r.id, { quantity: e.target.value })} />
-                    <Input id={`${id}-p-${r.id}`} label={t("extract.lineUnitPrice")} inputMode="decimal" value={r.unitPrice} onChange={(e) => set(r.id, { unitPrice: e.target.value })} />
+                    <Input
+                      id={`${id}-q-${r.id}`}
+                      label={t("extract.lineQuantity")}
+                      inputMode="decimal"
+                      value={r.quantity}
+                      onChange={(e) => set(r.id, { quantity: e.target.value })}
+                    />
+                    <Input
+                      id={`${id}-p-${r.id}`}
+                      label={t("extract.lineUnitPrice")}
+                      inputMode="decimal"
+                      value={r.unitPrice}
+                      onChange={(e) => set(r.id, { unitPrice: e.target.value })}
+                    />
                     <Select
                       id={`${id}-b-${r.id}`}
                       label={t("intake.invoiceLines.budgetLine")}
@@ -212,10 +234,16 @@ export function InvoiceLinesDialog({
                     />
                   </div>
                   {r.excerpt ? (
-                    <p className="m-0 text-text-12 text-text-secondary">{t("extract.source", { excerpt: r.excerpt })}</p>
+                    <p className="m-0 text-text-12 text-text-secondary">
+                      {t("extract.source", { excerpt: r.excerpt })}
+                    </p>
                   ) : null}
                   {historyOf(r).map((h, n) => (
-                    <div key={n} className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary" data-testid="vendor-history">
+                    <div
+                      key={n}
+                      className="flex flex-wrap items-center gap-8 text-text-12 text-text-secondary"
+                      data-testid="vendor-history"
+                    >
                       <span>
                         {h.budget_line_name
                           ? t("intake.invoiceLines.lastBilledCoded", {
@@ -229,7 +257,11 @@ export function InvoiceLinesDialog({
                             })}
                       </span>
                       {h.budget_line_id ? (
-                        <Button variant="ghost" size="sm" onClick={() => set(r.id, { budgetLineId: h.budget_line_id ?? "" })}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => set(r.id, { budgetLineId: h.budget_line_id ?? "" })}
+                        >
                           {t("intake.invoiceLines.useBudgetLine")}
                         </Button>
                       ) : null}

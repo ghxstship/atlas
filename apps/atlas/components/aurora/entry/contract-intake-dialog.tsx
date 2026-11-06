@@ -269,9 +269,7 @@ export function ContractIntakeDialog({
           .filter((d) => typeOf(d) === "Contract" || (typeOf(d) === "Rider" && riders))
           .map((d) => d.id),
         party:
-          party?.kind === "person"
-            ? { person_id: party.id }
-            : { counterparty_id: party?.id ?? "" },
+          party?.kind === "person" ? { person_id: party.id } : { counterparty_id: party?.id ?? "" },
         ...(g.engagementId ? { engagement_id: g.engagementId } : {}),
         ...(attachOnly || !term
           ? {}
@@ -303,7 +301,9 @@ export function ContractIntakeDialog({
 
   const rejectAll = async () => {
     await Promise.all(
-      (groups ?? []).flatMap((g) => g.documents.map((d) => client.reject(d.id, t("intake.rejectReason")))),
+      (groups ?? []).flatMap((g) =>
+        g.documents.map((d) => client.reject(d.id, t("intake.rejectReason"))),
+      ),
     );
     onOpenChange(false);
   };
@@ -370,10 +370,15 @@ export function ContractIntakeDialog({
                 e.documents.flatMap((d) =>
                   d.engagement_document_id
                     ? [
-                        <li key={d.suggestion_id} className="flex flex-wrap items-center gap-8 text-text-13">
+                        <li
+                          key={d.suggestion_id}
+                          className="flex flex-wrap items-center gap-8 text-text-13"
+                        >
                           <Tag tone="neutral">{t(`intake.contract.type.${d.document_type}`)}</Tag>
                           {uploads[d.suggestion_id] ? (
-                            <Tag tone={uploads[d.suggestion_id] === "failed" ? "danger" : "success"}>
+                            <Tag
+                              tone={uploads[d.suggestion_id] === "failed" ? "danger" : "success"}
+                            >
                               {t(`intake.contract.upload.${uploads[d.suggestion_id] ?? "pending"}`)}
                             </Tag>
                           ) : null}
@@ -387,7 +392,12 @@ export function ContractIntakeDialog({
                                 onChange={(event) => {
                                   const file = event.target.files?.[0];
                                   if (file && d.engagement_document_id) {
-                                    void attach(d.engagement_document_id, d.document_type, file, d.suggestion_id);
+                                    void attach(
+                                      d.engagement_document_id,
+                                      d.document_type,
+                                      file,
+                                      d.suggestion_id,
+                                    );
                                   }
                                 }}
                               />
@@ -428,7 +438,9 @@ export function ContractIntakeDialog({
               </span>
             </label>
             {files.length > MAX_INTAKE_FILES ? (
-              <InlineAlert tone="warning">{t("intake.tooMany", { max: MAX_INTAKE_FILES })}</InlineAlert>
+              <InlineAlert tone="warning">
+                {t("intake.tooMany", { max: MAX_INTAKE_FILES })}
+              </InlineAlert>
             ) : null}
             {tooBig ? <InlineAlert tone="warning">{t("intake.tooBig")}</InlineAlert> : null}
             <SentList
@@ -436,7 +448,8 @@ export function ContractIntakeDialog({
                 { label: t("intake.sentKind"), value: t("intake.contract.kind") },
                 {
                   label: t("intake.sentFiles"),
-                  value: files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
+                  value:
+                    files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
                 },
                 { label: t("extract.sentNothingElse"), value: t("extract.nothingElse") },
               ]}
@@ -447,13 +460,29 @@ export function ContractIntakeDialog({
                 : t("intake.uses", { n: files.length, left: totalLeft })}
             </p>
             <p className="m-0 text-text-12 text-text-secondary">{t("intake.keepsNothing")}</p>
-            {statuses.length > 0 ? <FileStatusList t={t} files={files} statuses={statuses} /> : null}
+            {statuses.length > 0 ? (
+              <FileStatusList t={t} files={files} statuses={statuses} />
+            ) : null}
           </div>
         ) : editing ? (
           <div className="flex flex-col gap-12">
-            <h3 className="m-0 text-text-13 font-semibold">{editing.act || t("intake.contract.noAct")}</h3>
-            <Input id={`${id}-start`} type="date" label={t("intake.contract.startDate")} value={editing.startDate} onChange={(e) => set(editing.key, { startDate: e.target.value })} />
-            <Input id={`${id}-end`} type="date" label={t("intake.contract.endDate")} value={editing.endDate} onChange={(e) => set(editing.key, { endDate: e.target.value })} />
+            <h3 className="m-0 text-text-13 font-semibold">
+              {editing.act || t("intake.contract.noAct")}
+            </h3>
+            <Input
+              id={`${id}-start`}
+              type="date"
+              label={t("intake.contract.startDate")}
+              value={editing.startDate}
+              onChange={(e) => set(editing.key, { startDate: e.target.value })}
+            />
+            <Input
+              id={`${id}-end`}
+              type="date"
+              label={t("intake.contract.endDate")}
+              value={editing.endDate}
+              onChange={(e) => set(editing.key, { endDate: e.target.value })}
+            />
             {options?.fee_visible ? (
               <>
                 <Input
@@ -524,7 +553,10 @@ export function ContractIntakeDialog({
             {options?.fee_visible && term && !flatFee ? (
               <InlineAlert tone="info">{t("intake.contract.feeHint")}</InlineAlert>
             ) : null}
-            <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("intake.contract.groups")}>
+            <ul
+              className="m-0 flex list-none flex-col gap-12 p-0"
+              aria-label={t("intake.contract.groups")}
+            >
               {(groups ?? []).map((g) => {
                 const status = statusOf(g);
                 const party = partyOf(g);
@@ -542,7 +574,11 @@ export function ContractIntakeDialog({
                         disabled={status === "other"}
                         onChange={(e) => set(g.key, { keep: e.currentTarget.checked })}
                       />
-                      <Tag tone={status === "ready" || status === "alreadyBooked" ? "success" : "warning"}>
+                      <Tag
+                        tone={
+                          status === "ready" || status === "alreadyBooked" ? "success" : "warning"
+                        }
+                      >
                         {t(`intake.contract.status.${status}`)}
                       </Tag>
                     </div>
@@ -568,7 +604,9 @@ export function ContractIntakeDialog({
                     ) : null}
                     {status === "alreadyBooked" ? (
                       <>
-                        <p className="m-0 text-text-12 text-text-secondary">{t("intake.contract.attachOnly")}</p>
+                        <p className="m-0 text-text-12 text-text-secondary">
+                          {t("intake.contract.attachOnly")}
+                        </p>
                         {(party?.engagement_ids.length ?? 0) > 1 ? (
                           <Select
                             id={`${id}-engagement-${g.key}`}
@@ -587,7 +625,9 @@ export function ContractIntakeDialog({
                       </>
                     ) : null}
                     {term?.worker_classification === VENDOR_SUPPLIED && party?.kind === "person" ? (
-                      <InlineAlert tone="warning">{t("intake.contract.vendorNeedsCounterparty")}</InlineAlert>
+                      <InlineAlert tone="warning">
+                        {t("intake.contract.vendorNeedsCounterparty")}
+                      </InlineAlert>
                     ) : null}
                     <dl className="m-0 flex flex-col gap-4 text-text-12">
                       {g.documents.map((d) => (
@@ -600,8 +640,7 @@ export function ContractIntakeDialog({
                             {t("intake.contract.dates", {
                               start: textOf(d, "start_date") || "-",
                               end: textOf(d, "end_date") || "-",
-                            })}
-                            {" "}
+                            })}{" "}
                             {fieldOf(d, "start_date")?.source_excerpt ?? ""}
                           </dd>
                         </div>
@@ -615,7 +654,9 @@ export function ContractIntakeDialog({
                       </p>
                     ) : null}
                     {options?.fee_visible && g.fee !== "" ? (
-                      <p className="m-0 text-text-12">{t("intake.contract.rate", { rate: g.fee })}</p>
+                      <p className="m-0 text-text-12">
+                        {t("intake.contract.rate", { rate: g.fee })}
+                      </p>
                     ) : null}
                     <div>
                       <Button variant="ghost" size="sm" onClick={() => setCorrecting(g.key)}>

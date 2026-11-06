@@ -130,7 +130,9 @@ export class FixtureModelClient implements ModelClient {
     const tools = new Set((request.tools ?? []).map((t) => t.name));
     if (tools.has("record_fields")) {
       const text = documentText(request.messages[0]?.content ?? []);
-      return fixtureIntake(request, text) ?? fixtureDocument(request, text) ?? this.extract(request);
+      return (
+        fixtureIntake(request, text) ?? fixtureDocument(request, text) ?? this.extract(request)
+      );
     }
     // B15: answers drafted from mail or a file (fixture-intake.ts).
     if (tools.has("draft_advance_answers")) {

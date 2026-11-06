@@ -192,7 +192,11 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
       },
       { path: "title", kind: "text", description: "The document's title as printed." },
       { path: "act_name", kind: "text", description: "The act or artist booked, as printed." },
-      { path: "start_date", kind: "date", description: "First date of the engagement, YYYY-MM-DD." },
+      {
+        path: "start_date",
+        kind: "date",
+        description: "First date of the engagement, YYYY-MM-DD.",
+      },
       { path: "end_date", kind: "date", description: "Last date of the engagement, YYYY-MM-DD." },
     ],
   },
@@ -472,7 +476,10 @@ const CURRENCY_CODES =
 const DATE_FORM = /\b(?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/g;
 const MONEY_PATTERNS: readonly RegExp[] = [
   // A currency sign or code beside digits, on either side.
-  new RegExp(`[$€£¥]\\s?\\d|\\d\\s?[$€£¥]|\\b(?:${CURRENCY_CODES})\\s?\\d|\\d\\s?(?:${CURRENCY_CODES})\\b`, "i"),
+  new RegExp(
+    `[$€£¥]\\s?\\d|\\d\\s?[$€£¥]|\\b(?:${CURRENCY_CODES})\\s?\\d|\\d\\s?(?:${CURRENCY_CODES})\\b`,
+    "i",
+  ),
   // Digits with thousands separators, or decimals as an amount prints them.
   /\b\d{1,3}(?:[,.\s]\d{3})+\b|\b\d+[.,]\d{2}\b/,
   // An amount in words.
@@ -491,10 +498,7 @@ export function containsMoney(text: string): boolean {
 export const CONTRACT_MISSING = "The document does not show this value, so it was not read.";
 const CONTRACT_TYPES = ["Contract", "Rider", "Other"];
 
-function settleContract(
-  raw: readonly RawField[],
-  feeVisible: boolean,
-): ProposedField[] {
+function settleContract(raw: readonly RawField[], feeVisible: boolean): ProposedField[] {
   const fee = new Set(CONTRACT_FEE_FIELDS.map((f) => f.path));
   const specs = [...EXTRACTION_TARGETS.contract.fields, ...(feeVisible ? CONTRACT_FEE_FIELDS : [])];
   return settle(specs, raw, { fixedMissing: CONTRACT_MISSING }).map((field) => {
@@ -519,7 +523,8 @@ export type ExtractionDropReason = "length" | "zone" | "time" | "too_many";
 
 const UNREAD_TIME = "The document does not show this date and time, so it was not guessed.";
 const UNREAD_VALUE = "The document does not show this value, so it was not guessed.";
-const UNREAD_PRICE = "No price is printed for this passenger and segment, so none was split or guessed.";
+const UNREAD_PRICE =
+  "No price is printed for this passenger and segment, so none was split or guessed.";
 
 const refused = (path: string, missing: string): ProposedField => ({
   field_path: path,
@@ -530,7 +535,10 @@ const refused = (path: string, missing: string): ProposedField => ({
 /** A name's words, to check a fare was printed for this passenger. */
 function namesPassenger(name: string, excerpt: string): boolean {
   const fold = (text: string) =>
-    text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    text
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
   const folded = fold(excerpt);
   return fold(name)
     .split(/[^a-z0-9]+/)
@@ -564,7 +572,12 @@ function readItinerary(raw: z.infer<typeof ItinerarySchema>, today: string): Iti
         const v = value?.trim() ?? "";
         if (v === "") return refused(path, UNREAD_VALUE);
         if (v.length > max) return "broken";
-        return { field_path: path, value: v, confidence, ...(excerpt ? { source_excerpt: excerpt } : {}) };
+        return {
+          field_path: path,
+          value: v,
+          confidence,
+          ...(excerpt ? { source_excerpt: excerpt } : {}),
+        };
       };
       const operator = text("operator_name", segment.operator_name, 120);
       const service = text("service_identifier", segment.service_identifier, 40);
@@ -635,7 +648,12 @@ function readItinerary(raw: z.infer<typeof ItinerarySchema>, today: string): Iti
           : refused(path, UNREAD_TIME);
       const fields: ProposedField[] = [
         name
-          ? { field_path: "passenger_name", value: name, confidence, ...(excerpt ? { source_excerpt: excerpt } : {}) }
+          ? {
+              field_path: "passenger_name",
+              value: name,
+              confidence,
+              ...(excerpt ? { source_excerpt: excerpt } : {}),
+            }
           : refused("passenger_name", "The document does not name this passenger."),
         mode === "flight" || mode === "ground"
           ? {
@@ -643,7 +661,10 @@ function readItinerary(raw: z.infer<typeof ItinerarySchema>, today: string): Iti
               value: mode === "flight" ? "Flight" : "Ground",
               confidence,
             }
-          : refused("travel_mode", "The travel mode is Flight or Ground; the document shows neither."),
+          : refused(
+              "travel_mode",
+              "The travel mode is Flight or Ground; the document shows neither.",
+            ),
         operator,
         service,
         confirmation,

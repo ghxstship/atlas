@@ -90,7 +90,7 @@ export function DraftDialog({
         feature: "drafting",
         items,
         // A governance draft previews exactly what it reads: the record, its project and its facts.
-        ...(target && kind !== "sop" && isGovernance(kind) ? { draft_kind: kind, target } : {}),
+        ...(target && isGovernance(kind) ? { draft_kind: kind, target } : {}),
       })
       .then((r) => {
         if (!live) return;

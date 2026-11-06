@@ -53,8 +53,12 @@ const InvoiceTieOut = z
   .object({
     invoice_id: fields.ref("invoice"),
     printed_total_minor: orNull(fields.int("The total the document printed.", 125000)),
-    computed_total_minor: orNull(fields.int("Subtotal plus tax of the lines; null while unpriced.", 125000)),
-    residual_minor: orNull(fields.int("Printed total minus computed total.", 0, -Number.MAX_SAFE_INTEGER)),
+    computed_total_minor: orNull(
+      fields.int("Subtotal plus tax of the lines; null while unpriced.", 125000),
+    ),
+    residual_minor: orNull(
+      fields.int("Printed total minus computed total.", 0, -Number.MAX_SAFE_INTEGER),
+    ),
   })
   .meta({ id: "InvoiceTieOut", description: "An invoice's printed total against its lines." });
 
@@ -81,7 +85,9 @@ const InvoiceLineHistory = z
           invoice_number: orNull(fields.text("Prior invoice number.", "INV-104", 100)),
           issued_on: orNull(fields.date("Prior issue date.")),
           budget_line_id: orNull(fields.ref("budget line, only on the same project")),
-          budget_line_name: orNull(fields.text("Budget line, only on the same project.", "Labor", 500)),
+          budget_line_name: orNull(
+            fields.text("Budget line, only on the same project.", "Labor", 500),
+          ),
         }),
       )
       .meta({ description: "Up to three prior lines per description.", example: [] }),

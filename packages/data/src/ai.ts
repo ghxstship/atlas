@@ -617,7 +617,9 @@ async function withFields(
   // Read as the caller, so row level security leaves out a Restricted fee.
   const { data, error } = await db
     .from("ai_suggestion_fields")
-    .select("suggestion_id, field_path, proposed_value, confidence, refusal, missing, source_excerpt, position")
+    .select(
+      "suggestion_id, field_path, proposed_value, confidence, refusal, missing, source_excerpt, position",
+    )
     .in(
       "suggestion_id",
       rows.map((r) => r.id),
@@ -840,14 +842,19 @@ export async function listAnswerSources(
   if (submissionIds.length === 0) return ok([]);
   const { data, error } = await db
     .from("advance_answer_sources")
-    .select("advance_submission_id, source_kind, inbound_message_id, file_name, source_excerpt, created_by")
+    .select(
+      "advance_submission_id, source_kind, inbound_message_id, file_name, source_excerpt, created_by",
+    )
     .in("advance_submission_id", [...submissionIds]);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
   const messageIds = rows.flatMap((r) => (r.inbound_message_id ? [r.inbound_message_id] : []));
   const senders = new Map<string, string>();
   if (messageIds.length > 0) {
-    const messages = await db.from("inbound_messages").select("id, from_address").in("id", messageIds);
+    const messages = await db
+      .from("inbound_messages")
+      .select("id, from_address")
+      .in("id", messageIds);
     if (messages.error) return fail(toDataError(messages.error));
     for (const m of messages.data ?? []) senders.set(m.id, m.from_address);
   }

@@ -393,7 +393,10 @@ function ReadValues({
   const money = (minor: number | null) => (minor === null ? "" : majorUnits(minor, currency));
   const vendor = read?.["vendor_name"];
   return (
-    <div className="flex flex-col gap-4 text-text-12 text-text-secondary" data-testid="extract-read">
+    <div
+      className="flex flex-col gap-4 text-text-12 text-text-secondary"
+      data-testid="extract-read"
+    >
       {vendor ? <p className="m-0">{t("extract.vendor", { name: String(vendor.value) })}</p> : null}
       {tieOut ? (
         <p className="m-0" data-testid="receipt-tie-out">

@@ -159,8 +159,8 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       listBudgetLineRefs(db, { orgId: ctx.org.id, projectId: peek.projectId }),
       getInvoiceTieOut(db, peek.id),
       // B15: the asker's open lines of this invoice, while it can still take them.
-      peek.state === "Proposed" && canWrite && ctx.viewer.personId
-        ? listInvoiceLineProposals(db, peek.id, ctx.viewer.personId)
+      peek.state === "Proposed" && canWrite && ctx.viewer.person
+        ? listInvoiceLineProposals(db, peek.id, ctx.viewer.person.id)
         : Promise.resolve(null),
     ]);
     const tieOutRow = tieOut.ok ? tieOut.data : null;

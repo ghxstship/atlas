@@ -75,9 +75,12 @@ const rowOf = (p: AuroraOpenProposal, personId: string): Row => {
     to: textOf(p, "arrives_at_place"),
     toLocal: textOf(p, "arrives_local"),
     toZone: textOf(p, "arrives_time_zone"),
-    confidence: fieldOf(p, "departs_local")?.confidence ?? fieldOf(p, "departs_from")?.confidence ?? null,
+    confidence:
+      fieldOf(p, "departs_local")?.confidence ?? fieldOf(p, "departs_from")?.confidence ?? null,
     excerpt:
-      fieldOf(p, "departs_local")?.source_excerpt ?? fieldOf(p, "departs_from")?.source_excerpt ?? "",
+      fieldOf(p, "departs_local")?.source_excerpt ??
+      fieldOf(p, "departs_from")?.source_excerpt ??
+      "",
     yearInferred: textOf(p, "year_inferred") === "true",
   };
 };
@@ -137,10 +140,14 @@ export function ItineraryIntakeDialog({
       operation_id: "travelSegments.create",
     });
     if (!open.ok) return setProblem(open.problem);
-    const fresh = open.data.data.map((p) => rowOf(p, travelerOf(textOf(p, "passenger_name"), opts)));
+    const fresh = open.data.data.map((p) =>
+      rowOf(p, travelerOf(textOf(p, "passenger_name"), opts)),
+    );
     // A line matching a live segment or an earlier line of the batch starts unchecked.
     const seen = new Set(
-      opts.segments.map((s) => `${s.person_id}|${s.service_identifier ?? ""}|${Date.parse(s.departs_at)}`),
+      opts.segments.map(
+        (s) => `${s.person_id}|${s.service_identifier ?? ""}|${Date.parse(s.departs_at)}`,
+      ),
     );
     setRows(
       fresh.map((r) => {
@@ -194,7 +201,9 @@ export function ItineraryIntakeDialog({
           notes.push(t(`intake.itinerary.dropped.${d.reason}`, { file: file.name, line: d.line }));
         }
         if (result.data.answer.too_many) {
-          notes.push(t("intake.tooManyDropped", { file: file.name, count: result.data.answer.too_many }));
+          notes.push(
+            t("intake.tooManyDropped", { file: file.name, count: result.data.answer.too_many }),
+          );
         }
       } else if (!result.ok) {
         setProblem(result.problem);
@@ -254,7 +263,11 @@ export function ItineraryIntakeDialog({
 
   const statusOf = (r: Row): Status => {
     const at = instantOf(r.fromLocal, r.fromZone);
-    if (r.personId !== "" && at && liveSegments.has(`${r.personId}|${r.service}|${Date.parse(at)}`)) {
+    if (
+      r.personId !== "" &&
+      at &&
+      liveSegments.has(`${r.personId}|${r.service}|${Date.parse(at)}`)
+    ) {
       return "alreadyBooked";
     }
     if (r.personId === "") return "needsTraveler";
@@ -383,7 +396,9 @@ export function ItineraryIntakeDialog({
               </span>
             </label>
             {files.length > MAX_INTAKE_FILES ? (
-              <InlineAlert tone="warning">{t("intake.tooMany", { max: MAX_INTAKE_FILES })}</InlineAlert>
+              <InlineAlert tone="warning">
+                {t("intake.tooMany", { max: MAX_INTAKE_FILES })}
+              </InlineAlert>
             ) : null}
             {tooBig ? <InlineAlert tone="warning">{t("intake.tooBig")}</InlineAlert> : null}
             <SentList
@@ -391,7 +406,8 @@ export function ItineraryIntakeDialog({
                 { label: t("intake.sentKind"), value: t("intake.itinerary.kind") },
                 {
                   label: t("intake.sentFiles"),
-                  value: files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
+                  value:
+                    files.length === 0 ? t("intake.noFiles") : files.map((f) => f.name).join(", "),
                 },
                 { label: t("extract.sentNothingElse"), value: t("extract.nothingElse") },
               ]}
@@ -402,7 +418,9 @@ export function ItineraryIntakeDialog({
                 : t("intake.uses", { n: files.length, left: totalLeft })}
             </p>
             <p className="m-0 text-text-12 text-text-secondary">{t("intake.keepsNothing")}</p>
-            {statuses.length > 0 ? <FileStatusList t={t} files={files} statuses={statuses} /> : null}
+            {statuses.length > 0 ? (
+              <FileStatusList t={t} files={files} statuses={statuses} />
+            ) : null}
           </div>
         ) : editing && correcting ? (
           <div className="flex flex-col gap-12">
@@ -422,23 +440,81 @@ export function ItineraryIntakeDialog({
                   ]}
                   onChange={(e) => set(editing.id, { mode: e.target.value })}
                 />
-                <Input id={`${id}-op`} label={t("intake.itinerary.operator")} value={editing.operator} onChange={(e) => set(editing.id, { operator: e.target.value })} />
-                <Input id={`${id}-svc`} label={t("intake.itinerary.service")} value={editing.service} onChange={(e) => set(editing.id, { service: e.target.value })} />
-                <Input id={`${id}-cnf`} label={t("intake.itinerary.confirmation")} value={editing.confirmation} onChange={(e) => set(editing.id, { confirmation: e.target.value })} />
-                <Input id={`${id}-prc`} label={t("intake.itinerary.price")} inputMode="decimal" value={editing.price} onChange={(e) => set(editing.id, { price: e.target.value })} />
-                <Input id={`${id}-cur`} label={t("intake.itinerary.currency")} value={editing.currency} onChange={(e) => set(editing.id, { currency: e.target.value.toUpperCase() })} />
+                <Input
+                  id={`${id}-op`}
+                  label={t("intake.itinerary.operator")}
+                  value={editing.operator}
+                  onChange={(e) => set(editing.id, { operator: e.target.value })}
+                />
+                <Input
+                  id={`${id}-svc`}
+                  label={t("intake.itinerary.service")}
+                  value={editing.service}
+                  onChange={(e) => set(editing.id, { service: e.target.value })}
+                />
+                <Input
+                  id={`${id}-cnf`}
+                  label={t("intake.itinerary.confirmation")}
+                  value={editing.confirmation}
+                  onChange={(e) => set(editing.id, { confirmation: e.target.value })}
+                />
+                <Input
+                  id={`${id}-prc`}
+                  label={t("intake.itinerary.price")}
+                  inputMode="decimal"
+                  value={editing.price}
+                  onChange={(e) => set(editing.id, { price: e.target.value })}
+                />
+                <Input
+                  id={`${id}-cur`}
+                  label={t("intake.itinerary.currency")}
+                  value={editing.currency}
+                  onChange={(e) => set(editing.id, { currency: e.target.value.toUpperCase() })}
+                />
               </>
             ) : correcting.step === 1 ? (
               <>
-                <Input id={`${id}-from`} label={t("intake.itinerary.place")} value={editing.from} onChange={(e) => set(editing.id, { from: e.target.value })} />
-                <Input id={`${id}-fromAt`} type="datetime-local" label={t("intake.itinerary.localTime")} value={editing.fromLocal} onChange={(e) => set(editing.id, { fromLocal: e.target.value })} />
-                <Input id={`${id}-fromZ`} label={t("intake.itinerary.zone")} value={editing.fromZone} onChange={(e) => set(editing.id, { fromZone: e.target.value })} />
+                <Input
+                  id={`${id}-from`}
+                  label={t("intake.itinerary.place")}
+                  value={editing.from}
+                  onChange={(e) => set(editing.id, { from: e.target.value })}
+                />
+                <Input
+                  id={`${id}-fromAt`}
+                  type="datetime-local"
+                  label={t("intake.itinerary.localTime")}
+                  value={editing.fromLocal}
+                  onChange={(e) => set(editing.id, { fromLocal: e.target.value })}
+                />
+                <Input
+                  id={`${id}-fromZ`}
+                  label={t("intake.itinerary.zone")}
+                  value={editing.fromZone}
+                  onChange={(e) => set(editing.id, { fromZone: e.target.value })}
+                />
               </>
             ) : (
               <>
-                <Input id={`${id}-to`} label={t("intake.itinerary.place")} value={editing.to} onChange={(e) => set(editing.id, { to: e.target.value })} />
-                <Input id={`${id}-toAt`} type="datetime-local" label={t("intake.itinerary.localTime")} value={editing.toLocal} onChange={(e) => set(editing.id, { toLocal: e.target.value })} />
-                <Input id={`${id}-toZ`} label={t("intake.itinerary.zone")} value={editing.toZone} onChange={(e) => set(editing.id, { toZone: e.target.value })} />
+                <Input
+                  id={`${id}-to`}
+                  label={t("intake.itinerary.place")}
+                  value={editing.to}
+                  onChange={(e) => set(editing.id, { to: e.target.value })}
+                />
+                <Input
+                  id={`${id}-toAt`}
+                  type="datetime-local"
+                  label={t("intake.itinerary.localTime")}
+                  value={editing.toLocal}
+                  onChange={(e) => set(editing.id, { toLocal: e.target.value })}
+                />
+                <Input
+                  id={`${id}-toZ`}
+                  label={t("intake.itinerary.zone")}
+                  value={editing.toZone}
+                  onChange={(e) => set(editing.id, { toZone: e.target.value })}
+                />
               </>
             )}
             <div className="flex flex-wrap gap-8">
@@ -462,8 +538,13 @@ export function ItineraryIntakeDialog({
             {dropNote ? <InlineAlert tone="warning">{dropNote}</InlineAlert> : null}
             <p className="m-0 text-text-12 text-text-secondary">{t("intake.itinerary.review")}</p>
             {names.length > 0 ? (
-              <section className="flex flex-col gap-8" aria-label={t("intake.itinerary.travelersTitle")}>
-                <h3 className="m-0 text-text-13 font-semibold">{t("intake.itinerary.travelersTitle")}</h3>
+              <section
+                className="flex flex-col gap-8"
+                aria-label={t("intake.itinerary.travelersTitle")}
+              >
+                <h3 className="m-0 text-text-13 font-semibold">
+                  {t("intake.itinerary.travelersTitle")}
+                </h3>
                 {names.map((name) => (
                   <Select
                     key={name}
@@ -487,9 +568,16 @@ export function ItineraryIntakeDialog({
               </section>
             ) : null}
             {zones.length > 0 ? (
-              <section className="flex flex-col gap-8" aria-label={t("intake.itinerary.zonesTitle")}>
-                <h3 className="m-0 text-text-13 font-semibold">{t("intake.itinerary.zonesTitle")}</h3>
-                <p className="m-0 text-text-12 text-text-secondary">{t("intake.itinerary.checkZone")}</p>
+              <section
+                className="flex flex-col gap-8"
+                aria-label={t("intake.itinerary.zonesTitle")}
+              >
+                <h3 className="m-0 text-text-13 font-semibold">
+                  {t("intake.itinerary.zonesTitle")}
+                </h3>
+                <p className="m-0 text-text-12 text-text-secondary">
+                  {t("intake.itinerary.checkZone")}
+                </p>
                 {zones.map((z) => {
                   const key = zoneKey(z.place, z.zone);
                   return (
@@ -498,14 +586,19 @@ export function ItineraryIntakeDialog({
                         id={`${id}-zone-${key}`}
                         label={t("intake.itinerary.zoneOf", { place: z.place })}
                         value={z.zone}
-                        error={z.zone !== "" && !isAreaTimeZone(z.zone) ? t("intake.itinerary.badZone") : ""}
+                        error={
+                          z.zone !== "" && !isAreaTimeZone(z.zone)
+                            ? t("intake.itinerary.badZone")
+                            : ""
+                        }
                         onChange={(e) => {
                           const value = e.target.value;
                           setRows(
                             (current) =>
                               current?.map((r) => ({
                                 ...r,
-                                fromZone: r.from === z.place && r.fromZone === z.zone ? value : r.fromZone,
+                                fromZone:
+                                  r.from === z.place && r.fromZone === z.zone ? value : r.fromZone,
                                 toZone: r.to === z.place && r.toZone === z.zone ? value : r.toZone,
                               })) ?? null,
                           );
@@ -531,7 +624,11 @@ export function ItineraryIntakeDialog({
               </section>
             ) : null}
             <div className="overflow-x-auto">
-              <table role="grid" aria-label={t("intake.itinerary.linesTitle")} className="w-full text-text-13">
+              <table
+                role="grid"
+                aria-label={t("intake.itinerary.linesTitle")}
+                className="w-full text-text-13"
+              >
                 <thead>
                   <tr className="text-left">
                     <th scope="col">{t("intake.keep")}</th>
@@ -569,16 +666,27 @@ export function ItineraryIntakeDialog({
                         </td>
                         <td>
                           <span className="flex flex-col gap-2">
-                            <span>{t("intake.itinerary.routeLine", { from: r.from || "-", to: r.to || "-" })}</span>
+                            <span>
+                              {t("intake.itinerary.routeLine", {
+                                from: r.from || "-",
+                                to: r.to || "-",
+                              })}
+                            </span>
                             <span className="text-text-12 text-text-secondary">
                               {r.fromLocal} {r.fromZone} / {r.toLocal} {r.toZone}
                             </span>
                             {r.yearInferred ? (
-                              <span className="text-text-12 text-text-secondary">{t("intake.itinerary.yearInferred")}</span>
+                              <span className="text-text-12 text-text-secondary">
+                                {t("intake.itinerary.yearInferred")}
+                              </span>
                             ) : null}
                           </span>
                         </td>
-                        <td>{r.confidence === null ? "" : t("extract.confidence", { percent: Math.round(r.confidence * 100) })}</td>
+                        <td>
+                          {r.confidence === null
+                            ? ""
+                            : t("extract.confidence", { percent: Math.round(r.confidence * 100) })}
+                        </td>
                         <td className="text-text-12 text-text-secondary">{r.excerpt}</td>
                         <td>
                           <Tag tone={status === "ready" ? "success" : "warning"}>
@@ -586,7 +694,11 @@ export function ItineraryIntakeDialog({
                           </Tag>
                         </td>
                         <td>
-                          <Button variant="ghost" size="sm" onClick={() => setCorrecting({ id: r.id, step: 0 })}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setCorrecting({ id: r.id, step: 0 })}
+                          >
                             {t("intake.correct")}
                           </Button>
                         </td>

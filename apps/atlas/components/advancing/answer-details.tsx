@@ -144,14 +144,23 @@ export function AnswerDetails({
  * packet: the source with its excerpt, and who accepted the draft. Verified only means the sender's
  * DKIM passed, so mail names its sender when the reader may read that message.
  */
-export function AnswerSourceNote({ source, t }: { source: AnswerSource | undefined; t: Translate }) {
+export function AnswerSourceNote({
+  source,
+  t,
+}: {
+  source: AnswerSource | undefined;
+  t: Translate;
+}) {
   if (!source) return null;
   const from =
     source.sourceKind === "File"
       ? (source.fileName ?? "")
       : t("advancing.answers.source.projectInbox");
   return (
-    <div className="flex flex-col gap-4 text-text-12 text-text-secondary" data-testid="answer-source">
+    <div
+      className="flex flex-col gap-4 text-text-12 text-text-secondary"
+      data-testid="answer-source"
+    >
       <p className="m-0">{t("advancing.answers.source.recordedFrom", { from })}</p>
       {source.fromAddress ? (
         <p className="m-0">{t("advancing.answers.source.sender", { from: source.fromAddress })}</p>

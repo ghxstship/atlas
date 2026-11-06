@@ -56,7 +56,6 @@ import {
   createAuroraStore,
   draftedListIsEmpty,
   getAiAllowance,
-  getInvoiceTieOut,
   itineraryTravelerCandidates,
   listAiNeverSend,
   listEnabledAiFeatures,
@@ -65,7 +64,6 @@ import {
   recordDraftedAdvanceAnswer,
   saveAiSettings,
   transitionAiSuggestion,
-  vendorLineHistory,
   type ContractIntakeItem,
   type OpenProposal,
 } from "@xos/data/ai";
@@ -976,9 +974,11 @@ export function auroraHandlers(
                       from_address: message.fromAddress,
                       body_text: withholdIdentity(
                         String(
-                          scrubRecord("app.inbound_messages", { body_text: message.body }, neverSend)?.[
-                            "body_text"
-                          ] ?? "",
+                          scrubRecord(
+                            "app.inbound_messages",
+                            { body_text: message.body },
+                            neverSend,
+                          )?.["body_text"] ?? "",
                         ),
                       ),
                     },
@@ -1118,7 +1118,9 @@ export function auroraHandlers(
       requireOrg(context);
       const personId = requirePerson(context);
       const query = request.query as { invoice_id: string };
-      const proposals = unwrap(await listInvoiceLineProposals(context.db, query.invoice_id, personId));
+      const proposals = unwrap(
+        await listInvoiceLineProposals(context.db, query.invoice_id, personId),
+      );
       return ok({ data: proposals.map(proposalBody) });
     },
 
@@ -1146,7 +1148,9 @@ export function auroraHandlers(
       requirePerson(context);
       const body = request.body as { project_id: string; items: ContractIntakeItem[] };
       return ok(
-        unwrap(await applyContractIntake(context.db, { projectId: body.project_id, items: body.items })),
+        unwrap(
+          await applyContractIntake(context.db, { projectId: body.project_id, items: body.items }),
+        ),
       );
     },
 
