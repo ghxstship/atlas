@@ -51,6 +51,7 @@ import type {
   DaySheetAudience,
   DaySheetSchedule,
   DocumentDataMap,
+  QuoteDocument,
   DocumentProject,
 } from "./templates.ts";
 import { getQuote, quoteAcceptanceEmail } from "../quotes.ts";

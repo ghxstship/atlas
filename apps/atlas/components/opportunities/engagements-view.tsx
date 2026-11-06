@@ -143,8 +143,13 @@ export async function EngagementsView({
           title={t("engagements.title")}
           count={rows.length}
           actions={
-            intake || projects.length > 0 ? (
+            intake || projects.length > 0 || (canGenerate && !generating) ? (
               <>
+                {canGenerate && !generating ? (
+                  <ButtonLink href={page.href({ generate: "1" })}>
+                    {t("agreementBatches.generate")}
+                  </ButtonLink>
+                ) : null}
                 {intake ? (
                   <IntakeRequestsAction
                     refs={intake}
@@ -164,13 +169,6 @@ export async function EngagementsView({
               current={page.view}
               hrefFor={(v) => page.href({ view: v })}
             />
-          }
-          actions={
-            canGenerate && !generating ? (
-              <ButtonLink href={page.href({ generate: "1" })}>
-                {t("agreementBatches.generate")}
-              </ButtonLink>
-            ) : null
           }
         />
       }

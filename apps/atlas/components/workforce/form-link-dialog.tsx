@@ -85,7 +85,6 @@ export function FormLinkDialog({
           name="projectId"
           label={t("project")}
           help={t("projectHelp")}
-          required
           placeholder={t("chooseProject")}
           onChange={(event) => setProjectId(event.target.value)}
           options={(options?.projects ?? []).map((p) => ({ value: p.value, label: p.label }))}

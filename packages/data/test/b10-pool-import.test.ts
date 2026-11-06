@@ -80,7 +80,7 @@ function lookups(
       for (const key of Object.keys(values)) before[key] = null;
       return before;
     },
-  };
+  } satisfies Partial<TargetLookups> as unknown as TargetLookups;
 }
 
 const COLUMNS: MappedColumn[] = FIELDS.map((f, index) => ({ index, fieldName: f.name }));

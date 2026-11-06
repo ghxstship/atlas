@@ -62,7 +62,7 @@ function lookups(match: MaterialMatch | null = null): TargetLookups {
     projectTimeZone: async () => "America/New_York",
     purchaseOrderState: async () => "Proposed",
     nextPoLineNumber: async () => 3,
-  };
+  } satisfies Partial<TargetLookups> as unknown as TargetLookups;
 }
 
 const NEED_DESTINATION: ImportDestination = { project: { id: "prj1" }, jobId: "j1" };

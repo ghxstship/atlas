@@ -316,6 +316,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     title: "Audio vendors",
     requesterName: "Bayside Audio",
     projectName: "Summer Headline Weekend",
+  },
   "rfq.quote_reminder": {
     title: "Stage cable",
     orgName: "Demo Productions",

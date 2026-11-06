@@ -177,7 +177,6 @@ export async function ShiftsCollection(props: {
   if (planning && !planning.ok) {
     throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
   }
-  const shifts = result.data;
   const laborLines = laborResult?.ok ? laborResult.data : [];
   const projectKeyOf = new Map(projects.map((p) => [p.id, p.key]));
   const laborLineLabel = (l: (typeof laborLines)[number]) =>

@@ -1,5 +1,5 @@
 -- Shared pgTAP fixture for the B11 suites (6531 to 6538), included with \ir inside each test transaction after the
--- allocation world (0700_engagement_world.psql, 2654_project_facts_world.psql, 2691_allocation_world.psql). Every name is
+-- allocation world (0700_engagement_world.psql, 4654_project_facts_world.psql, 4691_allocation_world.psql). Every name is
 -- fictional; nothing persists. Orgs hold Standard Library copies since 2002, so nothing here counts an org's rows.
 --
 --   ven_v: Bayside Audio (acct_v, whose Account Owner is victor) as an Active vendor of org_a.
