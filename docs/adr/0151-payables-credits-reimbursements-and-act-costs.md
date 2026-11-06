@@ -54,7 +54,7 @@ a reimbursable expense that was already reimbursed is refused, because the refun
 A reimbursable expense (`is_reimbursable`) is Recorded while Proposed, Owed once approved and Paid once a reimbursement
 is recorded. `app.expense_reimbursements` holds the payment: payee, currency, the net amount at recording (each
 amount less its approved credits), the date and the reference. It is not `app.payments`: payments to people need an
-individual engagement (1120, `derive_payment_org_id`), and `app.form_1099_nec_rows` (1124) counts payments to people for
+individual engagement (1120, `derive_payment_org_id`), and `app.form_1099_nec_rows` (1306) counts payments to people for
 work, which a reimbursement is not. A reimbursable charge reaches Paid only through a reimbursement, and a void returns
 its expenses to Approved, the only use of the new Paid to Approved rule.
 
