@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { extendedMinor, type BudgetLine, type BudgetLineType } from "./finance.ts";
 import { fillPersonNames } from "./person-names.ts";
@@ -11,7 +12,7 @@ import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./re
  * unpriced, never zero, so every delta here is null when either side is.
  */
 
-export type BudgetVersionPurpose = "Snapshot" | "Quote";
+export type BudgetVersionPurpose = Database["app"]["Enums"]["budget_version_purpose"];
 
 export interface BudgetVersion {
   readonly id: string;

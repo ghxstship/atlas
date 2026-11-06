@@ -1,5 +1,4 @@
 import {
-  defaultLocale,
   getMessages,
   isBetaCatalogLoaded,
   isBetaLocale,

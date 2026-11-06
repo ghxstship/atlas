@@ -1,3 +1,4 @@
+import type { Database } from "./database.types.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
@@ -8,8 +9,7 @@ import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./re
  * there is no Paid state. Every state change goes through the RPCs in 6553, and the database decides.
  */
 
-export type QuoteVersionState =
-  "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
+export type QuoteVersionState = Database["app"]["Enums"]["quote_version_state"];
 /** A version's state as shown: Expired is computed for a Sent version past valid until. */
 export type QuoteDisplayState = QuoteVersionState | "Expired";
 

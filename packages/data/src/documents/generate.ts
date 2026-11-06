@@ -14,13 +14,7 @@ import {
   type ExternalDocumentKind,
   type QuoteBrandFields,
 } from "./sources-external.ts";
-import {
-  DESCRIBE,
-  TEMPLATES,
-  templateFor,
-  type DocumentDataMap,
-  type TemplateRegistry,
-} from "./templates.ts";
+import { DESCRIBE, type DocumentDataMap } from "./templates.ts";
 
 /**
  * The document pipeline (Section 11.9, ADR 0031): load the record as the caller, pick the template

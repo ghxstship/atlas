@@ -12,6 +12,7 @@
  * Fields on frozen resources (`poLines`, `rfqResponseLines`, `assetMaintenanceEvents`, `dockSlots`, `gateQueueEntries`)
  * enter through optional, read-side correction entries in the module files.
  */
+import { Constants } from "@xos/data/database.types";
 import { z } from "@hono/zod-openapi";
 import { defineResource, fields } from "@xos/schemas";
 import { orNull } from "../../correct.ts";
@@ -21,7 +22,7 @@ import { acquisitionKind } from "./supply-bridge.ts";
 
 const NEED_STATUSES = ["Needs Ordered", "Short", "On Order", "Excess"] as const;
 const DUE_STATUSES = ["Pending", "Overdue", "Completed"] as const;
-const INTERVAL_UNITS = ["Day", "Week", "Month", "Year"] as const;
+const INTERVAL_UNITS = Constants.app.Enums.maintenance_interval_unit;
 
 const unitBasis = (what: string) => orNull(fields.text(`Unit of ${what}.`, "each"));
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
 import type { DataError } from "@xos/data";
 import * as repo from "@xos/data/registration";
 import { revalidatePath } from "next/cache";
@@ -81,7 +82,7 @@ export async function saveRegistrationPageAction(_: State, form: FormData): Prom
   return done(ctx, typed, result.ok ? null : result.error);
 }
 
-const STATES = ["Draft", "Open", "Closed"] as const;
+const STATES = Constants.app.Enums.registration_page_state;
 
 export async function transitionRegistrationPageAction(_: State, form: FormData): Promise<State> {
   const ctx = await contextFor(form);

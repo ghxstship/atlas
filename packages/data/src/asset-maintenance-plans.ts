@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { Database, XosClient } from "./client.ts";
 import { blankToNull, deletedNow, insertedId, readRows, touched } from "./commercial-common.ts";
 import { type Result } from "./result.ts";
@@ -11,12 +12,8 @@ import { type Result } from "./result.ts";
 type Tables = Database["app"]["Tables"];
 export type MaintenanceIntervalUnit = Database["app"]["Enums"]["maintenance_interval_unit"];
 
-export const MAINTENANCE_INTERVAL_UNITS: readonly MaintenanceIntervalUnit[] = [
-  "Day",
-  "Week",
-  "Month",
-  "Year",
-];
+export const MAINTENANCE_INTERVAL_UNITS: readonly MaintenanceIntervalUnit[] =
+  enums.maintenanceIntervalUnit;
 
 /** The computed statuses of app.asset_maintenance_due. */
 export const MAINTENANCE_DUE_STATUSES = ["Pending", "Overdue", "Completed"] as const;

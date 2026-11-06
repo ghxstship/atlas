@@ -211,7 +211,7 @@ const Quote = defineResource({
             id: fields.ref("quote version"),
             version_number: fields.int("Version number.", 1, 1),
             quote_version_state: label(
-              ["Draft", "Sent", "Accepted", "Declined", "Withdrawn", "Superseded"],
+              Constants.app.Enums.quote_version_state,
               "Stored state of the version.",
             ),
             valid_until: fields.date("Last day the client can accept."),

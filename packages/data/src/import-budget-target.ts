@@ -1,3 +1,4 @@
+import * as enums from "./enums.generated.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BudgetDestination } from "./import-worker.ts";
 import type { RowCheck } from "./import-material-target.ts";
@@ -6,7 +7,7 @@ import type { RowCheck } from "./import-material-target.ts";
  * The budget_lines import target (B13, G-214, 6558), loaded only for it, because import-run's boot has a ceiling.
  */
 
-const BUDGET_LINE_TYPES = ["Cost", "Labor", "Fee", "Contingency"] as const;
+const BUDGET_LINE_TYPES = enums.budgetLineType;
 
 /** A number of at least zero, or null. */
 function nonNegative(text: string): number | null {
