@@ -7,7 +7,7 @@ import {
   assignOpenShiftToRoster,
   createShiftTemplate,
   createShiftsFromTemplate,
-  daysBetween,
+  daysInRange,
   ensureMemberAvailabilityCalendar,
   rankRosterCandidates,
   rankShiftCandidates,
@@ -84,7 +84,7 @@ export async function createShiftsFromTemplateAction(_: State, form: FormData): 
     }
     return invalid(t, fields);
   }
-  const days = daysBetween(parsed.data.from, parsed.data.to);
+  const days = daysInRange(parsed.data.from, parsed.data.to);
   if (days.length === 0) return invalid(t, { to: "crew.scheduling.errors.toAfterFrom" });
   if (days.length > 31) return invalid(t, { to: "crew.scheduling.errors.tooManyDays" });
   const result = await createShiftsFromTemplate(db, {

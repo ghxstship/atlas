@@ -332,7 +332,7 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
     if (!v?.id || !v.project_id || !v.org_id) return fail(NOT_FOUND);
     const lines = await readView(db, "quote_version_lines", {
       eq: { quote_version_id: id },
-      order: "line_number",
+      order: ["line_number", "asc"],
     });
     if (!lines.ok) return lines;
     return ok({

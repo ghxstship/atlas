@@ -4,7 +4,7 @@ import {
   assignOpenShift,
   createShiftsFromTemplate,
   createShiftTemplate,
-  daysBetween,
+  daysInRange,
   fillRate,
   getMyAvailabilityStatus,
   listShiftIdsWithWaitingClaims,
@@ -97,13 +97,13 @@ describe("shift templates", () => {
   });
 
   it("lists the days of a range, both ends included", () => {
-    expect(daysBetween("2027-02-27", "2027-03-02")).toEqual([
+    expect(daysInRange("2027-02-27", "2027-03-02")).toEqual([
       "2027-02-27",
       "2027-02-28",
       "2027-03-01",
       "2027-03-02",
     ]);
-    expect(daysBetween("2027-03-02", "2027-03-01")).toEqual([]);
+    expect(daysInRange("2027-03-02", "2027-03-01")).toEqual([]);
   });
 
   it("plans shifts through the RPC and passes its refusal on", async () => {

@@ -280,7 +280,8 @@ export async function generateTokenQuoteDocument(
     readonly brand_logo_path?: string | null;
     readonly lines?: Parameters<typeof quoteDataFromFields>[1];
   };
-  return renderLoaded(input, "quote", quoteDataFromFields(q, q.lines ?? []), q.org_id ?? "", q.org_name ?? "", {
+  const data = quoteDataFromFields(q, q.lines ?? []);
+  return renderLoaded(input, "quote", data, q.org_id ?? "", q.org_name ?? "", {
     legalEntityName: q.legal_entity_name ?? null,
     accentHex: q.brand_accent_hex ?? null,
     logoPath: q.brand_logo_path ?? null,
@@ -311,7 +312,7 @@ async function brandFromFields(
 }
 
 async function renderLoaded<K extends DocumentKind>(
-  input: Omit<GenerateInput, "orgId" | "orgName" | "kind">,
+  input: Omit<GenerateInput, "orgId" | "orgName" | "kind" | "id">,
   kind: K,
   data: DocumentDataMap[K],
   orgId: string,

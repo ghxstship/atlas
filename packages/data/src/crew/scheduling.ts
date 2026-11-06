@@ -118,7 +118,7 @@ export function templateMinutes(template: Pick<ShiftTemplate, "callTime" | "wrap
 }
 
 /** Every day from `from` to `to`, both `YYYY-MM-DD` and included; empty when `to` is before `from`. */
-export function daysBetween(from: string, to: string): string[] {
+export function daysInRange(from: string, to: string): string[] {
   const days: string[] = [];
   const end = Date.parse(`${to}T00:00:00Z`);
   for (let at = Date.parse(`${from}T00:00:00Z`); at <= end; at += 86_400_000) {
