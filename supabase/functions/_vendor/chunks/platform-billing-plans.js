@@ -50,5 +50,21 @@ function extraSeatForLookupKey(registry, lookupKey) {
   }
   return null;
 }
+/**
+ * What a plan or extra-seat price costs per term in one currency, from the price book stripe-setup builds Stripe's prices
+ * from. A multi-currency Stripe price states only its default currency on a subscription, so this is what a subscriber in
+ * another currency pays. Null when the key or the currency is not in the book.
+ */
+function bookPriceFor(registry, lookupKey, currency) {
+  const plan = planForLookupKey(registry, lookupKey);
+  const seat = plan === null ? extraSeatForLookupKey(registry, lookupKey) : null;
+  const match = plan ?? seat;
+  if (match === null) return null;
+  const definition = registry.plans.find((p) => p.code === match.planCode);
+  const price = (plan === null ? definition?.extraSeat?.prices : definition?.prices)?.[
+    currency.toUpperCase()
+  ];
+  return (match.interval === "Annual" ? price?.annualMinor : price?.monthlyMinor) ?? null;
+}
 //#endregion
-export { extraSeatForLookupKey, isTestKey, planForLookupKey };
+export { bookPriceFor, extraSeatForLookupKey, isTestKey, planForLookupKey };

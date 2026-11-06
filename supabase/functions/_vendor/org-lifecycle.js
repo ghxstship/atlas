@@ -2074,13 +2074,14 @@ function stripeHost(env) {
  * in Node and in the Deno Edge runtime. The SDK loads only here, when a request needs Stripe, so a
  * page that merely shows billing never parses it.
  */
-async function createStripeClient(env, make) {
+async function createStripeClient(env, make, limits) {
   if (env.STRIPE_SECRET_KEY === void 0) throw new BillingNotConfiguredError("STRIPE_SECRET_KEY");
   if (make !== void 0) return make(env.STRIPE_SECRET_KEY);
   const { default: StripeSdk } = await import("stripe");
   return new StripeSdk(env.STRIPE_SECRET_KEY, {
     httpClient: StripeSdk.createFetchHttpClient(),
-    maxNetworkRetries: 2,
+    maxNetworkRetries: limits?.maxNetworkRetries ?? 2,
+    ...(limits === void 0 ? {} : { timeout: limits.timeoutMs }),
     ...stripeHost(env),
   });
 }
@@ -2123,6 +2124,24 @@ async function expireCheckoutSession(stripe, sessionId) {
 }
 //#endregion
 //#region src/billing/cancel.ts
+/**
+ * Stopping a Stripe subscription (ADR 0161, migration 6140). The database queues every cancel in the transaction that
+ * ends the org or the plan, and only the service role records that Stripe accepted it. This module makes the call: the
+ * org-lifecycle worker retries what is due, and Atlas tries once at once for the person waiting.
+ *
+ * An immediate cancel has no proration and no final invoice, because Terms 5.10 refunds no unused time unless the law
+ * requires it. Asking twice is safe: Stripe answers a second cancel with resource_missing, which counts as accepted. The
+ * idempotency key changes with each attempt, since Stripe replays a stored failure for 24 hours under the same key and a
+ * retry must reach Stripe again.
+ */
+/**
+ * What the worker allows Stripe, so a Stripe that hangs cannot use up the Edge Function's wall clock before certificates and
+ * domains have run. A failed call is not retried inside the run: it stays queued, and the next try has its own key.
+ */
+var STRIPE_WORKER_LIMITS = {
+  timeoutMs: 8e3,
+  maxNetworkRetries: 0,
+};
 /** The idempotency key of one try at one cancel. */
 function stripeCancelIdempotencyKey(job) {
   return `xos-stripe-cancel:${job.cancellationId}:${String(job.attempt)}`;
@@ -2183,24 +2202,56 @@ async function sendStripeCancel(stripe, job) {
 }
 /**
  * One run of the worker:
- *   1. cancels due (none without a Stripe key: they stay queued, and the database's watch raises the alert)
- *   2. Checkout sessions still open on an org that is ending are expired, so nobody can pay for a plan on it. One paid
+ *   1. open alerts go to the platform owner, before Stripe is called: an alert the last run or the database raised goes out
+ *      whatever Stripe does next, and a delay cannot clear itself unseen
+ *   2. cancels due (none without a Stripe key: they stay queued, and the database's watch raises the alert), one claim at a
+ *      time until the time budget is spent, so what this run cannot reach stays due and unclaimed for the next
+ *   3. Checkout sessions still open on an org that is ending are expired, so nobody can pay for a plan on it. One paid
  *      in that moment syncs through the webhook, whose reconciliation queues its cancel.
- *   3. open alerts go to the platform owner. An alert that cannot be sent stays unsent, the run counts it, and the next
+ *   4. alerts again, for what this run raised. An alert that cannot be sent stays unsent, the run counts it, and the next
  *      run tries again; the caller logs it so Sentry and the logs see it whatever the mail does.
  */
 async function runStripeCancellations(input) {
   const { stripe, store } = input;
+  const clock = input.clock ?? Date.now;
+  const startedAt = clock();
+  const budgetMs = input.budgetMs ?? 45e3;
   let accepted = 0;
   let failed = 0;
   let checkoutsClosed = 0;
+  let outOfTime = false;
+  const inTime = () => {
+    if (clock() - startedAt < budgetMs) return true;
+    outOfTime = true;
+    return false;
+  };
+  let alertsSent = 0;
+  let alertsWaiting = 0;
+  const sendAlerts = async () => {
+    alertsWaiting = 0;
+    for (const alert of await store.alertsToSend()) {
+      if (input.sink === null) {
+        alertsWaiting += 1;
+        continue;
+      }
+      try {
+        await input.sink.send(alert);
+        await store.markAlertSent(alert.alertId);
+        alertsSent += 1;
+      } catch {
+        alertsWaiting += 1;
+      }
+    }
+  };
+  await sendAlerts();
   if (stripe !== null) {
-    const jobs = await store.claim({
-      worker: input.worker,
-      livemode: input.livemode,
-      limit: input.limit ?? 20,
-    });
-    for (const job of jobs) {
+    for (let sent = 0; sent < (input.limit ?? 20) && inTime(); sent += 1) {
+      const [job] = await store.claim({
+        worker: input.worker,
+        livemode: input.livemode,
+        limit: 1,
+      });
+      if (job === void 0) break;
       const outcome = await sendStripeCancel(stripe, job);
       await store.finish({
         cancellationId: job.cancellationId,
@@ -2209,7 +2260,8 @@ async function runStripeCancellations(input) {
       if (outcome.accepted) accepted += 1;
       else failed += 1;
     }
-    for (const sessionId of await store.checkoutsToClose(input.livemode))
+    for (const sessionId of await store.checkoutsToClose(input.livemode)) {
+      if (!inTime()) break;
       try {
         await expireCheckoutSession(stripe, sessionId);
         await store.closeCheckout(sessionId);
@@ -2217,33 +2269,22 @@ async function runStripeCancellations(input) {
       } catch (error) {
         if (!(error instanceof CheckoutCompletedError)) failed += 1;
       }
-  }
-  let alertsSent = 0;
-  let alertsWaiting = 0;
-  for (const alert of await store.alertsToSend()) {
-    if (input.sink === null) {
-      alertsWaiting += 1;
-      continue;
-    }
-    try {
-      await input.sink.send(alert);
-      await store.markAlertSent(alert.alertId);
-      alertsSent += 1;
-    } catch {
-      alertsWaiting += 1;
     }
   }
+  await sendAlerts();
   return {
     accepted,
     failed,
     checkoutsClosed,
     alertsSent,
     alertsWaiting,
+    outOfTime,
   };
 }
 //#endregion
 export {
   DELETION_CERTIFICATES_BUCKET,
+  STRIPE_WORKER_LIMITS,
   billingLivemode,
   createStripeClient,
   deletionCertificateCopy,

@@ -1016,6 +1016,7 @@ export const stripeCancelSource = [
   "Plan Ended",
   "Stripe Portal",
   "Reconciliation",
+  "Ended In Stripe",
 ] as const;
 /** app.stripe_cancellation_state */
 export const stripeCancellationState = ["Queued", "Accepted", "Withdrawn"] as const;

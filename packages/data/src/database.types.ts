@@ -77194,7 +77194,8 @@ export type Database = {
         | "Organization Deleted"
         | "Plan Ended"
         | "Stripe Portal"
-        | "Reconciliation";
+        | "Reconciliation"
+        | "Ended In Stripe";
       stripe_cancellation_state: "Queued" | "Accepted" | "Withdrawn";
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
@@ -83935,6 +83936,7 @@ export const Constants = {
         "Plan Ended",
         "Stripe Portal",
         "Reconciliation",
+        "Ended In Stripe",
       ],
       stripe_cancellation_state: ["Queued", "Accepted", "Withdrawn"],
       submittal_kind: [
