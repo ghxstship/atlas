@@ -186,7 +186,7 @@ export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps
   if (!windows.ok) return <RegionError />;
   const shipments = deliveries.data.filter((d) => d.id);
   const canBook =
-    isLiveEngagement(view.engagement) && windows.data.some((w) => (w.places_left ?? 0) > 0);
+    isLiveEngagement(view.engagement.state) && windows.data.some((w) => (w.places_left ?? 0) > 0);
   // A new id with each render: a second click on one form replays its booking, and the next booking is a new one.
   const eventId = randomUUID();
   if (docks.data.length === 0 && deliveries.data.length === 0 && windows.data.length === 0) {

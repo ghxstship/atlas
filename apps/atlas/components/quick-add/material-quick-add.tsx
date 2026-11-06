@@ -94,8 +94,39 @@ export function MaterialQuickAdd({
     [rows],
   );
   return (
-    <Dialog open onOpenChange={(next) => (next ? null : onClose())} title={t("paste.title")}>
+    <Dialog
+      open
+      onOpenChange={(next) => (next ? null : onClose())}
+      title={t("paste.title")}
+      actions={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            {t("paste.cancel")}
+          </Button>
+          {rows === null ? (
+            <Button
+              type="button"
+              variant="primary"
+              disabled={text.trim() === "" || resolving}
+              onClick={preview}
+            >
+              {t("paste.preview")}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              form="material-quick-add"
+              variant="primary"
+              disabled={pending || rows.length === 0}
+            >
+              {t("paste.add", { count: rows.length })}
+            </Button>
+          )}
+        </>
+      }
+    >
       <form
+        id="material-quick-add"
         action={formAction}
         onSubmit={keepInputOnSubmit(formAction)}
         className="flex flex-col gap-12"
@@ -126,49 +157,28 @@ export function MaterialQuickAdd({
             {t("paste.tooMany", { limit: EQUIPMENT_LINE_LIMIT })}
           </p>
         ) : null}
-        {rows === null ? (
-          <div>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={text.trim() === "" || resolving}
-              onClick={preview}
-            >
-              {t("paste.preview")}
-            </Button>
-          </div>
-        ) : (
-          <>
-            <ul
-              aria-label={t("paste.previewLabel")}
-              className="m-0 flex list-none flex-col gap-8 p-0"
-            >
-              {rows.map((r) => (
-                <li key={r.key} className="flex flex-wrap items-end gap-8">
-                  <Input
-                    id={`material-qty-${r.key}`}
-                    inputMode="decimal"
-                    label={t("needs.quantity")}
-                    value={r.quantity}
-                    {...(r.assumed ? { help: t("paste.assumed") } : {})}
-                    onChange={(e) => edit(r.key, { quantity: e.target.value, assumed: false })}
-                  />
-                  <Input
-                    id={`material-item-${r.key}`}
-                    label={t("needs.description")}
-                    value={r.item}
-                    onChange={(e) => edit(r.key, { item: e.target.value, resolution: null })}
-                  />
-                  {r.resolution ? <Tag tone="success">{t("paste.matched")}</Tag> : null}
-                </li>
-              ))}
-            </ul>
-            <div>
-              <Button type="submit" variant="secondary" disabled={pending || rows.length === 0}>
-                {t("paste.add", { count: rows.length })}
-              </Button>
-            </div>
-          </>
+        {rows === null ? null : (
+          <ul aria-label={t("paste.previewLabel")} className="m-0 flex list-none flex-col gap-8 p-0">
+            {rows.map((r) => (
+              <li key={r.key} className="flex flex-wrap items-end gap-8">
+                <Input
+                  id={`material-qty-${r.key}`}
+                  inputMode="decimal"
+                  label={t("quantity")}
+                  value={r.quantity}
+                  {...(r.assumed ? { help: t("paste.assumed") } : {})}
+                  onChange={(e) => edit(r.key, { quantity: e.target.value, assumed: false })}
+                />
+                <Input
+                  id={`material-item-${r.key}`}
+                  label={t("description")}
+                  value={r.item}
+                  onChange={(e) => edit(r.key, { item: e.target.value, resolution: null })}
+                />
+                {r.resolution ? <Tag tone="success">{t("paste.matched")}</Tag> : null}
+              </li>
+            ))}
+          </ul>
         )}
       </form>
     </Dialog>

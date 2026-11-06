@@ -649,7 +649,8 @@
       "tooMany": "Esta lista es muy larga. Agrega máximo {limit} líneas a la vez.",
       "assumed": "La lista no indica cantidad, así que se toma 1.",
       "matched": "Coincide",
-      "add": "{count, plural, one {Agregar # línea} other {Agregar # líneas}}"
+      "add": "{count, plural, one {Agregar # línea} other {Agregar # líneas}}",
+      "cancel": "Cancelar"
     }
   }
 }

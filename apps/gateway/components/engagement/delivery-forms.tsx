@@ -50,7 +50,6 @@ export function DeliveryBookingForm({
       <Select
         id="delivery-window"
         name="windowId"
-        required
         label={t("deliveries.book.window")}
         options={[...windows]}
       />

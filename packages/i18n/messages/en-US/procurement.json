@@ -649,7 +649,8 @@
       "tooMany": "This list is too long. Add at most {limit} lines at a time.",
       "assumed": "No quantity in the list, so this reads 1.",
       "matched": "Matched",
-      "add": "{count, plural, one {Add # line} other {Add # lines}}"
+      "add": "{count, plural, one {Add # line} other {Add # lines}}",
+      "cancel": "Cancel"
     }
   }
 }

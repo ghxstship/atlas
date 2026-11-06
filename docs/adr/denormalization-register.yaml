@@ -462,6 +462,14 @@ restated:
     parent: app.return_lines.receipt_line_id
     kind: own
     note: Set only on a Receipt movement, the receipt line the quantity came in on; a Vendor Return movement leaves it NULL and names its return line instead (asset_lot_movements_direction, migration 2681).
+  - column: app.asset_maintenance.asset_unit_id
+    parent: app.asset_maintenance_plans.asset_unit_id
+    kind: own
+    note: Work logged against a plan names the unit it was done on; a class plan has no unit, and a unit plan's work stays on it (`private.guard_asset_maintenance_plan_link`, 3004).
+  - column: app.asset_maintenance_plans.asset_class_id
+    parent: app.asset_units.asset_class_id
+    kind: own
+    note: A plan names a unit or a class, exactly one of them; a plan's class is never copied from a unit (3004).
   - column: app.asset_reservations.project_id
     parent: app.advance_allocations.project_id
     kind: registered
@@ -699,6 +707,14 @@ restated:
     parent: app.doc_snapshots.generation
     kind: fact
     note: Generation the update was made against, kept so updates from before a reseed are discarded.
+  - column: app.dock_slots.ends_at
+    parent: app.delivery_windows.ends_at
+    kind: own
+    note: A booking's own time, within its window (`private.guard_dock_slot`, 3005, ADR 0150). The window's is fixed while it has live bookings.
+  - column: app.dock_slots.project_id
+    parent: app.delivery_windows.project_id
+    kind: own
+    note: A dock slot's own project, set by `app.book_delivery_window` from the window (3006). A slot booked directly has no window.
   - column: app.dock_slots.project_id
     parent: app.engagements.project_id
     kind: own
@@ -707,6 +723,14 @@ restated:
     parent: app.shipments.project_id
     kind: own
     note: The slot's project; the shipment link is optional.
+  - column: app.dock_slots.starts_at
+    parent: app.delivery_windows.starts_at
+    kind: own
+    note: A booking's own time, within its window (`private.guard_dock_slot`, 3005, ADR 0150). The window's is fixed while it has live bookings.
+  - column: app.dock_slots.zone_id
+    parent: app.delivery_windows.zone_id
+    kind: own
+    note: A booking's own gate, the window's (`delivery_booking_outside_window`, 3005). A slot booked directly has no window.
   - column: app.email_digest_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
@@ -773,9 +797,21 @@ restated:
     kind: own
     note: Project the evidence is for; `private.guard_gate_evidence` requires the optional record to be of the same project.
   - column: app.gate_queue.project_id
+    parent: app.dock_slots.project_id
+    kind: own
+    note: A gate row's own project; a same-project trigger keeps a booked arrival on its slot's (3005). A vehicle may arrive with no booking.
+  - column: app.gate_queue.project_id
     parent: app.shipments.project_id
     kind: own
     note: The queue entry's project; the shipment link is optional.
+  - column: app.gate_queue.shipment_id
+    parent: app.dock_slots.shipment_id
+    kind: own
+    note: What the vehicle carried at arrival, copied once from the booking (3006); a vehicle may arrive with no booking.
+  - column: app.gate_queue.vehicle_identifier
+    parent: app.dock_slots.vehicle_identifier
+    kind: own
+    note: The plate seen at the gate, which may differ from the one the vendor gave on the booking (3006).
   - column: app.geofences.venue_id
     parent: app.zones.venue_id
     kind: own
@@ -809,6 +845,10 @@ restated:
     parent: app.import_jobs.sheet_name
     kind: own
     note: One row per sheet of the workbook; the import's is the sheet it reads.
+  - column: app.import_jobs.project_id
+    parent: app.purchase_orders.project_id
+    kind: own
+    note: Stamped once from the order by `private.guard_import_job_destination`, so one authorization path reads every project import (3007); an order never changes project.
   - column: app.import_jobs.project_id
     parent: app.run_of_show.project_id
     kind: own
@@ -1088,6 +1128,10 @@ restated:
     parent: app.budget_lines.element_id
     kind: own
     note: Element ordered; the budget line is optional.
+  - column: app.po_lines.element_id
+    parent: app.procurement_needs.element_id
+    kind: own
+    note: What this line orders; a need may name a class or nothing (3001).
   - column: app.po_lines.line_number
     parent: app.budget_lines.line_number
     kind: own
@@ -1096,10 +1140,18 @@ restated:
     parent: app.budget_lines.quantity
     kind: own
     note: Quantity ordered, not budgeted.
+  - column: app.po_lines.quantity
+    parent: app.procurement_needs.quantity
+    kind: own
+    note: How much this line orders; the need's quantity is what the event will get, and its status compares the two (3002, ADR 0104 amendment).
   - column: app.po_lines.unit_basis
     parent: app.budget_lines.unit_basis
     kind: own
     note: Unit ordered; the budget line is optional.
+  - column: app.po_lines.unit_basis
+    parent: app.procurement_needs.unit_basis
+    kind: own
+    note: The line's own unit; `private.guard_po_line_need` refuses a different one when both name one (need_line_unit, 3001).
   - column: app.po_lines.unit_price_minor
     parent: app.budget_lines.unit_price_minor
     kind: own
@@ -1109,6 +1161,10 @@ restated:
     kind: finding
     note: The option is required and belongs to one poll, so the vote's poll is the option's.
     finding: A108-003
+  - column: app.procurement_needs.element_id
+    parent: app.asset_classes.element_id
+    kind: own
+    note: A need names a class or an element, at most one (3001); the element is never copied from a class.
   - column: app.profile_shares.person_id
     parent: app.engagements.person_id
     kind: own
@@ -1209,6 +1265,26 @@ restated:
     parent: app.asset_units.receipt_line_id
     kind: own
     note: The receipt line the goods go back against, required on every return line, a quantity with no unit included; for a unit, `app.return_goods` requires the unit's own receipt line (migration 2681).
+  - column: app.rfq_lines.element_id
+    parent: app.procurement_needs.element_id
+    kind: own
+    note: What this request line asks for; a need may name a class or nothing (3003).
+  - column: app.rfq_lines.quantity
+    parent: app.procurement_needs.quantity
+    kind: own
+    note: How much this request line asks for; a need's quantity is what the event will get (3003).
+  - column: app.rfq_lines.unit_basis
+    parent: app.procurement_needs.unit_basis
+    kind: own
+    note: The request line's own unit (3003).
+  - column: app.rfq_response_lines.element_id
+    parent: app.rfq_lines.element_id
+    kind: own
+    note: What the vendor quoted; defaulted once from the request line by `app.record_rfq_response`, so capacity counts the order line it becomes (3003).
+  - column: app.rfq_response_lines.quantity
+    parent: app.rfq_lines.quantity
+    kind: own
+    note: How much the vendor quoted, which may differ from what was asked (3003).
   - column: app.riders.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -1689,6 +1765,9 @@ stored:
   - column: app.addon_purchases.amount_total_minor
     kind: input
     note: Amount paid as Stripe reports it (migration 1250).
+  - column: app.asset_maintenance_plans.every_count
+    kind: input
+    note: How many intervals a plan waits between doing the work, set by a person (3004); not a total of anything.
   - column: app.beos.guest_count
     kind: input
     note: Guests the client guarantees.
