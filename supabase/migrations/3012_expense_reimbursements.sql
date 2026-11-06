@@ -11,14 +11,17 @@
 --     new Paid to Approved rule. Leaving Paid through app.transition_expense is refused (expense_paid_final), and a
 --     reimbursable charge reaches Paid only with a reimbursement (expense_reimbursement_use_rpc). A credit still moves
 --     to Paid through app.transition_expense when the refund is received.
---   * expense.approved is emitted only when an expense is approved from Proposed, so a void that returns an expense to
---     Approved emits nothing (the 0321 trigger, recreated with that condition).
+--   * expense.approved is emitted only when an expense is approved from Proposed (the 0321 trigger, recreated with that
+--     condition), and a void, Paid to Approved, emits expense.state_changed instead (the 0480 trigger, recreated so it
+--     also fires on that move).
 --   * app.submit_expense_receipt (1490) gains p_is_reimbursable, trailing and defaulting to false, and keeps one
 --     signature: app.apply_sync_mutation binds arguments by name (0364), so a queued call from an older Compass build
 --     without the argument still replays.
 --   * app.reimbursement_balances and app.owed_reimbursable_expenses read every reimbursable expense of the org for a
---     finance.payment.read holder, as definer functions, so the figures are complete rather than partial sums under the
---     expense read policy.
+--     holder of finance.payment.read and finance.expense.read at organization reach (private.can_read_reimbursements),
+--     as definer functions, so the figures are complete rather than partial sums under the expense read policy. They
+--     return person ids only: packages/data fills names through app.person_names. Owed means net above zero: a charge
+--     credited to nothing cannot be paid (expense_reimbursement_expense) and is not owed.
 
 -- 1. Lifecycle ---------------------------------------------------------------------------------------------------------
 
@@ -34,6 +37,11 @@ drop trigger t90_emit_expense_approved on app.expense_state_transitions;
 create trigger t90_emit_expense_approved after insert on app.expense_state_transitions
   for each row when (new.to_state = 'Approved' and new.from_state = 'Proposed')
   execute function private.emit_subject_event('expense.approved', 'expenses', 'expense_id', 'from_state', 'to_state');
+
+drop trigger t91_emit_expense_state on app.expense_state_transitions;
+create trigger t91_emit_expense_state after insert on app.expense_state_transitions
+  for each row when (new.from_state is not null and (new.to_state <> 'Approved' or new.from_state = 'Paid'))
+  execute function private.emit_subject_event('expense.state_changed', 'expenses', 'expense_id', 'from_state', 'to_state', 'reason');
 
 -- 2. Moving an expense (from 1622) -------------------------------------------------------------------------------------
 
@@ -306,10 +314,37 @@ grant execute on function app.void_expense_reimbursement(uuid, text) to authenti
 
 -- 5. Balances --------------------------------------------------------------------------------------------------------------
 
+create or replace function private.can_read_reimbursements(p_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(private.has_capability(p_org_id, 'finance.payment.read')
+    and private.has_capability(p_org_id, 'finance.expense.read'), false);
+$$;
+
+comment on function private.can_read_reimbursements(uuid) is 'True when the signed-in person holds finance.payment.read and finance.expense.read at organization reach: the two capabilities whose rows app.reimbursement_balances and app.owed_reimbursable_expenses read, so a reader sees the whole figure or none.';
+revoke all on function private.can_read_reimbursements(uuid) from public, anon, authenticated;
+
+create or replace function app.can_read_reimbursements(p_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.can_read_reimbursements(p_org_id);
+$$;
+
+comment on function app.can_read_reimbursements(uuid) is 'Whether the signed-in person reads the reimbursement balances of the org: Atlas shows the Reimbursements tab or a refusal by it. For showing controls only; the functions check again.';
+revoke all on function app.can_read_reimbursements(uuid) from public, anon;
+grant execute on function app.can_read_reimbursements(uuid) to authenticated, service_role;
+
 create or replace function app.reimbursement_balances(p_org_id uuid, p_project_id uuid default null)
 returns table (
   payee_person_id uuid,
-  payee_name text,
   currency_code text,
   recorded_count integer,
   recorded_minor bigint,
@@ -324,8 +359,8 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_org_id is null or not private.has_capability(p_org_id, 'finance.payment.read') then
-    raise exception using errcode = '42501', message = 'finance.payment.read is required';
+  if p_org_id is null or not private.can_read_reimbursements(p_org_id) then
+    raise exception using errcode = '42501', message = 'finance.payment.read and finance.expense.read are required in the org';
   end if;
   return query
   with x as (
@@ -337,34 +372,34 @@ begin
     where e.org_id = p_org_id and e.deleted_at is null and e.is_reimbursable and e.credit_of_expense_id is null
       and (p_project_id is null or b.project_id = p_project_id)
   )
-  select x.payee, p.full_name, x.currency,
+  select x.payee, x.currency,
     (count(*) filter (where x.expense_state = 'Proposed'))::integer,
     coalesce(sum(x.net) filter (where x.expense_state = 'Proposed'), 0)::bigint,
-    (count(*) filter (where x.expense_state = 'Approved'))::integer,
-    coalesce(sum(x.net) filter (where x.expense_state = 'Approved'), 0)::bigint,
+    (count(*) filter (where x.expense_state = 'Approved' and x.net > 0))::integer,
+    coalesce(sum(x.net) filter (where x.expense_state = 'Approved' and x.net > 0), 0)::bigint,
     coalesce(sum(x.net) filter (where x.expense_state = 'Paid' and r.id is not null), 0)::bigint,
     max(r.paid_on)
   from x
-  join app.people p on p.id = x.payee
   left join app.expense_reimbursements r on r.id = x.reimbursement_id and r.deleted_at is null and r.voided_at is null
   where x.expense_state in ('Proposed', 'Approved', 'Paid')
-  group by x.payee, p.full_name, x.currency
-  order by 7 desc, 2 nulls last, 1;
+  group by x.payee, x.currency
+  order by 6 desc, 1, 2;
 end;
 $$;
 
-comment on function app.reimbursement_balances(uuid, uuid) is 'Reimbursable charges per payee and currency in an org, optionally one project, net of approved credits: Recorded (Proposed), Owed (Approved) and Paid (settled by a live, unvoided reimbursement), with the last paid date. Ordered by what is owed, most first, then by name. Needs finance.payment.read in the org (42501), and then reads every expense, so no figure is a partial sum.';
+comment on function app.reimbursement_balances(uuid, uuid) is 'Reimbursable charges per payee and currency in an org, optionally one project, net of approved credits: Recorded (Proposed), Owed (Approved with net above zero) and Paid (settled by a live, unvoided reimbursement), with the last paid date. Ordered by what is owed, most first, then by payee id; names are read through app.person_names. Needs finance.payment.read and finance.expense.read at organization reach (42501), and then reads every expense, so no figure is a partial sum.';
 revoke all on function app.reimbursement_balances(uuid, uuid) from public, anon;
 grant execute on function app.reimbursement_balances(uuid, uuid) to authenticated, service_role;
 
-create or replace function app.owed_reimbursable_expenses(p_org_id uuid, p_payee_person_id uuid)
+create or replace function app.owed_reimbursable_expenses(p_org_id uuid, p_payee_person_id uuid, p_project_id uuid default null)
 returns table (
   expense_id uuid,
   project_key text,
   description text,
   incurred_on date,
   currency_code text,
-  net_minor bigint
+  net_minor bigint,
+  pending_credit_minor bigint
 )
 language plpgsql
 stable
@@ -372,22 +407,26 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_org_id is null or not private.has_capability(p_org_id, 'finance.payment.read') then
-    raise exception using errcode = '42501', message = 'finance.payment.read is required';
+  if p_org_id is null or not private.can_read_reimbursements(p_org_id) then
+    raise exception using errcode = '42501', message = 'finance.payment.read and finance.expense.read are required in the org';
   end if;
   return query
   select e.id, pr.project_key::text, e.description, e.incurred_on, e.currency_code::text,
-    (e.amount_minor - private.expense_credited_minor(e.id))::bigint
+    (e.amount_minor - private.expense_credited_minor(e.id))::bigint,
+    coalesce((select sum(c.amount_minor) from app.expenses c
+              where c.credit_of_expense_id = e.id and c.deleted_at is null and c.expense_state = 'Proposed'), 0)::bigint
   from app.expenses e
   join app.budget_lines bl on bl.id = e.budget_line_id
   join app.budgets b on b.id = bl.budget_id
   join app.projects pr on pr.id = b.project_id
   where e.org_id = p_org_id and e.submitter_person_id = p_payee_person_id and e.deleted_at is null
     and e.is_reimbursable and e.credit_of_expense_id is null and e.expense_state = 'Approved'
+    and e.amount_minor - private.expense_credited_minor(e.id) > 0
+    and (p_project_id is null or b.project_id = p_project_id)
   order by e.incurred_on, e.id;
 end;
 $$;
 
-comment on function app.owed_reimbursable_expenses(uuid, uuid) is 'The Approved reimbursable charges a payee is owed in an org, each at its net (amount less approved credits): exactly the expenses app.reimbursement_balances counts as Owed, for the Record reimbursement sheet. Needs finance.payment.read in the org (42501).';
-revoke all on function app.owed_reimbursable_expenses(uuid, uuid) from public, anon;
-grant execute on function app.owed_reimbursable_expenses(uuid, uuid) to authenticated, service_role;
+comment on function app.owed_reimbursable_expenses(uuid, uuid, uuid) is 'The Approved reimbursable charges a payee is owed in an org, optionally on one project, each with net above zero (amount less approved credits) and its Proposed credits pending: exactly the expenses app.reimbursement_balances counts as Owed, in every currency, for the Record reimbursement sheet. A charge with a pending credit is listed so the sheet can say why it is not selected; recording it is refused (expense_reimbursement_pending_credit). Needs finance.payment.read and finance.expense.read at organization reach (42501).';
+revoke all on function app.owed_reimbursable_expenses(uuid, uuid, uuid) from public, anon;
+grant execute on function app.owed_reimbursable_expenses(uuid, uuid, uuid) to authenticated, service_role;

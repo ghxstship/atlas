@@ -1,8 +1,8 @@
 -- pgTAP: 3010, expense credits and the reimbursable flag (B12, RRR-236, gaps G-223 and G-228). A credit is an expense row
 -- naming an Approved or Paid charge on the same line, with the charge's counterparty and a positive amount, never beyond
 -- what is left; only the approver's or the payer's side records one. The same checks run when a credit's amount
--- changes, when it is resubmitted and when it is restored from Trash. A charge with standing credits and a reimbursed
--- expense stay out of Trash. The reimbursable flag needs a submitter, is never on a credit and is fixed after Proposed,
+-- changes, when it is resubmitted and when it is restored from Trash. A credit keeps its counterparty. A charge with
+-- standing credits, an Approved or Paid credit and a reimbursed expense stay out of Trash. The reimbursable flag needs a submitter, is never on a credit and is fixed after Proposed,
 -- and the reimbursement link changes only inside the reimbursement RPCs.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -176,6 +176,22 @@ select lives_ok(format($$insert into app.expenses (budget_line_id, description, 
 select throws_ok(format($$insert into app.expenses (budget_line_id, description, incurred_on, amount_minor, currency_code, is_reimbursable, credit_of_expense_id)
   values (%L, 'Refund to me.', '2027-06-22', 100, 'USD', true, %L)$$, pg_temp.id('line_b'), pg_temp.id('exp_paid')),
   '23514', null, 'a credit is never reimbursable (expenses_credit_not_reimbursable)');
+select pg_temp.as_platform();
+
+-- A credit keeps its original's vendor, and a posted credit stays out of Trash: its reversal stays Posted.
+select pg_temp.expense('exp_keep', 'carol', 'line_b', 3000, '2027-06-17', 'cp_lake');
+select pg_temp.approve('exp_keep');
+select pg_temp.expense('cr_keep', 'carol', 'line_b', 400, '2027-06-23', null, false, 'exp_keep');
+select pg_temp.as_user('carol');
+select is((select counterparty_id from app.expenses where id = pg_temp.id('cr_keep')), pg_temp.id('cp_lake'), 'a credit takes its original''s counterparty');
+select throws_ok(format($$update app.expenses set counterparty_id = %L where id = %L$$, pg_temp.id('cp_rig'), pg_temp.id('cr_keep')),
+  'XR001', 'expense_credit_immutable: A credit keeps the vendor of the expense it credits.', 'and keeps it while Proposed (expense_credit_immutable)');
+select pg_temp.as_platform();
+select pg_temp.approve('cr_keep');
+select pg_temp.as_user('carol');
+select throws_ok(format($$update app.expenses set deleted_at = now() where id = %L$$, pg_temp.id('cr_keep')),
+  'XR001', 'expense_credit_posted: An approved credit has posted its reversal, so it stays out of Trash.',
+  'an Approved credit stays out of Trash (expense_credit_posted)');
 select pg_temp.as_platform();
 
 -- Cross-org: a credit naming another org's charge is refused before any comparison.

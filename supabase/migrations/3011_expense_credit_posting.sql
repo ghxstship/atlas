@@ -147,6 +147,7 @@ select e.id as expense_id, e.budget_line_id,
        then e.amount_minor - c.credited_minor - c.pending_credit_minor end as creditable_minor,
   case when not e.is_reimbursable then null
        when e.expense_state = 'Proposed' then 'Recorded'
+       when e.expense_state = 'Approved' and not w.is_withheld and e.amount_minor - c.credited_minor <= 0 then 'Not owed'
        when e.expense_state = 'Approved' then 'Owed'
        when e.expense_state = 'Paid' then 'Paid'
        else 'Not owed' end as reimbursement_status,
@@ -175,7 +176,7 @@ call private.describe('app.expense_balances', 'One row per live expense the read
   'pending_credit_minor', 'Proposed credits against the expense; zero for a credit; NULL when withheld.',
   'net_minor', 'The amount less approved and paid credits for a charge; the negative amount for a credit; NULL for a charge when withheld.',
   'creditable_minor', 'What a new credit may still take: the amount less approved, paid and proposed credits. NULL for a credit and when withheld.',
-  'reimbursement_status', 'For a reimbursable expense: Recorded while Proposed, Owed while Approved, Paid once reimbursed, Not owed when Rejected or Canceled. NULL when not reimbursable.',
+  'reimbursement_status', 'For a reimbursable expense: Recorded while Proposed, Owed while Approved, Paid once reimbursed, Not owed when Rejected or Canceled or when credits have taken an Approved charge to net zero (a reader whose figures are withheld sees Owed, since they cannot read the credits). NULL when not reimbursable.',
   'owed_minor', 'The net owed to the payer while the reimbursable expense is Owed, else zero; NULL when withheld.'
 ]);
 

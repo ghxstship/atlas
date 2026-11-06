@@ -2,8 +2,10 @@
 -- app.record_expense_reimbursement records the payment at the net owed, needs finance.payment.write, refuses the payee
 -- (sod_reimbursement_payee) and every unfit batch with its code, and writes one audit event; app.void_expense_reimbursement
 -- returns the expenses to Approved once. app.transition_expense never leaves Paid and never pays a reimbursable charge.
--- app.submit_expense_receipt keeps one signature with p_is_reimbursable and replays by name. app.reimbursement_balances
--- and app.owed_reimbursable_expenses report complete figures to finance.payment.read holders only.
+-- A void emits expense.state_changed and no expense.approved. app.submit_expense_receipt keeps one signature with
+-- p_is_reimbursable and replays by name. app.reimbursement_balances and app.owed_reimbursable_expenses report complete
+-- figures only to holders of finance.payment.read and finance.expense.read at organization reach, count only net above
+-- zero as owed, read no name from app.people, and neither form_1099_nec_rows nor the journal sees a reimbursement.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -50,12 +52,34 @@ select is((select owed_minor from app.reimbursement_balances(pg_temp.id('org_a')
 select is((select string_agg(expense_id::text || ':' || net_minor, ',' order by incurred_on)
   from app.owed_reimbursable_expenses(pg_temp.id('org_a'), pg_temp.id('carol'))),
   pg_temp.id('r1')::text || ':3000,' || pg_temp.id('r2')::text || ':2000', 'the sheet lists exactly the Owed expenses, at their net');
+select is((select pending_credit_minor from app.owed_reimbursable_expenses(pg_temp.id('org_a'), pg_temp.id('carol')) where expense_id = pg_temp.id('r1')),
+  0::bigint, 'with what its Proposed credits would take');
+select is((select count(*)::int from app.owed_reimbursable_expenses(pg_temp.id('org_a'), pg_temp.id('carol'), pg_temp.id('prj_a2'))), 0,
+  'p_project_id narrows the list');
+select is(app.can_read_reimbursements(pg_temp.id('org_a')), true, 'an owner reads reimbursements');
 select pg_temp.as_user('gina');
+select is(app.can_read_reimbursements(pg_temp.id('org_a')), false, 'a viewer does not');
 select throws_ok(format($$select * from app.reimbursement_balances(%L)$$, pg_temp.id('org_a')), '42501', null,
-  'reimbursement balances need finance.payment.read');
+  'reimbursement balances need finance.payment.read and finance.expense.read');
 select throws_ok(format($$select * from app.owed_reimbursable_expenses(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('carol')), '42501', null,
   'and so does the owed list');
 select pg_temp.as_platform();
+select ok(position('app.people' in pg_get_functiondef('app.reimbursement_balances(uuid, uuid)'::regprocedure)) = 0
+  and position('app.people' in pg_get_functiondef('app.owed_reimbursable_expenses(uuid, uuid, uuid)'::regprocedure)) = 0,
+  'neither reads app.people: names come through app.person_names');
+-- Without one of the two capabilities the member, who holds both at organization reach, is refused.
+delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = 'finance.expense.read';
+select pg_temp.as_user('dave');
+select throws_ok(format($$select * from app.reimbursement_balances(%L)$$, pg_temp.id('org_a')), '42501', null,
+  'finance.payment.read alone is refused');
+select pg_temp.as_platform();
+insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), 'finance.expense.read', 'organization');
+delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = 'finance.payment.read';
+select pg_temp.as_user('dave');
+select throws_ok(format($$select * from app.owed_reimbursable_expenses(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('carol')), '42501', null,
+  'finance.expense.read alone is refused');
+select pg_temp.as_platform();
+insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), 'finance.payment.read', 'organization');
 
 -- Transitions ----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
@@ -67,6 +91,8 @@ select lives_ok(format($$select app.transition_expense(%L, 'Approved', 'Paid', '
 select throws_ok(format($$select app.transition_expense(%L, 'Paid', 'Approved', 'Undo.')$$, pg_temp.id('plain')),
   'XR001', 'expense_paid_final: A paid expense stays paid; void its reimbursement to reopen it.',
   'nothing leaves Paid through transition_expense (expense_paid_final)');
+select throws_like(format($$select app.transition_expense(%L, 'Approved', 'Canceled', 'Too late.')$$, pg_temp.id('r2')),
+  'expense_transition_not_allowed:%', 'a move the lifecycle still refuses throws expense_transition_not_allowed');
 
 -- Recording: refusals ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('gina');
@@ -166,11 +192,37 @@ select is((select count(*)::int from app.audit_events where action = 'finance.ex
   'and audited');
 select is((select count(*)::int from app.domain_events where event_type = 'expense.approved' and subject_id = pg_temp.id('r1')), 1,
   'returning to Approved emits no second expense.approved');
+select is((select count(*)::int from app.domain_events e where e.event_type = 'expense.state_changed' and e.subject_id = pg_temp.id('r1')
+  and e.data ->> 'from_state' = 'Paid' and e.data ->> 'to_state' = 'Approved'), 1,
+  'a void emits one expense.state_changed from Paid to Approved');
+select is((select count(*)::int from app.journal_entries j where j.source_table = 'expense_reimbursements'), 0,
+  'neither recording nor voiding writes a journal entry');
+select is((select count(*)::int from app.journal_entries j where j.source_table = 'expenses' and j.source_id = pg_temp.id('r1')), 1,
+  'the charge keeps only its approval entry');
+select ok(position('expense_reimbursements' in pg_get_functiondef((select p.oid from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'app' and p.proname = 'form_1099_nec_rows' limit 1))) = 0, 'app.form_1099_nec_rows counts no reimbursement');
 select pg_temp.as_user('alice');
 select throws_ok(format($$select app.void_expense_reimbursement(%L, 'Again.')$$, pg_temp.id('reimb')),
   'XR001', 'expense_reimbursement_voided: This reimbursement is already voided.', 'a second void is refused (expense_reimbursement_voided)');
 select is((select owed_minor || '/' || paid_minor from app.reimbursement_balances(pg_temp.id('org_a'))
   where payee_person_id = pg_temp.id('carol') and currency_code = 'USD'), '5000/0', 'carol is owed again, and nothing counts as paid');
+select pg_temp.as_platform();
+
+-- A charge credited to net zero is not owed and is not on the sheet.
+select pg_temp.expense('r_zero', 'carol', 'line_b', 800, '2027-06-14', null, true);
+select pg_temp.approve('r_zero');
+select pg_temp.expense('r_zero_credit', 'bob', 'line_b', 800, '2027-06-15', null, false, 'r_zero');
+select pg_temp.approve('r_zero_credit', 'alice');
+select pg_temp.as_user('alice');
+select is((select owed_count || '/' || owed_minor from app.reimbursement_balances(pg_temp.id('org_a'))
+  where payee_person_id = pg_temp.id('carol') and currency_code = 'USD'), '2/5000', 'a net-zero charge counts in neither owed figure');
+select ok(not exists (select 1 from app.owed_reimbursable_expenses(pg_temp.id('org_a'), pg_temp.id('carol')) where expense_id = pg_temp.id('r_zero')),
+  'and is not offered for reimbursement');
+select pg_temp.as_platform();
+select pg_temp.expense('r2_pending', 'bob', 'line_a', 100, '2027-06-15', null, false, 'r2');
+select pg_temp.as_user('alice');
+select is((select pending_credit_minor from app.owed_reimbursable_expenses(pg_temp.id('org_a'), pg_temp.id('carol')) where expense_id = pg_temp.id('r2')),
+  100::bigint, 'a charge with a Proposed credit is listed with what it waits on');
 select pg_temp.as_platform();
 
 -- Filing from Compass ------------------------------------------------------------------------------------------------------

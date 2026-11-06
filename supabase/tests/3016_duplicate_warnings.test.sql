@@ -3,7 +3,7 @@
 -- and 7 days, never a credit, a Rejected or Canceled row, another currency, an amount 2% away or a date 8 days away, and
 -- only for Proposed or Approved subjects; a field crew member sees only rows they can read. Purchase orders: an alike
 -- vendor, the same currency, totals within 1% and created within 30 days, never a Canceled order or one the caller cannot
--- read. Nothing is refused.
+-- read. Nothing is refused, and candidates are probed by date window first: each function stays quick over 2,000 expenses.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -110,6 +110,28 @@ select is((select string_agg(w.key, ',' order by w.key) from app.purchase_order_
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.purchase_order_duplicate_candidates(array[pg_temp.id('po1')])), 0,
   'a reader without procurement.po.read sees none');
+select pg_temp.as_platform();
+
+-- The name similarity helper is read only inside definer functions --------------------------------------------------------
+select ok(not has_function_privilege('authenticated', 'private.counterparties_alike(uuid, uuid)', 'execute')
+  and not has_function_privilege('anon', 'private.counterparties_alike(uuid, uuid)', 'execute'), 'signed-in people do not call the name test directly');
+select ok(not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'private' and p.proname = 'readable_expense_ids'),
+  'the org''s readable ids are not materialized');
+
+-- 2,000 expenses in one org, with candidates tested by window first -----------------------------------------------------------
+insert into app.expenses (org_id, budget_line_id, description, incurred_on, amount_minor, currency_code, counterparty_id, submitter_person_id)
+select pg_temp.id('org_a'), pg_temp.id('line_b'), 'Seeded ' || g, date '2027-01-01' + (g % 300), 20000 + g, 'USD',
+  case when g % 2 = 0 then pg_temp.id('cp_rig') else pg_temp.id('cp_lake') end, pg_temp.id('carol')
+from generate_series(1, 2000) g;
+select pg_temp.place('po_seed' || g, 'v1', 300000 + g) from generate_series(1, 200) g;
+insert into world select 'e_seed', e.id from app.expenses e where e.description = 'Seeded 1000';
+select pg_temp.as_user('carol');
+set local statement_timeout = '5s';
+select lives_ok(format($$select * from app.expense_duplicate_candidates(array[%L]::uuid[])$$, pg_temp.id('e_seed')), 'the saved check stays quick over 2,000 expenses');
+select lives_ok(format($$select * from app.find_expense_duplicates(%L, %L, 21000, '2027-03-01')$$, pg_temp.id('line_b'), pg_temp.id('cp_rig')), 'so does the draft check');
+select lives_ok(format($$select * from app.purchase_order_duplicate_candidates(array[%L]::uuid[])$$, pg_temp.id('po_seed100')), 'and the order check');
+select lives_ok(format($$select * from app.expense_duplicate_candidates(array(select e.id from app.expenses e where e.description like 'Seeded %%' limit 500))$$), 'and the check of 500 charges');
+set local statement_timeout = 0;
 select pg_temp.as_platform();
 
 select * from finish();

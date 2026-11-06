@@ -2,10 +2,10 @@
 -- cost to one engagement (by allocation, then an explicit engagement or roster entry, then the person) and
 -- app.engagement_costs sums it per engagement and currency: settlement (withholding not subtracted), bills, travel,
 -- lodging (nights times rate), per diems including a roster entry's, hospitality (catering and amenity only), expenses net
--- of credits and purchase order lines. A bill that bills an Accepted settlement is listed and not counted. An unpriced
--- travel segment makes the engagement's total NULL with the priced total and the count beside it; currencies are never
--- summed together. Both refuse a reader without finance.invoice.read and finance.expense.read, and neither reads
--- engagements.agreed_rate_minor.
+-- of credits and purchase order lines. An engagement bill counts only the part above its settlements in that currency,
+-- with an unpriced earlier bill or settlement leaving it NULL. An unpriced travel segment makes the engagement's total NULL
+-- with the priced total and the count beside it; currencies are never summed together. Both refuse a reader without all six
+-- capabilities on the project, and neither reads engagements.agreed_rate_minor.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -31,7 +31,7 @@ insert into app.settlement_lines (settlement_id, line_number, line_kind, descrip
   (pg_temp.id('st_art'), 4, 'Withholding', 'State withholding.', 10000);
 select pg_temp.move('settlement', 'app.settlements', 'settlement_id', 'st_art', 'Proposed', 'Submitted');
 select pg_temp.move('settlement', 'app.settlements', 'settlement_id', 'st_art', 'Submitted', 'Accepted');
--- art billed the settled fee: listed, not counted.
+-- art billed the settled fee: listed, counted at nothing.
 select pg_temp.bill('bill_art', null, 'USD', 115000, '2027-06-09', 'Approved', 'art', 'eng_art_a');
 select pg_temp.as_platform();
 update app.accommodation_blocks set nightly_rate_minor = 20000, currency_code = 'USD' where id = pg_temp.id('blk');
@@ -69,6 +69,36 @@ select pg_temp.as_platform();
 insert into app.travel_segments (project_id, person_id, travel_mode, departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_time_zone)
 values (pg_temp.id('prj_a'), pg_temp.id('kai'), 'Ground', 'Orlando', '2027-06-01 12:00+00', 'America/New_York', 'Miami', 'America/New_York');
 
+-- art again, on settlements with withholding: Guarantee 1000 and Withholding 300 with a bill of 1000, of 700 or of 1200.
+select pg_temp.as_platform();
+create function pg_temp.settled(p_key text, p_currency text, p_engagement text default 'eng_art_a', p_guarantee bigint default 100000, p_withholding bigint default 30000) returns void
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  perform pg_temp.as_user('carol');
+  insert into app.settlements (engagement_id, project_id, title, currency_code, settled_on)
+  values (pg_temp.id(p_engagement), pg_temp.id('prj_a'), 'Settled in ' || p_currency, p_currency, '2027-06-06') returning id into v;
+  insert into world values (p_key, v);
+  insert into app.settlement_lines (settlement_id, line_number, line_kind, description, amount_minor) values
+    (v, 1, 'Guarantee', 'Guarantee.', p_guarantee), (v, 2, 'Withholding', 'State withholding.', p_withholding);
+  perform pg_temp.move('settlement', 'app.settlements', 'settlement_id', p_key, 'Proposed', 'Submitted');
+  perform pg_temp.move('settlement', 'app.settlements', 'settlement_id', p_key, 'Submitted', 'Accepted');
+end $$;
+select pg_temp.settled('st_eur', 'EUR');
+select pg_temp.bill('bill_eur', null, 'EUR', 100000, '2027-06-09', 'Approved', 'art', 'eng_art_a');
+select pg_temp.settled('st_gbp', 'GBP');
+select pg_temp.bill('bill_gbp', null, 'GBP', 70000, '2027-06-09', 'Approved', 'art', 'eng_art_a');
+select pg_temp.settled('st_cad', 'CAD');
+select pg_temp.bill('bill_cad', null, 'CAD', 120000, '2027-06-09', 'Approved', 'art', 'eng_art_a');
+
+-- On Bayside Audio, whose total is already NULL: an unpriced bill leaves every later one uncounted, and so does an unpriced
+-- settlement.
+select pg_temp.bill('bill_gbp1', 'cp_v_a', 'GBP', null, '2027-06-01', 'Approved', null, 'eng_vendor_a');
+select pg_temp.bill('bill_gbp2', 'cp_v_a', 'GBP', 5000, '2027-06-02', 'Approved', null, 'eng_vendor_a');
+select pg_temp.settled('st_cad_v', 'CAD', 'eng_vendor_a', null, 0);
+select pg_temp.bill('bill_cad_v', 'cp_v_a', 'CAD', 5000, '2027-06-02', 'Approved', null, 'eng_vendor_a');
+
 -- ivy (eng_ivy_a): bills in two currencies, no settlement.
 select pg_temp.bill('bill_ivy_usd', null, 'USD', 7000, '2027-06-09', 'Approved', 'ivy', 'eng_ivy_a');
 select pg_temp.bill('bill_ivy_eur', null, 'EUR', 3000, '2027-06-09', 'Disputed', 'ivy', 'eng_ivy_a');
@@ -76,13 +106,23 @@ select pg_temp.bill('bill_ivy_prop', null, 'USD', 9000, '2027-06-09', 'Proposed'
 
 -- Items ------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-select is((select string_agg(component || ':' || coalesce(amount_minor::text, 'null') || (case when counts_in_total then '' else '(listed)' end), ','
+select is((select string_agg(component || ':' || coalesce(amount_minor::text, 'null') || ':' || coalesce(counted_minor::text, 'null'), ','
     order by component, amount_minor)
-  from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'))),
-  'expense:20000,hospitality:3000,invoice:115000(listed),lodging:40000,purchase_order:20000,settlement:115000,travel:30000',
-  'art''s items: settlement without withholding, the billed settlement listed only, travel, two nights, catering only, the expense net of its credit and the attributed line');
+  from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'USD'),
+  'expense:20000:20000,hospitality:3000:3000,invoice:115000:0,lodging:40000:40000,purchase_order:20000:20000,settlement:115000:115000,travel:30000:30000',
+  'art''s items: settlement without withholding, the billed settlement counted at nothing, travel, two nights, catering only, the expense net of its credit and the attributed line');
+select is((select invoice_minor || '/' || settlement_minor || '/' || total_minor from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'EUR'),
+  '0/100000/100000', 'Guarantee 1000 and Withholding 300 with a bill of 1000 costs 1000');
+select is((select invoice_minor || '/' || settlement_minor || '/' || total_minor from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'GBP'),
+  '0/100000/100000', 'with a bill of 700 it costs 1000');
+select is((select invoice_minor || '/' || settlement_minor || '/' || total_minor from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'CAD'),
+  '20000/100000/120000', 'with a bill of 1200 it costs 1200');
+select is((select coalesce(counted_minor::text, 'null') from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where source_id = pg_temp.id('bill_gbp2')),
+  'null', 'a priced bill after an unpriced one is not counted');
+select is((select coalesce(counted_minor::text, 'null') from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where source_id = pg_temp.id('bill_cad_v')),
+  'null', 'nor a bill beside an unpriced settlement');
 select is((select string_agg(component || ':' || coalesce(amount_minor::text, 'null'), ',' order by component)
-  from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a'))), 'per_diem:4500,travel:null',
+  from app.engagement_cost_items(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where component in ('per_diem', 'travel')), 'per_diem:4500,travel:null',
   'kai''s roster per diem and unpriced trip go to the roster''s engagement');
 select is((select count(*)::int from app.engagement_cost_items(pg_temp.id('prj_a'))
   where source_id in (select pl.id from app.po_lines pl where pl.purchase_order_id = pg_temp.id('po_art') and pl.engagement_id is null)), 0,
@@ -93,11 +133,13 @@ select is((select count(*)::int from (select source_id from app.engagement_cost_
 -- Roll-up ----------------------------------------------------------------------------------------------------------------------
 select is((select settlement_minor || '/' || invoice_minor || '/' || travel_minor || '/' || lodging_minor || '/' || per_diem_minor || '/'
     || hospitality_minor || '/' || expense_minor || '/' || purchase_order_minor || '/' || priced_total_minor || '/' || total_minor || '/' || unpriced_count
-  from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a'))),
+  from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'USD'),
   '115000/0/30000/40000/0/3000/20000/20000/228000/228000/0', 'art''s all-in cost in USD');
+select is((select person_id::text || '/' || role_type::text from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_art_a')) where currency_code = 'USD'),
+  pg_temp.id('art')::text || '/Artist', 'with the engagement''s party and role');
 select is((select coalesce(total_minor::text, 'null') || '/' || priced_total_minor || '/' || unpriced_count || '/' || coalesce(travel_minor::text, 'null')
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a')) where currency_code = 'USD'),
-  'null/4500/1/0', 'an unpriced trip leaves the total NULL, with the priced total and the count beside it');
+  'null/4500/4/0', 'an unpriced item leaves the total NULL, with the priced total and the engagement''s unpriced count beside it');
 select is((select string_agg(currency_code || ':' || invoice_minor || ':' || total_minor, ',' order by currency_code)
   from app.engagement_costs(pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'))), 'EUR:3000:3000,USD:7000:7000',
   'one row per currency, never summed; a Proposed bill is not yet a cost');
@@ -108,10 +150,27 @@ select is(app.can_read_engagement_costs(pg_temp.id('prj_a')), true, 'a manager r
 select pg_temp.as_user('gina');
 select is(app.can_read_engagement_costs(pg_temp.id('prj_a')), false, 'a viewer does not');
 select throws_ok(format($$select * from app.engagement_costs(%L)$$, pg_temp.id('prj_a')), '42501', null,
-  'the roll-up needs finance.invoice.read and finance.expense.read');
+  'the roll-up refuses a reader without the finance capabilities');
 select throws_ok(format($$select * from app.engagement_cost_items(%L)$$, pg_temp.id('prj_a')), '42501', null, 'and so do the items');
 select pg_temp.as_user('xavier');
 select throws_ok(format($$select * from app.engagement_costs(%L)$$, pg_temp.id('prj_a')), '42501', null, 'another org reads none of it');
+select pg_temp.as_platform();
+
+-- Each of the six capabilities is needed: the member holds them all, until one is taken away.
+create function pg_temp.check_capability(p_capability text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = p_capability;
+  perform pg_temp.as_user('dave');
+  perform ok(not app.can_read_engagement_costs(pg_temp.id('prj_a')), 'the roll-up needs ' || p_capability);
+  perform throws_ok(format($q$select * from app.engagement_costs(%L)$q$, pg_temp.id('prj_a')), '42501', null, 'and refuses without ' || p_capability);
+  perform pg_temp.as_platform();
+  insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), p_capability, 'organization');
+end $$;
+select pg_temp.as_user('dave');
+select ok(app.can_read_engagement_costs(pg_temp.id('prj_a')), 'a member on the project holds all six');
+select pg_temp.check_capability(c) from unnest(array['finance.invoice.read', 'finance.expense.read', 'procurement.po.read', 'crew.time_entry.read', 'hospitality.fulfillment.read', 'opportunities.engagement.read']) c;
 select pg_temp.as_platform();
 
 select * from finish();

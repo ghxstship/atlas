@@ -127,6 +127,15 @@ select pg_temp.as_user('carol');
 select is((select reimbursement_status || '/' || owed_minor from app.expense_balances where expense_id = pg_temp.id('exp_r')),
   'Owed/2000', 'Owed once approved, net of its approved credit');
 select pg_temp.as_platform();
+-- Credited to net zero: nothing can be paid, so it does not read as Owed.
+select pg_temp.expense('exp_z', 'carol', 'line_b', 2000, '2027-06-15', null, true);
+select pg_temp.approve('exp_z');
+select pg_temp.expense('cr_z', 'bob', 'line_b', 2000, '2027-06-16', null, false, 'exp_z');
+select pg_temp.approve('cr_z', 'alice');
+select pg_temp.as_user('carol');
+select is((select reimbursement_status || '/' || owed_minor || '/' || net_minor from app.expense_balances where expense_id = pg_temp.id('exp_z')),
+  'Not owed/0/0', 'an Approved reimbursable charge credited to net zero is Not owed');
+select pg_temp.as_platform();
 
 -- A field crew member reads their own expense, not finance's credits on it: the balance is withheld, never partial.
 select pg_temp.expense('exp_f', 'frank', 'line_a', 2000, '2027-06-17');

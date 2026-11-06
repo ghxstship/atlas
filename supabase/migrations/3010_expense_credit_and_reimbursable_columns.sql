@@ -12,12 +12,14 @@
 --   * on inserting a credit, and on the three ways a credit comes back into play (its amount edited while Proposed,
 --     Rejected to Proposed, restored from Trash), the original is read for update and must be a live Approved or Paid
 --     charge of the org on the same line, not a reimbursable charge already paid, with room for the amount;
---   * only a person who approves expenses on the project or records payments in the org files a credit (a field
---     crew member could otherwise use up a charge's creditable amount);
---   * a charge with live credits is not trashed, and a reimbursed expense keeps its description and counterparty
---     and is not trashed (3017 adds the engagement);
---   * the credit link never changes, the reimbursable flag is fixed after Proposed, and the reimbursement link
---     changes only inside the reimbursement RPCs (private.in_trusted_operation('expense_reimbursement')).
+--   * inserting a row needs finance.expense.write (the 0321 policy), and a credit also needs finance.expense.approve on
+--     the project or finance.payment.write in the org (a field crew member, who holds write only, could otherwise use up
+--     a charge's creditable amount);
+--   * a charge with live credits is not trashed, an Approved or Paid credit is not trashed (its reversal stays Posted,
+--     so Actual and the creditable amount would spring back: expense_credit_posted), and a reimbursed expense keeps its
+--     description and counterparty and is not trashed (3017 adds the engagement);
+--   * the credit link and a credit's counterparty never change, the reimbursable flag is fixed after Proposed, and the
+--     reimbursement link changes only inside the reimbursement RPCs (private.in_trusted_operation('expense_reimbursement')).
 
 -- 1. Reimbursements ---------------------------------------------------------------------------------------------------
 -- Org-rooted like app.fx_rates (0321). The amount column is paid_minor, not amount_minor, so app.expenses.amount_minor
@@ -120,7 +122,8 @@ begin
       perform private.refuse('expense_reimbursement_rpc', 'An expense is reimbursed through app.record_expense_reimbursement.');
     end if;
     if new.credit_of_expense_id is not null then
-      -- A credit uses up its original's creditable amount, so only the approver's or the payer's side records one.
+      -- A credit uses up its original's creditable amount, so beyond the finance.expense.write insert policy (0321) only
+      -- the approver's or the payer's side records one.
       if auth.uid() is not null
          and not private.can_on_project(v_budget.project_id, 'finance.expense.approve')
          and not private.has_capability(new.org_id, 'finance.payment.write') then
@@ -142,6 +145,13 @@ begin
     end if;
     if new.credit_of_expense_id is distinct from old.credit_of_expense_id then
       perform private.refuse('expense_credit_immutable', 'A credit stays against the expense it credits, and a charge never becomes a credit.');
+    end if;
+    if old.credit_of_expense_id is not null and new.counterparty_id is distinct from old.counterparty_id then
+      perform private.refuse('expense_credit_immutable', 'A credit keeps the vendor of the expense it credits.');
+    end if;
+    if new.deleted_at is not null and old.deleted_at is null and old.credit_of_expense_id is not null
+       and old.expense_state in ('Approved', 'Paid') then
+      perform private.refuse('expense_credit_posted', 'An approved credit has posted its reversal, so it stays out of Trash.');
     end if;
     if new.is_reimbursable <> old.is_reimbursable and old.expense_state <> 'Proposed' then
       perform private.refuse('expense_reimbursable_locked', 'Whether an expense is reimbursable changes only while it is Proposed.');
@@ -203,5 +213,5 @@ begin
 end;
 $$;
 
-comment on function private.guard_expense() is 'Expenses: submitter from the session, budget line fixed (invariant 12), amount locked after submission, budget currency, and no new expense on a closed production (invariant 10), credits included. A credit (3010) is recorded only by a person with finance.expense.approve on the project or finance.payment.write in the org, against a live Approved or Paid charge of the org on the same line (expense_credit_original, expense_credit_line) that was not reimbursed to its payer (expense_credit_reimbursed), takes its counterparty, and keeps the live credits that are not Rejected or Canceled within the charge (expense_credit_exceeds); the same checks run when a credit''s amount changes, when it is resubmitted and when it is restored from Trash. The credit link never changes (expense_credit_immutable), the reimbursable flag is fixed after Proposed (expense_reimbursable_locked), the reimbursement link changes only inside the reimbursement RPCs (expense_reimbursement_rpc), a reimbursed expense keeps its description and counterparty and stays out of Trash (expense_reimbursed_locked), and a charge with standing credits stays out of Trash (expense_has_credits).';
+comment on function private.guard_expense() is 'Expenses: submitter from the session, budget line fixed (invariant 12), amount locked after submission, budget currency, and no new expense on a closed production (invariant 10), credits included. A credit (3010) is inserted under the finance.expense.write policy (0321) and also needs finance.expense.approve on the project or finance.payment.write in the org, against a live Approved or Paid charge of the org on the same line (expense_credit_original, expense_credit_line) that was not reimbursed to its payer (expense_credit_reimbursed), takes its counterparty, and keeps the live credits that are not Rejected or Canceled within the charge (expense_credit_exceeds); the same checks run when a credit''s amount changes, when it is resubmitted and when it is restored from Trash. The credit link and a credit's counterparty never change (expense_credit_immutable), an Approved or Paid credit stays out of Trash (expense_credit_posted), the reimbursable flag is fixed after Proposed (expense_reimbursable_locked), the reimbursement link changes only inside the reimbursement RPCs (expense_reimbursement_rpc), a reimbursed expense keeps its description and counterparty and stays out of Trash (expense_reimbursed_locked), and a charge with standing credits stays out of Trash (expense_has_credits).';
 revoke all on function private.guard_expense() from public, anon, authenticated;
