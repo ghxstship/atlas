@@ -50,12 +50,12 @@ select pg_temp.as_platform();
 select ok((select consent_id is not null and awaiting_since is null from app.sensitive_field_records where person_id = pg_temp.id('ivy')), 'consenting adopts the value');
 
 -- Not consenting clears it after 30 days.
-update app.sensitive_field_records set awaiting_since = now() - interval '29 days' where person_id = pg_temp.id('quinn');
+update app.sensitive_field_records set awaiting_since = now() - interval '40 days', awaiting_notified_at = now() - interval '29 days' where person_id = pg_temp.id('quinn');
 select private.run_sensitive_data_job();
-select is((select allergies from app.person_work_details where person_id = pg_temp.id('quinn')), 'Peanuts', 'day 29: it stays');
-update app.sensitive_field_records set awaiting_since = now() - interval '31 days' where person_id = pg_temp.id('quinn');
+select is((select allergies from app.person_work_details where person_id = pg_temp.id('quinn')), 'Peanuts', '29 days after telling her it stays');
+update app.sensitive_field_records set awaiting_notified_at = now() - interval '31 days' where person_id = pg_temp.id('quinn');
 select private.run_sensitive_data_job();
-select ok((select allergies is null from app.person_work_details where person_id = pg_temp.id('quinn')), 'day 31: it is cleared');
+select ok((select allergies is null from app.person_work_details where person_id = pg_temp.id('quinn')), '31 days after, it is cleared');
 select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('quinn')), 'the field record shows it');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('quinn') and action = 'sensitive_consent.values_cleared'), 1,
   'her access log says so');

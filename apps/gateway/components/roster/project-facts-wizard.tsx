@@ -184,7 +184,19 @@ export function ProjectFactsWizard({
         }}
         noValidate
       >
-        <StepForm t={t} kind={kind} facts={facts} values={values} fieldError={fieldError} />
+        <StepForm
+          t={t}
+          kind={kind}
+          facts={facts}
+          values={values}
+          fieldError={fieldError}
+          mode={mode}
+          mealConsent={mealConsent}
+          onConsent={() => {
+            onSaved?.();
+            router.refresh();
+          }}
+        />
         <div className="flex flex-wrap gap-8">
           {mode === "person" ? (
             <Button type="button" variant="secondary" size="sm" onClick={() => fillFromLast(kind)}>
@@ -236,12 +248,18 @@ function StepForm({
   facts,
   values,
   fieldError,
+  mode,
+  mealConsent,
+  onConsent,
 }: {
   t: Translate;
   kind: ProjectFactKind;
   facts: RosterProjectFacts;
   values: Value;
   fieldError: (name: string) => string | undefined;
+  mode: WizardMode;
+  mealConsent: boolean;
+  onConsent: () => void;
 }) {
   const label = (name: string) => t(`projectFacts.fields.${name}.label`);
   const help = (name: string) => t(`projectFacts.fields.${name}.help`);
@@ -345,14 +363,7 @@ function StepForm({
           {...err("mealPreference")}
         />
       ) : (
-        <MealConsentGate
-          rosterEntryId={facts.rosterEntryId}
-          mode={mode}
-          onGranted={() => {
-            onSaved?.();
-            router.refresh();
-          }}
-        />
+        <MealConsentGate rosterEntryId={facts.rosterEntryId} mode={mode} onGranted={onConsent} />
       ),
     travelNotes: (
       <Textarea

@@ -8369,8 +8369,6 @@ export interface Components {
   SensitiveDataCategory: "Dietary and Allergies" | "Accessibility" | "Supplier Diversity";
   SensitiveFieldRecord: {
     id: string;
-    created_at: string;
-    updated_at: string;
     field_code: string;
     person_id: string | null;
     account_id: string | null;
@@ -26146,15 +26144,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["SensitiveFieldRecordPage"] };
   };
-  "sensitiveFieldRecords.get": {
-    module: "Identity";
-    method: "get";
-    path: "/sensitive-field-records/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["SensitiveFieldRecord"] };
-  };
   "workDetails.list": {
     module: "Identity";
     method: "get";
@@ -30396,7 +30385,6 @@ export interface ModuleOperations {
     | "sensitiveConsents.withdraw"
     | "sensitiveConsents.report"
     | "sensitiveFieldRecords.list"
-    | "sensitiveFieldRecords.get"
     | "workDetails.list"
     | "workDetails.create"
     | "workDetails.get"

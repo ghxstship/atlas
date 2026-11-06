@@ -37557,7 +37557,7 @@ export class SensitiveFieldRecordsResource extends $Resource {
   /**
    * List sensitive field record rows
    *
-   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `entered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /sensitive-field-records` (operation `sensitiveFieldRecords.list`).
    * Requires the capability `me.work_details.write`.
@@ -37576,7 +37576,7 @@ export class SensitiveFieldRecordsResource extends $Resource {
   /**
    * List sensitive field record rows
    *
-   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `entered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -37590,26 +37590,6 @@ export class SensitiveFieldRecordsResource extends $Resource {
     return this.client.paginate<SensitiveFieldRecord>(
       $OPERATIONS["sensitiveFieldRecords.list"],
       { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Get a sensitive field record
-   *
-   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.
-   *
-   * `GET /sensitive-field-records/{id}` (operation `sensitiveFieldRecords.get`).
-   * Requires the capability `me.work_details.write`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<SensitiveFieldRecord>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<SensitiveFieldRecord>> {
-    return this.client.request<SensitiveFieldRecord>(
-      $OPERATIONS["sensitiveFieldRecords.get"],
-      { path: { id }, query: params },
       options,
     );
   }

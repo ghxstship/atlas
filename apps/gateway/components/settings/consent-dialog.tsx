@@ -109,7 +109,7 @@ export function WithdrawDialog({
   const [state, action, pending] = useActionState(withdrawSensitiveConsentAction, INITIAL);
   const formId = useId();
   useEffect(() => {
-    if (state.ok) onClose();
+    if (state.ok && !state.held) onClose();
   }, [state, onClose]);
   return (
     <Dialog
@@ -123,9 +123,11 @@ export function WithdrawDialog({
           <Button variant="secondary" type="button" onClick={onClose}>
             {t("consent.withdrawAction.cancel")}
           </Button>
-          <Button variant="danger" type="submit" form={formId} loading={pending}>
-            {t("consent.withdrawAction.confirm")}
-          </Button>
+          {state.held ? null : (
+            <Button variant="danger" type="submit" form={formId} loading={pending}>
+              {t("consent.withdrawAction.confirm")}
+            </Button>
+          )}
         </>
       }
     >
@@ -134,7 +136,11 @@ export function WithdrawDialog({
           <input key={name} type="hidden" name={name} value={value} />
         ))}
         <input type="hidden" name="category" value={category} />
-        <p className="m-0 text-text-13 text-text-secondary">{t("consent.withdrawAction.body")}</p>
+        {state.held ? (
+          <InlineAlert tone="info">{t("consent.withdrawAction.held")}</InlineAlert>
+        ) : (
+          <p className="m-0 text-text-13 text-text-secondary">{t("consent.withdrawAction.body")}</p>
+        )}
         {state.error ? (
           <InlineAlert tone="danger" title={t("consent.notNow")}>
             {t(`errors.${state.error}`)}

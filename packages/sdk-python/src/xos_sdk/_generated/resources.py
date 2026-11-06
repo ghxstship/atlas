@@ -34854,7 +34854,7 @@ class SensitiveFieldRecordsResource(Resource):
     ) -> Page[SensitiveFieldRecord]:
         """List sensitive field record rows
 
-        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `entered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
 
         ``GET /sensitive-field-records`` (operation ``sensitiveFieldRecords.list``).
         Requires the capability ``me.work_details.write``.
@@ -34872,7 +34872,7 @@ class SensitiveFieldRecordsResource(Resource):
     ) -> Iterator[SensitiveFieldRecord]:
         """List sensitive field record rows
 
-        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `entered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -34880,22 +34880,6 @@ class SensitiveFieldRecordsResource(Resource):
         Requires the capability ``me.work_details.write``.
         """
         return self._client.paginate(OPERATIONS["sensitiveFieldRecords.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[SensitiveFieldRecord]:
-        """Get a sensitive field record
-
-        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.
-
-        ``GET /sensitive-field-records/{id}`` (operation ``sensitiveFieldRecords.get``).
-        Requires the capability ``me.work_details.write``.
-        """
-        return self._client.request(OPERATIONS["sensitiveFieldRecords.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class WorkDetailsResource(Resource):

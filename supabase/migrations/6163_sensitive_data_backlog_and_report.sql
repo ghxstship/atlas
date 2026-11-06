@@ -3,7 +3,7 @@
 --
 --   * No consent is invented for a value already held. Each one gets a field record with no consent and awaiting_since set.
 --     Reads treat it as absent from now on (6161). The person keeps seeing it, is told once by the daily job
---     (account.sensitive_consent_needed), and either consents, which keeps it, or it is cleared after 30 days.
+--     (account.sensitive_consent_needed), and either consents, which keeps it, or it is cleared 30 days after that notice.
 --   * private.run_sensitive_data_job, daily: sends those notices; clears values waiting more than 30 days; clears values
 --     a legal hold kept after a withdrawal once the hold ends; deletes a guest's needs 90 days after the project ends.
 --   * app.sensitive_consent_report: consent state per subject and field for an org's data.request.manage holders, never
@@ -90,8 +90,12 @@ begin
     join private.sensitive_fields f on f.code = r.field_code
     left join app.sensitive_data_consents c on c.id = r.consent_id
     where r.cleared_at is null and r.guest_list_entry_id is null
-      and (r.awaiting_since < now() - interval '30 days' or (c.id is not null and c.withdrawn_at is not null))
+      and ((r.awaiting_since is not null and coalesce(r.awaiting_notified_at, r.awaiting_since) < now() - interval '30 days')
+        or (c.id is not null and c.withdrawn_at is not null))
   loop
+    -- A grant given since then wins.
+    continue when (v_row.account_id is not null and private.sensitive_account_consent_id(v_row.account_id, v_row.category) is not null)
+      or (v_row.person_id is not null and private.sensitive_consent_stands(v_row.person_id, v_row.category));
     if private.erase_sensitive_category(v_row.person_id, v_row.account_id, v_row.category) then
       v_count := v_count + 1;
       if v_row.person_id is not null then

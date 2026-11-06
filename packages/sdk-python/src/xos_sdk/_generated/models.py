@@ -23415,12 +23415,8 @@ class SensitiveFieldRecordPage(TypedDict):
 class SensitiveFieldRecord(TypedDict):
     """Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's."""
 
-    #: Identifier of the sensitive field record.
+    #: Identifier of the record.
     id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
     #: Field.
     field_code: str
     #: Identifier of the person the field is about.

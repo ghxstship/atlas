@@ -572,20 +572,9 @@ const SensitiveFieldRecord = defineResource({
   table: "app.sensitive_field_records",
   description:
     "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's.",
-  base: "global",
-  serverSet: [
-    "field_code",
-    "person_id",
-    "account_id",
-    "guest_list_entry_id",
-    "consent_id",
-    "entered_by",
-    "entered_at",
-    "changed_at",
-    "cleared_at",
-    "awaiting_since",
-  ],
+  base: "view",
   fields: {
+    id: fields.uuid("Identifier of the record."),
     field_code: str("Field.", "allergies"),
     person_id: orNull(fields.ref("person the field is about")),
     account_id: orNull(fields.ref("external account the field is about")),
@@ -647,7 +636,7 @@ export const workDetailResources: readonly ResourceSpec[] = [
     ],
   }),
   resource("Identity", "/sensitive-field-records", SensitiveFieldRecord, {
-    verbs: ["list", "get"],
+    order: { by: ["entered_at"], numeric: false, descending: true },
   }),
   resource("Identity", "/work-details", WorkDetails, {
     actions: [

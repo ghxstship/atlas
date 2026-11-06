@@ -86,6 +86,8 @@ create table app.sensitive_data_consents (
   captured_ip inet,
   withdrawn_at timestamptz,
   withdrawn_by uuid references app.people (id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   constraint sensitive_data_consents_locale check (locale ~ '^[a-z]{2}-[A-Z]{2}$'),
   constraint sensitive_data_consents_withdrawn_after check (withdrawn_at is null or withdrawn_at >= given_at),
   constraint sensitive_data_consents_attested check (basis <> 'Attested Authority' or (authority_confirmed and notice_confirmed)),
@@ -130,7 +132,9 @@ call private.describe('app.sensitive_data_consents', 'Consent to hold one catego
   'given_at', 'When it was given. Set by the database.',
   'captured_ip', 'Client IP address at capture, as evidence. Set by the database.',
   'withdrawn_at', 'When it was withdrawn; NULL while it stands.',
-  'withdrawn_by', 'Person who withdrew it; NULL for the database, or while it stands.'
+  'withdrawn_by', 'Person who withdrew it; NULL for the database, or while it stands.',
+  'created_at', 'When the row was created.',
+  'updated_at', 'When the row last changed: its withdrawal.'
 ]);
 
 alter table app.sensitive_data_consents enable row level security;
@@ -163,7 +167,7 @@ begin
     new.withdrawn_by := null;
     return new;
   end if;
-  if (to_jsonb(new) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id']) <> (to_jsonb(old) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id']) then
+  if (to_jsonb(new) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'updated_at']) <> (to_jsonb(old) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'updated_at']) then
     perform private.refuse('consent_immutable', 'A consent record is evidence; only its withdrawal is recorded.');
   end if;
   if old.withdrawn_at is not null and new.withdrawn_at is distinct from old.withdrawn_at then
@@ -172,6 +176,7 @@ begin
   if new.withdrawn_at is not null and old.withdrawn_at is null then
     new.withdrawn_at := now();
   end if;
+  new.updated_at := now();
   return new;
 end;
 $$;
@@ -253,7 +258,7 @@ call private.describe('app.sensitive_field_records', 'Per subject and sensitive 
   'entered_at', 'When a value was first entered, or when this record began for an older value.',
   'changed_at', 'When the value last changed.',
   'cleared_at', 'When the value was cleared; NULL while one is held.',
-  'awaiting_since', 'When a value from before consent was recorded started waiting for it; the daily job clears it 30 days later (6163).',
+  'awaiting_since', 'When a value from before consent was recorded started waiting for it; the daily job clears it 30 days after telling the person (6163).',
   'awaiting_notified_at', 'When the daily job told the person a value is waiting for their consent; NULL until then.'
 ]);
 

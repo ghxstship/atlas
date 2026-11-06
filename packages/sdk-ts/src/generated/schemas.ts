@@ -42611,20 +42611,10 @@ export interface SensitiveFieldRecordPage {
  */
 export interface SensitiveFieldRecord {
   /**
-   * Identifier of the sensitive field record.
+   * Identifier of the record.
    * Format: `uuid`.
    */
   readonly id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
   /**
    * Field.
    */

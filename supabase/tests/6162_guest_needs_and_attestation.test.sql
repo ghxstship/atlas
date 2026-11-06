@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(33);
+select plan(34);
 
 -- A guest on Alice's project, kept by Carol (advancing.rider.write).
 select pg_temp.as_user('carol');
@@ -51,6 +51,8 @@ select is((select count(*)::int from app.work_detail_events where person_id = pg
   'and in the access log of the guest with an account');
 
 -- The person with an account -------------------------------------------------------------------------------------------
+select is((select count(*)::int from app.notifications n where n.recipient_person_id = pg_temp.id('quinn') and n.kind = 'account.sensitive_data_attested'), 2,
+  'the guest is told, once per category');
 select pg_temp.as_user('quinn');
 select is((select count(*)::int from app.sensitive_entries_about_me()), 2, 'the guest sees each attestation');
 select is((select given_by_name from app.sensitive_entries_about_me() limit 1), 'Carol Nguyen', 'and who gave it');

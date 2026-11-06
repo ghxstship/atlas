@@ -57330,20 +57330,8 @@
           "id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the sensitive field record.",
+            "description": "Identifier of the record.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
           },
           "field_code": { "type": "string", "description": "Field.", "example": "allergies" },
           "person_id": {
@@ -57403,8 +57391,6 @@
         },
         "required": [
           "id",
-          "created_at",
-          "updated_at",
           "field_code",
           "person_id",
           "account_id",
@@ -154663,9 +154649,9 @@
         "x-xos-table": "app.sensitive_field_records",
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "x-xos-order": { "by": ["entered_at"], "numeric": false, "descending": true },
         "summary": "List sensitive field record rows",
-        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `entered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -154687,8 +154673,6 @@
                   "data": [
                     {
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "updated_at": "2026-10-08T14:30:00Z",
                       "field_code": "allergies",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -154709,67 +154693,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/sensitive-field-records/{id}": {
-      "get": {
-        "operationId": "sensitiveFieldRecords.get",
-        "tags": ["Identity"],
-        "x-xos-table": "app.sensitive_field_records",
-        "x-xos-capability": "me.work_details.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Get a sensitive field record",
-        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the sensitive field record.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the sensitive field record.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The sensitive field record.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "field_code": "allergies",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "consent_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "entered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "entered_at": "2026-10-08T14:30:00Z",
-                  "changed_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z",
-                  "awaiting_since": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/SensitiveFieldRecord" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

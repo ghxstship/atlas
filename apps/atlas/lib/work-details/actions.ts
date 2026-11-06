@@ -57,6 +57,8 @@ export interface WorkDetailsFormState {
   readonly ok?: boolean;
   /** A revealed passport number, shown once and never stored. */
   readonly revealed?: string;
+  /** A consent was withdrawn while a legal hold keeps the values, hidden, until it ends (ADR 0164). */
+  readonly held?: boolean;
 }
 
 type State = WorkDetailsFormState;
@@ -112,7 +114,9 @@ export async function withdrawSensitiveConsentAction(_: State, form: FormData): 
   const category = categoryOf(form);
   if (!category) return { error: "invalid" };
   const { db } = await viewerPerson();
-  return done(form, await withdrawSensitiveConsent(db, category));
+  const result = await withdrawSensitiveConsent(db, category);
+  const state = done(form, result);
+  return result.ok && !result.data.erased ? { ...state, held: true } : state;
 }
 
 /** Removes what someone else entered about the viewer. */

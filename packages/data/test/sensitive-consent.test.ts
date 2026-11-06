@@ -227,7 +227,7 @@ describe("a guest's needs", () => {
 
 describe("free text with no consent step", () => {
   it("uses the same words as the database", () => {
-    expect(GUEST_SQL).toContain(`(${SENSITIVE_WORDS.replaceAll("\\\\", "\\")})`);
+    expect(GUEST_SQL).toContain(`(${SENSITIVE_WORDS})`);
   });
 
   it.each(["Nut allergy", "Vegan", "wheelchair", "silla de ruedas", "Halal meal", "women-owned"])(

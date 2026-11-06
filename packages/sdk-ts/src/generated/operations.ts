@@ -1465,7 +1465,6 @@ export type OperationId =
   | "sensitiveConsents.withdraw"
   | "sensitiveConsents.report"
   | "sensitiveFieldRecords.list"
-  | "sensitiveFieldRecords.get"
   | "workDetails.list"
   | "workDetails.create"
   | "workDetails.get"
@@ -35286,29 +35285,6 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "me.work_details.write",
     scopes: ["me"],
   },
-  "sensitiveFieldRecords.get": {
-    id: "sensitiveFieldRecords.get",
-    resource: "sensitiveFieldRecords",
-    verb: "get",
-    method: "GET",
-    path: "/sensitive-field-records/{id}",
-    pathParams: ["id"],
-    queryParams: [],
-    requiredQueryParams: [],
-    paged: false,
-    fields: true,
-    idempotent: false,
-    ifMatch: false,
-    body: null,
-    bodyRequired: false,
-    successStatus: 200,
-    response: "SensitiveFieldRecord",
-    item: null,
-    tag: "Identity",
-    summary: "Get a sensitive field record",
-    capability: "me.work_details.write",
-    scopes: ["me"],
-  },
   "workDetails.list": {
     id: "workDetails.list",
     resource: "workDetails",
@@ -44626,11 +44602,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "sensitiveConsents.report",
     ],
   },
-  {
-    name: "sensitiveFieldRecords",
-    tag: "Identity",
-    operations: ["sensitiveFieldRecords.list", "sensitiveFieldRecords.get"],
-  },
+  { name: "sensitiveFieldRecords", tag: "Identity", operations: ["sensitiveFieldRecords.list"] },
   {
     name: "workDetails",
     tag: "Identity",
