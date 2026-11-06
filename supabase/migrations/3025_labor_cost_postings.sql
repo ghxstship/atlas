@@ -289,8 +289,11 @@ revoke select, insert, update, delete on app.labor_cost_postings from authentica
 grant select (id, org_id, timesheet_approval_id, shift_id, role_code, work_date, minutes, segment, multiplier, rate_source,
   currency_code, created_at, created_by, updated_at, updated_by, deleted_at) on app.labor_cost_postings to authenticated;
 -- Trash's restore (1031) plans an update of deleted_at on every table that references the restored row, as the caller.
--- With this column grant the plan passes and, with no update policy, no posting ever changes.
+-- This grant and policy let that plan pass; its rows are never soft-deleted, so it matches none, and t95_append_only
+-- refuses any update that does reach a row.
 grant update (deleted_at) on app.labor_cost_postings to authenticated;
+create policy labor_cost_postings_update on app.labor_cost_postings for update to authenticated
+  using (shift_id in (select s.id from app.shifts s where s.project_id in (select private.project_ids_with('crew.shift.write'))));
 call private.install_default_retention('app.labor_cost_postings');
 
 insert into private.column_classifications (table_name, column_name, classification, read_capability) values

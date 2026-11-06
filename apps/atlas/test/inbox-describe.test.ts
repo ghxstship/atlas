@@ -94,7 +94,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "incident.reported": { title: "NWS-32 Slip at dock" },
   "invoice.approved": { title: "INV-0042" },
-  "quote.accepted": { quoteKey: "NWF26-Q-14", version: 1, actorName: "Cleo Marsh" },
+  "quote.accepted": { quoteKey: "NWF26-Q-14", version: "1", actorName: "Cleo Marsh" },
   "invoice.submitted": { title: "INV-0042" },
   "invoice.scheduled": { title: "INV-0042" },
   "invoice.paid": { title: "INV-0042" },
