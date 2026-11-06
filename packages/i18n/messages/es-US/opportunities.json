@@ -805,7 +805,7 @@
     "create": "Crear página",
     "created": "Página creada. Ábrela para agregar preguntas y publicarla.",
     "empty": "Aún no hay páginas de registro. Abre una para que el equipo y los voluntarios se registren y se unan a un grupo.",
-    "emptyRead": "Ver páginas de registro",
+    "emptyReader": "Aún no hay páginas de registro. Las abre quien administra los grupos.",
     "noPools": "Primero crea un grupo de talento en la página Grupos. Una página de registro llena uno.",
     "openCount": "{count, plural, one {# registro abierto} other {# registros abiertos}}",
     "copyLink": "Copiar enlace",

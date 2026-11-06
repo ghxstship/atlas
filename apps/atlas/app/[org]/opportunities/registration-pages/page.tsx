@@ -106,13 +106,17 @@ export default async function RegistrationPagesPage({
         )
       ) : null}
       {rows.length === 0 && !creating ? (
-        <EmptyStateLink
-          icon="ClipboardList"
-          sentence={t("registrationPages.empty")}
-          actionLabel={canWrite ? t("registrationPages.new") : t("registrationPages.emptyRead")}
-          href={page.href({ create: "1" })}
-          secondary
-        />
+        canWrite ? (
+          <EmptyStateLink
+            icon="ClipboardList"
+            sentence={t("registrationPages.empty")}
+            actionLabel={t("registrationPages.new")}
+            href={page.href({ create: "1" })}
+            secondary
+          />
+        ) : (
+          <Muted>{t("registrationPages.emptyReader")}</Muted>
+        )
       ) : page.view === "table" ? (
         <Table
           caption={t("registrationPages.title")}
@@ -167,7 +171,7 @@ export default async function RegistrationPagesPage({
       )}
       {registrations.length > 0 ? (
         <Section id="registrations" title={t("registrations.title")}>
-          <RegistrationQueue org={ctx.org.slug} rows={registrations} />
+          <RegistrationQueue org={ctx.org.slug} rows={registrations} canDecide={canWrite} />
         </Section>
       ) : null}
     </TemplateCollection>
@@ -408,7 +412,7 @@ async function PageRecord({
         {queue.length === 0 ? (
           <Muted>{t("registrations.empty")}</Muted>
         ) : (
-          <RegistrationQueue org={ctx.org.slug} rows={queue} />
+          <RegistrationQueue org={ctx.org.slug} rows={queue} canDecide={canWrite} />
         )}
       </Section>
     </div>

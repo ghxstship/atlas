@@ -805,7 +805,7 @@
     "create": "Create page",
     "created": "Page created. Open it to add questions and publish.",
     "empty": "No registration pages yet. Open one so crew and volunteers can register to join a pool.",
-    "emptyRead": "See registration pages",
+    "emptyReader": "No registration pages yet. A pool manager opens them.",
     "noPools": "Create a Talent pool first, on the Pools page. A registration page fills one.",
     "openCount": "{count, plural, one {# open registration} other {# open registrations}}",
     "copyLink": "Copy link",
