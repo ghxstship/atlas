@@ -1,7 +1,8 @@
 -- pgTAP: 3010, expense credits and the reimbursable flag (B12, RRR-236, gaps G-223 and G-228). A credit is an expense row
 -- naming an Approved or Paid charge on the same line, with the charge's counterparty and a positive amount, never beyond
--- what is left; only the approver's or the payer's side records one. The same checks run when a credit's amount
--- changes, when it is resubmitted and when it is restored from Trash. A credit keeps its counterparty. A charge with
+-- what is left; only the approver's or the payer's side records one, and none on a closed production. The same checks
+-- run when a credit's amount changes, when it is resubmitted and when it is restored from Trash unless it is Rejected or
+-- Canceled, since then it holds no room. A credit keeps its counterparty. A charge with
 -- standing credits, an Approved or Paid credit and a reimbursed expense stay out of Trash. The reimbursable flag needs a submitter, is never on a credit and is fixed after Proposed,
 -- and the reimbursement link changes only inside the reimbursement RPCs.
 begin;
@@ -102,6 +103,12 @@ select pg_temp.expense('cr_4', 'carol', 'line_a', 8000, '2027-06-14', null, fals
 select pg_temp.as_user('carol');
 select throws_like(format($$update app.expenses set deleted_at = null where id = %L$$, pg_temp.id('cr_3')),
   'expense_credit_exceeds:%', 'a credit restored from Trash beyond the charge is refused');
+-- cr_2 is Rejected: it holds no room and counts in no figure, so it comes back from Trash with the charge full.
+select lives_ok(format($$update app.expenses set deleted_at = now() where id = %L$$, pg_temp.id('cr_2')), 'a Rejected credit goes to Trash');
+select lives_ok(format($$update app.expenses set deleted_at = null where id = %L$$, pg_temp.id('cr_2')),
+  'and is restored though the charge has no room left');
+select throws_like(format($$select app.transition_expense(%L, 'Rejected', 'Proposed', 'Received after all.')$$, pg_temp.id('cr_2')),
+  'expense_credit_exceeds:%', 'the check waits for its resubmission');
 select pg_temp.as_platform();
 
 -- A charge with standing credits stays out of Trash.
@@ -202,6 +209,18 @@ with x as (insert into app.budget_lines (budget_id, line_number, description, ur
 select throws_ok(format($$insert into app.expenses (budget_line_id, description, incurred_on, amount_minor, currency_code, credit_of_expense_id)
   values (%L, 'Foreign credit.', '2027-06-12', 100, 'USD', %L)$$, pg_temp.id('line_xb'), pg_temp.id('exp_a')),
   'XR001', null, 'a credit against another org''s expense is refused');
+select pg_temp.as_platform();
+
+-- A closed production takes no credit: a refund after close goes through a journal entry (invariant 10, ADR 0151 item 1).
+select pg_temp.as_user('alice');
+select app.transition_production(pg_temp.id('prj_a'), 'Proposed', 'Active', 'Live.');
+select app.transition_production(pg_temp.id('prj_a'), 'Active', 'Complete', 'Wrapped.');
+select app.transition_production(pg_temp.id('prj_a'), 'Complete', 'Closed', 'Closed.');
+select pg_temp.as_user('carol');
+select throws_ok(format($$insert into app.expenses (budget_line_id, description, incurred_on, amount_minor, currency_code, credit_of_expense_id)
+  values (%L, 'Refund after close.', '2027-06-24', 100, 'USD', %L)$$, pg_temp.id('line_b'), pg_temp.id('exp_keep')),
+  'XR001', 'production_closed: A closed production refuses new invoices, purchase orders, expenses, time entries and change orders.',
+  'a credit is refused on a closed production (production_closed)');
 select pg_temp.as_platform();
 
 select * from finish();

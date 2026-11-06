@@ -173,11 +173,12 @@ begin
       perform private.refuse('expense_has_credits', 'An expense with credits stays out of Trash while they stand; cancel or reject them first.');
     end if;
     -- A credit comes back into play when its amount changes while Proposed, when it is resubmitted, or when it is
-    -- restored from Trash: the original is checked again.
+    -- restored from Trash still counting: the original is checked again. A Rejected or Canceled credit holds no room
+    -- and counts in no figure, so restoring one checks nothing, and a Rejected one is checked when it is resubmitted.
     if new.credit_of_expense_id is not null and new.deleted_at is null
        and (new.amount_minor <> old.amount_minor
          or (old.expense_state = 'Rejected' and new.expense_state = 'Proposed')
-         or old.deleted_at is not null) then
+         or (old.deleted_at is not null and new.expense_state not in ('Rejected', 'Canceled'))) then
       v_check_credit := true;
     end if;
   end if;
@@ -213,7 +214,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_expense() is 'Expenses: submitter from the session, budget line fixed (invariant 12), amount locked after submission, budget currency, and no new expense on a closed production (invariant 10), credits included. A credit (3010) is inserted under the finance.expense.write policy (0321) and also needs finance.expense.approve on the project or finance.payment.write in the org, against a live Approved or Paid charge of the org on the same line (expense_credit_original, expense_credit_line) that was not reimbursed to its payer (expense_credit_reimbursed), takes its counterparty, and keeps the live credits that are not Rejected or Canceled within the charge (expense_credit_exceeds); the same checks run when a credit''s amount changes, when it is resubmitted and when it is restored from Trash. The credit link and the counterparty of a credit never change (expense_credit_immutable), an Approved or Paid credit stays out of Trash (expense_credit_posted), the reimbursable flag is fixed after Proposed (expense_reimbursable_locked), the reimbursement link changes only inside the reimbursement RPCs (expense_reimbursement_rpc), a reimbursed expense keeps its description and counterparty and stays out of Trash (expense_reimbursed_locked), and a charge with standing credits stays out of Trash (expense_has_credits).';
+comment on function private.guard_expense() is 'Expenses: submitter from the session, budget line fixed (invariant 12), amount locked after submission, budget currency, and no new expense on a closed production (invariant 10), credits included. A credit (3010) is inserted under the finance.expense.write policy (0321) and also needs finance.expense.approve on the project or finance.payment.write in the org, against a live Approved or Paid charge of the org on the same line (expense_credit_original, expense_credit_line) that was not reimbursed to its payer (expense_credit_reimbursed), takes its counterparty, and keeps the live credits that are not Rejected or Canceled within the charge (expense_credit_exceeds); the same checks run when a credit''s amount changes, when it is resubmitted and when it is restored from Trash unless it is Rejected or Canceled. The credit link and the counterparty of a credit never change (expense_credit_immutable), an Approved or Paid credit stays out of Trash (expense_credit_posted), the reimbursable flag is fixed after Proposed (expense_reimbursable_locked), the reimbursement link changes only inside the reimbursement RPCs (expense_reimbursement_rpc), a reimbursed expense keeps its description and counterparty and stays out of Trash (expense_reimbursed_locked), and a charge with standing credits stays out of Trash (expense_has_credits).';
 revoke all on function private.guard_expense() from public, anon, authenticated;
 
 select private.sync_trash_tables();

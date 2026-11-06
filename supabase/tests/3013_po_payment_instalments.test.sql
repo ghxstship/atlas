@@ -2,9 +2,11 @@
 -- Canceled order, on a Closed order only a bill linked to, or the removal of, an unbilled instalment (restores refused),
 -- a Canceled bill read as no bill everywhere, the live instalments within the order's known total of lines, approved
 -- change orders, tax and shipping, a billed instalment's amount fixed, one instalment per bill and only a live,
--- non-Canceled payable of the order's vendor, project and currency, and app.po_instalment_schedule's statuses from
--- Approved payments (paid) and Proposed ones (scheduled), stopping at Invoiced without finance.payment.read, with the
--- schedule's and the order's totals, refused without procurement.po.read.
+-- non-Canceled payable of the order's vendor, project and currency not matched to another order, linked only under
+-- finance.invoice.read, the schedule written only under procurement.po.write, and app.po_instalment_schedule's statuses
+-- from Approved payments (paid) and Proposed ones (scheduled), stopping at Invoiced without finance.payment.read, its bill
+-- columns withheld without finance.invoice.read, with the schedule's and the order's totals, refused without
+-- procurement.po.read.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -24,6 +26,19 @@ begin
   insert into world values (p_key, v);
   insert into app.po_lines (purchase_order_id, line_number, description, quantity, unit_price_minor)
   values (v, 1, 'Rigging package.', 2, p_price);
+end $$;
+
+-- A Proposed bill from cp_rig that differs from pg_temp.bill's only by its direction or its project.
+create function pg_temp.odd_bill(p_key text, p_project text, p_direction text) returns void
+language plpgsql as $$
+declare
+  v uuid;
+begin
+  insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code, due_on)
+  values (pg_temp.id(p_project), p_direction::app.money_direction, pg_temp.id('cp_rig'), upper(p_key), 'USD', '2027-07-05') returning id into v;
+  insert into world values (p_key, v);
+  insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid)
+  values (v, 1, 'Billed.', 1, 1000, '0000.01.01');
 end $$;
 
 
@@ -94,6 +109,50 @@ select throws_ok(format($$update app.po_payment_instalments set invoice_id = %L 
 select throws_ok(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_void'), pg_temp.id('i_bal')),
   'XR001', 'po_instalment_invoice: Link a live payable bill from the order''s vendor, on its project and in its currency, that is not matched to another order.',
   'a Canceled bill is refused');
+select pg_temp.odd_bill('bill_recv', 'prj_a', 'Receivable');
+select pg_temp.odd_bill('bill_gala', 'prj_a2', 'Payable');
+select pg_temp.bill('bill_eur', 'cp_rig', 'EUR', 1000, '2027-07-05', 'Proposed');
+select pg_temp.as_user('carol');
+select throws_like(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_recv'), pg_temp.id('i_bal')),
+  'po_instalment_invoice:%', 'a receivable is refused');
+select throws_like(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_gala'), pg_temp.id('i_bal')),
+  'po_instalment_invoice:%', 'a bill on another project is refused');
+select throws_like(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_eur'), pg_temp.id('i_bal')),
+  'po_instalment_invoice:%', 'a bill in another currency is refused');
+
+-- A bill matched to one order bills that order only.
+select pg_temp.make_order('po_m', 10000, null, null);
+select pg_temp.as_user('bob');
+select app.approve_purchase_order(pg_temp.id('po_m'), 'Within limit.');
+select pg_temp.bill('bill_m', 'cp_rig', 'USD', 5000, '2027-07-05', 'Proposed');
+select pg_temp.as_user('carol');
+with x as (insert into app.goods_receipts (purchase_order_id) values (pg_temp.id('po_m')) returning id) insert into world select 'gr_m', id from x;
+insert into app.invoice_matches (invoice_id, purchase_order_id, goods_receipt_id) values (pg_temp.id('bill_m'), pg_temp.id('po_m'), pg_temp.id('gr_m'));
+select throws_like(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_m'), pg_temp.id('i_bal')),
+  'po_instalment_invoice:%', 'a bill matched to another order is refused');
+select lives_ok(format($$insert into app.po_payment_instalments (purchase_order_id, instalment_number, label, due_on, amount_minor, invoice_id)
+  values (%L, 1, 'Deposit', '2027-06-01', 5000, %L)$$, pg_temp.id('po_m'), pg_temp.id('bill_m')), 'and it links on the order it is matched to');
+
+-- Linking reads the bill, which procurement.po.write alone does not give.
+select pg_temp.bill('bill_free', 'cp_rig', 'USD', 1000, '2027-07-05', 'Proposed');
+delete from app.role_capabilities where role_id = pg_temp.system_role('manager') and capability_code = 'finance.invoice.read';
+select pg_temp.as_user('carol');
+select throws_ok(format($$update app.po_payment_instalments set invoice_id = %L where id = %L$$, pg_temp.id('bill_free'), pg_temp.id('i_bal')),
+  '42501', 'finance.invoice.read is required on the project to link a bill', 'a scheduler without finance.invoice.read links no bill');
+select lives_ok(format($$update app.po_payment_instalments set label = 'Balance' where id = %L$$, pg_temp.id('i_bal')),
+  'and still keeps the rest of the schedule');
+select pg_temp.as_platform();
+insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('manager'), 'finance.invoice.read', 'organization');
+
+-- The write policy: dave reads orders (member) and holds no procurement.po.write.
+select pg_temp.as_user('dave');
+select throws_ok(format($$insert into app.po_payment_instalments (purchase_order_id, instalment_number, label, due_on, amount_minor)
+  values (%L, 9, 'Reader', '2027-07-01', 100)$$, pg_temp.id('po_c')), '42501', null, 'without procurement.po.write nothing is scheduled');
+update app.po_payment_instalments set label = 'Changed by a reader', deleted_at = now() where id = pg_temp.id('i_bal');
+select pg_temp.as_platform();
+select is((select label || '/' || (deleted_at is null)::text from app.po_payment_instalments where id = pg_temp.id('i_bal')), 'Balance/true',
+  'and nothing is changed or removed');
+select pg_temp.as_user('carol');
 select throws_ok(format($$update app.po_payment_instalments set amount_minor = 40000 where id = %L$$, pg_temp.id('i_dep')),
   'XR001', 'po_instalment_invoiced: A billed instalment keeps its amount; unlink the bill first.',
   'a billed instalment keeps its amount (po_instalment_invoiced)');
@@ -142,6 +201,16 @@ select is((select status || '/' || coalesce(paid_minor::text, 'null') || '/' || 
   'a procurement reader without finance.payment.read sees Invoiced, no paid amount, and the bill''s id');
 select pg_temp.as_platform();
 insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), 'finance.payment.read', 'organization');
+
+-- Without finance.invoice.read the bill's number and total are withheld and its id stays, as the table's policy shows it.
+delete from app.role_capabilities where role_id = pg_temp.system_role('member') and capability_code = 'finance.invoice.read';
+select pg_temp.as_user('dave');
+select is((select coalesce(invoice_number, 'null') || '/' || coalesce(invoice_total_minor::text, 'null') || '/' || is_invoice_withheld::text || '/'
+    || is_payment_withheld::text || '/' || (invoice_id is not null)::text
+  from app.po_instalment_schedule(pg_temp.id('po_a')) where instalment_number = 1), 'null/null/true/false/true',
+  'a procurement reader without finance.invoice.read sees the bill''s id and neither its number nor its total');
+select pg_temp.as_platform();
+insert into app.role_capabilities (role_id, capability_code, reach) values (pg_temp.system_role('member'), 'finance.invoice.read', 'organization');
 select pg_temp.as_user('carol');
 select pg_temp.as_user('gina');
 select throws_ok(format($$select * from app.po_instalment_schedule(%L)$$, pg_temp.id('po_a')), '42501', null,
