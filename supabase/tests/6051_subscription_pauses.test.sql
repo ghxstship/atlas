@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(83);
+select plan(84);
 
 create temporary table k (key text primary key, at timestamptz, id uuid);
 grant select, insert, update on k to public;
@@ -327,6 +327,12 @@ insert into app.org_deletion_requests (org_id, reason, recover_until, requested_
 values (pg_temp.id('org_b'), 'Closing down.', now() + interval '7 days', pg_temp.id('xavier'));
 select is((select end_reason::text from app.subscription_pauses where org_id = pg_temp.id('org_b')), 'Canceled',
   'a deletion request ends the pause too');
+select pg_temp.as_service();
+select is(app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', 'sub_H4rb0r', 'team', 'Annual', 'paused', now() + interval '200 days', false,
+  0, false, null, now() + interval '1 minute')::text, 'canceled', 'a paused status on an org being deleted changes nothing (6140)');
+select pg_temp.as_platform();
+select is((select count(*)::integer from app.subscription_pauses where org_id = pg_temp.id('org_b') and ended_at is null), 0, 'and opens no pause');
+update app.org_deletion_requests set recovered_at = now() where org_id = pg_temp.id('org_b');
 select pg_temp.as_service();
 select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', 'sub_H4rb0r', 'team', 'Annual', 'paused', now() + interval '200 days', false,
   0, false, null, now() + interval '1 minute');
