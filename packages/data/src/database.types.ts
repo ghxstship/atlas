@@ -71497,6 +71497,7 @@ export type Database = {
       attest_roster_meal_preference: {
         Args: {
           p_authority_confirmed?: boolean;
+          p_client_ip?: unknown;
           p_locale: string;
           p_notice_confirmed?: boolean;
           p_notice_version: string;
@@ -73308,6 +73309,7 @@ export type Database = {
           p_account_id?: string;
           p_authority_confirmed?: boolean;
           p_category: Database["app"]["Enums"]["sensitive_data_category"];
+          p_client_ip?: unknown;
           p_locale: string;
           p_notice_confirmed?: boolean;
           p_notice_version: string;
@@ -73846,6 +73848,15 @@ export type Database = {
           category: Database["app"]["Enums"]["sensitive_data_category"];
           given_at: string;
           notice_version: string;
+        }[];
+      };
+      my_sensitive_states: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          held: boolean;
+          meal_preferences: string[];
+          waiting: boolean;
         }[];
       };
       my_sessions: {
@@ -75888,15 +75899,17 @@ export type Database = {
         Args: {
           p_accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
           p_accessibility_notes?: string;
+          p_accessibility_notice_version?: string;
           p_allergies?: string;
           p_authority_confirmed?: boolean;
+          p_client_ip?: unknown;
           p_dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
           p_dietary_notes?: string;
+          p_dietary_notice_version?: string;
           p_guest_email?: string;
           p_guest_list_entry_id: string;
           p_locale?: string;
           p_notice_confirmed?: boolean;
-          p_notice_version?: string;
           p_surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
         };
         Returns: string;

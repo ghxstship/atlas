@@ -50776,8 +50776,13 @@
           },
           "meal_preference": {
             "type": ["string", "null"],
-            "description": "Meal preference.",
+            "description": "Meal preference. Restricted: only the person, and holders of data.restricted.read.medical on the project while a grant stands, read it.",
             "example": "Vegetarian"
+          },
+          "meal_preference_masked": {
+            "type": "boolean",
+            "description": "One is on file that the caller may not read. Absent when there is nothing to mask.",
+            "example": false
           },
           "needs_ground_transport": {
             "type": "boolean",
@@ -50994,7 +50999,7 @@
           "meal_preference": {
             "type": ["string", "null"],
             "maxLength": 100,
-            "description": "Meal preference.",
+            "description": "Meal preference: needs the person's consent, or the company's attestation (422 sensitive_consent_required). A company sends null to leave one as it is, because it cannot read it back.",
             "example": "Vegetarian"
           },
           "needs_ground_transport": {
@@ -52941,11 +52946,18 @@
             "description": "The guest has been told what is entered, why and who sees it.",
             "example": true
           },
-          "notice_version": {
-            "type": "string",
+          "dietary_notice_version": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20,
-            "description": "Version of the wording the caller read.",
+            "description": "Version of the dietary wording the caller read.",
+            "example": "2026-11-06"
+          },
+          "accessibility_notice_version": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Version of the accessibility wording the caller read.",
             "example": "2026-11-06"
           },
           "locale": {
@@ -52956,7 +52968,7 @@
             "example": "en-US"
           }
         },
-        "required": ["authority_confirmed", "notice_confirmed", "notice_version", "locale"],
+        "required": ["authority_confirmed", "notice_confirmed", "locale"],
         "description": "A guest's needs, under the caller's attestation."
       },
       "GuestNeedsPage": {
@@ -147667,6 +147679,7 @@
                     "outbound_on": "2026-10-08",
                     "seat_preference": "Aisle",
                     "meal_preference": "Vegetarian",
+                    "meal_preference_masked": false,
                     "needs_ground_transport": true,
                     "needs_lodging": false,
                     "travel_notes": "Arriving with a guitar case.",
@@ -148021,6 +148034,7 @@
                         "outbound_on": "2026-10-08",
                         "seat_preference": "Aisle",
                         "meal_preference": "Vegetarian",
+                        "meal_preference_masked": false,
                         "needs_ground_transport": true,
                         "needs_lodging": false,
                         "travel_notes": "Arriving with a guitar case.",
@@ -149971,7 +149985,7 @@
         "x-xos-capability": "advancing.rider.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
         "summary": "Set a guest's dietary and access needs",
-        "description": "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version and language of the wording they were shown (422 sensitive_notice_version). Attested per category with who gave it, and audited without values. An email matching a verified sign-in names that person, who is told and can remove it; a person who withdrew that category refuses it (422 sensitive_person_withdrew). The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category is not attested back in: it is not saved, and the answer is the same. The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -150000,7 +150014,8 @@
                 "guest_email": "jo@example.com",
                 "authority_confirmed": true,
                 "notice_confirmed": true,
-                "notice_version": "2026-11-06",
+                "dietary_notice_version": "2026-11-06",
+                "accessibility_notice_version": "2026-11-06",
                 "locale": "en-US"
               },
               "schema": { "$ref": "#/components/schemas/GuestNeedsRequest" }

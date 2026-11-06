@@ -21018,9 +21018,7 @@ class RosterFactProvenance(TypedDict):
     vehicle: bool
 
 
-class RosterTravelRequest(TypedDict):
-    """The travel a rostered person asks for on one project (R5)."""
-
+class _RosterTravelRequestRequired(TypedDict):
     #: Identifier of the travel request.
     id: str
     #: IATA code of the airport the person flies into.
@@ -21037,7 +21035,7 @@ class RosterTravelRequest(TypedDict):
     outbound_on: Optional[str]
     #: Preferred seat.
     seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
-    #: Meal preference.
+    #: Meal preference. Restricted: only the person, and holders of data.restricted.read.medical on the project while a grant stands, read it.
     meal_preference: Optional[str]
     #: The person needs a pickup on arrival.
     needs_ground_transport: bool
@@ -21047,6 +21045,13 @@ class RosterTravelRequest(TypedDict):
     travel_notes: Optional[str]
     #: When the request was last saved.
     updated_at: str
+
+
+class RosterTravelRequest(_RosterTravelRequestRequired, total=False):
+    """The travel a rostered person asks for on one project (R5)."""
+
+    #: One is on file that the caller may not read. Absent when there is nothing to mask.
+    meal_preference_masked: bool
 
 
 class RosterUniformSizes(TypedDict):
@@ -21117,7 +21122,7 @@ class RosterTravelRequestInput(_RosterTravelRequestInputRequired, total=False):
 
     #: Preferred seat.
     seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
-    #: Meal preference.
+    #: Meal preference: needs the person's consent, or the company's attestation (422 sensitive_consent_required). A company sends null to leave one as it is, because it cannot read it back.
     meal_preference: Optional[str]
     #: A pickup is needed on arrival.
     needs_ground_transport: bool
@@ -21852,8 +21857,6 @@ class _GuestNeedsRequestRequired(TypedDict):
     authority_confirmed: bool
     #: The guest has been told what is entered, why and who sees it.
     notice_confirmed: bool
-    #: Version of the wording the caller read.
-    notice_version: str
     #: Language the wording was shown in.
     locale: str
 
@@ -21871,6 +21874,10 @@ class GuestNeedsRequest(_GuestNeedsRequestRequired, total=False):
     accessibility_notes: Optional[str]
     #: The guest's email, so they can see this and remove it.
     guest_email: Optional[str]
+    #: Version of the dietary wording the caller read.
+    dietary_notice_version: Optional[str]
+    #: Version of the accessibility wording the caller read.
+    accessibility_notice_version: Optional[str]
 
 
 class GuestNeedsPage(TypedDict):

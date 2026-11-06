@@ -37808,9 +37808,13 @@ export interface RosterTravelRequest {
    */
   readonly seat_preference: "Window" | "Aisle" | "No Preference" | null;
   /**
-   * Meal preference.
+   * Meal preference. Restricted: only the person, and holders of data.restricted.read.medical on the project while a grant stands, read it.
    */
   readonly meal_preference: string | null;
+  /**
+   * One is on file that the caller may not read. Absent when there is nothing to mask.
+   */
+  readonly meal_preference_masked?: boolean;
   /**
    * The person needs a pickup on arrival.
    */
@@ -37964,7 +37968,7 @@ export interface RosterTravelRequestInput {
    */
   readonly seat_preference?: "Window" | "Aisle" | "No Preference" | null;
   /**
-   * Meal preference.
+   * Meal preference: needs the person's consent, or the company's attestation (422 sensitive_consent_required). A company sends null to leave one as it is, because it cannot read it back.
    * Length: 0 to 100.
    */
   readonly meal_preference?: string | null;
@@ -39437,10 +39441,15 @@ export interface GuestNeedsRequest {
    */
   readonly notice_confirmed: boolean;
   /**
-   * Version of the wording the caller read.
+   * Version of the dietary wording the caller read.
    * Length: 1 to 20.
    */
-  readonly notice_version: string;
+  readonly dietary_notice_version?: string | null;
+  /**
+   * Version of the accessibility wording the caller read.
+   * Length: 1 to 20.
+   */
+  readonly accessibility_notice_version?: string | null;
   /**
    * Language the wording was shown in.
    * Length: 1 to 10.

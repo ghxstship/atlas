@@ -537,7 +537,14 @@ export async function MyWorkDetailsPanel({ ctx }: { ctx: OrgContext }) {
         </InlineAlert>
       </div>
       <ContactsSection ctx={ctx} t={t} region={region} />
-      <NeedsSections ctx={ctx} t={t} d={d} consents={consents.data} states={states.data} formatDay={formatDay} />
+      <NeedsSections
+        ctx={ctx}
+        t={t}
+        d={d}
+        consents={consents.data}
+        states={states.data}
+        formatDay={formatDay}
+      />
       <EnteredForMeSection
         t={t}
         entries={entered.data}

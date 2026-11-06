@@ -122,7 +122,10 @@ const TravelValue = z
       ),
     ),
     meal_preference_masked: fields
-      .bool("One is on file that the caller may not read. Absent when there is nothing to mask.", false)
+      .bool(
+        "One is on file that the caller may not read. Absent when there is nothing to mask.",
+        false,
+      )
       .optional(),
     needs_ground_transport: fields.bool("The person needs a pickup on arrival.", true),
     needs_lodging: fields.bool("The person needs a room.", false),

@@ -99,7 +99,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only that needs are on file; the Owner and the catering lead and on-site medical roles read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it.",
+            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner and the catering lead and on-site medical roles read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it.",
           },
         ],
       },
@@ -2918,7 +2918,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota de acceso. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves que hay necesidades registradas; el Propietario y los roles de jefe de catering y personal médico en sitio las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas.",
+            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota de acceso. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves quién lo declaró y cuándo; el Propietario y los roles de jefe de catering y personal médico en sitio las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas.",
           },
         ],
       },

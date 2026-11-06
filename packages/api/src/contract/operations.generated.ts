@@ -4099,7 +4099,8 @@ export interface Components {
     guest_email?: string | null;
     authority_confirmed: boolean;
     notice_confirmed: boolean;
-    notice_version: string;
+    dietary_notice_version?: string | null;
+    accessibility_notice_version?: string | null;
     locale: string;
   };
   HandbookArticle: {
@@ -8066,6 +8067,7 @@ export interface Components {
     outbound_on: string | null;
     seat_preference: "Window" | "Aisle" | "No Preference" | null;
     meal_preference: string | null;
+    meal_preference_masked?: boolean;
     needs_ground_transport: boolean;
     needs_lodging: boolean;
     travel_notes: string | null;

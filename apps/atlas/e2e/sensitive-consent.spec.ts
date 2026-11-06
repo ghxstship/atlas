@@ -149,7 +149,11 @@ test("whoever keeps a guest list attests, and only the Owner reads the needs bac
   await expect(next).toBeDisabled();
   await needs.getByLabel("I have this person's authority to enter this.").check();
   await expect(next).toBeDisabled();
-  await needs.getByLabel("This person has been told what is entered, why and who sees it, and that they can have it removed.").check();
+  await needs
+    .getByLabel(
+      "This person has been told what is entered, why and who sees it, and that they can have it removed.",
+    )
+    .check();
   await next.click();
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await expectAccessible(page);

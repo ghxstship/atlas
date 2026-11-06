@@ -280,7 +280,9 @@ function NeedsCard({
   const onFileLines = (): readonly string[] => {
     const held = dietary
       ? [
-          ...(details?.dietaryNeeds ?? []).map((n) => t(`${W}.dietaryNeeds.${workDetailLabelKey(n)}`)),
+          ...(details?.dietaryNeeds ?? []).map((n) =>
+            t(`${W}.dietaryNeeds.${workDetailLabelKey(n)}`),
+          ),
           details?.allergies,
           details?.dietaryNotes,
         ]
@@ -294,7 +296,9 @@ function NeedsCard({
     return [
       ...(values.length > 0 ? [t(`${W}.consent.gate.onFile`, { values: values.join(", ") })] : []),
       ...(dietary
-        ? ungrantedMealPreferences(states).map((value) => t(`${W}.consent.gate.mealOnFile`, { value }))
+        ? ungrantedMealPreferences(states).map((value) =>
+            t(`${W}.consent.gate.mealOnFile`, { value }),
+          )
         : []),
     ];
   };

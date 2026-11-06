@@ -529,7 +529,13 @@ export async function MyWorkDetailsPanel({ ctx }: { ctx: GatewayContext }) {
         </InlineAlert>
       </div>
       <ContactsSection ctx={ctx} t={t} region={region} />
-      <NeedsSections t={t} d={d} consents={consents.data} states={states.data} formatDay={formatDay} />
+      <NeedsSections
+        t={t}
+        d={d}
+        consents={consents.data}
+        states={states.data}
+        formatDay={formatDay}
+      />
       <EnteredForMeSection t={t} entries={entered.data} hidden={hidden} formatDay={formatDay} />
       <LoyaltySection ctx={ctx} t={t} />
       <PassportSection t={t} d={d} />
