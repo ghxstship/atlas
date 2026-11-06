@@ -177,8 +177,18 @@ export default async function ListingPage({ params }: PageProps<"/moderation/[op
                     ) : a.sameReviewer ? (
                       <span>{t("moderation.reviewerSame")}</span>
                     ) : null}
-                    {a.hasReview && !a.toldBy ? (
-                      <InlineAlert tone="danger">{t("moderation.notTold")}</InlineAlert>
+                    {a.toldAt ? (
+                      <span>
+                        {a.toldBy === "Operator"
+                          ? t("moderation.toldByOperator", { when: instant(a.toldAt) })
+                          : t("moderation.told", { when: instant(a.toldAt) })}
+                      </span>
+                    ) : a.hasReview && (!a.toldBy || a.noticeState === "Failed") ? (
+                      <InlineAlert tone="danger">
+                        {t(a.toldBy ? "moderation.noticeFailed" : "moderation.notTold")}
+                      </InlineAlert>
+                    ) : a.hasReview && a.toldBy === "Email" ? (
+                      <span>{t("moderation.noticeOnItsWay")}</span>
                     ) : null}
                   </span>
                 )}

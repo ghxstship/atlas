@@ -27,7 +27,12 @@ export interface LegalQueueItem {
   readonly basis: LegalQueueBasis;
   /** The clock is a Customer's own: the queue watches it and does not work it. */
   readonly customerClock: boolean;
+  /** What the operator typed, or for a fed or system item a code the console words from its catalog. */
   readonly title: string;
+  /** A fed report's or appeal's listing title, read live; null otherwise or once it is gone. */
+  readonly liveTitle: string | null;
+  /** On a repeat infringer review: the notices now counted. */
+  readonly counted: number | null;
   readonly state: LegalQueueState;
   readonly orgName: string | null;
   readonly receivedAt: string;
@@ -55,6 +60,8 @@ function toItem(value: unknown): LegalQueueItem {
     basis: str(r["basis"]) as LegalQueueBasis,
     customerClock: bool(r["customer_clock"]),
     title: str(r["title"]),
+    liveTitle: strOrNull(r["live_title"]),
+    counted: r["counted"] === null || r["counted"] === undefined ? null : num(r["counted"]),
     state: str(r["state"]) as LegalQueueState,
     orgName: strOrNull(r["org_name"]),
     receivedAt: str(r["received_at"]),
@@ -73,14 +80,29 @@ function toItem(value: unknown): LegalQueueItem {
 export interface LegalQueue {
   /** The time zone clocks count in, for showing them as they are counted. */
   readonly timeZone: string;
+  /** GHXSTSHIP's own work, by the clock that comes next. */
   readonly items: readonly LegalQueueItem[];
-  readonly summary: { readonly open: number; readonly overdue: number; readonly dueSoon: number };
+  /** Customer clocks the queue only watches, kept apart so they never push real work off the list. */
+  readonly watched: readonly LegalQueueItem[];
+  readonly summary: {
+    readonly open: number;
+    readonly watched: number;
+    readonly overdue: number;
+    readonly dueSoon: number;
+  };
   /** Whether alerts are actually leaving: a clock is only as safe as this. */
   readonly delivery: {
     readonly stuck: number;
     readonly failed: number;
+    /** Results of a decision or appeal on their way to a person. */
+    readonly noticesStuck: number;
+    readonly noticesFailed: number;
     readonly lastSentAt: string | null;
     readonly overdueWithoutAlert: number;
+    /** The hourly sweep has not finished in 2 hours. */
+    readonly sweepStale: boolean;
+    /** An alert path failed inside the sweep in the last 24 hours. */
+    readonly alertPathFailed: boolean;
     readonly webhookConfigured: boolean;
   };
   readonly repeatInfringers: readonly {
@@ -123,16 +145,22 @@ export async function getLegalQueue(db: XosClient, open = true): Promise<Result<
     return {
       timeZone: str(d["time_zone"]),
       items: arr(d["items"]).map(toItem),
+      watched: arr(d["watched"]).map(toItem),
       summary: {
         open: num(summary["open"]),
+        watched: num(summary["watched"]),
         overdue: num(summary["overdue"]),
         dueSoon: num(summary["due_soon"]),
       },
       delivery: {
         stuck: num(delivery["stuck"]),
         failed: num(delivery["failed"]),
+        noticesStuck: num(delivery["notices_stuck"]),
+        noticesFailed: num(delivery["notices_failed"]),
         lastSentAt: strOrNull(delivery["last_sent_at"]),
         overdueWithoutAlert: num(delivery["overdue_without_alert"]),
+        sweepStale: bool(delivery["sweep_stale"]),
+        alertPathFailed: bool(delivery["alert_path_failed"]),
         webhookConfigured: bool(delivery["webhook_configured"]),
       },
       repeatInfringers: arr(d["repeat_infringers"]).map((x) => {
@@ -180,6 +208,10 @@ export interface LegalQueueEvent {
   readonly fromState: LegalQueueState | null;
   readonly toState: LegalQueueState | null;
   readonly note: string | null;
+  /** For an alert: the clock it was about, which the console words from its catalog. */
+  readonly alertClock: "First Response" | "Due" | null;
+  readonly alertClockAt: string | null;
+  readonly alertOverdue: boolean;
   readonly at: string;
   readonly actorName: string | null;
 }
@@ -195,6 +227,12 @@ export interface LegalQueueItemDetail extends LegalQueueItem {
   readonly relatedId: string | null;
   readonly relatedReference: string | null;
   readonly extendable: boolean;
+  /** Closing needs a fresh, documented re-review and how the person was told. */
+  readonly reReviewRequired: boolean;
+  /** Whether the first decider did the re-review; null until it is closed. */
+  readonly reReviewSamePerson: boolean | null;
+  /** The outside reviewer this appeal goes to, or who decided it. */
+  readonly outsideReviewerName: string | null;
   /** A fed appeal or report is decided on its listing's moderation page. */
   readonly opportunityId: string | null;
   readonly nextStates: readonly LegalQueueState[];
@@ -219,6 +257,12 @@ export async function getLegalQueueItem(
       relatedId: strOrNull(d["related_id"]),
       relatedReference: strOrNull(d["related_reference"]),
       extendable: bool(d["extendable"]),
+      reReviewRequired: bool(d["re_review_required"]),
+      reReviewSamePerson:
+        d["re_review_same_person"] === null || d["re_review_same_person"] === undefined
+          ? null
+          : bool(d["re_review_same_person"]),
+      outsideReviewerName: strOrNull(d["outside_reviewer_name"]),
       opportunityId: strOrNull(d["opportunity_id"]),
       nextStates: arr(d["next_states"]).map((s) => str(s) as LegalQueueState),
       events: arr(d["events"]).map((x) => {
@@ -229,6 +273,9 @@ export async function getLegalQueueItem(
           fromState: strOrNull(r["from_state"]) as LegalQueueState | null,
           toState: strOrNull(r["to_state"]) as LegalQueueState | null,
           note: strOrNull(r["note"]),
+          alertClock: strOrNull(r["alert_clock"]) as LegalQueueEvent["alertClock"],
+          alertClockAt: strOrNull(r["alert_clock_at"]),
+          alertOverdue: bool(r["alert_overdue"]),
           at: str(r["at"]),
           actorName: strOrNull(r["actor_name"]),
         };
@@ -245,16 +292,16 @@ export async function getLegalQueueOverdue(db: XosClient): Promise<Result<number
 export interface NewLegalQueueItem {
   readonly ruleCode: string;
   readonly title: string;
-  /** When the matter arrived, from the message itself; the clock starts here. */
-  readonly receivedAt: string;
+  /** When the matter arrived, from the message itself, as typed in the zone the queue counts in; the clock starts here. */
+  readonly receivedLocal: string;
   readonly details?: string | null;
   readonly requesterContact?: string | null;
   /** On a DMCA notice: the account it is about, for the repeat infringer count. */
   readonly subjectEmail?: string | null;
   /** On a DMCA counter-notice: the reference of the notice it answers. */
   readonly relatedReference?: string | null;
-  /** The date the document sets, for a rule that takes it from there. */
-  readonly dueAt?: string | null;
+  /** The date the document sets, for a rule that takes it from there, as typed in that same zone. */
+  readonly dueLocal?: string | null;
 }
 
 export async function addLegalQueueItem(
@@ -267,12 +314,12 @@ export async function addLegalQueueItem(
     {
       p_rule_code: input.ruleCode,
       p_title: input.title,
-      p_received_at: input.receivedAt,
+      p_received_local: input.receivedLocal,
       p_details: input.details ?? null,
       p_requester_contact: input.requesterContact ?? null,
       p_subject_email: input.subjectEmail ?? null,
       p_related_reference: input.relatedReference ?? null,
-      p_due_at: input.dueAt ?? null,
+      p_due_local: input.dueLocal ?? null,
     },
     str,
   );
@@ -302,6 +349,14 @@ export async function transitionLegalQueueItem(
     readonly next: LegalQueueState;
     readonly reason: string;
     readonly courtActionFiled?: boolean;
+    /** Closing an appeal that arrived by email: what was looked at again. */
+    readonly reReviewNotes?: string | null;
+    /** Closing an appeal that arrived by email: how and when the person was told. */
+    readonly toldHow?: string | null;
+    /** The person who made the first decision did the re-review. */
+    readonly samePerson?: boolean;
+    /** While an outside reviewer is appointed, this records their decision. */
+    readonly outsideReviewerDecided?: boolean;
   },
 ): Promise<Result<string>> {
   return rpc(
@@ -313,6 +368,10 @@ export async function transitionLegalQueueItem(
       p_next: input.next,
       p_reason: input.reason,
       p_court_action_filed: input.courtActionFiled ?? false,
+      p_re_review_notes: input.reReviewNotes ?? null,
+      p_told_how: input.toldHow ?? null,
+      p_same_person: input.samePerson ?? false,
+      p_outside_reviewer_decided: input.outsideReviewerDecided ?? false,
     },
     str,
   );

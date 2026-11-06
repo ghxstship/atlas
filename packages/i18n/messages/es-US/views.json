@@ -660,7 +660,23 @@
       "drawing_page": "Página del PDF",
       "image_height_px": "Alto de la imagen (px)",
       "image_width_px": "Ancho de la imagen (px)",
-      "calibration_by": "Punto de escala B, y"
+      "calibration_by": "Punto de escala B, y",
+      "reference": "Referencia",
+      "rule_code": "Regla del plazo",
+      "details": "Detalles",
+      "requester_contact": "A quién responder",
+      "tenant_org_id": "Organización",
+      "subject_person_id": "Cuenta a la que se refiere",
+      "related_item_id": "Elemento relacionado",
+      "source_id": "Registro de origen",
+      "first_response_due_at": "Vencimiento de la primera respuesta",
+      "first_response_at": "Primera respuesta enviada",
+      "earliest_action_at": "No antes de",
+      "extended_at": "Prorrogado",
+      "extension_reason": "Motivo de la prórroga",
+      "court_action_filed": "Acción judicial presentada",
+      "re_review_same_person": "La nueva revisión la hizo quien decidió primero",
+      "outside_reviewer_id": "Revisor externo"
     }
   },
   "liveLink": {

@@ -749,8 +749,12 @@ export interface ListingDetail {
     readonly reReviewNotes: string | null;
     readonly sameReviewer: boolean;
     readonly outsideReviewerName: string | null;
-    /** How the appellant was told; null with a re-review on record means they could not be reached. */
+    /** How the appellant is told; null with a re-review on record means no channel could reach them. */
     readonly toldBy: string | null;
+    /** When they were told. For an email, when the provider took it; null until then. */
+    readonly toldAt: string | null;
+    /** The outbox state of the email carrying the result: Queued, Sending, Sent or Failed. */
+    readonly noticeState: string | null;
     readonly hasReview: boolean;
   }[];
 }
@@ -824,6 +828,8 @@ export function parseListingDetail(raw: unknown): ListingDetail {
         sameReviewer: bool(r["same_reviewer"]),
         outsideReviewerName: strOrNull(r["outside_reviewer_name"]),
         toldBy: strOrNull(r["told_by"]),
+        toldAt: strOrNull(r["told_at"]),
+        noticeState: strOrNull(r["notice_state"]),
         hasReview: bool(r["has_review"]),
       };
     }),

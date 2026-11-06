@@ -14,6 +14,7 @@ import {
   recordLegalFirstResponseAction,
 } from "@/lib/actions/legal-queue";
 import { getConsoleFormat } from "@/lib/format";
+import { legalQueueTitle } from "@/lib/legal-queue-title";
 import { requirePermission } from "@/lib/operator";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,6 +42,7 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
   const { t, label, zoned, has } = format;
   const when = (iso: string | null) => zoned(iso, item.timeZone);
   const open = item.closedAt === null;
+  const canMove = open && item.nextStates.length > 0;
   const firstWaiting = open && item.firstResponseDueAt !== null && item.firstResponseAt === null;
   const facts: { label: string; value: string }[] = [
     { label: t("legalQueue.facts.matter"), value: label("legalQueue.matters", item.matter) },
@@ -86,12 +88,23 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
     ...(item.courtActionFiled
       ? [{ label: t("legalQueue.facts.courtAction"), value: t("common.yes") }]
       : []),
+    ...(item.reReviewSamePerson !== null
+      ? [
+          {
+            label: t("legalQueue.facts.reReviewer"),
+            value: item.outsideReviewerName
+              ? t("legalQueue.facts.reReviewerOutside", { name: item.outsideReviewerName })
+              : item.reReviewSamePerson
+                ? t("legalQueue.facts.reReviewerSame")
+                : t("legalQueue.facts.reReviewerOther"),
+          },
+        ]
+      : []),
     ...(item.closedAt ? [{ label: t("legalQueue.facts.closed"), value: when(item.closedAt) }] : []),
   ];
-  const canMove = open && !item.fed && item.nextStates.length > 0;
   return (
     <>
-      <PageHeader title={`${item.reference}: ${item.title}`}>
+      <PageHeader title={`${item.reference}: ${legalQueueTitle(item, format)}`}>
         {item.overdue ? (
           <span>
             <Tag tone="danger">{t("legalQueue.overdue")}</Tag>
@@ -101,8 +114,17 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
 
       {item.customerClock ? (
         <InlineAlert tone="info">{t("legalQueue.customerNote")}</InlineAlert>
+      ) : item.ruleCode === "undelivered_notice" ? (
+        <InlineAlert tone="warning">{t("legalQueue.undeliveredNote")}</InlineAlert>
+      ) : item.ruleCode === "queue_feed_failure" ? (
+        <InlineAlert tone="warning">{t("legalQueue.feedFailureNote")}</InlineAlert>
       ) : item.fed ? (
         <InlineAlert tone="info">{t("legalQueue.fedNote")}</InlineAlert>
+      ) : null}
+      {open && item.reReviewRequired && item.outsideReviewerName ? (
+        <InlineAlert tone="info">
+          {t("legalQueue.move.outside", { name: item.outsideReviewerName })}
+        </InlineAlert>
       ) : null}
       {open && item.earliestActionAt && !item.courtActionFiled ? (
         <InlineAlert tone="warning">
@@ -140,7 +162,12 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
           <Panel>
             <ActionForm
               action={moveLegalQueueItemAction}
-              hidden={{ itemId: item.id, expected: item.state }}
+              hidden={{
+                itemId: item.id,
+                expected: item.state,
+                // While a reviewer is appointed, this form records their decision, and the note above says so.
+                ...(item.outsideReviewerName ? { outsideReviewerDecided: "yes" } : {}),
+              }}
               submitLabel={t("legalQueue.move.submit")}
               successLabel={t("legalQueue.move.done")}
               label={t("legalQueue.move.title")}
@@ -165,6 +192,35 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
                 required
                 width="100%"
               />
+              {item.reReviewRequired ? (
+                <>
+                  <Textarea
+                    id="legal-move-re-review"
+                    name="reReviewNotes"
+                    label={t("legalQueue.move.reReview")}
+                    help={t("legalQueue.move.reReviewHelp")}
+                    maxLength={4000}
+                    rows={2}
+                    width="100%"
+                  />
+                  <Textarea
+                    id="legal-move-told"
+                    name="toldHow"
+                    label={t("legalQueue.move.told")}
+                    help={t("legalQueue.move.toldHelp")}
+                    maxLength={1000}
+                    rows={2}
+                    width="100%"
+                  />
+                  {item.outsideReviewerName ? null : (
+                    <Checkbox
+                      id="legal-move-same"
+                      name="samePerson"
+                      label={t("legalQueue.move.samePerson")}
+                    />
+                  )}
+                </>
+              ) : null}
               {item.matter === "DMCA Counter-Notice" ? (
                 <Checkbox
                   id="legal-move-court"
@@ -277,6 +333,14 @@ export default async function LegalQueueItemPage({ params }: PageProps<"/legal-q
                 </span>
               ) : null}
               {e.note ? <span className="whitespace-pre-line">{e.note}</span> : null}
+              {e.alertClock && e.alertClockAt ? (
+                <span className="text-text-12 text-text-secondary">
+                  {t(e.alertOverdue ? "legalQueue.alertOverdue" : "legalQueue.alertSoon", {
+                    clock: label("legalQueue.clocks", e.alertClock),
+                    when: when(e.alertClockAt),
+                  })}
+                </span>
+              ) : null}
             </li>
           ))}
         </ol>

@@ -238,7 +238,7 @@ describe("catalog", () => {
     const args = { title: "Riggers", outcome: "Upheld", statement: "Stands.", reviewerName: "" };
     const same = { ...args, reviewer: "same" };
     expect(formatMessage("en-US", "kinds.moderation_appeal.decided.body", same)).toBe(
-      "We looked at your appeal afresh and kept the decision. The person who made the first decision did this review, because GHXSTSHIP is a small team. Stands.",
+      "We looked at your appeal afresh and kept the decision. The person who made the first decision did this review. Stands.",
     );
     expect(formatMessage("es-US", "kinds.moderation_appeal.decided.body", same)).toContain(
       "La persona que tomó la primera decisión hizo esta revisión",

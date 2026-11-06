@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox, Input, Select, Textarea } from "@xos/ui";
+import { Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
@@ -128,8 +128,17 @@ export function DecideAppealForm({
   return (
     <ActionForm
       action={decideAppealAction}
-      hidden={{ opportunityId, appealId }}
-      submitLabel={t("moderation.decideAppeal")}
+      hidden={{
+        opportunityId,
+        appealId,
+        // While a reviewer is appointed, this form can only record their decision, and its button says so.
+        ...(outsideReviewerName ? { outsideReviewerDecided: "yes" } : {}),
+      }}
+      submitLabel={
+        outsideReviewerName
+          ? t("moderation.recordOutside", { name: outsideReviewerName })
+          : t("moderation.decideAppeal")
+      }
       successLabel={t("moderation.appealDecided")}
       label={t("moderation.decideAppeal")}
       testId="decide-appeal"
@@ -164,13 +173,6 @@ export function DecideAppealForm({
         required
         width="100%"
       />
-      {outsideReviewerName ? (
-        <Checkbox
-          id={`appeal-${appealId}-outside`}
-          name="outsideReviewerDecided"
-          label={t("moderation.outsideDecided", { name: outsideReviewerName })}
-        />
-      ) : null}
       {outcome === "Reversed" && reversesNoAction ? (
         <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">
           <legend className="text-text-13 font-medium">{t("moderation.newDecision")}</legend>

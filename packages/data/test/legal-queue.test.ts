@@ -174,19 +174,19 @@ describe("legal queue", () => {
       await addLegalQueueItem(db, {
         ruleCode: "government_request",
         title: "Subpoena",
-        receivedAt: "2026-11-06T15:00:00Z",
-        dueAt: "2026-12-01T22:00:00Z",
+        receivedLocal: "2026-11-06T10:00",
+        dueLocal: "2026-12-01T17:00",
       }),
     ).toEqual({ ok: true, data: "i1" });
     expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
       p_rule_code: "government_request",
       p_title: "Subpoena",
-      p_received_at: "2026-11-06T15:00:00Z",
+      p_received_local: "2026-11-06T10:00",
       p_details: null,
       p_requester_contact: null,
       p_subject_email: null,
       p_related_reference: null,
-      p_due_at: "2026-12-01T22:00:00Z",
+      p_due_local: "2026-12-01T17:00",
     });
     expect((await noteLegalQueueItem(db, "i1", "Called them.")).ok).toBe(true);
     expect((await recordLegalFirstResponse(db, "i1", "Acknowledged.")).ok).toBe(true);
@@ -200,7 +200,13 @@ describe("legal queue", () => {
         })
       ).ok,
     ).toBe(true);
-    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({ p_court_action_filed: false });
+    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({
+      p_court_action_filed: false,
+      p_re_review_notes: null,
+      p_told_how: null,
+      p_same_person: false,
+      p_outside_reviewer_decided: false,
+    });
     const early = await transitionLegalQueueItem(db, {
       itemId: "i1",
       expected: "Received",

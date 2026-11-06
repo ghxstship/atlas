@@ -501,15 +501,15 @@ together. Roll hosts one at a time; while one restarts, scans retry with backoff
 
 ## Legal queue and mailboxes (OWNER)
 
-Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167). Only an Administrator with a second factor reaches it. `xos_sweep_legal_queue` (pg_cron, hourly at :11) reads the feeds and raises the alerts; migrations create it.
+Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167). Only an Administrator with a second factor reaches it. `xos_sweep_legal_queue` (pg_cron, hourly at :11) reads the feeds and raises the alerts; migrations create it. Times on the form are typed in New York time, the zone every clock counts in.
 
 **1. Route the mailboxes.** Each public mailbox must reach a person who checks it daily, and each message that starts a clock goes into the queue the day it arrives, with the time it arrived. The clock starts then, not when it is entered.
 
 | Mailbox                        | Add to the queue as                                                                                          |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `privacy@ghxstship.tech`       | Data subject request, from Brazil, appeal, deletion by email, privacy complaint, Customer's request for help |
+| `privacy@ghxstship.tech`       | Data subject request, from Brazil, appeal of a refused request, deletion by email, privacy complaint, Customer's request for help |
 | `copyright@ghxstship.tech`     | DMCA notice, DMCA counter-notice                                                                             |
-| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material                                                    |
+| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material, appeal of a restriction                           |
 | `security@ghxstship.tech`      | Security report, personal data breach                                                                        |
 | `accessibility@ghxstship.tech` | Accessibility report, accessibility review request                                                           |
 | `legal@ghxstship.tech`         | Government data request, return of omitted data, another written promise                                     |
@@ -523,7 +523,8 @@ Give each mailbox an auto-reply saying it was received and when to expect an ans
 - Set the Edge Function secret `XOS_CONSOLE_URL`.
 - Save the on-call webhook in Vault, the same value as the `XOS_ALERT_WEBHOOK_URL` repository secret: `select vault.create_secret('<webhook url>', 'xos_alert_webhook_url');`
 - Before `XOS_EMAIL_DELIVER_TO_ANY` is on, keep the operator's address and any backup contact in `XOS_EMAIL_ALLOWLIST`, or alerts are refused.
-- Check the queue page after setup. It says when alert email is stuck or has failed, when an overdue clock has had no alert in 26 hours (the sweep is down), and when the on-call channel is not connected.
+- Check the queue page after setup. It says when alert email or a moderation result is stuck or has failed, when an overdue clock has had no alert in 26 hours or the sweep has not finished in 2 (the sweep is down), and when the on-call channel is not connected.
+- Install the synthetics workflow (`infra/ci/synthetics.sh`), with `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Its `legal_queue.heartbeat` check is the only alert that works when the database's own sweep has stopped. See the incident runbook, "Legal queue heartbeat failing".
 
 **3. Name a backup contact.** Add one on the queue page, on a different provider from the owner's inbox. They get overdue alerts only, with references and dates and never the matter. Tell them what to do when one arrives: reach the owner by phone. Add a person, not another of your own addresses.
 

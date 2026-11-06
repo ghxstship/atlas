@@ -298,7 +298,7 @@
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
-        "body": "{outcome, select, Reversed {Revisamos tu apelación desde cero y revertimos la decisión.} other {Revisamos tu apelación desde cero y mantuvimos la decisión.}} {reviewer, select, same {La persona que tomó la primera decisión hizo esta revisión, porque GHXSTSHIP es un equipo pequeño.} outside {{reviewerName}, revisor externo, hizo esta revisión.} other {Alguien que no tomó la primera decisión hizo esta revisión.}} {statement}"
+        "body": "{outcome, select, Reversed {Revisamos tu apelación desde cero y revertimos la decisión.} other {Revisamos tu apelación desde cero y mantuvimos la decisión.}} {reviewer, select, same {La persona que tomó la primera decisión hizo esta revisión.} outside {{reviewerName}, revisor externo, hizo esta revisión.} other {Alguien que no tomó la primera decisión hizo esta revisión.}} {statement}"
       }
     },
     "content_report": {
@@ -493,7 +493,9 @@
       "Personal Data Breach": "violación de datos personales",
       "Accessibility Complaint": "queja de accesibilidad",
       "Government Data Request": "solicitud de datos del gobierno",
-      "Other Promise": "otro compromiso"
+      "Other Promise": "otro compromiso",
+      "Undelivered Notice": "aviso no entregado",
+      "Queue Failure": "fallo de la cola"
     }
   }
 }

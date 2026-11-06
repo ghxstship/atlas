@@ -7,6 +7,8 @@
 --   * the on-call channel: the webhook synthetics already posts to (XOS_ALERT_WEBHOOK_URL), read from Vault as
 --     xos_alert_webhook_url. An owner step; without it the sweep simply skips the post.
 --   * the console: the banner on every page and the delivery check on the queue.
+-- A failure on one path never stops another, and a failing feed never stops an alert (6165). What the database cannot report
+-- about itself, a stopped sweep, an outside check reads through api_public.legal_queue_heartbeat (infra/synthetics).
 -- Alerts go out at each lead the rule sets before a clock ends, then daily while it is overdue, until the item closes.
 -- A backup contact gets the overdue alerts only, naming references and dates but never the matter, because a government
 -- request can come with an order forbidding disclosure. The on-call post names references only.
@@ -65,7 +67,9 @@ declare
   v_url text;
   v_day text := (p_now at time zone private.legal_clock_time_zone())::date::text;
 begin
+  -- Never raises, so an alert on a hand-entered item goes out whatever a feed's record has done.
   perform private.sync_legal_queue_feeds();
+  perform private.purge_legal_queue_people();
 
   for v_row in
     select i.id, i.reference, r.matter, r.customer_clock, r.alert_leads, c.clock, c.clock_at
@@ -95,8 +99,8 @@ begin
     if v_alert is null then
       continue;
     end if;
-    insert into app.legal_queue_events (legal_queue_item_id, event_kind, note)
-    values (v_row.id, 'Alert Sent', v_row.clock || ': ' || v_stage);
+    insert into private.legal_queue_events (legal_queue_item_id, event_kind, alert_clock, alert_clock_at, alert_overdue)
+    values (v_row.id, 'Alert Sent', v_row.clock, v_row.clock_at, v_overdue);
     v_line := jsonb_build_object('reference', v_row.reference, 'clock', v_row.clock, 'clock_at', v_row.clock_at,
       'overdue', v_overdue);
     v_lines := v_lines || (v_line || jsonb_build_object('matter', v_row.matter));
@@ -113,63 +117,102 @@ begin
     end if;
   end loop;
 
-  if jsonb_array_length(v_lines) = 0 then
-    return 0;
-  end if;
+  if jsonb_array_length(v_lines) > 0 then
+    -- Each path in its own block, so one that fails leaves the others to carry the alert.
+    begin
+      -- One digest to each operator holding legal.queue.
+      insert into private.platform_emails (template, to_email, locale, args)
+      select distinct on (lower(u.email)) 'legal_clock_alert', lower(u.email), private.person_language(o.person_id, null),
+        jsonb_build_object('items', v_lines, 'overdue', v_overdue_count, 'due_soon', v_soon_count, 'audience', 'operator', 'time_zone', private.legal_clock_time_zone())
+      from app.platform_operators o
+      join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
+      join app.people p on p.id = o.person_id
+      join auth.users u on u.id = p.user_id
+      where o.revoked_at is null and o.deleted_at is null and u.email is not null;
 
-  -- One digest to each operator holding legal.queue.
-  insert into private.platform_emails (template, to_email, locale, args)
-  select distinct on (lower(u.email)) 'legal_clock_alert', lower(u.email), private.person_language(o.person_id, null),
-    jsonb_build_object('items', v_lines, 'overdue', v_overdue_count, 'due_soon', v_soon_count, 'audience', 'operator', 'time_zone', private.legal_clock_time_zone())
-  from app.platform_operators o
-  join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
-  join app.people p on p.id = o.person_id
-  join auth.users u on u.id = p.user_id
-  where o.revoked_at is null and o.deleted_at is null and u.email is not null;
+      -- The backup contacts: overdue only, with no matter.
+      if jsonb_array_length(v_overdue_lines) > 0 then
+        insert into private.platform_emails (template, to_email, locale, args)
+        select 'legal_clock_alert', c.email, 'en-US',
+          jsonb_build_object('items', v_overdue_lines, 'overdue', jsonb_array_length(v_overdue_lines), 'due_soon', 0, 'audience', 'backup', 'time_zone', private.legal_clock_time_zone())
+        from private.legal_alert_contacts c
+        where c.removed_at is null;
+      end if;
 
-  -- The backup contacts: overdue only, with no matter.
-  if jsonb_array_length(v_overdue_lines) > 0 then
-    insert into private.platform_emails (template, to_email, locale, args)
-    select 'legal_clock_alert', c.email, 'en-US',
-      jsonb_build_object('items', v_overdue_lines, 'overdue', jsonb_array_length(v_overdue_lines), 'due_soon', 0, 'audience', 'backup', 'time_zone', private.legal_clock_time_zone())
-    from private.legal_alert_contacts c
-    where c.removed_at is null;
-  end if;
+      -- The outside reviewer, when one is appointed: the appeals, which are theirs to re-review.
+      select coalesce(jsonb_agg(l), '[]'::jsonb) into v_appeal_lines
+      from jsonb_array_elements(v_lines) as l where l ->> 'matter' = 'Moderation Appeal';
+      if jsonb_array_length(v_appeal_lines) > 0 then
+        insert into private.platform_emails (template, to_email, locale, args)
+        select 'legal_clock_alert', o.email, 'en-US',
+          jsonb_build_object('items', v_appeal_lines, 'overdue',
+            (select count(*) from jsonb_array_elements(v_appeal_lines) as l where (l ->> 'overdue')::boolean),
+            'due_soon', (select count(*) from jsonb_array_elements(v_appeal_lines) as l where not (l ->> 'overdue')::boolean),
+            'audience', 'reviewer', 'time_zone', private.legal_clock_time_zone())
+        from private.legal_outside_reviewers o
+        where o.ended_at is null;
+      end if;
+    exception when others then
+      update private.legal_queue_health set alert_path_failed_at = now();
+    end;
 
-  -- The outside reviewer, when one is appointed: the appeals, which are theirs to re-review.
-  select coalesce(jsonb_agg(l), '[]'::jsonb) into v_appeal_lines
-  from jsonb_array_elements(v_lines) as l where l ->> 'matter' = 'Moderation Appeal';
-  if jsonb_array_length(v_appeal_lines) > 0 then
-    insert into private.platform_emails (template, to_email, locale, args)
-    select 'legal_clock_alert', o.email, 'en-US',
-      jsonb_build_object('items', v_appeal_lines, 'overdue',
-        (select count(*) from jsonb_array_elements(v_appeal_lines) as l where (l ->> 'overdue')::boolean),
-        'due_soon', (select count(*) from jsonb_array_elements(v_appeal_lines) as l where not (l ->> 'overdue')::boolean),
-        'audience', 'reviewer', 'time_zone', private.legal_clock_time_zone())
-    from private.legal_outside_reviewers o
-    where o.ended_at is null;
-  end if;
-
-  -- The on-call channel, the alert path synthetics posts to, naming references only.
-  if coalesce(array_length(v_references, 1), 0) > 0 then
-    select s.decrypted_secret into v_url from vault.decrypted_secrets s where s.name = 'xos_alert_webhook_url';
-    if v_url is not null then
-      perform net.http_post(
-        url := v_url,
-        headers := jsonb_build_object('Content-Type', 'application/json'),
-        body := jsonb_build_object('text', format('XOS legal queue: clocks need attention in the operator console: %s.',
-          array_to_string(v_references, ', '))),
-        timeout_milliseconds := 10000
-      );
+    -- The on-call channel, the alert path synthetics posts to, naming references only.
+    if coalesce(array_length(v_references, 1), 0) > 0 then
+      begin
+        select s.decrypted_secret into v_url from vault.decrypted_secrets s where s.name = 'xos_alert_webhook_url';
+        if v_url is not null then
+          perform net.http_post(
+            url := v_url,
+            headers := jsonb_build_object('Content-Type', 'application/json'),
+            body := jsonb_build_object('text', format('XOS legal queue: clocks need attention in the operator console: %s.',
+              array_to_string(v_references, ', '))),
+            timeout_milliseconds := 10000
+          );
+        end if;
+      exception when others then
+        update private.legal_queue_health set alert_path_failed_at = now();
+      end;
     end if;
   end if;
+
+  update private.legal_queue_health set last_sweep_at = now();
   return jsonb_array_length(v_lines);
 end;
 $$;
-comment on function private.sweep_legal_queue(timestamptz) is 'Hourly (xos_sweep_legal_queue, ADR 0167): reads the feeds, then raises each alert stage reached by an open item''s clocks: the tightest lead its rule sets, then once a local day while overdue. Each is logged on the item. Queues one digest email per operator holding legal.queue, an overdue digest with no matter to each backup contact, and a post to the on-call webhook when Vault holds xos_alert_webhook_url. Returns how many stages it raised.';
+comment on function private.sweep_legal_queue(timestamptz) is 'Hourly (xos_sweep_legal_queue, ADR 0167): reads the feeds, then raises each alert stage reached by an open item''s clocks: the tightest lead its rule sets, then once a local day while overdue. Each is logged on the item. Queues one digest email per operator holding legal.queue, an overdue digest with no matter to each backup contact, and a post to the on-call webhook when Vault holds xos_alert_webhook_url. A path that fails is recorded and leaves the others running. Stamps private.legal_queue_health, which the outside heartbeat reads. Returns how many stages it raised.';
 revoke all on function private.sweep_legal_queue(timestamptz) from public, anon, authenticated;
 
 select cron.schedule('xos_sweep_legal_queue', '11 * * * *', 'select private.sweep_legal_queue()');
+
+-- The outside heartbeat ------------------------------------------------------------------------------------------------
+
+-- A stopped pg_cron cannot raise an alert about itself, and the queue page warns only someone who opens it. So an outside
+-- scheduler (infra/synthetics, legal_queue.heartbeat) reads this and pages on-call. It answers booleans about the machinery,
+-- and nothing about any matter, so anyone may ask.
+create function api_public.legal_queue_heartbeat()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'sweep_ok', coalesce(h.last_sweep_at > now() - interval '2 hours', false),
+    'feeds_ok', coalesce(h.feeds_ok_at > now() - interval '2 hours', false),
+    'email_ok', not exists (
+      select 1 from private.platform_emails e
+      where e.template in ('legal_clock_alert', 'moderation_notice')
+        and ((e.send_state in ('Queued', 'Sending') and e.created_at < now() - interval '1 hour')
+          or (e.send_state = 'Failed' and e.created_at > now() - interval '48 hours'))),
+    'recipient_ok', exists (
+      select 1 from app.platform_operators o
+      join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
+      where o.revoked_at is null and o.deleted_at is null))
+  from private.legal_queue_health h;
+$$;
+comment on function api_public.legal_queue_heartbeat() is 'Whether the legal queue''s alert machinery is working (ADR 0167), for the outside synthetic check: the hourly sweep finished within 2 hours, its feeds ran clean, no alert or notice email is stuck or newly failed, and someone holds legal.queue. Booleans only, with nothing about any item.';
+revoke all on function api_public.legal_queue_heartbeat() from public;
+grant execute on function api_public.legal_queue_heartbeat() to anon, authenticated, service_role;
 
 -- The banner on every console page, for operators who hold legal.queue.
 create function app.console_legal_queue_overdue()

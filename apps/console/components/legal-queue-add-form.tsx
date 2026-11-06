@@ -14,16 +14,28 @@ interface Rule {
 }
 
 /**
- * Adds an item from a mailbox, a letter or a call. The operator says when it arrived, in their local time, sent with the
- * browser's offset so the database stores an instant; the rule computes the clock. Only what the chosen rule needs shows,
- * so the form stays short.
+ * Adds an item from a mailbox, a letter or a call. Times are typed in the zone every clock here counts in, which the form
+ * names, and the database applies that zone's offset for the day entered, so nothing depends on the browser or on hydration.
+ * The rule computes the clock. Only what the chosen rule needs shows, so the form stays short.
  */
-export function LegalQueueAddForm({ rules }: { rules: readonly Rule[] }) {
-  const t = useTranslations("console.legalQueue") as unknown as (key: string) => string;
+export function LegalQueueAddForm({
+  rules,
+  timeZone,
+}: {
+  rules: readonly Rule[];
+  /** The zone clocks count in, from the database. */
+  timeZone: string;
+}) {
+  const t = useTranslations("console.legalQueue") as unknown as (
+    key: string,
+    values?: Record<string, string>,
+  ) => string;
   const first = rules[0]?.code ?? "";
   const [code, setCode] = useState(first);
   const rule = rules.find((r) => r.code === code);
   return (
+    // A successful add resets the form, and the rule it shows goes back with it.
+    <div onReset={() => setCode(first)}>
     <ActionForm
       action={addLegalQueueItemAction}
       submitLabel={t("add.submit")}
@@ -31,16 +43,6 @@ export function LegalQueueAddForm({ rules }: { rules: readonly Rule[] }) {
       label={t("add.title")}
       testId="legal-queue-add"
     >
-      {/* The browser's offset from UTC in minutes, written once the form reaches the browser. */}
-      <input
-        type="hidden"
-        name="offset"
-        defaultValue="0"
-        ref={(el) => {
-          // defaultValue too, so a reset after adding keeps the offset.
-          if (el) el.defaultValue = String(new Date().getTimezoneOffset());
-        }}
-      />
       <Select
         id="legal-add-rule"
         name="ruleCode"
@@ -68,7 +70,7 @@ export function LegalQueueAddForm({ rules }: { rules: readonly Rule[] }) {
         name="receivedAt"
         type="datetime-local"
         label={t("add.received")}
-        help={t("add.receivedHelp")}
+        help={t("add.receivedHelp", { zone: timeZone })}
         required
       />
       <Input
@@ -112,10 +114,11 @@ export function LegalQueueAddForm({ rules }: { rules: readonly Rule[] }) {
           name="dueAt"
           type="datetime-local"
           label={t("add.due")}
-          help={t("add.dueHelp")}
+          help={t("add.dueHelp", { zone: timeZone })}
           required
         />
       ) : null}
     </ActionForm>
+    </div>
   );
 }

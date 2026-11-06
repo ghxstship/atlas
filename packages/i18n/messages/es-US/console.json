@@ -153,7 +153,9 @@
     "outside_reviewer_exists": "Ya hay un revisor externo nombrado. Termina ese nombramiento primero.",
     "outside_reviewer_missing": "Ese nombramiento ya terminó. Vuelve a cargar la página.",
     "moderation_appeal_re_review": "Registra qué volviste a mirar y cómo valoraste los motivos, en hasta 4,000 caracteres.",
-    "moderation_appeal_outside_reviewer": "Esta apelación va al revisor externo. Registra su decisión cuando la haya tomado."
+    "moderation_appeal_outside_reviewer": "Esta apelación va al revisor externo. Registra su decisión cuando la haya tomado.",
+    "legal_queue_re_review": "Registra qué volviste a revisar y cómo valoraste los motivos, en un máximo de 4,000 caracteres.",
+    "legal_queue_person_told": "Indica cómo y cuándo le comunicaste a la persona el resultado y las razones, en un máximo de 1,000 caracteres."
   },
   "tenants": {
     "title": "Organizaciones",
@@ -403,11 +405,15 @@
     "appealOutside": "Esta apelación va a {name}, revisor externo. Registra su decisión cuando la haya tomado.",
     "reReview": "Qué volviste a mirar",
     "reReviewHelp": "Queda en el registro y nunca se envía. Di qué releíste y cómo valoraste los motivos.",
-    "outsideDecided": "{name} tomó esta decisión",
     "appealRecord": "Nueva revisión: {notes}",
     "reviewerSame": "La persona que tomó la primera decisión volvió a revisarla.",
     "reviewerOutside": "{name}, revisor externo, volvió a revisarla.",
-    "notTold": "No se pudo contactar a la persona, así que no se le ha avisado. Su cuenta ya no tiene correo."
+    "notTold": "Esta persona ya no tiene correo, así que no se le ha comunicado. Está en la Cola Legal con su propio plazo.",
+    "recordOutside": "Registrar la decisión de {name}",
+    "told": "Se le comunicó a la persona el {when}.",
+    "toldByOperator": "Se le comunicó a la persona por otra vía el {when}. El registro de la cola legal indica cómo.",
+    "noticeOnItsWay": "El correo que comunica el resultado a la persona está en camino.",
+    "noticeFailed": "Falló el correo que comunica el resultado a la persona, así que no se le ha comunicado. Está en la Cola Legal con su propio plazo."
   },
   "actions": {
     "Removed": "Retirado",
@@ -778,7 +784,11 @@
       "failed": "{count, plural, one {# correo de alerta falló} other {# correos de alerta fallaron}} en los últimos 30 días. Revisa el proveedor de correo y la lista de permitidos.",
       "noAlert": "{count, plural, one {# plazo vencido no tiene} other {# plazos vencidos no tienen}} alerta desde hace 26 horas. Revisa el trabajo xos_sweep_legal_queue.",
       "webhookOff": "El canal de guardia no está conectado, así que las alertas solo salen por correo.",
-      "lastSent": "Último correo de alerta: {when}."
+      "lastSent": "Último correo de alerta: {when}.",
+      "noticesStuck": "{count, plural, one {# correo que comunica un resultado de moderación lleva} other {# correos que comunican un resultado de moderación llevan}} más de una hora sin enviarse. Revisa el proceso subprocessor-notices y su programación.",
+      "noticesFailed": "{count, plural, one {# correo que comunica un resultado de moderación falló} other {# correos que comunican un resultado de moderación fallaron}} en los últimos 30 días. Cada uno es un elemento aquí, así que avísales por otra vía.",
+      "sweepStale": "La revisión de cada hora no ha terminado en 2 horas, así que no sale ninguna alerta. Revisa el trabajo xos_sweep_legal_queue.",
+      "alertPathFailed": "Una vía de alerta falló en las últimas 24 horas. Revisa la bandeja de salida de correos de la plataforma y el webhook de guardia."
     },
     "add": {
       "title": "Agregar un elemento",
@@ -787,7 +797,7 @@
       "titleField": "Descripción breve",
       "titleHelp": "No pongas datos personales en esta línea. Las alertas nombran la referencia, nunca esto.",
       "received": "Cuándo llegó",
-      "receivedHelp": "En tu hora local, según el propio mensaje.",
+      "receivedHelp": "En hora de {zone}, la zona en la que cuentan todos los plazos de aquí. Tómala del propio mensaje.",
       "contact": "A quién responder",
       "details": "Detalles",
       "detailsHelp": "Solo los datos personales que el trabajo necesita. El mensaje completo se queda en el buzón.",
@@ -796,7 +806,7 @@
       "related": "Referencia del aviso DMCA al que responde",
       "relatedHelp": "Por ejemplo, LQ-2026-00001.",
       "due": "Fecha que fija el documento",
-      "dueHelp": "En tu hora local. La regla no puede calcularla, así que revísala dos veces.",
+      "dueHelp": "En hora de {zone}. La regla no puede calcular esta fecha, así que revísala dos veces.",
       "submit": "Agregar a la cola",
       "done": "Agregado a la cola."
     },
@@ -819,7 +829,11 @@
       "subject": "Cuenta a la que se refiere",
       "related": "Responde al aviso",
       "courtAction": "Acción judicial presentada",
-      "closed": "Cerrado"
+      "closed": "Cerrado",
+      "reReviewer": "Quién hizo la nueva revisión",
+      "reReviewerSame": "La persona que tomó la primera decisión",
+      "reReviewerOther": "Alguien que no tomó la primera decisión",
+      "reReviewerOutside": "{name}, el revisor externo"
     },
     "move": {
       "title": "Cambiar de estado",
@@ -827,7 +841,13 @@
       "reason": "Qué pasó",
       "court": "Quien notificó presentó una acción judicial, así que el material sigue retirado",
       "submit": "Guardar",
-      "done": "Guardado."
+      "done": "Guardado.",
+      "reReview": "Qué volviste a revisar",
+      "reReviewHelp": "Necesario para completarlo o rechazarlo. Queda en el registro y nunca se envía. Indica qué volviste a leer y cómo valoraste los motivos.",
+      "told": "Cómo le comunicaste el resultado a la persona",
+      "toldHelp": "Necesario para completarlo o rechazarlo. Indica cómo y cuándo enviaste el resultado y las razones, y que le dijiste quién hizo la nueva revisión.",
+      "samePerson": "Yo tomé la decisión original",
+      "outside": "Esta apelación corresponde a {name}, el revisor externo. Registra su decisión cuando la haya tomado."
     },
     "first": {
       "title": "Registrar la primera respuesta",
@@ -913,7 +933,9 @@
       "Personal Data Breach": "Violación de datos personales",
       "Accessibility Complaint": "Queja de accesibilidad",
       "Government Data Request": "Solicitud de datos del gobierno",
-      "Other Promise": "Otro compromiso"
+      "Other Promise": "Otro compromiso",
+      "Undelivered Notice": "Aviso no entregado",
+      "Queue Failure": "Fallo de la cola"
     },
     "states": {
       "Received": "Recibido",
@@ -936,12 +958,14 @@
       "State Changed": "Cambio de estado",
       "Extended": "Prórroga",
       "Source Changed": "Siguió a su origen",
-      "Alert Sent": "Alerta enviada"
+      "Alert Sent": "Alerta enviada",
+      "Re-Review": "Nueva revisión",
+      "Person Told": "Persona informada"
     },
     "rules": {
       "dsar_privacy": {
         "label": "Solicitud de derechos de datos por correo",
-        "source": "Política de Privacidad 7: confirmar en 10 días hábiles y responder en 30 días. Una prórroga si explicas el motivo dentro del primer periodo (RGPD 12(3), reglamento de California)."
+        "source": "Política de Privacidad 7: confirmar en 10 días hábiles y responder en 30 días o un mes natural, lo que sea más corto. Una prórroga si indicas el motivo dentro del primer plazo (RGPD 12(3), reglamentos de California)."
       },
       "dsar_brazil": {
         "label": "Solicitud de derechos de datos desde Brasil",
@@ -949,7 +973,7 @@
       },
       "dsar_appeal": {
         "label": "Apelación de una solicitud de datos rechazada",
-        "source": "Política de Privacidad 7: responder en 45 días."
+        "source": "Política de Privacidad 7: responder en 45 días, tras revisar de nuevo la apelación y registrar las razones."
       },
       "account_deletion_email": {
         "label": "Eliminación de cuenta por correo",
@@ -1005,7 +1029,7 @@
       },
       "accessibility_review": {
         "label": "Solicitud de revisión de accesibilidad",
-        "source": "Declaración de Accesibilidad 6: responder en 10 días hábiles."
+        "source": "Declaración de Accesibilidad 6: responder en 10 días hábiles, tras revisar de nuevo la queja y registrar las razones."
       },
       "government_request": {
         "label": "Solicitud de datos del gobierno",
@@ -1026,7 +1050,53 @@
       "dsar_customer_register": {
         "label": "Solicitud en el registro de un cliente",
         "source": "El plazo del cliente (Acuerdo de Tratamiento de Datos 8.1): 30 días, o 90 con prórroga. XOS solo lo vigila."
+      },
+      "abuse_appeal": {
+        "label": "Apelación de una restricción, por correo",
+        "source": "Política de Uso Aceptable 7: una nueva revisión documentada, y se comunica el resultado a la persona. Los 30 días son nuestro propio objetivo."
+      },
+      "undelivered_notice": {
+        "label": "Resultado de moderación no entregado",
+        "source": "Política de Uso Aceptable 6 y 7: se comunica el resultado a la persona. Los 2 días hábiles son nuestro propio objetivo."
+      },
+      "queue_feed_failure": {
+        "label": "Fallo de alimentación de la cola",
+        "source": "Nuestro propio objetivo: la cola debe ver todo registro que inicie un plazo."
       }
-    }
+    },
+    "fedTitles": {
+      "listing": "Anuncio del marketplace",
+      "repeat": "{count, plural, one {# aviso DMCA válido y no impugnado} other {# avisos DMCA válidos y no impugnados}}",
+      "undelivered": "Resultado de moderación no entregado",
+      "feed": "Falló la alimentación de {feed}"
+    },
+    "requestTypes": {
+      "Access": "Acceso",
+      "Rectification": "Rectificación",
+      "Erasure": "Supresión",
+      "Restriction": "Limitación",
+      "Portability": "Portabilidad",
+      "Objection": "Oposición",
+      "Opt Out of Sale": "Exclusión de la venta"
+    },
+    "feeds": {
+      "moderation_appeals": "apelaciones de moderación",
+      "listing_reports": "denuncias de anuncios",
+      "dsar_requests": "registros de Clientes",
+      "moderation_notices": "avisos de moderación",
+      "sources": "registros de origen"
+    },
+    "clocks": {
+      "First Response": "Primera respuesta",
+      "Due": "Fecha límite"
+    },
+    "alertSoon": "El plazo de {clock} termina el {when}.",
+    "alertOverdue": "El plazo de {clock} terminó el {when} y está vencido.",
+    "watched": {
+      "title": "Plazos de Clientes que vigilamos",
+      "intro": "{count} abiertos. Estos plazos son de cada Cliente. Siguen aquí hasta que el Cliente los cierre y nunca cuentan como trabajo vencido."
+    },
+    "undeliveredNote": "A esta persona no se le ha comunicado el resultado de una decisión o apelación de moderación. Avísale por otra vía, luego completa este elemento e indica cómo. Abajo aparece a quién iba dirigido y qué decía.",
+    "feedFailureNote": "Una de las alimentaciones automáticas de la cola está fallando, así que los registros de ese tipo no llegan a esta lista. Todo lo demás sigue funcionando, y este elemento se cierra solo cuando la alimentación vuelva a funcionar. Revisa el error de abajo y la migración más reciente."
   }
 }

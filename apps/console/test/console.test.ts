@@ -2,7 +2,16 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { errorKey, expiryFrom, failed, field, fromResult, IDLE } from "../lib/action-state";
+import {
+  errorKey,
+  expiryFrom,
+  failed,
+  field,
+  fromResult,
+  IDLE,
+  localDateTime,
+} from "../lib/action-state";
+import { legalQueueTitle } from "../lib/legal-queue-title";
 import { secondFactorErrorKey, shownError, signInErrorKey } from "../lib/auth/errors";
 import { safeNext } from "../lib/auth/redirect";
 import { EnvError, parseEnv, passwordSignIn, secureSite } from "../lib/env";
@@ -215,6 +224,46 @@ describe("console copy", () => {
   });
 });
 
+describe("legal queue times and titles", () => {
+  it("passes on a real date as typed, for the database to read in the queue's zone", () => {
+    expect(localDateTime("2027-03-20T17:00")).toBe("2027-03-20T17:00");
+    expect(localDateTime("2026-11-01T01:30:00")).toBe("2026-11-01T01:30:00");
+    expect(localDateTime("")).toBeNull();
+    expect(localDateTime("2027-02-31T10:00")).toBeNull();
+    expect(localDateTime("2027-03-20T25:00")).toBeNull();
+    expect(localDateTime("2027-03-20 17:00")).toBeNull();
+    expect(localDateTime("next Tuesday")).toBeNull();
+  });
+
+  const words = {
+    t: (key: string, values?: Record<string, string | number>) =>
+      `${key}${values ? JSON.stringify(values) : ""}`,
+    label: (group: string, value: string) => `${group}.${value}`,
+  };
+  const item = (ruleCode: string, title: string, liveTitle: string | null = null, counted: number | null = null) =>
+    ({ ruleCode, title, liveTitle, counted }) as Parameters<typeof legalQueueTitle>[0];
+
+  it("keeps what an operator typed and words a fed item from the catalog, so no English is shown in Spanish", () => {
+    expect(legalQueueTitle(item("security_report", "XSS in search"), words)).toBe("XSS in search");
+    expect(legalQueueTitle(item("listing_report", "Marketplace listing", "Riggers"), words)).toBe("Riggers");
+    expect(legalQueueTitle(item("moderation_appeal", "Marketplace listing"), words)).toBe(
+      "legalQueue.fedTitles.listing",
+    );
+    expect(legalQueueTitle(item("repeat_infringer_review", "3", null, 3), words)).toBe(
+      'legalQueue.fedTitles.repeat{"count":3}',
+    );
+    expect(legalQueueTitle(item("dsar_customer_register", "Erasure"), words)).toBe(
+      "legalQueue.requestTypes.Erasure",
+    );
+    expect(legalQueueTitle(item("undelivered_notice", "Moderation notice"), words)).toBe(
+      "legalQueue.fedTitles.undelivered",
+    );
+    expect(legalQueueTitle(item("queue_feed_failure", "sources"), words)).toBe(
+      'legalQueue.fedTitles.feed{"feed":"legalQueue.feeds.sources"}',
+    );
+  });
+});
+
 /** The legal queue (ADR 0167): every clock in the migration has its words, and no copy promises a second person. */
 describe("legal queue copy", () => {
   const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
@@ -253,6 +302,32 @@ describe("legal queue copy", () => {
     const refusals = messages(locale, "console")["refusals"] as unknown as Record<string, string>;
     for (const rule of raised) expect(refusals[rule], rule).toBeTruthy();
     expect(refusals["moderation_appeal_same_operator"]).toBeUndefined();
+  });
+
+  it.each(["en-US", "es-US"])("words every enum value and fed title in %s", (locale) => {
+    const lq = messages(locale, "console")["legalQueue"] as unknown as Record<
+      string,
+      Record<string, string>
+    >;
+    const values = (type: string) => {
+      const block = new RegExp(`create type app\\.${type} as enum \\(([^)]+)\\)`).exec(migration)?.[1] ?? "";
+      return [...block.matchAll(/'([^']+)'/g)].map((m) => m[1] ?? "");
+    };
+    for (const [type, group] of [
+      ["legal_queue_matter", "matters"],
+      ["legal_queue_state", "states"],
+      ["legal_queue_event_kind", "events"],
+      ["legal_queue_basis", "bases"],
+    ] as const) {
+      expect(values(type).length).toBeGreaterThan(2);
+      for (const value of values(type)) expect(lq[group]?.[value], `${group}.${value}`).toBeTruthy();
+    }
+    for (const feed of ["moderation_appeals", "listing_reports", "dsar_requests", "moderation_notices", "sources"]) {
+      expect(lq["feeds"]?.[feed], feed).toBeTruthy();
+      expect(migration).toContain(`'${feed}'`);
+    }
+    const email = messages(locale, "email")["legal_clock_alert"]?.["matters"] as unknown as Record<string, string>;
+    for (const matter of values("legal_queue_matter")) expect(email[matter], matter).toBeTruthy();
   });
 
   it.each(["en-US", "es-US"])("promises no second person on an appeal in %s", (locale) => {

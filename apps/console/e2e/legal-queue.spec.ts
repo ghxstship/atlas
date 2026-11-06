@@ -17,13 +17,22 @@ import {
  * person is told who did it. A role without legal.queue never sees the page.
  */
 
-/** The value of a datetime-local input for an instant, in the browser's zone, which the form sends with its offset. */
-async function localValue(page: Page, ms: number): Promise<string> {
-  return page.evaluate((at) => {
-    const d = new Date(at);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }, ms);
+/** The value of a datetime-local input for an instant: New York time, the zone every clock on the queue counts in. */
+function localValue(ms: number): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(ms))
+      .map((p) => [p.type, p.value]),
+  );
+  return `${parts["year"]}-${parts["month"]}-${parts["day"]}T${parts["hour"]}:${parts["minute"]}`;
 }
 
 async function addItem(
@@ -35,7 +44,7 @@ async function addItem(
   await form.getByLabel("Short description", { exact: true }).fill(input.title);
   await form
     .getByLabel("When it arrived", { exact: true })
-    .fill(await localValue(page, input.receivedMs));
+    .fill(localValue(input.receivedMs));
   if (input.contact) await form.getByLabel("Who to answer", { exact: true }).fill(input.contact);
   await form.getByRole("button", { name: "Add to the queue" }).click();
   await expect(form.getByText("Added to the queue.")).toBeVisible();
@@ -128,7 +137,191 @@ test("the one Administrator works a security report from arrival to close, and t
     "legal_queue.noted",
     "legal_queue.viewed",
   ]);
+  // The console ledger, which every operator role reads, says only that it happened.
+  const open = await sql<{ count: number }>(
+    `select count(*)::int as count from app.platform_operator_actions
+      where subject_id = $1 and (reason is not null or details <> '{}'::jsonb)`,
+    [item?.id],
+  );
+  expect(open[0]?.count).toBe(0);
   await expectAccessibleInBothThemes(page);
+});
+
+test("times are typed in the queue's own zone, so a date across daylight saving keeps its hour, and the form resets whole", async ({
+  page,
+}) => {
+  const email = await newOperator("Administrator", "Olga Offset");
+  await signInOperator(page, email, "/legal-queue");
+  const form = page.getByTestId("legal-queue-add");
+  await expect(
+    form.getByText("In America/New_York time, the zone every clock here counts in.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  const firstSource = await form.getByTestId("rule-source").innerText();
+
+  const title = `Subpoena ${uniqueId()}`;
+  await form
+    .getByLabel("What is it", { exact: true })
+    .selectOption({ label: "Government data request" });
+  await form.getByLabel("Short description", { exact: true }).fill(title);
+  // Received in standard time, due in daylight time, and the second part of the pair is the document's own date.
+  await form.getByLabel("When it arrived", { exact: true }).fill("2026-02-02T23:30");
+  await form.getByLabel("Date the document sets", { exact: true }).fill("2027-03-20T17:00");
+  await form.getByRole("button", { name: "Add to the queue" }).click();
+  await expect(form.getByText("Added to the queue.")).toBeVisible();
+
+  const [item] = await sql<{ received: boolean; due: boolean }>(
+    `select received_at = '2026-02-02 23:30-05'::timestamptz as received,
+            due_at = '2027-03-20 17:00-04'::timestamptz as due
+       from app.legal_queue_items where title = $1`,
+    [title],
+  );
+  expect(item).toEqual({ received: true, due: true });
+
+  // The reset takes the rule back with it, so the source and the document's date match what the select shows.
+  await expect(form.getByTestId("rule-source")).toHaveText(firstSource);
+  await expect(form.getByLabel("Date the document sets", { exact: true })).toHaveCount(0);
+});
+
+test("a Support operator reads that queue actions happened, and nothing about them", async ({
+  page,
+}) => {
+  const admin = await newOperator("Administrator", "Olga Quiet");
+  const support = await newOperator("Support", "Omar Quiet");
+  await signInOperator(page, admin, "/legal-queue");
+  const form = page.getByTestId("legal-queue-add");
+  const title = `Subpoena ${uniqueId()}`;
+  const reason = `Complied with the order ${uniqueId()}`;
+  await form
+    .getByLabel("What is it", { exact: true })
+    .selectOption({ label: "Government data request" });
+  await form.getByLabel("Short description", { exact: true }).fill(title);
+  await form.getByLabel("When it arrived", { exact: true }).fill(localValue(Date.now() - 3_600_000));
+  await form
+    .getByLabel("Date the document sets", { exact: true })
+    .fill(localValue(Date.now() + 7 * 86_400_000));
+  await form.getByRole("button", { name: "Add to the queue" }).click();
+  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await page.getByTestId("legal-queue").getByRole("row").filter({ hasText: title }).getByRole("link").click();
+  const move = page.getByTestId("legal-move");
+  await move.getByLabel("New state", { exact: true }).selectOption("Completed");
+  await move.getByLabel("What happened", { exact: true }).fill(reason);
+  await move.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("legal-log")).toContainText(reason);
+
+  await page.context().clearCookies();
+  await signInOperator(page, support, "/activity");
+  const activity = page.getByTestId("activity");
+  await expect(activity.getByText("Moved a legal queue item").first()).toBeVisible();
+  await expect(activity).not.toContainText(reason);
+  await expect(activity).not.toContainText("government_request");
+  const response = await page.goto("/legal-queue");
+  expect(response?.status()).toBe(404);
+});
+
+test("an appeal that arrives by email gets a computed clock, and closes only with a re-review and how the person was told", async ({
+  page,
+}) => {
+  const email = await newOperator("Administrator", "Olga Mailbox");
+  await signInOperator(page, email, "/legal-queue");
+  const title = `Suspension appeal ${uniqueId()}`;
+  await addItem(page, {
+    rule: "Appeal of a restriction, by email",
+    title,
+    receivedMs: Date.now() - 3_600_000,
+    contact: "appellant@example.test",
+  });
+  const [item] = await sql<{ thirty: boolean }>(
+    `select due_at = private.legal_clock_end(received_at, 30, 'Days') as thirty from app.legal_queue_items where title = $1`,
+    [title],
+  );
+  expect(item?.thirty).toBe(true);
+  await page.getByTestId("legal-queue").getByRole("row").filter({ hasText: title }).getByRole("link").click();
+
+  const move = page.getByTestId("legal-move");
+  await move.getByLabel("New state", { exact: true }).selectOption("Completed");
+  await move.getByLabel("What happened", { exact: true }).fill("Upheld: the suspension stands.");
+  await move.getByRole("button", { name: "Save" }).click();
+  await expect(move.getByText("Record what you looked at again", { exact: false })).toBeVisible();
+  await move.getByLabel("What you looked at again", { exact: true }).fill("Read the logs again.");
+  await move.getByRole("button", { name: "Save" }).click();
+  await expect(
+    move.getByText("Say how and when you told the person", { exact: false }),
+  ).toBeVisible();
+  // What was typed stays through both refusals.
+  await expect(move.getByLabel("What happened", { exact: true })).toHaveValue(
+    "Upheld: the suspension stands.",
+  );
+  await move
+    .getByLabel("How you told the person the result", { exact: true })
+    .fill("Emailed the result and reasons, and said the same person reviewed it.");
+  await move.getByLabel("I made the original decision", { exact: true }).check();
+  await move.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("legal-move")).toHaveCount(0);
+  await expect(page.getByTestId("legal-log")).toContainText("Read the logs again.");
+  await expect(page.getByText("The person who made the first decision")).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+});
+
+test("the backup contact and outside reviewer forms work, and an outside reviewer's decision is recorded, not made, by the operator", async ({
+  page,
+}) => {
+  const listing = await reportedListing();
+  const email = await newOperator("Administrator", "Olga Outside");
+  await signInOperator(page, email, "/legal-queue");
+
+  const contact = page.getByTestId("legal-contact-add");
+  const backup = `backup-${uniqueId().toLowerCase()}@example.test`;
+  await contact.getByLabel("Name", { exact: true }).fill("Bea Backup");
+  await contact.getByLabel("Email", { exact: true }).fill(backup);
+  await contact.getByRole("button", { name: "Add backup contact" }).click();
+  const list = page.getByTestId("legal-contacts-list");
+  await expect(list.getByText(backup)).toBeVisible();
+  await list
+    .getByRole("form", { name: "Remove Bea Backup" })
+    .getByRole("button", { name: "Remove" })
+    .click();
+  await expect(page.getByText(backup)).toHaveCount(0);
+
+  const appoint = page.getByTestId("outside-reviewer-appoint");
+  await appoint.getByLabel("Name", { exact: true }).fill("Noor Adeyemi");
+  await appoint.getByLabel("Firm or body", { exact: true }).fill("Adeyemi Review");
+  await appoint.getByLabel("Email", { exact: true }).fill("noor@adeyemi.test");
+  await appoint.getByLabel("Why", { exact: true }).fill("Independent appeals.");
+  await appoint.getByRole("button", { name: "Appoint" }).click();
+  await expect(page.getByTestId("outside-reviewer")).toContainText("Noor Adeyemi of Adeyemi Review");
+
+  await page.goto(`/moderation/${listing.id}`);
+  const decide = page.getByTestId("decide-listing");
+  await decide.getByLabel("Decision", { exact: true }).selectOption("Removed");
+  await decide.getByLabel("Ground", { exact: true }).selectOption("Terms Violation");
+  await decide.getByLabel("Law or rule relied on", { exact: true }).fill("Acceptable Use Policy");
+  await decide.getByLabel("Facts and circumstances", { exact: true }).fill("It asks for a fee.");
+  await decide
+    .getByLabel("Statement of reasons", { exact: true })
+    .fill("We removed it. You may appeal.");
+  await decide.getByRole("button", { name: "Record the decision" }).click();
+  await expect(decide.getByText("Decision recorded and sent.")).toBeVisible();
+  const [decision] = await sql<{ id: string }>(
+    `select id from app.moderation_actions where opportunity_id = $1 order by decided_at desc limit 1`,
+    [listing.id],
+  );
+  await sql(`select app.file_moderation_appeal($1, 'The fee is a statutory card check.')`, [decision?.id], DEMO.owner);
+
+  await page.reload();
+  await expect(page.getByText("This appeal goes to Noor Adeyemi", { exact: false })).toBeVisible();
+  const form = page.getByTestId("decide-appeal");
+  await form.getByLabel("Reasons sent to the appellant", { exact: true }).fill("The fee breaks the rule.");
+  await form.getByLabel("What you looked at again", { exact: true }).fill("Noor read the file and wrote the decision.");
+  await form.getByRole("button", { name: "Record Noor Adeyemi's decision" }).click();
+  await expect(page.getByText("Noor Adeyemi, the outside reviewer, re-reviewed it.")).toBeVisible();
+
+  await page.goto("/legal-queue");
+  const reviewer = page.getByRole("form", { name: "End the appointment" });
+  await reviewer.getByLabel("Why it ends", { exact: true }).fill("The agreement ended.");
+  await reviewer.getByRole("button", { name: "End the appointment" }).click();
+  await expect(page.getByTestId("outside-reviewer")).toContainText("None is appointed");
 });
 
 test("a DMCA counter-notice cannot be closed before its earliest day, unless a court action keeps the material down", async ({
@@ -145,7 +338,7 @@ test("a DMCA counter-notice cannot be closed before its earliest day, unless a c
   await form.getByLabel("Short description", { exact: true }).fill(noticeTitle);
   await form
     .getByLabel("When it arrived", { exact: true })
-    .fill(await localValue(page, Date.now() - 3_600_000));
+    .fill(localValue(Date.now() - 3_600_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
   await expect(form.getByText("Added to the queue.")).toBeVisible();
   const [notice] = await sql<{ reference: string }>(
@@ -163,7 +356,7 @@ test("a DMCA counter-notice cannot be closed before its earliest day, unless a c
   await form.getByLabel("Short description", { exact: true }).fill(counterTitle);
   await form
     .getByLabel("When it arrived", { exact: true })
-    .fill(await localValue(page, Date.now() - 3_600_000));
+    .fill(localValue(Date.now() - 3_600_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
   await expect(form.getByText("Added to the queue.")).toBeVisible();
 

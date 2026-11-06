@@ -298,7 +298,7 @@
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
-        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review, because GHXSTSHIP is a small team.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
+        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
       }
     },
     "content_report": {
@@ -493,7 +493,9 @@
       "Personal Data Breach": "personal data breach",
       "Accessibility Complaint": "accessibility complaint",
       "Government Data Request": "government data request",
-      "Other Promise": "other promise"
+      "Other Promise": "other promise",
+      "Undelivered Notice": "undelivered notice",
+      "Queue Failure": "queue failure"
     }
   }
 }

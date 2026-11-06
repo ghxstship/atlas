@@ -15,7 +15,7 @@ import {
 import * as enums from "@xos/data/enums";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { failed, field, fromResult, localInstant, type ActionState } from "@/lib/action-state";
+import { failed, field, fromResult, localDateTime, type ActionState } from "@/lib/action-state";
 import { actionContext } from "@/lib/operator";
 
 /**
@@ -37,22 +37,21 @@ export async function addLegalQueueItemAction(
 ): Promise<ActionState> {
   const ctx = await actionContext("legal.queue");
   if (!ctx.ok) return failed(ctx.key);
-  const offset = field(form, "offset") || "0";
-  const receivedRaw = field(form, "receivedAt");
+  // Typed in the zone the queue counts in; the database applies that zone's offset for the day entered.
   const dueRaw = field(form, "dueAt");
-  const receivedAt = localInstant(receivedRaw, offset);
-  const dueAt = localInstant(dueRaw, offset);
-  if (!receivedAt) return failed("refusals.legal_queue_received");
-  if (dueRaw !== "" && !dueAt) return failed("refusals.legal_queue_due");
+  const receivedLocal = localDateTime(field(form, "receivedAt"));
+  const dueLocal = dueRaw === "" ? null : localDateTime(dueRaw);
+  if (!receivedLocal) return failed("refusals.legal_queue_received");
+  if (dueRaw !== "" && !dueLocal) return failed("refusals.legal_queue_due");
   const result = await addLegalQueueItem(ctx.db, {
     ruleCode: field(form, "ruleCode"),
     title: field(form, "title"),
-    receivedAt,
+    receivedLocal,
     details: field(form, "details") || null,
     requesterContact: field(form, "requesterContact") || null,
     subjectEmail: field(form, "subjectEmail") || null,
     relatedReference: field(form, "relatedReference") || null,
-    dueAt,
+    dueLocal,
   });
   if (result.ok) refresh();
   return fromResult(result);
@@ -74,6 +73,10 @@ export async function moveLegalQueueItemAction(
     next,
     reason: field(form, "reason"),
     courtActionFiled: form.get("courtActionFiled") === "on",
+    reReviewNotes: field(form, "reReviewNotes") || null,
+    toldHow: field(form, "toldHow") || null,
+    samePerson: form.get("samePerson") === "on",
+    outsideReviewerDecided: field(form, "outsideReviewerDecided") === "yes",
   });
   if (result.ok) refresh(itemId);
   return fromResult(result);

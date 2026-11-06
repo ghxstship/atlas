@@ -95,6 +95,15 @@ Check: `notifications.function`.
 2. Check the scheduled job that calls it (`cron.job_run_details` for the dispatch job) and the provider status (Resend).
 3. Deliveries are rows in `app.notification_deliveries`. Undelivered rows are retried, so nothing is lost while the function is down.
 
+### Legal queue heartbeat failing
+
+Check: `legal_queue.heartbeat`. It stays off the public status page, because it says nothing about the service Customers use, but it pages you, because a stopped sweep means no legal clock alerts go out. Treat it as SEV3, and open `/legal-queue` by hand until it is clear. The check's detail says which part stopped:
+
+- `sweep_stale`: the hourly sweep has not finished in 2 hours. Look at `cron.job_run_details` for `xos_sweep_legal_queue`, then run `select private.sweep_legal_queue();` once in the SQL editor.
+- `feed_failing`: an automatic feed is failing, most often after a migration changed its table. Alerts on everything else still go out. The failure is also an item in the queue, with the error, and closes itself once the feed works.
+- `alert_email_stuck_or_failed`: an alert or moderation-result email has waited over an hour, or failed in the last 48 hours. Check the `subprocessor-notices` worker, the provider, and `XOS_EMAIL_ALLOWLIST` or `XOS_EMAIL_DELIVER_TO_ANY`. A failed result email is also a queue item: tell the person another way.
+- `no_alert_recipient`: nobody holds the Administrator role, so alerts reach no one. Grant it with `private.grant_platform_operator`.
+
 ### Security incident or suspected breach
 
 1. Preserve evidence:

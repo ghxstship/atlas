@@ -13,6 +13,7 @@ import {
   removeLegalAlertContactAction,
 } from "@/lib/actions/legal-queue";
 import { getConsoleFormat } from "@/lib/format";
+import { legalQueueTitle } from "@/lib/legal-queue-title";
 import { requirePermission } from "@/lib/operator";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,6 +43,7 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
   const queue = result.data;
   const when = (iso: string | null) => zoned(iso, queue.timeZone);
   const { delivery } = queue;
+  const title = (item: LegalQueueItem) => legalQueueTitle(item, format);
   const stateCell = (item: LegalQueueItem) => (
     <span key="state" className="flex flex-wrap items-center gap-8">
       <span>{label("legalQueue.states", item.state)}</span>
@@ -71,6 +73,22 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
           <InlineAlert tone="danger">
             {t("legalQueue.delivery.failed", { count: delivery.failed })}
           </InlineAlert>
+        ) : null}
+        {delivery.noticesStuck > 0 ? (
+          <InlineAlert tone="danger">
+            {t("legalQueue.delivery.noticesStuck", { count: delivery.noticesStuck })}
+          </InlineAlert>
+        ) : null}
+        {delivery.noticesFailed > 0 ? (
+          <InlineAlert tone="danger">
+            {t("legalQueue.delivery.noticesFailed", { count: delivery.noticesFailed })}
+          </InlineAlert>
+        ) : null}
+        {delivery.sweepStale ? (
+          <InlineAlert tone="danger">{t("legalQueue.delivery.sweepStale")}</InlineAlert>
+        ) : null}
+        {delivery.alertPathFailed ? (
+          <InlineAlert tone="danger">{t("legalQueue.delivery.alertPathFailed")}</InlineAlert>
         ) : null}
         {delivery.overdueWithoutAlert > 0 ? (
           <InlineAlert tone="danger">
@@ -136,7 +154,7 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
                 >
                   {item.reference}
                 </NextLink>
-                <span className="text-text-12 text-text-secondary">{item.title}</span>
+                <span className="text-text-12 text-text-secondary">{title(item)}</span>
               </span>,
               label("legalQueue.matters", item.matter),
               item.orgName ?? t("common.none"),
@@ -157,9 +175,50 @@ export default async function LegalQueuePage({ searchParams }: PageProps<"/legal
 
       <Section id="legal-add" title={t("legalQueue.add.title")} intro={t("legalQueue.add.intro")}>
         <Panel>
-          <LegalQueueAddForm rules={queue.rules} />
+          <LegalQueueAddForm rules={queue.rules} timeZone={queue.timeZone} />
         </Panel>
       </Section>
+
+      {queue.watched.length > 0 ? (
+        <Section
+          id="legal-watched"
+          title={t("legalQueue.watched.title")}
+          intro={t("legalQueue.watched.intro", { count: number(queue.summary.watched) })}
+        >
+          <Table
+            caption={t("legalQueue.watched.title")}
+            testId="legal-watched"
+            columns={[
+              t("legalQueue.columns.reference"),
+              t("legalQueue.columns.org"),
+              t("legalQueue.columns.received"),
+              t("legalQueue.columns.next"),
+              t("legalQueue.columns.state"),
+            ]}
+            rows={queue.watched.map((item) => ({
+              key: item.id,
+              cells: [
+                <span key="reference" className="flex flex-col gap-4">
+                  <NextLink
+                    href={`/legal-queue/${item.id}` as Route}
+                    className="font-medium text-accent-text underline"
+                  >
+                    {item.reference}
+                  </NextLink>
+                  <span className="text-text-12 text-text-secondary">{title(item)}</span>
+                </span>,
+                item.orgName ?? t("common.none"),
+                when(item.receivedAt),
+                <span key="clock" className="flex flex-wrap items-center gap-8">
+                  <span>{when(item.dueAt)}</span>
+                  {item.overdue ? <Tag tone="danger">{t("legalQueue.overdue")}</Tag> : null}
+                </span>,
+                stateCell(item),
+              ],
+            }))}
+          />
+        </Section>
+      ) : null}
 
       <Section
         id="legal-repeat"

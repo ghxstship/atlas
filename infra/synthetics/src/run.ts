@@ -96,6 +96,15 @@ export function errorDetail(error: unknown): string {
   return "error_unknown";
 }
 
+/** The results the public status page records: every check not marked internal. */
+export function publicResults(
+  checks: readonly CheckDefinition[],
+  results: readonly CheckResult[],
+): CheckResult[] {
+  const internal = new Set(checks.filter((c) => c.internal).map((c) => c.id));
+  return results.filter((r) => !internal.has(r.id));
+}
+
 /** Required checks that failed in this run: these page on-call. */
 export function failingRequired(
   checks: readonly CheckDefinition[],

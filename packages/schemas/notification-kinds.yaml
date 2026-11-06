@@ -394,8 +394,8 @@ kinds:
   - kind: listing_report.decided
     category: account
     emitted_by:
-      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
-      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
+      # 1590 made the notice name the platform, not the operator who decided; 6168 tells a reporter the queue cannot reach by email.
+      - emitter: supabase/migrations/6168_one_person_appeal_rule.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: moderation_appeal.decided
     category: account

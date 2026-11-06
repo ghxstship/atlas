@@ -8,20 +8,21 @@
 --   * every appeal gets a fresh, documented re-review: what was looked at again, and the reasons. Neither may be empty.
 --     private.moderation_appeal_reviews keeps the record apart from app.moderation_appeals, because the appellant and the
 --     org read that table, and the notes may name a reporter.
---   * the person who decided may re-review when no one else can. The record says so and so does the notice to the
---     appellant, so nothing implies a second employee.
+--   * the person who decided may re-review, whether or not anyone else could. The record says so and so does the notice to
+--     the appellant, so nothing implies a second employee, and a colleague's absence never causes a missed clock.
 --   * while a named outside reviewer is appointed (6165), the appeal goes to them: the operator records their decision and
 --     cannot decide instead. The notice names them.
 --   * the person is told the result. A reporter with no tie to the org is outside the notification queue's reach
---     (private.notify answers null), so the outcome goes out as a platform email instead; only if that person has no email
---     left does the record say they could not be told.
+--     (private.notify answers null), and a member can have every channel of the category off, so the outcome goes out as a
+--     platform email instead. The record says they were told only once the provider took that email. If it fails for good,
+--     or they have no email left, an item with its own clock opens in the legal queue (6165).
 -- The same reach gap hid a listing decision's outcome from such a reporter, so private.notify_moderation_decision now
 -- tells them the same way.
 
 comment on type app.moderation_appeal_state is 'An appeal of a moderation decision (Acceptable Use Policy 7): Open until a fresh re-review upholds the decision or reverses it.';
 
 call private.describe('app.moderation_appeals', 'An appeal of a moderation decision (A90; Acceptable Use Policy 7): by the affected party against a removal or restriction, or by the reporter against no action on their report, within six months. One per decision. Filed only through app.file_moderation_appeal and decided only through app.console_decide_appeal after a documented re-review (6168), recorded in private.moderation_appeal_reviews.', array[
-  'decided_by', 'Operator who recorded the outcome of the re-review. May be the one who made the decision appealed where no one else can review it, which private.moderation_appeal_reviews records and the appellant is told.',
+  'decided_by', 'Operator who recorded the outcome of the re-review. May be the one who made the decision appealed, which private.moderation_appeal_reviews records and the appellant is told.',
   'decision_statement', 'The reasons for upholding or reversing, sent to the appellant.'
 ]);
 
@@ -33,16 +34,18 @@ create table private.moderation_appeal_reviews (
   outside_reviewer_id uuid references private.legal_outside_reviewers (id),
   re_review_notes text not null,
   told_by text,
+  notice_email_id uuid references private.platform_emails (id) on delete set null,
   told_at timestamptz,
   created_at timestamptz not null default now(),
   constraint moderation_appeal_reviews_notes_length check (char_length(btrim(re_review_notes)) between 1 and 4000),
   constraint moderation_appeal_reviews_outside_not_same check (outside_reviewer_id is null or not same_reviewer),
-  constraint moderation_appeal_reviews_told check (told_by in ('Notification', 'Email')),
-  constraint moderation_appeal_reviews_told_at check ((told_by is null) = (told_at is null))
+  constraint moderation_appeal_reviews_told check (told_by in ('Notification', 'Email', 'Operator')),
+  constraint moderation_appeal_reviews_told_at check (told_at is null or told_by is not null)
 );
 create index moderation_appeal_reviews_org_idx on private.moderation_appeal_reviews (org_id);
 create index moderation_appeal_reviews_recorded_by_idx on private.moderation_appeal_reviews (recorded_by);
 create index moderation_appeal_reviews_outside_idx on private.moderation_appeal_reviews (outside_reviewer_id);
+create index moderation_appeal_reviews_notice_email_idx on private.moderation_appeal_reviews (notice_email_id);
 
 comment on table private.moderation_appeal_reviews is 'The documented re-review behind each appeal outcome (6168): who recorded it, whether the person who made the first decision re-reviewed it, any outside reviewer, what was looked at again and how the appellant was told. Kept apart from app.moderation_appeals because the appellant and the org read that table. Appeals decided before 6168 have no row.';
 comment on column private.moderation_appeal_reviews.moderation_appeal_id is 'Appeal.';
@@ -51,8 +54,9 @@ comment on column private.moderation_appeal_reviews.recorded_by is 'Operator who
 comment on column private.moderation_appeal_reviews.same_reviewer is 'The operator who made the decision appealed did this re-review.';
 comment on column private.moderation_appeal_reviews.outside_reviewer_id is 'The outside reviewer who decided, when one is appointed.';
 comment on column private.moderation_appeal_reviews.re_review_notes is 'What was looked at again and how the appeal''s grounds were weighed. Internal; it may name a reporter.';
-comment on column private.moderation_appeal_reviews.told_by is 'How the appellant was told: Notification or Email. Null when they could not be reached.';
-comment on column private.moderation_appeal_reviews.told_at is 'When they were told.';
+comment on column private.moderation_appeal_reviews.told_by is 'How the appellant is told: Notification, Email, or Operator once an operator reached them another way. Null when no channel could reach them, which opens a legal queue item.';
+comment on column private.moderation_appeal_reviews.notice_email_id is 'The email carrying the result, when one went: its outbox row says whether it is on its way, sent or failed.';
+comment on column private.moderation_appeal_reviews.told_at is 'When they were told. For an email, when the provider took it, not when it was queued; null until then.';
 comment on column private.moderation_appeal_reviews.created_at is 'When the re-review was recorded.';
 
 alter table private.moderation_appeal_reviews enable row level security;
@@ -67,30 +71,39 @@ create function private.tell_moderation_party(
   p_kind text,
   p_opportunity_id uuid,
   p_project_id uuid,
-  p_args jsonb
+  p_args jsonb,
+  out channel text,
+  out email_id uuid
 )
-returns text
 language plpgsql
 volatile
 security definer
 set search_path = ''
 as $$
 declare
+  v_notification uuid;
   v_email text;
 begin
-  if private.notify(p_org_id, p_person_id, p_kind, 'opportunities', p_opportunity_id, p_project_id, p_args) is not null then
-    return 'Notification';
+  v_notification := private.notify(p_org_id, p_person_id, p_kind, 'opportunities', p_opportunity_id, p_project_id, p_args);
+  -- A member with every channel of the category off gets a notification written already archived and no delivery, which
+  -- reaches nobody. The result is promised, so it goes by email instead.
+  if v_notification is not null and (
+       exists (select 1 from app.notifications n where n.id = v_notification and n.archived_at is null)
+       or exists (select 1 from app.notification_deliveries d where d.notification_id = v_notification)) then
+    channel := 'Notification';
+    return;
   end if;
   select lower(u.email) into v_email from app.people p join auth.users u on u.id = p.user_id where p.id = p_person_id;
   if v_email is null then
-    return null;
+    return;
   end if;
   insert into private.platform_emails (template, to_email, locale, args)
-  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args));
-  return 'Email';
+  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args))
+  returning id into email_id;
+  channel := 'Email';
 end;
 $$;
-comment on function private.tell_moderation_party(uuid, uuid, text, uuid, uuid, jsonb) is 'Tells a person the outcome of a moderation decision or appeal (6168): through the notification queue, or, when it cannot reach them, by a platform email with the same words. Answers Notification, Email, or null when the person has no email left.';
+comment on function private.tell_moderation_party(uuid, uuid, text, uuid, uuid, jsonb) is 'Starts telling a person the outcome of a moderation decision or appeal (6168): through the notification queue, or, when that reaches nobody, by a platform email with the same words. Answers the channel and any email''s outbox id; a null channel means the person has no email left. An email is only queued here: whether it left shows in its outbox row, and one that fails opens a legal queue item (6165).';
 revoke all on function private.tell_moderation_party(uuid, uuid, text, uuid, uuid, jsonb) from public, anon, authenticated;
 
 -- Latest definition: 1590.
@@ -107,6 +120,7 @@ declare
   v_person uuid;
   v_count integer := 0;
   v_args jsonb;
+  v_channel text;
 begin
   select * into v_action from app.moderation_actions m where m.id = p_action_id;
   select * into v_opp from app.opportunities o where o.id = v_action.opportunity_id;
@@ -135,16 +149,16 @@ begin
                       where e.opportunity_id = v_opp.id and e.id <> v_action.id and e.decided_at >= r.reported_at
                         and e.decided_at < v_action.decided_at)
   loop
-    if private.tell_moderation_party(v_opp.org_id, v_person, 'listing_report.decided', v_opp.id, v_opp.project_id,
-         jsonb_build_object('title', v_opp.title, 'action', v_action.action, 'statement', v_action.statement_of_reasons,
-           'actorName', 'XOS')) is not null then
+    select t.channel into v_channel from private.tell_moderation_party(v_opp.org_id, v_person, 'listing_report.decided', v_opp.id, v_opp.project_id,
+      jsonb_build_object('title', v_opp.title, 'action', v_action.action, 'statement', v_action.statement_of_reasons, 'actorName', 'XOS')) t;
+    if v_channel is not null then
       v_count := v_count + 1;
     end if;
   end loop;
   return v_count;
 end;
 $$;
-comment on function private.notify_moderation_decision(uuid) is 'Sends a moderation decision''s statement of reasons to the affected party, the org''s marketplace managers and the listing''s author (listing.moderated), and its outcome to each reporter whose report it decided (listing_report.decided), by email when the notification queue cannot reach them (private.tell_moderation_party, 6168). Returns how many were told. The notices name the platform as the actor, never the operator who decided (1590).';
+comment on function private.notify_moderation_decision(uuid) is 'Sends a moderation decision''s statement of reasons to the affected party, the org''s marketplace managers and the listing''s author (listing.moderated), and its outcome to each reporter whose report it decided (listing_report.decided), by email when the notification queue cannot reach them (private.tell_moderation_party, 6168). Returns how many were reached or had an email queued. The notices name the platform as the actor, never the operator who decided (1590).';
 revoke all on function private.notify_moderation_decision(uuid) from public, anon, authenticated;
 
 -- Deciding an appeal --------------------------------------------------------------------------------------------------
@@ -178,7 +192,8 @@ declare
   v_same boolean;
   v_reviewer text;
   v_new uuid;
-  v_told text;
+  v_channel text;
+  v_email uuid;
 begin
   select * into v_appeal from app.moderation_appeals a where a.id = p_appeal_id and a.deleted_at is null for update;
   if v_appeal.id is null then
@@ -224,14 +239,17 @@ begin
   end if;
 
   -- The appellant hears from the platform, not from the operator who decided (1590), and hears who re-reviewed it.
-  v_told := private.tell_moderation_party(v_appeal.org_id, v_appeal.appellant_person_id, 'moderation_appeal.decided', v_opp.id,
+  select t.channel, t.email_id into v_channel, v_email
+  from private.tell_moderation_party(v_appeal.org_id, v_appeal.appellant_person_id, 'moderation_appeal.decided', v_opp.id,
     v_opp.project_id, jsonb_build_object('title', v_opp.title, 'outcome', p_outcome, 'statement', btrim(p_statement),
-      'reviewer', v_reviewer, 'reviewerName', coalesce(v_outside.reviewer_name, ''), 'actorName', 'XOS'));
+      'reviewer', v_reviewer, 'reviewerName', coalesce(v_outside.reviewer_name, ''), 'actorName', 'XOS')) t;
+  -- Told now only through the notification queue. An email counts once the provider has taken it (6165's feed stamps it).
   insert into private.moderation_appeal_reviews (moderation_appeal_id, org_id, recorded_by, same_reviewer, outside_reviewer_id,
-    re_review_notes, told_by, told_at)
-  values (v_appeal.id, v_appeal.org_id, v_operator, v_same, v_outside.id, btrim(p_re_review_notes), v_told, case when v_told is not null then now() end);
+    re_review_notes, told_by, notice_email_id, told_at)
+  values (v_appeal.id, v_appeal.org_id, v_operator, v_same, v_outside.id, btrim(p_re_review_notes), v_channel, v_email,
+    case when v_channel = 'Notification' then now() end);
   perform private.log_operator_action('moderation_appeal.decided', v_appeal.org_id, 'app.moderation_appeals', v_appeal.id,
-    p_statement, jsonb_build_object('outcome', p_outcome, 'new_decision', v_new, 'reviewer', v_reviewer, 'told', v_told));
+    p_statement, jsonb_build_object('outcome', p_outcome, 'new_decision', v_new, 'reviewer', v_reviewer, 'notice_channel', v_channel));
   -- The queue item closes with its appeal, not at the next sweep.
   perform private.follow_legal_queue_source(i.id, 'Completed') from app.legal_queue_items i
   where i.source_table = 'app.moderation_appeals' and i.source_id = v_appeal.id;
@@ -239,7 +257,7 @@ begin
 end;
 $$;
 
-comment on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, text, app.moderation_action_kind, app.moderation_ground, text, text, boolean) is 'An operator (moderation.decide) records the outcome of a fresh, documented re-review of a moderation appeal (6168): what was looked at again, and the reasons sent to the appellant. The operator who made the first decision may re-review it, which the record and the notice both say. While an outside reviewer is appointed the appeal is theirs, and the operator records their decision. Reversing a removal or restriction restores the listing; reversing no action records the new decision given. The appellant is told the outcome and who re-reviewed it, by the platform rather than the operator (1590). Returns the appeal id.';
+comment on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, text, app.moderation_action_kind, app.moderation_ground, text, text, boolean) is 'An operator (moderation.decide) records the outcome of a fresh, documented re-review of a moderation appeal (6168): what was looked at again, and the reasons sent to the appellant. The operator who made the first decision may re-review it, which the record and the notice both say. While an outside reviewer is appointed the appeal is theirs, and the operator records their decision. Reversing a removal or restriction restores the listing; reversing no action records the new decision given. The appellant is told the outcome and who re-reviewed it, by the platform rather than the operator (1590); the record counts them told only when that has actually happened. Returns the appeal id.';
 revoke all on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, text, app.moderation_action_kind, app.moderation_ground, text, text, boolean) from public, anon;
 grant execute on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, text, app.moderation_action_kind, app.moderation_ground, text, text, boolean) to authenticated;
 
@@ -291,7 +309,8 @@ begin
                            'original_decided_by', m.decided_by,
                            'my_own_decision', m.decided_by is not distinct from v_operator,
                            're_review_notes', rv.re_review_notes, 'same_reviewer', rv.same_reviewer,
-                           'outside_reviewer_name', orv.reviewer_name, 'told_by', rv.told_by,
+                           'outside_reviewer_name', orv.reviewer_name, 'told_by', rv.told_by, 'told_at', rv.told_at,
+                           'notice_state', (select e.send_state from private.platform_emails e where e.id = rv.notice_email_id),
                            'has_review', rv.moderation_appeal_id is not null)
                            order by a.filed_at desc)
                          from app.moderation_appeals a
