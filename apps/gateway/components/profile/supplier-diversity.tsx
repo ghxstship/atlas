@@ -3,11 +3,13 @@ import {
   listSupplierDiversityPrograms,
   SUPPLIER_DIVERSITY_KINDS,
 } from "@xos/data/supplier-diversity";
+import { listMySensitiveConsents, standingFor } from "@xos/data/sensitive-consent";
 import type { XosClient } from "@xos/data";
 import { ActionButton } from "@/components/actions/action-button";
 import { RowList } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
+import { ConsentGate, ConsentWithdraw } from "@/components/settings/consent-gate";
 import {
   addSupplierDiversityAction,
   removeSupplierDiversityAction,
@@ -21,7 +23,8 @@ import { enumLabelKey, type Translate } from "@/lib/shell/translate";
  * Supplier diversity certifications (Section 4.4.1, A65-031): optional and self-declared, for the
  * person or for the company they act as. Each is shared one organization at a time, by separate
  * consent, and only with an organization that runs a supplier diversity program; every share can be
- * revoked here. The certificate number is Restricted, so only its last four characters show.
+ * revoked here. The certificate number is Restricted, so only its last four characters show. Declaring one needs
+ * recorded consent first (ADR 0164), or for a company the attestation of the Owner or Admin who declares it.
  */
 export async function SupplierDiversityPanel({
   db,
@@ -35,14 +38,17 @@ export async function SupplierDiversityPanel({
   /** The company acted as, or null for the person's own. */
   accountId: string | null;
 }) {
-  const [certs, programs] = await Promise.all([
+  const [certs, programs, consents] = await Promise.all([
     listMySupplierDiversity(db, accountId),
     listSupplierDiversityPrograms(db, accountId),
+    listMySensitiveConsents(db, accountId),
   ]);
+  const consent = consents.ok ? standingFor(consents.data, "Supplier Diversity") : null;
+  const hidden = accountId ? { accountId } : {};
   return (
     <Section id="supplier-diversity" title={t("gateway.diversity.title")}>
       <p className="m-0 text-text-13 text-text-secondary">{t("gateway.diversity.lead")}</p>
-      {!certs.ok || !programs.ok ? (
+      {!certs.ok || !programs.ok || !consents.ok ? (
         <RegionError />
       ) : (
         <>
@@ -111,7 +117,7 @@ export async function SupplierDiversityPanel({
                         {t("gateway.diversity.notShared")}
                       </p>
                     )}
-                    {unshared.length > 0 ? (
+                    {consent && unshared.length > 0 ? (
                       <SimpleForm
                         id={`diversity-share-${c.id}`}
                         action={shareSupplierDiversityAction}
@@ -143,42 +149,72 @@ export async function SupplierDiversityPanel({
               {t("gateway.diversity.noPrograms")}
             </p>
           ) : null}
-          <SimpleForm
-            id="diversity-add"
-            action={addSupplierDiversityAction}
-            label={t("gateway.diversity.add")}
-            errorsNamespace="gateway.diversity.errors"
-            variant="secondary"
-            resetOnDone
-            submitLabel={t("gateway.diversity.add")}
-            doneLabel={t("gateway.diversity.added")}
-            fields={[
-              {
-                name: "kind",
-                label: t("gateway.diversity.kind"),
-                kind: "select",
-                required: true,
-                options: SUPPLIER_DIVERSITY_KINDS.map((k) => ({
-                  value: k,
-                  label: t(enumLabelKey("supplierDiversityKind", k)),
-                })),
-              },
-              {
-                name: "certifyingBody",
-                label: t("gateway.diversity.certifyingBody"),
-                help: t("gateway.diversity.certifyingBodyHelp"),
-                required: true,
-              },
-              {
-                name: "certificateNumber",
-                label: t("gateway.diversity.number"),
-                help: t("gateway.diversity.numberHelp"),
-                autoComplete: "off",
-              },
-              { name: "issuedOn", label: t("gateway.diversity.issuedOn"), kind: "date" },
-              { name: "expiresOn", label: t("gateway.diversity.expiresOn"), kind: "date" },
-            ]}
-          />
+          {consent ? (
+            <>
+              <SimpleForm
+                id="diversity-add"
+                action={addSupplierDiversityAction}
+                label={t("gateway.diversity.add")}
+                errorsNamespace="gateway.diversity.errors"
+                variant="secondary"
+                resetOnDone
+                submitLabel={t("gateway.diversity.add")}
+                doneLabel={t("gateway.diversity.added")}
+                fields={[
+                  {
+                    name: "kind",
+                    label: t("gateway.diversity.kind"),
+                    kind: "select",
+                    required: true,
+                    options: SUPPLIER_DIVERSITY_KINDS.map((k) => ({
+                      value: k,
+                      label: t(enumLabelKey("supplierDiversityKind", k)),
+                    })),
+                  },
+                  {
+                    name: "certifyingBody",
+                    label: t("gateway.diversity.certifyingBody"),
+                    help: t("gateway.diversity.certifyingBodyHelp"),
+                    required: true,
+                  },
+                  {
+                    name: "certificateNumber",
+                    label: t("gateway.diversity.number"),
+                    help: t("gateway.diversity.numberHelp"),
+                    autoComplete: "off",
+                  },
+                  { name: "issuedOn", label: t("gateway.diversity.issuedOn"), kind: "date" },
+                  { name: "expiresOn", label: t("gateway.diversity.expiresOn"), kind: "date" },
+                ]}
+              />
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("workDetails.consent.given", {
+                  date: formatDate(locale, consent.givenAt),
+                  version: consent.noticeVersion,
+                })}
+              </p>
+              <ConsentWithdraw category="Supplier Diversity" hidden={hidden} labelKey="diversity" />
+            </>
+          ) : (
+            <>
+              {/* The form loads only after the step; everything else on the profile works without it. */}
+              <ConsentGate
+                category="Supplier Diversity"
+                hidden={hidden}
+                gateKey="diversity"
+                reviewKey="reviewDiversity"
+                waiting={certs.data.length > 0}
+                attest={accountId !== null}
+              />
+              {certs.data.length > 0 ? (
+                <ConsentWithdraw
+                  category="Supplier Diversity"
+                  hidden={hidden}
+                  labelKey="diversity"
+                />
+              ) : null}
+            </>
+          )}
         </>
       )}
     </Section>

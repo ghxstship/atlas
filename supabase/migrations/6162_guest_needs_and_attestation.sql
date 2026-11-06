@@ -378,6 +378,20 @@ comment on function app.guest_care_needs_states(uuid) is 'Which guests of a proj
 revoke all on function app.guest_care_needs_states(uuid) from public, anon;
 grant execute on function app.guest_care_needs_states(uuid) to authenticated, service_role;
 
+create or replace function app.can_read_guest_care_needs(p_project_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.can_on_project(p_project_id, 'data.restricted.read.medical');
+$$;
+
+comment on function app.can_read_guest_care_needs(uuid) is 'True when the signed-in person holds data.restricted.read.medical on the project, so a page offers the read of guests'' needs.';
+revoke all on function app.can_read_guest_care_needs(uuid) from public, anon;
+grant execute on function app.can_read_guest_care_needs(uuid) to authenticated, service_role;
+
 create or replace function app.read_guest_care_needs(p_project_id uuid, p_for_export boolean default false)
 returns table (
   guest_list_entry_id uuid,
@@ -606,6 +620,21 @@ $$;
 
 comment on function private.roster_meal_consent_id(uuid, text) is 'The grant a meal preference on this roster entry stands on: the person''s own consent, or the company''s attestation.';
 revoke all on function private.roster_meal_consent_id(uuid, text) from public, anon, authenticated;
+
+create or replace function app.roster_meal_consent_stands(p_roster_entry_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.project_fact_standing(p_roster_entry_id) in ('Person', 'Company')
+    and private.roster_meal_consent_id(p_roster_entry_id, private.project_fact_standing(p_roster_entry_id)) is not null;
+$$;
+
+comment on function app.roster_meal_consent_stands(uuid) is 'True when the signed-in person may enter a meal preference on this roster entry now: their own consent stands, or their company''s attestation does. The form shows the field only then.';
+revoke all on function app.roster_meal_consent_stands(uuid) from public, anon;
+grant execute on function app.roster_meal_consent_stands(uuid) to authenticated, service_role;
 
 create or replace function app.save_roster_travel_request(
   p_roster_entry_id uuid,

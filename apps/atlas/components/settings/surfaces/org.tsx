@@ -1,3 +1,4 @@
+import { readSensitiveConsentReport } from "@xos/data/sensitive-consent";
 import { listAuditEvents } from "@xos/data/activity";
 import { listCanonExtensionProposals, listDepartments, listDisciplines } from "@xos/data/canon";
 import {
@@ -338,6 +339,53 @@ export async function DataRequestsPanel({ ctx }: SettingsPanelProps) {
           }))}
         />
       ) : null}
+    </Section>
+  );
+}
+
+/** Consent state per subject and sensitive field (ADR 0164), for holders of data.request.manage: never a value. */
+export async function SensitiveConsentPanel({ ctx }: SettingsPanelProps) {
+  if (!ctx.capabilities.has("data.request.manage")) return null;
+  const [f, report] = await Promise.all([
+    formatters(ctx),
+    readSensitiveConsentReport(ctx.viewer.db, ctx.org.id),
+  ]);
+  if (!report.ok) return <LoadFailed t={f.t} />;
+  const C = "workDetails.consent";
+  return (
+    <Section
+      id="sensitive-consent"
+      title={f.t(`${C}.report.title`)}
+      description={f.t(`${C}.report.description`)}
+    >
+      {report.data.length === 0 ? (
+        <Quiet>{f.t(`${C}.report.none`)}</Quiet>
+      ) : (
+        <Rows
+          label={f.t(`${C}.report.title`)}
+          rows={report.data.map((r) => ({
+            id: `${r.subjectId}-${r.fieldCode}`,
+            title: (
+              <>
+                {r.subjectName ?? f.t(`${C}.report.kinds.${r.subjectKind}`)}
+                <Chip
+                  tone={
+                    r.standing === "Withdrawn" || r.standing === "No Record" ? "warning" : "neutral"
+                  }
+                >
+                  {f.t(`${C}.report.standings.${r.standing}`)}
+                </Chip>
+              </>
+            ),
+            meta: [
+              f.t(`${C}.report.fields.${r.fieldCode}`),
+              r.noticeVersion,
+              r.givenAt ? f.day(r.givenAt) : null,
+              r.givenByName,
+            ],
+          }))}
+        />
+      )}
     </Section>
   );
 }

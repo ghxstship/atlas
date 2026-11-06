@@ -3855,6 +3855,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them.",
+          },
+        ],
+      },
     ],
     "work-applications": [
       {
@@ -7986,6 +7995,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
           { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos.",
+          },
         ],
       },
     ],

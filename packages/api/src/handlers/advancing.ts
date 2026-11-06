@@ -20,7 +20,7 @@ import { requirePerson } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { allocationHandlers } from "./parts/allocations.ts";
 import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
-import { handlersFor, tableResource, unwrap } from "./support/table.ts";
+import { handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 
 const packets = tableResource("advancePackets");
 const sections = tableResource("advanceSections");
@@ -104,6 +104,42 @@ export const handlers = defineHandlers("Advancing", {
     await guests.read(context, params.id, ["id"]);
     unwrap(await decideGuest(context.db, params.id, body.outcome));
     return ok((await guests.read(context, params.id)) as never);
+  },
+
+  // ADR 0164: a guest's needs, under the caller's attestation; the database refuses it without both statements.
+  "guestListEntries.setNeeds": async ({ params, body }, context) => {
+    await guests.read(context, params.id, ["id"]);
+    const b = body as Record<string, unknown>;
+    await run(
+      rpc(context.db, "set_guest_care_needs", {
+        p_guest_list_entry_id: params.id,
+        p_dietary_needs: b["dietary_needs"] ?? [],
+        p_allergies: b["allergies"] ?? null,
+        p_dietary_notes: b["dietary_notes"] ?? null,
+        p_accessibility_needs: b["accessibility_needs"] ?? [],
+        p_accessibility_notes: b["accessibility_notes"] ?? null,
+        p_guest_email: b["guest_email"] ?? null,
+        p_authority_confirmed: b["authority_confirmed"] === true,
+        p_notice_confirmed: b["notice_confirmed"] === true,
+        p_notice_version: b["notice_version"],
+        p_locale: b["locale"],
+        p_surface: "API",
+      }),
+    );
+    return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.clearNeeds": async ({ params }, context) => {
+    await guests.read(context, params.id, ["id"]);
+    await run(rpc(context.db, "clear_guest_care_needs", { p_guest_list_entry_id: params.id }));
+    return ok((await guests.read(context, params.id)) as never);
+  },
+
+  "guestListEntries.needs": async ({ query }, context) => {
+    const rows = await run<Record<string, unknown>[]>(
+      rpc(context.db, "read_guest_care_needs", { p_project_id: query.project_id }),
+    );
+    return ok({ data: rows, next_cursor: null } as never);
   },
 
   "guestListEntries.checkIn": async ({ params }, context) => {

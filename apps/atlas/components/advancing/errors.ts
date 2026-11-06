@@ -4,6 +4,8 @@
  * repository; each has a key in both catalogs.
  */
 export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
+  // ADR 0164: the door note has no consent step.
+  "guest_note_sensitive",
   "advance_packet_send",
   "advance_packet_sent",
   "advance_packet_no_sections",

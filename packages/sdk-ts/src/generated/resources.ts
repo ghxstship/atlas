@@ -451,6 +451,8 @@ import type {
   GuestListEntry,
   GuestListEntryCreate,
   GuestListEntryUpdate,
+  GuestNeedsPage,
+  GuestNeedsRequest,
   HandbookArticle,
   HandbookArticleCreate,
   HandbookArticleUpdate,
@@ -903,6 +905,10 @@ import type {
   ScopeNode,
   ScopeNodeCreate,
   ScopeNodeUpdate,
+  SensitiveConsent,
+  SensitiveConsentCreate,
+  SensitiveConsentReportRowPage,
+  SensitiveFieldRecord,
   SeparationOfDutiesRule,
   ServiceAccount,
   ServiceAccountCreate,
@@ -35492,6 +35498,66 @@ export class GuestListEntriesResource extends $Resource {
   }
 
   /**
+   * Set a guest's dietary and access needs
+   *
+   * Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version and language of the wording they were shown (422 sensitive_notice_version). Attested per category with who gave it, and audited without values. An email matching a verified sign-in names that person, who is told and can remove it; a person who withdrew that category refuses it (422 sensitive_person_withdrew). The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/{id}/set-needs` (operation `guestListEntries.setNeeds`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  setNeeds(
+    id: string,
+    body: GuestNeedsRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.setNeeds"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Remove a guest's dietary and access needs
+   *
+   * Deletes the guest's needs and withdraws the attestation through `app.clear_guest_care_needs`, also while the org is read-only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/{id}/clear-needs` (operation `guestListEntries.clearNeeds`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  clearNeeds(id: string, options?: $MutationOptions): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.clearNeeds"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Read guests' dietary and access needs
+   *
+   * The guests' needs on a project through `app.read_guest_care_needs`, for holders of data.restricted.read.medical on it, else 403. Every read is written to the org's audit ledger and to the access log of each guest with an account. Standard exports never carry these columns. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /guest-list-entries/needs` (operation `guestListEntries.needs`).
+   * Requires the capability `data.restricted.read.medical`.
+   */
+  needs(
+    params: {
+      /**
+       * Identifier of the project.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GuestNeedsPage>> {
+    return this.client.request<GuestNeedsPage>(
+      $OPERATIONS["guestListEntries.needs"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
    * Check a guest in
    *
    * Moves an Approved guest to Checked In at the door; the database stamps who checked them in and when. Any other state is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
@@ -37359,6 +37425,191 @@ export class MyParkingPassesResource extends $Resource {
     return this.client.paginate<ParkingPass>(
       $OPERATIONS["myParkingPasses.list"],
       { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `sensitiveConsents`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class SensitiveConsentsResource extends $Resource {
+  /**
+   * List sensitive consent rows
+   *
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /sensitive-consents` (operation `sensitiveConsents.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(
+    params?: $ListParams<SensitiveConsent>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SensitiveConsent>> {
+    return this.client.requestPage<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List sensitive consent rows
+   *
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /sensitive-consents` (operation `sensitiveConsents.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SensitiveConsent>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SensitiveConsent, void, undefined> {
+    return this.client.paginate<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a sensitive consent
+   *
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /sensitive-consents` (operation `sensitiveConsents.create`).
+   * Requires the capability `me.work_details.write`.
+   */
+  create(
+    body: SensitiveConsentCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SensitiveConsent>> {
+    return this.client.request<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a sensitive consent
+   *
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.
+   *
+   * `GET /sensitive-consents/{id}` (operation `sensitiveConsents.get`).
+   * Requires the capability `me.work_details.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SensitiveConsent>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SensitiveConsent>> {
+    return this.client.request<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw a consent or remove an attestation
+   *
+   * Stops use at once and clears the values the grant covers, through `app.withdraw_sensitive_consent` for the caller's own or a company's, and `app.remove_sensitive_entry` for an attestation about them or given by them. Under a legal hold the values stay hidden until it ends. Refuses 422 sensitive_entry_not_yours. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /sensitive-consents/{id}/withdraw` (operation `sensitiveConsents.withdraw`).
+   * Requires the capability `me.work_details.write`.
+   */
+  withdraw(id: string, options?: $MutationOptions): Promise<$ApiResponse<SensitiveConsent>> {
+    return this.client.request<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.withdraw"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Consent state per sensitive field
+   *
+   * For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /sensitive-consents/report` (operation `sensitiveConsents.report`).
+   * Requires the capability `data.request.manage`.
+   */
+  report(options?: $RequestOptions): Promise<$ApiResponse<SensitiveConsentReportRowPage>> {
+    return this.client.request<SensitiveConsentReportRowPage>(
+      $OPERATIONS["sensitiveConsents.report"],
+      {},
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `sensitiveFieldRecords`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class SensitiveFieldRecordsResource extends $Resource {
+  /**
+   * List sensitive field record rows
+   *
+   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /sensitive-field-records` (operation `sensitiveFieldRecords.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(
+    params?: $ListParams<SensitiveFieldRecord>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SensitiveFieldRecord>> {
+    return this.client.requestPage<SensitiveFieldRecord>(
+      $OPERATIONS["sensitiveFieldRecords.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List sensitive field record rows
+   *
+   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /sensitive-field-records` (operation `sensitiveFieldRecords.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SensitiveFieldRecord>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SensitiveFieldRecord, void, undefined> {
+    return this.client.paginate<SensitiveFieldRecord>(
+      $OPERATIONS["sensitiveFieldRecords.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a sensitive field record
+   *
+   * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.
+   *
+   * `GET /sensitive-field-records/{id}` (operation `sensitiveFieldRecords.get`).
+   * Requires the capability `me.work_details.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SensitiveFieldRecord>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SensitiveFieldRecord>> {
+    return this.client.request<SensitiveFieldRecord>(
+      $OPERATIONS["sensitiveFieldRecords.get"],
+      { path: { id }, query: params },
       options,
     );
   }

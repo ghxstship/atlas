@@ -903,6 +903,23 @@ export const scopeKind = ["Engagement Root", "Standing Venue", "Show"] as const;
 export const seatPreference = ["Window", "Aisle", "No Preference"] as const;
 /** app.seen_surface */
 export const seenSurface = ["Today", "Itinerary", "Show Day"] as const;
+/** app.sensitive_consent_basis */
+export const sensitiveConsentBasis = ["Own Consent", "Attested Authority"] as const;
+/** app.sensitive_consent_standing */
+export const sensitiveConsentStanding = [
+  "Consent Given",
+  "Attested",
+  "Withdrawn",
+  "No Record",
+] as const;
+/** app.sensitive_consent_surface */
+export const sensitiveConsentSurface = ["Atlas", "Gateway", "Compass", "API"] as const;
+/** app.sensitive_data_category */
+export const sensitiveDataCategory = [
+  "Dietary and Allergies",
+  "Accessibility",
+  "Supplier Diversity",
+] as const;
 /** app.setting_scope */
 export const settingScope = ["Organization", "Workspace", "Team", "Project"] as const;
 /** app.setting_source */

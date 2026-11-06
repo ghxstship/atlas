@@ -257,7 +257,8 @@
     "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",
     "sensitive_person_withdrew": "Esta persona retiró su consentimiento a estos datos, así que solo ella puede darlo de nuevo.",
     "sensitive_entry_not_yours": "Solo la persona a la que se refiere, o quien lo introdujo, puede eliminarlo.",
-    "sensitive_consent_category": "Una empresa solo guarda su estado de diversidad de proveedores."
+    "sensitive_consent_category": "Una empresa solo guarda su estado de diversidad de proveedores.",
+    "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento."
   },
   "compass": {
     "edit": "Editar datos de trabajo",
@@ -542,6 +543,32 @@
         "guest_accessibility_needs": "Necesidades de accesibilidad del invitado",
         "guest_accessibility_notes": "Notas de accesibilidad del invitado"
       }
+    },
+    "guestNeeds": {
+      "open": "Necesidades",
+      "openNamed": "Necesidades de dieta y acceso de {name}",
+      "tag": "Necesidades registradas",
+      "recorded": "Necesidades registradas por {name}, {date}.",
+      "replaces": "Al guardar se reemplaza lo registrado. Solo vuelves a verlo con acceso médico.",
+      "dietaryNeeds": "Necesidades de dieta",
+      "allergies": "Alergias",
+      "allergiesHelp": "Indica la gravedad de cada una.",
+      "dietaryNotes": "Otras notas de dieta",
+      "accessibilityNeeds": "Necesidades de accesibilidad",
+      "accessibilityNotes": "Notas de accesibilidad",
+      "email": "Correo del invitado",
+      "emailHelp": "Opcional. Si tiene una cuenta de XOS, se le avisa y puede eliminarlo.",
+      "save": "Guardar necesidades",
+      "clear": "Eliminar necesidades",
+      "cancel": "Cancelar",
+      "read": "Leer necesidades de invitados",
+      "readTitle": "Necesidades de invitados de este proyecto",
+      "readHelp": "Cada lectura queda registrada. Úsalas solo para atender al invitado.",
+      "readNone": "Ningún invitado tiene necesidades registradas.",
+      "guest": "Invitado",
+      "download": "Descargar",
+      "close": "Cerrar",
+      "continue": "Continuar"
     }
   }
 }

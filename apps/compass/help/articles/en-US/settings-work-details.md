@@ -17,3 +17,5 @@ Uniform sizes and your seat, meal and home airport are no longer kept here. Each
 Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.
 
 Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway. Your [profile](help:profile) shows your contacts.
+
+Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them.

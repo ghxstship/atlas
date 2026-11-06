@@ -23970,6 +23970,135 @@ export type Database = {
           },
         ];
       };
+      guest_care_needs: {
+        Row: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string | null;
+          allergies: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string | null;
+          guest_email: string | null;
+          guest_list_entry_id: string;
+          guest_person_id: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes?: string | null;
+          allergies?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes?: string | null;
+          guest_email?: string | null;
+          guest_list_entry_id: string;
+          guest_person_id?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes?: string | null;
+          allergies?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes?: string | null;
+          guest_email?: string | null;
+          guest_list_entry_id?: string;
+          guest_person_id?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_care_needs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_guest_person_id_fkey";
+            columns: ["guest_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_place_facts";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       guest_check_ins: {
         Row: {
           checked_in_by_membership_id: string | null;
@@ -52164,6 +52293,192 @@ export type Database = {
           },
         ];
       };
+      sensitive_data_consents: {
+        Row: {
+          account_id: string | null;
+          authority_confirmed: boolean;
+          basis: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip: unknown;
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          given_at: string;
+          given_by: string;
+          guest_list_entry_id: string | null;
+          id: string;
+          locale: string;
+          notice_confirmed: boolean;
+          notice_version: string;
+          org_id: string | null;
+          person_id: string | null;
+          surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          withdrawn_at: string | null;
+          withdrawn_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          authority_confirmed?: boolean;
+          basis: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip?: unknown;
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          given_at?: string;
+          given_by: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          locale: string;
+          notice_confirmed?: boolean;
+          notice_version: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          withdrawn_at?: string | null;
+          withdrawn_by?: string | null;
+        };
+        Update: {
+          account_id?: string | null;
+          authority_confirmed?: boolean;
+          basis?: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip?: unknown;
+          category?: Database["app"]["Enums"]["sensitive_data_category"];
+          given_at?: string;
+          given_by?: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          locale?: string;
+          notice_confirmed?: boolean;
+          notice_version?: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
+          withdrawn_at?: string | null;
+          withdrawn_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sensitive_data_consents_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_given_by_fkey";
+            columns: ["given_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_withdrawn_by_fkey";
+            columns: ["withdrawn_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sensitive_field_records: {
+        Row: {
+          account_id: string | null;
+          awaiting_notified_at: string | null;
+          awaiting_since: string | null;
+          changed_at: string;
+          cleared_at: string | null;
+          consent_id: string | null;
+          entered_at: string;
+          entered_by: string | null;
+          field_code: string;
+          guest_list_entry_id: string | null;
+          id: string;
+          person_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          awaiting_notified_at?: string | null;
+          awaiting_since?: string | null;
+          changed_at?: string;
+          cleared_at?: string | null;
+          consent_id?: string | null;
+          entered_at?: string;
+          entered_by?: string | null;
+          field_code: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          person_id?: string | null;
+        };
+        Update: {
+          account_id?: string | null;
+          awaiting_notified_at?: string | null;
+          awaiting_since?: string | null;
+          changed_at?: string;
+          cleared_at?: string | null;
+          consent_id?: string | null;
+          entered_at?: string;
+          entered_by?: string | null;
+          field_code?: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          person_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sensitive_field_records_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_consent_id_fkey";
+            columns: ["consent_id"];
+            isOneToOne: false;
+            referencedRelation: "sensitive_data_consents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_entered_by_fkey";
+            columns: ["entered_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_accounts: {
         Row: {
           created_at: string;
@@ -71173,6 +71488,17 @@ export type Database = {
           version: number;
         }[];
       };
+      attest_roster_meal_preference: {
+        Args: {
+          p_authority_confirmed?: boolean;
+          p_locale: string;
+          p_notice_confirmed?: boolean;
+          p_notice_version: string;
+          p_roster_entry_id: string;
+          p_surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
+      };
       authenticate_api_key: {
         Args: { p_secret: string };
         Returns: {
@@ -71778,6 +72104,7 @@ export type Database = {
           url: string;
         }[];
       };
+      clear_guest_care_needs: { Args: { p_guest_list_entry_id: string }; Returns: undefined };
       clear_personal_setting: {
         Args: { p_org_id?: string; p_setting_key: string };
         Returns: boolean;
@@ -72969,6 +73296,18 @@ export type Database = {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
       };
+      give_sensitive_consent: {
+        Args: {
+          p_account_id?: string;
+          p_authority_confirmed?: boolean;
+          p_category: Database["app"]["Enums"]["sensitive_data_category"];
+          p_locale: string;
+          p_notice_confirmed?: boolean;
+          p_notice_version: string;
+          p_surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
+      };
       global_search: {
         Args: {
           p_embedding?: string;
@@ -72998,6 +73337,15 @@ export type Database = {
       grant_support_session: {
         Args: { p_hours: number; p_org_id: string; p_reason: string };
         Returns: string;
+      };
+      guest_care_needs_states: {
+        Args: { p_project_id: string };
+        Returns: {
+          categories: Database["app"]["Enums"]["sensitive_data_category"][];
+          given_at: string;
+          given_by_name: string;
+          guest_list_entry_id: string;
+        }[];
       };
       handbook_acknowledgment_status: {
         Args: { p_article_id: string };
@@ -73485,6 +73833,14 @@ export type Database = {
           this_session: boolean;
         }[];
       };
+      my_sensitive_consents: {
+        Args: { p_account_id?: string };
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          given_at: string;
+          notice_version: string;
+        }[];
+      };
       my_sessions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -73554,6 +73910,15 @@ export type Database = {
           time_zone: string;
           title: string;
           voided: boolean;
+        }[];
+      };
+      my_work_detail_needs: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string;
         }[];
       };
       my_work_detail_sharing: {
@@ -74045,6 +74410,18 @@ export type Database = {
         Returns: boolean;
       };
       reactivate_organization: { Args: { p_org_id: string }; Returns: string };
+      read_guest_care_needs: {
+        Args: { p_for_export?: boolean; p_project_id: string };
+        Returns: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string;
+          allergies: string;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string;
+          guest_list_entry_id: string;
+          guest_name: string;
+        }[];
+      };
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
       read_notification_action: {
@@ -74738,6 +75115,7 @@ export type Database = {
         Args: { p_org_id: string; p_person_id: string };
         Returns: string[];
       };
+      remove_sensitive_entry: { Args: { p_consent_id: string }; Returns: undefined };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       reorder_venue_levels: {
         Args: { p_level_ids: string[]; p_venue_id: string };
@@ -75449,6 +75827,33 @@ export type Database = {
         };
         Returns: string;
       };
+      sensitive_consent_report: {
+        Args: { p_org_id: string };
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          field_code: string;
+          given_at: string;
+          given_by_name: string;
+          notice_version: string;
+          standing: Database["app"]["Enums"]["sensitive_consent_standing"];
+          subject_id: string;
+          subject_kind: string;
+          subject_name: string;
+          withdrawn_at: string;
+        }[];
+      };
+      sensitive_entries_about_me: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          consent_id: string;
+          details: Json;
+          given_at: string;
+          given_by_name: string;
+          guest_name: string;
+          org_name: string;
+        }[];
+      };
       set_account_notification_defaults: {
         Args: { p_account_id: string; p_defaults: Json };
         Returns: undefined;
@@ -75470,6 +75875,23 @@ export type Database = {
       set_departments_in_use: {
         Args: { p_dept_codes: string[]; p_disc_codes: string[]; p_org_id: string };
         Returns: undefined;
+      };
+      set_guest_care_needs: {
+        Args: {
+          p_accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          p_accessibility_notes?: string;
+          p_allergies?: string;
+          p_authority_confirmed?: boolean;
+          p_dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          p_dietary_notes?: string;
+          p_guest_email?: string;
+          p_guest_list_entry_id: string;
+          p_locale?: string;
+          p_notice_confirmed?: boolean;
+          p_notice_version?: string;
+          p_surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
       };
       set_kiosk_pin: { Args: { p_membership_id: string; p_pin: string }; Returns: undefined };
       set_location_defaults: {
@@ -76532,6 +76954,13 @@ export type Database = {
         Args: { p_reason: string; p_roster_entry_id: string };
         Returns: undefined;
       };
+      withdraw_sensitive_consent: {
+        Args: {
+          p_account_id?: string;
+          p_category: Database["app"]["Enums"]["sensitive_data_category"];
+        };
+        Returns: boolean;
+      };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
         Args: {
@@ -77015,6 +77444,10 @@ export type Database = {
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       seat_preference: "Window" | "Aisle" | "No Preference";
       seen_surface: "Today" | "Itinerary" | "Show Day";
+      sensitive_consent_basis: "Own Consent" | "Attested Authority";
+      sensitive_consent_standing: "Consent Given" | "Attested" | "Withdrawn" | "No Record";
+      sensitive_consent_surface: "Atlas" | "Gateway" | "Compass" | "API";
+      sensitive_data_category: "Dietary and Allergies" | "Accessibility" | "Supplier Diversity";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
       setting_source: "Personal" | "Project" | "Team" | "Workspace" | "Organization" | "Default";
       setting_value_type: "Text" | "Boolean" | "Integer" | "Choice";
@@ -83741,6 +84174,10 @@ export const Constants = {
       scope_kind: ["Engagement Root", "Standing Venue", "Show"],
       seat_preference: ["Window", "Aisle", "No Preference"],
       seen_surface: ["Today", "Itinerary", "Show Day"],
+      sensitive_consent_basis: ["Own Consent", "Attested Authority"],
+      sensitive_consent_standing: ["Consent Given", "Attested", "Withdrawn", "No Record"],
+      sensitive_consent_surface: ["Atlas", "Gateway", "Compass", "API"],
+      sensitive_data_category: ["Dietary and Allergies", "Accessibility", "Supplier Diversity"],
       setting_scope: ["Organization", "Workspace", "Team", "Project"],
       setting_source: ["Personal", "Project", "Team", "Workspace", "Organization", "Default"],
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],

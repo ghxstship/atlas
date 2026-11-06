@@ -27,6 +27,13 @@ import {
   workDetailErrorKey,
   type Parsed,
 } from "@xos/data/work-details-forms";
+import {
+  giveSensitiveConsent,
+  removeSensitiveEntry,
+  SENSITIVE_CATEGORIES,
+  withdrawSensitiveConsent,
+  type SensitiveCategory,
+} from "@xos/data/sensitive-consent";
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -65,6 +72,8 @@ function done(result: Result<unknown>): State {
   if (!result.ok) return { error: workDetailErrorKey(result.error) };
   revalidatePath("/settings/work-details");
   revalidatePath("/work/engagements", "layout");
+  // Supplier diversity lives on the profile, under the same consent step.
+  revalidatePath("/profile", "layout");
   return { ok: true };
 }
 
@@ -72,6 +81,57 @@ async function savePatch(parsed: Parsed<WorkDetailsPatch>): Promise<State> {
   if (!parsed.ok) return rejected(parsed);
   const { db } = await person();
   return done(await saveMyWorkDetails(db, parsed.value));
+}
+
+// Consent for sensitive data (ADR 0164) --------------------------------------------------------------------------------
+
+const CATEGORY_NAMES: readonly string[] = SENSITIVE_CATEGORIES;
+
+function categoryOf(form: FormData): SensitiveCategory | null {
+  const value = form.get("category");
+  return typeof value === "string" && CATEGORY_NAMES.includes(value)
+    ? (value as SensitiveCategory)
+    : null;
+}
+
+function accountOf(form: FormData): string | null {
+  return parseId(form, "accountId");
+}
+
+/**
+ * Records the person's consent with the wording's version, the language it was shown in and the surface; with an
+ * account, the attestation of the Owner or Admin who declares for the company.
+ */
+export async function giveSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await person();
+  return done(
+    await giveSensitiveConsent(db, {
+      category,
+      locale: await getLocale(),
+      surface: "Gateway",
+      accountId: accountOf(form),
+      authorityConfirmed: form.get("authorityConfirmed") === "true",
+      noticeConfirmed: form.get("noticeConfirmed") === "true",
+    }),
+  );
+}
+
+/** Withdraws a category in one call: use stops at once and the values are cleared. */
+export async function withdrawSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await person();
+  return done(await withdrawSensitiveConsent(db, category, accountOf(form)));
+}
+
+/** Removes what someone else entered about the person. */
+export async function removeSensitiveEntryAction(form: FormData): Promise<void> {
+  const id = parseId(form, "consentId");
+  if (!id) return;
+  const { db } = await person();
+  done(await removeSensitiveEntry(db, id));
 }
 
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {

@@ -28,6 +28,8 @@ import {
 } from "./ground-and-contacts";
 import { ItinerarySections, loadItinerary } from "./itinerary";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
+import { listGuestNeedsStates } from "@xos/data/sensitive-consent";
+import { GuestNeedsTrigger } from "./guest-needs-trigger";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
 import type { TabProps } from "./tab-context";
@@ -290,8 +292,13 @@ export async function GuestListTab({ view, t, locale, engagementKey }: TabProps)
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const guests = await listEngagedGuests(view.ctx.db, view.engagement.id);
+  const [guests, needs] = await Promise.all([
+    listEngagedGuests(view.ctx.db, view.engagement.id),
+    listGuestNeedsStates(view.ctx.db, view.engagement.projectId),
+  ]);
   if (!guests.ok) return <RegionError />;
+  const needsOf = (guestId: string) =>
+    (needs.ok ? needs.data : []).find((n) => n.guestListEntryId === guestId) ?? null;
   const form = <GuestRequestForm engagementId={view.engagement.id} />;
   if (guests.data.length === 0) {
     return (
@@ -324,6 +331,18 @@ export async function GuestListTab({ view, t, locale, engagementKey }: TabProps)
             label: t(enumLabelKey("guestEntryState", g.state)),
             tone: guestTone(g.state),
           },
+          ...(g.state === "Declined"
+            ? {}
+            : {
+                action: (
+                  <GuestNeedsTrigger
+                    hidden={{}}
+                    guestId={g.id}
+                    guestName={g.guestName}
+                    state={needsOf(g.id)}
+                  />
+                ),
+              }),
         }))}
       />
       <Section title={t("gateway.engagement.guestList.request")}>{form}</Section>

@@ -74,7 +74,23 @@ export function MedicalBlock({
     <CategoryBlock title={t("org.medical.title")} heading={heading}>
       <p className="m-0 text-text-secondary">{t("org.medical.description")}</p>
       <Line label={t("org.allergies")} value={d.medical.allergies} />
-      {d.medical.allergies === null ? (
+      <Line
+        label={t("dietary.needs")}
+        value={d.medical.dietaryNeeds.map((n) => workDetailLabel(t, "dietaryNeeds", n)).join(", ")}
+      />
+      <Line label={t("org.notes")} value={d.medical.dietaryNotes} />
+      <Line
+        label={t("accessibility.needs")}
+        value={d.medical.accessibilityNeeds
+          .map((n) => workDetailLabel(t, "accessibilityNeeds", n))
+          .join(", ")}
+      />
+      <Line label={t("org.notes")} value={d.medical.accessibilityNotes} />
+      {d.medical.allergies === null &&
+      d.medical.dietaryNeeds.length === 0 &&
+      d.medical.dietaryNotes === null &&
+      d.medical.accessibilityNeeds.length === 0 &&
+      d.medical.accessibilityNotes === null ? (
         <p className="m-0 text-text-secondary">{t("org.medical.none")}</p>
       ) : null}
     </CategoryBlock>
@@ -138,6 +154,10 @@ export function categoryBody(
           <Line label={t("org.allergies")} value={d.dietary.allergies} />
           {/* R6a: allergies are Restricted; a reader without the medical capability sees them locked. */}
           {d.dietary.allergiesMasked ? <AllergiesLocked t={t} /> : null}
+          {/* ADR 0164: dietary needs and accessibility needs are Restricted too. */}
+          {d.dietary.dietaryMasked ? (
+            <p className="m-0 text-text-secondary">{t("org.dietaryMasked")}</p>
+          ) : null}
           <Line label={t("org.notes")} value={d.dietary.dietaryNotes} />
         </>
       );
@@ -152,6 +172,9 @@ export function categoryBody(
               .map((n) => workDetailLabel(t, "accessibilityNeeds", n))
               .join(", ")}
           />
+          {d.accessibility.accessibilityMasked ? (
+            <p className="m-0 text-text-secondary">{t("org.accessibilityMasked")}</p>
+          ) : null}
           <Line label={t("org.notes")} value={d.accessibility.accessibilityNotes} />
         </>
       );

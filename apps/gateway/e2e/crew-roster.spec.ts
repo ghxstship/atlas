@@ -149,6 +149,11 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
 
     // The member accepts the entry on Home and shares work details, allergies included.
     await sql(
+      `insert into app.sensitive_data_consents (category, basis, person_id, notice_version, locale, surface, given_by)
+       values ('Dietary and Allergies', 'Own Consent', $1, '2026-11-06', 'en-US', 'Gateway', $1)`,
+      [memberId],
+    );
+    await sql(
       `insert into app.person_work_details (person_id, dietary_needs, allergies)
        values ($1, '{Vegetarian}', 'Peanuts, anaphylaxis')`,
       [memberId],
@@ -180,13 +185,14 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
       .toBe(1);
     await member.close();
 
-    // The Owner views the profile: dietary needs, with allergies only On file.
+    // The Owner views the profile: dietary needs and allergies only On file (ADR 0164).
     await page.reload();
     await page.getByRole("button", { name: `View the profile of ${memberName}` }).click();
     const profile = page.getByRole("dialog", { name: memberName });
     await expect(profile).toContainText("Allergies");
     await expect(profile).toContainText("On file");
     await expect(profile).not.toContainText("Peanuts");
+    await expect(profile).not.toContainText("Vegetarian");
   } finally {
     await sql(
       `update app.work_detail_shares set revoked_at = coalesce(revoked_at, now()), deleted_at = now()

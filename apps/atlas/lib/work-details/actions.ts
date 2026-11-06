@@ -28,6 +28,13 @@ import {
   type Parsed,
 } from "@xos/data/work-details-forms";
 import type { WorkDetailsPatch } from "@xos/data/work-details";
+import {
+  giveSensitiveConsent,
+  removeSensitiveEntry,
+  SENSITIVE_CATEGORIES,
+  withdrawSensitiveConsent,
+  type SensitiveCategory,
+} from "@xos/data/sensitive-consent";
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -76,6 +83,44 @@ async function savePatch(form: FormData, parsed: Parsed<WorkDetailsPatch>): Prom
   if (!parsed.ok) return rejected(parsed);
   const { db } = await viewerPerson();
   return done(form, await saveMyWorkDetails(db, parsed.value));
+}
+
+// Consent for sensitive data (ADR 0164) --------------------------------------------------------------------------------
+
+const CATEGORY_NAMES: readonly string[] = SENSITIVE_CATEGORIES;
+
+function categoryOf(form: FormData): SensitiveCategory | null {
+  const value = form.get("category");
+  return typeof value === "string" && CATEGORY_NAMES.includes(value)
+    ? (value as SensitiveCategory)
+    : null;
+}
+
+/** Records the viewer's consent with the wording's version, the language it was shown in and the surface. */
+export async function giveSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(
+    form,
+    await giveSensitiveConsent(db, { category, locale: await getLocale(), surface: "Atlas" }),
+  );
+}
+
+/** Withdraws a category in one call: use stops at once and the values are cleared. */
+export async function withdrawSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await withdrawSensitiveConsent(db, category));
+}
+
+/** Removes what someone else entered about the viewer. */
+export async function removeSensitiveEntryAction(form: FormData): Promise<void> {
+  const id = parseId(form, "consentId");
+  if (!id) return;
+  const { db } = await viewerPerson();
+  done(form, await removeSensitiveEntry(db, id));
 }
 
 // Work details ------------------------------------------------------------------------------------------

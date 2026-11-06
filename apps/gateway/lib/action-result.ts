@@ -163,6 +163,12 @@ export const KNOWN_REFUSALS = [
   "approval_subject_beneficiary",
   "approval_rejection_reason",
   "sod_approval_requester",
+  // ADR 0164: consent for sensitive data, and the door note that has no consent step (migrations 6160 to 6162).
+  "guest_note_sensitive",
+  "sensitive_consent_required",
+  "sensitive_attestation_required",
+  "sensitive_person_withdrew",
+  "sensitive_notice_version",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

@@ -94,6 +94,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only that needs are on file; the Owner and the catering lead and on-site medical roles read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it.",
+          },
+        ],
+      },
     ],
     assets: [
       { t: "h2", v: "Classes, units and lots" },
@@ -2901,6 +2910,15 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Las asignaciones dicen lo que recibe cada parte y cada persona para una producción: credenciales, pases de estacionamiento, radios y carritos, catering, habitaciones, viajes y viáticos. Un coordinador solicita una para la reserva común de una parte o para una persona; un revisor que no la solicitó la aprueba o la rechaza. Aprobar equipo lo reserva del inventario de la clase, de un lote o del pedido en el que llega, y el diálogo muestra cuántos hay disponibles para esas fechas y cuánto queda de la asignación permitida. Divida la reserva común de una parte entre su gente y luego entregue cada artículo: entregar confirma que la persona lo tiene. El estado lee lo reservado, pedido, recibido, entregado y devuelto de los registros que lo anotan. Las reservas que ya no caben en lo que puede suministrarse aparecen en un aviso. Las asignaciones de radios llevan canales, e Imprimir hoja de radios da la hoja que la gente firma.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota para la puerta. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves que hay necesidades registradas; el Propietario y los roles de jefe de catering y personal médico en sitio las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas.",
           },
         ],
       },

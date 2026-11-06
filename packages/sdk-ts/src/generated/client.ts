@@ -373,6 +373,8 @@ import {
   EngagedAllocationsResource,
   RequestableItemsResource,
   MyParkingPassesResource,
+  SensitiveConsentsResource,
+  SensitiveFieldRecordsResource,
   WorkDetailsResource,
   EmergencyContactsResource,
   LoyaltyProgramsResource,
@@ -1288,6 +1290,12 @@ export class XosClient extends XosClientCore {
   readonly requestableItems: RequestableItemsResource = new RequestableItemsResource(this);
   /** Gateway: operations on `myParkingPasses`. */
   readonly myParkingPasses: MyParkingPassesResource = new MyParkingPassesResource(this);
+  /** Identity: operations on `sensitiveConsents`. */
+  readonly sensitiveConsents: SensitiveConsentsResource = new SensitiveConsentsResource(this);
+  /** Identity: operations on `sensitiveFieldRecords`. */
+  readonly sensitiveFieldRecords: SensitiveFieldRecordsResource = new SensitiveFieldRecordsResource(
+    this,
+  );
   /** Identity: operations on `workDetails`. */
   readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
   /** Identity: operations on `emergencyContacts`. */

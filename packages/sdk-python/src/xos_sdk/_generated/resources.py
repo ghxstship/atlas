@@ -622,6 +622,8 @@ if TYPE_CHECKING:
         GuestListEntryCreate,
         GuestListEntryPage,
         GuestListEntryUpdate,
+        GuestNeedsPage,
+        GuestNeedsRequest,
         HandbookArticle,
         HandbookArticleCreate,
         HandbookArticlePage,
@@ -1231,6 +1233,12 @@ if TYPE_CHECKING:
         ScopeNodeCreate,
         ScopeNodePage,
         ScopeNodeUpdate,
+        SensitiveConsent,
+        SensitiveConsentCreate,
+        SensitiveConsentPage,
+        SensitiveConsentReportRowPage,
+        SensitiveFieldRecord,
+        SensitiveFieldRecordPage,
         SeparationOfDutiesRule,
         SeparationOfDutiesRulePage,
         ServiceAccount,
@@ -32985,6 +32993,54 @@ class GuestListEntriesResource(Resource):
         """
         return self._client.request(OPERATIONS["guestListEntries.decide"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
+    def set_needs(
+        self,
+        id: str,
+        body: GuestNeedsRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestListEntry]:
+        """Set a guest's dietary and access needs
+
+        Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version and language of the wording they were shown (422 sensitive_notice_version). Attested per category with who gave it, and audited without values. An email matching a verified sign-in names that person, who is told and can remove it; a person who withdrew that category refuses it (422 sensitive_person_withdrew). The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /guest-list-entries/{id}/set-needs`` (operation ``guestListEntries.setNeeds``).
+        Requires the capability ``advancing.rider.write``.
+        """
+        return self._client.request(OPERATIONS["guestListEntries.setNeeds"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def clear_needs(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestListEntry]:
+        """Remove a guest's dietary and access needs
+
+        Deletes the guest's needs and withdraws the attestation through `app.clear_guest_care_needs`, also while the org is read-only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /guest-list-entries/{id}/clear-needs`` (operation ``guestListEntries.clearNeeds``).
+        Requires the capability ``advancing.rider.write``.
+        """
+        return self._client.request(OPERATIONS["guestListEntries.clearNeeds"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def needs(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestNeedsPage]:
+        """Read guests' dietary and access needs
+
+        The guests' needs on a project through `app.read_guest_care_needs`, for holders of data.restricted.read.medical on it, else 403. Every read is written to the org's audit ledger and to the access log of each guest with an account. Standard exports never carry these columns. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /guest-list-entries/needs`` (operation ``guestListEntries.needs``).
+        Requires the capability ``data.restricted.read.medical``.
+        """
+        return self._client.request(OPERATIONS["guestListEntries.needs"], query={"project_id": project_id}, options=options)
+
     def check_in(
         self,
         id: str,
@@ -34676,6 +34732,170 @@ class MyParkingPassesResource(Resource):
         Requires the capability ``opportunities.engagement.read``.
         """
         return self._client.paginate(OPERATIONS["myParkingPasses.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class SensitiveConsentsResource(Resource):
+    """Operations on ``sensitiveConsents``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SensitiveConsent]:
+        """List sensitive consent rows
+
+        A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /sensitive-consents`` (operation ``sensitiveConsents.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["sensitiveConsents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SensitiveConsent]:
+        """List sensitive consent rows
+
+        A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /sensitive-consents`` (operation ``sensitiveConsents.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["sensitiveConsents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: SensitiveConsentCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveConsent]:
+        """Create a sensitive consent
+
+        A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /sensitive-consents`` (operation ``sensitiveConsents.create``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["sensitiveConsents.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveConsent]:
+        """Get a sensitive consent
+
+        A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.
+
+        ``GET /sensitive-consents/{id}`` (operation ``sensitiveConsents.get``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["sensitiveConsents.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def withdraw(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveConsent]:
+        """Withdraw a consent or remove an attestation
+
+        Stops use at once and clears the values the grant covers, through `app.withdraw_sensitive_consent` for the caller's own or a company's, and `app.remove_sensitive_entry` for an attestation about them or given by them. Under a legal hold the values stay hidden until it ends. Refuses 422 sensitive_entry_not_yours. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /sensitive-consents/{id}/withdraw`` (operation ``sensitiveConsents.withdraw``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["sensitiveConsents.withdraw"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def report(
+        self,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveConsentReportRowPage]:
+        """Consent state per sensitive field
+
+        For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /sensitive-consents/report`` (operation ``sensitiveConsents.report``).
+        Requires the capability ``data.request.manage``.
+        """
+        return self._client.request(OPERATIONS["sensitiveConsents.report"], options=options)
+
+
+class SensitiveFieldRecordsResource(Resource):
+    """Operations on ``sensitiveFieldRecords``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SensitiveFieldRecord]:
+        """List sensitive field record rows
+
+        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /sensitive-field-records`` (operation ``sensitiveFieldRecords.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["sensitiveFieldRecords.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SensitiveFieldRecord]:
+        """List sensitive field record rows
+
+        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /sensitive-field-records`` (operation ``sensitiveFieldRecords.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["sensitiveFieldRecords.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveFieldRecord]:
+        """Get a sensitive field record
+
+        Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.
+
+        ``GET /sensitive-field-records/{id}`` (operation ``sensitiveFieldRecords.get``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["sensitiveFieldRecords.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class WorkDetailsResource(Resource):

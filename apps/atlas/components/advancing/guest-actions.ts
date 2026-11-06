@@ -2,6 +2,18 @@
 
 import type { DataError, Result } from "@xos/data";
 import { addGuest, checkInGuest, decideGuest, removeGuest, updateGuest } from "@xos/data/advancing";
+import {
+  clearGuestNeeds,
+  readGuestNeeds,
+  setGuestNeeds,
+  type GuestNeeds,
+} from "@xos/data/sensitive-consent";
+import {
+  guestNeedsCsv,
+  parseGuestNeedsForm,
+  workDetailErrorKey,
+} from "@xos/data/work-details-forms";
+import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -118,4 +130,64 @@ export async function removeGuestAction(
   const guestId = id.safeParse(form.get("guestId"));
   if (!guestId.success) return { error: "invalid" };
   return done(ctx.org.slug, await removeGuest(ctx.viewer.db, guestId.data));
+}
+
+// A guest's dietary and access needs (ADR 0164) ------------------------------------------------------------------------
+
+export interface GuestNeedsFormState {
+  readonly error?: string;
+  readonly fieldErrors?: Readonly<Record<string, string>>;
+  readonly ok?: boolean;
+}
+
+/** Sets a guest's needs under the keeper's attestation; the database refuses it without both statements. */
+export async function setGuestNeedsAction(
+  _: GuestNeedsFormState,
+  form: FormData,
+): Promise<GuestNeedsFormState> {
+  const ctx = await contextFor(form);
+  const parsed = parseGuestNeedsForm(form);
+  if (!parsed.ok) return { fieldErrors: Object.fromEntries(parsed.fields.map((f) => [f, f])) };
+  const result = await setGuestNeeds(ctx.viewer.db, {
+    ...parsed.value,
+    locale: await getLocale(),
+    surface: "Atlas",
+  });
+  if (!result.ok) return { error: workDetailErrorKey(result.error) };
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return { ok: true };
+}
+
+export async function clearGuestNeedsAction(
+  _: GuestNeedsFormState,
+  form: FormData,
+): Promise<GuestNeedsFormState> {
+  const ctx = await contextFor(form);
+  const guestId = id.safeParse(form.get("guestId"));
+  if (!guestId.success) return { error: "invalid" };
+  const result = await clearGuestNeeds(ctx.viewer.db, guestId.data);
+  if (!result.ok) return { error: workDetailErrorKey(result.error) };
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  return { ok: true };
+}
+
+export type GuestNeedsRead =
+  | { readonly ok: true; readonly rows: readonly GuestNeeds[]; readonly csv: string }
+  | { readonly ok: false };
+
+/** The guests' needs for a holder of the medical capability on the project; the database logs each read. */
+export async function readGuestNeedsAction(
+  org: string,
+  projectId: string,
+  forExport: boolean,
+): Promise<GuestNeedsRead> {
+  const ctx = await getOrgContext(org);
+  if (!ctx || !id.safeParse(projectId).success) return { ok: false };
+  const result = await readGuestNeeds(ctx.viewer.db, projectId, forExport);
+  if (!result.ok) return { ok: false };
+  return {
+    ok: true,
+    rows: result.data,
+    csv: forExport ? guestNeedsCsv(result.data) : "",
+  };
 }

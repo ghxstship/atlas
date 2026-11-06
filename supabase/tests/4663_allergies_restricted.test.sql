@@ -60,7 +60,7 @@ select results_eq($$select classification::text, read_capability from private.co
   $$values ('Restricted', 'data.restricted.read.medical')$$, 'allergies are Restricted under data.restricted.read.medical');
 select results_eq($$select classification::text from private.column_classifications
   where table_name = 'app.person_work_details' and column_name in ('dietary_needs', 'dietary_notes') order by column_name$$,
-  $$values ('Confidential'), ('Confidential')$$, 'dietary needs and notes stay Confidential');
+  $$values ('Restricted'), ('Restricted')$$, 'dietary needs and notes are Restricted too (ADR 0164, 6161)');
 select hasnt_function('private', 'work_details_view_logged_recently', array['uuid', 'uuid'],
   'the ten-minute view helper is gone');
 select ok('Contact' = any (enum_range(null::app.work_detail_category)), 'Contact is a work detail category');
@@ -70,12 +70,13 @@ select is(private.work_detail_category_capabilities('Contact'), array['opportuni
 -- Fixture: Ivy's details and share; Mel works the medical tent ---------------------------------------------------------------
 select pg_temp.as_user('ivy');
 select app.ensure_my_work_details();
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
 update app.person_work_details set dietary_needs = '{Vegan}', allergies = 'Peanuts, severe' where person_id = pg_temp.id('ivy');
 insert into app.person_emergency_contacts (person_id, full_name, phone_e164) values (pg_temp.id('ivy'), 'Marco Marchetti', '+393471234567');
 select is(app.my_allergies(), 'Peanuts, severe', 'the person reads her own allergies through app.my_allergies');
 select throws_ok($$select allergies from app.person_work_details$$, '42501', null,
   'and never selects the Restricted column directly');
-select lives_ok($$select dietary_needs from app.person_work_details$$, 'while the rest of her row stays readable');
+select lives_ok($$select passport_name from app.person_work_details$$, 'while the rest of her row stays readable');
 select lives_ok(format($$select app.share_work_details(%L, '{Dietary Needs,Emergency Contacts,Contact}')$$, pg_temp.id('eng_ivy_a')),
   'a share may name Contact');
 select pg_temp.new_user('mel', 'mel@northwind.test', 'Mel Ferreira');
@@ -94,7 +95,7 @@ select ok(pg_temp.can('mel', 'prj_a', 'data.restricted.read.medical') and not pg
 create temporary table counts as select pg_temp.events('ivy', 'work_details.viewed') as views;
 select ok(pg_temp.read('bob', 'eng_ivy_a') #> '{dietary,allergies}' = 'null'::jsonb, 'a hospitality reader reads no allergies');
 select is(pg_temp.read('bob', 'eng_ivy_a') #>> '{dietary,allergies_masked}', 'true', 'they are masked');
-select is(pg_temp.read('bob', 'eng_ivy_a') #>> '{dietary,dietary_needs,0}', 'Vegan', 'the dietary needs still reach them');
+select is(pg_temp.read('bob', 'eng_ivy_a') #>> '{dietary,dietary_masked}', 'true', 'and the dietary needs are masked too (ADR 0164)');
 select ok(pg_temp.read('bob', 'eng_ivy_a') -> 'medical' = 'null'::jsonb, 'and no medical block');
 select is(pg_temp.events('ivy', 'allergies.viewed'), 0, 'a masked read logs no allergies.viewed');
 select is(pg_temp.events('ivy', 'work_details.viewed') - (select views from counts), 4,
@@ -139,6 +140,7 @@ select pg_temp.as_user('kai');
 select app.accept_account_membership((select m.id from app.account_memberships m
   where m.org_id = (select id from world where key = 'acct_v') and m.person_id = (select id from world where key = 'kai') and m.deleted_at is null));
 select app.ensure_my_work_details();
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
 update app.person_work_details set allergies = 'Shellfish' where person_id = pg_temp.id('kai');
 select pg_temp.as_user('victor');
 insert into world select 'e_kai', app.add_roster_entry(pg_temp.id('eng_vendor_a'), pg_temp.id('kai'));

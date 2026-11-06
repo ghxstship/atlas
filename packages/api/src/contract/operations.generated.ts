@@ -4038,6 +4038,70 @@ export interface Components {
     plus_ones?: number;
     note?: string | null;
   };
+  GuestNeeds: {
+    guest_list_entry_id: string;
+    guest_name: string;
+    dietary_needs: Array<
+      | "Vegetarian"
+      | "Vegan"
+      | "Pescatarian"
+      | "Halal"
+      | "Kosher"
+      | "Gluten Free"
+      | "Dairy Free"
+      | "Nut Free"
+      | "Shellfish Free"
+    >;
+    allergies: string | null;
+    dietary_notes: string | null;
+    accessibility_needs: Array<
+      | "Step-Free Access"
+      | "Accessible Parking"
+      | "Accessible Restroom"
+      | "Seating"
+      | "Sign Language Interpreter"
+      | "Captioning"
+      | "Large Print"
+      | "Service Animal"
+      | "Quiet Space"
+      | "Assistance on Arrival"
+    >;
+    accessibility_notes: string | null;
+  };
+  GuestNeedsPage: { data: Array<Components["GuestNeeds"]>; next_cursor: string | null };
+  GuestNeedsRequest: {
+    dietary_needs?: Array<
+      | "Vegetarian"
+      | "Vegan"
+      | "Pescatarian"
+      | "Halal"
+      | "Kosher"
+      | "Gluten Free"
+      | "Dairy Free"
+      | "Nut Free"
+      | "Shellfish Free"
+    >;
+    allergies?: string | null;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<
+      | "Step-Free Access"
+      | "Accessible Parking"
+      | "Accessible Restroom"
+      | "Seating"
+      | "Sign Language Interpreter"
+      | "Captioning"
+      | "Large Print"
+      | "Service Animal"
+      | "Quiet Space"
+      | "Assistance on Arrival"
+    >;
+    accessibility_notes?: string | null;
+    guest_email?: string | null;
+    authority_confirmed: boolean;
+    notice_confirmed: boolean;
+    notice_version: string;
+    locale: string;
+  };
   HandbookArticle: {
     id: string;
     org_id: string;
@@ -8254,6 +8318,74 @@ export interface Components {
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
   SeatPreference: "Window" | "Aisle" | "No Preference";
+  SensitiveConsent: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    category: Components["SensitiveDataCategory"];
+    basis: Components["SensitiveConsentBasis"];
+    person_id: string | null;
+    account_id: string | null;
+    guest_list_entry_id: string | null;
+    org_id: string | null;
+    notice_version: string;
+    locale: string;
+    surface: Components["SensitiveConsentSurface"];
+    authority_confirmed?: boolean;
+    notice_confirmed?: boolean;
+    given_by: string;
+    given_at: string;
+    withdrawn_at: string | null;
+    withdrawn_by: string | null;
+  };
+  SensitiveConsentBasis: "Own Consent" | "Attested Authority";
+  SensitiveConsentCreate: {
+    category: Components["SensitiveDataCategory"];
+    account_id?: string | null;
+    notice_version: string;
+    locale: string;
+    authority_confirmed?: boolean;
+    notice_confirmed?: boolean;
+  };
+  SensitiveConsentPage: { data: Array<Components["SensitiveConsent"]>; next_cursor: string | null };
+  SensitiveConsentReportRow: {
+    subject_kind: string;
+    subject_id: string;
+    subject_name: string | null;
+    category: Components["SensitiveDataCategory"];
+    field_code: string;
+    standing: Components["SensitiveConsentStanding"];
+    notice_version: string | null;
+    given_at: string | null;
+    given_by_name: string | null;
+    withdrawn_at: string | null;
+  };
+  SensitiveConsentReportRowPage: {
+    data: Array<Components["SensitiveConsentReportRow"]>;
+    next_cursor: string | null;
+  };
+  SensitiveConsentStanding: "Consent Given" | "Attested" | "Withdrawn" | "No Record";
+  SensitiveConsentSurface: "Atlas" | "Gateway" | "Compass" | "API";
+  SensitiveDataCategory: "Dietary and Allergies" | "Accessibility" | "Supplier Diversity";
+  SensitiveFieldRecord: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    field_code: string;
+    person_id: string | null;
+    account_id: string | null;
+    guest_list_entry_id: string | null;
+    consent_id: string | null;
+    entered_by: string | null;
+    entered_at: string;
+    changed_at: string;
+    cleared_at: string | null;
+    awaiting_since: string | null;
+  };
+  SensitiveFieldRecordPage: {
+    data: Array<Components["SensitiveFieldRecord"]>;
+    next_cursor: string | null;
+  };
   SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
@@ -8358,6 +8490,7 @@ export interface Components {
   SharedAccessibilityNeeds: {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
+    accessibility_masked?: boolean;
   };
   SharedContact: { email: string | null; phone: string | null };
   SharedDietaryNeeds: {
@@ -8366,6 +8499,7 @@ export interface Components {
     allergies_masked: boolean;
     allergies_on_file: boolean;
     dietary_notes: string | null;
+    dietary_masked?: boolean;
   };
   SharedEmergencyContact: {
     full_name: string;
@@ -8380,7 +8514,13 @@ export interface Components {
     program_name: string;
     member_number: string;
   };
-  SharedMedicalNeeds: { allergies: string | null };
+  SharedMedicalNeeds: {
+    allergies: string | null;
+    dietary_needs?: Array<Components["DietaryNeed"]>;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes?: string | null;
+  };
   SharedPassport: {
     passport_number: null;
     passport_number_last4: string | null;
@@ -25169,6 +25309,33 @@ export interface Operations {
     body: Components["GuestDecisionRequest"];
     responses: { 200: Components["GuestListEntry"] };
   };
+  "guestListEntries.setNeeds": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/{id}/set-needs";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["GuestNeedsRequest"];
+    responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.clearNeeds": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/{id}/clear-needs";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.needs": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-list-entries/needs";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["GuestNeedsPage"] };
+  };
   "guestListEntries.checkIn": {
     module: "Advancing";
     method: "post";
@@ -25912,6 +26079,81 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ParkingPassPage"] };
+  };
+  "sensitiveConsents.list": {
+    module: "Identity";
+    method: "get";
+    path: "/sensitive-consents";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SensitiveConsentPage"] };
+  };
+  "sensitiveConsents.create": {
+    module: "Identity";
+    method: "post";
+    path: "/sensitive-consents";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SensitiveConsentCreate"];
+    responses: { 201: Components["SensitiveConsent"] };
+  };
+  "sensitiveConsents.get": {
+    module: "Identity";
+    method: "get";
+    path: "/sensitive-consents/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SensitiveConsent"] };
+  };
+  "sensitiveConsents.withdraw": {
+    module: "Identity";
+    method: "post";
+    path: "/sensitive-consents/{id}/withdraw";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SensitiveConsent"] };
+  };
+  "sensitiveConsents.report": {
+    module: "Identity";
+    method: "get";
+    path: "/sensitive-consents/report";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SensitiveConsentReportRowPage"] };
+  };
+  "sensitiveFieldRecords.list": {
+    module: "Identity";
+    method: "get";
+    path: "/sensitive-field-records";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SensitiveFieldRecordPage"] };
+  };
+  "sensitiveFieldRecords.get": {
+    module: "Identity";
+    method: "get";
+    path: "/sensitive-field-records/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SensitiveFieldRecord"] };
   };
   "workDetails.list": {
     module: "Identity";
@@ -29083,6 +29325,9 @@ export interface ModuleOperations {
     | "guestListEntries.update"
     | "guestListEntries.delete"
     | "guestListEntries.decide"
+    | "guestListEntries.setNeeds"
+    | "guestListEntries.clearNeeds"
+    | "guestListEntries.needs"
     | "guestListEntries.checkIn";
   Hospitality:
     | "fulfillments.list"
@@ -30145,6 +30390,13 @@ export interface ModuleOperations {
     | "blocks.create"
     | "blocks.get"
     | "blocks.delete"
+    | "sensitiveConsents.list"
+    | "sensitiveConsents.create"
+    | "sensitiveConsents.get"
+    | "sensitiveConsents.withdraw"
+    | "sensitiveConsents.report"
+    | "sensitiveFieldRecords.list"
+    | "sensitiveFieldRecords.get"
     | "workDetails.list"
     | "workDetails.create"
     | "workDetails.get"

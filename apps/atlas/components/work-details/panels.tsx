@@ -13,6 +13,12 @@ import {
   workDetailLogKey,
   type WorkDetails,
 } from "@xos/data/work-details";
+import {
+  listMySensitiveConsents,
+  listSensitiveEntriesAboutMe,
+  standingFor,
+  type StandingConsent,
+} from "@xos/data/sensitive-consent";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -33,6 +39,8 @@ import {
   savePassportAction,
   shareAction,
 } from "@/lib/work-details/actions";
+import { ConsentGate, ConsentWithdraw } from "./consent-gate";
+import { EnteredForMeSection } from "./entered-for-me";
 import { WorkDetailsForm, type WorkDetailsField } from "./form";
 
 /**
@@ -177,9 +185,30 @@ async function ContactsSection({
   );
 }
 
-function NeedsSections({ ctx, t, d }: { ctx: OrgContext; t: Translate; d: WorkDetails | null }) {
+function NeedsSections({
+  ctx,
+  t,
+  d,
+  consents,
+  formatDay,
+}: {
+  ctx: OrgContext;
+  t: Translate;
+  d: WorkDetails | null;
+  consents: readonly StandingConsent[];
+  formatDay: (at: string) => string;
+}) {
   const dietary = d?.dietaryNeeds ?? [];
   const access = d?.accessibilityNeeds ?? [];
+  const given = (c: StandingConsent) => (
+    <p className="m-0 text-text-12 text-text-secondary">
+      {t(`${P}.consent.given`, { date: formatDay(c.givenAt), version: c.noticeVersion })}
+    </p>
+  );
+  const dietOnFile = dietary.length > 0 || Boolean(d?.allergies) || Boolean(d?.dietaryNotes);
+  const accessOnFile = access.length > 0 || Boolean(d?.accessibilityNotes);
+  const dietConsent = standingFor(consents, "Dietary and Allergies");
+  const accessConsent = standingFor(consents, "Accessibility");
   return (
     <>
       <Section
@@ -187,69 +216,123 @@ function NeedsSections({ ctx, t, d }: { ctx: OrgContext; t: Translate; d: WorkDe
         title={t(`${P}.dietary.title`)}
         description={t(`${P}.dietary.description`)}
       >
-        <WorkDetailsForm
-          action={saveDietaryAction}
-          hidden={hiddenFor(ctx)}
-          label={t(`${P}.dietary.title`)}
-          submitLabel={t(`${P}.dietary.save`)}
-          fields={[
-            {
-              kind: "choices",
-              name: "dietaryNeeds",
-              label: t(`${P}.dietary.needs`),
-              summary: t(`${P}.dietary.chosen`, { count: dietary.length }),
-              options: DIETARY_NEEDS.map((n) => ({
-                value: n,
-                label: labelled(t, "dietaryNeeds", n),
-                checked: dietary.includes(n),
-              })),
-            },
-            {
-              kind: "textarea",
-              name: "allergies",
-              label: t(`${P}.dietary.allergies`),
-              help: t(`${P}.dietary.allergiesHelp`),
-              defaultValue: d?.allergies ?? "",
-            },
-            {
-              kind: "textarea",
-              name: "dietaryNotes",
-              label: t(`${P}.dietary.notes`),
-              defaultValue: d?.dietaryNotes ?? "",
-            },
-          ]}
-        />
+        {dietConsent ? (
+          <>
+            <WorkDetailsForm
+              action={saveDietaryAction}
+              hidden={hiddenFor(ctx)}
+              label={t(`${P}.dietary.title`)}
+              submitLabel={t(`${P}.dietary.save`)}
+              fields={[
+                {
+                  kind: "choices",
+                  name: "dietaryNeeds",
+                  label: t(`${P}.dietary.needs`),
+                  summary: t(`${P}.dietary.chosen`, { count: dietary.length }),
+                  options: DIETARY_NEEDS.map((n) => ({
+                    value: n,
+                    label: labelled(t, "dietaryNeeds", n),
+                    checked: dietary.includes(n),
+                  })),
+                },
+                {
+                  kind: "textarea",
+                  name: "allergies",
+                  label: t(`${P}.dietary.allergies`),
+                  help: t(`${P}.dietary.allergiesHelp`),
+                  defaultValue: d?.allergies ?? "",
+                },
+                {
+                  kind: "textarea",
+                  name: "dietaryNotes",
+                  label: t(`${P}.dietary.notes`),
+                  defaultValue: d?.dietaryNotes ?? "",
+                },
+              ]}
+            />
+            {given(dietConsent)}
+            <ConsentWithdraw
+              category="Dietary and Allergies"
+              hidden={hiddenFor(ctx)}
+              labelKey="dietary"
+            />
+          </>
+        ) : (
+          <>
+            <ConsentGate
+              category="Dietary and Allergies"
+              hidden={hiddenFor(ctx)}
+              gateKey="dietary"
+              reviewKey="reviewDietary"
+              waiting={dietOnFile}
+            />
+            {dietOnFile ? (
+              <ConsentWithdraw
+                category="Dietary and Allergies"
+                hidden={hiddenFor(ctx)}
+                labelKey="dietary"
+              />
+            ) : null}
+          </>
+        )}
       </Section>
       <Section
         id="work-details-accessibility"
         title={t(`${P}.accessibility.title`)}
         description={t(`${P}.accessibility.description`)}
       >
-        <WorkDetailsForm
-          action={saveAccessibilityAction}
-          hidden={hiddenFor(ctx)}
-          label={t(`${P}.accessibility.title`)}
-          submitLabel={t(`${P}.accessibility.save`)}
-          fields={[
-            {
-              kind: "choices",
-              name: "accessibilityNeeds",
-              label: t(`${P}.accessibility.needs`),
-              summary: t(`${P}.dietary.chosen`, { count: access.length }),
-              options: ACCESSIBILITY_NEEDS.map((n) => ({
-                value: n,
-                label: labelled(t, "accessibilityNeeds", n),
-                checked: access.includes(n),
-              })),
-            },
-            {
-              kind: "textarea",
-              name: "accessibilityNotes",
-              label: t(`${P}.accessibility.notes`),
-              defaultValue: d?.accessibilityNotes ?? "",
-            },
-          ]}
-        />
+        {accessConsent ? (
+          <>
+            <WorkDetailsForm
+              action={saveAccessibilityAction}
+              hidden={hiddenFor(ctx)}
+              label={t(`${P}.accessibility.title`)}
+              submitLabel={t(`${P}.accessibility.save`)}
+              fields={[
+                {
+                  kind: "choices",
+                  name: "accessibilityNeeds",
+                  label: t(`${P}.accessibility.needs`),
+                  summary: t(`${P}.dietary.chosen`, { count: access.length }),
+                  options: ACCESSIBILITY_NEEDS.map((n) => ({
+                    value: n,
+                    label: labelled(t, "accessibilityNeeds", n),
+                    checked: access.includes(n),
+                  })),
+                },
+                {
+                  kind: "textarea",
+                  name: "accessibilityNotes",
+                  label: t(`${P}.accessibility.notes`),
+                  defaultValue: d?.accessibilityNotes ?? "",
+                },
+              ]}
+            />
+            {given(accessConsent)}
+            <ConsentWithdraw
+              category="Accessibility"
+              hidden={hiddenFor(ctx)}
+              labelKey="accessibility"
+            />
+          </>
+        ) : (
+          <>
+            <ConsentGate
+              category="Accessibility"
+              hidden={hiddenFor(ctx)}
+              gateKey="accessibility"
+              reviewKey="reviewAccessibility"
+              waiting={accessOnFile}
+            />
+            {accessOnFile ? (
+              <ConsentWithdraw
+                category="Accessibility"
+                hidden={hiddenFor(ctx)}
+                labelKey="accessibility"
+              />
+            ) : null}
+          </>
+        )}
       </Section>
     </>
   );
@@ -401,14 +484,18 @@ function PassportSection({ ctx, t, d }: { ctx: OrgContext; t: Translate; d: Work
 
 /** Work Details on Settings, Work Details (me.work-details). */
 export async function MyWorkDetailsPanel({ ctx }: { ctx: OrgContext }) {
-  const [t, locale, details] = await Promise.all([
+  const [t, locale, details, consents, entered] = await Promise.all([
     getTranslate(),
     getLocale(),
     getMyWorkDetails(ctx.viewer.db),
+    listMySensitiveConsents(ctx.viewer.db),
+    listSensitiveEntriesAboutMe(ctx.viewer.db),
   ]);
-  if (!details.ok) return loadFailed(t);
+  if (!details.ok || !consents.ok || !entered.ok) return loadFailed(t);
   const region = regionFromLocale(locale);
   const d = details.data;
+  const day = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
+  const formatDay = (at: string) => day.format(new Date(at));
   return (
     <div className="flex flex-col gap-32">
       <div className="max-w-layout-form">
@@ -417,7 +504,13 @@ export async function MyWorkDetailsPanel({ ctx }: { ctx: OrgContext }) {
         </InlineAlert>
       </div>
       <ContactsSection ctx={ctx} t={t} region={region} />
-      <NeedsSections ctx={ctx} t={t} d={d} />
+      <NeedsSections ctx={ctx} t={t} d={d} consents={consents.data} formatDay={formatDay} />
+      <EnteredForMeSection
+        t={t}
+        entries={entered.data}
+        hidden={hiddenFor(ctx)}
+        formatDay={formatDay}
+      />
       <LoyaltySection ctx={ctx} t={t} />
       <PassportSection ctx={ctx} t={t} d={d} />
     </div>

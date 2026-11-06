@@ -24,6 +24,11 @@ export const SHOE_SIZE_SYSTEMS: readonly ShoeSizeSystem[] = Constants.app.Enums.
 
 /** Refusal rules of the project fact RPCs; the apps label each with `workDetails.errors.<rule>`. */
 export const ROSTER_FACT_RULES = [
+  // ADR 0164: a meal preference is dietary data, entered under consent or an attestation (6162).
+  "sensitive_consent_required",
+  "sensitive_attestation_required",
+  "sensitive_person_withdrew",
+  "sensitive_notice_version",
   "project_fact_not_yours",
   "roster_entry_withdrawn",
   "roster_entry_declined",

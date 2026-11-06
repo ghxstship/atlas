@@ -206,6 +206,13 @@ test("A65-031: a supplier diversity certification is shared by separate consent 
     DEMO.owner,
   );
   await signIn(page, "crew@example.com", "/profile");
+  // ADR 0164: the form appears only after the person reads and agrees to what is collected.
+  await page.getByRole("button", { name: "Add a certification" }).click();
+  const consent = page.getByRole("dialog", {
+    name: "Before you add a supplier diversity certification",
+  });
+  await consent.getByRole("button", { name: "I agree" }).click();
+  await expect(consent).toBeHidden();
   const add = page.getByRole("form", { name: "Add certification" });
   await add.getByLabel("Certification").selectOption({ label: "Women-owned business" });
   await add.getByLabel("Certified by").fill(body);

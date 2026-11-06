@@ -581,6 +581,12 @@ test("the BEO shows roster counts, with a need shared by fewer than 5 suppressed
       [inserted?.id],
     );
     const { engagement, entry } = await crewedEngagement(project);
+    // ADR 0164: a person is counted only while their consent stands.
+    await localSql(
+      "select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway')",
+      [],
+      AGENCY.staffOne,
+    );
     await localSql(
       "update app.person_work_details set dietary_needs = '{Vegetarian}' where person_id = $1 and deleted_at is null",
       [AGENCY.staffOne],

@@ -39,6 +39,7 @@ declare v uuid;
 begin
   perform pg_temp.as_user(p_key);
   perform app.ensure_my_work_details();
+  perform app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
   update app.person_work_details set dietary_needs = p_needs, allergies = p_allergies where person_id = pg_temp.id(p_key);
   perform app.share_work_details(pg_temp.id('eng_vendor_a'), '{Dietary Needs}');
   v := pg_temp.alloc('assign', 'carol', p_entry, 'fulfillment', 'ful_cat', 1);

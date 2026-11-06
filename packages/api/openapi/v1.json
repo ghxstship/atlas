@@ -52865,6 +52865,201 @@
         "required": ["outcome"],
         "description": "Decision on a requested guest."
       },
+      "GuestNeedsRequest": {
+        "type": "object",
+        "properties": {
+          "dietary_needs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Vegetarian",
+                "Vegan",
+                "Pescatarian",
+                "Halal",
+                "Kosher",
+                "Gluten Free",
+                "Dairy Free",
+                "Nut Free",
+                "Shellfish Free"
+              ]
+            }
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Allergies, with how severe.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Step-Free Access",
+                "Accessible Parking",
+                "Accessible Restroom",
+                "Seating",
+                "Sign Language Interpreter",
+                "Captioning",
+                "Large Print",
+                "Service Animal",
+                "Quiet Space",
+                "Assistance on Arrival"
+              ]
+            }
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Accessibility needs in words.",
+            "example": "Needs a seat near the exit."
+          },
+          "guest_email": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "The guest's email, so they can see this and remove it.",
+            "example": "jo@example.com"
+          },
+          "authority_confirmed": {
+            "type": "boolean",
+            "description": "The caller has the guest's authority to enter this.",
+            "example": true
+          },
+          "notice_confirmed": {
+            "type": "boolean",
+            "description": "The guest has been told what is entered, why and who sees it.",
+            "example": true
+          },
+          "notice_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Version of the wording the caller read.",
+            "example": "2026-11-06"
+          },
+          "locale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "Language the wording was shown in.",
+            "example": "en-US"
+          }
+        },
+        "required": ["authority_confirmed", "notice_confirmed", "notice_version", "locale"],
+        "description": "A guest's needs, under the caller's attestation."
+      },
+      "GuestNeedsPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GuestNeeds" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "GuestNeeds": {
+        "type": "object",
+        "properties": {
+          "guest_list_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The guest.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the guest gives at the door.",
+            "example": "Jordan Vale"
+          },
+          "dietary_needs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Vegetarian",
+                "Vegan",
+                "Pescatarian",
+                "Halal",
+                "Kosher",
+                "Gluten Free",
+                "Dairy Free",
+                "Nut Free",
+                "Shellfish Free"
+              ]
+            }
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Allergies.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Step-Free Access",
+                "Accessible Parking",
+                "Accessible Restroom",
+                "Seating",
+                "Sign Language Interpreter",
+                "Captioning",
+                "Large Print",
+                "Service Animal",
+                "Quiet Space",
+                "Assistance on Arrival"
+              ]
+            }
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Accessibility notes.",
+            "example": "Near the exit."
+          }
+        },
+        "required": [
+          "guest_list_entry_id",
+          "guest_name",
+          "dietary_needs",
+          "allergies",
+          "dietary_notes",
+          "accessibility_needs",
+          "accessibility_notes"
+        ],
+        "description": "A guest's needs, for a holder of the medical capability."
+      },
       "FlightPage": {
         "type": "object",
         "properties": {
@@ -56848,6 +57043,381 @@
         ],
         "description": "The caller's own parking passes (R8): credentials of a Parking category with the zones its access grid opens and the make, model and colour of the vehicle it was issued for. The plate never appears."
       },
+      "SensitiveConsentPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SensitiveConsent" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SensitiveConsent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sensitive consent.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "category": { "$ref": "#/components/schemas/SensitiveDataCategory" },
+          "basis": { "$ref": "#/components/schemas/SensitiveConsentBasis" },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person the data is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the external account whose supplier diversity status it covers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_list_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the guest list entry the attestation covers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the org whose member attested.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "notice_version": {
+            "type": "string",
+            "description": "Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.",
+            "example": "2026-11-06"
+          },
+          "locale": {
+            "type": "string",
+            "description": "Language the wording was shown in.",
+            "example": "en-US"
+          },
+          "surface": { "$ref": "#/components/schemas/SensitiveConsentSurface" },
+          "authority_confirmed": {
+            "type": "boolean",
+            "description": "With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.",
+            "example": false
+          },
+          "notice_confirmed": {
+            "type": "boolean",
+            "description": "With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.",
+            "example": false
+          },
+          "given_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who consented or attested.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "given_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was given.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "withdrawn_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was withdrawn; null while it stands.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "withdrawn_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who withdrew it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "category",
+          "basis",
+          "person_id",
+          "account_id",
+          "guest_list_entry_id",
+          "org_id",
+          "notice_version",
+          "locale",
+          "surface",
+          "given_by",
+          "given_at",
+          "withdrawn_at",
+          "withdrawn_by"
+        ],
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs."
+      },
+      "SensitiveDataCategory": {
+        "type": "string",
+        "enum": ["Dietary and Allergies", "Accessibility", "Supplier Diversity"],
+        "description": "A category of sensitive data consented to on its own.",
+        "example": "Dietary and Allergies"
+      },
+      "SensitiveConsentBasis": {
+        "type": "string",
+        "enum": ["Own Consent", "Attested Authority"],
+        "description": "Own Consent, or Attested Authority when someone else entered it.",
+        "example": "Own Consent"
+      },
+      "SensitiveConsentSurface": {
+        "type": "string",
+        "enum": ["Atlas", "Gateway", "Compass", "API"],
+        "description": "Where it was captured; API for anything recorded here.",
+        "example": "Atlas"
+      },
+      "SensitiveConsentCreate": {
+        "type": "object",
+        "properties": {
+          "category": { "$ref": "#/components/schemas/SensitiveDataCategory" },
+          "account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the external account whose supplier diversity status it covers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "notice_version": {
+            "type": "string",
+            "description": "Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.",
+            "example": "2026-11-06"
+          },
+          "locale": {
+            "type": "string",
+            "description": "Language the wording was shown in.",
+            "example": "en-US"
+          },
+          "authority_confirmed": {
+            "type": "boolean",
+            "description": "With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.",
+            "example": false
+          },
+          "notice_confirmed": {
+            "type": "boolean",
+            "description": "With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.",
+            "example": false
+          }
+        },
+        "required": ["category", "notice_version", "locale"],
+        "description": "Fields accepted when creating a SensitiveConsent."
+      },
+      "SensitiveConsentReportRowPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SensitiveConsentReportRow" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SensitiveConsentReportRow": {
+        "type": "object",
+        "properties": {
+          "subject_kind": {
+            "type": "string",
+            "description": "Person, Guest or Company.",
+            "example": "Guest"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The person, guest list entry or external account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_name": {
+            "type": ["string", "null"],
+            "description": "Display name.",
+            "example": "Jordan Vale"
+          },
+          "category": { "$ref": "#/components/schemas/SensitiveDataCategory" },
+          "field_code": { "type": "string", "description": "Field.", "example": "allergies" },
+          "standing": { "$ref": "#/components/schemas/SensitiveConsentStanding" },
+          "notice_version": {
+            "type": ["string", "null"],
+            "description": "Version of the wording.",
+            "example": "2026-11-06"
+          },
+          "given_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was given.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "given_by_name": {
+            "type": ["string", "null"],
+            "description": "Who gave it.",
+            "example": "Carol Nguyen"
+          },
+          "withdrawn_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was withdrawn.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "subject_kind",
+          "subject_id",
+          "subject_name",
+          "category",
+          "field_code",
+          "standing",
+          "notice_version",
+          "given_at",
+          "given_by_name",
+          "withdrawn_at"
+        ],
+        "description": "Consent state of one sensitive field of one subject. Never a value, and never whether a value is held."
+      },
+      "SensitiveConsentStanding": {
+        "type": "string",
+        "enum": ["Consent Given", "Attested", "Withdrawn", "No Record"],
+        "description": "Consent state of the field, computed.",
+        "example": "Attested"
+      },
+      "SensitiveFieldRecordPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SensitiveFieldRecord" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SensitiveFieldRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sensitive field record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "field_code": { "type": "string", "description": "Field.", "example": "allergies" },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person the field is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the external account the field is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_list_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the guest list entry the field is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "consent_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the consent the value stands on; null for a value from before consent was recorded.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "entered_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last entered the value.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "entered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When a value was first entered.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the value last changed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "cleared_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the value was cleared; null while one is held.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "awaiting_since": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When a value from before consent was recorded started waiting for it; it is cleared 30 days later.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "field_code",
+          "person_id",
+          "account_id",
+          "guest_list_entry_id",
+          "consent_id",
+          "entered_by",
+          "entered_at",
+          "changed_at",
+          "cleared_at",
+          "awaiting_since"
+        ],
+        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's."
+      },
       "WorkDetailsPage": {
         "type": "object",
         "properties": {
@@ -58110,6 +58680,11 @@
             "type": ["string", "null"],
             "description": "Other dietary notes.",
             "example": "No pork."
+          },
+          "dietary_masked": {
+            "type": "boolean",
+            "description": "Dietary needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so dietary_needs is empty and dietary_notes null without data.restricted.read.medical on the project.",
+            "example": false
           }
         },
         "required": [
@@ -58128,6 +58703,24 @@
             "type": ["string", "null"],
             "description": "Allergies, unmasked.",
             "example": "Peanuts, severe"
+          },
+          "dietary_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DietaryNeed" }
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "description": "Other dietary notes, unmasked.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccessibilityNeed" }
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "description": "Accessibility notes, unmasked.",
+            "example": "Needs a seat near the stage door."
           }
         },
         "required": ["allergies"],
@@ -58144,6 +58737,11 @@
             "type": ["string", "null"],
             "description": "Accessibility notes.",
             "example": "Needs a seat near the stage door."
+          },
+          "accessibility_masked": {
+            "type": "boolean",
+            "description": "Accessibility needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so accessibility_needs is empty and accessibility_notes null without data.restricted.read.medical on the project.",
+            "example": false
           }
         },
         "required": ["accessibility_needs", "accessibility_notes"],
@@ -149379,6 +149977,222 @@
         }
       }
     },
+    "/guest-list-entries/{id}/set-needs": {
+      "post": {
+        "operationId": "guestListEntries.setNeeds",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Set a guest's dietary and access needs",
+        "description": "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version and language of the wording they were shown (422 sensitive_notice_version). Attested per category with who gave it, and audited without values. An email matching a verified sign-in names that person, who is told and can remove it; a person who withdrew that category refuses it (422 sensitive_person_withdrew). The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "dietary_needs": ["Vegetarian"],
+                "allergies": "Peanuts, severe",
+                "dietary_notes": "No pork.",
+                "accessibility_needs": ["Step-Free Access"],
+                "accessibility_notes": "Needs a seat near the exit.",
+                "guest_email": "jo@example.com",
+                "authority_confirmed": true,
+                "notice_confirmed": true,
+                "notice_version": "2026-11-06",
+                "locale": "en-US"
+              },
+              "schema": { "$ref": "#/components/schemas/GuestNeedsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/{id}/clear-needs": {
+      "post": {
+        "operationId": "guestListEntries.clearNeeds",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Remove a guest's dietary and access needs",
+        "description": "Deletes the guest's needs and withdraws the attestation through `app.clear_guest_care_needs`, also while the org is read-only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/needs": {
+      "get": {
+        "operationId": "guestListEntries.needs",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "data.restricted.read.medical",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "summary": "Read guests' dietary and access needs",
+        "description": "The guests' needs on a project through `app.read_guest_care_needs`, for holders of data.restricted.read.medical on it, else 403. Every read is written to the org's audit ledger and to the access log of each guest with an account. Standard exports never carry these columns. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "guest_name": "Jordan Vale",
+                      "dietary_needs": ["Vegetarian"],
+                      "allergies": "Peanuts, severe",
+                      "dietary_notes": "No pork.",
+                      "accessibility_needs": ["Step-Free Access"],
+                      "accessibility_notes": "Near the exit."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/GuestNeedsPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/guest-list-entries/{id}/check-in": {
       "post": {
         "operationId": "guestListEntries.checkIn",
@@ -153532,6 +154346,434 @@
         }
       }
     },
+    "/sensitive-consents": {
+      "get": {
+        "operationId": "sensitiveConsents.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List sensitive consent rows",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of sensitive consent rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "category": "Dietary and Allergies",
+                      "basis": "Own Consent",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "notice_version": "2026-11-06",
+                      "locale": "en-US",
+                      "surface": "Atlas",
+                      "authority_confirmed": false,
+                      "notice_confirmed": false,
+                      "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "given_at": "2026-10-08T14:30:00Z",
+                      "withdrawn_at": "2026-10-08T14:30:00Z",
+                      "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsentPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "sensitiveConsents.create",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a sensitive consent",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "category": "Dietary and Allergies",
+                "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "notice_version": "2026-11-06",
+                "locale": "en-US",
+                "authority_confirmed": false,
+                "notice_confirmed": false
+              },
+              "schema": { "$ref": "#/components/schemas/SensitiveConsentCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created sensitive consent.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "category": "Dietary and Allergies",
+                  "basis": "Own Consent",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "notice_version": "2026-11-06",
+                  "locale": "en-US",
+                  "surface": "Atlas",
+                  "authority_confirmed": false,
+                  "notice_confirmed": false,
+                  "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "given_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sensitive-consents/{id}": {
+      "get": {
+        "operationId": "sensitiveConsents.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a sensitive consent",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sensitive consent.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sensitive consent.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sensitive consent.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "category": "Dietary and Allergies",
+                  "basis": "Own Consent",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "notice_version": "2026-11-06",
+                  "locale": "en-US",
+                  "surface": "Atlas",
+                  "authority_confirmed": false,
+                  "notice_confirmed": false,
+                  "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "given_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sensitive-consents/{id}/withdraw": {
+      "post": {
+        "operationId": "sensitiveConsents.withdraw",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Withdraw a consent or remove an attestation",
+        "description": "Stops use at once and clears the values the grant covers, through `app.withdraw_sensitive_consent` for the caller's own or a company's, and `app.remove_sensitive_entry` for an attestation about them or given by them. Under a legal hold the values stay hidden until it ends. Refuses 422 sensitive_entry_not_yours. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sensitive consent.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sensitive consent.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "category": "Dietary and Allergies",
+                  "basis": "Own Consent",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "notice_version": "2026-11-06",
+                  "locale": "en-US",
+                  "surface": "Atlas",
+                  "authority_confirmed": false,
+                  "notice_confirmed": false,
+                  "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "given_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sensitive-consents/report": {
+      "get": {
+        "operationId": "sensitiveConsents.report",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "data.request.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "summary": "Consent state per sensitive field",
+        "description": "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "subject_kind": "Guest",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "subject_name": "Jordan Vale",
+                      "category": "Dietary and Allergies",
+                      "field_code": "allergies",
+                      "standing": "Attested",
+                      "notice_version": "2026-11-06",
+                      "given_at": "2026-10-08T14:30:00Z",
+                      "given_by_name": "Carol Nguyen",
+                      "withdrawn_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsentReportRowPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sensitive-field-records": {
+      "get": {
+        "operationId": "sensitiveFieldRecords.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_field_records",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List sensitive field record rows",
+        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns a cursor page of sensitive field record rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of sensitive field record rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "field_code": "allergies",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "consent_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "entered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "entered_at": "2026-10-08T14:30:00Z",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "cleared_at": "2026-10-08T14:30:00Z",
+                      "awaiting_since": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveFieldRecordPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sensitive-field-records/{id}": {
+      "get": {
+        "operationId": "sensitiveFieldRecords.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_field_records",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a sensitive field record",
+        "description": "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's. Returns one sensitive field record with its `ETag`. A sensitive field record the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sensitive field record.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sensitive field record.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sensitive field record.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "field_code": "allergies",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consent_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "entered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "entered_at": "2026-10-08T14:30:00Z",
+                  "changed_at": "2026-10-08T14:30:00Z",
+                  "cleared_at": "2026-10-08T14:30:00Z",
+                  "awaiting_since": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveFieldRecord" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/work-details": {
       "get": {
         "operationId": "workDetails.list",
@@ -154872,12 +156114,20 @@
                     "allergies": "Peanuts, severe",
                     "allergies_masked": false,
                     "allergies_on_file": true,
-                    "dietary_notes": "No pork."
+                    "dietary_notes": "No pork.",
+                    "dietary_masked": false
                   },
-                  "medical": { "allergies": "Peanuts, severe" },
-                  "accessibility": {
+                  "medical": {
+                    "allergies": "Peanuts, severe",
+                    "dietary_needs": ["Vegetarian"],
+                    "dietary_notes": "No pork.",
                     "accessibility_needs": ["Step-Free Access"],
                     "accessibility_notes": "Needs a seat near the stage door."
+                  },
+                  "accessibility": {
+                    "accessibility_needs": ["Step-Free Access"],
+                    "accessibility_notes": "Needs a seat near the stage door.",
+                    "accessibility_masked": false
                   },
                   "travel": {
                     "seat_preference": "Window",

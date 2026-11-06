@@ -257,7 +257,8 @@
     "sensitive_attestation_required": "Confirm both statements to continue.",
     "sensitive_person_withdrew": "This person withdrew their consent to this data, so only they can give it again.",
     "sensitive_entry_not_yours": "Only the person this is about, or whoever entered it, can remove it.",
-    "sensitive_consent_category": "A company holds only supplier diversity status."
+    "sensitive_consent_category": "A company holds only supplier diversity status.",
+    "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent."
   },
   "compass": {
     "edit": "Edit work details",
@@ -542,6 +543,32 @@
         "guest_accessibility_needs": "Guest accessibility needs",
         "guest_accessibility_notes": "Guest accessibility notes"
       }
+    },
+    "guestNeeds": {
+      "open": "Needs",
+      "openNamed": "Dietary and access needs for {name}",
+      "tag": "Needs on file",
+      "recorded": "Needs on file from {name}, {date}.",
+      "replaces": "Saving replaces what is on file. You see it again only with medical access.",
+      "dietaryNeeds": "Dietary needs",
+      "allergies": "Allergies",
+      "allergiesHelp": "Say how severe each one is.",
+      "dietaryNotes": "Other dietary notes",
+      "accessibilityNeeds": "Accessibility needs",
+      "accessibilityNotes": "Accessibility notes",
+      "email": "Guest's email",
+      "emailHelp": "Optional. If they have an XOS account, they are told and can remove this.",
+      "save": "Save needs",
+      "clear": "Remove needs",
+      "cancel": "Cancel",
+      "read": "Read guest needs",
+      "readTitle": "Guest needs on this project",
+      "readHelp": "Each read is logged. Use these only to look after the guest.",
+      "readNone": "No guest has needs on file.",
+      "guest": "Guest",
+      "download": "Download",
+      "close": "Close",
+      "continue": "Continue"
     }
   }
 }

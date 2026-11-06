@@ -14,7 +14,7 @@ import { defineResource, fields } from "@xos/schemas";
 import type { CapabilityRule } from "../../capabilities.ts";
 import type { CorrectionInput } from "../../corrections.ts";
 import { editDefinition, editShape, orNull } from "../../correct.ts";
-import { itemAction, itemQuery, resource } from "../../define.ts";
+import { collectionQuery, itemAction, itemQuery, resource } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
 import { Constants } from "@xos/data/database.types";
 import { ProjectFactKind } from "./roster-project-facts.ts";
@@ -403,6 +403,12 @@ const SharedWorkDetails = z
           ),
           allergies_on_file: fields.bool("Whether allergies are recorded, even when masked.", true),
           dietary_notes: orNull(str("Other dietary notes.", "No pork.")),
+          dietary_masked: fields
+            .bool(
+              "Dietary needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so dietary_needs is empty and dietary_notes null without data.restricted.read.medical on the project.",
+              false,
+            )
+            .optional(),
         })
         .meta({
           id: "SharedDietaryNeeds",
@@ -413,6 +419,12 @@ const SharedWorkDetails = z
       z
         .object({
           allergies: orNull(str("Allergies, unmasked.", "Peanuts, severe")),
+          dietary_needs: z.array(DietaryNeed).optional(),
+          dietary_notes: orNull(str("Other dietary notes, unmasked.", "No pork.")).optional(),
+          accessibility_needs: z.array(AccessibilityNeed).optional(),
+          accessibility_notes: orNull(
+            str("Accessibility notes, unmasked.", "Needs a seat near the stage door."),
+          ).optional(),
         })
         .meta({
           id: "SharedMedicalNeeds",
@@ -427,6 +439,12 @@ const SharedWorkDetails = z
           accessibility_notes: orNull(
             str("Accessibility notes.", "Needs a seat near the stage door."),
           ),
+          accessibility_masked: fields
+            .bool(
+              "Accessibility needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so accessibility_needs is empty and accessibility_notes null without data.restricted.read.medical on the project.",
+              false,
+            )
+            .optional(),
         })
         .meta({
           id: "SharedAccessibilityNeeds",
@@ -483,7 +501,154 @@ const SharedWorkDetails = z
       "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a).",
   });
 
+// Consent for sensitive data (ADR 0164) --------------------------------------------------------------------------------
+
+const SensitiveCategory = label(
+  "SensitiveDataCategory",
+  Constants.app.Enums.sensitive_data_category,
+  "A category of sensitive data consented to on its own.",
+);
+
+const SensitiveConsent = defineResource({
+  name: "SensitiveConsent",
+  table: "app.sensitive_data_consents",
+  description:
+    "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs.",
+  base: "global",
+  serverSet: [
+    "basis",
+    "person_id",
+    "guest_list_entry_id",
+    "org_id",
+    "surface",
+    "given_by",
+    "given_at",
+    "withdrawn_at",
+    "withdrawn_by",
+  ],
+  immutable: ["category", "notice_version", "locale", "account_id"],
+  fields: {
+    category: SensitiveCategory,
+    basis: label(
+      "SensitiveConsentBasis",
+      Constants.app.Enums.sensitive_consent_basis,
+      "Own Consent, or Attested Authority when someone else entered it.",
+    ),
+    person_id: orNull(fields.ref("person the data is about")),
+    account_id: orNull(fields.ref("external account whose supplier diversity status it covers")),
+    guest_list_entry_id: orNull(fields.ref("guest list entry the attestation covers")),
+    org_id: orNull(fields.ref("org whose member attested")),
+    notice_version: str(
+      "Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.",
+      "2026-11-06",
+    ),
+    locale: str("Language the wording was shown in.", "en-US"),
+    surface: label(
+      "SensitiveConsentSurface",
+      Constants.app.Enums.sensitive_consent_surface,
+      "Where it was captured; API for anything recorded here.",
+    ),
+    authority_confirmed: fields
+      .bool(
+        "With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.",
+        false,
+      )
+      .optional(),
+    notice_confirmed: fields
+      .bool(
+        "With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.",
+        false,
+      )
+      .optional(),
+    given_by: fields.ref("person who consented or attested"),
+    given_at: fields.instant("When it was given."),
+    withdrawn_at: orNull(fields.instant("When it was withdrawn; null while it stands.")),
+    withdrawn_by: orNull(fields.ref("person who withdrew it")),
+  },
+});
+
+const SensitiveFieldRecord = defineResource({
+  name: "SensitiveFieldRecord",
+  table: "app.sensitive_field_records",
+  description:
+    "Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's.",
+  base: "global",
+  serverSet: [
+    "field_code",
+    "person_id",
+    "account_id",
+    "guest_list_entry_id",
+    "consent_id",
+    "entered_by",
+    "entered_at",
+    "changed_at",
+    "cleared_at",
+    "awaiting_since",
+  ],
+  fields: {
+    field_code: str("Field.", "allergies"),
+    person_id: orNull(fields.ref("person the field is about")),
+    account_id: orNull(fields.ref("external account the field is about")),
+    guest_list_entry_id: orNull(fields.ref("guest list entry the field is about")),
+    consent_id: orNull(
+      fields.ref("consent the value stands on; null for a value from before consent was recorded"),
+    ),
+    entered_by: orNull(fields.ref("person who last entered the value")),
+    entered_at: fields.instant("When a value was first entered."),
+    changed_at: fields.instant("When the value last changed."),
+    cleared_at: orNull(fields.instant("When the value was cleared; null while one is held.")),
+    awaiting_since: orNull(
+      fields.instant(
+        "When a value from before consent was recorded started waiting for it; it is cleared 30 days later.",
+      ),
+    ),
+  },
+});
+
+const SensitiveConsentReportRow = z
+  .object({
+    subject_kind: str("Person, Guest or Company.", "Guest"),
+    subject_id: fields.uuid("The person, guest list entry or external account."),
+    subject_name: orNull(str("Display name.", "Jordan Vale")),
+    category: SensitiveCategory,
+    field_code: str("Field.", "allergies"),
+    standing: z.enum(Constants.app.Enums.sensitive_consent_standing).meta({
+      id: "SensitiveConsentStanding",
+      description: "Consent state of the field, computed.",
+      example: "Attested",
+    }),
+    notice_version: orNull(str("Version of the wording.", "2026-11-06")),
+    given_at: orNull(fields.instant("When it was given.")),
+    given_by_name: orNull(str("Who gave it.", "Carol Nguyen")),
+    withdrawn_at: orNull(fields.instant("When it was withdrawn.")),
+  })
+  .meta({
+    id: "SensitiveConsentReportRow",
+    description:
+      "Consent state of one sensitive field of one subject. Never a value, and never whether a value is held.",
+  });
+
 export const workDetailResources: readonly ResourceSpec[] = [
+  resource("Identity", "/sensitive-consents", SensitiveConsent, {
+    verbs: ["list", "get", "create"],
+    actions: [
+      itemAction("withdraw", {
+        summary: "Withdraw a consent or remove an attestation",
+        description:
+          "Stops use at once and clears the values the grant covers, through `app.withdraw_sensitive_consent` for the caller's own or a company's, and `app.remove_sensitive_entry` for an attestation about them or given by them. Under a legal hold the values stay hidden until it ends. Refuses 422 sensitive_entry_not_yours.",
+      }),
+      collectionQuery("report", {
+        summary: "Consent state per sensitive field",
+        description:
+          "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held.",
+        paged: true,
+        response: SensitiveConsentReportRow,
+      }),
+    ],
+  }),
+  resource("Identity", "/sensitive-field-records", SensitiveFieldRecord, {
+    verbs: ["list", "get"],
+  }),
   resource("Identity", "/work-details", WorkDetails, {
     actions: [
       itemAction("revealPassport", {
@@ -550,6 +715,12 @@ export const workDetailCapabilities: Readonly<Record<string, CapabilityRule>> = 
     },
   },
   workDetailEvents: { read: "me.work_details.write" },
+  sensitiveConsents: {
+    read: "me.work_details.write",
+    write: "me.work_details.write",
+    actions: { withdraw: "me.work_details.write", report: "data.request.manage" },
+  },
+  sensitiveFieldRecords: { read: "me.work_details.write" },
 };
 
 export const workDetailCorrections: readonly CorrectionInput[] = [

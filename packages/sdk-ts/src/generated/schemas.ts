@@ -39382,6 +39382,141 @@ export interface GuestDecisionRequest {
 }
 
 /**
+ * A guest's needs, under the caller's attestation.
+ */
+export interface GuestNeedsRequest {
+  readonly dietary_needs?: ReadonlyArray<
+    | "Vegetarian"
+    | "Vegan"
+    | "Pescatarian"
+    | "Halal"
+    | "Kosher"
+    | "Gluten Free"
+    | "Dairy Free"
+    | "Nut Free"
+    | "Shellfish Free"
+  >;
+  /**
+   * Allergies, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies?: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes?: string | null;
+  readonly accessibility_needs?: ReadonlyArray<
+    | "Step-Free Access"
+    | "Accessible Parking"
+    | "Accessible Restroom"
+    | "Seating"
+    | "Sign Language Interpreter"
+    | "Captioning"
+    | "Large Print"
+    | "Service Animal"
+    | "Quiet Space"
+    | "Assistance on Arrival"
+  >;
+  /**
+   * Accessibility needs in words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes?: string | null;
+  /**
+   * The guest's email, so they can see this and remove it.
+   * Length: 1 to 320.
+   */
+  readonly guest_email?: string | null;
+  /**
+   * The caller has the guest's authority to enter this.
+   */
+  readonly authority_confirmed: boolean;
+  /**
+   * The guest has been told what is entered, why and who sees it.
+   */
+  readonly notice_confirmed: boolean;
+  /**
+   * Version of the wording the caller read.
+   * Length: 1 to 20.
+   */
+  readonly notice_version: string;
+  /**
+   * Language the wording was shown in.
+   * Length: 1 to 10.
+   */
+  readonly locale: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface GuestNeedsPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<GuestNeeds>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A guest's needs, for a holder of the medical capability.
+ */
+export interface GuestNeeds {
+  /**
+   * The guest.
+   * Format: `uuid`.
+   */
+  readonly guest_list_entry_id: string;
+  /**
+   * Name the guest gives at the door.
+   * Length: 1 to 200.
+   */
+  readonly guest_name: string;
+  readonly dietary_needs: ReadonlyArray<
+    | "Vegetarian"
+    | "Vegan"
+    | "Pescatarian"
+    | "Halal"
+    | "Kosher"
+    | "Gluten Free"
+    | "Dairy Free"
+    | "Nut Free"
+    | "Shellfish Free"
+  >;
+  /**
+   * Allergies.
+   * Length: 1 to 500.
+   */
+  readonly allergies: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes: string | null;
+  readonly accessibility_needs: ReadonlyArray<
+    | "Step-Free Access"
+    | "Accessible Parking"
+    | "Accessible Restroom"
+    | "Seating"
+    | "Sign Language Interpreter"
+    | "Captioning"
+    | "Large Print"
+    | "Service Animal"
+    | "Quiet Space"
+    | "Assistance on Arrival"
+  >;
+  /**
+   * Accessibility notes.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes: string | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface FlightPage {
@@ -42260,6 +42395,290 @@ export interface ParkingPass {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface SensitiveConsentPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SensitiveConsent>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs.
+ */
+export interface SensitiveConsent {
+  /**
+   * Identifier of the sensitive consent.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  readonly category: SensitiveDataCategory;
+  readonly basis: SensitiveConsentBasis;
+  /**
+   * Identifier of the person the data is about.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Identifier of the external account whose supplier diversity status it covers.
+   * Format: `uuid`.
+   */
+  readonly account_id: string | null;
+  /**
+   * Identifier of the guest list entry the attestation covers.
+   * Format: `uuid`.
+   */
+  readonly guest_list_entry_id: string | null;
+  /**
+   * Identifier of the org whose member attested.
+   * Format: `uuid`.
+   */
+  readonly org_id: string | null;
+  /**
+   * Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.
+   */
+  readonly notice_version: string;
+  /**
+   * Language the wording was shown in.
+   */
+  readonly locale: string;
+  readonly surface: SensitiveConsentSurface;
+  /**
+   * With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.
+   */
+  readonly authority_confirmed?: boolean;
+  /**
+   * With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.
+   */
+  readonly notice_confirmed?: boolean;
+  /**
+   * Identifier of the person who consented or attested.
+   * Format: `uuid`.
+   */
+  readonly given_by: string;
+  /**
+   * When it was given.
+   * Format: `date-time`.
+   */
+  readonly given_at: string;
+  /**
+   * When it was withdrawn; null while it stands.
+   * Format: `date-time`.
+   */
+  readonly withdrawn_at: string | null;
+  /**
+   * Identifier of the person who withdrew it.
+   * Format: `uuid`.
+   */
+  readonly withdrawn_by: string | null;
+}
+
+/**
+ * A category of sensitive data consented to on its own.
+ */
+export type SensitiveDataCategory =
+  "Dietary and Allergies" | "Accessibility" | "Supplier Diversity";
+
+/**
+ * Own Consent, or Attested Authority when someone else entered it.
+ */
+export type SensitiveConsentBasis = "Own Consent" | "Attested Authority";
+
+/**
+ * Where it was captured; API for anything recorded here.
+ */
+export type SensitiveConsentSurface = "Atlas" | "Gateway" | "Compass" | "API";
+
+/**
+ * Fields accepted when creating a SensitiveConsent.
+ */
+export interface SensitiveConsentCreate {
+  readonly category: SensitiveDataCategory;
+  /**
+   * Identifier of the external account whose supplier diversity status it covers.
+   * Format: `uuid`.
+   */
+  readonly account_id?: string | null;
+  /**
+   * Version of the wording the person read, for example the one the apps show. A retired or unknown version is refused with 422 sensitive_notice_version.
+   */
+  readonly notice_version: string;
+  /**
+   * Language the wording was shown in.
+   */
+  readonly locale: string;
+  /**
+   * With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.
+   */
+  readonly authority_confirmed?: boolean;
+  /**
+   * With account_id: the caller confirms the people it describes have had notice. Refused with 422 sensitive_attestation_required without it.
+   */
+  readonly notice_confirmed?: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SensitiveConsentReportRowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SensitiveConsentReportRow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Consent state of one sensitive field of one subject. Never a value, and never whether a value is held.
+ */
+export interface SensitiveConsentReportRow {
+  /**
+   * Person, Guest or Company.
+   */
+  readonly subject_kind: string;
+  /**
+   * The person, guest list entry or external account.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Display name.
+   */
+  readonly subject_name: string | null;
+  readonly category: SensitiveDataCategory;
+  /**
+   * Field.
+   */
+  readonly field_code: string;
+  readonly standing: SensitiveConsentStanding;
+  /**
+   * Version of the wording.
+   */
+  readonly notice_version: string | null;
+  /**
+   * When it was given.
+   * Format: `date-time`.
+   */
+  readonly given_at: string | null;
+  /**
+   * Who gave it.
+   */
+  readonly given_by_name: string | null;
+  /**
+   * When it was withdrawn.
+   * Format: `date-time`.
+   */
+  readonly withdrawn_at: string | null;
+}
+
+/**
+ * Consent state of the field, computed.
+ */
+export type SensitiveConsentStanding = "Consent Given" | "Attested" | "Withdrawn" | "No Record";
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SensitiveFieldRecordPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SensitiveFieldRecord>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Per subject and sensitive field: the consent the value stands on, who entered it and when, and when it was cleared. Never a value (ADR 0164). The person reads their own, and a company's Owners and Admins read the company's.
+ */
+export interface SensitiveFieldRecord {
+  /**
+   * Identifier of the sensitive field record.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Field.
+   */
+  readonly field_code: string;
+  /**
+   * Identifier of the person the field is about.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Identifier of the external account the field is about.
+   * Format: `uuid`.
+   */
+  readonly account_id: string | null;
+  /**
+   * Identifier of the guest list entry the field is about.
+   * Format: `uuid`.
+   */
+  readonly guest_list_entry_id: string | null;
+  /**
+   * Identifier of the consent the value stands on; null for a value from before consent was recorded.
+   * Format: `uuid`.
+   */
+  readonly consent_id: string | null;
+  /**
+   * Identifier of the person who last entered the value.
+   * Format: `uuid`.
+   */
+  readonly entered_by: string | null;
+  /**
+   * When a value was first entered.
+   * Format: `date-time`.
+   */
+  readonly entered_at: string;
+  /**
+   * When the value last changed.
+   * Format: `date-time`.
+   */
+  readonly changed_at: string;
+  /**
+   * When the value was cleared; null while one is held.
+   * Format: `date-time`.
+   */
+  readonly cleared_at: string | null;
+  /**
+   * When a value from before consent was recorded started waiting for it; it is cleared 30 days later.
+   * Format: `date-time`.
+   */
+  readonly awaiting_since: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface WorkDetailsPage {
   /**
    * Items on this page, in the documented default order.
@@ -43169,6 +43588,10 @@ export interface SharedDietaryNeeds {
    * Other dietary notes.
    */
   readonly dietary_notes: string | null;
+  /**
+   * Dietary needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so dietary_needs is empty and dietary_notes null without data.restricted.read.medical on the project.
+   */
+  readonly dietary_masked?: boolean;
 }
 
 /**
@@ -43179,6 +43602,16 @@ export interface SharedMedicalNeeds {
    * Allergies, unmasked.
    */
   readonly allergies: string | null;
+  readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
+  /**
+   * Other dietary notes, unmasked.
+   */
+  readonly dietary_notes?: string | null;
+  readonly accessibility_needs?: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility notes, unmasked.
+   */
+  readonly accessibility_notes?: string | null;
 }
 
 /**
@@ -43190,6 +43623,10 @@ export interface SharedAccessibilityNeeds {
    * Accessibility notes.
    */
   readonly accessibility_notes: string | null;
+  /**
+   * Accessibility needs or notes are recorded and withheld from this reader: they are Restricted (ADR 0164), so accessibility_needs is empty and accessibility_notes null without data.restricted.read.medical on the project.
+   */
+  readonly accessibility_masked?: boolean;
 }
 
 /**
