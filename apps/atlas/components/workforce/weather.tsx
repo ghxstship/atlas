@@ -29,19 +29,16 @@ import { DataTable } from "@/components/platform/client/data-table";
 import { EmptyStateLink } from "@/components/ui";
 import {
   addAlertRoleAction,
-  callWeatherHoldAction,
-  giveWeatherAllClearAction,
   recordReadingAction,
   removeAlertRoleAction,
   saveWeatherTemplatesAction,
   setThresholdAction,
-  turnOffWeatherFeedAction,
-  turnOnWeatherFeedAction,
 } from "@/lib/workforce/actions";
 import type { SearchParams } from "@/lib/collection-kit/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { WeatherFeedSwitch, WeatherHoldControls } from "./weather-controls";
 import { CollectionPage } from "@/components/platform/collection-page";
 
 const LEVEL_STATE = { Monitor: "in-review", Restrict: "blocked", Evacuate: "blocked" } as const;
@@ -121,85 +118,43 @@ export async function WeatherSection({
 
   const feed: WeatherFeedBoard | null = feedBoard.ok ? feedBoard.data : null;
   const canDispatch = ctx.capabilities.has("safety.incident.dispatch");
-  // Call hold leads while an alert is at Restrict or Evacuate or an official Severe or Extreme warning is active.
-  const severe =
-    active.some((a) => a.level === "Restrict" || a.level === "Evacuate") ||
-    (feed?.warnings ?? []).some(isSevereWarning);
+  // The hold starts prefilled from a reading at Restrict or Evacuate, or an official Severe or Extreme warning.
   const promptAlert = active.find((a) => a.level !== "Monitor") ?? active[0];
   const promptWarning = (feed?.warnings ?? []).find(isSevereWarning);
-  const holdText =
-    feed?.templates.Hold?.body ??
-    (promptAlert
-      ? t("weather.templates.defaultHoldHazard", {
-          hazard: t(`weather.hazards.${promptAlert.hazard}`),
-        })
-      : t("weather.templates.defaultHold"));
   const allClearText = feed?.templates["All Clear"]?.body ?? t("weather.templates.defaultAllClear");
+
+  const holdBanner = feed?.openHold ? (
+    <InlineAlert
+      tone="danger"
+      title={t("weather.holds.open", { time: when(feed.openHold.calledAt) })}
+    >
+      {feed.openHold.message}
+    </InlineAlert>
+  ) : null;
 
   return (
     <CollectionPage header={<PageHeader title={title} />}>
       {picker}
-      {feed?.openHold ? (
-        <InlineAlert
-          tone="danger"
-          title={t("weather.holds.open", { time: when(feed.openHold.calledAt) })}
-        >
-          {feed.openHold.message}
-        </InlineAlert>
-      ) : null}
       {canDispatch && feed ? (
-        <div className="flex flex-wrap gap-8">
-          {feed.openHold ? (
-            <ActionButton
-              action={giveWeatherAllClearAction}
-              hidden={{ org: ctx.org.slug, id: feed.openHold.id }}
-              label={t("weather.holds.allClear")}
-              variant="primary"
-              confirm={{
-                title: t("weather.holds.allClearTitle"),
-                body: t("weather.holds.callBody"),
-              }}
-              extraFields={[
-                {
-                  kind: "textarea",
-                  name: "message",
-                  label: t("weather.holds.message"),
-                  help: t("weather.holds.messageHelp"),
-                  required: true,
-                  defaultValue: allClearText,
-                },
-              ]}
-              refusals={REFUSALS}
-            />
-          ) : (
-            <ActionButton
-              action={callWeatherHoldAction}
-              hidden={{
-                org: ctx.org.slug,
-                projectId: project.id,
-                ...(promptAlert
-                  ? { hazard: promptAlert.hazard, weatherAlertId: promptAlert.id }
-                  : {}),
-                ...(promptWarning ? { weatherWarningId: promptWarning.id } : {}),
-              }}
-              label={t("weather.holds.call")}
-              variant={severe ? "primary" : "secondary"}
-              confirm={{ title: t("weather.holds.callTitle"), body: t("weather.holds.callBody") }}
-              extraFields={[
-                {
-                  kind: "textarea",
-                  name: "message",
-                  label: t("weather.holds.message"),
-                  help: t("weather.holds.messageHelp"),
-                  required: true,
-                  defaultValue: holdText,
-                },
-              ]}
-              refusals={REFUSALS}
-            />
-          )}
-        </div>
-      ) : null}
+        <WeatherHoldControls
+          org={ctx.org.slug}
+          projectId={project.id}
+          openHoldId={feed.openHold?.id ?? null}
+          hazards={WEATHER_HAZARDS.map((h) => ({ value: h, label: t(`weather.hazards.${h}`) }))}
+          warnings={feed.warnings.map((w) => ({ id: w.id, event: w.event }))}
+          prompt={{
+            hazard: promptAlert?.hazard ?? null,
+            alertId: promptAlert?.id ?? null,
+            warningId: promptWarning?.id ?? null,
+          }}
+          holdTemplate={feed.templates.Hold?.body ?? null}
+          allClearText={allClearText}
+        >
+          {holdBanner}
+        </WeatherHoldControls>
+      ) : (
+        holdBanner
+      )}
       {active.length > 0 ? (
         <InlineAlert tone="danger" title={t("weather.activeTitle", { count: active.length })}>
           {active.map(alertLine).join(" · ")}
@@ -216,6 +171,13 @@ export async function WeatherSection({
             <p className="m-0 text-text-13">{t("weather.feed.unsupported")}</p>
           ) : (
             <>
+              {canConfigure ? (
+                <WeatherFeedSwitch
+                  org={ctx.org.slug}
+                  projectId={project.id}
+                  feedId={feed.status.feedId}
+                />
+              ) : null}
               <p role="status" className="m-0 text-text-13">
                 {feed.status.feedId === null
                   ? null
@@ -233,23 +195,6 @@ export async function WeatherSection({
                   })}{" "}
                   {t("weather.feed.failuresSince", { count: feed.status.failuresSinceSuccess })}
                 </InlineAlert>
-              ) : null}
-              {canConfigure ? (
-                feed.status.feedId === null ? (
-                  <ActionButton
-                    action={turnOnWeatherFeedAction}
-                    hidden={{ org: ctx.org.slug, projectId: project.id }}
-                    label={t("weather.feed.turnOn")}
-                    refusals={REFUSALS}
-                  />
-                ) : (
-                  <ActionButton
-                    action={turnOffWeatherFeedAction}
-                    hidden={{ org: ctx.org.slug, id: feed.status.feedId }}
-                    label={t("weather.feed.turnOff")}
-                    refusals={REFUSALS}
-                  />
-                )
               ) : null}
             </>
           )}
@@ -337,6 +282,7 @@ export async function WeatherSection({
             hidden={{ org: ctx.org.slug, projectId: project.id, units }}
             refusals={REFUSALS}
             submitLabel={t("weather.recordSubmit")}
+            submitVariant={canDispatch ? "secondary" : "primary"}
             fields={[
               {
                 kind: "select",

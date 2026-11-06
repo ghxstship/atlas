@@ -48,13 +48,21 @@ test.describe("The official weather feed and the hold (B8)", () => {
 
       await page.getByRole("button", { name: "Call hold" }).click();
       const dialog = page.getByRole("dialog");
-      await expect(dialog.getByLabel("Message")).not.toHaveValue("");
+      await expect(dialog.getByLabel("Message", { exact: true })).not.toHaveValue("");
+      // The message starts again from the catalog when the hazard changes.
+      const before = await dialog.getByLabel("Message", { exact: true }).inputValue();
+      await dialog.getByLabel("Hazard", { exact: true }).selectOption("Wind");
+      await dialog.getByLabel("Official warning", { exact: true }).selectOption("");
+      await expect(dialog.getByLabel("Message", { exact: true })).not.toHaveValue(before);
       await dialog.getByRole("button", { name: "Call hold" }).click();
       await expect(page.getByText(/^Weather hold since/)).toBeVisible();
+      // The result stands above the banner, and stays after the refresh swaps the button.
+      await expect(page.getByText("Weather hold sent to everyone it reaches.")).toBeVisible();
 
       await page.getByRole("button", { name: "All clear" }).click();
       await page.getByRole("dialog").getByRole("button", { name: "All clear" }).click();
       await expect(page.getByText(/^Weather hold since/)).toHaveCount(0);
+      await expect(page.getByText("All-clear sent to everyone it reaches.")).toBeVisible();
     } finally {
       for (const [text, args] of [
         [

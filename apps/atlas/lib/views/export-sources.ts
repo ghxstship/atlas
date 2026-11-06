@@ -147,35 +147,6 @@ function inProject(of: ExportSource): ExportSource {
 
 // Shared sources ------------------------------------------------------------------------------------------------------
 
-/**
- * B8's muster list (2971, G-149): every readable column of app.muster_list, filtered by the page's project and zone.
- * database.types.ts gains the view only when it is regenerated from a migrated stack, so the relation is named as a
- * string here, as packages/data reads B8's relations through its untyped client; once it is regenerated, this is
- * source("app.muster_list", ...) like the rest.
- */
-const muster: ExportSource = {
-  relation: "app.muster_list" as string as ExportRelation,
-  columns: [
-    "full_name",
-    "guest_name",
-    "zone_code",
-    "zone_name",
-    "entered_at",
-    "source",
-    "category_code",
-    "credential_number",
-    "party_name",
-    "plus_ones",
-    "door",
-    "project_id",
-  ],
-  filters: { project: { column: "project_id", resolve: "project" }, zone: { column: "zone_id" } },
-  fixed: {},
-  presence: [],
-  project: false,
-  objectType: false,
-};
-
 // The feed with each entry's project (2370): org-wide on the Activity page, the project's on a project tab.
 const activity = source("app.activity_export", [
   "created_at",
@@ -1084,7 +1055,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "storage_location",
     "project_id",
   ]),
-  "site_ops/muster": muster,
+  // B8's muster list (2971, G-149), with the names on screen, filtered by the page's project and zone.
+  "site_ops/muster": source(
+    "app.muster_list",
+    [
+      "full_name",
+      "guest_name",
+      "zone_code",
+      "zone_name",
+      "entered_at",
+      "source",
+      "category_code",
+      "credential_number",
+      "party_name",
+      "plus_ones",
+      "door",
+      "project_id",
+    ],
+    { filters: { zone: "zone_id" } },
+  ),
   "site_ops/occupancy": source("app.occupancy_counters", [
     "name",
     "current_count",

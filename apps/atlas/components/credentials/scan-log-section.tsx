@@ -2,9 +2,9 @@ import {
   insideNow,
   listAccessScans,
   listProjectZones,
-  SCAN_DIRECTIONS,
   type AccessScan,
 } from "@xos/data/credentials";
+import { Constants } from "@xos/data/database.types";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import { dateTime, Header, ProjectFilter, unwrap } from "@/components/operations/chrome";
@@ -164,7 +164,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
             value: scanDirection ?? "",
             options: [
               { value: "", label: t("credentials.scans.allDirections") },
-              ...SCAN_DIRECTIONS.map((d) => ({
+              ...Constants.app.Enums.scan_direction.map((d) => ({
                 value: d,
                 label: t(`credentials.scans.directions.${d}`),
               })),
@@ -205,7 +205,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               id="scan-direction"
               name="direction"
               label={t("credentials.scans.directionLabel")}
-              options={SCAN_DIRECTIONS.map((d) => ({
+              options={Constants.app.Enums.scan_direction.map((d) => ({
                 value: d,
                 label: t(`credentials.scans.directions.${d}`),
               }))}

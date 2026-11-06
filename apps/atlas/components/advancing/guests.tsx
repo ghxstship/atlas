@@ -8,10 +8,10 @@ import {
   type GuestState,
 } from "@xos/data/advancing";
 import { listCredentialCategories } from "@xos/data/credentials";
+import { Constants } from "@xos/data/database.types";
 import type { RecordState } from "@xos/ui";
 import Link from "next/link";
 import type { Route } from "next";
-import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { getFormatter, getLocale } from "next-intl/server";
 import { documentHref } from "@/lib/documents/links";
@@ -19,18 +19,15 @@ import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { GuestEmailTrigger } from "./guest-email-trigger";
 import { AddGuestDialog, GuestActions } from "./guest-forms";
 import { RecordCollab } from "./record-collab";
 import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { ResultRegion } from "@/components/operations/result-region";
 import { importLinkHref } from "@/lib/imports/import-link";
-
-// The Email guests dialog loads with its first open, so the guest list carries none of its code (bundle budget).
-const GuestEmailDialog = dynamic(() =>
-  import("./guest-email-dialog").then((m) => m.GuestEmailDialog),
-);
 
 const VIEWS = ["list", "table"] as const;
 
@@ -153,7 +150,8 @@ export async function GuestList({
                       </Link>
                     ) : null}
                     {guests.data.length > 0 ? (
-                      <GuestEmailDialog
+                      <GuestEmailTrigger
+                        kinds={Constants.app.Enums.guest_email_kind}
                         org={ctx.org.slug}
                         projectId={project.id}
                         projectName={project.name}
@@ -197,96 +195,101 @@ export async function GuestList({
           {t("advancing.guests.admitted", { count: admitted })}
         </p>
       </div>
-      {guests.data.length === 0 ? (
-        <p className="m-0 rounded-card border border-border-subtle p-16 text-text-13 text-text-secondary">
-          {stateFilter
-            ? t("advancing.guests.emptyFiltered", { state: label(stateFilter) })
-            : can.rider
-              ? t("advancing.guests.empty")
-              : t("advancing.guests.emptyReadOnly")}
-        </p>
-      ) : view === "table" ? (
-        <PeekTable
-          caption={title}
-          columns={[
-            { key: "guest", label: t("advancing.guests.columns.guest") },
-            { key: "plusOnes", label: t("advancing.guests.columns.plusOnes"), type: "number" },
-            { key: "show", label: t("advancing.guests.columns.show") },
-            { key: "from", label: t("advancing.guests.columns.from") },
-            { key: "passType", label: t("advancing.guests.columns.passType") },
-            { key: "table", label: t("advancing.guests.columns.table") },
-            { key: "state", label: t("advancing.common.state") },
-          ]}
-          full={false}
-          bulk={
-            can.rider
-              ? {
-                  org: ctx.org.slug,
-                  resource: "guest_list_entries",
-                  // The guest list guard decides each move: review authority, never the requester.
-                  fields: [
-                    {
-                      key: "entry_state",
-                      label: t("advancing.common.state"),
-                      options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
-                        value: s,
-                        label: label(s),
-                      })),
-                    },
-                  ],
-                }
-              : null
-          }
-          rows={guests.data.map((g) => ({
-            id: g.id,
-            label: g.guestName,
-            guest: g.guestName,
-            plusOnes: g.plusOnes,
-            show: scopeName(g.scopeNodeId),
-            from: from(g),
-            passType: passTypeName(g.passCategoryId),
-            table: g.tableLabel ?? "",
-            state: label(g.state),
-          }))}
-        />
-      ) : (
-        <ul
-          aria-label={title}
-          className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
-        >
-          {guests.data.map((g) => (
-            <li key={g.id} className="flex flex-wrap items-center justify-between gap-8 px-16 py-8">
-              <div className="flex min-w-0 flex-wrap items-center gap-8">
-                <StateChip state={GUEST_RECORD_STATE[g.state]} label={label(g.state)} compact />
-                <Link
-                  href={withQuery(path, search, { peek: g.id }) as Route}
-                  className="text-text-14 text-text-primary hover:underline"
-                >
-                  {g.guestName}
-                </Link>
-                <span className="text-text-12 text-text-secondary">
-                  {t("advancing.guests.plusOnes", { count: g.plusOnes })} ·{" "}
-                  {scopeName(g.scopeNodeId)} · {from(g)}
-                  {g.passCategoryId ? ` · ${passTypeName(g.passCategoryId)}` : ""}
-                  {g.tableLabel ? ` · ${g.tableLabel}` : ""}
-                </span>
-                {g.engagementId ? (
-                  <Tag tone="accent">{t("advancing.guests.viaGateway")}</Tag>
-                ) : null}
-              </div>
-              <GuestActions
-                org={ctx.org.slug}
-                guest={item(g)}
-                state={g.state}
-                scopes={scopeOptions}
-                choices={choices}
-                canEdit={can.rider}
-                canReview={can.review}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <ResultRegion>
+        {guests.data.length === 0 ? (
+          <p className="m-0 rounded-card border border-border-subtle p-16 text-text-13 text-text-secondary">
+            {stateFilter
+              ? t("advancing.guests.emptyFiltered", { state: label(stateFilter) })
+              : can.rider
+                ? t("advancing.guests.empty")
+                : t("advancing.guests.emptyReadOnly")}
+          </p>
+        ) : view === "table" ? (
+          <PeekTable
+            caption={title}
+            columns={[
+              { key: "guest", label: t("advancing.guests.columns.guest") },
+              { key: "plusOnes", label: t("advancing.guests.columns.plusOnes"), type: "number" },
+              { key: "show", label: t("advancing.guests.columns.show") },
+              { key: "from", label: t("advancing.guests.columns.from") },
+              { key: "passType", label: t("advancing.guests.columns.passType") },
+              { key: "table", label: t("advancing.guests.columns.table") },
+              { key: "state", label: t("advancing.common.state") },
+            ]}
+            full={false}
+            bulk={
+              can.rider
+                ? {
+                    org: ctx.org.slug,
+                    resource: "guest_list_entries",
+                    // The guest list guard decides each move: review authority, never the requester.
+                    fields: [
+                      {
+                        key: "entry_state",
+                        label: t("advancing.common.state"),
+                        options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
+                          value: s,
+                          label: label(s),
+                        })),
+                      },
+                    ],
+                  }
+                : null
+            }
+            rows={guests.data.map((g) => ({
+              id: g.id,
+              label: g.guestName,
+              guest: g.guestName,
+              plusOnes: g.plusOnes,
+              show: scopeName(g.scopeNodeId),
+              from: from(g),
+              passType: passTypeName(g.passCategoryId),
+              table: g.tableLabel ?? "",
+              state: label(g.state),
+            }))}
+          />
+        ) : (
+          <ul
+            aria-label={title}
+            className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
+          >
+            {guests.data.map((g) => (
+              <li
+                key={g.id}
+                className="flex flex-wrap items-center justify-between gap-8 px-16 py-8"
+              >
+                <div className="flex min-w-0 flex-wrap items-center gap-8">
+                  <StateChip state={GUEST_RECORD_STATE[g.state]} label={label(g.state)} compact />
+                  <Link
+                    href={withQuery(path, search, { peek: g.id }) as Route}
+                    className="text-text-14 text-text-primary hover:underline"
+                  >
+                    {g.guestName}
+                  </Link>
+                  <span className="text-text-12 text-text-secondary">
+                    {t("advancing.guests.plusOnes", { count: g.plusOnes })} ·{" "}
+                    {scopeName(g.scopeNodeId)} · {from(g)}
+                    {g.passCategoryId ? ` · ${passTypeName(g.passCategoryId)}` : ""}
+                    {g.tableLabel ? ` · ${g.tableLabel}` : ""}
+                  </span>
+                  {g.engagementId ? (
+                    <Tag tone="accent">{t("advancing.guests.viaGateway")}</Tag>
+                  ) : null}
+                </div>
+                <GuestActions
+                  org={ctx.org.slug}
+                  guest={item(g)}
+                  state={g.state}
+                  scopes={scopeOptions}
+                  choices={choices}
+                  canEdit={can.rider}
+                  canReview={can.review}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </ResultRegion>
       {collectionPeek(
         peekId,
         peek ? (

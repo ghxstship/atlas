@@ -1,7 +1,9 @@
 "use client";
 
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
-import { startTransition, useActionState, useId, useState, type FormEvent } from "react";
+import { useActionState, useId, useState } from "react";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { useReportResult } from "@/components/operations/result-region";
 import type { AdvancingState } from "./actions";
 import {
   addGuestAction,
@@ -37,20 +39,17 @@ export interface PassChoices {
   readonly hosts: readonly ScopeChoice[];
 }
 
-/** Posts in a transition so a refused submit keeps its input; `onDone` runs after a success. */
+/**
+ * Posts in a transition so a refused submit keeps its input; `onDone` runs after a success. Spread `keep` onto the form
+ * for both `action`, so a click before hydration is no native GET, and `onSubmit`.
+ */
 function useSubmit(action: Action, onDone?: () => void) {
   const [state, run, pending] = useActionState<AdvancingState, FormData>(async (prev, form) => {
     const next = await action(prev, form);
     if (next.ok) onDone?.();
     return next;
   }, {});
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const submitter = (event.nativeEvent as SubmitEvent).submitter;
-    const data = new FormData(event.currentTarget, submitter);
-    startTransition(() => run(data));
-  };
-  return { state, pending, onSubmit };
+  return { state, pending, keep: { action: run, onSubmit: keepInputOnSubmit(run) } };
 }
 
 function ErrorLine({ state }: { state: AdvancingState }) {
@@ -62,17 +61,22 @@ function ErrorLine({ state }: { state: AdvancingState }) {
   ) : null;
 }
 
-/** The pass fields: pass type, table, host and the guest's email, where their pass and messages go. */
+/**
+ * The pass fields: pass type and the guest's email, where their pass and messages go, and with `full` the table and
+ * host. Add guest leaves those two to the guest's own pass form, to stay within seven visible fields.
+ */
 function PassFields({
   id,
   state,
   choices,
   guest,
+  full = false,
 }: {
   id: string;
   state: AdvancingState;
   choices: PassChoices;
   guest?: GuestItem;
+  full?: boolean;
 }) {
   const t = useCopy("advancing.guests.pass");
   return (
@@ -85,23 +89,27 @@ function PassFields({
         value={guest?.passCategoryId ?? ""}
         options={[{ value: "", label: t("noType") }, ...choices.passTypes]}
       />
-      <Input
-        id={`${id}-table`}
-        name="tableLabel"
-        maxLength={40}
-        width={200}
-        label={t("table")}
-        help={t("tableHelp")}
-        defaultValue={guest?.tableLabel ?? ""}
-      />
-      <Select
-        id={`${id}-host`}
-        name="hostPersonId"
-        label={t("host")}
-        help={t("hostHelp")}
-        value={guest?.hostPersonId ?? ""}
-        options={[{ value: "", label: t("noHost") }, ...choices.hosts]}
-      />
+      {full ? (
+        <>
+          <Input
+            id={`${id}-table`}
+            name="tableLabel"
+            maxLength={60}
+            width={200}
+            label={t("table")}
+            help={t("tableHelp")}
+            defaultValue={guest?.tableLabel ?? ""}
+          />
+          <Select
+            id={`${id}-host`}
+            name="hostPersonId"
+            label={t("host")}
+            help={t("hostHelp")}
+            value={guest?.hostPersonId ?? ""}
+            options={[{ value: "", label: t("noHost") }, ...choices.hosts]}
+          />
+        </>
+      ) : null}
       <Input
         id={`${id}-email`}
         name="guestEmail"
@@ -191,7 +199,7 @@ export function AddGuestDialog({
   const common = useCopy("advancing.common");
   const [open, setOpen] = useState(false);
   const formId = useId();
-  const { state, pending, onSubmit } = useSubmit(addGuestAction, () => setOpen(false));
+  const { state, pending, keep } = useSubmit(addGuestAction, () => setOpen(false));
   return (
     <Dialog
       title={t("addTitle")}
@@ -214,7 +222,7 @@ export function AddGuestDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={onSubmit} className="flex flex-col gap-12" noValidate>
+      <form id={formId} {...keep} className="flex flex-col gap-12" noValidate>
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectId" value={projectId} />
         <ErrorLine state={state} />
@@ -233,17 +241,21 @@ function MoveButton({
   guestId,
   to,
   label,
+  done,
   variant,
 }: {
   org: string;
   guestId: string;
   to: "Approved" | "Declined" | "Checked In";
   label: string;
+  /** The sentence for the region above the list: this button leaves once the guest moves. */
+  done: string;
   variant: "primary" | "secondary" | "ghost";
 }) {
-  const { state, pending, onSubmit } = useSubmit(moveGuestAction);
+  const report = useReportResult();
+  const { state, pending, keep } = useSubmit(moveGuestAction, () => report(done));
   return (
-    <form onSubmit={onSubmit} className="inline-flex flex-col gap-4">
+    <form {...keep} className="inline-flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="guestId" value={guestId} />
       <input type="hidden" name="to" value={to} />
@@ -281,15 +293,18 @@ export function GuestActions({
   const id = useId();
   const update = useSubmit(updateGuestAction, () => setEditing(false));
   const updatePass = useSubmit(updateGuestPassAction, () => setEditingPass(false));
-  const remove = useSubmit(removeGuestAction);
+  const report = useReportResult();
+  const remove = useSubmit(removeGuestAction, () =>
+    report(t("removed", { name: guest.guestName })),
+  );
   if (editingPass) {
     // A decided guest keeps its name and plus-ones; the production still sets its pass until check-in (2974).
     return (
-      <form onSubmit={updatePass.onSubmit} className="flex basis-full flex-col gap-8" noValidate>
+      <form {...updatePass.keep} className="flex basis-full flex-col gap-8" noValidate>
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="guestId" value={guest.id} />
         <ErrorLine state={updatePass.state} />
-        <PassFields id={id} state={updatePass.state} choices={choices} guest={guest} />
+        <PassFields id={id} state={updatePass.state} choices={choices} guest={guest} full />
         <div className="flex gap-8">
           <Button type="submit" size="sm" variant="primary" loading={updatePass.pending}>
             {common("save")}
@@ -303,7 +318,7 @@ export function GuestActions({
   }
   if (editing) {
     return (
-      <form onSubmit={update.onSubmit} className="flex basis-full flex-col gap-8" noValidate>
+      <form {...update.keep} className="flex basis-full flex-col gap-8" noValidate>
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="guestId" value={guest.id} />
         <ErrorLine state={update.state} />
@@ -328,6 +343,7 @@ export function GuestActions({
             guestId={guest.id}
             to="Approved"
             label={t("approve", { name: guest.guestName })}
+            done={t("approved", { name: guest.guestName })}
             variant="primary"
           />
           <MoveButton
@@ -335,6 +351,7 @@ export function GuestActions({
             guestId={guest.id}
             to="Declined"
             label={t("decline", { name: guest.guestName })}
+            done={t("declined", { name: guest.guestName })}
             variant="secondary"
           />
         </>
@@ -345,6 +362,7 @@ export function GuestActions({
           guestId={guest.id}
           to="Checked In"
           label={t("checkIn", { name: guest.guestName })}
+          done={t("checkedIn", { name: guest.guestName })}
           variant="primary"
         />
       ) : null}
@@ -359,7 +377,7 @@ export function GuestActions({
         </Button>
       ) : null}
       {canEdit && state !== "Checked In" ? (
-        <form onSubmit={remove.onSubmit} className="inline-flex flex-col gap-4">
+        <form {...remove.keep} className="inline-flex flex-col gap-4">
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="guestId" value={guest.id} />
           <Button type="submit" size="sm" variant="ghost" loading={remove.pending}>

@@ -1,8 +1,16 @@
 import { listCredentialCategories, listProjectZones } from "@xos/data/credentials";
-import { listMuster, musterAccess, musterByZone, type MusterRow } from "@xos/data/workforce-site";
+import {
+  listMuster,
+  MUSTER_LIMIT,
+  musterAccess,
+  musterByZone,
+  type MusterRow,
+} from "@xos/data/workforce-site";
+import type { Route } from "next";
+import { redirect } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { EmptyRefresh, ErrorPanel } from "@/components/collection-kit/kit";
-import { PageHeader } from "@/components/collection-kit/ui";
+import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { EmptyStateLink } from "@/components/ui";
 import type { SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
@@ -58,6 +66,8 @@ export async function MusterSection({
       </CollectionPage>
     );
   }
+  // The export reads the URL, so the project on screen is always in it.
+  if (search["project"] === undefined) redirect(`${path}?project=${project.id}` as Route);
   const db = ctx.viewer.db;
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   const access = await musterAccess(db, project.id);
@@ -124,6 +134,7 @@ export async function MusterSection({
     if (z) return `${z.code} · ${z.name}`;
     return row?.zoneCode ? `${row.zoneCode} · ${row.zoneName ?? ""}` : id;
   };
+  const cutShort = rows.data.length >= MUSTER_LIMIT;
   const place = (r: MusterRow) =>
     r.source === "Guest Check In"
       ? r.door
@@ -190,6 +201,11 @@ export async function MusterSection({
             <li key={line}>{line}</li>
           ))}
         </ul>
+      ) : null}
+      {cutShort ? (
+        <InlineAlert tone="warning">
+          {t("muster.truncated", { count: format.number(MUSTER_LIMIT) })}
+        </InlineAlert>
       ) : null}
       <p className="m-0 hidden text-text-13 print:block">
         {project.key} {project.name} · {since(new Date().toISOString())}

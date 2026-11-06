@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
 import { fillPersonNames, personNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -707,8 +707,6 @@ export type ScanResult = "Granted" | "Denied";
 
 /** In or Out (B8, migration 2970). Exit is never refused. */
 export type ScanDirection = Database["app"]["Enums"]["scan_direction"];
-
-export const SCAN_DIRECTIONS = Constants.app.Enums.scan_direction;
 
 /** Why the database denied an In scan (2970), in Compass's decideGate order. Denials before 2970 carry none. */
 export type ScanRefusalReason = Database["app"]["Enums"]["scan_refusal_reason"];

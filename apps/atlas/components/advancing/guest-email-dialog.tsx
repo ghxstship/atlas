@@ -1,49 +1,45 @@
 "use client";
 
 import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
-import { startTransition, useActionState, useId, useMemo, useState, type FormEvent } from "react";
+import type { GuestEmailKind } from "@xos/data/advancing";
+import { useActionState, useId, useMemo, useState } from "react";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { sendGuestEmailAction, type GuestEmailState } from "./guest-actions";
+import type { EmailableGuest } from "./guest-email-types";
 import { useCopy } from "./use-copy";
-
-type Kind = "Invitation" | "Pass" | "Message";
-type Skip = "No Email" | "Not Live" | "No Pass" | null;
-
-/** A guest the dialog can email, with why each kind would skip them. */
-export interface EmailableGuest {
-  readonly id: string;
-  readonly name: string;
-  /** Why the guest gets no Invitation or Message, and why no Pass. */
-  readonly skip: { readonly any: Skip; readonly pass: Skip };
-}
-
-const KINDS: readonly Kind[] = ["Invitation", "Pass", "Message"];
 
 /**
  * Email guests (B8, gap G-71, app.queue_guest_emails): the guests to email, chosen in the dialog, then an invitation,
  * their pass (the A6 guest-pass PDF attached) or a message with a subject and text, in English or Spanish. The dialog
  * says how many will be skipped before it sends; the database also suppresses addresses on the org's list, and the
- * counts it answers say so. Every guest email carries the unsubscribe link and the postal address. Loaded with
- * next/dynamic from the guest list, so no other page carries its code.
+ * counts it answers say so. Every guest email carries the unsubscribe link and the postal address. Loaded on demand by
+ * GuestEmailTrigger on its first hover, focus or click, so the guest list carries none of its code.
  */
 export function GuestEmailDialog({
   org,
   projectId,
   projectName,
   guests,
+  kinds,
   locale,
+  open,
+  onOpenChange,
 }: {
   org: string;
   projectId: string;
   projectName: string;
   guests: readonly EmailableGuest[];
+  /** The kinds to offer, from the server, so no list of the database's reaches the browser for this. */
+  kinds: readonly GuestEmailKind[];
   locale: "en-US" | "es-US";
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const t = useCopy("advancing.guests.email");
   const errors = useCopy("advancing.errors");
   const common = useCopy("advancing.common");
   const formId = useId();
-  const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<Kind>("Invitation");
+  const [kind, setKind] = useState<GuestEmailKind>("Invitation");
   const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(guests.map((g) => g.id)));
   const [state, run, pending] = useActionState<GuestEmailState, FormData>(sendGuestEmailAction, {});
   const skipOf = (g: EmailableGuest) => (kind === "Pass" ? g.skip.pass : g.skip.any);
@@ -54,26 +50,15 @@ export function GuestEmailDialog({
     () => t(`previews.${kind}`, { project: projectName }),
     [kind, projectName, t],
   );
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    for (const g of selected) data.append("guestId", g.id);
-    startTransition(() => run(data));
-  };
   return (
     <Dialog
       title={t("title")}
       description={t("what")}
       open={open}
-      onOpenChange={setOpen}
-      trigger={
-        <Button variant="secondary" icon="Mail">
-          {t("action")}
-        </Button>
-      }
+      onOpenChange={onOpenChange}
       actions={
         <>
-          <Button variant="secondary" type="button" onClick={() => setOpen(false)}>
+          <Button variant="secondary" type="button" onClick={() => onOpenChange(false)}>
             {common("cancel")}
           </Button>
           <Button
@@ -88,9 +73,18 @@ export function GuestEmailDialog({
         </>
       }
     >
-      <form id={formId} onSubmit={onSubmit} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={run}
+        onSubmit={keepInputOnSubmit(run)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectId" value={projectId} />
+        {selected.map((g) => (
+          <input key={g.id} type="hidden" name="guestId" value={g.id} />
+        ))}
         {state.error ? (
           <InlineAlert tone="danger" title={errors("title")}>
             {errors(state.error)}
@@ -113,8 +107,8 @@ export function GuestEmailDialog({
           name="kind"
           label={t("kind")}
           value={kind}
-          onChange={(event) => setKind(event.target.value as Kind)}
-          options={KINDS.map((k) => ({ value: k, label: t(`kinds.${k}`) }))}
+          onChange={(event) => setKind(event.target.value as GuestEmailKind)}
+          options={kinds.map((k) => ({ value: k, label: t(`kinds.${k}`) }))}
         />
         {kind === "Message" ? (
           <Input

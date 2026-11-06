@@ -23,6 +23,7 @@ import {
   type InsideZone,
   type IssueCheck,
 } from "@xos/data/credentials";
+import { Constants } from "@xos/data/database.types";
 import {
   countOutcomes,
   credentialPhotoStates,
@@ -351,7 +352,7 @@ export async function recordScanAction(_: ActionState, form: FormData): Promise<
     .object({
       zoneId: z.uuid(),
       credentialNumber: z.string().trim().min(1).max(40),
-      direction: z.enum(["In", "Out"]).default("In"),
+      direction: z.enum(Constants.app.Enums.scan_direction).default("In"),
     })
     .safeParse({
       zoneId: form.get("zoneId"),

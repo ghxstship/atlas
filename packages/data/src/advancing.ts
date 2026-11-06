@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database } from "./database.types.ts";
+import type { Database } from "./database.types.ts";
 import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -2445,7 +2445,6 @@ export async function getGuestPass(db: XosClient, guestId: string): Promise<Resu
 export type GuestEmailKind = Database["app"]["Enums"]["guest_email_kind"];
 export type GuestEmailState = Database["app"]["Enums"]["guest_email_state"];
 export type GuestEmailSkipReason = Database["app"]["Enums"]["guest_email_skip_reason"];
-export const GUEST_EMAIL_KINDS = Constants.app.Enums.guest_email_kind;
 
 export interface GuestEmailSummary {
   readonly queued: number;

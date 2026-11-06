@@ -1,3 +1,4 @@
+import type { ScanDirection } from "@xos/data/credentials";
 import { expect, settle, test, type Page } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
 import {
@@ -27,7 +28,7 @@ test.setTimeout(240_000);
 const LAWN = "LAWN · Festival Lawn · Bayside Festival Grounds";
 const VIP = "VIP · VIP Terrace · Bayside Festival Grounds";
 
-async function scan(page: Page, zone: string, direction: "In" | "Out", number: string) {
+async function scan(page: Page, zone: string, direction: ScanDirection, number: string) {
   await page.locator("#scan-zone").selectOption({ label: zone });
   await page.locator("#scan-direction").selectOption(direction);
   await page.locator("#scan-number").fill(number);

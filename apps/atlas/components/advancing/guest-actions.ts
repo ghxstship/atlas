@@ -13,6 +13,7 @@ import {
   type GuestEmailSummary,
   type GuestPassInput,
 } from "@xos/data/advancing";
+import { Constants } from "@xos/data/database.types";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -85,7 +86,7 @@ const passFields = z.object({
   tableLabel: z
     .string()
     .trim()
-    .max(40)
+    .max(60)
     .transform((v) => (v.length === 0 ? null : v)),
   guestEmail: z
     .string()
@@ -165,7 +166,7 @@ export async function sendGuestEmailAction(
     .object({
       projectId: id,
       guestIds: z.array(id).min(1).max(500),
-      kind: z.enum(["Invitation", "Pass", "Message"]),
+      kind: z.enum(Constants.app.Enums.guest_email_kind),
       subject: z.string().trim().max(150),
       body: z.string().trim().max(5000),
       locale: z.enum(["en-US", "es-US"]),
