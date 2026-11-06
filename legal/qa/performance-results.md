@@ -123,6 +123,28 @@ batch-c 41fd86b9: Projects 202,395 (2,405 under), Inbox 202,273 (2,527 under), p
 198,620 and Home 187,539. The drag code is in `favorites-reorder.tsx`, which loads on demand, so
 the shell carries none of it.
 
+### RRR-243 (2026-11-06): headroom for the remaining trains
+
+Measured with `next build` of Atlas and `pnpm --filter @xos/testing budget:js`, in gzip bytes against
+the 204,800-byte budget. "Before" is orch-rrr-244 at d9d34bf1b, from a source-map build with each
+chunk's map comment removed; that reads about 100 bytes lower than a build without maps. Sign-in,
+crew shifts and finance budgets were only recorded to the KB before the change.
+
+| Page                              | Before  | After   | Change  | Headroom |
+| --------------------------------- | ------- | ------- | ------- | -------- |
+| /auth/sign-in                     | 158 KB  | 161,942 | none    | 42,858   |
+| /demo-productions/home            | 188,896 | 187,462 | -1,434  | 17,338   |
+| /demo-productions/projects        | 203,907 | 193,856 | -10,051 | 10,944   |
+| /demo-productions/p/NWS/overview  | 204,195 | 194,705 | -9,490  | 10,095   |
+| /demo-productions/inbox           | 203,007 | 185,260 | -17,747 | 19,540   |
+| /demo-productions/crew/shifts     | 189 KB  | 191,182 | -2 KB   | 13,618   |
+| /demo-productions/finance/budgets | 189 KB  | 189,474 | -4 KB   | 15,326   |
+
+ADR 0027's amendment of the same date records what changed. Most of this is deferred behind an
+action, not removed: anyone who rejects an item, edits custom fields or opens a peek still downloads
+that code, and a table over 100 rows still downloads TanStack Virtual on first contact. Under 100 rows
+the engine is never fetched, and Project Overview's view switcher is gone outright.
+
 ## Lighthouse against the gate 10 budgets
 
 | App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                                                |
