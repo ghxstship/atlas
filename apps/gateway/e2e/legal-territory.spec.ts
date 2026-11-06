@@ -1,4 +1,4 @@
-import { expect, test } from "./engine-test";
+import { expect, settle, test } from "./engine-test";
 import { expectAccessible, reloadSettled, signIn, sql, uniqueId } from "./support";
 
 /**
@@ -13,7 +13,7 @@ test("a company outside an offered territory gets no account, and the form says 
 }) => {
   const id = uniqueId();
   await signIn(page, "crew@example.com", "/settings/organizations");
-  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  await settle(page);
   await expect(
     page.getByText("XOS is offered to organizations in the United States.", { exact: false }),
   ).toBeVisible();
