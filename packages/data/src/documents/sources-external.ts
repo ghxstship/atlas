@@ -316,12 +316,16 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
     const found = await db
       .schema("api_external")
       .from("engagement_document_texts")
-      .select("id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at")
+      .select(
+        "id, engagement_id, title, body, body_sha256, body_masked, signed_name, signed_at, created_at",
+      )
       .eq("id", id)
       .maybeSingle();
     if (found.error) return fail(toDataError(found.error));
     const row = found.data;
-    if (!row?.engagement_id || row.body_masked || row.body === null) return fail(NOT_FOUND);
+    if (!row?.engagement_id || row.body_masked || row.body === null || !row.created_at) {
+      return fail(NOT_FOUND);
+    }
     const documents = await readView(db, "engagement_documents", { eq: { id }, limit: 1 });
     if (!documents.ok) return documents;
     const engagements = await readView(db, "engagements", {
@@ -347,7 +351,7 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           signedName: row.signed_name,
           signedAt: row.signed_at,
           sha256: row.body_sha256,
-          createdAt: row.signed_at ?? new Date(0).toISOString(),
+          createdAt: row.created_at,
         },
       },
     });

@@ -148,10 +148,12 @@ export async function listBatchPeople(
     .is("counterparty_id", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
-  const names = await partyNames(
+  const named = await partyNames(
     db,
     rows.flatMap((r) => (r.engagement_id ? [r.engagement_id] : [])),
   );
+  if (!named.ok) return named;
+  const names = named.data;
   return ok(
     rows
       .flatMap((r) =>
@@ -170,15 +172,15 @@ export async function listBatchPeople(
   );
 }
 
-async function partyNames(db: XosClient, ids: readonly string[]): Promise<Map<string, string>> {
-  const names = new Map<string, string>();
-  await Promise.all(
-    ids.map(async (id) => {
-      const { data } = await db.rpc("engaged_person_name", { p_engagement_id: id });
-      if (typeof data === "string") names.set(id, data);
-    }),
-  );
-  return names;
+/** One call for every name: a project can hold hundreds of engagements, and C15 keeps names away from app.people. */
+async function partyNames(
+  db: XosClient,
+  ids: readonly string[],
+): Promise<Result<Map<string, string>>> {
+  if (ids.length === 0) return ok(new Map());
+  const { data, error } = await db.rpc("engaged_person_names", { p_engagement_ids: [...ids] });
+  if (error) return fail(toDataError(error));
+  return ok(new Map((data ?? []).map((r) => [r.engagement_id, r.full_name] as const)));
 }
 
 export interface PreviewRow extends MergedDocument {
@@ -303,7 +305,9 @@ async function loadFacts(
         : [],
     ),
   );
-  const names = await partyNames(db, engagementIds);
+  const named = await partyNames(db, engagementIds);
+  if (!named.ok) return named;
+  const names = named.data;
   const opportunityOf = new Map(
     (
       (opportunities.data ?? []) as unknown as {

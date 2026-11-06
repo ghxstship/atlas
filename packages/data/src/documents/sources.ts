@@ -273,14 +273,16 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     const found = await db
       .from("engagement_document_text_list")
       .select(
-        "engagement_document_id, project_id, title, document_kind, engagement_document_state, body, body_masked, body_sha256, signed_name, signed_body_sha256, signed_at, org_id",
+        "engagement_document_id, project_id, title, document_kind, engagement_document_state, body, body_masked, body_sha256, signed_name, signed_body_sha256, signed_at, created_at, org_id",
       )
       .eq("engagement_document_id", id)
       .eq("org_id", orgId)
       .maybeSingle();
     if (found.error) return fail(toDataError(found.error));
     const row = found.data;
-    if (!row || row.body_masked || row.body === null) return fail({ kind: "not-found" });
+    if (!row || row.body_masked || row.body === null || !row.created_at) {
+      return fail({ kind: "not-found" });
+    }
     const project = row.project_id ? await documentProject(db, orgId, row.project_id) : null;
     if (project && !project.ok && project.error.kind !== "not-found") return project;
     return ok({
@@ -294,7 +296,7 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
         signedName: row.signed_name,
         signedAt: row.signed_at,
         sha256: row.signed_body_sha256 ?? row.body_sha256,
-        createdAt: row.signed_at ?? new Date(0).toISOString(),
+        createdAt: row.created_at,
       },
     });
   },

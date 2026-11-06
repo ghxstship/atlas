@@ -44,7 +44,9 @@ function queues(capabilities: readonly string[], shifts: Response[] = []) {
     "from:engagements": [okResponse([{ id: ENGAGEMENT, applications: null }])],
     "from:currencies": [okResponse([{ currency_code: "USD", minor_unit_exponent: 2 }])],
     "rpc:my_capabilities_on_project": [okResponse(capabilities)],
-    "rpc:engaged_person_name": [okResponse("Demo Crew")],
+    "rpc:engaged_person_names": [
+      okResponse([{ engagement_id: ENGAGEMENT, full_name: "Demo Crew" }]),
+    ],
     "from:shifts": shifts,
     "from:xpms.role": [okResponse([{ role_code: "5000.51.02", job_title: "Rigger" }])],
   };

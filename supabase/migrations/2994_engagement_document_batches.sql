@@ -236,7 +236,7 @@ select x.engagement_document_id, x.org_id, d.engagement_id, e.project_id, x.enga
   case when not m.masked then encode(extensions.digest(x.body, 'sha256'), 'hex') end as body_sha256,
   x.signed_name,
   case when not m.masked then x.signed_body_sha256 end as signed_body_sha256,
-  x.signed_at
+  x.signed_at, x.created_at
 from app.engagement_document_texts x
 join app.engagement_documents d on d.id = x.engagement_document_id and d.deleted_at is null
 join app.engagements e on e.id = d.engagement_id
@@ -261,7 +261,8 @@ call private.describe('app.engagement_document_text_list', 'Generated engagement
   'body_sha256', 'SHA-256 of the text, lowercase hex; NULL when masked.',
   'signed_name', 'Name the party signed with.',
   'signed_body_sha256', 'SHA-256 the party signed; NULL when masked.',
-  'signed_at', 'When the party signed.'
+  'signed_at', 'When the party signed.',
+  'created_at', 'When the text was generated: which version of the PDF template it renders on.'
 ]);
 
 revoke all on app.engagement_document_text_list from public, anon;
@@ -273,7 +274,7 @@ select d.id, d.engagement_id, d.title,
   case when not m.masked then x.body end as body,
   case when not m.masked then encode(extensions.digest(x.body, 'sha256'), 'hex') end as body_sha256,
   m.masked as body_masked,
-  x.signed_name, x.signed_at
+  x.signed_name, x.signed_at, x.created_at
 from app.engagement_document_texts x
 join app.engagement_documents d on d.id = x.engagement_document_id and d.deleted_at is null
 join app.engagements e on e.id = d.engagement_id
@@ -291,7 +292,8 @@ call private.describe('api_external.engagement_document_texts', 'The texts of th
   'body_sha256', 'SHA-256 of the text, lowercase hex: what a signature names. NULL when masked.',
   'body_masked', 'True when the text uses the rate and the caller is neither the engaged person nor a representative with Settlement scope.',
   'signed_name', 'Name the party signed with.',
-  'signed_at', 'When the party signed.'
+  'signed_at', 'When the party signed.',
+  'created_at', 'When the text was generated: which version of the PDF template it renders on.'
 ]);
 
 revoke all on api_external.engagement_document_texts from public, anon;
@@ -464,6 +466,24 @@ $$;
 comment on function app.my_capabilities_on_project(uuid, text[]) is 'Which of the named credentials, safety and restricted-data capabilities, and crew.shift.read, the signed-in person may use on a project. Only shapes which controls the apps show and which merge fields a generated document can fill; row level security and the RPCs still decide every write.';
 revoke all on function app.my_capabilities_on_project(uuid, text[]) from public, anon;
 grant execute on function app.my_capabilities_on_project(uuid, text[]) to authenticated, service_role;
+
+-- The batch form names every person it lists and merges, so it reads them in one call. The same rule as 0710's
+-- app.engaged_person_name; a name still comes from its one home, under definer, never through app.people's own policies.
+create function app.engaged_person_names(p_engagement_ids uuid[])
+returns table (engagement_id uuid, full_name text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select e.id, p.full_name from app.engagements e
+  join app.people p on p.id = e.person_id
+  where e.id = any(p_engagement_ids) and e.deleted_at is null
+    and e.project_id in (select private.project_ids_with('opportunities.engagement.read'));
+$$;
+comment on function app.engaged_person_names(uuid[]) is 'The engaged people''s names, for internal readers of those engagements; engagements the caller cannot read return no row.';
+revoke all on function app.engaged_person_names(uuid[]) from public, anon;
+grant execute on function app.engaged_person_names(uuid[]) to authenticated, service_role;
 
 -- Sending and countersigning -----------------------------------------------------------------------------------------
 

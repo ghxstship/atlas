@@ -268,6 +268,13 @@ insert into app.representation_scopes (representation_id, scope) values (pg_temp
 select pg_temp.as_user('rita');
 select is((select x.body from api_external.engagement_document_texts x where x.id = pg_temp.id('doc_art')), 'You earn $5,000.00.', 'Settlement scope reads the text');
 
+-- The batch form's names, read in one call.
+select pg_temp.as_user('alice');
+select results_eq(format($$select engagement_id, full_name from app.engaged_person_names(array['%s'::uuid])$$, pg_temp.id('eng_ned')),
+  format($$values ('%s'::uuid, 'Ned Vargas')$$, pg_temp.id('eng_ned')), 'an engagement reader gets every name in one call');
+select pg_temp.as_user('quinn');
+select is((select count(*)::int from app.engaged_person_names(array[pg_temp.id('eng_ned')])), 0, 'someone who cannot read the engagement gets no name');
+
 -- The party reads while the documents area is open only.
 select pg_temp.as_user('quinn');
 select is((select count(*)::int from api_external.engagement_document_texts x where x.id = pg_temp.id('doc_art')), 0, 'someone else reads nothing');

@@ -925,6 +925,7 @@ export type Database = {
           body: string | null;
           body_masked: boolean | null;
           body_sha256: string | null;
+          created_at: string | null;
           engagement_id: string | null;
           id: string | null;
           signed_at: string | null;
@@ -63061,6 +63062,7 @@ export type Database = {
           body: string | null;
           body_masked: boolean | null;
           body_sha256: string | null;
+          created_at: string | null;
           document_kind: Database["app"]["Enums"]["engagement_document_kind"] | null;
           engagement_document_batch_id: string | null;
           engagement_document_id: string | null;
@@ -68156,6 +68158,13 @@ export type Database = {
         }[];
       };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
+      engaged_person_names: {
+        Args: { p_engagement_ids: string[] };
+        Returns: {
+          engagement_id: string;
+          full_name: string;
+        }[];
+      };
       engagement_options: {
         Args: { p_org_id: string; p_project_id?: string };
         Returns: {

@@ -77,7 +77,7 @@ call private.describe('app.crew_access_links', 'A crew access link (B10, ADR 014
   'expires_at', 'When the link stops working, 1 hour to 30 days after it was issued.',
   'failed_attempts', 'Wrong codes entered; the link locks at 5.',
   'last_opened_at', 'When the worker last opened their shifts with the link.',
-  'open_count', 'How many times the worker opened their shifts with the link.',
+  'open_count', 'How many times the shifts page rendered for the link: one visit can count more than once, because the page renders again after a code or an accept.',
   'revoked_at', 'When a crew lead revoked it or issued the worker a new one.'
 ]);
 
@@ -379,7 +379,7 @@ call private.describe('app.crew_access_link_list', 'Crew access links as the Cre
   'expires_at', 'When the link stops working.',
   'failed_attempts', 'Wrong codes entered.',
   'last_opened_at', 'When it was last opened.',
-  'open_count', 'How many times it was opened.',
+  'open_count', 'How many times the shifts page rendered for the link.',
   'revoked_at', 'When it was revoked.',
   'link_status', 'Revoked, Locked, Expired, Closed (the worker stopped working on the project) or Live.'
 ]);
