@@ -61,6 +61,9 @@ rules:
       exclude:
         - packages/data/src/csv.ts
         - packages/cli/src/csv.ts
+        # Pasted rows become the import's own upload, read back by parseCsv and never opened in a spreadsheet;
+        # neutralizing a cell here would change what the person pasted.
+        - packages/data/src/import-parse.ts
         - "**/e2e/**"
         # R5's airports snapshot is not an export: packages/schemas/src/airports/load.ts reads it back to write the
         # seed, so a neutralizing apostrophe would change the airport names it holds (and @xos/schemas sits below

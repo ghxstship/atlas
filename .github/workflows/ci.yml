@@ -159,7 +159,8 @@ jobs:
           - { app: atlas, suite: journeys, shard: 2, shards: 4, timeout: 90 }
           - { app: atlas, suite: journeys, shard: 3, shards: 4, timeout: 90 }
           - { app: atlas, suite: journeys, shard: 4, shards: 4, timeout: 90 }
-          - { app: atlas, suite: axe }
+          - { app: atlas, suite: axe, shard: 1, shards: 2 }
+          - { app: atlas, suite: axe, shard: 2, shards: 2 }
           - { app: gateway, suite: journeys }
           - { app: gateway, suite: axe }
           - { app: docs, suite: journeys }
@@ -228,7 +229,8 @@ jobs:
       # Gate 8: axe on every signed-in page per role, both themes, desktop and 375 px.
       - name: Axe on every page
         if: matrix.suite == 'axe'
-        run: pnpm test:a11y
+        # Two shards for Atlas: past an hour the saved sessions no longer sign in (run 42069911149).
+        run: pnpm test:a11y ${{ matrix.shard && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
         working-directory: apps/${{ matrix.app }}
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

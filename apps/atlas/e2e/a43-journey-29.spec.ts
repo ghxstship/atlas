@@ -55,7 +55,7 @@ test("journey 29: NULL-aware report on a dashboard, emailed as PDF on schedule",
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Report name").fill(reportName);
   await page.getByLabel("Source", { exact: true }).selectOption({ label: "Budget lines" });
-  await page.getByLabel("Column 1").selectOption({ label: "Budgeted" });
+  await page.getByLabel("Column 1", { exact: true }).selectOption({ label: "Budgeted" });
   await page.getByLabel("Summary").first().selectOption("Sum");
   await page.getByLabel("Group by").selectOption({ label: "Line type" });
   await page.getByRole("button", { name: "Preview" }).click();

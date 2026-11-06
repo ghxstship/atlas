@@ -30,6 +30,8 @@ function rundown(id: string): string {
 
 /** The en-XA wraps every catalog message; anything a person sees outside one is hard-coded (gate 16). */
 async function expectNoHardCodedText(page: Page) {
+  // A production build offers no pseudo-locales.
+  if (process.env["E2E_PRODUCTION_BUILD"] === "1") return;
   await page
     .context()
     .addCookies([{ name: "xos-locale", value: "en-XA", url: new URL(page.url()).origin }]);
@@ -82,10 +84,10 @@ test("rundown import: paste, map with suggestions, commit, re-import as updates,
 
   // Detect, then map: the Playbook map names the Playbook headers, header similarity the rest.
   await workUntil(page, page.getByRole("heading", { name: "Map the columns" }));
-  await expect(page.getByLabel("Column CUE ID")).toHaveValue("position");
-  await expect(page.getByLabel("Column SCENE")).toHaveValue("label");
-  await expect(page.getByLabel("Column START TIME")).toHaveValue("planned_at");
-  await expect(page.getByLabel("Column Length")).toHaveValue("duration");
+  await expect(page.getByLabel("Column CUE ID", { exact: true })).toHaveValue("position");
+  await expect(page.getByLabel("Column SCENE", { exact: true })).toHaveValue("label");
+  await expect(page.getByLabel("Column START TIME", { exact: true })).toHaveValue("planned_at");
+  await expect(page.getByLabel("Column Length", { exact: true })).toHaveValue("duration");
   await expect(page.getByText("From the Playbook column map").first()).toBeVisible();
   await expect(page.getByText("From the column name").first()).toBeVisible();
   // The uploader sees the first rows under each column and laid out by the choices.
