@@ -96,7 +96,7 @@ select r.id as rfq_id, r.org_id, r.project_id, r.rfq_state, s.enabled as chase_e
   case when v.unsealed then (select max(n.sent_at) from app.rfq_supplier_notices n where n.rfq_id = r.id and n.notice_kind = 'Quote Reminder') end as last_reminded_at
 from app.rfqs r
 cross join lateral private.rfq_chase_settings(r.org_id) s
-cross join lateral (select r.rfq_state in ('Closed', 'Awarded') and private.can_on_project(r.project_id, 'procurement.bid.read') as unsealed) v
+cross join lateral (select r.rfq_state in ('Closed', 'Awarded') and r.project_id in (select private.project_ids_with('procurement.bid.read')) as unsealed) v
 where r.deleted_at is null and r.project_id in (select private.project_ids_with('procurement.rfq.read'));
 
 call private.describe('app.rfq_chase_status', 'How an RFQ''s quotes are chased (B11, G-196), one row per live RFQ for procurement.rfq.read on the project. While it is Issued the row holds only the settings and the due date, so nothing reveals whether a vendor has answered. The counts appear once it is Closed or Awarded, for procurement.bid.read.', array[
@@ -156,7 +156,8 @@ create or replace function private.send_rfq_supplier_notice(
   p_vendor_id uuid,
   p_kind app.rfq_notice_kind,
   p_number smallint,
-  p_args jsonb
+  p_args jsonb,
+  p_now timestamptz default now()
 )
 returns integer
 language plpgsql
@@ -177,8 +178,8 @@ begin
   if cardinality(v_recipients) = 0 then
     return 0;
   end if;
-  insert into app.rfq_supplier_notices (rfq_id, vendor_id, notice_kind, reminder_number)
-  values (p_rfq.id, p_vendor_id, p_kind, p_number)
+  insert into app.rfq_supplier_notices (rfq_id, vendor_id, notice_kind, reminder_number, sent_at)
+  values (p_rfq.id, p_vendor_id, p_kind, p_number, p_now)
   on conflict (rfq_id, vendor_id, notice_kind, reminder_number) do nothing
   returning true into v_claimed;
   if not coalesce(v_claimed, false) then
@@ -197,8 +198,8 @@ begin
   return v_sent;
 end;
 $$;
-comment on function private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb) is 'Claims one ledger row, then notifies the vendor''s Owner and Admin people through private.notify, so preferences apply. A vendor with no such person gets no row and no send, and a row already claimed sends nothing. Args carry the RFQ title, org and project names, the due date and the Gateway path, never a price, a winner or another vendor.';
-revoke all on function private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb) from public, anon, authenticated;
+comment on function private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb, timestamptz) is 'Claims one ledger row, then notifies the vendor''s Owner and Admin people through private.notify, so preferences apply. A vendor with no such person gets no row and no send, and a row already claimed sends nothing. Args carry the RFQ title, org and project names, the due date and the Gateway path, never a price, a winner or another vendor.';
+revoke all on function private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb, timestamptz) from public, anon, authenticated;
 
 create or replace function private.send_rfq_supplier_notices(p_now timestamptz default now())
 returns integer
@@ -247,7 +248,7 @@ begin
       v_args := jsonb_build_object('title', (v_row.rfq).title, 'orgName', v_row.org_name, 'projectName', v_row.project_name,
         'dueDate', coalesce(to_char((v_row.rfq).responses_due_at at time zone v_row.time_zone, 'YYYY-MM-DD'), 'none'),
         'gatewayPath', '/work/quote-requests');
-      v_sent := v_sent + private.send_rfq_supplier_notice(v_row.rfq, v_row.vendor_id, 'Quote Reminder', (v_count + 1)::smallint, v_args);
+      v_sent := v_sent + private.send_rfq_supplier_notice(v_row.rfq, v_row.vendor_id, 'Quote Reminder', (v_count + 1)::smallint, v_args, p_now);
     end if;
   end loop;
 
@@ -266,7 +267,7 @@ begin
                       where w.rfq_id = r.id and po.vendor_id = s.vendor_id and po.deleted_at is null and po.po_state <> 'Canceled')
   loop
     v_sent := v_sent + private.send_rfq_supplier_notice(v_row.rfq, v_row.vendor_id, 'Not Awarded', 1::smallint,
-      jsonb_build_object('title', (v_row.rfq).title, 'orgName', v_row.org_name, 'projectName', v_row.project_name));
+      jsonb_build_object('title', (v_row.rfq).title, 'orgName', v_row.org_name, 'projectName', v_row.project_name), p_now);
   end loop;
   return v_sent;
 end;

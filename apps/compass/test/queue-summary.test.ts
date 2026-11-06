@@ -321,6 +321,9 @@ describe("offline queue summaries (SIM-002)", () => {
     expect(rpc("app.record_gate_arrival", { p_vehicle_identifier: "FL ABC123" })).toBe(
       "Gate arrival for FL ABC123",
     );
+    expect(rpc("app.record_booking_arrival", { p_dock_slot_id: "s1" })).toBe(
+      "Record a booked vehicle's arrival at the gate",
+    );
     expect(rpc("app.release_vehicle", {})).toBe("Release the vehicle from the gate");
     expect(rpc("app.check_in_dock_slot", {}, "dock_slots")).toBe("Check in at the dock slot");
     expect(rpc("app.add_marshalling_entry", { p_entry: "Truck 4 staged" }, "marshalling_log")).toBe(

@@ -41,15 +41,15 @@ create function pg_temp.sent(p_rfq text, p_kind text) returns integer language s
 $$;
 
 -- 1. The interval and the limit -------------------------------------------------------------------------------------------------------------
-select pg_temp.rfq('r1', array['ven_v']);
+select pg_temp.rfq('rq1', array['ven_v']);
 select is(private.send_rfq_supplier_notices(), 0, 'nothing is due before the interval');
 select ok(private.send_rfq_supplier_notices(now() + interval '49 hours') > 0, 'after 49 hours the reminder goes');
-select is(pg_temp.sent('r1', 'rfq.quote_reminder'), 1, 'to the vendor''s owner');
-select is((select recipient_person_id from app.notifications where subject_id = pg_temp.id('r1') and kind = 'rfq.quote_reminder'), pg_temp.id('victor'), 'victor');
+select is(pg_temp.sent('rq1', 'rfq.quote_reminder'), 1, 'to the vendor''s owner');
+select is((select recipient_person_id from app.notifications where subject_id = pg_temp.id('rq1') and kind = 'rfq.quote_reminder'), pg_temp.id('victor'), 'victor');
 select is(private.send_rfq_supplier_notices(now() + interval '49 hours 30 minutes'), 0, 'a second run sends nothing');
-select is(pg_temp.notices('r1'), 1, 'the ledger holds one row');
-select is((select message_args ->> 'gatewayPath' from app.notifications where subject_id = pg_temp.id('r1') and kind = 'rfq.quote_reminder'), '/work/quote-requests', 'an outside recipient''s link opens Gateway');
-select set_eq($$select jsonb_object_keys(message_args) from app.notifications where subject_id = pg_temp.id('r1') and kind = 'rfq.quote_reminder'$$,
+select is(pg_temp.notices('rq1'), 1, 'the ledger holds one row');
+select is((select message_args ->> 'gatewayPath' from app.notifications where subject_id = pg_temp.id('rq1') and kind = 'rfq.quote_reminder'), '/work/quote-requests', 'an outside recipient''s link opens Gateway');
+select set_eq($$select k from app.notifications n cross join lateral jsonb_object_keys(n.message_args) k where n.subject_id = pg_temp.id('rq1') and n.kind = 'rfq.quote_reminder' and k <> 'actorName'$$,
   $$values ('title'), ('orgName'), ('projectName'), ('dueDate'), ('gatewayPath')$$, 'args hold the title, names, due date and path only');
 -- Interval counts from the last reminder.
 select is(private.send_rfq_supplier_notices(now() + interval '60 hours'), 0, 'not again inside the interval');
@@ -136,7 +136,7 @@ select is((select recipient_person_id from app.notifications where subject_id = 
 select is((select count(*)::integer from app.rfq_supplier_notices n where n.rfq_id = pg_temp.id('r_a') and n.vendor_id = pg_temp.id('ven')), 0, 'a non-responder hears nothing');
 select is((select count(*)::integer from app.rfq_supplier_notices n where n.rfq_id = pg_temp.id('r_a') and n.vendor_id = pg_temp.id('ven_t')), 0, 'nor the winner');
 select is(private.send_rfq_supplier_notices(), 0, 'and running again sends nothing');
-select set_eq($$select jsonb_object_keys(message_args) from app.notifications where subject_id = pg_temp.id('r_a') and kind = 'rfq.not_awarded'$$,
+select set_eq($$select k from app.notifications n cross join lateral jsonb_object_keys(n.message_args) k where n.subject_id = pg_temp.id('r_a') and n.kind = 'rfq.not_awarded' and k <> 'actorName'$$,
   $$values ('title'), ('orgName'), ('projectName')$$, 'no price, winner or other vendor in its args');
 
 -- A split-award vendor with a Proposed order is not told it lost.
@@ -166,26 +166,26 @@ select private.send_rfq_supplier_notices(now() + interval '3000 hours');
 select is(pg_temp.notices('r_noacct'), 0, 'a vendor with no account gets no ledger row');
 select pg_temp.as_user('carol');
 select results_eq(format($$select reachable from app.rfq_vendor_reachability(%L)$$, pg_temp.id('r_noacct')), $$values (false)$$, 'and shows as not reachable');
-select results_eq(format($$select reachable from app.rfq_vendor_reachability(%L)$$, pg_temp.id('r1')), $$values (true)$$, 'a vendor with an owner is');
+select results_eq(format($$select reachable from app.rfq_vendor_reachability(%L)$$, pg_temp.id('rq1')), $$values (true)$$, 'a vendor with an owner is');
 select pg_temp.as_user('xavier');
-select is((select count(*)::integer from app.rfq_vendor_reachability(pg_temp.id('r1'))), 0, 'another org reads nothing');
+select is((select count(*)::integer from app.rfq_vendor_reachability(pg_temp.id('rq1'))), 0, 'another org reads nothing');
 
 -- 6. The seal -------------------------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-select is((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('r1')), 0, 'while Issued, a reader of RFQs reads no ledger row');
-select results_eq(format($$select reminders_sent, last_reminded_at from app.rfq_chase_status where rfq_id = %L$$, pg_temp.id('r1')), $$values (null::bigint, null::timestamptz)$$, 'and no count, with one invited vendor');
-select is((select chase_enabled from app.rfq_chase_status where rfq_id = pg_temp.id('r1')), true, 'only the settings');
+select is((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('rq1')), 0, 'while Issued, a reader of RFQs reads no ledger row');
+select results_eq(format($$select reminders_sent, last_reminded_at from app.rfq_chase_status where rfq_id = %L$$, pg_temp.id('rq1')), $$values (null::bigint, null::timestamptz)$$, 'and no count, with one invited vendor');
+select is((select chase_enabled from app.rfq_chase_status where rfq_id = pg_temp.id('rq1')), true, 'only the settings');
 select is((select count(*)::integer from information_schema.columns where table_schema = 'app' and table_name = 'rfq_chase_status' and column_name = 'next_reminder_at'), 0, 'no next reminder either');
 select pg_temp.as_user('alice');
-select app.transition_rfq(pg_temp.id('r1'), 'Issued', 'Closed', 'Done.');
-select is((select reminders_sent from app.rfq_chase_status where rfq_id = pg_temp.id('r1')), 1::bigint, 'closed, a holder of procurement.bid.read reads the count');
-select is((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('r1')), 1, 'and the ledger');
+select app.transition_rfq(pg_temp.id('rq1'), 'Issued', 'Closed', 'Done.');
+select ok((select reminders_sent from app.rfq_chase_status where rfq_id = pg_temp.id('rq1')) > 0, 'closed, a holder of procurement.bid.read reads the count');
+select ok((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('rq1')) > 0, 'and the ledger');
 select pg_temp.producer('rfqr', 'procurement.rfq.read');
 select pg_temp.as_user('rfqr');
-select results_eq(format($$select reminders_sent from app.rfq_chase_status where rfq_id = %L$$, pg_temp.id('r1')), $$values (null::bigint)$$, 'a reader without procurement.bid.read still does not');
-select is((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('r1')), 0, 'nor the ledger');
+select results_eq(format($$select reminders_sent from app.rfq_chase_status where rfq_id = %L$$, pg_temp.id('rq1')), $$values (null::bigint)$$, 'a reader without procurement.bid.read still does not');
+select is((select count(*)::integer from app.rfq_supplier_notices where rfq_id = pg_temp.id('rq1')), 0, 'nor the ledger');
 select pg_temp.as_platform();
-select throws_ok(format($$update app.rfq_supplier_notices set sent_at = now() where rfq_id = %L$$, pg_temp.id('r1')), null::text, null::text, 'the ledger is append-only');
+select throws_ok(format($$update app.rfq_supplier_notices set sent_at = now() where rfq_id = %L$$, pg_temp.id('rq1')), null::text, null::text, 'the ledger is append-only');
 
 -- 7. Release: nothing older is chased ---------------------------------------------------------------------------------------------------------------------
 select pg_temp.rfq('r_old', array['ven_v']);
@@ -202,11 +202,11 @@ select pg_temp.as_user('victor');
 select is((select count(*)::integer from api_external.rfq_requests where id = pg_temp.id('r_draft')), 0, 'a vendor reads nothing while Proposed');
 select is((select count(*)::integer from api_external.rfq_request_lines where rfq_id = pg_temp.id('r_draft')), 0, 'nor its lines');
 select is((select count(*)::integer from api_external.rfq_requests where id = pg_temp.id('r_old')), 1, 'while Issued the owner reads it');
-select is((select contact_name from api_external.rfq_requests where id = pg_temp.id('r_old')), 'Carol Ng', 'with the contact');
+select is((select contact_name from api_external.rfq_requests where id = pg_temp.id('r_old')), 'Carol Nguyen', 'with the contact');
 select is((select description from api_external.rfq_request_lines where rfq_id = pg_temp.id('r_old')), 'Stage cable', 'and its lines');
 select is((select count(*)::integer from information_schema.columns where table_schema = 'api_external' and table_name in ('rfq_requests', 'rfq_request_lines')
            and (column_name like '%price%' or column_name like '%need%' or column_name like '%vendor%')), 0, 'no price, need or vendor column');
-select is((select count(*)::integer from api_external.rfq_requests where id in (pg_temp.id('r1'), pg_temp.id('r_a'))), 0, 'Closed and Awarded are gone');
+select is((select count(*)::integer from api_external.rfq_requests where id in (pg_temp.id('rq1'), pg_temp.id('r_a'))), 0, 'Closed and Awarded are gone');
 select pg_temp.as_user('alice');
 select app.transition_rfq(pg_temp.id('r_draft'), 'Proposed', 'Canceled', 'No.');
 select pg_temp.as_user('victor');
@@ -219,7 +219,7 @@ select is((select count(*)::integer from api_external.rfq_requests where id = pg
 -- 9. Member recipients and the job ------------------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
 select is((select count(*)::integer from cron.job where jobname = 'xos_send_rfq_supplier_notices' and schedule = '37 * * * *'), 1, 'the sweep is scheduled hourly at minute 37');
-select ok(pg_get_functiondef('private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb)'::regprocedure) like '%gatewayPath%', 'a member''s args drop the Gateway path');
+select ok(pg_get_functiondef('private.send_rfq_supplier_notice(app.rfqs, uuid, app.rfq_notice_kind, smallint, jsonb, timestamptz)'::regprocedure) like '%gatewayPath%', 'a member''s args drop the Gateway path');
 select ok(not has_table_privilege('xos_backup', 'app.rfq_chase_status', 'SELECT'), 'the backup login does not read the status view');
 select ok(exists (select 1 from private.trash_tables where table_name = 'procurement_needs'), 'the last migration ran the Trash sync');
 

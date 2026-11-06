@@ -42,9 +42,11 @@ insert into world values ('b1', gen_random_uuid()), ('b2', gen_random_uuid()), (
 select lives_ok(format($$select app.book_delivery_window(%L, %L, %L, 'FL ABC 123')$$, pg_temp.id('b1'), pg_temp.id('w'), pg_temp.id('eng_vendor_a')), 'first booking');
 select lives_ok(format($$select app.book_delivery_window(%L, %L)$$, pg_temp.id('b2'), pg_temp.id('w')), 'second booking');
 select throws_like(format($$select app.book_delivery_window(%L, %L)$$, pg_temp.id('b3'), pg_temp.id('w')), 'delivery_window_full:%', 'the third refuses delivery_window_full');
+select pg_temp.as_platform();
 select ok(pg_get_functiondef('private.guard_dock_slot()'::regprocedure) like '%for update%', 'the guard takes the window''s row lock');
 select ok(position('for update' in pg_get_functiondef('private.guard_dock_slot()'::regprocedure)) < position('pg_advisory_xact_lock' in pg_get_functiondef('private.guard_dock_slot()'::regprocedure)), 'before the advisory lock');
 select ok(pg_get_functiondef('app.book_delivery_window(uuid, uuid, uuid, text, uuid)'::regprocedure) like '%for update%', 'and the booking path takes it first');
+select pg_temp.as_user('carol');
 
 -- Soft delete and restore.
 select app.cancel_delivery_booking(pg_temp.id('b2'));
@@ -64,7 +66,7 @@ select throws_like(format($$update app.dock_slots set delivery_window_id = %L wh
 select throws_like(format($$update app.dock_slots set delivery_window_id = null where id = %L$$, pg_temp.id('b1')), 'delivery_booking_direct:%', 'nor detaches');
 select throws_like(format($$update app.dock_slots set zone_id = %L where id = %L$$, pg_temp.id('gate_b'), pg_temp.id('b1')), 'delivery_booking_outside_window:%', 'a booking moved off its gate refuses');
 select throws_like(format($$update app.dock_slots set ends_at = ends_at + interval '4 hours' where id = %L$$, pg_temp.id('b1')), 'delivery_booking_outside_window:%', 'and one moved off its window');
-select throws_like(format($$select app.bulk_update_dock_slots(jsonb_build_array(jsonb_build_object('id', %L::uuid, 'set', jsonb_build_object('zone_id', %L::uuid))), false, 'Move.')$$, pg_temp.id('b1'), pg_temp.id('gate_b')), 'delivery_booking_outside_window:%', 'including through the bulk edit');
+select ok(app.bulk_update_dock_slots(jsonb_build_array(jsonb_build_object('id', pg_temp.id('b1'), 'set', jsonb_build_object('zone_id', pg_temp.id('gate_b')))), false, 'Move.')::text like '%delivery_booking_outside_window%', 'including through the bulk edit');
 
 -- The reference code.
 select matches((select reference_code from app.dock_slots where id = pg_temp.id('b1')), '^[23456789A-HJ-NP-Z]{6}$', 'a booking gets a code of the format');
@@ -88,16 +90,18 @@ select throws_like(format($$update app.delivery_windows set deleted_at = null wh
 select pg_temp.as_platform();
 select ok(exists (select 1 from private.trash_excluded_tables t where t.table_name = 'delivery_windows'), 'windows stay out of Trash with a rationale');
 
--- G-99 (from 2683).
+-- G-99 (from 2683). The helper is private, so a security definer wrapper calls it with the signed-in person's claims.
+select pg_temp.as_platform();
+create function pg_temp.docks_full(p_project text, p_at timestamptz) returns boolean language sql security definer as $$ select private.project_docks_full_at(pg_temp.id(p_project), p_at) $$;
 select pg_temp.as_user('carol');
-select is(private.project_docks_full_at(pg_temp.id('prj_a'), now() + interval '5 days 30 minutes'), false, 'gate B is still free at that time');
+select is(pg_temp.docks_full('prj_a', now() + interval '5 days 30 minutes'), true, 'a full window at gate A and a slot at gate B leave no free dock');
 select pg_temp.as_user('alice');
 insert into app.delivery_windows (project_id, zone_id, starts_at, ends_at, vehicle_limit) values (pg_temp.id('prj_a2'), pg_temp.id('gate_b'), now() + interval '30 days', now() + interval '30 days 2 hours', 1);
 insert into world select 'w_f', id from app.delivery_windows where project_id = pg_temp.id('prj_a2');
-select is(private.project_docks_full_at(pg_temp.id('prj_a2'), now() + interval '30 days 1 hour'), false, 'a window with places left is not full, and a zone with only windows counts');
-select is(private.project_docks_full_at(pg_temp.id('prj_a2'), now() + interval '31 days'), false, 'outside the window, free');
+select is(pg_temp.docks_full('prj_a2', now() + interval '30 days 1 hour'), false, 'a window with places left is not full, and a zone with only windows counts');
+select is(pg_temp.docks_full('prj_a2', now() + interval '31 days'), false, 'outside the window, free');
 select app.book_delivery_window(gen_random_uuid(), pg_temp.id('w_f'));
-select is(private.project_docks_full_at(pg_temp.id('prj_a2'), now() + interval '30 days 1 hour'), true, 'and full once its places are taken');
+select is(pg_temp.docks_full('prj_a2', now() + interval '30 days 1 hour'), true, 'and full once its places are taken');
 
 select * from finish();
 rollback;

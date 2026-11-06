@@ -23,7 +23,7 @@ select is((select count(*)::integer from app.procurement_need_requests l join ap
 select is((select n.quantity from app.procurement_needs n join app.procurement_need_requests l on l.procurement_need_id = n.id
            where l.advance_allocation_id = pg_temp.id('a1')), 15::numeric, 'no need: one need per class, of the summed quantity');
 select is((select n.description from app.procurement_needs n join app.procurement_need_requests l on l.procurement_need_id = n.id
-           where l.advance_allocation_id = pg_temp.id('a3')), 'Radios', 'described by the class name');
+           where l.advance_allocation_id = pg_temp.id('a3')), (select c.name from app.asset_classes c where c.id = pg_temp.id('cls_radio')), 'described by the class name');
 select is((select count(distinct l.procurement_need_id)::integer from app.procurement_need_requests l
            where l.advance_allocation_id in (pg_temp.id('a1'), pg_temp.id('a3'))), 2, 'and two classes give two needs');
 select matches((select app.procurement_need_display_key(n) from app.procurement_needs n join app.procurement_need_requests l on l.procurement_need_id = n.id
@@ -36,7 +36,7 @@ insert into world select 'need5', n.id from app.procurement_needs n where n.desc
 select throws_like(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('a1')), 'need_request_linked:%', 'a request already linked refuses need_request_linked');
 insert into world select 'decl', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_truss', 1);
 select pg_temp.as_user('carol');
-select app.decide_allocation(pg_temp.id('decl'), 'Declined', 'No need.');
+select app.decide_allocation(pg_temp.id('decl'), 'Rejected', 'No need.');
 select throws_like(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('decl')), 'need_request_state:%', 'a Declined request refuses need_request_state');
 insert into world select 'trv', pg_temp.alloc('request', 'dave', 'e_kai', 'travel', '', 1);
 select pg_temp.as_user('carol');
@@ -68,11 +68,11 @@ select throws_ok(format($$insert into app.procurement_need_requests (procurement
 
 -- 4. Capabilities -----------------------------------------------------------------------------------------------------------------------
 select pg_temp.producer('nora', 'procurement.po.write');
-select pg_temp.producer('paul', 'advancing.packet.read');
+select pg_temp.producer('peta', 'advancing.packet.read');
 insert into world select 'a5', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_truss', 1);
 select pg_temp.as_user('nora');
 select throws_ok(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('a5')), '42501', null, 'procurement.po.write alone is not enough');
-select pg_temp.as_user('paul');
+select pg_temp.as_user('peta');
 select throws_ok(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('a5')), '42501', null, 'advancing.packet.read alone is not enough');
 select pg_temp.as_user('xavier');
 select throws_ok(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('a5')), '42501', null, 'another org gets 42501');
@@ -97,7 +97,9 @@ select throws_like(format($$select app.consolidate_allocations(array[%L, %L]::uu
 -- 6. Zero sums ----------------------------------------------------------------------------------------------------------------------------
 insert into world select 'zero', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_truss', 1);
 select pg_temp.as_platform();
+set local session_replication_role = replica;
 update app.advance_allocations set quantity = 0 where id = pg_temp.id('zero');
+set local session_replication_role = origin;
 select pg_temp.as_user('carol');
 select throws_like(format($$select app.consolidate_allocations(array[%L]::uuid[])$$, pg_temp.id('zero')), 'need_request_quantity:%', 'a selection summing to 0 refuses need_request_quantity, not a check violation');
 
@@ -118,10 +120,10 @@ select pg_temp.as_user('carol');
 select app.transition_purchase_order(pg_temp.id('o2'), 'Proposed', 'Canceled', 'Not needed.');
 select throws_like(format($$select app.set_po_line_need(%L, %L)$$, pg_temp.id('o2_l'), pg_temp.id('need5')), 'need_line_order_state:%', 'a Canceled order refuses need_line_order_state');
 -- Units must agree.
-update app.procurement_needs set unit_basis = 'EA' where id = pg_temp.id('need_el');
+update app.procurement_needs set unit_basis = 'each' where id = pg_temp.id('need_el');
 select pg_temp.order_with('o3', 2);
 select pg_temp.as_user('carol');
-update app.po_lines set unit_basis = 'HR' where id = pg_temp.id('o3_l');
+update app.po_lines set unit_basis = 'hour' where id = pg_temp.id('o3_l');
 select throws_like(format($$select app.set_po_line_need(%L, %L)$$, pg_temp.id('o3_l'), pg_temp.id('need_el')), 'need_line_unit:%', 'another unit than the need refuses need_line_unit');
 
 -- 8. Deleting ------------------------------------------------------------------------------------------------------------------------------

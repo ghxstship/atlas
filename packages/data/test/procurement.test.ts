@@ -479,6 +479,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: 1000,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
         {
           id: "l2",
@@ -487,6 +491,10 @@ describe("purchase orders", () => {
           quantity: 4,
           unitPriceMinor: null,
           currencyCode: "EUR",
+          unitBasis: null,
+          acquisitionKind: "Purchase",
+          hirePeriod: null,
+          procurementNeedId: null,
         },
       ],
     };

@@ -23,7 +23,8 @@ select is((select count(*)::integer from app.delivery_windows where zone_id = pg
            and starts_at >= '2028-03-12 00:00-05' and ends_at - starts_at <> interval '1 hour'), 0, 'every window after it is an hour long');
 select throws_like(format($$select app.create_delivery_windows(%L, %L, '2029-01-01', '2029-12-31', '08:00', '18:00', 60, 1)$$, pg_temp.id('prj_a'), pg_temp.id('gate_a')), 'delivery_window_count:%', 'above 500 windows refuses delivery_window_count');
 select throws_like(format($$select app.create_delivery_windows(%L, %L, '2029-01-02', '2029-01-01', '08:00', '18:00', 60, 1)$$, pg_temp.id('prj_a'), pg_temp.id('gate_a')), 'delivery_window_range:%', 'days out of order refuse');
-select pg_temp.as_user('frank');
+select pg_temp.producer('reader', 'logistics.shipment.read');
+select pg_temp.as_user('reader');
 select throws_ok(format($$select app.create_delivery_windows(%L, %L, '2029-01-01', '2029-01-01', '08:00', '09:00', 60, 1)$$, pg_temp.id('prj_a'), pg_temp.id('gate_a')), '42501', null, 'without logistics.dock_slot.write, 42501');
 
 -- 2. Booking -----------------------------------------------------------------------------------------------------------------------------
@@ -118,8 +119,8 @@ insert into world select 'b3', app.book_delivery_window(gen_random_uuid(), pg_te
 select pg_temp.as_platform();
 alter table app.delivery_windows disable trigger t40_guard_delivery_window;
 alter table app.dock_slots disable trigger t40_guard_dock_slot;
-update app.delivery_windows set starts_at = now() - interval '1 minute' where id = pg_temp.id('w3');
-update app.dock_slots set starts_at = now() - interval '1 minute' where id = pg_temp.id('b3');
+update app.delivery_windows set starts_at = now() - interval '1 minute', ends_at = now() + interval '1 minute' where id = pg_temp.id('w3');
+update app.dock_slots set starts_at = now() - interval '1 minute', ends_at = now() + interval '1 minute' where id = pg_temp.id('b3');
 alter table app.delivery_windows enable trigger t40_guard_delivery_window;
 alter table app.dock_slots enable trigger t40_guard_dock_slot;
 select pg_temp.as_user('sam');

@@ -1,4 +1,5 @@
-import type { Database, Json, XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
+import type { Json } from "./database.types.ts";
 import {
   blankToNull,
   deletedNow,

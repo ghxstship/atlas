@@ -66,6 +66,20 @@ comment on function private.need_effective_during(uuid) is 'private.need_window 
 revoke all on function private.need_effective_during(uuid) from public, anon;
 grant execute on function private.need_effective_during(uuid) to authenticated, service_role;
 
+create or replace function private.need_project_facts(p_project_id uuid)
+returns table (project_key text, time_zone text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.project_key, p.time_zone from app.projects p
+  where p.id = p_project_id and private.can_on_project(p.id, 'procurement.po.read');
+$$;
+comment on function private.need_project_facts(uuid) is 'A project''s key and time zone for app.procurement_need_status, for procurement.po.read on the project: a buyer who holds it alone may not read app.projects. Granted to signed-in callers because that security_invoker view reads it.';
+revoke all on function private.need_project_facts(uuid) from public, anon;
+grant execute on function private.need_project_facts(uuid) to authenticated, service_role;
+
 create view app.procurement_need_status with (security_invoker = true) as
 select x.need_id, x.org_id, x.project_id, x.project_key, x.time_zone, x.need_number, x.description, x.quantity, x.unit_basis, x.asset_class_id,
   x.element_id, x.note, x.created_at, x.requested_quantity, x.effective_during, x.drafted_quantity, x.ordered_quantity, x.received_quantity,
@@ -95,7 +109,7 @@ from (
       join app.goods_receipts g on g.id = rl.goods_receipt_id and g.deleted_at is null
       where l.procurement_need_id = n.id and l.deleted_at is null), 0) as received_quantity
   from app.procurement_needs n
-  join app.projects p on p.id = n.project_id
+  cross join lateral private.need_project_facts(n.project_id) p
   where n.deleted_at is null
 ) x;
 

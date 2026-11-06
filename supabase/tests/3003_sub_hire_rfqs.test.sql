@@ -35,9 +35,14 @@ select is(pg_temp.short('cls_radio'), null::numeric, 'two allocations of 3 that 
 
 -- Past events never shout.
 select pg_temp.as_platform();
+set local session_replication_role = replica;
 update app.advance_allocations set needed_during = tstzrange(now() - interval '10 days', now() - interval '9 days', '[)') where id = pg_temp.id('a1');
+set local session_replication_role = origin;
 select is(pg_temp.short('cls_truss'), null::numeric, 'an allocation that has ended is not short');
+select pg_temp.as_platform();
+set local session_replication_role = replica;
 update app.advance_allocations set needed_during = tstzrange('2027-06-01 12:00+00', '2027-06-05 12:00+00', '[)') where id = pg_temp.id('a1');
+set local session_replication_role = origin;
 
 -- Another project's live holds count. Two of the ten truss units go to prj_a2 on the same days.
 select pg_temp.as_user('alice');
@@ -137,8 +142,11 @@ select app.transition_rfq(pg_temp.id('evt'), 'Closed', 'Awarded', 'Harborline.')
 select pg_temp.as_platform();
 select is((select l.element_id from app.rfq_response_lines l where l.rfq_line_id = pg_temp.id('rl')), '3000.05.01-GHXST-014', 'the response line defaults its element from the request line, or the shortage would never clear');
 select pg_temp.as_user('carol');
-insert into world select 'po_sh', (with o as (insert into app.purchase_orders (project_id, vendor_id, currency_code, rfq_response_id)
-    select pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD', s.id from app.rfq_responses s where s.rfq_id = pg_temp.id('evt') returning id) select id from o);
+select pg_temp.as_platform();
+insert into world select 'resp', s.id from app.rfq_responses s where s.rfq_id = pg_temp.id('evt');
+select pg_temp.as_user('carol');
+with o as (insert into app.purchase_orders (project_id, vendor_id, currency_code, rfq_response_id)
+  values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD', pg_temp.id('resp')) returning id) insert into world select 'po_sh', id from o;
 insert into app.po_lines (purchase_order_id, line_number, description, element_id, quantity, unit_price_minor, acquisition_kind, hire_period, procurement_need_id)
 select pg_temp.id('po_sh'), 1, l.description, l.element_id, l.quantity, l.unit_price_minor, q.acquisition_kind, q.hire_period, q.procurement_need_id
 from app.rfq_response_lines l join app.rfq_lines q on q.id = l.rfq_line_id where l.rfq_line_id = pg_temp.id('rl');

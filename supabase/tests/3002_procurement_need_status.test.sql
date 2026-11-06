@@ -12,6 +12,8 @@ set search_path = extensions, public;
 
 select no_plan();
 
+create function pg_temp.requested(p_key text) returns numeric language sql security definer as $$ select private.need_requested_quantity(pg_temp.id(p_key)) $$;
+
 select pg_temp.as_user('carol');
 insert into app.procurement_needs (project_id, description, quantity) values (pg_temp.id('prj_a'), 'Five things', 5);
 insert into world select 'n', id from app.procurement_needs where description = 'Five things';
@@ -83,12 +85,12 @@ select is((select count(*)::integer from information_schema.columns
 select is((select c.relkind::text from pg_class c where c.oid = 'app.procurement_need_status'::regclass), 'v', 'status is a plain view');
 
 -- Requested quantity for a buyer who cannot read allocations.
-insert into world select 'r1', pg_temp.alloc('request', 'dave', 'eng_vendor_a', 'class', 'cls_truss', 7);
-insert into world select 'r2', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_truss', 8);
+insert into world select 'rq1', pg_temp.alloc('request', 'dave', 'eng_vendor_a', 'class', 'cls_truss', 7);
+insert into world select 'rq2', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_truss', 8);
 select pg_temp.as_user('carol');
 insert into app.procurement_needs (project_id, description, quantity) values (pg_temp.id('prj_a'), 'Truss for all', 5);
 insert into world select 'nt', id from app.procurement_needs where description = 'Truss for all';
-select app.consolidate_allocations(array[pg_temp.id('r1'), pg_temp.id('r2')], pg_temp.id('nt'));
+select app.consolidate_allocations(array[pg_temp.id('rq1'), pg_temp.id('rq2')], pg_temp.id('nt'));
 select is((pg_temp.need(pg_temp.id('nt'))).requested_quantity, 15::numeric, 'a need of 5 with 15 requested reads requested 15');
 select is((pg_temp.need(pg_temp.id('nt'))).quantity, 5::numeric, 'and keeps its quantity of 5');
 
@@ -96,26 +98,26 @@ select pg_temp.producer('buyer', 'procurement.po.read');
 select pg_temp.as_user('buyer');
 select is((select requested_quantity from app.procurement_need_status where need_id = pg_temp.id('nt')), 15::numeric, 'a buyer without advancing.packet.read reads the true number');
 select ok((select effective_during from app.procurement_need_status where need_id = pg_temp.id('nt')) is not null, 'and the span of the requests');
-select is((select count(*)::integer from app.advance_allocations where id = pg_temp.id('r1')), 0, 'and cannot read the allocations');
+select is((select count(*)::integer from app.advance_allocations where id = pg_temp.id('rq1')), 0, 'and cannot read the allocations');
 select is((select count(*)::integer from app.allocations_ready_to_consolidate), 0, 'nor the holder names');
 select pg_temp.as_user('xavier');
 select is((select count(*)::integer from app.procurement_need_status where need_id = pg_temp.id('nt')), 0, 'another org reads nothing');
-select is(private.need_requested_quantity(pg_temp.id('nt')), 0::numeric, 'and the helper tells it nothing');
+select is(pg_temp.requested('nt'), 0::numeric, 'and the helper tells it nothing');
 
 -- A withdrawal drops out.
 select pg_temp.as_user('dave');
-select app.withdraw_allocation(pg_temp.id('r2'), 'No longer needed.');
+select app.withdraw_allocation(pg_temp.id('rq2'), 'No longer needed.');
 select is((pg_temp.need(pg_temp.id('nt'))).requested_quantity, 7::numeric, 'a later withdrawal drops it from requested');
 
 -- The ready view.
-insert into world select 'r3', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_truss', 1);
+insert into world select 'rq3', pg_temp.alloc('request', 'dave', 'e_mo', 'class', 'cls_truss', 1);
 insert into world select 'pool', pg_temp.alloc('request', 'dave', 'eng_vendor_a', 'class', 'cls_radio', 3);
 select pg_temp.as_user('carol');
 select app.decide_allocation(pg_temp.id('pool'), 'Approved');
 insert into world select 'kid', (app.split_allocation(pg_temp.id('pool'), jsonb_build_array(jsonb_build_object('roster_entry_id', pg_temp.id('e_kai'), 'quantity', 1))))[1];
-select ok(exists (select 1 from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('r3')), 'a live request with no link is ready');
-select is((select holder_name from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('r3')), 'Mo Lindqvist', 'with its holder''s name');
-select is((select count(*)::integer from app.allocations_ready_to_consolidate where allocation_id in (pg_temp.id('r1'))), 0, 'a linked request is not');
+select ok(exists (select 1 from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('rq3')), 'a live request with no link is ready');
+select is((select holder_name from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('rq3')), 'Mo Lindqvist', 'with its holder''s name');
+select is((select count(*)::integer from app.allocations_ready_to_consolidate where allocation_id in (pg_temp.id('rq1'))), 0, 'a linked request is not');
 select is((select count(*)::integer from app.allocations_ready_to_consolidate where allocation_id in (pg_temp.id('pool'), pg_temp.id('kid'))), 2, 'an unlinked pool and its child both are');
 select app.consolidate_allocations(array[pg_temp.id('pool')]);
 select is((select count(*)::integer from app.allocations_ready_to_consolidate where allocation_id = pg_temp.id('kid')), 0, 'a Split child of a linked pool never appears');

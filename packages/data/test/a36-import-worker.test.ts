@@ -141,6 +141,7 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
   const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
     lookups: lookups(writes),
+    recordMaterialMatch: async () => {},
     async claim(kind) {
       const mine = queue.filter((q) => q.kind === kind);
       for (const m of mine) queue.splice(queue.indexOf(m), 1);

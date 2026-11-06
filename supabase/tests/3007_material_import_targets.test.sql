@@ -72,7 +72,7 @@ create function pg_temp.row_of(p_job uuid, p_batch out uuid, p_row out uuid) lan
 begin
   perform pg_temp.as_platform();
   update app.import_jobs set import_status = 'Detected' where id = p_job;
-  update app.import_jobs set import_status = 'Mapped', mapping_confirmed_at = now(), mapping_confirmed_by = pg_temp.id('carol') where id = p_job;
+  update app.import_jobs set import_status = 'Mapped', mapping_confirmed_at = now() where id = p_job;
   update app.import_jobs set import_status = 'Validated' where id = p_job;
   p_row := app.record_import_row(p_job, 'Sheet', 2, 'Valid');
   update app.import_jobs set import_status = 'Committing' where id = p_job;

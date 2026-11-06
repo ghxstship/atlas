@@ -11,6 +11,7 @@ set search_path = extensions, public;
 
 select no_plan();
 
+create function pg_temp.today() returns date language sql security definer as $$ select private.org_today(pg_temp.id('org_a')) $$;
 select pg_temp.as_user('alice');
 create function pg_temp.due(p_plan text, p_unit text) returns app.asset_maintenance_due language plpgsql as $$
 declare v app.asset_maintenance_due;
@@ -45,12 +46,13 @@ select is((pg_temp.due('p_one', 't2')).due_on, null::date, 'with due_on NULL');
 -- The org's calendar: a time zone ahead of UTC and a zone behind differ on the day for the same instant.
 select pg_temp.as_user('alice');
 insert into app.asset_maintenance_plans (org_id, asset_unit_id, title, first_due_on)
-values (pg_temp.id('org_a'), pg_temp.id('t3'), 'Calendar check', private.org_today(pg_temp.id('org_a')));
+values (pg_temp.id('org_a'), pg_temp.id('t3'), 'Calendar check', pg_temp.today());
 insert into world select 'p_cal', id from app.asset_maintenance_plans where title = 'Calendar check';
 select is((pg_temp.due('p_cal', 't3')).due_status, 'Pending', 'due today on the org''s calendar is not Overdue');
 select pg_temp.as_user('alice');
-update app.asset_maintenance_plans set first_due_on = private.org_today(pg_temp.id('org_a')) - 1 where id = pg_temp.id('p_cal');
+update app.asset_maintenance_plans set first_due_on = pg_temp.today() - 1 where id = pg_temp.id('p_cal');
 select is((pg_temp.due('p_cal', 't3')).due_status, 'Overdue', 'due yesterday on it is');
+select pg_temp.as_platform();
 select ok(pg_get_viewdef('app.asset_maintenance_due'::regclass) like '%org_today%', 'the view reads the org''s calendar, never the UTC date');
 
 -- A class plan.
@@ -60,7 +62,9 @@ values (pg_temp.id('org_a'), pg_temp.id('cls_radio'), 'Battery test', current_da
 insert into world select 'p_cls', id from app.asset_maintenance_plans where title = 'Battery test';
 select is((select count(*)::integer from app.asset_maintenance_due where plan_id = pg_temp.id('p_cls')), 4, 'a class plan expands to its live units');
 select pg_temp.as_platform();
-select private.transition_lifecycle('asset', 'app.asset_units', 'asset_state', 'app.asset_state_transitions', 'asset_unit_id', pg_temp.id('r1'), 'Available', 'Lost', 'Fixture.');
+set local session_replication_role = replica;
+update app.asset_units set asset_state = 'Lost' where id = pg_temp.id('r1');
+set local session_replication_role = origin;
 insert into app.asset_units (asset_class_id, asset_tag) values (pg_temp.id('cls_radio'), 'NWL-RAD-NEW');
 select pg_temp.as_user('alice');
 select is((select count(*)::integer from app.asset_maintenance_due where plan_id = pg_temp.id('p_cls')), 3, 'and leaves out Proposed and Lost units');
