@@ -577,7 +577,11 @@
       "decline": "Rechazar a {name}",
       "checkIn": "Registrar llegada de {name}",
       "edit": "Editar a {name}",
-      "remove": "Quitar a {name}"
+      "remove": "Quitar a {name}",
+      "approved": "{name} está aprobado.",
+      "declined": "{name} está rechazado.",
+      "checkedIn": "{name} está registrado.",
+      "removed": "{name} se quitó de la lista."
     },
     "import": "Importar invitados",
     "pass": {
@@ -585,7 +589,7 @@
       "typeHelp": "Una categoría de Acceso de este proyecto, como GUEST o VIP.",
       "noType": "Sin tipo de pase",
       "table": "Mesa",
-      "tableHelp": "Opcional. Una mesa o asiento, de hasta 40 caracteres.",
+      "tableHelp": "Opcional. Una mesa o asiento, de hasta 60 caracteres.",
       "host": "Anfitrión",
       "hostHelp": "Opcional. La persona que recibe a este invitado se entera cuando llega.",
       "noHost": "Sin anfitrión",

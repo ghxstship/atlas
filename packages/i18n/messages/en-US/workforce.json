@@ -703,7 +703,9 @@
       "lastUpdate": "Last updated {time}",
       "lastFailure": "Last attempt failed {time}: {error}",
       "failuresSince": "{count, plural, one {# failed attempt since the last update} other {# failed attempts since the last update}}",
-      "never": "No update yet."
+      "never": "No update yet.",
+      "turnedOn": "The official feed is on. Its first reading arrives within 10 minutes.",
+      "turnedOff": "The official feed is off."
     },
     "warnings": {
       "title": "Active warnings",
@@ -739,7 +741,14 @@
       "allClear": "All clear",
       "allClearTitle": "Give the all-clear",
       "allClearSubmit": "Send all-clear",
-      "sent": "Sent to everyone"
+      "sent": "Sent to everyone",
+      "holdSent": "Weather hold sent to everyone it reaches.",
+      "allClearSent": "All-clear sent to everyone it reaches.",
+      "cancel": "Cancel",
+      "hazard": "Hazard",
+      "noHazard": "No hazard named",
+      "warning": "Official warning",
+      "noWarning": "No warning named"
     },
     "templates": {
       "title": "Hold and all-clear messages",
@@ -748,7 +757,8 @@
       "save": "Save messages",
       "defaultHold": "Weather hold: stop work now and move to the nearest shelter. Wait for the all-clear.",
       "defaultHoldHazard": "Weather hold for {hazard}: stop work now and move to the nearest shelter. Wait for the all-clear.",
-      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so."
+      "defaultAllClear": "All clear: the weather hold is over. Return to work when your lead says so.",
+      "defaultHoldWarning": "Weather hold for {event}: stop work now and move to the nearest shelter. Wait for the all-clear."
     }
   },
   "guests": {
@@ -906,6 +916,8 @@
     "content_moderation_nothing_open": "Every report about this was already decided.",
     "content_moderation_authority": "Reviewing reported content needs permission to manage communication.",
     "weather_feed_unsupported": "The official feed covers US venues with a location. Locate the venue first.",
+    "weather_feed_worker_fields": "The feed sets its own station, forecast URL and check time.",
+    "weather_feed_payload": "The official feed sent something we could not read. It will try again.",
     "weather_hold_open": "A weather hold is already open on this project. Give the all-clear first.",
     "weather_hold_closed": "This weather hold already has its all-clear.",
     "weather_hold_message": "Write a message of 1 to 1,000 characters.",
@@ -1378,6 +1390,7 @@
     "hiddenGuests": "Guests are not shown: they need the project's guest list.",
     "hiddenDoors": "Guests' doors and plus-ones are not shown: they need guest check-in at the doors.",
     "plusOnes": "Plus-ones",
-    "plusOnesLine": "{count, plural, one {# plus-one} other {# plus-ones}}"
+    "plusOnesLine": "{count, plural, one {# plus-one} other {# plus-ones}}",
+    "truncated": "This list stops at {count} rows and more people are present. Filter by zone, or export the list for every row."
   }
 }

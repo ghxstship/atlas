@@ -703,7 +703,9 @@
       "lastUpdate": "Última actualización: {time}",
       "lastFailure": "El último intento falló {time}: {error}",
       "failuresSince": "{count, plural, one {# intento fallido desde la última actualización} other {# intentos fallidos desde la última actualización}}",
-      "never": "Aún no hay actualizaciones."
+      "never": "Aún no hay actualizaciones.",
+      "turnedOn": "El feed oficial está activo. Su primera lectura llega en menos de 10 minutos.",
+      "turnedOff": "El feed oficial está desactivado."
     },
     "warnings": {
       "title": "Avisos activos",
@@ -739,7 +741,14 @@
       "allClear": "Fin de la suspensión",
       "allClearTitle": "Dar fin a la suspensión",
       "allClearSubmit": "Enviar fin de la suspensión",
-      "sent": "Enviado a todos"
+      "sent": "Enviado a todos",
+      "holdSent": "Suspensión por clima enviada a todas las personas que alcanza.",
+      "allClearSent": "Fin de alerta enviado a todas las personas que alcanza.",
+      "cancel": "Cancelar",
+      "hazard": "Peligro",
+      "noHazard": "Sin peligro indicado",
+      "warning": "Aviso oficial",
+      "noWarning": "Sin aviso indicado"
     },
     "templates": {
       "title": "Mensajes de suspensión y de fin",
@@ -748,7 +757,8 @@
       "save": "Guardar mensajes",
       "defaultHold": "Suspensión por clima: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
       "defaultHoldHazard": "Suspensión por clima por {hazard}: deja de trabajar ahora y ve al refugio más cercano. Espera el aviso de fin.",
-      "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelve al trabajo cuando tu responsable lo indique."
+      "defaultAllClear": "Fin de la suspensión: terminó la suspensión por clima. Vuelve al trabajo cuando tu responsable lo indique.",
+      "defaultHoldWarning": "Suspensión por clima por {event}: deja de trabajar ahora y ve al refugio más cercano. Espera el fin de alerta."
     }
   },
   "guests": {
@@ -906,6 +916,8 @@
     "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
     "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación.",
     "weather_feed_unsupported": "El feed oficial cubre sedes de EE. UU. con ubicación. Ubica la sede primero.",
+    "weather_feed_worker_fields": "El feed define su propia estación, URL de pronóstico y hora de verificación.",
+    "weather_feed_payload": "El feed oficial envió algo que no pudimos leer. Lo intentará de nuevo.",
     "weather_hold_open": "Ya hay una suspensión por clima abierta en este proyecto. Da primero el fin de la suspensión.",
     "weather_hold_closed": "Esta suspensión por clima ya tiene su fin.",
     "weather_hold_message": "Escribe un mensaje de 1 a 1,000 caracteres.",
@@ -1378,6 +1390,7 @@
     "hiddenGuests": "No se muestran los invitados: requieren la lista de invitados del proyecto.",
     "hiddenDoors": "No se muestran la puerta ni los acompañantes de los invitados: requieren el registro de invitados en las puertas.",
     "plusOnes": "Acompañantes",
-    "plusOnesLine": "{count, plural, one {# acompañante} other {# acompañantes}}"
+    "plusOnesLine": "{count, plural, one {# acompañante} other {# acompañantes}}",
+    "truncated": "Esta lista se detiene en {count} filas y hay más personas presentes. Filtra por zona o exporta la lista para ver todas las filas."
   }
 }

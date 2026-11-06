@@ -577,7 +577,11 @@
       "decline": "Decline {name}",
       "checkIn": "Check in {name}",
       "edit": "Edit {name}",
-      "remove": "Remove {name}"
+      "remove": "Remove {name}",
+      "approved": "{name} is approved.",
+      "declined": "{name} is declined.",
+      "checkedIn": "{name} is checked in.",
+      "removed": "{name} is removed from the list."
     },
     "import": "Import guests",
     "pass": {
@@ -585,7 +589,7 @@
       "typeHelp": "An Access category of this project, such as GUEST or VIP.",
       "noType": "No pass type",
       "table": "Table",
-      "tableHelp": "Optional. A table or seat, up to 40 characters.",
+      "tableHelp": "Optional. A table or seat, up to 60 characters.",
       "host": "Host",
       "hostHelp": "Optional. The person hosting this guest hears when they arrive.",
       "noHost": "No host",
