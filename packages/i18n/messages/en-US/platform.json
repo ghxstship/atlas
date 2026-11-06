@@ -755,6 +755,9 @@
         "assigned": "Allocation given to you",
         "issued": "Allocation handed over",
         "withdrawn": "Allocation withdrawn"
+      },
+      "advance_answer": {
+        "recorded": "Answer recorded for you"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

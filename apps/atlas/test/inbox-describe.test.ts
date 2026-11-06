@@ -133,6 +133,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     projectName: "Northwind Summer Series",
     locksAt: "2027-03-01T17:00:00Z",
   },
+  // B15: an answer recorded for a recipient from an Aurora draft (3043).
+  "advance_answer.recorded": {
+    sectionTitle: "Load In",
+    projectName: "Northwind Summer Series",
+  },
   // R7: advance allocations (2693, 2694), as private.allocation_notification_args stores them.
   "allocation.decided": {
     personName: "Kai Morgan",

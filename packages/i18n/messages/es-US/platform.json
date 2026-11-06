@@ -755,6 +755,9 @@
         "assigned": "Asignación recibida",
         "issued": "Asignación entregada",
         "withdrawn": "Asignación retirada"
+      },
+      "advance_answer": {
+        "recorded": "Respuesta registrada para ti"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
