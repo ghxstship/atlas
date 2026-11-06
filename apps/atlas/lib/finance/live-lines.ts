@@ -69,11 +69,11 @@ export function typedLine(
   id: string,
   input: BudgetLineInput,
 ): readonly BudgetLine[] {
-  return current.map((l) =>
-    l.id === id
-      ? { ...l, ...input, extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor) }
-      : l,
-  );
+  return current.map((l) => {
+    if (l.id !== id) return l;
+    const next = { ...l, ...input };
+    return { ...next, extendedMinor: extendedMinor(input.quantity, input.unitPriceMinor) };
+  });
 }
 
 /** What updateBudgetLineAction answered, as far as the grid reads it. */

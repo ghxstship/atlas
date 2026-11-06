@@ -929,16 +929,56 @@ export interface BudgetLine {
   readonly poLineCount: number;
   /** Lines of approved orders in another currency drawing on the line: counted, never summed. */
   readonly otherCurrencyPoLineCount: number;
+  /** The line's own markup in basis points (2500 is 25 percent); null uses the budget's default. */
+  readonly markupBp: number | null;
+  /** The entered client unit price, an override of the markup; null derives it. */
+  readonly clientUnitPriceMinor: number | null;
+  /** An internal line that never appears on a quote or in a client total. */
+  readonly excludedFromQuote: boolean;
+  /** The entered estimate to complete; null derives it. */
+  readonly etcMinor: number | null;
+  /** The markup in force: the line's, else the budget's default (app.budget_line_prices). */
+  readonly effectiveMarkupBp: number | null;
+  /** The client unit price in force: the override, else the marked-up cost price; null is unpriced. */
+  readonly effectiveClientUnitPriceMinor: number | null;
+  readonly clientExtendedMinor: number | null;
+  readonly marginMinor: number | null;
+  /** Forecast figures (app.budget_line_forecasts, 3027), blank together when forecastWithheld. */
+  readonly currentBudgetMinor: number | null;
+  readonly remainingCommitmentMinor: number | null;
+  readonly forecastEtcMinor: number | null;
+  readonly etcSource: "Entered" | "Derived" | null;
+  readonly efcMinor: number | null;
+  readonly forwardExposureMinor: number | null;
+  readonly varianceAtCompletionMinor: number | null;
+  readonly forecastWithheld: boolean;
+  /** Approved crew time in Actual, and the approved minutes left out of it for want of a rate (3026). */
+  readonly laborActualMinor: number;
+  readonly laborUnpricedMinutes: number;
   /** The version the row was read at, for conflict checks on save. */
   readonly updatedAt: string;
 }
 
 const LINE_COLUMNS =
-  "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, updated_at";
+  "id, budget_id, line_number, description, line_type, urid, cost_center_id, grade_code, element_id, quantity, unit_basis, unit_price_minor, xyz, xyz_basis, markup_bp, client_unit_price_minor, excluded_from_quote, etc_minor, updated_at";
 
-function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
+/**
+ * A cost unit price marked up by basis points, rounded half away from zero as app.budget_line_prices
+ * rounds (3020). Null when either is null: an unpriced line or a missing markup has no client price.
+ */
+export function clientUnitPrice(unitPriceMinor: number | null, markupBp: number | null): number | null {
+  if (unitPriceMinor === null || markupBp === null) return null;
+  const raw = (unitPriceMinor * (10000 + markupBp)) / 10000;
+  return Math.sign(raw) * Math.round(Math.abs(raw));
+}
+
+function toLine(r: Raw, amounts?: Raw, commitment?: Raw, price?: Raw, forecast?: Raw): BudgetLine {
   const quantity = num(r["quantity"]);
   const unitPrice = numOrNull(r["unit_price_minor"]);
+  const markupBp = numOrNull(r["markup_bp"]);
+  const override = numOrNull(r["client_unit_price_minor"]);
+  const effectivePrice = price ? numOrNull(price["client_unit_price_minor"]) : override;
+  const etcSource = forecast ? strOrNull(forecast["etc_source"]) : null;
   return {
     id: str(r["id"]),
     budgetId: str(r["budget_id"]),
@@ -965,6 +1005,26 @@ function toLine(r: Raw, amounts?: Raw, commitment?: Raw): BudgetLine {
     committedWithheld: commitment ? commitment["is_committed_withheld"] === true : false,
     poLineCount: commitment ? num(commitment["po_line_count"]) : 0,
     otherCurrencyPoLineCount: commitment ? num(commitment["other_currency_po_line_count"]) : 0,
+    markupBp,
+    clientUnitPriceMinor: override,
+    excludedFromQuote: r["excluded_from_quote"] === true,
+    etcMinor: numOrNull(r["etc_minor"]),
+    effectiveMarkupBp: price ? numOrNull(price["effective_markup_bp"]) : markupBp,
+    effectiveClientUnitPriceMinor: effectivePrice,
+    clientExtendedMinor: price
+      ? numOrNull(price["client_extended_minor"])
+      : extendedMinor(quantity, effectivePrice),
+    marginMinor: price ? numOrNull(price["margin_minor"]) : null,
+    currentBudgetMinor: forecast ? numOrNull(forecast["current_budget_minor"]) : null,
+    remainingCommitmentMinor: forecast ? numOrNull(forecast["remaining_commitment_minor"]) : null,
+    forecastEtcMinor: forecast ? numOrNull(forecast["etc_minor"]) : null,
+    etcSource: etcSource === "Entered" || etcSource === "Derived" ? etcSource : null,
+    efcMinor: forecast ? numOrNull(forecast["efc_minor"]) : null,
+    forwardExposureMinor: forecast ? numOrNull(forecast["forward_exposure_minor"]) : null,
+    varianceAtCompletionMinor: forecast ? numOrNull(forecast["variance_at_completion_minor"]) : null,
+    forecastWithheld: forecast ? forecast["is_withheld"] === true : false,
+    laborActualMinor: amounts ? num(amounts["labor_actual_minor"]) : 0,
+    laborUnpricedMinutes: amounts ? num(amounts["labor_unpriced_minutes"]) : 0,
     updatedAt: str(r["updated_at"]),
   };
 }
@@ -990,6 +1050,10 @@ export function mergeSavedLine(previous: BudgetLine, saved: BudgetLine): BudgetL
     xyzBasis: saved.xyzBasis,
     lineNumber: saved.lineNumber,
     extendedMinor: extendedMinor(saved.quantity, saved.unitPriceMinor),
+    markupBp: saved.markupBp,
+    clientUnitPriceMinor: saved.clientUnitPriceMinor,
+    excludedFromQuote: saved.excludedFromQuote,
+    etcMinor: saved.etcMinor,
     updatedAt: saved.updatedAt,
   };
 }
@@ -1041,7 +1105,7 @@ export async function getBudget(
     (r) => r,
   );
   if (!head.ok) return head;
-  const [summaries, lines, amounts, commitments] = await Promise.all([
+  const [summaries, lines, amounts, commitments, prices, forecasts] = await Promise.all([
     listBudgets(db, { orgId, projectId: str(head.data["project_id"]) }),
     rows(
       db
@@ -1062,20 +1126,27 @@ export async function getBudget(
         .eq("budget_id", budgetId),
       (r) => r,
     ),
+    rows(db.from("budget_line_prices").select("*").eq("budget_id", budgetId), (r) => r),
+    rows(db.from("budget_line_forecasts").select("*").eq("budget_id", budgetId), (r) => r),
   ]);
   if (!summaries.ok) return summaries;
   if (!lines.ok) return lines;
   if (!amounts.ok) return amounts;
   if (!commitments.ok) return commitments;
+  if (!prices.ok) return prices;
+  if (!forecasts.ok) return forecasts;
   const budget = summaries.data.find((b) => b.id === budgetId);
   if (!budget) return fail({ kind: "not-found" });
   const byLine = new Map(amounts.data.map((a) => [str(a["budget_line_id"]), a]));
   const committedBy = new Map(commitments.data.map((c) => [str(c["budget_line_id"]), c]));
+  const priceBy = new Map(prices.data.map((p) => [str(p["budget_line_id"]), p]));
+  const forecastBy = new Map(forecasts.data.map((f) => [str(f["budget_line_id"]), f]));
   return ok({
     budget,
-    lines: lines.data.map((l) =>
-      toLine(l, byLine.get(str(l["id"])), committedBy.get(str(l["id"]))),
-    ),
+    lines: lines.data.map((l) => {
+      const id = str(l["id"]);
+      return toLine(l, byLine.get(id), committedBy.get(id), priceBy.get(id), forecastBy.get(id));
+    }),
   });
 }
 
@@ -1084,6 +1155,8 @@ export interface BudgetInput {
   readonly name: string;
   readonly currency: string;
   readonly isBaseline: boolean;
+  /** The budget's default markup in basis points; null is no default. */
+  readonly defaultMarkupBp?: number | null;
 }
 
 /** Creates a budget. Needs finance.budget.write on the project; one baseline per project. */
@@ -1101,6 +1174,7 @@ export async function createBudget(
         name: input.name.trim(),
         currency_code: input.currency,
         is_baseline: input.isBaseline,
+        default_markup_bp: input.defaultMarkupBp ?? null,
       })
       .select("id")
       .single(),
@@ -1111,12 +1185,20 @@ export async function createBudget(
 export async function updateBudget(
   db: XosClient,
   budgetId: string,
-  input: { readonly name: string; readonly isBaseline: boolean },
+  input: {
+    readonly name: string;
+    readonly isBaseline: boolean;
+    readonly defaultMarkupBp?: number | null;
+  },
 ): Promise<Result<null>> {
   return done(
     db
       .from("budgets")
-      .update({ name: input.name.trim(), is_baseline: input.isBaseline })
+      .update({
+        name: input.name.trim(),
+        is_baseline: input.isBaseline,
+        ...(input.defaultMarkupBp !== undefined ? { default_markup_bp: input.defaultMarkupBp } : {}),
+      })
       .eq("id", budgetId),
   );
 }
@@ -1138,6 +1220,11 @@ export interface BudgetLineInput {
   readonly unitPriceMinor: number | null;
   readonly xyz: XyzTag;
   readonly xyzBasis: "Category" | "Declared";
+  /** Left out, a new line takes the database's default and a save keeps the value it has. */
+  readonly markupBp?: number | null;
+  readonly clientUnitPriceMinor?: number | null;
+  readonly excludedFromQuote?: boolean;
+  readonly etcMinor?: number | null;
 }
 
 /**
@@ -1167,6 +1254,12 @@ const lineRow = (input: BudgetLineInput) => ({
   unit_price_minor: input.unitPriceMinor,
   xyz: input.xyz,
   xyz_basis: input.xyzBasis,
+  ...(input.markupBp !== undefined ? { markup_bp: input.markupBp } : {}),
+  ...(input.clientUnitPriceMinor !== undefined
+    ? { client_unit_price_minor: input.clientUnitPriceMinor }
+    : {}),
+  ...(input.excludedFromQuote !== undefined ? { excluded_from_quote: input.excludedFromQuote } : {}),
+  ...(input.etcMinor !== undefined ? { etc_minor: input.etcMinor } : {}),
 });
 
 /**
