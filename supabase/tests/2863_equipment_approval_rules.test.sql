@@ -37,7 +37,7 @@ language sql security definer as $$
   join app.advance_allocation_state_transitions tr on tr.advance_allocation_id = al.id and tr.to_state = 'Withdrawn'
   where al.id = pg_temp.id(p_allocation)
 $$;
-create function pg_temp.notified(p_who text, p_kind text, p_allocation text) returns integer
+create function pg_temp.heard(p_who text, p_kind text, p_allocation text) returns integer
 language sql security definer as $$
   select count(*)::integer from app.notifications n
   where n.recipient_person_id = pg_temp.id(p_who) and n.kind = p_kind and n.subject_table = 'advance_allocations' and n.subject_id = pg_temp.id(p_allocation)
@@ -207,8 +207,8 @@ select lives_ok(format($$select app.cancel_subject_approval(%L, 'Kai borrowed on
 select is(pg_temp.approval_state('a_req'), 'Canceled', 'the approval is Canceled');
 select is(pg_temp.state_of(pg_temp.id('a_req')), 'Withdrawn', 'and the request is Withdrawn with it');
 select is(pg_temp.withdrawal('a_req'), 'Requester: Approval withdrawn: Kai borrowed one.', 'by the requester, with the approval''s reason in the ledger');
-select is(pg_temp.notified('kai', 'allocation.withdrawn', 'a_req'), 1, 'the person it was for hears');
-select is(pg_temp.notified('dave', 'allocation.withdrawn', 'a_req'), 0, 'the requester, who did it, does not');
+select is(pg_temp.heard('kai', 'allocation.withdrawn', 'a_req'), 1, 'the person it was for hears');
+select is(pg_temp.heard('dave', 'allocation.withdrawn', 'a_req'), 0, 'the requester, who did it, does not');
 select pg_temp.as_user('carol');
 select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_temp.id('a_req')),
   'allocation_state_conflict:%', 'a reviewer cannot approve what the requester withdrew');
@@ -220,7 +220,7 @@ select lives_ok(format($$select app.cancel_subject_approval(%L, 'Asked twice.')$
   'the subject''s writer withdraws the approval, through advancing.packet.write alone');
 select is(pg_temp.state_of(pg_temp.id('a_wr')), 'Withdrawn', 'and the request is Withdrawn');
 select is(pg_temp.withdrawal('a_wr'), 'Reviewer: Approval withdrawn: Asked twice.', 'by someone other than its requester');
-select is(pg_temp.notified('carol', 'allocation.withdrawn', 'a_wr'), 1, 'the requester hears');
+select is(pg_temp.heard('carol', 'allocation.withdrawn', 'a_wr'), 1, 'the requester hears');
 
 -- A rule writer who also reviews cannot do both steps alone: carol manages, so she writes rules and reviews.
 insert into world select 'a_both', pg_temp.alloc('request', 'dave', 'e_kai', 'class', 'cls_radio', 1);
@@ -232,7 +232,7 @@ select is(pg_temp.state_of(pg_temp.id('a_both')), 'Withdrawn', 'and the request 
 select pg_temp.as_user('carol');
 select throws_like(format($$select app.decide_allocation(%L, 'Approved')$$, pg_temp.id('a_both')),
   'allocation_state_conflict:%', 'so a reviewer who writes rules cannot cancel the gate and then approve');
-select is(pg_temp.notified('dave', 'allocation.withdrawn', 'a_both'), 1, 'the requester hears why');
+select is(pg_temp.heard('dave', 'allocation.withdrawn', 'a_both'), 1, 'the requester hears why');
 select is((select message_args ->> 'reason' from app.notifications where kind = 'allocation.withdrawn' and subject_id = pg_temp.id('a_both')
            and recipient_person_id = pg_temp.id('dave')), 'Nobody can decide this step.', 'in the rule writer''s words');
 
