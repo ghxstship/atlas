@@ -147,9 +147,10 @@ test("whoever keeps a guest list attests, and only the Owner reads the needs bac
   await expect(next).toBeDisabled();
   await needs.getByLabel("This person has been told what is entered, why and who sees it.").check();
   await next.click();
-  await needs.getByLabel("Allergies").fill("Shellfish");
+  // Checked before typing: the check moves focus, and a dialog closes when focus leaves a field for outside it.
   expect(await cognitiveLoadProblems(page)).toEqual([]);
   await expectAccessible(page);
+  await needs.getByLabel("Allergies").fill("Shellfish");
   await needs.getByRole("button", { name: "Save needs" }).click();
   await expect(needs).toBeHidden();
   await expect(row).toContainText("Needs on file");
