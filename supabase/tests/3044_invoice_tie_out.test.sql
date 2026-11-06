@@ -40,6 +40,8 @@ begin
   return r;
 end $$;
 
+select pg_temp.as_user('bob');
+insert into app.ai_settings (org_id, extraction_enabled) values (pg_temp.id('org_a'), true);
 select pg_temp.as_user('alice');
 insert into world values ('cp_other', app.create_counterparty(pg_temp.id('org_a'), 'Coastal Staging Co', null, null));
 select pg_temp.invoice('inv_new', 'prj_a', 'Payable', 'cp_v_a', 'INV-0099', 5000);
@@ -89,6 +91,12 @@ select pg_temp.extraction('l', 'inv_new', 'USD', 3);
 select pg_temp.extraction('foreign', 'inv_old', 'USD', 1);
 select pg_temp.extraction('eur', 'inv_new', 'EUR', 1);
 insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor) values (pg_temp.id('inv_new'), 5, 'Existing', 1, 100);
+select pg_temp.as_user('bob');
+select throws_ok($$select app.apply_invoice_line_suggestions((select id from world where key = 'inv_new'), jsonb_build_array(jsonb_build_object('suggestion_id', (select id from world where key = 'l_3'), 'values', '{}'::jsonb)))$$,
+  '42501', null, 'an audit reader cannot apply someone else''s line');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.invoice_lines where invoice_id = pg_temp.id('inv_new') and deleted_at is null), 1, 'and it rolled back');
+select pg_temp.as_user('alice');
 select throws_ok($$select app.apply_invoice_line_suggestions((select id from world where key = 'inv_new'), jsonb_build_array(jsonb_build_object('suggestion_id', (select id from world where key = 'foreign_1'), 'values', '{}'::jsonb)))$$,
   'XR001', 'aurora_invoice_lines_foreign: Line 1: These lines were read for another invoice.', 'a line of another invoice is refused');
 select throws_ok($$select app.apply_invoice_line_suggestions((select id from world where key = 'inv_new'), jsonb_build_array(jsonb_build_object('suggestion_id', (select id from world where key = 'eur_1'), 'values', '{}'::jsonb)))$$,
@@ -100,10 +108,7 @@ select is((select array_agg(line_number order by line_number) from app.invoice_l
 select is((select quantity from app.invoice_lines where invoice_id = pg_temp.id('inv_new') and line_number = 6), 3::numeric, 'with the person''s value');
 select is((select suggestion_state::text from app.ai_suggestions where id = pg_temp.id('l_1')), 'Applied', 'the suggestion ends Applied');
 select is((select suggestion_state::text from app.ai_suggestions where id = pg_temp.id('l_3')), 'Proposed', 'and the rest stay open');
-select pg_temp.as_platform();
-select private.begin_trusted_operation('x') where false;
-update app.invoices set invoice_state = 'Canceled' where id = pg_temp.id('inv_new');
-select pg_temp.as_user('alice');
+select app.transition_invoice(pg_temp.id('inv_new'), 'Proposed', 'Canceled', 'Canceled for the test.');
 select throws_ok($$select app.apply_invoice_line_suggestions((select id from world where key = 'inv_new'), jsonb_build_array(jsonb_build_object('suggestion_id', (select id from world where key = 'l_3'), 'values', '{}'::jsonb)))$$,
   'XR001', 'invoice_locked: Line 1: Invoice lines change only while the invoice is Proposed.', 'a non-Proposed invoice refuses invoice_locked');
 

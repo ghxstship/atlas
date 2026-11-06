@@ -290,7 +290,6 @@ export type Database = {
           body: string | null;
           id: string | null;
           recorded_by_producer: boolean | null;
-          recorded_from_message: boolean | null;
           return_reason: string | null;
           review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at: string | null;
@@ -304,7 +303,6 @@ export type Database = {
           body?: string | null;
           id?: string | null;
           recorded_by_producer?: never;
-          recorded_from_message?: never;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -317,7 +315,6 @@ export type Database = {
           body?: string | null;
           id?: string | null;
           recorded_by_producer?: never;
-          recorded_from_message?: never;
           return_reason?: string | null;
           review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
           reviewed_at?: string | null;
@@ -5406,85 +5403,81 @@ export type Database = {
           },
         ];
       };
-      advance_answer_drafts: {
+      advance_answer_sources: {
         Row: {
           advance_submission_id: string;
-          ai_suggestion_id: string;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          file_name: string | null;
           id: string;
           inbound_message_id: string | null;
           org_id: string;
-          source_file_name: string | null;
+          source_excerpt: string;
+          source_kind: Database["app"]["Enums"]["advance_answer_source_kind"];
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
           advance_submission_id: string;
-          ai_suggestion_id: string;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          file_name?: string | null;
           id?: string;
           inbound_message_id?: string | null;
           org_id: string;
-          source_file_name?: string | null;
+          source_excerpt: string;
+          source_kind: Database["app"]["Enums"]["advance_answer_source_kind"];
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
           advance_submission_id?: string;
-          ai_suggestion_id?: string;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          file_name?: string | null;
           id?: string;
           inbound_message_id?: string | null;
           org_id?: string;
-          source_file_name?: string | null;
+          source_excerpt?: string;
+          source_kind?: Database["app"]["Enums"]["advance_answer_source_kind"];
           updated_at?: string;
           updated_by?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "advance_answer_drafts_advance_submission_id_fkey";
+            foreignKeyName: "advance_answer_sources_advance_submission_id_fkey";
             columns: ["advance_submission_id"];
-            isOneToOne: false;
+            isOneToOne: true;
             referencedRelation: "advance_submissions";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advance_answer_drafts_ai_suggestion_id_fkey";
-            columns: ["ai_suggestion_id"];
-            isOneToOne: false;
-            referencedRelation: "ai_suggestions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "advance_answer_drafts_created_by_fkey";
+            foreignKeyName: "advance_answer_sources_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advance_answer_drafts_inbound_message_id_fkey";
+            foreignKeyName: "advance_answer_sources_inbound_message_id_fkey";
             columns: ["inbound_message_id"];
             isOneToOne: false;
             referencedRelation: "inbound_messages";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advance_answer_drafts_org_id_fkey";
+            foreignKeyName: "advance_answer_sources_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advance_answer_drafts_updated_by_fkey";
+            foreignKeyName: "advance_answer_sources_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -6737,109 +6730,6 @@ export type Database = {
           },
         ];
       };
-      ai_intake_batches: {
-        Row: {
-          closed_at: string | null;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          file_count: number;
-          fulfillment_id: string | null;
-          id: string;
-          intake_kind: Database["app"]["Enums"]["ai_intake_kind"];
-          org_id: string;
-          project_id: string;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          closed_at?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          file_count: number;
-          fulfillment_id?: string | null;
-          id?: string;
-          intake_kind: Database["app"]["Enums"]["ai_intake_kind"];
-          org_id: string;
-          project_id: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          closed_at?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          file_count?: number;
-          fulfillment_id?: string | null;
-          id?: string;
-          intake_kind?: Database["app"]["Enums"]["ai_intake_kind"];
-          org_id?: string;
-          project_id?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "ai_intake_batches_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_fulfillment_id_fkey";
-            columns: ["fulfillment_id"];
-            isOneToOne: false;
-            referencedRelation: "fulfillments";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "gate_criteria_status";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_authority";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_billing";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "projects";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ai_intake_batches_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       ai_requests: {
         Row: {
           completed_at: string | null;
@@ -7014,7 +6904,6 @@ export type Database = {
           position: number;
           proposed_value: Json | null;
           refusal: string | null;
-          restricted_capability: string | null;
           source_excerpt: string | null;
           suggestion_id: string;
           updated_at: string;
@@ -7033,7 +6922,6 @@ export type Database = {
           position: number;
           proposed_value?: Json | null;
           refusal?: string | null;
-          restricted_capability?: string | null;
           source_excerpt?: string | null;
           suggestion_id: string;
           updated_at?: string;
@@ -7051,7 +6939,6 @@ export type Database = {
           position?: number;
           proposed_value?: Json | null;
           refusal?: string | null;
-          restricted_capability?: string | null;
           source_excerpt?: string | null;
           suggestion_id?: string;
           updated_at?: string;
@@ -11280,6 +11167,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "currencies";
             referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "billing_draws_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
           },
           {
             foreignKeyName: "billing_draws_invoice_id_fkey";
@@ -27207,6 +27101,13 @@ export type Database = {
             foreignKeyName: "invoice_lines_invoice_id_fkey";
             columns: ["invoice_id"];
             isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
             referencedRelation: "invoice_totals";
             referencedColumns: ["invoice_id"];
           },
@@ -27320,6 +27221,13 @@ export type Database = {
             foreignKeyName: "invoice_matches_invoice_id_fkey";
             columns: ["invoice_id"];
             isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
             referencedRelation: "invoice_totals";
             referencedColumns: ["invoice_id"];
           },
@@ -27427,6 +27335,13 @@ export type Database = {
             foreignKeyName: "invoice_state_transitions_invoice_id_fkey";
             columns: ["invoice_id"];
             isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_state_transitions_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
             referencedRelation: "invoice_totals";
             referencedColumns: ["invoice_id"];
           },
@@ -27469,6 +27384,7 @@ export type Database = {
           issued_on: string | null;
           org_id: string;
           payee_person_id: string | null;
+          printed_total_minor: number | null;
           project_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -27489,6 +27405,7 @@ export type Database = {
           issued_on?: string | null;
           org_id: string;
           payee_person_id?: string | null;
+          printed_total_minor?: number | null;
           project_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -27508,6 +27425,7 @@ export type Database = {
           issued_on?: string | null;
           org_id?: string;
           payee_person_id?: string | null;
+          printed_total_minor?: number | null;
           project_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -34678,6 +34596,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_applications_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
           },
           {
             foreignKeyName: "payment_applications_invoice_id_fkey";
@@ -42320,6 +42245,7 @@ export type Database = {
       };
       record_document: {
         Row: {
+          body: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -42333,6 +42259,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          body?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -42345,6 +42272,7 @@ export type Database = {
           version_label?: string | null;
         };
         Update: {
+          body?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -62806,6 +62734,13 @@ export type Database = {
             foreignKeyName: "invoice_matches_invoice_id_fkey";
             columns: ["invoice_id"];
             isOneToOne: false;
+            referencedRelation: "invoice_tie_out";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
             referencedRelation: "invoice_totals";
             referencedColumns: ["invoice_id"];
           },
@@ -62838,6 +62773,16 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      invoice_tie_out: {
+        Row: {
+          computed_total_minor: number | null;
+          invoice_id: string | null;
+          printed_total_minor: number | null;
+          residual_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       invoice_totals: {
         Row: {
@@ -65201,6 +65146,7 @@ export type Database = {
         Returns: string;
       };
       adopt_standard_library: { Args: { p_org_id: string }; Returns: Json };
+      advance_draft_scope: { Args: { p_recipient_id: string }; Returns: Json };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
       ai_allowance: {
         Args: { p_org_id: string };
@@ -65310,13 +65256,16 @@ export type Database = {
         };
         Returns: boolean;
       };
-      apply_contract_intake: { Args: { p_batch_id: string; p_groups: Json }; Returns: Json };
-      apply_drafted_advance_answer: {
-        Args: { p_source: Json; p_suggestion_id: string; p_values: Json };
-        Returns: string;
-      };
+      apply_contract_intake: { Args: { p_items: Json; p_project_id: string }; Returns: Json };
       apply_drafted_list: { Args: { p_items: Json; p_request_id: string }; Returns: Json };
-      apply_itinerary_intake: { Args: { p_batch_id: string; p_items: Json }; Returns: Json };
+      apply_invoice_line_suggestions: {
+        Args: { p_invoice_id: string; p_items: Json };
+        Returns: Json;
+      };
+      apply_itinerary_lines: {
+        Args: { p_fulfillment_id: string; p_items: Json; p_project_id: string };
+        Returns: Json;
+      };
       apply_sync_mutation: {
         Args: {
           p_args?: Json;
@@ -65425,6 +65374,7 @@ export type Database = {
           version: number;
         }[];
       };
+      aurora_intake_scope: { Args: { p_kind: string; p_project_id: string }; Returns: Json };
       authenticate_api_key: {
         Args: { p_secret: string };
         Returns: {
@@ -65989,7 +65939,6 @@ export type Database = {
         };
         Returns: boolean;
       };
-      close_ai_intake: { Args: { p_batch_id: string }; Returns: number };
       close_incident: { Args: { p_incident_id: string; p_signoff_note: string }; Returns: string };
       close_occupancy_counter: { Args: { p_counter_id: string }; Returns: string };
       commit_import_write: {
@@ -66302,6 +66251,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      contract_intake_options: { Args: { p_project_id: string }; Returns: Json };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
         Returns: {
@@ -66692,7 +66642,6 @@ export type Database = {
           plus_ones_admitted: number;
         }[];
       };
-      draftable_advance_sections: { Args: { p_recipient_id: string }; Returns: Json };
       drafted_list_is_empty: { Args: { p_kind: string; p_target_id: string }; Returns: boolean };
       edit_chat_message: { Args: { p_body: string; p_message_id: string }; Returns: string };
       effective_brand: {
@@ -67129,18 +67078,6 @@ export type Database = {
       };
       import_strong_key_match: { Args: { p_import_job_id: string; p_keys: Json }; Returns: string };
       inbound_email_org: { Args: { p_local_part: string }; Returns: string };
-      intake_party_candidates: {
-        Args: { p_batch_id: string; p_names: string[] };
-        Returns: {
-          already_booked: boolean;
-          candidate_id: string;
-          candidate_kind: string;
-          engagement_id: string;
-          name: string;
-          name_index: number;
-          similarity: number;
-        }[];
-      };
       integration_inbound_secrets_stored: {
         Args: { p_org_id: string };
         Returns: {
@@ -67202,14 +67139,12 @@ export type Database = {
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
       itinerary_traveler_candidates: {
-        Args: { p_batch_id: string; p_names: string[] };
+        Args: { p_project_id: string };
         Returns: {
+          display_name: string;
           engagement_id: string;
-          full_name: string;
-          name_index: number;
           person_id: string;
-          roster_entry_id: string;
-          similarity: number;
+          source: string;
         }[];
       };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
@@ -68013,7 +67948,6 @@ export type Database = {
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
       read_warehouse_credential: { Args: { p_destination_id: string }; Returns: string };
-      reads_pay_rates: { Args: { p_project_id: string }; Returns: boolean };
       reassign_offboarding_records: {
         Args: { p_offboarding_id: string; p_to_person_id: string };
         Returns: number;
@@ -68187,6 +68121,10 @@ export type Database = {
       record_domain_verification: {
         Args: { p_org_domain_id: string; p_verified: boolean };
         Returns: Database["app"]["Enums"]["domain_verification_state"];
+      };
+      record_drafted_advance_answer: {
+        Args: { p_suggestion_id: string; p_values?: Json };
+        Returns: string;
       };
       record_email_feedback: {
         Args: {
@@ -69480,15 +69418,6 @@ export type Database = {
           standard_count: number;
         }[];
       };
-      start_ai_intake: {
-        Args: {
-          p_file_count: number;
-          p_fulfillment_id?: string;
-          p_kind: Database["app"]["Enums"]["ai_intake_kind"];
-          p_project_id: string;
-        };
-        Returns: string;
-      };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -70107,15 +70036,14 @@ export type Database = {
       vendor_line_history: {
         Args: { p_descriptions: string[]; p_invoice_id: string };
         Returns: {
+          budget_line_id: string;
+          budget_line_name: string;
           currency_code: string;
           description: string;
           description_index: number;
+          invoice_number: string;
           issued_on: string;
-          line_number: number;
           quantity: number;
-          reference: string;
-          similarity: number;
-          source: string;
           unit_price_minor: number;
         }[];
       };
@@ -70258,6 +70186,7 @@ export type Database = {
       accounting_period_state: "Open" | "In Period" | "Closing" | "Closed" | "Audited" | "Archived";
       acquisition_kind: "Purchase" | "Rental";
       actor_kind: "Person" | "Service" | "System";
+      advance_answer_source_kind: "Project Inbox" | "File";
       advance_review_outcome: "Accepted" | "Returned";
       advance_section_kind:
         | "Text"
@@ -70282,7 +70211,6 @@ export type Database = {
       agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
       ai_feature:
         "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
-      ai_intake_kind: "Itineraries" | "Contracts and Riders";
       ai_request_outcome: "Pending" | "Answered" | "No Answer" | "Failed";
       ai_suggestion_state: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
       allocation_origin: "Requested" | "Assigned" | "Split";
@@ -76869,6 +76797,7 @@ export const Constants = {
       accounting_period_state: ["Open", "In Period", "Closing", "Closed", "Audited", "Archived"],
       acquisition_kind: ["Purchase", "Rental"],
       actor_kind: ["Person", "Service", "System"],
+      advance_answer_source_kind: ["Project Inbox", "File"],
       advance_review_outcome: ["Accepted", "Returned"],
       advance_section_kind: [
         "Text",
@@ -76895,7 +76824,6 @@ export const Constants = {
       ],
       agreement_state: ["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"],
       ai_feature: ["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"],
-      ai_intake_kind: ["Itineraries", "Contracts and Riders"],
       ai_request_outcome: ["Pending", "Answered", "No Answer", "Failed"],
       ai_suggestion_state: ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
       allocation_origin: ["Requested", "Assigned", "Split"],

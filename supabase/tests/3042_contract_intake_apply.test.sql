@@ -128,8 +128,8 @@ select throws_ok($$select app.apply_contract_intake((select id from world where 
 
 -- A payroll reader stores a fee on a Flat Fee row, which canon does not hold yet (a canon decision, ADR 0154).
 select pg_temp.as_platform();
-insert into xpms.rate_card (rate_card_id, role_code, worker_classification, pay_basis, arrangement, source_row, source_status, source_created_by, source_created_at, source_updated_at, flag, currency_code)
-  select 'LRC-TMP', t ->> 'role_code', t ->> 'worker_classification', 'Flat Fee', t ->> 'arrangement', 999999, 'Active', 'pgTAP', now(), now(), false, 'USD' from pg_temp.terms() t;
+insert into xpms.rate_card (rate_card_id, role_code, worker_classification, pay_basis, arrangement, overtime_rule_id, source_row, source_status, source_created_by, source_created_at, source_updated_at, flag, currency_code)
+  select 'LRC-999', t ->> 'role_code', t ->> 'worker_classification', 'Flat Fee', t ->> 'arrangement', (select rc.overtime_rule_id from xpms.rate_card rc limit 1), 999999, 'Active', 'pgTAP', now(), now(), false, 'USD' from pg_temp.terms() t;
 select pg_temp.as_user('alice');
 select pg_temp.request('r_alice', 'prj_a');
 select pg_temp.document('a1', 'r_alice', 'Contract');
@@ -156,11 +156,13 @@ select pg_temp.as_platform();
 create temp table restricted_file on commit drop as select d.id as document_id from app.engagement_documents d join app.engagements e on e.id = d.engagement_id where e.counterparty_id = pg_temp.id('cp_flat') and d.document_kind = 'Agreement';
 grant select on restricted_file to public;
 select pg_temp.as_user('carol');
-create temp table ticket as select * from app.begin_attachment_upload('app.engagement_documents', (select document_id from restricted_file), 'contract.pdf', 'application/pdf', 1000, null);
+create temp table ticket as select * from app.begin_attachment_upload('app.engagement_documents', (select document_id from restricted_file), 'contract.pdf', 'application/pdf', 1000);
 grant select on ticket to public;
+insert into storage.objects (bucket_id, name, metadata) select 'attachments', object_name, '{"size": 1000}' from ticket;
+select app.complete_attachment_upload((select attachment_version_id from ticket), repeat('ab', 32));
 select lives_ok($$update app.attachments set classification = 'Restricted' where id = (select attachment_id from ticket)$$, 'a reader raises the contract''s file to Restricted');
 select pg_temp.as_platform();
-update app.attachment_versions set scan_status = 'Clean', uploaded_at = now() where id = (select attachment_version_id from ticket);
+select app.record_attachment_scan((select attachment_version_id from ticket), true);
 select pg_temp.as_user('carol');
 select throws_like($$select app.record_file_download((select attachment_version_id from ticket))$$, '%download_restricted%', 'a download without data.export.restricted is refused');
 

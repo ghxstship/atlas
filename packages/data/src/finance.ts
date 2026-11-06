@@ -1345,7 +1345,6 @@ export async function createExpense(
         incurred_on: input.incurredOn,
         amount_minor: input.amountMinor,
         currency_code: input.currency,
-        printed_total_minor: input.printedTotalMinor ?? null,
       })
       .select("id")
       .single(),
@@ -1827,6 +1826,7 @@ export async function createInvoice(
         issued_on: input.issuedOn,
         due_on: input.dueOn,
         currency_code: input.currency,
+        printed_total_minor: input.printedTotalMinor ?? null,
       })
       .select("id")
       .single(),

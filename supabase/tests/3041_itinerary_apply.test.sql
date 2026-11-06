@@ -62,7 +62,6 @@ select ok(exists (select 1 from app.itinerary_traveler_candidates(pg_temp.id('pr
   'an engaged person is a candidate with their name and engagement');
 select ok(exists (select 1 from app.itinerary_traveler_candidates(pg_temp.id('prj_a')) c where c.source = 'Member'), 'project members are candidates');
 select ok(not exists (select 1 from app.itinerary_traveler_candidates(pg_temp.id('prj_a')) c where c.person_id = pg_temp.id('quinn')), 'someone off the project is not');
-select columns_are('app', 'itinerary_traveler_candidates', array['person_id', 'engagement_id', 'display_name', 'source']) where false;
 select pg_temp.as_platform();
 select is((select count(*)::int from app.work_detail_events where action like 'project_facts%'), (select n from fact_log_before), 'reading candidates writes no fact log row');
 select pg_temp.as_user('quinn');
@@ -107,8 +106,8 @@ select is((select fulfillment_id from app.travel_segments where person_id = pg_t
 select is((select suggestion_state::text from app.ai_suggestions where id = pg_temp.id('s1')), 'Applied', 'a kept line ends Applied');
 select ok((select applied_id from app.ai_suggestions where id = pg_temp.id('s1')) = (select id from app.travel_segments where person_id = pg_temp.id('ivy') and project_id = pg_temp.id('prj_a')), 'with its segment');
 select is((select suggestion_state::text from app.ai_suggestions where id = pg_temp.id('s3')), 'Proposed', 'an untouched line stays open');
-select is((select count(*)::int from app.activity_events e where e.event_type = 'travel_segment.created' and e.subject_id in (select id from app.travel_segments where project_id = pg_temp.id('prj_a'))), 2, 'travel_segment.created fires per row');
-select is((select count(*)::int from app.roster_travel_requests where project_id = pg_temp.id('prj_a')), 0, 'no roster travel request changes');
+select is((select count(*)::int from app.domain_events e where e.event_type = 'travel_segment.created' and e.subject_id in (select id from app.travel_segments where project_id = pg_temp.id('prj_a'))), 2, 'travel_segment.created fires per row');
+select is((select count(*)::int from app.roster_travel_requests), 0, 'no roster travel request changes');
 
 -- Duplicates --------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');

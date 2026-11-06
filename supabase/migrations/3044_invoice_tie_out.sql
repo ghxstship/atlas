@@ -127,7 +127,9 @@ begin
     begin
       v_suggestion_id := (v_item ->> 'suggestion_id')::uuid;
       select * into v_suggestion from app.ai_suggestions s where s.id = v_suggestion_id and s.deleted_at is null;
-      if v_suggestion.id is null or not private.ai_request_is_mine(v_suggestion.request_id) then
+      -- Row level security shows this row to its asker and to audit readers; app.transition_ai_suggestion
+      -- below refuses anyone but the asker, which rolls back the call.
+      if v_suggestion.id is null then
         raise exception using errcode = '42501', message = 'only the person who asked adds these lines';
       end if;
       if v_suggestion.operation_id <> 'invoiceLines.create' or v_suggestion_id = any (v_seen)
@@ -199,7 +201,7 @@ begin
 end;
 $$;
 
-comment on function app.apply_invoice_line_suggestions(uuid, jsonb) is 'Adds kept invoice lines read by Aurora (B15, ADR 0154). Security invoker, so row level security on app.invoice_lines and private.guard_invoice_line (invoice_locked, invoice_line_budget) decide. p_items lists 1 to 40 {suggestion_id, values: {description, quantity, unit_price_minor, budget_line_id}}: each the caller''s own (42501) Proposed, unexpired invoiceLines.create suggestion named once (aurora_intake_item_invalid). A line belongs to an invoice when the invoices.create suggestion of the same request is Applied with applied_id that invoice, refused aurora_invoice_lines_foreign otherwise, and that suggestion''s currency_code must equal the invoice''s (aurora_invoice_currency). Lines are numbered from max(line_number) + 1, each suggestion goes Proposed, Confirmed, Applied with its line, and the rest stay open. Every refusal names its line and rolls back the call. Returns {written: [{suggestion_id, id}]}. Calls no model and meters nothing.';
+comment on function app.apply_invoice_line_suggestions(uuid, jsonb) is 'Adds kept invoice lines read by Aurora (B15, ADR 0154). Security invoker, so row level security on app.invoice_lines and private.guard_invoice_line (invoice_locked, invoice_line_budget) decide. p_items lists 1 to 40 {suggestion_id, values: {description, quantity, unit_price_minor, budget_line_id}}: each the caller''s own (42501, through app.transition_ai_suggestion, which rolls back the call) Proposed, unexpired invoiceLines.create suggestion named once (aurora_intake_item_invalid). A line belongs to an invoice when the invoices.create suggestion of the same request is Applied with applied_id that invoice, refused aurora_invoice_lines_foreign otherwise, and that suggestion''s currency_code must equal the invoice''s (aurora_invoice_currency). Lines are numbered from max(line_number) + 1, each suggestion goes Proposed, Confirmed, Applied with its line, and the rest stay open. Every refusal names its line and rolls back the call. Returns {written: [{suggestion_id, id}]}. Calls no model and meters nothing.';
 
 revoke all on function app.vendor_line_history(uuid, text[]) from public, anon;
 revoke all on function app.apply_invoice_line_suggestions(uuid, jsonb) from public, anon;

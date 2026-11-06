@@ -199,8 +199,8 @@ select is((select source_excerpt from app.advance_answer_sources where advance_s
 select is((select suggestion_state::text from app.ai_suggestions where id = pg_temp.id('d_text')), 'Applied', 'the suggestion ends Applied');
 select is((select applied_id from app.ai_suggestions where id = pg_temp.id('d_text')), pg_temp.id('a_text'), 'with the answer');
 select ok((select count(*)::int from app.notifications where kind = 'advance_answer.recorded') > (select n from notices_before), 'the recipient side is notified');
-select is((select count(*)::int from app.notifications where kind = 'advance_answer.recorded' and person_id = pg_temp.id('victor') and subject_id = pg_temp.id('a_text')), 1, 'the account owner is told');
-select is((select count(*)::int from app.notifications where kind = 'advance_answer.recorded' and person_id = pg_temp.id('dave')), 0, 'never the actor');
+select is((select count(*)::int from app.notifications where kind = 'advance_answer.recorded' and recipient_person_id = pg_temp.id('victor') and subject_id = pg_temp.id('a_text')), 1, 'the account owner is told');
+select is((select count(*)::int from app.notifications where kind = 'advance_answer.recorded' and recipient_person_id = pg_temp.id('dave')), 0, 'never the actor');
 
 select pg_temp.as_user('dave');
 select throws_ok($$select app.record_drafted_advance_answer((select id from world where key = 'd_text'))$$,
@@ -226,8 +226,10 @@ select pg_temp.as_user('erin');
 select lives_ok($$update app.advance_submissions set review_outcome = 'Accepted' where id = (select id from world where key = 'a_text')$$, 'a second person can');
 
 -- Reading -----------------------------------------------------------------------------------------------------------------------
-select pg_temp.as_user('gina');
-select ok((select count(*) from app.advance_answer_sources where advance_submission_id = pg_temp.id('a_text')) = (case when pg_temp.id('prj_a') in (select private.project_ids_with('advancing.packet.read')) then 1 else 0 end), 'a packet reader reads the source, and no one else');
+select pg_temp.as_user('erin');
+select is((select count(*)::int from app.advance_answer_sources where advance_submission_id = pg_temp.id('a_text')), 1, 'a packet reader reads the source');
+select pg_temp.as_user('quinn');
+select is((select count(*)::int from app.advance_answer_sources where advance_submission_id = pg_temp.id('a_text')), 0, 'someone outside does not');
 select pg_temp.as_user('dave');
 select throws_ok($$insert into app.advance_answer_sources (advance_submission_id, source_kind, file_name, source_excerpt) values ((select id from world where key = 'a_text'), 'File', 'x.pdf', 'x')$$,
   '42501', null, 'nothing writes a source but the RPC');
