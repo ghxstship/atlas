@@ -204,9 +204,9 @@ test("a pack opens with the recipient's code, serves its items and stops when re
   await again.getByRole("button", { name: "Activity", exact: true }).click();
   const grid = again.getByRole("grid", { name: "Activity by recipient" });
   const activity = grid.getByRole("row").filter({ hasText: "Cleo Client" });
-  await expect(activity.getByRole("cell").nth(1)).toHaveText("2");
-  await expect(activity.getByRole("cell").nth(3)).toHaveText("1");
-  await expect(activity.getByRole("cell").nth(4)).toHaveText("1");
+  await expect(activity.getByRole("gridcell").nth(1)).toHaveText("2");
+  await expect(activity.getByRole("gridcell").nth(3)).toHaveText("1");
+  await expect(activity.getByRole("gridcell").nth(4)).toHaveText("1");
   await expect(
     again.getByText("Cleo Client acknowledged Site map on", { exact: false }),
   ).toBeVisible();

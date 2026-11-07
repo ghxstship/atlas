@@ -140,6 +140,6 @@ test("an agreement batch: template, preview, create, send, and the masked reader
   await expect(masked.getByText("This text holds a rate you cannot read.")).toBeVisible();
   await expect(masked.getByRole("link", { name: /PDF/ })).toHaveCount(0);
   expect(await reader.locator("main").innerText()).not.toMatch(/\b[0-9a-f]{64}\b/);
-  expect((await reader.goto(href))?.status()).toBe(404);
+  expect((await reader.request.get(href)).status()).toBe(404);
   await other.close();
 });

@@ -134,7 +134,7 @@ test("a registration page: open it, register, approve, and the person is on the 
   }
   // The decision reaches them: a notification with the outcome, and the page they registered on says so.
   const [decided] = await sql<{ outcome: string }>(
-    `select n.args ->> 'outcome' as outcome from app.notifications n
+    `select n.message_args ->> 'outcome' as outcome from app.notifications n
        join app.people p on p.id = n.recipient_person_id join auth.users u on u.id = p.user_id
       where u.email = $1 and n.kind = 'crew_registration.decided'`,
     [email],

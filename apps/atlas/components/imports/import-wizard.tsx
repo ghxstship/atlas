@@ -1043,11 +1043,31 @@ function UndoStep({
   const t = usePlatformT();
   const batch = detail.batches[0];
   if (!batch) return null;
+  // A row the commit passed over would otherwise leave no trace once the review step is gone.
+  const notWritten = detail.issues.filter((i) => i.state === "Skipped" || i.state === "Refused");
   return (
     <section aria-labelledby="undo-step" className="flex flex-col gap-12">
       <h2 id="undo-step" className="m-0 text-text-15 font-semibold">
         {batch.undoneAt ? t("imports.undo.doneTitle") : t("imports.undo.title")}
       </h2>
+      {notWritten.length > 0 ? (
+        <DataTable
+          caption={t("imports.issues.title")}
+          label={t("imports.issues.title")}
+          height="auto"
+          columns={[
+            { key: "row", label: t("imports.issues.row"), type: "number" },
+            { key: "state", label: t("imports.issues.state") },
+            { key: "cells", label: t("imports.issues.cells"), wrap: true },
+          ]}
+          rows={notWritten.map((i) => ({
+            id: i.id,
+            row: i.rowNumber,
+            state: t(`imports.rowStates.${i.state}`),
+            cells: reasonText(t, i.reason ?? ""),
+          }))}
+        />
+      ) : null}
       <p className="m-0 text-text-13">
         {t("imports.undo.summary", { written: batch.written, when: committedAt ?? "" })}
       </p>
