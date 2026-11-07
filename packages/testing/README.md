@@ -68,6 +68,19 @@ Two rules keep pages small:
 - A small hook or helper that lives in a module with heavy components drags them along. Give it its
   own module (`apps/atlas/components/home/alert-text.ts`, `components/activity/describe.ts`).
 
+## Interaction timing (Sections 11.10 and 11.11)
+
+`src/playwright.ts` measures how fast a journey's action shows on screen, from inside the page so the measure carries
+no round trip to the test runner. `watchFor(page, probe)` notes the first pointer or key press, then checks a
+described state (`src/interaction.ts`: a CSS selector, optional text, or its absence) on every animation frame and
+every DOM change, and answers when it first held, in epoch milliseconds comparable across browser contexts. With
+`{ after: otherProbe }` it counts the state only once another state has held, so a watch for a state that holds now
+(a label coming back) can start before the action.
+`expectAcknowledged(page, label, act, probe)` asserts the 100 ms acknowledgment of Section 11.10 rule 9 (or another
+budget), and `expectWithin` asserts a span measured another way; both keep the measure on the test as a `latency`
+annotation. `workflowTargets` holds the Section 11.11 targets the Atlas journeys time
+(`apps/atlas/e2e/a145-acknowledgment.spec.ts` and `a145-workflow-timing.spec.ts`).
+
 ## Test clock (late evening and month boundaries)
 
 The database runs in UTC, so its date is a day ahead of New York from 20:00 every evening, and on

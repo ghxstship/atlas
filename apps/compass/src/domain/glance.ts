@@ -83,7 +83,9 @@ export function widgetPayload(
         startsAt: Date.parse(s.startsAt),
         endsAt: Date.parse(s.endsAt),
       })),
-    cue: cue ? { label: cue.label, at: cue.at, project: cue.project } : null,
+    // A cue to be confirmed has no time to count down to: the widgets show its TBC label as text.
+    ...(cue?.tbc ? { noCue: cue.label } : {}),
+    cue: cue && !cue.tbc ? { label: cue.label, at: cue.at, project: cue.project } : null,
   };
 }
 
@@ -107,10 +109,12 @@ export function ongoingContent(
 ): OngoingContent | null {
   const cueLine =
     cue && cue.at >= nowMs - 3600_000
-      ? t("compass.glance.cueLine", {
-          cue: cue.label,
-          time: formatTime(new Date(cue.at).toISOString(), cue.zone),
-        })
+      ? cue.tbc
+        ? t("compass.glance.cueTitle", { cue: cue.label })
+        : t("compass.glance.cueLine", {
+            cue: cue.label,
+            time: formatTime(new Date(cue.at).toISOString(), cue.zone),
+          })
       : null;
   if (snapshot.state !== "out" && snapshot.onSince !== null) {
     const onBreak = snapshot.state === "break" && snapshot.breakSince !== null;
@@ -130,12 +134,14 @@ export function ongoingContent(
   if (cue && cueLine && cue.at - nowMs <= ONGOING_CUE_LEAD_MS) {
     return {
       title: t("compass.glance.cueTitle", { cue: cue.label }),
-      body: cue.project
-        ? t("compass.glance.cueBody", {
-            project: cue.project,
-            time: formatTime(new Date(cue.at).toISOString(), cue.zone),
-          })
-        : cueLine,
+      body: cue.tbc
+        ? (cue.project ?? cueLine)
+        : cue.project
+          ? t("compass.glance.cueBody", {
+              project: cue.project,
+              time: formatTime(new Date(cue.at).toISOString(), cue.zone),
+            })
+          : cueLine,
     };
   }
   return null;

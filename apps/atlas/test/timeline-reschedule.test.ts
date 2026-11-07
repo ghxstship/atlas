@@ -34,6 +34,8 @@ function move(recordId: string, isTarget: boolean, start: number, end: number): 
     isTarget,
     shiftStartDays: start,
     shiftEndDays: end,
+    shiftStartMinutes: 0,
+    shiftEndMinutes: 0,
     startsAt: null,
     endsAt: null,
     dueAt: null,

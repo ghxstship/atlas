@@ -29,6 +29,12 @@ export interface LiveChange {
   readonly table: string;
   readonly type: LiveChangeType;
   readonly id: string | null;
+  /**
+   * The row after an INSERT or UPDATE, as Realtime sent it to this subscriber under row level security, the
+   * latest one when a batch holds several changes to it. A page may show it before its reread confirms it
+   * (show mode's called cue); the reread stays the source of what the page shows.
+   */
+  readonly row?: Readonly<Record<string, unknown>>;
 }
 
 export type LiveListener = (changes: readonly LiveChange[]) => void;
@@ -321,10 +327,13 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
       // Already rereading everything.
     } else if (change.type === "RESYNC" || pending.length >= MAX_PENDING) {
       watcher.pending = [{ table: "*", type: "RESYNC", id: null }];
-    } else if (
-      !pending.some((c) => c.table === change.table && c.id === change.id && c.type === change.type)
-    ) {
-      pending.push(change);
+    } else {
+      const same = pending.findIndex(
+        (c) => c.table === change.table && c.id === change.id && c.type === change.type,
+      );
+      // One entry per row and kind of change, carrying the row as it last arrived.
+      if (same < 0) pending.push(change);
+      else if (change.row) pending[same] = change;
     }
     if (watcher.timer === null) {
       watcher.timer = clock.setTimeout(() => flush(watcher), watcher.batchMs);
@@ -336,8 +345,12 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
     const id = typeof row?.["id"] === "string" ? row["id"] : null;
     const type = (["INSERT", "UPDATE", "DELETE"] as const).find((t) => t === payload.eventType);
     if (!type) return;
+    const after = type !== "DELETE" && payload.new && Object.keys(payload.new).length > 0;
+    const change: LiveChange = after
+      ? { table: payload.table, type, id, row: payload.new as Record<string, unknown> }
+      : { table: payload.table, type, id };
     for (const watcher of watchers) {
-      if (watcher.keys.has(key)) enqueue(watcher, { table: payload.table, type, id });
+      if (watcher.keys.has(key)) enqueue(watcher, change);
     }
   };
 

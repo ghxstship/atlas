@@ -2,7 +2,7 @@
 
 import { Button, Sidebar, sidebarClass, sidebarItemClass, type NavItem } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useState, type FocusEvent } from "react";
+import { useOptimistic, useState, useTransition, type FocusEvent } from "react";
 import type { NavLinkModel } from "@/lib/shell/nav-model";
 import { onDemand, useOnDemand } from "./on-demand";
 
@@ -43,6 +43,12 @@ export function SidebarFavorites({
 }) {
   const t = useTranslations() as unknown as (key: string) => string;
   const [error, setError] = useState<string | null>(null);
+  // Pin page and Unpin page answer at once (Section 11.10 rule 9); the refreshed Favorites confirm it. A press flips
+  // what the button shows, so a second press before the first answer undoes it, as the label says: the server
+  // actions run one after another, and the second toggle reads the first one's result.
+  const pinnedHere = favorites.some((f) => f.href.split("?")[0] === pathname);
+  const [pinned, setPinned] = useOptimistic(pinnedHere);
+  const [, startPin] = useTransition();
   // Null until the pointer or focus reaches the Favorites; then the address of the favorite focused, if any, kept
   // up to date until the list that moves takes over, so the favorite focused at that moment keeps the focus.
   const [reached, setReached] = useState<{ readonly focus: string | null } | null>(null);
@@ -67,15 +73,16 @@ export function SidebarFavorites({
           <Button
             size="sm"
             variant="ghost"
-            onClick={async () => {
-              const peek = new URLSearchParams(window.location.search).get("peek");
-              const result = await (await reorder.load()).toggleFavorite(org, pathname, peek);
-              setError(result.error ? t(`settings.errors.${result.error}`) : null);
-            }}
+            onClick={() =>
+              startPin(async () => {
+                setPinned(!pinned);
+                const peek = new URLSearchParams(window.location.search).get("peek");
+                const result = await (await reorder.load()).toggleFavorite(org, pathname, peek);
+                setError(result.error ? t(`settings.errors.${result.error}`) : null);
+              })
+            }
           >
-            {favorites.some((f) => f.href.split("?")[0] === pathname)
-              ? t("settings.favorites.unpin")
-              : t("settings.favorites.pin")}
+            {pinned ? t("settings.favorites.unpin") : t("settings.favorites.pin")}
           </Button>
         </div>
         {error ? (

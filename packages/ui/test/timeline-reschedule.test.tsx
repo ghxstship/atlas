@@ -1,7 +1,13 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, createEvent, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { Timeline, type TimelineLink, type TimelineProps } from "../src/index.ts";
+import {
+  dayAtPointer,
+  RECORD_MIME,
+  Timeline,
+  type TimelineLink,
+  type TimelineProps,
+} from "../src/index.ts";
 import {
   criticalRows,
   planChange,
@@ -413,5 +419,43 @@ describe("Timeline rescheduling", () => {
     expect(preview.textContent).toContain("B-3 moves to June 7 through June 7.");
     expect(preview.textContent).toContain("The dependencies are circular");
     expect(screen.getByRole("button", { name: "Apply" })).toHaveProperty("disabled", true);
+  });
+});
+
+describe("dropping a record on a day (P8)", () => {
+  it("maps the pointer to a day from the inline start, mirrored right to left", () => {
+    const rect = { left: 100, right: 100 + 14 * 32 };
+    expect(dayAtPointer(100, rect, 32, 14, false)).toBe(0);
+    expect(dayAtPointer(100 + 32 * 3 + 5, rect, 32, 14, false)).toBe(3);
+    expect(dayAtPointer(rect.right - 1, rect, 32, 14, true)).toBe(0);
+    expect(dayAtPointer(rect.right - 32 * 3 - 5, rect, 32, 14, true)).toBe(3);
+    // Outside the grid it stays on the first or last day.
+    expect(dayAtPointer(0, rect, 32, 14, false)).toBe(0);
+    expect(dayAtPointer(9999, rect, 32, 14, false)).toBe(13);
+  });
+
+  it("reports the day and payload of a record dropped on the grid, and ignores other drags", () => {
+    const onDayDrop = vi.fn();
+    const { container } = render(
+      <Timeline label="Build schedule" days={days} rows={[]} onDayDrop={onDayDrop} />,
+    );
+    const grid = container.querySelector<HTMLElement>('[style*="inline-size: 448px"]');
+    if (!grid) throw new Error("the day grid is drawn");
+    grid.getBoundingClientRect = () => ({ left: 0, right: 448 }) as DOMRect;
+    const data = (types: Record<string, string>) => ({
+      types: Object.keys(types),
+      getData: (type: string) => types[type] ?? "",
+      dropEffect: "none",
+    });
+    // jsdom has no DragEvent, so the pointer position is set on the event by hand.
+    const drop = (types: Record<string, string>) => {
+      const event = createEvent.drop(grid, { dataTransfer: data(types) });
+      Object.defineProperty(event, "clientX", { value: 70 });
+      fireEvent(grid, event);
+    };
+    drop({ "text/plain": "x" });
+    expect(onDayDrop).not.toHaveBeenCalled();
+    drop({ [RECORD_MIME]: "rec-1" });
+    expect(onDayDrop).toHaveBeenCalledWith(2, "rec-1");
   });
 });

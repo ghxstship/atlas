@@ -16,6 +16,13 @@ name: field-run-of-show
 - assertVisible: "Walk-in Music Out"
 - assertVisible:
     id: "next-cue-countdown"
+# Pick a department once: the current and next cue cards show its call (ADR 0131).
+- tapOn:
+    id: "show-department-lighting"
+- assertVisible:
+    id: "your-call-next"
+- tapOn:
+    id: "show-department-all"
 - tapOn:
     id: "show-mode"
 - assertVisible: "Exit Show Mode"

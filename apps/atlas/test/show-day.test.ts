@@ -29,6 +29,7 @@ const run = (over: Partial<RunOfShow>): RunOfShow => ({
   showDate: "2027-06-05",
   cueCount: 0,
   calledCount: 0,
+  curfewAt: null,
   ...over,
 });
 const cue = (over: Partial<ShowDayCue>): ShowDayCue => ({

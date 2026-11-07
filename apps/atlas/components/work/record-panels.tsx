@@ -6,6 +6,7 @@ import type {
   ChecklistItem,
   ExtensionValues,
   PersonRef,
+  RecordField,
   RecordSummary,
   Recurrence,
   ScopeNodeRef,
@@ -28,6 +29,16 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
+import { ConflictDialog } from "@/components/undo/conflict-dialog";
+import {
+  changedFields,
+  formBefore,
+  propertyEdit,
+  softDelete,
+  stateChange,
+  toggle,
+  type FieldValue,
+} from "@/components/undo/entries";
 import type { ActionResult } from "./action-result";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import {
@@ -35,16 +46,20 @@ import {
   assignAction,
   checkItemAction,
   removeChecklistItemAction,
+  replaceRecurrenceAction,
+  restoreAssignmentAction,
+  restoreChecklistItemAction,
   restoreRecordAction,
-  saveExtensionAction,
+  saveExtensionFieldsAction,
+  saveRecordFieldsAction,
   setRecurrenceAction,
   transitionRecordAction,
   trashRecordAction,
   unassignAction,
-  updateRecordAction,
   watchAction,
 } from "./actions";
-import { fromLocalInput, toLocalInput } from "./format";
+import { formatWhen, fromLocalInput, toLocalInput } from "./format";
+import { useVersionedEdit } from "./use-versioned-edit";
 import { duplicateRecordAction } from "./work-order-actions";
 import { describeRrule } from "@/lib/work/recurrence-text";
 
@@ -56,6 +71,58 @@ import { describeRrule } from "@/lib/work/recurrence-text";
  */
 
 // State moves ---------------------------------------------------------------------------------------------
+
+/** An action's outcome as the undo stack reads it: the catalog sentence when it was refused. */
+function useUndoOutcome() {
+  const t = useCopy("work");
+  return (result: ActionResult): UndoResult =>
+    result.ok ? { ok: true } : { ok: false, message: t(`errors.${result.error.key}`) };
+}
+
+/**
+ * Puts a record's move on the undo stack (Section 11.7): undo moves it back, compare-and-set on the state it
+ * moved to, and names the blocker or replan reason again when it goes back to Blocked or Deferred; redo makes the
+ * move again with its own reason. The move's reason is the record ledger's: undoing writes its own entry.
+ */
+export function useStateUndo(org: string) {
+  const t = useCopy("work");
+  const outcome = useUndoOutcome();
+  return (
+    record: RecordSummary,
+    next: string,
+    move: { reason: string; blockerText?: string | null; replanReason?: string | null },
+  ) =>
+    undoStack.push(
+      stateChange({
+        label: t("undo.moved", { key: record.key, state: t(`states.${next}`) }),
+        from: record.state,
+        to: next,
+        move: async (expected, target) => {
+          const back = target === record.state;
+          return outcome(
+            await transitionRecordAction(org, {
+              recordId: record.id,
+              expected,
+              next: target,
+              reason: back ? t("undo.reason") : move.reason,
+              blockerText:
+                target === "Blocked"
+                  ? back
+                    ? record.blockerText
+                    : (move.blockerText ?? null)
+                  : null,
+              replanReason:
+                target === "Deferred"
+                  ? back
+                    ? record.replanReason
+                    : (move.replanReason ?? null)
+                  : null,
+            }),
+          );
+        },
+      }),
+    );
+}
 
 /** The states a record may move to, as buttons that open the move form. */
 export function TransitionControls({
@@ -74,7 +141,7 @@ export function TransitionControls({
   }
   return (
     <div className="flex flex-col gap-8">
-      <h3 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h3>
+      <h2 className="m-0 text-label-13 font-semibold">{t("transition.title")}</h2>
       {/* The record.state shortcut focuses the first move, so the next Enter or Tab picks one. */}
       <div data-shortcut="record.state" data-shortcut-focus="" className="flex flex-wrap gap-6">
         {next.map((state) => (
@@ -104,6 +171,7 @@ export function TransitionDialog({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const pushUndo = useStateUndo(org);
   const [reason, setReason] = useState("");
   const [blocker, setBlocker] = useState("");
   const [replan, setReplan] = useState("");
@@ -138,7 +206,14 @@ export function TransitionDialog({
                     blockerText: needsBlocker ? blocker : null,
                     replanReason: needsReplan ? replan : null,
                   }),
-                onClose,
+                () => {
+                  pushUndo(record, next, {
+                    reason,
+                    blockerText: needsBlocker ? blocker : null,
+                    replanReason: needsReplan ? replan : null,
+                  });
+                  onClose();
+                },
               )
             }
           >
@@ -179,7 +254,64 @@ export function TransitionDialog({
 
 // Editing ------------------------------------------------------------------------------------------------
 
-/** Edits the record's shared fields. From Scheduled onward, date changes ask for a replan reason. */
+/** The properties the edit form saves, as the record holds them. */
+type RecordFieldValues = Record<RecordField, string | null>;
+
+function fieldsOf(record: RecordSummary): RecordFieldValues {
+  return {
+    title: record.title,
+    subtype: record.subtype,
+    ownerId: record.ownerId,
+    accountableId: record.accountableId,
+    scopeNodeId: record.scopeNodeId,
+    phaseCode: record.phaseCode,
+    startsAt: record.startsAt,
+    // Text, as every property is here: "true" or "false" (saveRecordFields writes the boolean).
+    startTbc: String(record.startTbc),
+    endsAt: record.endsAt,
+    dueAt: record.dueAt,
+  };
+}
+
+/** The form's text for each property: empty for none, dates as local input values in the record's zone. */
+function draftOf(
+  values: Partial<RecordFieldValues>,
+  tz: string,
+): Partial<Record<RecordField, string>> {
+  const out: Partial<Record<RecordField, string>> = {};
+  for (const [field, value] of Object.entries(values) as [RecordField, string | null][]) {
+    out[field] =
+      field === "startsAt" || field === "endsAt" || field === "dueAt"
+        ? toLocalInput(value, tz)
+        : (value ?? "");
+  }
+  return out;
+}
+
+/** The label key of each property under work.fields. */
+const FIELD_LABELS: Record<RecordField, string> = {
+  title: "title",
+  subtype: "subtype",
+  ownerId: "owner",
+  accountableId: "accountable",
+  scopeNodeId: "scope",
+  phaseCode: "phase",
+  startsAt: "starts",
+  startTbc: "startTbc",
+  endsAt: "ends",
+  dueAt: "due",
+};
+
+/** Whether a save writes a date: it can carry a replan reason and is a step of the Schedule funnel. */
+const changesDates = (set: Partial<RecordFieldValues>) =>
+  "startsAt" in set || "endsAt" in set || "dueAt" in set;
+
+/**
+ * Edits the record's shared fields. From Scheduled onward, date changes ask for a replan reason. A save sends only
+ * what changed, against the version the form was filled from (Section 11.7): it goes on the undo stack, and a save
+ * over someone else's change to the same field opens the mine-or-theirs choice. While nothing is typed, the form
+ * follows the record as it changes (a live update, an undo).
+ */
 export function EditRecordForm({
   org,
   record,
@@ -198,20 +330,93 @@ export function EditRecordForm({
   logsReplans: boolean;
 }) {
   const t = useCopy("work");
+  const locale = useLocale();
   const tz = record.timeZone ?? record.projectTimeZone;
-  const { pending, error, run } = useAction();
   const [saved, setSaved] = useState(false);
-  const [title, setTitle] = useState(record.title);
-  const [subtype, setSubtype] = useState(record.subtype ?? "");
-  const [owner, setOwner] = useState(record.ownerId ?? "");
-  const [accountable, setAccountable] = useState(record.accountableId ?? "");
-  const [scope, setScope] = useState(record.scopeNodeId ?? "");
-  const [phase, setPhase] = useState(record.phaseCode ?? "");
+  // The record as the form was filled from it: the values a save started from, and its version.
+  const [base, setBase] = useState({ fields: fieldsOf(record), version: record.updatedAt });
+  const [draft, setDraft] = useState(
+    () => draftOf(fieldsOf(record), tz) as Record<RecordField, string>,
+  );
   const [replan, setReplan] = useState("");
+  const valuesOf = (d: Record<RecordField, string>): RecordFieldValues => ({
+    title: d.title,
+    subtype: d.subtype || null,
+    ownerId: d.ownerId || null,
+    accountableId: d.accountableId || null,
+    scopeNodeId: d.scopeNodeId || null,
+    phaseCode: d.phaseCode || null,
+    startsAt: fromLocalInput(d.startsAt, tz),
+    startTbc: d.startsAt !== "" && d.startTbc === "true" ? "true" : "false",
+    endsAt: fromLocalInput(d.endsAt, tz),
+    dueAt: fromLocalInput(d.dueAt, tz),
+  });
+  const after = valuesOf(draft);
+  // Dates the person did not touch compare equal even when the row holds seconds the inputs cannot show.
+  const before = formBefore(
+    base.fields,
+    valuesOf(draftOf(base.fields, tz) as Record<RecordField, string>),
+    after,
+  );
+  const dirty = changedFields(before, after).keys.length > 0;
+  const edit = useVersionedEdit<RecordFieldValues>({
+    label: t("undo.edited", { key: record.key }),
+    save: async ({ set, expect, version, undoing }) => {
+      const dates = changesDates(set);
+      const result = await saveRecordFieldsAction(org, record.id, {
+        set,
+        expect,
+        version,
+        ...(!undoing && logsReplans && replan.trim() !== "" && dates
+          ? { replanReason: replan }
+          : {}),
+      });
+      // A saved date change completes the Schedule funnel (A146); an undo is not a step of it.
+      if (result.ok && !undoing && dates) emitWorkflow("atlas.schedule:done");
+      return result;
+    },
+    onSaved: ({ after: written, version }) => {
+      setSaved(true);
+      setReplan("");
+      setBase((b) => ({ fields: { ...b.fields, ...written }, version: version ?? b.version }));
+    },
+  });
+  if (record.updatedAt !== base.version && !dirty && !edit.pending && !edit.conflict) {
+    setBase({ fields: fieldsOf(record), version: record.updatedAt });
+    setDraft(draftOf(fieldsOf(record), tz) as Record<RecordField, string>);
+  }
+  const set = (field: RecordField, value: string) => {
+    setSaved(false);
+    setDraft((d) => ({ ...d, [field]: value }));
+  };
   const personOptions = [
     { value: "", label: t("values.unassigned") },
     ...people.map((p) => ({ value: p.personId, label: p.name ?? t("values.unnamed") })),
   ];
+  const show = (field: RecordField, value: string | null | undefined): string => {
+    if (value === null || value === undefined || value === "") return t("values.notSet");
+    switch (field) {
+      case "subtype":
+        return t(`subtypes.${record.kind}.${value}`);
+      case "ownerId":
+      case "accountableId":
+        return people.find((p) => p.personId === value)?.name ?? t("values.unnamed");
+      case "scopeNodeId":
+        return scopeNodes.find((n) => n.id === value)?.name ?? value;
+      case "phaseCode": {
+        const phase = phases.find((p) => p.value === value);
+        return phase ? t("values.gate", { gate: phase.gate, name: phase.label }) : value;
+      }
+      case "startTbc":
+        return t(value === "true" ? "values.yes" : "values.no");
+      case "startsAt":
+      case "endsAt":
+      case "dueAt":
+        return formatWhen(value, locale, tz, { dateStyle: "medium", timeStyle: "short" }) ?? value;
+      default:
+        return value;
+    }
+  };
   return (
     <form
       aria-label={t("edit.title")}
@@ -219,66 +424,32 @@ export function EditRecordForm({
       onSubmit={(e) => {
         e.preventDefault();
         setSaved(false);
-        // Dates are read from the form: native date inputs keep their own value.
-        const form = new FormData(e.currentTarget);
-        const value = (name: string) => {
-          const v = form.get(name);
-          return typeof v === "string" ? v : "";
-        };
-        const starts = value("startsAt");
-        const ends = value("endsAt");
-        const due = value("dueAt");
-        const datesChanged =
-          starts !== toLocalInput(record.startsAt, tz) ||
-          ends !== toLocalInput(record.endsAt, tz) ||
-          due !== toLocalInput(record.dueAt, tz);
         // A date change is the Schedule funnel's step, and its save completes it (A146).
-        if (datesChanged) emitWorkflow("atlas.schedule:step1");
-        run(
-          () =>
-            updateRecordAction(org, record.id, {
-              title,
-              subtype: subtype || null,
-              ownerId: owner || null,
-              accountableId: accountable || null,
-              scopeNodeId: scope || null,
-              phaseCode: phase || null,
-              startsAt: fromLocalInput(starts, tz),
-              endsAt: fromLocalInput(ends, tz),
-              dueAt: fromLocalInput(due, tz),
-              ...(logsReplans && datesChanged && replan.trim() !== ""
-                ? { replanReason: replan }
-                : {}),
-            }),
-          () => {
-            setSaved(true);
-            setReplan("");
-            if (datesChanged) emitWorkflow("atlas.schedule:done");
-          },
-        );
+        if (changesDates(changedFields(before, after).after)) emitWorkflow("atlas.schedule:step1");
+        edit.submit(before, after, base.version);
       }}
     >
       <h3 className="m-0 text-label-13 font-semibold">{t("edit.title")}</h3>
-      <ActionErrorAlert error={error} />
+      <ActionErrorAlert error={edit.error} />
       <Input
         id="edit-title"
         data-shortcut="record.edit-title"
         label={t("fields.title")}
         help={t("fields.titleHelp", { kind: t(`kinds.${record.kind}`) })}
-        value={title}
+        value={draft.title}
         width="100%"
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => set("title", e.target.value)}
       />
       {subtypes.length > 0 ? (
         <Select
           id="edit-subtype"
           label={t("fields.subtype")}
-          value={subtype}
+          value={draft.subtype}
           options={[
             { value: "", label: t("values.none") },
             ...subtypes.map((s) => ({ value: s, label: t(`subtypes.${record.kind}.${s}`) })),
           ]}
-          onChange={(e) => setSubtype(e.target.value)}
+          onChange={(e) => set("subtype", e.target.value)}
         />
       ) : null}
       <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
@@ -286,15 +457,15 @@ export function EditRecordForm({
           <Select
             id="edit-owner"
             label={t("fields.owner")}
-            value={owner}
+            value={draft.ownerId}
             options={personOptions}
-            onChange={(e) => setOwner(e.target.value)}
+            onChange={(e) => set("ownerId", e.target.value)}
           />
         </div>
         <Select
           id="edit-phase"
           label={t("fields.phase")}
-          value={phase}
+          value={draft.phaseCode}
           options={[
             { value: "", label: t("values.none") },
             ...phases.map((p) => ({
@@ -302,21 +473,29 @@ export function EditRecordForm({
               label: t("values.gate", { gate: p.gate, name: p.label }),
             })),
           ]}
-          onChange={(e) => setPhase(e.target.value)}
+          onChange={(e) => set("phaseCode", e.target.value)}
         />
         <Input
           id="edit-starts"
           type="datetime-local"
           label={t("fields.starts")}
           name="startsAt"
-          defaultValue={toLocalInput(record.startsAt, tz)}
+          value={draft.startsAt}
+          onChange={(e) => set("startsAt", e.target.value)}
         />
         <Input
           id="edit-ends"
           type="datetime-local"
           label={t("fields.ends")}
           name="endsAt"
-          defaultValue={toLocalInput(record.endsAt, tz)}
+          value={draft.endsAt}
+          onChange={(e) => set("endsAt", e.target.value)}
+        />
+        <Checkbox
+          label={t("fields.startTbc")}
+          checked={draft.startsAt !== "" && draft.startTbc === "true"}
+          disabled={draft.startsAt === ""}
+          onChange={(e) => set("startTbc", String(e.target.checked))}
         />
       </div>
       <MoreFields>
@@ -324,26 +503,27 @@ export function EditRecordForm({
           <Select
             id="edit-accountable"
             label={t("fields.accountable")}
-            value={accountable}
+            value={draft.accountableId}
             options={personOptions}
-            onChange={(e) => setAccountable(e.target.value)}
+            onChange={(e) => set("accountableId", e.target.value)}
           />
           <Select
             id="edit-scope"
             label={t("fields.scope")}
-            value={scope}
+            value={draft.scopeNodeId}
             options={[
               { value: "", label: t("values.none") },
               ...scopeNodes.map((n) => ({ value: n.id, label: n.name })),
             ]}
-            onChange={(e) => setScope(e.target.value)}
+            onChange={(e) => set("scopeNodeId", e.target.value)}
           />
           <Input
             id="edit-due"
             type="datetime-local"
             label={t("fields.due")}
             name="dueAt"
-            defaultValue={toLocalInput(record.dueAt, tz)}
+            value={draft.dueAt}
+            onChange={(e) => set("dueAt", e.target.value)}
           />
         </div>
       </MoreFields>
@@ -358,7 +538,7 @@ export function EditRecordForm({
         />
       ) : null}
       <div className="flex items-center gap-12">
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={edit.pending}>
           {t("actions.save")}
         </Button>
         {saved ? (
@@ -367,6 +547,23 @@ export function EditRecordForm({
           </p>
         ) : null}
       </div>
+      {edit.conflict ? (
+        <ConflictDialog
+          subject={record.key}
+          pending={edit.pending}
+          rows={edit.conflict.clashing.map((field) => ({
+            field,
+            label: t(`fields.${FIELD_LABELS[field]}`),
+            mine: show(field, edit.conflict?.mine[field]),
+            theirs: show(field, edit.conflict?.theirs[field]),
+          }))}
+          onKeepMine={edit.keepMine}
+          onTakeTheirs={() => {
+            const theirs = edit.takeTheirs();
+            setDraft((d) => ({ ...d, ...draftOf(theirs, tz) }));
+          }}
+        />
+      ) : null}
     </form>
   );
 }
@@ -386,8 +583,35 @@ export function ChecklistEditor({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const outcome = useUndoOutcome();
   const [label, setLabel] = useState("");
   const done = items.filter((i) => i.checkedAt !== null).length;
+  // Checking an item goes on the undo stack (Section 11.7); undo sets it back.
+  const check = (item: ChecklistItem, checked: boolean) =>
+    run(
+      () => checkItemAction(org, item.id, checked),
+      () =>
+        undoStack.push(
+          toggle({
+            label: t(checked ? "undo.checked" : "undo.unchecked", { label: item.label }),
+            after: checked,
+            set: async (value) => outcome(await checkItemAction(org, item.id, value)),
+          }),
+        ),
+    );
+  // Removing an item goes on the undo stack too; undo brings the same item back, tick and all.
+  const remove = (item: ChecklistItem) =>
+    run(
+      () => removeChecklistItemAction(org, item.id),
+      () =>
+        undoStack.push(
+          softDelete({
+            label: t("undo.itemRemoved", { label: item.label }),
+            restore: async () => outcome(await restoreChecklistItemAction(org, recordId, item.id)),
+            remove: async () => outcome(await removeChecklistItemAction(org, item.id)),
+          }),
+        ),
+    );
   return (
     <section aria-labelledby={`checklist-${recordId}`} className="flex flex-col gap-8">
       <h3 id={`checklist-${recordId}`} className="m-0 text-label-13 font-semibold">
@@ -411,13 +635,13 @@ export function ChecklistEditor({
                 label={item.label}
                 checked={item.checkedAt !== null}
                 disabled={!canEdit || pending}
-                onChange={(e) => run(() => checkItemAction(org, item.id, e.target.checked))}
+                onChange={(e) => check(item, e.target.checked)}
               />
               {canEdit ? (
                 <IconButton
                   icon="X"
                   label={t("checklist.remove", { label: item.label })}
-                  onClick={() => run(() => removeChecklistItemAction(org, item.id))}
+                  onClick={() => remove(item)}
                 />
               ) : null}
             </li>
@@ -467,8 +691,22 @@ export function AssignmentsEditor({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const outcome = useUndoOutcome();
   const [choice, setChoice] = useState("");
   const assigned = new Set(assignments.map((a) => a.membershipId));
+  // Removing an assignee goes on the undo stack (Section 11.7); undo brings the same assignment back.
+  const unassign = (a: Assignment) =>
+    run(
+      () => unassignAction(org, a.id),
+      () =>
+        undoStack.push(
+          softDelete({
+            label: t("undo.unassigned", { name: a.name ?? t("values.unnamed") }),
+            restore: async () => outcome(await restoreAssignmentAction(org, a.id)),
+            remove: async () => outcome(await unassignAction(org, a.id)),
+          }),
+        ),
+    );
   const available = people.filter((p) => !assigned.has(p.membershipId));
   return (
     <section aria-labelledby={`assignees-${recordId}`} className="flex flex-col gap-8">
@@ -490,7 +728,7 @@ export function AssignmentsEditor({
                 <IconButton
                   icon="X"
                   label={t("assignees.remove", { name: a.name ?? t("values.unnamed") })}
-                  onClick={() => run(() => unassignAction(org, a.id))}
+                  onClick={() => unassign(a)}
                 />
               ) : null}
             </li>
@@ -572,6 +810,7 @@ export function RecurrenceForm({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const outcome = useUndoOutcome();
   const parts = new Map(
     (recurrence?.rrule ?? "").split(";").map((p) => p.split("=") as [string, string]),
   );
@@ -610,7 +849,38 @@ export function RecurrenceForm({
           className="flex flex-col gap-8"
           onSubmit={(e) => {
             e.preventDefault();
-            run(() => setRecurrenceAction(org, { recordId: record.id, rrule, timeZone: tz }));
+            const before = {
+              rrule: recurrence?.rrule ?? null,
+              timeZone: recurrence?.timeZone ?? tz,
+              untilAt: recurrence?.untilAt ?? null,
+            };
+            const after = { rrule, timeZone: tz, untilAt: null };
+            run(
+              () => setRecurrenceAction(org, { recordId: record.id, rrule, timeZone: tz }),
+              () => {
+                if (before.rrule === after.rrule) return;
+                // A recurrence edit goes on the undo stack (Section 11.7): undo puts the rule back while the
+                // record still has the one this edit set.
+                undoStack.push(
+                  propertyEdit({
+                    label: t("undo.recurrence", { key: record.key }),
+                    before,
+                    after,
+                    save: async (set, expect) =>
+                      outcome(
+                        await replaceRecurrenceAction(org, {
+                          recordId: record.id,
+                          from: expect.rrule,
+                          to:
+                            set.rrule === null
+                              ? null
+                              : { rrule: set.rrule, timeZone: set.timeZone, untilAt: set.untilAt },
+                        }),
+                      ),
+                  }),
+                );
+              },
+            );
           }}
         >
           <div className="flex flex-wrap items-end gap-8">
@@ -692,7 +962,11 @@ export interface KindField {
   readonly currencyColumn?: string;
 }
 
-/** Edits the kind's own attributes (the record's 1:1 extension row). */
+/**
+ * Edits the kind's own attributes (the record's 1:1 extension row). A save sends only the attributes that changed
+ * and the values they held (Section 11.7): it goes on the undo stack, and a save over someone else's change to the
+ * same attribute opens the mine-or-theirs choice. While nothing is typed, the form follows the record.
+ */
 export function ExtensionForm({
   org,
   record,
@@ -716,40 +990,101 @@ export function ExtensionForm({
     currencies.find((c) => c.code === (typeof currency === "string" ? currency : ""))?.exponent ??
     (f.currencyColumn ? 2 : 0);
   const tz = record.timeZone ?? record.projectTimeZone;
-  const { pending, error, run } = useAction();
   const [saved, setSaved] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string | boolean>>(() =>
+  const draftFrom = (from: ExtensionValues): Record<string, string | boolean> =>
     Object.fromEntries(
       fields.map((f) => {
-        const v = values[f.column];
+        const v = from[f.column];
         if (f.type === "boolean") return [f.column, v === true];
         if (f.type === "datetime")
           return [f.column, toLocalInput(typeof v === "string" ? v : null, tz)];
         if (f.type === "money") {
-          const exp = exponentFor(f, f.currencyColumn ? values[f.currencyColumn] : null);
+          const exp = exponentFor(f, f.currencyColumn ? from[f.currencyColumn] : null);
           return [f.column, typeof v === "number" ? String(v / 10 ** exp) : ""];
         }
         return [f.column, v === null || v === undefined ? "" : String(v)];
       }),
-    ),
-  );
-  if (fields.length === 0) return null;
+    );
+  // The attributes as the form was filled from them: what a save started from.
+  const [base, setBase] = useState<ExtensionValues>(values);
+  const [draft, setDraft] = useState<Record<string, string | boolean>>(() => draftFrom(values));
   const label = (column: string) => t(`extension.${column}`);
-  const set = (column: string, value: string | boolean) =>
+  const set = (column: string, value: string | boolean) => {
+    setSaved(false);
     setDraft((d) => ({ ...d, [column]: value }));
-  const toValue = (f: KindField): string | number | boolean | null => {
-    const v = draft[f.column];
+  };
+  const toValue = (f: KindField, from: Record<string, string | boolean> = draft): FieldValue => {
+    const v = from[f.column];
     if (f.type === "boolean") return v === true;
     if (typeof v !== "string" || v.trim() === "") return null;
     if (f.type === "number") return Number(v);
     if (f.type === "money") {
-      const exp = exponentFor(f, f.currencyColumn ? draft[f.currencyColumn] : null);
+      const exp = exponentFor(f, f.currencyColumn ? from[f.currencyColumn] : null);
       return Math.round(Number(v) * 10 ** exp);
     }
     if (f.type === "datetime") return fromLocalInput(v, tz);
     return v.trim();
   };
   const editable = fields.filter((f) => f.type !== "readonly");
+  const after = Object.fromEntries(editable.map((f) => [f.column, toValue(f)]));
+  // An attribute the person did not touch compares equal even where the form shows it differently (an unset
+  // checkbox reads as unchecked); one they changed is sent with the value the row held.
+  const baseDraft = draftFrom(base);
+  const before = formBefore(
+    base as Record<string, FieldValue>,
+    Object.fromEntries(editable.map((f) => [f.column, toValue(f, baseDraft)])),
+    after,
+  );
+  const dirty = changedFields(before, after).keys.length > 0;
+  const edit = useVersionedEdit<Record<string, FieldValue>>({
+    label: t("undo.edited", { key: record.key }),
+    save: ({ set: changes, expect }) =>
+      saveExtensionFieldsAction(org, {
+        recordId: record.id,
+        kind: record.kind,
+        set: changes as ExtensionValues,
+        expect: expect as ExtensionValues,
+      }),
+    onSaved: ({ after: written }) => {
+      setSaved(true);
+      setBase((b) => ({ ...b, ...(written as ExtensionValues) }));
+    },
+  });
+  if (
+    JSON.stringify(values) !== JSON.stringify(base) &&
+    !dirty &&
+    !edit.pending &&
+    !edit.conflict
+  ) {
+    setBase(values);
+    setDraft(draftFrom(values));
+  }
+  if (fields.length === 0) return null;
+  const show = (column: string, value: FieldValue | undefined): string => {
+    const f = fields.find((x) => x.column === column);
+    if (value === null || value === undefined || value === "") return t("values.notSet");
+    switch (f?.type) {
+      case "boolean":
+        return t(value === true ? "values.yes" : "values.no");
+      case "person":
+        return people.find((p) => p.personId === value)?.name ?? t("values.unnamed");
+      case "select":
+        return f.options?.find((o) => o.value === value)?.label ?? String(value);
+      case "money": {
+        const currency = f.currencyColumn ? draft[f.currencyColumn] : null;
+        const exp = exponentFor(f, currency);
+        return typeof currency === "string" && currency !== ""
+          ? new Intl.NumberFormat(locale, { style: "currency", currency }).format(
+              Number(value) / 10 ** exp,
+            )
+          : String(Number(value) / 10 ** exp);
+      }
+      case "datetime":
+        return formatWhen(String(value), locale, tz) ?? String(value);
+      default:
+        return String(value);
+    }
+  };
   return (
     <form
       aria-label={t("extension.title", { kind: t(`kinds.${record.kind}`) })}
@@ -757,21 +1092,13 @@ export function ExtensionForm({
       onSubmit={(e) => {
         e.preventDefault();
         setSaved(false);
-        run(
-          () =>
-            saveExtensionAction(org, {
-              recordId: record.id,
-              kind: record.kind,
-              fields: Object.fromEntries(editable.map((f) => [f.column, toValue(f)])),
-            }),
-          () => setSaved(true),
-        );
+        edit.submit(before, after, null);
       }}
     >
       <h3 className="m-0 text-label-13 font-semibold">
         {t("extension.title", { kind: t(`kinds.${record.kind}`) })}
       </h3>
-      <ActionErrorAlert error={error} />
+      <ActionErrorAlert error={edit.error} />
       <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
         {fields.map((f) => {
           const id = `ext-${record.id}-${f.column}`;
@@ -903,7 +1230,7 @@ export function ExtensionForm({
       </div>
       {canEdit && editable.length > 0 ? (
         <div className="flex items-center gap-12">
-          <Button type="submit" loading={pending}>
+          <Button type="submit" loading={edit.pending}>
             {t("actions.save")}
           </Button>
           {saved ? (
@@ -912,6 +1239,23 @@ export function ExtensionForm({
             </p>
           ) : null}
         </div>
+      ) : null}
+      {edit.conflict ? (
+        <ConflictDialog
+          subject={record.key}
+          pending={edit.pending}
+          rows={edit.conflict.clashing.map((column) => ({
+            field: column,
+            label: label(column),
+            mine: show(column, edit.conflict?.mine[column]),
+            theirs: show(column, edit.conflict?.theirs[column]),
+          }))}
+          onKeepMine={edit.keepMine}
+          onTakeTheirs={() => {
+            const theirs = edit.takeTheirs();
+            setDraft((d) => ({ ...d, ...draftFrom(theirs as ExtensionValues) }));
+          }}
+        />
       ) : null}
     </form>
   );
@@ -1013,21 +1357,20 @@ export function DuplicateButton({ org, recordId }: { org: string; recordId: stri
   const t = useCopy("work");
   const router = useRouter();
   const { pending, error, run } = useAction();
+  const duplicate = (withoutDates: boolean) =>
+    run(
+      () => duplicateRecordAction(org, recordId, { withoutDates }),
+      (data) => router.push(`/${org}/r/${data.key}` as Route),
+    );
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Button
-          variant="ghost"
-          icon="Copy"
-          loading={pending}
-          onClick={() =>
-            run(
-              () => duplicateRecordAction(org, recordId),
-              (data) => router.push(`/${org}/r/${data.key}` as Route),
-            )
-          }
-        >
+      <div className="flex flex-wrap gap-6">
+        <Button variant="ghost" icon="Copy" loading={pending} onClick={() => duplicate(false)}>
           {t("duplicate.button")}
+        </Button>
+        {/* P8: the copy waits in the schedule's Unscheduled list. */}
+        <Button variant="ghost" icon="Copy" loading={pending} onClick={() => duplicate(true)}>
+          {t("duplicate.withoutDates")}
         </Button>
       </div>
       <ActionErrorAlert error={error} />

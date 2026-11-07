@@ -65,6 +65,8 @@ export interface ShowDayCue {
   readonly plannedAt: string | null;
   readonly durationSeconds: number | null;
   readonly calledAt: string | null;
+  /** True while the planned time is an estimate to be confirmed (P2). */
+  readonly startTbc?: boolean;
 }
 
 export interface SetTimeLink {
@@ -82,6 +84,8 @@ export interface ShowDaySet {
   readonly plannedAt: string | null;
   readonly durationSeconds: number | null;
   readonly calledAt: string | null;
+  /** True while the planned time is an estimate to be confirmed (P2). */
+  readonly startTbc: boolean;
   readonly state: SetState;
 }
 
@@ -118,6 +122,7 @@ export function setsByStage(
           plannedAt: c.plannedAt,
           durationSeconds: c.durationSeconds,
           calledAt: c.calledAt,
+          startTbc: c.startTbc === true,
           state: c.calledAt !== null ? "called" : c.id === next ? "next" : "planned",
         })),
       },
@@ -254,6 +259,7 @@ interface CueRow {
   position: number;
   label: string;
   planned_at: string | null;
+  start_tbc: boolean;
   duration: unknown;
   called_at: string | null;
 }
@@ -298,7 +304,7 @@ export async function loadShowDay(
       ? Promise.resolve({ data: [] as CueRow[], error: null })
       : db
           .from("cues")
-          .select("id, run_of_show_id, position, label, planned_at, duration, called_at")
+          .select("id, run_of_show_id, position, label, planned_at, start_tbc, duration, called_at")
           .in("run_of_show_id", runIds)
           .is("deleted_at", null)
           .order("position"),
@@ -355,6 +361,7 @@ export async function loadShowDay(
       plannedAt: c.planned_at,
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
+      startTbc: c.start_tbc,
     })),
     links: linkRows.map((l) => ({
       cueId: l.cue_id,

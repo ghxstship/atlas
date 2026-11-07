@@ -14,6 +14,12 @@ export const webBudgets = {
 /** Section 11.2: every page reaches interactive in under 1.5 s on a mid-tier laptop. */
 export const interactiveBudgetMs = 1_500;
 
+/**
+ * The Realtime client chunk's own limit, in bytes on the wire (ADR 0027, owner decision of 2026-11-06). It does not count
+ * toward routeJavaScriptGzipBytes, and it only falls from here.
+ */
+export const realtimeClientGzipBytes = 20 * 1024;
+
 /** Section 5.1 service level objectives, in region. */
 export const apiBudgets = {
   readP95Ms: 250,
@@ -30,17 +36,20 @@ export const loadTargets = {
   compassDevicesPerShow: 1_000,
 } as const;
 
-/** Lighthouse CI assertions for the budgets above (Total Blocking Time stands in for INP in the lab). */
-export function lighthouseAssertions(): Record<string, [string, Record<string, number>]> {
+/**
+ * Lighthouse CI assertions for the budgets above (Total Blocking Time stands in for INP in the lab).
+ * `scriptBytes` is a page's route JavaScript budget: the 200 KB of gate 10, or the ceiling recorded
+ * for a page still over it (bundle-ceilings.json).
+ */
+export function lighthouseAssertions(
+  scriptBytes: number = webBudgets.routeJavaScriptGzipBytes,
+): Record<string, [string, Record<string, number>]> {
   return {
     "largest-contentful-paint": ["error", { maxNumericValue: webBudgets.largestContentfulPaintMs }],
     "cumulative-layout-shift": ["error", { maxNumericValue: webBudgets.cumulativeLayoutShift }],
     "total-blocking-time": ["error", { maxNumericValue: webBudgets.interactionToNextPaintMs }],
     interactive: ["warn", { maxNumericValue: interactiveBudgetMs }],
-    "resource-summary:script:size": [
-      "error",
-      { maxNumericValue: webBudgets.routeJavaScriptGzipBytes },
-    ],
+    "resource-summary:script:size": ["error", { maxNumericValue: scriptBytes }],
     "categories:accessibility": ["error", { minScore: 1 }],
   };
 }

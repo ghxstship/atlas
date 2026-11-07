@@ -105,7 +105,16 @@ export function ShellPeek({ org }: { org: string }) {
     ...(r.phaseCode && projects.has(`phases.${r.phaseCode}`)
       ? [{ label: t("phase"), value: projects(`phases.${r.phaseCode}`) }]
       : []),
-    ...(r.startsAt ? [{ label: t("starts"), value: stamp(r.startsAt) }] : []),
+    ...(r.startsAt
+      ? [
+          {
+            label: t("starts"),
+            value: r.startTbc
+              ? work("values.tbcEstimate", { time: stamp(r.startsAt) })
+              : stamp(r.startsAt),
+          },
+        ]
+      : []),
     ...(r.endsAt ? [{ label: t("ends"), value: stamp(r.endsAt) }] : []),
     ...(r.dueAt ? [{ label: t("due"), value: stamp(r.dueAt) }] : []),
     ...(r.timeZone && (r.startsAt || r.endsAt || r.dueAt)

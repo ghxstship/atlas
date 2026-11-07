@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ReacceptanceBanner } from "@/components/legal/reacceptance-banner";
 import { AppShell } from "@/components/shell/app-shell";
-import { ShellPeek } from "@/components/shell/shell-peek";
+import { ShellPeekGate } from "@/components/shell/shell-peek-gate";
 import { getTranslations } from "next-intl/server";
 import { OrgBanners } from "@/components/platform/org-banners";
 import { DeferredSystemBanners } from "@/components/shell/deferred-system-banners";
@@ -30,7 +30,7 @@ export default async function OrgLayout({ children, params }: LayoutProps<"/[org
       <ReacceptanceBanner ctx={ctx} />
       {children}
       <Suspense fallback={null}>
-        <ShellPeek org={ctx.org.slug} />
+        <ShellPeekGate org={ctx.org.slug} />
       </Suspense>
     </AppShell>
   );

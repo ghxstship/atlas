@@ -2,6 +2,7 @@ import { VIEW_REGISTRY } from "@xos/schemas/views";
 import { describe, expect, it } from "vitest";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
+  VIEW_SAVED_AS,
   canonicalQuery,
   collectionKeyFor,
   currentQuery,
@@ -96,5 +97,13 @@ describe("view registry and the sitemap", () => {
     walk(sitemap);
     expect(declared).toBeGreaterThan(100);
     expect(unknown).toEqual([]);
+  });
+});
+
+describe("the view codes the browser carries", () => {
+  it("match the registry", () => {
+    expect(VIEW_SAVED_AS.map(([code, savedAs]) => ({ code, savedAs }))).toEqual(
+      VIEW_REGISTRY.views.map((v) => ({ code: v.code, savedAs: v.savedAs })),
+    );
   });
 });

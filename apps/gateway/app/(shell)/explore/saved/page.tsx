@@ -101,7 +101,9 @@ export default async function SavedPage({ searchParams }: PageProps<"/explore/sa
                   }}
                 >
                   <div className="flex flex-col gap-8">
-                    {o ? <OpportunityLinkCard opportunity={o} locale={locale} t={t} /> : null}
+                    {o ? (
+                      <OpportunityLinkCard opportunity={o} locale={locale} t={t} headingLevel={2} />
+                    ) : null}
                     {!s.open ? (
                       <div>
                         <Tag tone="warning">{t("gateway.explore.saved.closed")}</Tag>

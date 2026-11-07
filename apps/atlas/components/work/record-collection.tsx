@@ -26,10 +26,10 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
-import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
+import { formatScheduleTime, formatStartTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
-import { TransitionDialog } from "./record-panels";
+import { TransitionDialog, useStateUndo } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
 import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
@@ -90,6 +90,7 @@ export function RecordCollection({
   timeZone,
   timeline,
   canReschedule = false,
+  backlog = [],
   canCreate,
   create,
   peek,
@@ -119,6 +120,8 @@ export function RecordCollection({
   timeline: TimelineModel | null;
   /** Timeline bars move and resize (A133). */
   canReschedule?: boolean;
+  /** Undated records to place on the timeline, beside it (P8); only with canReschedule. */
+  backlog?: readonly { id: string; label: string }[];
   canCreate: boolean;
   create?: ReactNode;
   peek?: ReactNode;
@@ -142,11 +145,15 @@ export function RecordCollection({
   const params = useSearchParams();
   const [search, setSearch] = useState(filters.q);
   const move = useAction();
+  const pushUndo = useStateUndo(org);
   const [pendingMove, setPendingMove] = useState<{ record: RecordSummary; next: string } | null>(
     null,
   );
 
-  const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
+  const bulkRows = useMemo(
+    () => records.map((r) => ({ id: r.id, label: r.key, version: r.updatedAt })),
+    [records],
+  );
   const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
@@ -171,7 +178,18 @@ export function RecordCollection({
       r.startsAt && r.startsAt > new Date().toISOString()
         ? r.startsAt
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
-    return when(at, r.timeZone ?? r.projectTimeZone);
+    // A start to be confirmed reads "TBC · est. <time>" (G-40); it still sorts by the estimate.
+    return at === r.startsAt
+      ? formatStartTime(
+          at,
+          r.startTbc,
+          locale,
+          r.timeZone ?? r.projectTimeZone,
+          zoneView,
+          "dateTime",
+          (time) => t("values.tbcEstimate", { time }),
+        )
+      : when(at, r.timeZone ?? r.projectTimeZone);
   };
   const byId = new Map(records.map((r) => [r.id, r]));
   // A record's menu, the same in every view (Section 11.7).
@@ -318,7 +336,11 @@ export function RecordCollection({
         onAction={() => (canCreate ? go({ create: "1" }) : router.push(`/${org}/my-work` as Route))}
       />
     );
-  } else if (records.length === 0) {
+  } else if (
+    records.length === 0 &&
+    !(view === "timeline" && canReschedule && backlog.length > 0)
+  ) {
+    // Schedule pages load dated records only: with none dated, the Unscheduled list still has them to place (P8).
     body = (
       <EmptyState
         icon="SearchX"
@@ -425,13 +447,16 @@ export function RecordCollection({
               setPendingMove({ record, next });
               return;
             }
-            move.run(() =>
-              transitionRecordAction(org, {
-                recordId: record.id,
-                expected: record.state,
-                next,
-                reason: t("transition.boardReason", { state: stateLabel(next) }),
-              }),
+            const reason = t("transition.boardReason", { state: stateLabel(next) });
+            move.run(
+              () =>
+                transitionRecordAction(org, {
+                  recordId: record.id,
+                  expected: record.state,
+                  next,
+                  reason,
+                }),
+              () => pushUndo(record, next, { reason }),
             );
           }}
         />
@@ -492,10 +517,10 @@ export function RecordCollection({
     );
   } else if (view === "timeline") {
     body =
-      timeline && timeline.bars.length > 0 ? (
+      timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
           {canReschedule ? (
-            <RescheduleTimeline org={org} label={label} timeline={timeline} />
+            <RescheduleTimeline org={org} label={label} timeline={timeline} backlog={backlog} />
           ) : (
             <Timeline label={label} {...timelineView(timeline, format)} />
           )}

@@ -192,7 +192,7 @@ describe("the plan of an export", () => {
     );
   });
 
-  it("scopes a project's Activity, Overview and receipts to the project, as the page shows them", () => {
+  it("scopes a project's Activity and receipts to the project, as the page shows them", () => {
     const plan = (key: string, path: string, query: Record<string, string> = {}) => {
       const search = new URLSearchParams(query);
       const source = exportSourceFor(key, search);
@@ -201,7 +201,6 @@ describe("the plan of an export", () => {
     };
     for (const [key, path, query] of [
       ["project/activity", "/x/p/NWL/activity", {}],
-      ["project/overview", "/x/p/NWL/overview", {}],
       ["project/procurement", "/x/p/NWL/procurement", { section: "receipts" }],
     ] as const) {
       const { source, plan: scoped } = plan(key, path, query);

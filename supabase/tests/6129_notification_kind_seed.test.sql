@@ -1,4 +1,4 @@
--- 6059_notification_kind_seed.test.sql
+-- 6129_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -95,6 +95,10 @@ select set_eq(
   ('shift.changed', 'Email', 'schedule', 'notification'),
   ('shift.changed', 'SMS', 'schedule', null::text),
   ('shift.changed', 'Push', 'schedule', null::text),
+  ('availability.requested', 'In App', 'schedule', null::text),
+  ('availability.requested', 'Email', 'schedule', 'notification'),
+  ('availability.requested', 'SMS', 'schedule', null::text),
+  ('availability.requested', 'Push', 'schedule', null::text),
   ('event.invited', 'In App', 'schedule', null::text),
   ('event.invited', 'Email', 'schedule', 'notification'),
   ('event.invited', 'SMS', 'schedule', null::text),

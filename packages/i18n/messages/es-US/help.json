@@ -30,6 +30,8 @@
       "go": "Ir a",
       "lists": "Listas",
       "inbox": "Bandeja de entrada",
+      "show": "Llamado del show",
+      "showDeck": "Llamado del show: Stream Deck",
       "record": "Registros",
       "view": "Vistas"
     },
@@ -85,6 +87,16 @@
     "selectAll": "Seleccionar todas las filas cargadas",
     "menu": "Abrir las acciones de la fila enfocada",
     "askFilter": "Filtrar en lenguaje natural",
+    "show": {
+      "go": "Llamar el cue seleccionado",
+      "next": "Pasar la espera al cue siguiente",
+      "previous": "Pasar la espera al cue anterior",
+      "standby": "Poner en espera el cue seleccionado",
+      "jump": "Saltar a un cue",
+      "nudgeLater": "Retrasar un minuto el plan restante",
+      "nudgeEarlier": "Adelantar un minuto el plan restante",
+      "department": "Mostrar las llamadas del siguiente departamento"
+    },
     "record": {
       "state": "Cambiar el estado",
       "assign": "Asignar un responsable",

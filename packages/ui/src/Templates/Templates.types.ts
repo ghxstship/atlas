@@ -145,3 +145,9 @@ export interface TemplateSystemProps {
   /** A support reference such as an error id. */
   reference?: string;
 }
+
+/** TemplateSystem whose action is a link, for server components (`@xos/ui/static`). */
+export interface TemplateSystemLinkProps extends Omit<TemplateSystemProps, "onAction"> {
+  /** Where the action goes. */
+  href: string;
+}

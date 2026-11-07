@@ -375,6 +375,7 @@ describe("the anonymous side", () => {
         segment: "Act I",
         plannedAt: null,
         durationSeconds: 300,
+        startTbc: false,
         calledAt: null,
       },
     ]);

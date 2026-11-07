@@ -173,6 +173,7 @@ describe("A106 contract: bulk edit", () => {
               id: id(2),
               rule: "bulk_stale",
               message: "Someone changed this row after you loaded it; reload to see the change.",
+              current: { record_state: "Blocked", updated_at: "2026-11-01T10:00:00+00:00" },
             },
             { id: null, rule: "invalid", message: "invalid input syntax for type uuid" },
           ],
@@ -188,11 +189,13 @@ describe("A106 contract: bulk edit", () => {
     );
     const body = (await expectContract(refusedRows, "records.bulkUpdate")) as {
       committed: boolean;
-      refused: { rule: string }[];
+      refused: { rule: string; current?: unknown }[];
       inverse: unknown[];
     };
     expect(body.committed).toBe(false);
     expect(body.refused.map((r) => r.rule)).toEqual(["bulk_stale", "invalid"]);
+    // A stale row's current values are for Atlas; the frozen v1 refusal does not carry them.
+    expect(body.refused.every((r) => !("current" in r))).toBe(true);
     expect(body.inverse).toEqual([]);
   });
 

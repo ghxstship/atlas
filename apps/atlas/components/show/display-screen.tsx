@@ -246,7 +246,9 @@ export function DisplayScreen({
               </p>
               <p className="m-0 text-heading-32 font-semibold">{frame.next?.label ?? ""}</p>
             </div>
-            {frame.next?.plannedAt ? (
+            {frame.next?.startTbc ? (
+              <p className="m-0 text-text-16 text-text-secondary">{t("tbc")}</p>
+            ) : frame.next?.plannedAt ? (
               <p className="m-0 text-text-16 text-text-secondary">
                 {t("plannedAt", { time: time(frame.next.plannedAt) })}
               </p>
@@ -267,7 +269,7 @@ export function DisplayScreen({
                   {frame.upcoming.map((c) => (
                     <li key={c.position} className="flex gap-12 text-text-16">
                       <span className="w-64 shrink-0 tabular-nums text-text-secondary">
-                        {time(c.plannedAt)}
+                        {c.startTbc ? t("tbc") : time(c.plannedAt)}
                       </span>
                       <span>{c.label}</span>
                     </li>

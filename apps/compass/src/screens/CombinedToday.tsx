@@ -23,11 +23,14 @@ type LocalShift = ShiftRow & Row;
 function NextCueCard({
   label,
   plannedAt,
+  tbc,
   zone,
   nowMs,
 }: {
   readonly label: string;
   readonly plannedAt: string;
+  /** The planned time is an estimate to be confirmed: TBC, never a countdown (G-40). */
+  readonly tbc: boolean;
   readonly zone: string;
   readonly nowMs: number;
 }): ReactElement {
@@ -36,7 +39,9 @@ function NextCueCard({
   return (
     <Card title={t("compass.today.nextCue")}>
       <Text variant="heading20">{label}</Text>
-      {showsCountdown(ms) ? (
+      {tbc ? (
+        <Text tone="secondary">{t("compass.show.tbc")}</Text>
+      ) : showsCountdown(ms) ? (
         <Text tone="accent">{formatCountdown(ms)}</Text>
       ) : (
         <Text tone="secondary">
@@ -155,6 +160,7 @@ export function CombinedToday({
             <NextCueCard
               label={g.nextCue.label}
               plannedAt={g.nextCue.planned_at}
+              tbc={g.nextCue.start_tbc === true}
               zone={zoneOf(g.nextCue.project_id ?? "")}
               nowMs={now}
             />

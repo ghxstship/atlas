@@ -257,6 +257,8 @@ modules:
         description: Create and edit the run of show and its cues.
       - code: show.cue.call
         class: write
+        # The database says more: 6113 widens it to go, standby and nudging the plan. This line stays the wording of
+        # the generated seed 0203, which production has applied and cannot change.
         description: Call cues live during a show.
       - code: show.day_sheet.write
         class: write

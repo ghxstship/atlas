@@ -31,10 +31,20 @@ export interface BulkConfig {
   readonly resource: BulkResource;
   /** At most four properties show as actions; the bar holds five buttons. */
   readonly fields: readonly BulkField[];
+  /**
+   * Records only: a Shift time action that moves the selection by minutes and pushes successors
+   * (app.shift_records, P8). It takes one of the four action places.
+   */
+  readonly shift?: true;
 }
 
 /** A selectable row: its id and the name refusals and checkboxes use, such as its key. */
 export interface BulkRowRef {
   readonly id: string;
   readonly label: string;
+  /**
+   * The row's updated_at as the page loaded it (Section 11.7): a change is sent against it, so a row someone saved
+   * since comes back stale with their value instead of being overwritten.
+   */
+  readonly version?: string;
 }

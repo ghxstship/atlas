@@ -39,16 +39,18 @@ async function RecordTable({
   const t = await getTranslations("compliance.liveLinks");
   const format = await getFormatter();
   const dates = (r: LiveRecordRow) =>
-    r.startsAt
-      ? r.endsAt
-        ? t("range", {
-            start: when(format, r.startsAt, timeZone),
-            end: when(format, r.endsAt, timeZone),
-          })
-        : when(format, r.startsAt, timeZone)
-      : r.dueAt
-        ? t("due", { date: when(format, r.dueAt, timeZone) })
-        : t("noDate");
+    r.startTbc
+      ? t("tbc")
+      : r.startsAt
+        ? r.endsAt
+          ? t("range", {
+              start: when(format, r.startsAt, timeZone),
+              end: when(format, r.endsAt, timeZone),
+            })
+          : when(format, r.startsAt, timeZone)
+        : r.dueAt
+          ? t("due", { date: when(format, r.dueAt, timeZone) })
+          : t("noDate");
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-left text-text-13">
@@ -109,11 +111,13 @@ async function Agenda({ rows, timeZone }: { rows: readonly LiveRecordRow[]; time
             {list.map((r) => (
               <li key={r.key} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
                 <span className="w-80 shrink-0 text-text-secondary">
-                  {r.startsAt
-                    ? format.dateTime(new Date(r.startsAt), { timeStyle: "short", timeZone })
-                    : r.dueAt
-                      ? format.dateTime(new Date(r.dueAt), { timeStyle: "short", timeZone })
-                      : ""}
+                  {r.startTbc
+                    ? t("tbc")
+                    : r.startsAt
+                      ? format.dateTime(new Date(r.startsAt), { timeStyle: "short", timeZone })
+                      : r.dueAt
+                        ? format.dateTime(new Date(r.dueAt), { timeStyle: "short", timeZone })
+                        : ""}
                 </span>
                 <span className="text-text-primary">{r.title}</span>
                 <span className="text-text-12 text-text-secondary">
@@ -165,7 +169,9 @@ async function CueTable({ cues, timeZone }: { cues: readonly PublicCue[]; timeZo
               <td className="py-8 pe-12 text-text-secondary">{c.position}</td>
               <td className="py-8 pe-12 text-text-primary">{c.label}</td>
               <td className="py-8 pe-12">{c.segment ?? ""}</td>
-              <td className="py-8 pe-12 whitespace-nowrap">{time(c.plannedAt)}</td>
+              <td className="py-8 pe-12 whitespace-nowrap">
+                {c.startTbc ? t("tbc") : time(c.plannedAt)}
+              </td>
               <td className="py-8 pe-12">{minutes(c.durationSeconds)}</td>
               <td className="py-8 whitespace-nowrap">{time(c.calledAt)}</td>
             </tr>

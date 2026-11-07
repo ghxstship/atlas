@@ -229,6 +229,27 @@ describe("RunOfShowLive", () => {
     await expectAccessible(container);
     vi.useRealTimers();
   });
+
+  it("marks a skipped cue and the standby cue, which the index alone cannot show", async () => {
+    const { container } = render(
+      <RunOfShowLive
+        current={2}
+        nextInSeconds={60}
+        cues={[
+          { number: "1", time: "19:00", title: "House to half" },
+          { number: "2", time: "19:01", title: "Walk-in music", status: "skipped" },
+          { number: "3", time: "19:03", title: "Host welcome" },
+          { number: "4", time: "19:05", title: "Headliner", status: "standby" },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Walk-in music").closest("li")?.textContent).toContain("Skipped");
+    expect(screen.getByText("Headliner").closest("li")?.textContent).toContain("Standby");
+    expect(screen.getByText("Host welcome").closest("li")?.getAttribute("aria-current")).toBe(
+      "true",
+    );
+    await expectAccessible(container);
+  });
 });
 
 describe("matrices", () => {

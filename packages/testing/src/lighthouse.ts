@@ -1,8 +1,10 @@
 import { lighthouseAssertions, webBudgets } from "./budgets.ts";
 
 /**
- * Lighthouse CI for the key Atlas, Gateway and docs pages (Section 18, gate 10). The CLI builds a
- * signed-in session cookie per app, writes one lighthouserc per app and runs `lhci autorun`.
+ * Lighthouse CI for Atlas, Gateway and docs (Section 18, gate 10): every signed-in route in the
+ * generated sitemaps (lighthouse-routes.ts) and the public key pages, each against the spec
+ * budgets. The CLI signs in each demo person, writes one lighthouserc per person and runs
+ * `lhci autorun`.
  */
 
 export type LighthouseApp = "atlas" | "gateway" | "docs";
@@ -85,8 +87,9 @@ export function sessionCookies(name: string, session: AuthSession): SessionCooki
 export const SESSION_COOKIES_ENV = "XOS_LH_SESSION_COOKIES";
 
 export interface LighthouseRcInput {
-  readonly app: LighthouseApp;
   readonly baseUrl: string;
+  /** The paths to visit, on `baseUrl`. */
+  readonly paths: readonly string[];
   /**
    * For signed-in apps, the path of `lighthouse-session.cjs` relative to the directory lhci runs
    * in. It puts the session in the browser's cookie jar before each page. A session sent as an
@@ -97,17 +100,43 @@ export interface LighthouseRcInput {
   readonly chromePath: string | undefined;
   readonly outputDir: string;
   readonly runs?: number;
+  /** Route JavaScript ceilings by path, for pages still over 200 KB (bundle-ceilings.json). */
+  readonly ceilings?: Readonly<Record<string, number>>;
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The spec budgets for a run's pages. Every page gets the 200 KB script budget unless it holds a
+ * ceiling; pages that share a budget share one `assertMatrix` entry, matched by exact URL.
+ */
+export function runAssertions(
+  baseUrl: string,
+  paths: readonly string[],
+  ceilings: Readonly<Record<string, number>> = {},
+) {
+  const groups = new Map<number, string[]>();
+  for (const path of paths) {
+    const budget = Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0);
+    groups.set(budget, [...(groups.get(budget) ?? []), `${baseUrl}${path}`]);
+  }
+  if (groups.size <= 1) return { assertions: lighthouseAssertions([...groups.keys()][0]) };
+  return {
+    assertMatrix: [...groups].map(([budget, urls]) => ({
+      matchingUrlPattern: `^(${urls.map(escapeRegExp).join("|")})$`,
+      assertions: lighthouseAssertions(budget),
+    })),
+  };
 }
 
 const CHROME_FLAGS = ["--headless=new", "--no-sandbox"];
 
-/** One app's lighthouserc: desktop preset, the spec budgets as assertions, local reports only. */
+/** One run's lighthouserc: desktop preset, the spec budgets as assertions, local reports only. */
 export function lighthouseRc(input: LighthouseRcInput) {
-  const target = lighthouseTargets[input.app];
   return {
     ci: {
       collect: {
-        url: target.paths.map((path) => `${input.baseUrl}${path}`),
+        url: input.paths.map((path) => `${input.baseUrl}${path}`),
         numberOfRuns: input.runs ?? 1,
         ...(input.chromePath ? { chromePath: input.chromePath } : {}),
         // With a session script, lhci launches Chrome through puppeteer (lighthouse's own
@@ -123,7 +152,7 @@ export function lighthouseRc(input: LighthouseRcInput) {
           ...(input.sessionScript ? {} : { chromeFlags: CHROME_FLAGS.join(" ") }),
         },
       },
-      assert: { assertions: lighthouseAssertions() },
+      assert: runAssertions(input.baseUrl, input.paths, input.ceilings),
       upload: { target: "filesystem", outputDir: input.outputDir },
     },
   };
@@ -131,6 +160,10 @@ export function lighthouseRc(input: LighthouseRcInput) {
 
 export interface PageScore {
   readonly url: string;
+  /** Where the page ended; lhci asserts a report by this URL, so it must be `url`. */
+  readonly finalUrl: string;
+  /** The page ended on the URL it asked for, so lhci asserted it. */
+  readonly landed: boolean;
   readonly performance: number | null;
   readonly accessibility: number | null;
   readonly lcpMs: number | null;
@@ -141,6 +174,7 @@ export interface PageScore {
 }
 
 interface LighthouseResult {
+  readonly finalUrl?: string;
   readonly finalDisplayedUrl?: string;
   readonly requestedUrl?: string;
   readonly categories?: Record<string, { score: number | null } | undefined>;
@@ -159,14 +193,24 @@ function numeric(result: LighthouseResult, audit: string): number | null {
   return typeof value === "number" ? value : null;
 }
 
-/** Scores and budget verdict for one Lighthouse JSON report. */
-export function scorePage(result: LighthouseResult): PageScore {
+/**
+ * Scores and budget verdict for one Lighthouse JSON report, against the page's script budget: the
+ * same errors lhci asserts (lighthouseAssertions), so the summary fails what the assertions fail.
+ */
+export function scorePage(
+  result: LighthouseResult,
+  scriptBudget: number = webBudgets.routeJavaScriptGzipBytes,
+): PageScore {
   const scripts = result.audits?.["resource-summary"]?.details?.items?.find(
     (item) => item.resourceType === "script",
   );
   const score = (name: string) => result.categories?.[name]?.score ?? null;
+  const url = result.requestedUrl ?? result.finalDisplayedUrl ?? "";
+  const finalUrl = result.finalUrl ?? result.finalDisplayedUrl ?? url;
   const page = {
-    url: result.requestedUrl ?? result.finalDisplayedUrl ?? "",
+    url,
+    finalUrl,
+    landed: url !== "" && finalUrl === url,
     performance: score("performance"),
     accessibility: score("accessibility"),
     lcpMs: numeric(result, "largest-contentful-paint"),
@@ -178,9 +222,11 @@ export function scorePage(result: LighthouseResult): PageScore {
   return {
     ...page,
     withinBudget:
+      page.accessibility === 1 &&
       within(page.lcpMs, webBudgets.largestContentfulPaintMs) &&
       within(page.cls, webBudgets.cumulativeLayoutShift) &&
       within(page.tbtMs, webBudgets.interactionToNextPaintMs) &&
-      within(page.scriptBytes, webBudgets.routeJavaScriptGzipBytes),
+      page.scriptBytes !== null &&
+      page.scriptBytes <= scriptBudget,
   };
 }
