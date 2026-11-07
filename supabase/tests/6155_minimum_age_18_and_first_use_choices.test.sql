@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(107);
+select plan(116);
 
 create function pg_temp.sign_up(p_key text, p_email text, p_meta jsonb) returns void
 language plpgsql as $$
@@ -113,6 +113,18 @@ select columns_are('private', 'age_refusals', array['id', 'surface', 'minimum_ag
 select is((select extract(day from refused_month)::int from private.age_refusals limit 1), 1,
   'its time is kept to the month, so it cannot be matched to a deletion');
 select is((select substr(id::text, 15, 1) from private.age_refusals limit 1), '4', 'and its id is random, not time-ordered');
+
+-- A sign-in that holds a second factor passes it before this question can close the account, as before any page.
+select pg_temp.sign_up('guarded', 'guarded@age18.test', '{"full_name": "Gus Guarded"}');
+insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at)
+values (gen_random_uuid(), pg_temp.id('guarded_user'), 'age18 phone app', 'totp', 'verified', now(), now());
+select pg_temp.as_user('guarded');
+select throws_ok($$select app.refuse_minimum_age('Gateway')$$, 'XR001', null,
+  'a password alone cannot close an account that holds a second factor');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.people where id = pg_temp.id('guarded') and deleted_at is null), 1, 'and nothing was changed');
+select pg_temp.as_user_stepped_up('guarded');
+select is(app.refuse_minimum_age('Gateway') ->> 'outcome', 'Account Removed', 'once the second factor is passed, it closes');
 
 select pg_temp.as_user('minor');
 select throws_ok($$select app.refuse_minimum_age('Elsewhere')$$, 'XR001', null, 'the surface is one of the three shells');
@@ -271,6 +283,22 @@ select is(app.my_legal_standing() ->> 'ai_disclosure_version', '2026-11-06', 'th
 select ok((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a'))) > 0, 'and the latest choice stands');
 select pg_temp.as_platform();
 select is((select count(*)::int from private.ai_disclosure_choices where person_id = pg_temp.id('dave')), 2, 'each choice stays in the log');
+select pg_temp.as_user('dave');
+select ok(not app.ai_declined_by_me(), 'a person whose latest choice is Allowed has not declined');
+
+-- A surface that cannot change the choice reads it, so it can say why AI is off rather than blame an org setting.
+select pg_temp.sign_up('chooser', 'chooser@age18.test', '{"full_name": "Cy Chooser", "age_confirmed": "18", "signup_surface": "Atlas"}');
+select pg_temp.as_user('chooser');
+select ok(not app.ai_declined_by_me(), 'no recorded choice is not a decline');
+select app.record_ai_choice('Compass', '2026-11-06', 'Declined');
+select ok(app.ai_declined_by_me(), 'a decline reads as one');
+select pg_temp.as_anon();
+select throws_ok($$select app.ai_declined_by_me()$$, '42501', null, 'nobody reads it signed out');
+-- Deleting the person (app.delete_my_account soft-deletes the row an org still needs) takes their choices and addresses.
+select pg_temp.as_platform();
+update app.people set deleted_at = now() where id = pg_temp.id('chooser');
+select is((select count(*)::int from private.ai_disclosure_choices where person_id = pg_temp.id('chooser')), 0,
+  'a deleted person''s AI choices go, with the addresses they came from');
 
 -- An API key acts as its service account, a person row with no age to give and no screen to answer on. It keeps Aurora,
 -- and the frozen API keeps what it did before this rule.
@@ -283,6 +311,7 @@ select is((select count(*)::int from private.age_confirmations where person_id =
 select pg_temp.as_user('bot');
 select ok((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a'))) > 0, 'but an API key still sees the org''s AI features');
 select lives_ok($$select app.ai_begin_request(pg_temp.id('org_a'), 'assistant', 'test-model')$$, 'and its Aurora request is not refused for age');
+select ok(not app.ai_declined_by_me(), 'and it has declined nothing');
 select throws_ok($$select app.refuse_minimum_age('Atlas')$$, 'XR001', null, 'and nothing can close it by this question');
 select pg_temp.as_platform();
 update app.service_accounts set deleted_at = now() where id = pg_temp.id('bot_account');

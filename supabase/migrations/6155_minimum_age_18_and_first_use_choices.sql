@@ -202,11 +202,14 @@ set search_path = ''
 as $$
 begin
   delete from private.age_refusal_holds where person_id = new.id;
+  -- The AI choices go too, with the address they came from: the account can no longer use AI features, and the org's own
+  -- AI request log already shows what the person ran, which a decline would have refused.
+  delete from private.ai_disclosure_choices where person_id = new.id;
   return null;
 end;
 $$;
 
-comment on function private.forget_age_refusal_hold() is 'Removes a person''s age refusal hold when the person is deleted (app.delete_my_account soft-deletes app.people), since there is no longer an account to close.';
+comment on function private.forget_age_refusal_hold() is 'When the person is deleted (app.delete_my_account soft-deletes app.people): removes their age refusal hold, since there is no longer an account to close, and their AI choices with the addresses they came from.';
 revoke all on function private.forget_age_refusal_hold() from public, anon, authenticated;
 
 create trigger t85_forget_age_refusal_hold after update of deleted_at on app.people
@@ -302,6 +305,10 @@ begin
   -- Someone who has confirmed 18 is not asked again, so an answer of under 18 from them is not an answer to this question.
   if private.minimum_age_met(v_person) then
     perform private.refuse('age_already_confirmed', 'This account has confirmed its age. To close it, delete your account in Settings.');
+  end if;
+  -- Closing is as final as deleting: a sign-in that holds a second factor passes it first, as every page asks (Section 9).
+  if private.session_aal() <> 'aal2' and private.has_verified_second_factor(v_uid) then
+    perform private.refuse('age_second_factor', 'Verify your second factor before you close this account. Nothing was changed.');
   end if;
 
   -- One row per person in the count: a held account that answers again, or closes later, is the same refusal.
@@ -431,6 +438,20 @@ $$;
 
 comment on function private.ai_declined(uuid) is 'True when the person''s latest AI choice is Declined. No recorded choice is not a decline.';
 revoke all on function private.ai_declined(uuid) from public, anon, authenticated;
+
+create or replace function app.ai_declined_by_me()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.ai_declined(private.current_person_id());
+$$;
+
+comment on function app.ai_declined_by_me() is 'True when the signed-in person''s latest AI choice is Declined, so a surface that cannot change the choice can say why AI features are off for them, rather than blame an org setting. False with no recorded choice and for a service account.';
+revoke all on function app.ai_declined_by_me() from public, anon;
+grant execute on function app.ai_declined_by_me() to authenticated, service_role;
 
 create or replace function app.record_ai_choice(
   p_surface text,

@@ -70972,6 +70972,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      ai_declined_by_me: { Args: never; Returns: boolean };
       ai_enabled_features: {
         Args: { p_org_id: string };
         Returns: Database["app"]["Enums"]["ai_feature"][];

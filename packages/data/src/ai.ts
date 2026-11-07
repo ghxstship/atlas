@@ -97,6 +97,16 @@ export async function listEnabledAiFeatures(
   return ok(AI_FEATURE_ORDER.filter((f) => enabled.has(f)));
 }
 
+/**
+ * Whether the signed-in person turned AI features off for themselves (their latest choice, migration 6155). Their
+ * features are then empty whatever the org's setting, so a surface says that, not that an Admin turned them off.
+ */
+export async function aiDeclinedByMe(db: XosClient): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("ai_declined_by_me");
+  if (error) return fail(toDataError(error));
+  return ok(data === true);
+}
+
 export interface NeverSendRow {
   readonly table: string;
   readonly column: string | null;
