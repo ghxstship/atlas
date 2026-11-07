@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(103);
+select plan(107);
 
 create function pg_temp.sign_up(p_key text, p_email text, p_meta jsonb) returns void
 language plpgsql as $$
@@ -300,6 +300,21 @@ select pg_temp.as_user('dave');
 delete from storage.objects where bucket_id = 'support-screenshots' and name like '%/age18.png';
 select pg_temp.as_platform();
 select is((select count(*)::int from storage.objects where bucket_id = 'support-screenshots' and name like '%/age18.png'), 0, 'its owner can');
+
+-- Profile media: a public bucket read by URL, whose owner the Storage API could not list for, so nothing was ever removed.
+select pg_temp.as_platform();
+insert into storage.objects (bucket_id, name) values ('profile-media', pg_temp.id('dave')::text || '/certificates/age18.png');
+select pg_temp.as_user('dave');
+select is((select count(*)::int from storage.objects where bucket_id = 'profile-media' and name like '%/age18.png'), 1, 'a person sees their own profile media, so it can be listed and removed');
+select pg_temp.as_user('erin');
+select is((select count(*)::int from storage.objects where bucket_id = 'profile-media' and name like '%/age18.png'), 0, 'nobody else lists it');
+delete from storage.objects where bucket_id = 'profile-media';
+select pg_temp.as_platform();
+select is((select count(*)::int from storage.objects where bucket_id = 'profile-media' and name like '%/age18.png'), 1, 'or removes it');
+select pg_temp.as_user('dave');
+delete from storage.objects where bucket_id = 'profile-media' and name like '%/age18.png';
+select pg_temp.as_platform();
+select is((select count(*)::int from storage.objects where bucket_id = 'profile-media' and name like '%/age18.png'), 0, 'its owner can, nested folders included');
 
 select * from finish();
 rollback;

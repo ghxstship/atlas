@@ -14,7 +14,8 @@
 --     api_public.record_age_refusal counts an answer given before any account exists. An account that cannot close yet
 --     (a legal hold, an open shift, an only owner) goes on private.age_refusal_holds for the platform team. SQL cannot
 --     delete storage objects, so the shared client removes the person's files first (@xos/data/account-deletion); so that
---     it can, the owner of a support screenshot may now delete it;
+--     it can, the owner of a support screenshot may now delete it, and a person can now see their own profile-media
+--     folder, without which no deletion ever removed anything from it;
 --   * answers what a Compass sign-in still owes (app.my_legal_standing): the age, the personal documents accepted so far,
 --     whether the Worker Terms apply and the AI choice. Acceptances still go through app.record_legal_acceptances (0850)
 --     and announced changes through app.pending_legal_reacceptances (1383);
@@ -375,6 +376,14 @@ grant execute on function app.refuse_minimum_age(text) to authenticated, service
 create policy support_screenshots_delete on storage.objects for delete to authenticated
   using (bucket_id = 'support-screenshots'
     and private.support_screenshot_owner(name) = (select private.current_person_id()));
+
+-- 0860 gave profile-media a delete policy and no select policy, since a public bucket serves its files by URL. But the
+-- Storage API lists, and answers a delete, through select: a person saw an empty folder and removed nothing, with no error.
+-- So every account deletion since SIM-004 has left its public photos and certificate scans behind. A person now sees their
+-- own folder, which is no new exposure: anyone holding the URL can already read these files.
+create policy profile_media_owner_read on storage.objects for select to authenticated
+  using (bucket_id = 'profile-media'
+    and private.brand_object_org(name) = (select private.current_person_id()));
 
 -- The AI choice ----------------------------------------------------------------------------------------------------------
 
