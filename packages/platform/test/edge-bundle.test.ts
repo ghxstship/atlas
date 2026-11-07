@@ -83,14 +83,6 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
-  // B8 (ADR 0147): the guest list email worker; React Email, Resend and, for a Pass email, the guest-pass renderer
-  // with pdfkit load only when an email is sent.
-  "guest-email": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "pdfkit", "react/jsx-runtime", "resend"],
-  },
-  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
-  "weather-feed": { boot: [], lazy: [] },
   // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
@@ -100,6 +92,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "wallet-pass": { boot: [], lazy: [] },
+  // B8 (ADR 0147): the NWS weather feed is plain fetch to api.weather.gov and PostgREST, no package.
   "weather-feed": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
@@ -121,14 +114,12 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
-  // B8 (ADR 0147): new. The shared email and notification store chunks it reaches at boot, as subprocessor-notices
-  // does, came to 120.0 KB on 2026-10-31; about 10 percent of headroom. 133.7 KB on merge train 9, after the shared
-  // stores it reaches grew, with the same headroom.
-  "guest-email": 147,
+  // B8 (ADR 0147): the shared email and notification store chunks it reaches at boot came to 120.0 KB on 2026-10-31;
+  // merge train 10 loads its email worker on demand (guest-email-worker.ts), so 132 holds without a raise.
+  "guest-email": 132,
   // P3: pasted rows and import destinations (cues and guest lists into a running order or project) add about 17.5 KB
   // of its own code, and A127's action links about 2 KB of shared stores; 122.1 KB in merge train 6, about 10 percent
   // above that.
-  "guest-email": 132,
   "import-run": 134,
   // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
   // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
