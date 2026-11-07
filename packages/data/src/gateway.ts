@@ -975,8 +975,8 @@ export async function replyToRating(
 // Showing and disputing ratings of a person (ADR 0158) ---------------------------------------------------------------
 
 /**
- * The version of the notice beside the rating sharing choice, recorded with each opt-in. Change it whenever that notice's
- * copy changes in meaning.
+ * The version of the notice beside the rating sharing choice. The page renders it with the form and the opt-in records
+ * the version the page sent. Change it whenever that notice's copy changes in meaning.
  */
 export const RATING_SHARING_NOTICE_VERSION = "rating-sharing-2026-11-06";
 
@@ -992,11 +992,18 @@ export async function getRatingSharing(db: XosClient): Promise<Result<boolean>> 
   return ok(data.length > 0);
 }
 
-/** The signed-in person opts in, recording the notice they saw, or withdraws, which takes effect at once. */
-export async function setRatingSharing(db: XosClient, optIn: boolean): Promise<Result<boolean>> {
+/**
+ * The signed-in person opts in, recording the version of the notice their page showed, or withdraws, which takes effect
+ * at once and needs no version.
+ */
+export async function setRatingSharing(
+  db: XosClient,
+  optIn: boolean,
+  noticeVersion: string | null,
+): Promise<Result<boolean>> {
   const { data, error } = await db.rpc("set_rating_sharing", {
     p_opt_in: optIn,
-    p_notice_version: RATING_SHARING_NOTICE_VERSION,
+    ...(optIn && noticeVersion !== null ? { p_notice_version: noticeVersion } : {}),
     p_source: "Web",
   });
   if (error) return fail(toDataError(error));

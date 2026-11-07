@@ -683,8 +683,12 @@ describe("ratings", () => {
     });
     expect(await getRatingSharing(db)).toEqual({ ok: true, data: true });
     expect(await getRatingSharing(db)).toEqual({ ok: true, data: false });
-    expect(await setRatingSharing(db, true)).toEqual({ ok: true, data: true });
-    expect(await setRatingSharing(db, false)).toEqual({ ok: true, data: false });
+    expect(await setRatingSharing(db, true, RATING_SHARING_NOTICE_VERSION)).toEqual({
+      ok: true,
+      data: true,
+    });
+    expect(await setRatingSharing(db, false, null)).toEqual({ ok: true, data: false });
+    expect(calls.at(-1)?.steps).toContainEqual(["args", [{ p_opt_in: false, p_source: "Web" }]]);
     expect(calls.at(-2)?.steps).toContainEqual([
       "args",
       [

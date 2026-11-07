@@ -6,6 +6,7 @@ import {
   listPayoutAccounts,
   listRepresentations,
   listTaxForms,
+  RATING_SHARING_NOTICE_VERSION,
   readView,
   representationStanding,
 } from "@xos/data/gateway";
@@ -497,6 +498,7 @@ async function PrivacySection(props: SectionProps) {
         <SimpleForm
           id="rating-sharing"
           action={saveRatingSharingAction}
+          hidden={{ noticeVersion: RATING_SHARING_NOTICE_VERSION }}
           label={t("gateway.settings.privacy.ratings.title")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.settings.privacy.ratings.save")}
