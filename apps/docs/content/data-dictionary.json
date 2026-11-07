@@ -40022,14 +40022,14 @@
           "type": "uuid"
         },
         {
-          "comment": "Table of the record that fed the item; null for an item added by hand.",
+          "comment": "Table of the record that fed the item; null for an item added by hand. For a moderation notice that reached no one it is the notice's kind instead, listing.moderated or listing_report.decided, because the record may also have an item of its own.",
           "name": "source_table",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "Record that fed the item.",
+          "comment": "Record that fed the item: for listing.moderated the decision, for listing_report.decided the report.",
           "name": "source_id",
           "nullable": true,
           "references": null,
