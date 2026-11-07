@@ -108,8 +108,8 @@ test("a quote is priced, sent, accepted through its link and locked", async ({ p
     // The client accepts through the link.
     const token = url.split("/sign/")[1] as string;
     const anon = createClient(
-      process.env["NEXT_PUBLIC_SUPABASE_URL"] as string,
-      process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"] as string,
+      process.env["E2E_SUPABASE_URL"] as string,
+      process.env["E2E_SUPABASE_ANON_KEY"] as string,
     );
     const signed = await anon.schema("api_public" as never).rpc(
       "token_sign_document" as never,

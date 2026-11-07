@@ -183,10 +183,11 @@ test("a vendor goes from the code to an approved request and the intake's invoic
     expect(made?.engagement_state).toBe("Onboarding");
     expect(made?.agreement).toBe("Signed");
     const items = await sql<{ item_kind: string; submitted: boolean; verified: boolean }>(
-      `select i.item_kind::text, i.submitted_at is not null as submitted,
+      `select r.item_kind::text, i.submitted_at is not null as submitted,
               exists (select 1 from app.onboarding_verifications v where v.onboarding_item_id = i.id) as verified
          from app.onboarding_items i
-        where i.engagement_id = $1::uuid and i.item_kind in ('Tax Form', 'Payout Details')`,
+         join app.onboarding_requirements r on r.id = i.onboarding_requirement_id
+        where i.engagement_id = $1::uuid and r.item_kind in ('Tax Form', 'Payout Details')`,
       [made?.id],
     );
     expect(items.length).toBeGreaterThanOrEqual(2);

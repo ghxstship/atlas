@@ -34,6 +34,16 @@ async function batch(tag: string, title: string, body: string, requirement: stri
   return id;
 }
 
+// An Automatic requirement applies to every new engagement in the org, and other journeys verify a new engagement's items.
+test.afterEach(async () => {
+  await sql(
+    `update app.onboarding_requirements set deleted_at = now()
+      where name like 'Crew Agreement Signed %' and deleted_at is null`,
+    [],
+    DEMO.owner,
+  );
+});
+
 test("the crew person signs one agreement and declines another; Atlas countersigns", async ({
   page,
   browser,
