@@ -11,7 +11,12 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ShowcallerClock } from "@/components/show/showcaller-clock";
 import { observability } from "@/lib/observability";
-import { publicDb, SHOWCALLER_GRANT_COOKIE, visitorAddress } from "@/lib/showcaller/public";
+import {
+  portalSession,
+  SHOWCALLER_GRANT_COOKIE,
+  showcallerSignInPath,
+  visitorAddress,
+} from "@/lib/showcaller/public";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +39,11 @@ export default async function ShowcallerClockPage({
 }: PageProps<"/share/showcaller/[token]/clock">) {
   const { token } = await params;
   if (!SHOWCALLER_TOKEN.test(token)) notFound();
+  const session = await portalSession();
+  if (!session.signedIn) redirect(showcallerSignInPath(token) as Route);
   const grant = (await cookies()).get(SHOWCALLER_GRANT_COOKIE)?.value ?? null;
   if (grant === null) redirect(showcallerPath(token) as Route);
-  const read = await readShowcallerRun(publicDb(), {
+  const read = await readShowcallerRun(session.db, {
     token,
     grant,
     clientAddress: visitorAddress(await headers()),

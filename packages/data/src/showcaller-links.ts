@@ -36,6 +36,8 @@ export type ShowcallerLinkState = "Active" | "Locked" | "Expired" | "Revoked";
 
 export const SHOWCALLER_REFUSALS = [
   "showcaller_link_invalid",
+  "showcaller_link_sign_in",
+  "showcaller_link_not_on_project",
   "showcaller_link_rate_limited",
   "showcaller_link_locked",
   "showcaller_link_expired",

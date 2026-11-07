@@ -1,7 +1,8 @@
 -- 6244_showcaller_link_access.sql
 -- B3 Showcaller portal (RRR-227, ADR 0142). The anonymous side of showcaller links (6243): token RPCs in the sense of
--- Section 7.5 invariant 8 (ADR 0033 decision 56). Each needs the token, a device grant earned with the access code, and
--- stays within the link's one running order. Execute is granted to anon.
+-- Section 7.5 invariant 8 (ADR 0033 decision 56). By the owner's ruling of 2026-11-06 a token and code alone open nothing:
+-- each RPC needs a signed-in person on the project (private.showcaller_person_refusal), the token, a device grant earned
+-- with the access code, and stays within the link's one running order. Execute is granted to authenticated, never to anon.
 --
 --   * The P2 writes become private cores that take the locked running order and hold the rule logic: call, standby,
 --     move, nudge and department calls. app.call_cue, standby_cue, move_cue, shift_cue_plan and save_cue_calls keep
@@ -9,9 +10,10 @@
 --     private.record_advance_answer, 4730). app.call_cue now locks the running order too, so a member's call and a
 --     portal write serialize.
 --   * private.showcaller_link_reader checks a read or write, in this order: a read-only (GET) transaction is refused
---     before anything (1295); the address failure limits of P1 (only without a valid grant); the token format
+--     before anything (1295); no signed-in person (showcaller_link_sign_in); the address failure limits of P1 (only without a valid grant); the token format
 --     (^xscl_, so P1's xshv_ and xscr_ tokens never match); an unknown token counts a failure unless it is retired; a
---     revoked or deleted link answers invalid without counting; expiry; the grant, which must belong to this link;
+--     revoked or deleted link answers invalid without counting; expiry; the person off the project
+--     (showcaller_link_not_on_project); the grant, which must belong to this link;
 --     the rate (reads 7200 an hour per grant and 40000 per link, writes 1800 an hour per grant); the portal's columns
 --     still Public or Internal (showcaller_link_reclassified); the running order and its project still live; and the
 --     creator still a member holding show.run_of_show.write and show.cue.call on the project, checked as the creator
@@ -26,7 +28,7 @@
 --     choices, so reclassifying any of them stops the portal.
 --     Never a person's id or name, the link's note, or another running order's rows: every query filters by the link's
 --     running order.
---   * The write RPCs run as anon under the trusted operation showcaller_link with xos.showcaller_link_id set, so a call
+--   * The write RPCs run under the trusted operation showcaller_link with xos.showcaller_link_id set, so a call
 --     is stamped with the link (6243), never with the creator, who did not make it. Each resolves its cue with the
 --     link's running order in the WHERE clause; a miss answers showcaller_link_scope with one body for another run,
 --     project or org and for an id that does not exist, writes nothing but a rate event, and 20 of them by one grant in
@@ -369,6 +371,46 @@ $$;
 comment on function private.showcaller_portal_columns() is 'Every column a showcaller portal renders (ADR 0142), the Showcaller-audience custom values, their fields and choices included; private.showcaller_link_reader refuses a link once any of them is classified above Internal (showcaller_link_reclassified).';
 revoke all on function private.showcaller_portal_columns() from public, anon, authenticated;
 
+-- Owner ruling of 2026-11-06 (ADR 0142): who may use a showcaller link. On the project means a live project membership, an
+-- Active or Closing engagement or roster place on it (the invitation and onboarding path ends there), or holding
+-- show.cue.call on it. Null when the person may go on.
+create or replace function private.showcaller_person_refusal(p_project_id uuid)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.current_person_id();
+begin
+  if auth.uid() is null or v_person is null then
+    return 'showcaller_link_sign_in';
+  end if;
+  if p_project_id is not null and not (
+    p_project_id in (select private.my_project_ids())
+    or private.can_on_project(p_project_id, 'show.cue.call')
+    or exists (
+      select 1 from app.engagements e
+      where e.project_id = p_project_id and e.person_id = v_person and e.deleted_at is null
+        and e.engagement_state in ('Active', 'Closing'))
+    or exists (
+      select 1 from private.roster_people rp
+      join app.engagement_roster_entries r on r.id = rp.roster_entry_id
+      join app.engagements e on e.id = r.engagement_id
+      where rp.person_id = v_person and e.project_id = p_project_id and e.deleted_at is null
+        and e.engagement_state in ('Active', 'Closing')
+        and r.deleted_at is null and r.entry_state <> 'Withdrawn' and r.person_response <> 'Declined')
+  ) then
+    return 'showcaller_link_not_on_project';
+  end if;
+  return null;
+end;
+$$;
+
+comment on function private.showcaller_person_refusal(uuid) is 'Why the signed-in person may not use a showcaller link on this project, or null (owner ruling of 2026-11-06, ADR 0142).';
+revoke all on function private.showcaller_person_refusal(uuid) from public, anon, authenticated;
+
 create or replace function private.showcaller_link_reader(
   p_token text,
   p_grant text,
@@ -393,6 +435,10 @@ declare
   v_ok boolean;
 begin
   perform private.require_read_write();
+  o_reason := private.showcaller_person_refusal(null);
+  if o_reason is not null then
+    return;
+  end if;
   select * into v_subjects from private.live_link_subjects(p_client_address);
   if p_token is not null and p_token ~ '^xscl_[0-9a-f]{64}$' then
     v_hash := private.share_token_hash(p_token);
@@ -422,6 +468,10 @@ begin
   end if;
   if o_link.expires_at <= now() then
     o_reason := 'showcaller_link_expired';
+    return;
+  end if;
+  o_reason := private.showcaller_person_refusal(o_link.project_id);
+  if o_reason is not null then
     return;
   end if;
   -- A link locked by wrong codes keeps serving the devices that proved the code.
@@ -501,8 +551,13 @@ declare
   v_link app.showcaller_links;
   v_grant text;
   v_grant_expires timestamptz;
+  v_person_refusal text;
 begin
   perform private.require_read_write();
+  v_person_refusal := private.showcaller_person_refusal(null);
+  if v_person_refusal is not null then
+    return private.live_link_refusal(v_person_refusal);
+  end if;
   select * into v_subjects from private.live_link_subjects(p_client_address);
   if private.live_link_rate_limited(v_subjects.o_hop, v_subjects.o_subject) then
     return private.live_link_refusal('showcaller_link_rate_limited');
@@ -520,6 +575,11 @@ begin
   end if;
   if v_link.revoked_at is not null or v_link.deleted_at is not null then
     return private.live_link_refusal('showcaller_link_invalid');
+  end if;
+  -- Before the lockout and the code: someone off the project learns neither and uses up no attempts.
+  v_person_refusal := private.showcaller_person_refusal(v_link.project_id);
+  if v_person_refusal is not null then
+    return private.live_link_refusal(v_person_refusal);
   end if;
   if v_link.failed_attempts >= 5 then
     perform private.note_live_link_failure(v_subjects.o_hop, v_subjects.o_subject);
@@ -556,9 +616,9 @@ begin
 end;
 $$;
 
-comment on function api_public.open_showcaller_link(text, text, text) is 'Opens a showcaller link without an account (ADR 0142; Section 7.5 invariant 8), as api_public.open_live_link does (3781): refuses a read-only (GET) call first; then, unless the address used up its failures, locks the link row and checks it: unknown (counted unless retired), revoked or deleted (showcaller_link_invalid), locked after 5 wrong codes, expired, code missing, or wrong code (counted). A link holds at most 5 unexpired device grants (showcaller_link_devices). Answers JSON: status refused with the reason, or status ok with a device grant valid until the link expires or for 48 hours, and its expiry. Counts the open.';
+comment on function api_public.open_showcaller_link(text, text, text) is 'Opens a showcaller link for a signed-in person on its project (ADR 0142; Section 7.5 invariant 8), as api_public.open_live_link does (3781): refuses a read-only (GET) call first; then, unless the address used up its failures, locks the link row and checks it: unknown (counted unless retired), revoked or deleted (showcaller_link_invalid), locked after 5 wrong codes, expired, code missing, or wrong code (counted). A link holds at most 5 unexpired device grants (showcaller_link_devices). Answers JSON: status refused with the reason, or status ok with a device grant valid until the link expires or for 48 hours, and its expiry. Counts the open.';
 revoke all on function api_public.open_showcaller_link(text, text, text) from public;
-grant execute on function api_public.open_showcaller_link(text, text, text) to anon, authenticated, service_role;
+grant execute on function api_public.open_showcaller_link(text, text, text) to authenticated, service_role;
 
 -- Reading the running order -------------------------------------------------------------------------------------------------------------
 
@@ -642,7 +702,7 @@ $$;
 
 comment on function api_public.showcaller_run(text, text, text) is 'Reads a showcaller link''s running order with its device grant (ADR 0142; Section 7.5 invariant 8). Refuses as private.showcaller_link_reader does. Answers JSON: meta (brand, project name and zone, running order name, show day, stage, curfew, caller name, link and grant expiry), the Realtime channel, server_now, and the running order''s live cues in order, at most 300, each with id, position, label, segment and its color, planned_at, start_tbc, duration_seconds, called_at and called, whether it was called through a showcaller link (called_via_link, never which one or by whom), whether it is an artist''s set time (set_time, which the portal never removes), standby_at, description, script, updated_at, its department calls and its Showcaller-audience custom values (never Person, Money or Email). Never a person''s id or name, the link''s note, or another running order''s rows. Writes only rate events.';
 revoke all on function api_public.showcaller_run(text, text, text) from public;
-grant execute on function api_public.showcaller_run(text, text, text) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_run(text, text, text) to authenticated, service_role;
 
 -- Writing through the link: shared steps ------------------------------------------------------------------------------------------------
 
@@ -795,7 +855,7 @@ $$;
 
 comment on function api_public.showcaller_call_cue(text, text, text, uuid) is 'Calls a cue of the showcaller link''s running order (ADR 0142): checked as private.showcaller_write_context does, the cue looked up within the running order (showcaller_link_scope otherwise), then private.call_cue_in_run (cue_already_called). The call is stamped with the link, not a person. Answers JSON: status ok and called_at, or status refused and the reason.';
 revoke all on function api_public.showcaller_call_cue(text, text, text, uuid) from public;
-grant execute on function api_public.showcaller_call_cue(text, text, text, uuid) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_call_cue(text, text, text, uuid) to authenticated, service_role;
 
 create or replace function api_public.showcaller_standby_cue(p_token text, p_grant text, p_client_address text, p_cue_id uuid default null)
 returns jsonb
@@ -835,7 +895,7 @@ $$;
 
 comment on function api_public.showcaller_standby_cue(text, text, text, uuid) is 'Puts a cue of the showcaller link''s running order on standby, or with NULL clears the standby (ADR 0142), through private.standby_cue_in_run (cue_standby_called); the cue is looked up within the running order (showcaller_link_scope otherwise). Answers JSON: status ok, or status refused and the reason.';
 revoke all on function api_public.showcaller_standby_cue(text, text, text, uuid) from public;
-grant execute on function api_public.showcaller_standby_cue(text, text, text, uuid) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_standby_cue(text, text, text, uuid) to authenticated, service_role;
 
 create or replace function api_public.showcaller_shift_plan(p_token text, p_grant text, p_client_address text, p_seconds integer)
 returns jsonb
@@ -868,7 +928,7 @@ $$;
 
 comment on function api_public.showcaller_shift_plan(text, text, text, integer) is 'Nudges the remaining planned times of the showcaller link''s running order by p_seconds (ADR 0142), through private.shift_cue_plan_in_run (cue_shift_range: within an hour either way, not 0). Answers JSON: status ok and how many cues moved, or status refused and the reason.';
 revoke all on function api_public.showcaller_shift_plan(text, text, text, integer) from public;
-grant execute on function api_public.showcaller_shift_plan(text, text, text, integer) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_shift_plan(text, text, text, integer) to authenticated, service_role;
 
 create or replace function api_public.showcaller_move_cue(p_token text, p_grant text, p_client_address text, p_cue_id uuid, p_to_position integer)
 returns jsonb
@@ -906,7 +966,7 @@ $$;
 
 comment on function api_public.showcaller_move_cue(text, text, text, uuid, integer) is 'Moves an uncalled cue of the showcaller link''s running order to a 1-based place (ADR 0142), through private.move_cue_in_run (cue_move_called, cue_move_before_called); the cue is looked up within the running order (showcaller_link_scope otherwise). Answers JSON: status ok and the new position, or status refused and the reason.';
 revoke all on function api_public.showcaller_move_cue(text, text, text, uuid, integer) from public;
-grant execute on function api_public.showcaller_move_cue(text, text, text, uuid, integer) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_move_cue(text, text, text, uuid, integer) to authenticated, service_role;
 
 create or replace function api_public.showcaller_save_cue(
   p_token text,
@@ -1043,7 +1103,7 @@ $$;
 
 comment on function api_public.showcaller_save_cue(text, text, text, uuid, jsonb, timestamptz) is 'Adds a cue at the end of the showcaller link''s running order (p_cue_id NULL, at most 300; showcaller_cue_limit) or edits an uncalled one of its cues (ADR 0142). p_fields may hold only label (1 to 200 characters, required for a new cue), segment (up to 200), description (up to 2000), script (up to 20,000), planned_at, start_tbc and duration_seconds (0 to 86400); any other key or a bad value answers showcaller_cue_field. An edit names the cue''s updated_at as last read (showcaller_cue_changed when it moved on), and refuses a called cue (showcaller_cue_called). The cue is looked up within the running order (showcaller_link_scope otherwise). Answers JSON: status ok with the cue id and its new updated_at, or status refused and the reason.';
 revoke all on function api_public.showcaller_save_cue(text, text, text, uuid, jsonb, timestamptz) from public;
-grant execute on function api_public.showcaller_save_cue(text, text, text, uuid, jsonb, timestamptz) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_save_cue(text, text, text, uuid, jsonb, timestamptz) to authenticated, service_role;
 
 create or replace function api_public.showcaller_remove_cue(p_token text, p_grant text, p_client_address text, p_cue_id uuid)
 returns jsonb
@@ -1086,7 +1146,7 @@ $$;
 
 comment on function api_public.showcaller_remove_cue(text, text, text, uuid) is 'Removes an uncalled cue of the showcaller link''s running order (ADR 0142) as a soft delete: the row and its department calls stay, and the showcaller_link.write audit event names it. Refuses a called cue (showcaller_cue_called) and a cue that is an artist''s set time (showcaller_cue_linked); the cue is looked up within the running order (showcaller_link_scope otherwise). Answers JSON: status ok, or status refused and the reason.';
 revoke all on function api_public.showcaller_remove_cue(text, text, text, uuid) from public;
-grant execute on function api_public.showcaller_remove_cue(text, text, text, uuid) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_remove_cue(text, text, text, uuid) to authenticated, service_role;
 
 create or replace function api_public.showcaller_save_cue_calls(p_token text, p_grant text, p_client_address text, p_cue_id uuid, p_calls jsonb)
 returns jsonb
@@ -1130,4 +1190,4 @@ $$;
 
 comment on function api_public.showcaller_save_cue_calls(text, text, text, uuid, jsonb) is 'Saves the department calls of an uncalled cue of the showcaller link''s running order (ADR 0142), through private.save_cue_calls_for_cue (cue_call_kind; an instruction over 2000 characters answers showcaller_cue_field). Refuses a called cue (showcaller_cue_called); the cue is looked up within the running order (showcaller_link_scope otherwise). Answers JSON: status ok, or status refused and the reason.';
 revoke all on function api_public.showcaller_save_cue_calls(text, text, text, uuid, jsonb) from public;
-grant execute on function api_public.showcaller_save_cue_calls(text, text, text, uuid, jsonb) to anon, authenticated, service_role;
+grant execute on function api_public.showcaller_save_cue_calls(text, text, text, uuid, jsonb) to authenticated, service_role;

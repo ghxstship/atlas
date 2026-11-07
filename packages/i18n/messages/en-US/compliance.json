@@ -402,6 +402,8 @@
     "yes": "Yes",
     "no": "No",
     "refusals": {
+      "showcaller_link_sign_in": "Sign in to open this running order.",
+      "showcaller_link_not_on_project": "This running order opens only for people on its project. Ask the production to invite you; once you are onboarded, this link opens.",
       "showcaller_link_invalid": "This showcaller link is no longer available. Ask the production for a new link.",
       "showcaller_link_rate_limited": "Too many requests from this device or network. Wait a minute, then try again.",
       "showcaller_link_locked": "This link is locked after too many wrong codes. Ask the production to regenerate it.",

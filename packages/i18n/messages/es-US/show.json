@@ -489,8 +489,8 @@
   "showcallerLinks": {
     "action": "Enlaces de llamado del show",
     "title": "Enlaces de llamado del show para {name}",
-    "description": "Permita que alguien sin cuenta llame este guion y lo edite en vivo, con un enlace y un código de acceso.",
-    "warning": "Cualquiera con este enlace y código puede llamar cues y editar este guion hasta que venza.",
+    "description": "Permita que alguien de este proyecto llame este guion y lo edite en vivo: inicia sesión y luego escribe el código de acceso.",
+    "warning": "Cualquier persona de este proyecto con este enlace y código puede llamar cues y editar este guion hasta que venza.",
     "close": "Cerrar",
     "callerName": "Quien llama el show",
     "callerNameHelp": "Quién llamará el show. Se muestra junto a cada cue que llame.",

@@ -1,14 +1,16 @@
 import { openShowcallerLink, SHOWCALLER_TOKEN, showcallerPath } from "@xos/data/showcaller-links";
 import { observability } from "@/lib/observability";
 import {
+  portalSession,
   PUBLIC_HEADERS,
-  publicDb,
   showcallerGrantCookie,
+  showcallerSignInPath,
   visitorAddress,
 } from "@/lib/showcaller/public";
 
 /**
- * Opens a showcaller link with its access code (B3, ADR 0142), as lib/live-links/open-route.ts does for P1. Only a
+ * Opens a showcaller link with its access code for a signed-in person on the project (B3, ADR 0142; owner ruling of
+ * 2026-11-06), as lib/live-links/open-route.ts does for P1. Signed out goes to sign-in and nothing is read. Only a
  * POST opens, with the code in the form body (never the address), because every open counts toward the lockout and
  * the address limit (A69-001); a GET goes back to the portal, which shows the code form. A correct code sets the
  * device grant cookie and returns to the portal; a refusal returns with ?reason=. Failures go to the redacting
@@ -43,9 +45,15 @@ export async function POST(
   const { token } = await params;
   if (!SHOWCALLER_TOKEN.test(token))
     return new Response(null, { status: 404, headers: PUBLIC_HEADERS });
+  const session = await portalSession();
+  if (!session.signedIn)
+    return new Response(null, {
+      status: 303,
+      headers: { ...PUBLIC_HEADERS, Location: showcallerSignInPath(token) },
+    });
   const form = await request.formData();
   const code = String(form.get("accessCode") ?? "").trim();
-  const opened = await openShowcallerLink(publicDb(), {
+  const opened = await openShowcallerLink(session.db, {
     token,
     accessCode: code === "" ? null : code,
     clientAddress: visitorAddress(request.headers),
