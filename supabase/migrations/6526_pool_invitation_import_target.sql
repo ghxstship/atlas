@@ -218,13 +218,15 @@ begin
         and i.claimed_at is null and i.declined_at is null and i.revoked_at is null
         and extensions.similarity(lower(btrim(i.invitee_name)), lower(btrim(p_name))) >= 0.85
       union all
-      select 'app.pool_members'::text, m.id,
+      -- One decision per person, however many pools they are in.
+      (select distinct on (m.person_id) 'app.pool_members'::text, m.id,
         round(extensions.similarity(lower(btrim(pe.full_name)), lower(btrim(p_name)))::numeric, 3)
       from app.pool_members m
       join app.talent_pools tp on tp.id = m.talent_pool_id and tp.deleted_at is null and tp.pool_kind = 'Talent'
       join app.people pe on pe.id = m.person_id
       where m.org_id = p_org_id and m.deleted_at is null
         and extensions.similarity(lower(btrim(pe.full_name)), lower(btrim(p_name))) >= 0.85
+      order by m.person_id, m.id)
     ) x
     order by 3 desc;
   end if;
