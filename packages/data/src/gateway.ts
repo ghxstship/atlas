@@ -224,6 +224,11 @@ export interface OnboardingItem {
   readonly passes: boolean;
   /** True when the item passes, or a verified item from an earlier engagement carries over. */
   readonly satisfied: boolean;
+  /**
+   * True when it was submitted, nobody has reviewed it since and the scanner has not refused its file (6071), so a file
+   * sent again after a failed review waits for review, and a file the scanner refused does not.
+   */
+  readonly awaitingReview: boolean;
 }
 
 /** Where an onboarding item stands for the person, derived from the view's facts. */
@@ -234,7 +239,7 @@ export function onboardingStanding(item: OnboardingItem, today: string): Onboard
     return "expired";
   }
   if (item.satisfied) return "verified";
-  if (item.submittedAt !== null && item.latestOutcome !== "Failed") return "review";
+  if (item.awaitingReview) return "review";
   return "todo";
 }
 
@@ -268,6 +273,7 @@ function toOnboardingItem(row: ExternalRow<"onboarding_items">): OnboardingItem 
     expiresOn: row.expires_on,
     passes: row.passes ?? false,
     satisfied: row.satisfied ?? false,
+    awaitingReview: row.awaiting_review ?? false,
   };
 }
 
@@ -279,7 +285,7 @@ export async function listOnboardingItems(
   let query = external(db)
     .from("onboarding_items")
     .select(
-      "id, engagement_id, name, item_kind, is_blocking, verification_method, submitted_at, latest_outcome, expires_on, passes, satisfied",
+      "id, engagement_id, name, item_kind, is_blocking, verification_method, submitted_at, latest_outcome, expires_on, passes, satisfied, awaiting_review",
     );
   if (engagementId !== undefined) query = query.eq("engagement_id", engagementId);
   const { data, error } = await query.order("name", { ascending: true });

@@ -177,7 +177,7 @@
       "passed": "Passed review, no certificate recorded",
       "notReady": "Cannot be opened yet: still being scanned, or you do not have access to the file.",
       "loadError": "Vendor uploads could not be loaded. Refresh to try again.",
-      "more": "Showing the {shown} most recent of {total}.",
+      "more": "Showing {shown} of {total}, those not yet reviewed first.",
       "open": "Open file",
       "record": "Record certificate",
       "review": "Review on engagement",

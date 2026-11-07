@@ -466,7 +466,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "onboarding_items",
     select:
-      "id,engagement_id,name,item_kind,is_blocking,verification_method,submitted_at,latest_outcome,expires_on,passes,satisfied",
+      "id,engagement_id,name,item_kind,is_blocking,verification_method,submitted_at,latest_outcome,expires_on,passes,satisfied,awaiting_review",
     audiences: ["crew", "staff"],
   },
   {

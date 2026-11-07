@@ -177,7 +177,7 @@
       "passed": "Revisión aprobada, sin certificado registrado",
       "notReady": "Aún no se puede abrir: todavía se está analizando o no tienes acceso al archivo.",
       "loadError": "No se pudieron cargar los archivos de proveedores. Actualiza para intentarlo de nuevo.",
-      "more": "Se muestran los {shown} más recientes de {total}.",
+      "more": "Se muestran {shown} de {total}, primero los que aún no se han revisado.",
       "open": "Abrir archivo",
       "record": "Registrar certificado",
       "review": "Revisar en la contratación",

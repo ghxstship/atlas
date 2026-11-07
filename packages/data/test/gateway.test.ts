@@ -194,6 +194,7 @@ describe("onboarding", () => {
     expires_on: null,
     passes: false,
     satisfied: false,
+    awaiting_review: false,
     ...over,
   });
 
@@ -222,15 +223,18 @@ describe("onboarding", () => {
       expiresOn: null,
       passes: false,
       satisfied: false,
+      awaitingReview: true,
     };
     const items: OnboardingItem[] = [
       { ...base, id: "waiting" },
-      { ...base, id: "passed", latestOutcome: "Passed", satisfied: true },
-      { ...base, id: "failed", latestOutcome: "Failed" },
-      { ...base, id: "not uploaded", submittedAt: null },
+      { ...base, id: "passed", latestOutcome: "Passed", satisfied: true, awaitingReview: false },
+      { ...base, id: "failed", latestOutcome: "Failed", awaitingReview: false },
+      // Sent again after a failed review: the view says it waits for review again.
+      { ...base, id: "sent again", latestOutcome: "Failed" },
+      { ...base, id: "not uploaded", submittedAt: null, awaitingReview: false },
     ];
     const { waiting, passed } = uploadsAwaitingCertificate(items, "2026-10-14");
-    expect(waiting.map((i) => i.id)).toEqual(["waiting"]);
+    expect(waiting.map((i) => i.id)).toEqual(["waiting", "sent again"]);
     // A passed review is the path the vendor lands on when nobody records a certificate.
     expect(passed.map((i) => i.id)).toEqual(["passed"]);
   });
@@ -248,12 +252,24 @@ describe("onboarding", () => {
       expiresOn: null,
       passes: false,
       satisfied: false,
+      awaitingReview: false,
     };
     expect(onboardingStanding(base, "2026-10-14")).toBe("todo");
-    expect(onboardingStanding({ ...base, submittedAt: "x" }, "2026-10-14")).toBe("review");
+    expect(
+      onboardingStanding({ ...base, submittedAt: "x", awaitingReview: true }, "2026-10-14"),
+    ).toBe("review");
     expect(
       onboardingStanding({ ...base, submittedAt: "x", latestOutcome: "Failed" }, "2026-10-14"),
     ).toBe("todo");
+    // Uploaded again after a failed review, it waits for review rather than asking for it again.
+    expect(
+      onboardingStanding(
+        { ...base, submittedAt: "x", latestOutcome: "Failed", awaitingReview: true },
+        "2026-10-14",
+      ),
+    ).toBe("review");
+    // A file the scanner refused is not waiting for anyone.
+    expect(onboardingStanding({ ...base, submittedAt: "x" }, "2026-10-14")).toBe("todo");
     expect(onboardingStanding({ ...base, satisfied: true }, "2026-10-14")).toBe("verified");
     expect(
       onboardingStanding(

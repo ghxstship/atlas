@@ -2354,6 +2354,7 @@ export type Database = {
       };
       onboarding_items: {
         Row: {
+          awaiting_review: boolean | null;
           engagement_id: string | null;
           expires_on: string | null;
           id: string | null;

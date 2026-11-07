@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(26);
+select plan(30);
 
 create function pg_temp.uploads(p_who text) returns integer
 language plpgsql as $$
@@ -63,6 +63,18 @@ select is((select u.item_name || '/' || u.vendor_id::text || '/' || u.storage_ur
 select pg_temp.as_platform();
 select is(pg_temp.uploads('gina'), 0, 'a Viewer without vendors.coi.write gets no rows');
 select is(pg_temp.uploads('xavier'), 0, 'nor does another org');
+-- A Contractor engagement whose counterparty is also the vendor is not a vendor engagement.
+insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
+  arrangement, start_date)
+values (pg_temp.id('prj_a'), pg_temp.id('sam'), pg_temp.id('cp_v_a'), 'Contractor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate',
+  'Per Engagement', '2027-06-01');
+insert into world select 'eng_contractor_a', e.id from app.engagements e
+where e.counterparty_id = pg_temp.id('cp_v_a') and e.role_type = 'Contractor';
+update app.engagements set engagement_state = 'Onboarding' where id = pg_temp.id('eng_contractor_a');
+insert into world select 'item_c', i.id from app.onboarding_items i
+where i.engagement_id = pg_temp.id('eng_contractor_a') and i.onboarding_requirement_id = pg_temp.id('req');
+select pg_temp.upload('item_c', 'eng_contractor_a', 'coi.pdf');
+select is(pg_temp.uploads('carol'), 1, 'nor a Contractor engagement whose counterparty is also a vendor');
 select is(pg_temp.uploads('sam'), 0, 'nor does the vendor''s own person');
 
 -- Reading the file: unchanged by 6071 --------------------------------------------------------------------------------------
@@ -146,8 +158,22 @@ select pg_temp.as_platform();
 -- Back to the upload this review is of: inside one transaction every timestamp is the same instant.
 update app.onboarding_items set submitted_at = now() where id = pg_temp.id('item_v');
 select is(pg_temp.uploads('carol'), 0, 'a failed review takes it off the list');
+create function pg_temp.vendor_awaits() returns boolean
+language plpgsql as $$
+declare v boolean;
+begin
+  perform pg_temp.as_user('sam');
+  select o.awaiting_review into v from api_external.onboarding_items o where o.id = pg_temp.id('item_v');
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+select is(pg_temp.vendor_awaits(), false, 'and the vendor reads it as no longer waiting');
 update app.onboarding_items set submitted_at = now() + interval '1 second' where id = pg_temp.id('item_v');
 select is(pg_temp.uploads('carol'), 1, 'and a new upload brings it back');
+select is(pg_temp.vendor_awaits(), true, 'which the vendor reads as received and waiting for review, as the staff list does');
+select pg_temp.set_scan((select uri from f where key = 'v'), 'Infected');
+select is(pg_temp.vendor_awaits(), false, 'but not a file the scanner refused');
+select pg_temp.set_scan((select uri from f where key = 'v'), 'Clean');
 
 -- Bounded ----------------------------------------------------------------------------------------------------------------
 do $$

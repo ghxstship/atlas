@@ -524,8 +524,13 @@ export function onboardingStanding(
   if (bool(row, "satisfied") || bool(row, "passes")) {
     return expires && expires < today ? "expired" : "verified";
   }
+  // Sent again after a review returned it, it waits for the org again (6071). A row synced before the view had the
+  // column leaves it out.
+  if (bool(row, "awaiting_review")) return "waiting";
   const outcome = str(row, "latest_outcome");
   if (outcome && outcome !== "Pass" && outcome !== "Passed") return "returned";
+  // A file the scanner refused is not waiting for anyone.
+  if (row["awaiting_review"] === false) return "to-do";
   return str(row, "submitted_at") ? "waiting" : "to-do";
 }
 
