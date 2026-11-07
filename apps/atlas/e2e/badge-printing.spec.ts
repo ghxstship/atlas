@@ -21,6 +21,7 @@ const expect = baseExpect.configure({ timeout: 20_000 });
 const ORG_ID = "01920000-0000-7000-8000-000000000001";
 const FIELD_LEAD = "01920000-0000-7000-8000-000000000104";
 const CREW = "01920000-0000-7000-8000-000000000201";
+const PRODUCER = "01920000-0000-7000-8000-000000000103";
 const PROJECT = "NWS";
 /** A 1 by 1 PNG: the badge embeds it as the holder's photo. */
 const PHOTO = Buffer.from(
@@ -197,11 +198,8 @@ test.describe("Printable photo badges (P5)", () => {
 
   test("the print panel downloads the checked badges in one PDF", async ({ page }) => {
     const client = serviceClient();
-    const { categoryId, credentials } = await seedCredentials(client, [
-      FIELD_LEAD,
-      CREW,
-      FIELD_LEAD,
-    ]);
+    // Three holders: 6253 refuses a second live Access credential of one category for the same person.
+    const { categoryId, credentials } = await seedCredentials(client, [FIELD_LEAD, CREW, PRODUCER]);
     await signIn(page, "producer@example.com");
     await page.goto(`/${ORG}/credentials/issued?project=${PROJECT}&category=${categoryId}`);
     await page.getByRole("link", { name: "Print badges" }).click();

@@ -31,6 +31,15 @@ async function localSql(text: string, args: unknown[] = []): Promise<void> {
 }
 
 /** The settings list item that holds one labelled control; `has` is matched inside each item. */
+/** Opens a settings form's More fields: a form shows at most seven fields before it. */
+async function moreFields(page: Page): Promise<void> {
+  const more = page.getByRole("button", { name: "More fields" });
+  await expect(more.first()).toBeVisible();
+  for (const button of await more.all()) {
+    if ((await button.getAttribute("aria-expanded")) !== "true") await button.click();
+  }
+}
+
 function field(scope: Page | Locator, label: string): Locator {
   const page = "page" in scope ? scope.page() : scope;
   return scope.getByRole("listitem").filter({ has: page.getByLabel(label, { exact: true }) });
@@ -61,6 +70,7 @@ test("an org value locked on Gateway and marketplace is read-only on the project
 }) => {
   await signInAs(page, "owner@example.com", DEMO_ORG);
   await page.goto(`/${DEMO_ORG}/settings/gateway-and-marketplace`);
+  await moreFields(page);
   const parking = field(page, "Parking");
   await expect(
     parking.getByText("Platform default. Saving sets it for the organization."),
@@ -101,6 +111,7 @@ test("a project overrides an unlocked offering", async ({ page }) => {
 test("an org rule for vendors is added with a cap and removed", async ({ page }) => {
   await signInAs(page, "owner@example.com", DEMO_ORG);
   await page.goto(`/${DEMO_ORG}/settings/gateway-and-marketplace`);
+  await moreFields(page);
   const panel = page.getByTestId("org-offering-rules");
   const form = panel.getByRole("form", { name: "Add rule" });
   await form.getByLabel("Offering").selectOption({ label: "Carts" });
