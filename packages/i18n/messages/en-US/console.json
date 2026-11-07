@@ -1007,7 +1007,7 @@
       },
       "intimate_image_report": {
         "label": "Intimate image shared without consent",
-        "source": "Our own target, set to the Take It Down Act's 48 hours from a valid request, until counsel decides whether XOS is a covered platform."
+        "source": "Our own target, set to the Take It Down Act's 48 hours from a valid request, kept as if XOS were a covered platform."
       },
       "child_safety_report": {
         "label": "Child sexual abuse material",
