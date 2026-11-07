@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   DEMO,
+  DEMO_PASSWORD,
   expectAccessibleInBothThemes,
   newAccount,
   newOperator,
@@ -474,6 +475,37 @@ test("one operator decides an appeal of their own decision by a documented re-re
   );
   expect(told).toEqual({ reviewer: "same", state: "Completed" });
   await expectAccessibleInBothThemes(page);
+});
+
+test("the outside heartbeat answers through the real API: booleans to a signed-in user, nothing to anon", async ({
+  request,
+}) => {
+  const base = process.env["E2E_SUPABASE_URL"] ?? "";
+  const apikey = process.env["E2E_SUPABASE_ANON_KEY"] ?? "";
+  const email = await newAccount("heartbeat", "Hana Beat");
+  const token = await request.post(`${base}/auth/v1/token?grant_type=password`, {
+    headers: { apikey },
+    data: { email, password: DEMO_PASSWORD },
+  });
+  expect(token.ok()).toBe(true);
+  const { access_token: accessToken } = (await token.json()) as { access_token: string };
+  const call = (authorization: string) =>
+    request.post(`${base}/rest/v1/rpc/legal_queue_heartbeat`, {
+      headers: { apikey, authorization, "content-profile": "api_public" },
+      data: {},
+    });
+  const beat = await call(`Bearer ${accessToken}`);
+  expect(beat.status()).toBe(200);
+  const answer = (await beat.json()) as Record<string, unknown>;
+  expect(Object.keys(answer).sort()).toEqual([
+    "alert_path_ok",
+    "email_ok",
+    "feeds_ok",
+    "recipient_ok",
+    "sweep_ok",
+  ]);
+  expect(Object.values(answer).every((v) => typeof v === "boolean")).toBe(true);
+  expect((await call(`Bearer ${apikey}`)).ok()).toBe(false);
 });
 
 test("a role without legal.queue neither sees nor reaches it", async ({ page }) => {
