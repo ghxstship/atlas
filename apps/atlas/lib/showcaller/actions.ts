@@ -10,11 +10,11 @@ import {
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { observability } from "@/lib/observability";
-import { publicDb, SHOWCALLER_GRANT_COOKIE, visitorAddress } from "./public";
+import { portalSession, SHOWCALLER_GRANT_COOKIE, visitorAddress } from "./public";
 
 /**
  * The showcaller portal's writes (B3, ADR 0142): call, standby, nudge, move, add, edit, remove and department
- * calls, each one of the api_public.showcaller_* token RPCs through the session-less client. The token comes from
+ * calls, each one of the api_public.showcaller_* RPCs through the signed-in person's own client. The token comes from
  * the portal's route and the device grant only from its HttpOnly cookie, never from the browser's arguments; Next's
  * Origin check refuses a server action posted from another site. The database checks the link, the grant, the
  * creator's access and that the cue is in the link's running order, and attributes the write to the link.
@@ -65,8 +65,10 @@ export async function portalWriteAction(
   if (!SHOWCALLER_TOKEN.test(token)) return { ok: false, reason: "showcaller_link_invalid" };
   const parsed = write.safeParse(input);
   if (!parsed.success) return { ok: false, reason: "showcaller_cue_field" };
+  const session = await portalSession();
+  if (!session.signedIn) return { ok: false, reason: "showcaller_link_sign_in" };
   const grant = (await cookies()).get(SHOWCALLER_GRANT_COOKIE)?.value ?? "";
-  const result = await showcallerWrite(publicDb(), {
+  const result = await showcallerWrite(session.db, {
     token,
     grant,
     clientAddress: visitorAddress(await headers()),

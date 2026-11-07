@@ -1,16 +1,30 @@
 import "server-only";
 
+import type { XosClient } from "@xos/data";
 import { showcallerPath } from "@xos/data/showcaller-links";
 import { env } from "@/lib/env";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * The server half of the showcaller portal (B3, ADR 0142). Reads and writes go through the session-less client of
- * lib/live-links/public.ts, never the visitor's own, so a signed-in visitor writes exactly as anyone with the link
- * does. The device grant a correct code earns lives in one strictly necessary cookie scoped to the portal's own
- * path; nothing else is set.
+ * The server half of the showcaller portal (B3, ADR 0142). By the owner's ruling of 2026-11-06 a token and code alone
+ * open nothing: reads and writes go through the signed-in person's own client, and the database checks that they are
+ * on the project. The device grant a correct code earns lives in one strictly necessary cookie scoped to the portal's
+ * own path; nothing else is set.
  */
 
-export { PUBLIC_HEADERS, publicDb, visitorAddress } from "@/lib/live-links/public";
+export { PUBLIC_HEADERS, visitorAddress } from "@/lib/live-links/public";
+
+/** The visitor's client, and whether anyone is signed in. api_public.*showcaller* is not granted to anon. */
+export async function portalSession(): Promise<{ db: XosClient; signedIn: boolean }> {
+  const db = await createServerSupabase();
+  const { data } = await db.auth.getUser();
+  return { db, signedIn: data.user !== null };
+}
+
+/** Sign in, then back to this link. Someone with no account comes through their invitation first. */
+export function showcallerSignInPath(token: string): string {
+  return `/auth/sign-in?next=${encodeURIComponent(showcallerPath(token))}`;
+}
 
 /** The device grant cookie, HttpOnly and scoped to /share/showcaller/{token}. */
 export const SHOWCALLER_GRANT_COOKIE = "xos_showcaller_grant";

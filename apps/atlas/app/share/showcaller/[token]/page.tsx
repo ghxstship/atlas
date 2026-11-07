@@ -1,4 +1,5 @@
 import {
+  openShowcallerLink,
   parseShowcallerRefusal,
   readShowcallerRun,
   SHOWCALLER_TOKEN,
@@ -6,16 +7,21 @@ import {
   showcallerPath,
   type ShowcallerRefusal,
 } from "@xos/data/showcaller-links";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PublicLive } from "@/components/live/public-live";
 import { ShowcallerCodeForm } from "@/components/show/showcaller-code-form";
 import { ShowcallerPortal } from "@/components/show/showcaller-portal";
 import { env } from "@/lib/env";
 import { observability } from "@/lib/observability";
-import { publicDb, SHOWCALLER_GRANT_COOKIE, visitorAddress } from "@/lib/showcaller/public";
+import {
+  portalSession,
+  SHOWCALLER_GRANT_COOKIE,
+  showcallerSignInPath,
+  visitorAddress,
+} from "@/lib/showcaller/public";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +35,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * A showcaller link's portal (B3, G-80, ADR 0142): one running order, called and edited live by someone with no
- * account. The device grant cookie carries every read and write; without one the access code form shows. Reads
- * and writes go through the session-less client (6244), and the portal rereads on every channel ping, so a change
- * made in Atlas shows within a second or two. Refusals have their own copy: a link that is gone says so, a rate
- * refusal offers a retry, and the console is never blank.
+ * A showcaller link's portal (B3, G-80, ADR 0142): one running order, called and edited live by a signed-in person on
+ * the project (owner ruling of 2026-11-06). Signed out goes to sign-in, and someone off the project gets the refusal
+ * before any code form; a showcaller with no account comes through the invitation and onboarding path first. The
+ * device grant cookie still carries every read and write; without one the access code form shows. Reads and writes go
+ * through the person's own client (6244), and the portal rereads on every channel ping, so a change made in Atlas
+ * shows within a second or two. Refusals have their own copy: a link that is gone says so, a rate refusal offers a
+ * retry, and the console is never blank.
  */
 export default async function ShowcallerPortalPage({
   params,
@@ -41,6 +49,8 @@ export default async function ShowcallerPortalPage({
 }: PageProps<"/share/showcaller/[token]">) {
   const { token } = await params;
   if (!SHOWCALLER_TOKEN.test(token)) notFound();
+  const session = await portalSession();
+  if (!session.signedIn) redirect(showcallerSignInPath(token) as Route);
   const reasonParam = (await searchParams)["reason"];
   const asked: ShowcallerRefusal | null =
     typeof reasonParam === "string" ? parseShowcallerRefusal(reasonParam) : null;
@@ -54,13 +64,39 @@ export default async function ShowcallerPortalPage({
     </div>
   );
 
-  if (grant === null || asked !== null) return form(asked);
+  const clientAddress = visitorAddress(await headers());
+  const refusalPage = (reason: ShowcallerRefusal) => (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-12 p-24 text-center">
+      <h1 className="m-0 text-heading-24 font-semibold">
+        {reason === "showcaller_link_rate_limited" ? t("busy") : t("notAvailable")}
+      </h1>
+      <p className="m-0 max-w-layout-reading text-text-16 text-text-secondary">
+        {t(`refusals.${reason}`)}
+      </p>
+      {reason === "showcaller_link_rate_limited" ? (
+        <a href={path} className="text-text-14 text-accent-text underline">
+          {t("retry")}
+        </a>
+      ) : null}
+    </div>
+  );
 
-  const read = await readShowcallerRun(publicDb(), {
-    token,
-    grant,
-    clientAddress: visitorAddress(await headers()),
-  });
+  if (grant === null || asked !== null) {
+    // Opening with no code changes nothing and answers what stands before the form: the person, the link's state.
+    const check = await openShowcallerLink(session.db, { token, accessCode: null, clientAddress });
+    if (!check.ok) {
+      observability.logger.error("showcaller portal check failed", {
+        route: "/share/showcaller/[token]",
+        error: check.error,
+      });
+      throw new Error("showcaller portal check failed");
+    }
+    const reason = check.data.refused ? check.data.reason : "showcaller_link_access_code_required";
+    if (reason === "showcaller_link_sign_in") redirect(showcallerSignInPath(token) as Route);
+    return showcallerAsksForCode(reason) ? form(asked) : refusalPage(reason);
+  }
+
+  const read = await readShowcallerRun(session.db, { token, grant, clientAddress });
   if (!read.ok) {
     observability.logger.error("showcaller portal read failed", {
       route: "/share/showcaller/[token]",
@@ -70,22 +106,8 @@ export default async function ShowcallerPortalPage({
   }
   if (read.data.refused) {
     const reason = read.data.reason;
-    if (showcallerAsksForCode(reason)) return form(reason);
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-12 p-24 text-center">
-        <h1 className="m-0 text-heading-24 font-semibold">
-          {reason === "showcaller_link_rate_limited" ? t("busy") : t("notAvailable")}
-        </h1>
-        <p className="m-0 max-w-layout-reading text-text-16 text-text-secondary">
-          {t(`refusals.${reason}`)}
-        </p>
-        {reason === "showcaller_link_rate_limited" ? (
-          <a href={path} className="text-text-14 text-accent-text underline">
-            {t("retry")}
-          </a>
-        ) : null}
-      </div>
-    );
+    if (reason === "showcaller_link_sign_in") redirect(showcallerSignInPath(token) as Route);
+    return showcallerAsksForCode(reason) ? form(reason) : refusalPage(reason);
   }
 
   const config = env();

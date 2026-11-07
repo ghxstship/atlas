@@ -489,8 +489,8 @@
   "showcallerLinks": {
     "action": "Showcaller links",
     "title": "Showcaller links for {name}",
-    "description": "Let a showcaller without an account call this running order and edit it live, with a link and an access code.",
-    "warning": "Anyone with this link and code can call cues and edit this running order until it expires.",
+    "description": "Let a showcaller on this project call this running order and edit it live: they sign in, then enter the access code.",
+    "warning": "Anyone on this project with this link and code can call cues and edit this running order until it expires.",
     "close": "Close",
     "callerName": "Showcaller",
     "callerNameHelp": "Who will call the show. Shown beside each cue they call.",
