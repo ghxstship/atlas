@@ -217,7 +217,7 @@ test("a partner's price already in a closed currency can change its amount, then
   const price = async () =>
     (
       await db.query<{ monthly_minor: number; currency_code: string }>(
-        `select p.monthly_minor, p.currency_code from app.partner_client_prices p
+        `select p.monthly_minor::int as monthly_minor, p.currency_code from app.partner_client_prices p
          join app.organizations o on o.id = p.client_org_id where o.slug = $1`,
         [slug],
       )
