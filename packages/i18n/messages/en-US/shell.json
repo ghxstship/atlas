@@ -1267,7 +1267,7 @@
         "acceptedTitle": "Subscription canceled",
         "acceptedBody": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it.",
         "queuedTitle": "Cancellation not confirmed yet",
-        "queuedBody": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to the support mailbox and we will refund it.",
+        "queuedBody": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it.",
         "endingTitle": "This plan is ending",
         "endingBody": "Stripe has accepted your request. The plan keeps working until {date} and you will not be charged again. To keep the plan, renew it in the billing portal before then.",
         "endingBodyNoDate": "Stripe has accepted your request. The plan keeps working to the end of the period you paid for and you will not be charged again. To keep the plan, renew it in the billing portal before then."

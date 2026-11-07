@@ -152,7 +152,7 @@
       },
       "cancellation_confirmed": {
         "subject": "Tu suscripción está cancelada",
-        "body": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija. Si recibes un cargo después de cancelar, escribe al buzón de soporte y te lo reembolsaremos."
+        "body": "Stripe aceptó la cancelación y no volverá a cobrar esta suscripción. El tiempo que ya pagaste no se reembolsa, salvo que la ley lo exija. Si recibes un cargo después de cancelar, escribe a support@ghxstship.tech y te lo reembolsaremos."
       },
       "plan_ending": {
         "subject": "Tu plan {plan} termina el {endsOn, date, long}",
@@ -160,7 +160,7 @@
       },
       "cancellation_delayed": {
         "subject": "Tu cancelación aún no está confirmada",
-        "body": "Recibimos tu cancelación y la estamos enviando a Stripe, nuestro proveedor de pagos. Stripe todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente, nuestro equipo ya recibió la alerta y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe al buzón de soporte y te lo reembolsaremos."
+        "body": "Recibimos tu cancelación y la estamos enviando a Stripe, nuestro proveedor de pagos. Stripe todavía no la ha aceptado, así que la suscripción puede seguir activa. No tienes que hacer nada. Seguimos intentándolo automáticamente, nuestro equipo ya recibió la alerta y te escribiremos en cuanto se acepte. Si recibes un cargo después de cancelar, escribe a support@ghxstship.tech y te lo reembolsaremos."
       }
     },
     "message": {

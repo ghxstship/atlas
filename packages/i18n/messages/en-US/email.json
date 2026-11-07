@@ -152,7 +152,7 @@
       },
       "cancellation_confirmed": {
         "subject": "Your subscription is canceled",
-        "body": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it. If a charge reaches you after you canceled, write to the support mailbox and we will refund it."
+        "body": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it."
       },
       "plan_ending": {
         "subject": "Your {plan} plan ends on {endsOn, date, long}",
@@ -160,7 +160,7 @@
       },
       "cancellation_delayed": {
         "subject": "Your cancellation is not confirmed yet",
-        "body": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically, our team has been alerted, and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to the support mailbox and we will refund it."
+        "body": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically, our team has been alerted, and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it."
       }
     },
     "message": {
