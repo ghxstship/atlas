@@ -138,6 +138,13 @@ export default function AuroraScreen(): ReactElement {
           title={t("compass.aurora.offTitle")}
           reason={t("aurora.off.actionMember")}
         />
+      ) : availability.kind === "declined" ? (
+        <RefusalNotice
+          testID="aurora-declined"
+          outcome="REFUSE"
+          title={t("compass.aurora.declinedTitle")}
+          reason={t("compass.aurora.declined")}
+        />
       ) : availability.kind === "limit-reached" ? (
         <RefusalNotice
           testID="aurora-limit"

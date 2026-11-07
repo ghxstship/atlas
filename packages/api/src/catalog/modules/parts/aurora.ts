@@ -200,6 +200,10 @@ const AuroraStatus = defineResource({
     used: fields.int("Requests the org made this UTC month.", 12),
     allowance: orNull(fields.int("Monthly allowance; null when the plan sets no limit.", 500)),
     plan_includes_aurora: fields.bool("Whether the plan includes Aurora AI.", true),
+    declined_by_person: fields.bool(
+      "Whether the caller turned AI features off for themselves, in Compass, Settings. Their enabled_features is then empty whatever the org's setting, and only they can turn them back on. False with no recorded choice and for an API key.",
+      false,
+    ),
   },
 });
 

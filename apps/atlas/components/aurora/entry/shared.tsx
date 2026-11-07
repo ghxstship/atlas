@@ -160,6 +160,14 @@ export function AvailabilityNotice({
           reason={t("availability.off")}
         />
       );
+    case "declined":
+      return (
+        <RefusalNotice
+          outcome="REFUSE"
+          title={t("availability.declinedTitle")}
+          reason={t("availability.declined")}
+        />
+      );
     case "limit-reached":
       return (
         <RefusalNotice

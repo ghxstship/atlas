@@ -1352,6 +1352,7 @@ export interface Components {
     used: number;
     allowance: number | null;
     plan_includes_aurora: boolean;
+    declined_by_person: boolean;
   };
   AuroraSummarizeRequest: {
     kind: "record_activity" | "project_week" | "gate_readiness";

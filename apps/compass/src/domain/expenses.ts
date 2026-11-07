@@ -361,6 +361,8 @@ export async function readReceipt(
   const status = await reader.status();
   if (!status.ok) return none(refusalState(status.problem));
   if (!status.data.plan_includes_aurora) return none("not-in-plan");
+  // A decline made on another device binds here too (migration 6155).
+  if (status.data.declined_by_person === true) return none("declined");
   if (!status.data.enabled_features.includes("extraction")) return none("off");
   if (status.data.allowance !== null && status.data.used >= status.data.allowance)
     return none("limit");

@@ -24,6 +24,10 @@
     "actionAdmin": "Open AI Features settings",
     "actionMember": "Ask an Admin to turn it on in Settings, AI Features."
   },
+  "declined": {
+    "sentence": "You turned AI features off for yourself.",
+    "action": "Only you can turn them back on, in Compass, Settings, AI Features. Nothing is sent until you do."
+  },
   "notInPlan": {
     "title": "Aurora AI is not in your plan",
     "reason": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. An Owner can change the plan in Settings, Billing and Plan.",
@@ -153,6 +157,8 @@
       "notInPlan": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. An Owner can change the plan in Settings, Billing and Plan.",
       "offTitle": "This AI feature is off",
       "off": "An Admin turned this feature off in Settings, AI Features. Nothing was sent.",
+      "declinedTitle": "AI features are off for you",
+      "declined": "You turned AI features off for yourself in Compass. To use them, turn them on in Compass, Settings, AI Features. Nothing was sent.",
       "limitTitle": "This month's Aurora allowance is used up",
       "limit": "Your org has used all {allowance, number} requests this month. The allowance resets on the first of next month, or an Owner can move to a larger plan.",
       "errorTitle": "Aurora could not load",
@@ -163,6 +169,7 @@
       "quota": "Your org has used this month's Aurora requests. Nothing was changed. The allowance resets on the first of next month.",
       "notInPlan": "Aurora AI is not in your plan, so nothing was sent.",
       "off": "An Admin turned this feature off. Nothing was sent.",
+      "declined": "You turned AI features off for yourself. Nothing was sent. You can turn them back on in Compass, Settings, AI Features.",
       "notConfigured": "Aurora is not set up on this deployment. Ask your platform operator to connect the model provider.",
       "offline": "Aurora could not be reached. Check your connection and try again. Nothing was changed.",
       "forbidden": "You do not have access to do this. Nothing was changed.",

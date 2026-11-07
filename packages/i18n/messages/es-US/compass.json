@@ -982,6 +982,8 @@
     "inputHelp": "Pregunta con una frase, como ¿A qué hora es mi llamado mañana?",
     "notInPlan": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Pide a un Propietario que cambie el plan en Atlas, Configuración, Facturación y plan.",
     "offTitle": "Aurora está desactivada en esta organización",
+    "declinedTitle": "Las funciones de IA están desactivadas para ti",
+    "declined": "Las desactivaste. Para usarlas, actívalas en Configuración, Funciones de IA.",
     "limit": "Tu organización usó las {allowance} solicitudes de este mes. El límite se renueva el primer día del mes próximo.",
     "noAnswer": "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
     "confirmReason": "Confirmado en Compass.",

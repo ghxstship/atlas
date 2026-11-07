@@ -30,6 +30,11 @@ export interface AuroraStatusResult {
   readonly used: number;
   readonly allowance: number | null;
   readonly plan_includes_aurora: boolean;
+  /**
+   * The caller turned AI features off for themselves (in Compass, Settings), so enabled_features is empty whatever the
+   * org's setting. Absent from a server older than migration 6155.
+   */
+  readonly declined_by_person?: boolean;
 }
 
 export interface AuroraSuggestionField {

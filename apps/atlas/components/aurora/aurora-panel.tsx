@@ -135,6 +135,14 @@ function AuroraBody({
       />
     );
   }
+  if (a.kind === "declined") {
+    // The person's own choice, made in Compass: no Admin setting explains it or can undo it.
+    return (
+      <InlineAlert tone="info" title={t("declined.sentence")}>
+        {t("declined.action")}
+      </InlineAlert>
+    );
+  }
   if (a.kind === "off") {
     return canManage ? (
       <EmptyState

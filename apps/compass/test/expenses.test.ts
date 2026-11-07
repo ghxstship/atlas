@@ -215,6 +215,21 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
     const declined = reader();
     expect((await readReceipt(declined.r, "AAAA", true, "Declined")).state).toBe("declined");
     expect(declined.calls).toEqual([]);
+    // A decline made on another device binds too, though this one still holds Allowed.
+    const elsewhere = reader({
+      status: async () => ({
+        ok: true,
+        data: {
+          enabled_features: [],
+          used: 0,
+          allowance: null,
+          plan_includes_aurora: true,
+          declined_by_person: true,
+        },
+      }),
+    });
+    expect((await readReceipt(elsewhere.r, "AAAA", true, "Allowed")).state).toBe("declined");
+    expect(elsewhere.calls).not.toContain("extract");
   });
 
   it("reads the fields when the org has document extraction on", async () => {

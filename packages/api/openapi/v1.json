@@ -55146,9 +55146,20 @@
             "type": "boolean",
             "description": "Whether the plan includes Aurora AI.",
             "example": true
+          },
+          "declined_by_person": {
+            "type": "boolean",
+            "description": "Whether the caller turned AI features off for themselves, in Compass, Settings. Their enabled_features is then empty whatever the org's setting, and only they can turn them back on. False with no recorded choice and for an API key.",
+            "example": false
           }
         },
-        "required": ["enabled_features", "used", "allowance", "plan_includes_aurora"],
+        "required": [
+          "enabled_features",
+          "used",
+          "allowance",
+          "plan_includes_aurora",
+          "declined_by_person"
+        ],
         "description": "What Aurora can do for the caller now: the features an Admin turned on that the plan includes, and this month's use of the allowance."
       },
       "AiFeature": {
@@ -151773,7 +151784,8 @@
                   "enabled_features": ["assistant", "extraction"],
                   "used": 12,
                   "allowance": 500,
-                  "plan_includes_aurora": true
+                  "plan_includes_aurora": true,
+                  "declined_by_person": false
                 },
                 "schema": { "$ref": "#/components/schemas/AuroraStatus" }
               }

@@ -982,6 +982,8 @@
     "inputHelp": "Ask in a sentence, such as When is my call time tomorrow?",
     "notInPlan": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. Ask an Owner to change the plan in Atlas, Settings, Billing and Plan.",
     "offTitle": "Aurora is off for this org",
+    "declinedTitle": "AI features are off for you",
+    "declined": "You turned them off. To use them, turn them on in Settings, AI Features.",
     "limit": "Your org has used all {allowance} requests this month. The allowance resets on the first of next month.",
     "noAnswer": "The records you can see do not answer this. Ask about a shift, an SOP or the handbook.",
     "confirmReason": "Confirmed in Compass.",

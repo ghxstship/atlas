@@ -22662,6 +22662,8 @@ class AuroraStatus(TypedDict):
     allowance: Optional[int]
     #: Whether the plan includes Aurora AI.
     plan_includes_aurora: bool
+    #: Whether the caller turned AI features off for themselves, in Compass, Settings. Their enabled_features is then empty whatever the org's setting, and only they can turn them back on. False with no recorded choice and for an API key.
+    declined_by_person: bool
 
 
 class _AuroraResultRequired(TypedDict):
