@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Where XOS is offered (ADR 0160): the one place an operator opens or closes a territory, and records an exception for a
  * signed contract. Opening one changes signup at once, and prices and languages usually within a minute and at most about
- * 11, with no code change.
+ * 11 minutes, with no code change.
  */
 export default async function TerritoriesPage({
   searchParams,

@@ -300,7 +300,7 @@
   },
   "territories": {
     "title": "Territories",
-    "intro": "Where XOS is offered. A closed territory's prices and languages stay switched off, and no organization can start there. Opening one changes signup at once, and prices and languages usually within a minute and at most about 11. Before you open a territory, confirm what its law requires, such as appointed representatives and localized terms, and say so in the reason.",
+    "intro": "Where XOS is offered. A closed territory's prices and languages stay switched off, and no organization can start there. Opening one changes signup at once, and prices and languages usually within a minute and at most about 11 minutes. Before you open a territory, confirm what its law requires, such as appointed representatives and localized terms, and say so in the reason.",
     "list": "All territories",
     "territory": "Territory",
     "countries": "Countries",

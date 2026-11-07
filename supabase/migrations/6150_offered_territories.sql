@@ -721,7 +721,7 @@ begin
   return p_code;
 end;
 $$;
-comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Signup follows at once, and prices and languages usually within a minute and at most about 11, as each server''s read of the offering catches up (ADR 0160), with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
+comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Signup follows at once, and prices and languages usually within a minute and at most about 11 minutes, as each server''s read of the offering catches up (ADR 0160), with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
 revoke all on function app.console_set_territory_offered(text, boolean, text) from public, anon;
 grant execute on function app.console_set_territory_offered(text, boolean, text) to authenticated;
 

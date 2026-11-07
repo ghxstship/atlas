@@ -300,7 +300,7 @@
   },
   "territories": {
     "title": "Territorios",
-    "intro": "Dónde se ofrece XOS. Los precios y los idiomas de un territorio cerrado siguen desactivados, y ninguna organización puede empezar allí. Abrir uno cambia el registro de inmediato, y los precios y los idiomas normalmente en un minuto y como máximo en unos 11. Antes de abrir un territorio, confirma lo que exige su ley, como representantes designados y términos locales, y dilo en el motivo.",
+    "intro": "Dónde se ofrece XOS. Los precios y los idiomas de un territorio cerrado siguen desactivados, y ninguna organización puede empezar allí. Abrir uno cambia el registro de inmediato, y los precios y los idiomas normalmente en un minuto y como máximo en unos 11 minutos. Antes de abrir un territorio, confirma lo que exige su ley, como representantes designados y términos locales, y dilo en el motivo.",
     "list": "Todos los territorios",
     "territory": "Territorio",
     "countries": "Países",
