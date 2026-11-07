@@ -384,12 +384,13 @@ test.describe("Invoice and settlement lines (A118)", () => {
     await settle(other);
 
     const grid = (p: Page) => p.getByRole("grid", { name: "Budget lines" });
-    // Client unit price is the sixth data column, after Description, URID, Type, Quantity and Unit price.
+    // Client unit price is the seventh data column, after Description, URID, Type, Quantity, Unit price and Markup %
+    // (B13).
     const clientPrice = (p: Page) =>
       grid(p)
         .getByRole("row", { name: /Delay towers/ })
         .getByRole("gridcell")
-        .nth(6);
+        .nth(7);
     await clientPrice(page).dblclick();
     await page.keyboard.press("ControlOrMeta+a");
     await page.keyboard.type("1800");

@@ -133,7 +133,12 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
 
   // Nor from the engagement's Overview, which links to the Documents tab instead.
   await page.goto(`/work/engagements/${engagement.key}`);
-  const next = page.getByRole("listitem").filter({ hasText: name }).first();
+  // A quote's next step names it by its number and version (B13), not by the budget's quote name.
+  const next = page
+    .getByRole("list", { name: "Your next steps" })
+    .getByRole("listitem")
+    .filter({ hasText: "Quote" })
+    .first();
   await expect(next.getByRole("link").first()).toBeVisible();
   await expect(next.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
 

@@ -374,7 +374,8 @@ export async function listTransferPersonOptions(
     (data ?? []).map((r) => ({
       personId: r.person_id,
       fullName: r.full_name,
-      partyName: r.party_name,
+      // 5942 names an individual's own engagement after the person; that adds nothing beside their name.
+      partyName: r.party_name === r.full_name ? null : r.party_name,
       rosterEntryId: r.roster_entry_id,
       membershipId: r.membership_id,
       engagementId: r.engagement_id,
