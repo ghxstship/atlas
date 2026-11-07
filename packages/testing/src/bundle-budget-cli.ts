@@ -1,13 +1,16 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { checkRouteBudgets, kb, keyPages, transferBytes, type BudgetApp } from "./bundle-budget.ts";
+import { realtimeClientGzipBytes } from "./budgets.ts";
 import { findForbiddenClientCode } from "./client-chunk-audit.ts";
 import { sessionCookies } from "./lighthouse.ts";
 import { signedInRoutes } from "./lighthouse-routes.ts";
+import { findRealtimeChunks, realtimeInFirstLoad, realtimeWithinLimit } from "./realtime-chunk.ts";
 import {
   scriptRequests,
   servedRow,
   servedTargets,
+  withoutChunks,
   type NetworkEvent,
   type ServedRow,
 } from "./served-budget.ts";
@@ -23,7 +26,8 @@ import { signIn } from "./session.ts";
  *
  * `budget:js -- --served [atlas|gateway|docs]` loads each key page from the running servers in
  * Chromium instead, signed in as the page's demo person, and counts every script fetched until
- * the network goes quiet, the chunks a page loads after hydration included (served-budget.ts). It
+ * the network goes quiet, the chunks a page loads after hydration included (served-budget.ts), and
+ * less the Realtime client, which has its own line and limit from the build (realtime-chunk.ts). It
  * needs the stack and the servers: SUPABASE_URL, SUPABASE_ANON_KEY, and ATLAS_URL, GATEWAY_URL or
  * DOCS_URL when they are not on the Lighthouse ports.
  *
@@ -84,7 +88,17 @@ async function measureServed(): Promise<ServedRow[]> {
         while (Date.now() - last < QUIET_MS && Date.now() < deadline) {
           await page.waitForTimeout(100);
         }
-        rows.push(servedRow(target.app, path, scriptRequests(events), ceilings.pages));
+        const realtime = findRealtimeChunks(`${repoRoot}apps/${target.app}/.next`).map(
+          (c) => c.name,
+        );
+        rows.push(
+          servedRow(
+            target.app,
+            path,
+            withoutChunks(scriptRequests(events), realtime),
+            ceilings.pages,
+          ),
+        );
         await context.close();
       }
     }
@@ -134,6 +148,29 @@ for (const row of rows) {
     console.log(`       ${kb(c.bytes).padStart(7)} ${c.f} ${c.head.replace(/\s+/g, " ")}`);
   }
 }
+// The Realtime client: its own line and limit, from the build, and never in a first load (ADR 0027).
+let realtimeFailed = false;
+const firstLoad = served ? checkRouteBudgets(repoRoot, ceilings.pages, everyPage()) : rows;
+for (const app of ["atlas", "gateway"] as const) {
+  const nextDir = `${repoRoot}apps/${app}/.next`;
+  if (!existsSync(`${nextDir}/build-manifest.json`)) continue;
+  const chunks = findRealtimeChunks(nextDir);
+  const bytes = chunks.reduce((sum, c) => sum + c.transferBytes, 0);
+  const within = realtimeWithinLimit(chunks);
+  console.log(
+    `${within ? "ok  " : "OVER"} ${app.padEnd(8)}${"Realtime client, after idle".padEnd(36)}${kb(bytes).padStart(8)} of ${kb(realtimeClientGzipBytes)}`,
+  );
+  if (!within) realtimeFailed = true;
+  for (const row of firstLoad) {
+    if (row.app !== app || !("files" in row)) continue;
+    for (const file of realtimeInFirstLoad(row.files, chunks)) {
+      console.error(`FIRST LOAD ${app}${row.path}: the Realtime client ${file}`);
+      realtimeFailed = true;
+    }
+  }
+}
+if (realtimeFailed) process.exit(1);
+
 const over = rows.filter((r) => !r.pass);
 if (over.length > 0) {
   console.error(`${over.length} page(s) over the route JavaScript budget.`);

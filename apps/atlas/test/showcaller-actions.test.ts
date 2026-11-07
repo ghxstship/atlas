@@ -13,6 +13,7 @@ const GRANT = `xcgr_${"cd".repeat(32)}`;
 const CUE = "0192f3a0-0000-7000-8000-000000000001";
 const state = vi.hoisted(() => ({
   cookie: null as string | null,
+  signedIn: true,
   site: "https://atlas.example.test",
 }));
 const data = vi.hoisted(() => ({ write: vi.fn(), open: vi.fn() }));
@@ -27,8 +28,12 @@ vi.mock("@/lib/live-links/public", () => ({
     "X-Robots-Tag": "noindex, nofollow",
     "Referrer-Policy": "same-origin",
   },
-  publicDb: () => ({}),
   visitorAddress: () => "198.51.100.7",
+}));
+vi.mock("@/lib/supabase/server", () => ({
+  createServerSupabase: async () => ({
+    auth: { getUser: async () => ({ data: { user: state.signedIn ? { id: "u1" } : null } }) },
+  }),
 }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
@@ -56,20 +61,27 @@ describe("portal writes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     state.cookie = GRANT;
+    state.signedIn = true;
     data.write.mockResolvedValue({ ok: true, data: { refused: false } });
+  });
+
+  it("writes nothing with a token and grant but no signed-in person", async () => {
+    state.signedIn = false;
+    expect(await portalWriteAction(TOKEN, { op: "call", cueId: CUE })).toEqual({
+      ok: false,
+      reason: "showcaller_link_sign_in",
+    });
+    expect(data.write).not.toHaveBeenCalled();
   });
 
   it("writes with the route's token and the cookie's grant", async () => {
     expect(await portalWriteAction(TOKEN, { op: "call", cueId: CUE })).toEqual({ ok: true });
-    expect(data.write).toHaveBeenCalledWith(
-      {},
-      {
-        token: TOKEN,
-        grant: GRANT,
-        clientAddress: "198.51.100.7",
-        write: { op: "call", cueId: CUE },
-      },
-    );
+    expect(data.write).toHaveBeenCalledWith(expect.anything(), {
+      token: TOKEN,
+      grant: GRANT,
+      clientAddress: "198.51.100.7",
+      write: { op: "call", cueId: CUE },
+    });
   });
 
   it("never takes a grant from the arguments", async () => {
@@ -179,10 +191,11 @@ describe("the open handler", () => {
       params(TOKEN),
     );
     expect(opened.headers.get("Set-Cookie")).toContain("xos_showcaller_grant=");
-    expect(data.open).toHaveBeenCalledWith(
-      {},
-      { token: TOKEN, accessCode: "042424", clientAddress: "198.51.100.7" },
-    );
+    expect(data.open).toHaveBeenCalledWith(expect.anything(), {
+      token: TOKEN,
+      accessCode: "042424",
+      clientAddress: "198.51.100.7",
+    });
     data.open.mockResolvedValueOnce({
       ok: true,
       data: { refused: true, reason: "showcaller_link_devices" },

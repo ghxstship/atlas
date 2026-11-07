@@ -17,7 +17,7 @@ console; P1 (ADR 0130) gave no-account read links and display screens; P3 import
 three things production tools still do that XOS did not: Rundown Studio and Shoflo let a producer add their own
 columns, color-coded, and decide who sees each; LASSO's Global Elements Manager keeps reusable segments and pushes
 changes to the shows that use them; ProductionOS puts a crew chat beside the running cue and lets an outside
-showcaller run a stage with a password and no account.
+showcaller run a stage with a password and no account; XOS does not (owner ruling of 2026-11-06 below).
 
 ## Decisions
 
@@ -30,7 +30,14 @@ reach more than the day it was given for. A multi-day stage needs one link per s
 
 ### Section 7.5 invariant 8 (owner ruling of 2026-11-06)
 
-A link or a QR code alone opens nothing. `/share/showcaller/{token}` shows only the access code form until a device holds a grant from that code, every `api_public.showcaller_*` read and write needs the token and the grant, and `/clock` goes back to the form without one. A showcaller still reaches the portal with no XOS account, so the ruling's second sentence, that anyone not on the platform and on the project is onboarded first, is left for the owner when accepting this ADR.
+A link, a QR code or a token and access code alone open nothing. The owner ruled on 2026-11-06 that token plus code is not acceptable for showcallers, which replaces this decision's first reading that a showcaller reaches the portal with no account. `/share/showcaller/{token}`, its `/open` and its `/clock` need a signed-in person on the project:
+
+- **In the database.** `api_public.open_showcaller_link`, `showcaller_run` and every write are granted to `authenticated`, never `anon`, and all of them refuse through `private.showcaller_person_refusal`: `showcaller_link_sign_in` with no person, `showcaller_link_not_on_project` for someone off the project. The check comes before the lockout and the code, so someone off the project learns neither and uses up no attempts. It runs on every read and write, so a device grant stops when its holder leaves the project.
+- **In the app.** The routes and the server action use the person's own client, send a signed-out visitor to sign-in and back, and show someone off the project the refusal before any code form.
+- **On the project** means a live project membership, an Active or Closing engagement or roster place on it, or holding `show.cue.call` on it. A showcaller with no account takes the existing invitation and onboarding path, then reaches the route. A person still onboarding is not yet on the project.
+- **Unchanged.** The access code and device grants stay as a second step, as do the five-device cap, the audit event, the stamp of a call with the link and the portal's sync. The Realtime channel stays an anon subscription: `showcaller_channel_open` answers only whether a topic is live, its key comes only from `showcaller_run`, and a ping carries no show data, so a key already handed out only tells a closed portal to read again, which is then refused.
+
+pgTAP 6244 covers no session, a person off the project and a person on it; journey `b3-showcaller-portal` covers the same three.
 
 ### 2. Showcaller links are their own table
 
@@ -42,7 +49,7 @@ expiry and 3782's channel registry with roles.
 
 ### 3. Writes run as anon under a trusted operation
 
-A portal write runs as the anonymous caller under the trusted operation `showcaller_link`, with
+A portal write runs under the trusted operation `showcaller_link`, with
 `xos.showcaller_link_id` set. It does not switch to the link's creator, which would record the creator as having
 called a cue they did not call. `private.guard_cue` stamps a call made under the operation with
 `called_via_link_id` and no person; `cues_called_pair` now says a called cue has exactly one of `called_by` and
@@ -178,8 +185,8 @@ API operations, as ADR 0130 decision 9 keeps P1's. No new capability codes.
 
 ## Consequences
 
-- An outside showcaller can run a show from any browser with a link and a code, and every write is attributed to
-  the link and audited.
+- A showcaller on the project can run a show from any browser once signed in, with a link and a code, and every
+  write is attributed to the link and audited. An outside showcaller is invited and onboarded first.
 - Producers define rundown columns and colors once, per audience, and keep reusable segments in step across shows.
 - The crew talks beside the running cue without a Client reading along.
 - The release that carries B3 waits for the owner to accept this ADR and the threat-model rows.

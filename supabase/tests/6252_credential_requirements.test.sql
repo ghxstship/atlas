@@ -107,7 +107,7 @@ select throws_ok($$insert into app.credentials (credential_category_id, holder_p
 insert into app.certification_holders (certification_id, person_id, issued_on) values (pg_temp.id('cert'), pg_temp.id('nina'), current_date);
 select lives_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_ind'), (select id from world where key = 'nina'))$$,
   'once a verifier records the certification, the badge is issued');
-insert into app.certification_holders (certification_id, person_id, issued_on, expires_on) values (pg_temp.id('cert'), pg_temp.id('paul'), current_date - 30, current_date - 1);
+insert into app.certification_holders (certification_id, person_id, issued_on, expires_on) values (pg_temp.id('cert'), pg_temp.id('paul'), current_date - 30, current_date - 2);
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat_ind'), (select id from world where key = 'paul'))$$,
   'XR001', null, 'an expired certification blocks again');
 select pg_temp.as_user('paul');
@@ -127,7 +127,7 @@ select throws_ok($$insert into app.credentials (credential_category_id, holder_p
   'XR001', null, 'so the expired certification still blocks');
 select lives_ok($$update app.certification_holders set expires_on = current_date + 1 where person_id = (select id from world where key = 'paul')$$,
   'a verifier still corrects the dates');
-select lives_ok($$update app.certification_holders set expires_on = current_date - 1 where person_id = (select id from world where key = 'paul')$$,
+select lives_ok($$update app.certification_holders set expires_on = current_date - 2 where person_id = (select id from world where key = 'paul')$$,
   'in either direction');
 
 -- The project's date decides a certification's expiry -----------------------------------------------------------------------------

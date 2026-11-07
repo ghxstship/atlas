@@ -209,6 +209,8 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await page.goto(`/${ORG}/places/site-plans`);
   await expectAccessibleInBothThemes(page);
   await page.getByRole("radio", { name: "Site plan" }).click();
+  // Switching views streams the new title in: an empty one here is a moment, one that stays fails this wait.
+  await expect(page).toHaveTitle(/\S/);
   await expectAccessible(page);
 });
 

@@ -81,8 +81,8 @@ $$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_vers
   ('vendor_intake_agreement'), ('open_form_link'), ('public_form'), ('submit_public_form'),
   ('advance_roster'), ('advance_upload_ticket_open'), ('begin_advance_upload'), ('finish_advance_upload'), ('invite_advance_roster_member'),
   ('request_advance_guest'), ('submit_advance_roster'), ('submit_advance_typed'),
-  ('open_showcaller_link'), ('showcaller_call_cue'), ('showcaller_channel_open'), ('showcaller_move_cue'), ('showcaller_remove_cue'),
-  ('showcaller_run'), ('showcaller_save_cue'), ('showcaller_save_cue_calls'), ('showcaller_shift_plan'), ('showcaller_standby_cue'),
+  ('showcaller_channel_open'), 
+  
   ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
   ('unsubscribe_guest_email'), ('unsubscribe_subprocessor_notices'), ('verify_certification'),
   -- P9 (5861, ADR 0138): the signed-out approval link page, with its emailed access code.

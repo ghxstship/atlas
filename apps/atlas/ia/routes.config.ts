@@ -89,7 +89,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/share/screen/{token}/open":
     "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
   "/share/showcaller/{token}":
-    "Public frame: a showcaller link's portal, calling and editing one running order with its access code and device grant; no session needed (B3, ADR 0142).",
+    "Public frame: a showcaller link's portal for a signed-in person on the project, calling and editing one running order with its access code and device grant; no session needed (B3, ADR 0142).",
   "/share/showcaller/{token}/open":
     "Route handler: opens a showcaller link with its access code and sets the device grant (B3, ADR 0142).",
   "/share/showcaller/{token}/clock":

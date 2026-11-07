@@ -443,6 +443,8 @@
     "yes": "Sí",
     "no": "No",
     "refusals": {
+      "showcaller_link_sign_in": "Inicie sesión para abrir este guion.",
+      "showcaller_link_not_on_project": "Este guion solo se abre para las personas de su proyecto. Pida a la producción que le invite; cuando termine la incorporación, este enlace se abrirá.",
       "showcaller_link_invalid": "Este enlace de llamado ya no está disponible. Pida un enlace nuevo a la producción.",
       "showcaller_link_rate_limited": "Demasiadas solicitudes desde este dispositivo o red. Espere un minuto y vuelva a intentarlo.",
       "showcaller_link_locked": "Este enlace se bloqueó por demasiados códigos incorrectos. Pida a la producción que lo regenere.",

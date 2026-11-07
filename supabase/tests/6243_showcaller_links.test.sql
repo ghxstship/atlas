@@ -234,7 +234,7 @@ select ok(exists (select 1 from app.domain_events where event_type = 'showcaller
   and data ->> 'reason' = 'run_removed' and data ->> 'actor_person_id' = pg_temp.id('dave')::text), 'the revocation is an event with the reason');
 select ok(exists (select 1 from app.audit_events where subject_id = pg_temp.k('l6') and actor_person_id = pg_temp.id('dave')
   and diff -> 'new' ? 'revoked_at'), 'and the audit trail names the actor');
-select pg_temp.as_anon();
+select pg_temp.as_user('dave');
 select is(api_public.showcaller_run(pg_temp.val('l6'), 'xcgr_' || repeat('c', 64), null) ->> 'reason', 'showcaller_link_invalid',
   'the portal answers that the link is gone');
 select pg_temp.as_platform();

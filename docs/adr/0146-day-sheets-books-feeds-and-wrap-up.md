@@ -60,7 +60,7 @@ cost report, the incident counts and the measurement summary, with no debrief an
    already serve those readers. Every document is loaded as the caller, exactly as its own route loads it; one the
    caller cannot open is left out and counted, and the cover lists what was left out. The cover is a versioned
    template of its own, keyed `<PROJECT>-BK-<first 8 of the book id>`. The PDF is built in two passes: pass 1 draws the
-   cover, its contents with provisional page numbers and every document into a counting PDF that is thrown away, to
+   cover, its contents with stand-in page numbers and every document into a counting PDF that is thrown away, to
    learn each one's page count; the contents' page column is fixed-width, so pass 2's real numbers cannot move a line.
    Pass 2 streams one `Document` root, the cover `Sect` with a `TOC` and one `TOCI` per document (dot leaders are
    artifacts), then one `Sect` per document on a new page, each with an outline item and footers that read "Page n of

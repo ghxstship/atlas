@@ -1,4 +1,5 @@
--- pgTAP: migration 6244, B3 (RRR-227, ADR 0142). The anonymous side of showcaller links, and the proof that a valid
+-- pgTAP: migration 6244, B3 (RRR-227, ADR 0142). The outside side of showcaller links, the owner's ruling of 2026-11-06
+-- that a token and code open nothing without a signed-in person on the project, and the proof that a valid
 -- token and grant for running order R1 reach nothing else: every write aimed at a cue of another running order of the
 -- same stage (R1B), of another stage (R2), of another project, of another org, or at an id that does not exist answers the same showcaller_link_scope body and
 -- changes no cue, department call or audit event; 20 such answers delete the grant; the read answers R1's rows only,
@@ -33,12 +34,12 @@ begin
   insert into k values (p_key, v.showcaller_link_id, v.token), (p_key || ':code', null, v.access_code);
 end $$;
 
--- Runs a token RPC as an anonymous caller relayed from an address; answers its JSON.
+-- Runs a token RPC as a signed-in person on the project (owner ruling of 2026-11-06), relayed from an address; answers its JSON.
 create function pg_temp.anon(p_sql text, p_client text default '198.51.100.7') returns jsonb
 language plpgsql as $$
 declare v jsonb;
 begin
-  perform pg_temp.as_anon();
+  perform pg_temp.as_user('alice');
   perform set_config('request.headers', json_build_object('x-forwarded-for', '192.0.2.10')::text, true);
   execute p_sql into v;
   perform pg_temp.as_platform();
@@ -143,11 +144,70 @@ select pg_temp.link('dave', 'l3', 'r1');
 select pg_temp.link('carol', 'l4', 'r1');
 select pg_temp.link('alice', 'l5', 'r3');
 
+-- Owner ruling of 2026-11-06: a token and code alone open nothing --------------------------------------------------------
+select pg_temp.link('dave', 'p1', 'r1');
+insert into k values ('p1:good', null, pg_temp.anon(format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code'))) ->> 'grant');
+select ok(pg_temp.val('p1:good') like 'xcgr_%', 'a person on the project opens the link with its code');
+
+-- No session: anon holds no grant on any of them, and the database refuses a call with no person.
+select is_empty($$
+  select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'api_public' and (p.proname = 'open_showcaller_link' or p.proname like 'showcaller\_%')
+    and p.proname <> 'showcaller_channel_open' and has_function_privilege('anon', p.oid, 'execute')
+$$, 'no session: anon executes no showcaller read or write RPC');
+select pg_temp.as_anon();
+select throws_ok(format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code')), '42501', null, 'no session: the token and the right code open nothing');
+select throws_ok(format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good')), '42501', null, 'no session: the token and a grant read nothing');
+select throws_ok(format('select api_public.showcaller_call_cue(%L, %L, null, %L)', pg_temp.val('p1'), pg_temp.val('p1:good'), pg_temp.id('q5')), '42501', null, 'no session: the token and a grant write nothing');
+select pg_temp.as_platform();
+select is(api_public.open_showcaller_link(pg_temp.val('p1'), pg_temp.val('p1:code'), null) ->> 'reason', 'showcaller_link_sign_in', 'with no person the open itself refuses');
+select is(api_public.showcaller_run(pg_temp.val('p1'), pg_temp.val('p1:good'), null) ->> 'reason', 'showcaller_link_sign_in', 'and so does the read');
+select is(api_public.showcaller_call_cue(pg_temp.val('p1'), pg_temp.val('p1:good'), null, pg_temp.id('q5')) ->> 'reason', 'showcaller_link_sign_in', 'and a write');
+
+-- A signed-in person off the project: quinn is engaged only on another org's project.
+create function pg_temp.as_person(p_user text, p_sql text) returns jsonb
+language plpgsql as $$
+declare v jsonb;
+begin
+  perform pg_temp.as_user(p_user);
+  execute p_sql into v;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+select is(pg_temp.as_person('quinn', format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code'))) ->> 'reason', 'showcaller_link_not_on_project', 'off the project: the right code opens nothing');
+select is(pg_temp.as_person('quinn', format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), '000000')) ->> 'reason', 'showcaller_link_not_on_project', 'and a wrong code gets the same answer');
+select is((select failed_attempts::int from app.showcaller_links where id = pg_temp.k('p1')), 0, 'without using up an attempt');
+select is(pg_temp.as_person('quinn', format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good'))) ->> 'reason', 'showcaller_link_not_on_project', 'off the project: a valid grant reads nothing');
+select is(pg_temp.as_person('quinn', format('select api_public.showcaller_call_cue(%L, %L, null, %L)', pg_temp.val('p1'), pg_temp.val('p1:good'), pg_temp.id('q5'))) ->> 'reason', 'showcaller_link_not_on_project', 'and writes nothing');
+select ok((select called_at is null from app.cues where id = pg_temp.id('q5')), 'the cue is not called');
+
+-- Invitation and onboarding, then the route: ivy is engaged on the project, and it opens once the engagement is Active.
+select is(pg_temp.as_person('ivy', format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code'))) ->> 'reason', 'showcaller_link_not_on_project', 'a person still onboarding is not yet on the project');
+set local session_replication_role = replica;
+update app.engagements set engagement_state = 'Active' where id = pg_temp.id('eng_ivy_a');
+set local session_replication_role = origin;
+select is(pg_temp.as_person('ivy', format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code'))) ->> 'status', 'ok', 'once Active, a person with no membership opens it with the code');
+select is(pg_temp.as_person('ivy', format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good'))) ->> 'status', 'ok', 'reads');
+select is(pg_temp.as_person('ivy', format('select api_public.showcaller_call_cue(%L, %L, null, %L)', pg_temp.val('p1'), pg_temp.val('p1:good'), pg_temp.id('q5'))) ->> 'status', 'ok', 'and writes');
+select ok((select called_via_link_id = pg_temp.k('p1') from app.cues where id = pg_temp.id('q5')), 'and the call still reads through the link');
+select is(pg_temp.as_person('ivy', format('select api_public.open_showcaller_link(%L, null, null)', pg_temp.val('p1'))) ->> 'reason', 'showcaller_link_access_code_required', 'the code is still required');
+set local session_replication_role = replica;
+update app.engagements set engagement_state = 'Blocked' where id = pg_temp.id('eng_ivy_a');
+set local session_replication_role = origin;
+select is(pg_temp.as_person('ivy', format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good'))) ->> 'reason', 'showcaller_link_not_on_project', 'and an engagement that stops being Active stops its grant at once');
+select pg_temp.as_user('dave');
+select app.revoke_showcaller_link(pg_temp.k('p1'));
+select pg_temp.as_platform();
+-- The suite below starts from an uncalled cue.
+set local session_replication_role = replica;
+update app.cues set called_at = null, called_by = null, called_via_link_id = null where id = pg_temp.id('q5');
+set local session_replication_role = origin;
+
 -- A read-only (GET) transaction is refused before anything ------------------------------------------------------------------------
 create function pg_temp.read_only_open() returns text
 language plpgsql as $$
 begin
-  perform pg_temp.as_anon();
+  perform pg_temp.as_user('alice');
   begin
     perform set_config('transaction_read_only', 'on', true);
     perform api_public.showcaller_run(pg_temp.val('l1'), 'xcgr_' || repeat('0', 64), null);
@@ -502,7 +562,7 @@ update app.run_of_show set deleted_at = now() where id = pg_temp.id('r2');
 select is(pg_temp.run('l2', 'g_l2') ->> 'reason', 'showcaller_link_invalid', 'trashing a running order revokes its link, so the portal reads nothing');
 select is(pg_temp.open('l5', pg_temp.val('l5:code'), 'g5'), 'ok', 'a link to the gala opens');
 update app.projects set deleted_at = now() where id = pg_temp.id('prj_a2');
-select is(pg_temp.run('l5', 'g5') ->> 'reason', 'showcaller_link_run_removed', 'and while its project is in Trash, the portal reads nothing');
+select is(pg_temp.run('l5', 'g5') ->> 'reason', 'showcaller_link_not_on_project', 'and while its project is in Trash, the portal reads nothing');
 
 select * from finish();
 rollback;

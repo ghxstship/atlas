@@ -73,9 +73,9 @@ In live mode, the show channel sits beside the running cue: the project's crew c
 
 ### Showcaller links
 
-Let someone without an XOS account call the show. Open the running order, choose **Showcaller links**, name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.
+Let someone on the project call the show. The showcaller signs in and enters the code; someone with no XOS account accepts their invitation and finishes onboarding first, and the link then opens. Open the running order, choose **Showcaller links**, name the showcaller, pick when the link expires (by default the end of the day after the show, at most 14 days) and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show and to call cues.
 
-Anyone with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads **Called by** their name **through a showcaller link**. A link works on up to 5 devices; **Sign out devices** makes every device enter the code again, **Regenerate** gives a new link and code, and **Revoke** stops it for good. On the link, **Open clock** pops out a room clock and presenter timer.
+Anyone on the project with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads **Called by** their name **through a showcaller link**. A link works on up to 5 devices; **Sign out devices** makes every device enter the code again, **Regenerate** gives a new link and code, and **Revoke** stops it for good. On the link, **Open clock** pops out a room clock and presenter timer.
 
 ## Day sheets
 

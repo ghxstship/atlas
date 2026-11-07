@@ -160,7 +160,9 @@ test("contracts: a contract and a rider of one act book one engagement, and a re
     panel.getByText("This fee is a total. Enter the rate per unit.").first(),
   ).toBeVisible();
   // Preselected on the one exact match of the act's name, and nothing else.
-  await expect(group.getByLabel("Party", { exact: true }).locator("option:checked")).toHaveText(act);
+  await expect(group.getByLabel("Party", { exact: true }).locator("option:checked")).toHaveText(
+    act,
+  );
   for (const other of await panel.getByTestId("contract-group").all()) {
     if (!(await other.textContent())?.includes(act)) {
       await other.getByRole("checkbox").first().uncheck();
@@ -262,7 +264,7 @@ test("advance answers: an answer from inbox mail is accepted, and a second perso
     .first()
     .click();
   const panel = page.getByRole("dialog").filter({ hasText: "Draft Answers for" });
-  await expect(panel.getByText("advance@example.com").first()).toBeVisible();
+  await expect(panel.getByText("Sent from advance@example.com.")).toBeVisible();
   await expectAccessible(page);
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(panel.getByTestId("advance-answer-card")).toHaveCount(1);
@@ -310,7 +312,8 @@ test("governance: a waste plan draft fills the Document record's editor, and Sav
     .getByLabel("What should the draft say?", { exact: true })
     .fill("Draft the waste plan.");
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
-  await panel.getByRole("button", { name: "Use this draft" }).click();
+  // The prompt's field leaves once the draft is back, so the review is found by its button.
+  await page.getByRole("dialog").getByRole("button", { name: "Use this draft" }).click();
   await expect(page.locator('textarea[name="body"]')).toHaveValue(/Unmeasured/);
   const before = await sql<{ body: string | null }>(
     "select body from app.record_document where record_id = $1",

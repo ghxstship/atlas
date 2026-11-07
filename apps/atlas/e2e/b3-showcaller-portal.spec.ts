@@ -5,7 +5,9 @@ import { createOrganization, signUp, testEmail, uniqueId } from "./support";
 
 /**
  * B3 showcaller portal (RRR-227, ADR 0142; gap G-80) on a fresh org, in two browser contexts: a member makes a
- * showcaller link for a running order; a visitor with no session enters the code, stands by and calls a cue,
+ * showcaller link for a running order; a token and code alone open nothing (owner ruling of 2026-11-06): no session
+ * goes to sign-in and someone off the project is refused before any code form. A person on the project enters the
+ * code in their own session, stands by and calls a cue,
  * nudges the plan, edits a cue's label and a department call, and pops out the clock; the member sees the call
  * "through a showcaller link"; revoking the link shows the visitor it is no longer available.
  */
@@ -37,7 +39,7 @@ async function visitor(browser: Browser): Promise<Page> {
   return (await browser.newContext({ reducedMotion: "reduce" })).newPage();
 }
 
-test("an outside showcaller calls and edits one running order with a link and its code", async ({
+test("a showcaller on the project calls and edits one running order with a link and its code", async ({
   page,
   browser,
 }) => {
@@ -81,7 +83,25 @@ test("an outside showcaller calls and edits one running order with a link and it
   expect(path).toMatch(/^\/share\/showcaller\/xscl_[0-9a-f]{64}$/);
   await page.keyboard.press("Escape");
 
-  const guest = await visitor(browser);
+  // No session: sign-in, with the portal to come back to, and no code form.
+  const signedOut = await visitor(browser);
+  await signedOut.goto(path);
+  await signedOut.waitForURL(/\/auth\/sign-in\?next=/);
+  await expect(signedOut.getByLabel("Access code")).toHaveCount(0);
+  await signedOut.context().close();
+
+  // Signed in, off the project: refused, with no code form and nothing of the show.
+  const offProject = await visitor(browser);
+  const outsider = uniqueId();
+  await signUp(offProject, { name: "Omar Outside", email: testEmail("outside", outsider) });
+  await offProject.goto(path);
+  await expect(offProject.getByText("opens only for people on its project")).toBeVisible();
+  await expect(offProject.getByLabel("Access code")).toHaveCount(0);
+  await expect(offProject.getByText("Opening Night")).toHaveCount(0);
+  await offProject.context().close();
+
+  // On the project, in their own session: the code still has to be right.
+  const guest = await page.context().newPage();
   await guest.goto(path);
   await guest.getByLabel("Access code").fill(code === "000000" ? "000001" : "000000");
   await guest.getByRole("button", { name: "Open" }).click();

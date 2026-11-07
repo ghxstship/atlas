@@ -189,6 +189,26 @@ pages still over 200 KB: of 326 pages, 214 hold a ceiling. 96 pages were past A1
 measured plus 3 KB, 105 fell to it, 13 kept a lower one, and 15 pages now under 200 KB lost theirs. From here ceilings
 only fall: lower one when a page shrinks, never raise it, and a key page over 200 KB is a failure, never a ceiling.
 
+The first CI run of `budget:js -- --served` on this train found Crew Shifts at 204 KB and Budgets at 208 KB of 200 KB:
+scripts fetched after hydration, which the build manifests cannot show. No limit was raised. The shell's key handler
+now loads with the first key press, which first-load code holds and answers (`first-press.ts`); the system banners' code
+loads when the route returns a banner; the saved views menu's items load when someone reaches for the menu; and the
+browser carries each view's code and saved type rather than the view registry.
+
+## Amendment (2026-11-06): what the 200 KB covers, and the Realtime client's own limit
+
+The owner decided this on 2026-11-06. A live page fetches the Realtime client once it is idle, so the served measure,
+which stops at a quiet second, counted it only when idle came early: the same page passed one run and failed the next.
+
+- **The 200 KB covers** every script a cold load of a page fetches, except the Realtime client chunk.
+- **The Realtime client has its own limit of 20 KB**, on the wire, which fails if exceeded and only falls from here. It is
+  known by the Phoenix protocol's join event, not its chunk name, and measured from the build, so the answer never depends
+  on timing. `budget:js` always reports it on its own line (`realtime-chunk.ts`).
+- **It must load only after the page is idle.** `budget:js` fails if it is in the first load of any page it reads.
+
+No other chunk gets this treatment, and no other limit changes. The nightly Lighthouse run still counts every script it
+sees, so a live page it catches with the client loaded can read about 19 KB more there.
+
 ## Amendment (2026-11-06, merge train 9): the `ui` copy comes from the server in Atlas
 
 Merge train 9 adds its packages' routes and copy without raising a ceiling. @xos/ui bundled its whole en-US `ui` catalog as the fallback on every Atlas route, about 5 KB compressed. Atlas's browser build now resolves that import to an empty object, and the root layout passes the flat `ui` messages to `XOSProvider` for every locale, en-US included, which ADR 0010 D6 allows. Every component in Atlas renders under that provider; `global-error.tsx` uses its own generated extract. Gateway, Compass and the docs keep the fallback.

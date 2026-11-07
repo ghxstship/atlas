@@ -20,7 +20,7 @@ export async function unsubscribeGuestAction(
   _: UnsubscribeResult,
   form: FormData,
 ): Promise<UnsubscribeResult> {
-  const token = z.string().regex(PARAM_TYPES.token).safeParse(form.get("token"));
+  const token = z.string().regex(PARAM_TYPES["guest-email-token"]).safeParse(form.get("token"));
   if (!token.success) return { done: true, orgName: null };
   const result = await unsubscribeGuestEmail(createAnonSupabase(), token.data);
   return result.ok ? { done: true, orgName: result.data } : { failed: true };
