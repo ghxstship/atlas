@@ -3775,7 +3775,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Let someone without an XOS account call the show. Open the running order, choose ",
+            v: "Let someone on the project call the show. The showcaller signs in and enters the code; someone with no XOS account accepts their invitation and finishes onboarding first, and the link then opens. Open the running order, choose ",
           },
           { t: "strong", v: "Showcaller links" },
           {
@@ -3789,7 +3789,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Anyone with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads ",
+            v: "Anyone on the project with the link and code can call cues and edit this running order until it expires: call, standby, nudge, move, add, edit and remove uncalled cues, and change department calls. They never reach another running order. A cue they call reads ",
           },
           { t: "strong", v: "Called by" },
           { t: "text", v: " their name " },

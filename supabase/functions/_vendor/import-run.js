@@ -177,6 +177,7 @@ var FIELD_SYNONYMS = {
   asset_tag: ["tag", "assettag", "barcode"],
   asset_class_id: ["assetclass", "class", "category"],
   home_venue_id: ["homevenue", "venue", "location"],
+  line_number: ["line", "lineno", "linenum"],
   position: ["cue", "cueno", "cuenumber", "cueid", "number", "no"],
   label: ["scene", "title", "cuename", "item"],
   segment: ["act", "section", "segment", "block"],
