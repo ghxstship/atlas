@@ -10,6 +10,24 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.6 release (2026-11-07)
+
+4.6 is 4.5 plus the periods fix (PR #74) and merge train 8: A118, P2, P8, A144 and A145, with the route budget work. As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                             | Status | Evidence                                                                                                                                                                                                                               |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit         | Done   | Every check of PR #76 passed at `b110559c`, after one rerun of a journey shard; the release commit `bb8812df` has the same tree; the local gate passed on the release lane                                                             |
+| Release drill                    | Done   | `infra/drills/release-drill.sh` on `bb8812df`: 871 tables' row counts and 25 key-table checksums match; restore 25 s against the 4 h RTO                                                                                               |
+| Migrations, staging              | Done   | Branch `staging` (`rmrzfolncwhnhygmfxnw`): 16 migrations, 6060 to 6129; advisors: no failure, 917 accepted                                                                                                                             |
+| Migrations, production           | Done   | `fquuqnzlpobaawucczgq`: point-in-time target 2026-11-07T14:36:21Z; the same 16 migrations (577 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` created none; advisors: no failure, 917 accepted |
+| Edge Functions                   | Done   | All 24 deployed from `bb8812df` with local bundling                                                                                                                                                                                    |
+| Apps                             | Done   | `main` fast-forwarded to `bb8812df`, which Vercel deploys to production                                                                                                                                                                |
+| Route budget                     | Done   | Key pages within 200 KB. By the owner's decision of 2026-11-06 (ADR 0027), the 200 KB excludes only the Realtime client, which has its own 20 KB limit; per-route ceilings are set as a first baseline and only fall                   |
+| Document dates                   | Done   | `RUN_OF_SHOW_V2` and `DAY_SHEET_CONTACTS` keep their earlier dates: production held no documents before them, so the result is the same as setting them to this release day                                                            |
+| Storage sign-in (4.5 correction) | Done   | Google Drive connect is set up on the platform OAuth app. Microsoft is not offered, by the owner's decision of 2026-11-06, and its button stays disabled                                                                               |
+| Packages                         | Ready  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.6.0; the tag starts `publish-packages.yml`, which waits for the owner's approval                                                                                        |
+| Compass                          | OWNER  | Compass ships on its own cadence                                                                                                                                                                                                       |
+
 ## XOS 4.5 release (2026-11-06)
 
 4.5 is 4.4 plus merge train 7: B1, B5, B6 and B16. Its migrations are numbered above production's 5869. As on 4.2, the owner's standing choice skips the staging observation window.
