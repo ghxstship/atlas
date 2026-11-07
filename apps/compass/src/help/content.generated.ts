@@ -101,6 +101,29 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " starts over." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The first time you open Aurora, Compass asks whether to allow AI features. They send your questions, with the records that answer them, to a third-party AI provider, and nothing goes until you choose ",
+              },
+              { t: "strong", v: "Allow" },
+              { t: "text", v: ". " },
+              { t: "strong", v: "Don't Allow" },
+              {
+                t: "text",
+                v: " turns AI features off for you everywhere in XOS. You can change this in ",
+              },
+              { t: "strong", v: "Settings" },
+              { t: "text", v: ", " },
+              { t: "strong", v: "AI features" },
+              {
+                t: "text",
+                v: ". It does not stop other people in your organization using AI features on records they can see.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -711,8 +734,12 @@ export const COMPASS_HELP: HelpContent = {
               [
                 {
                   t: "text",
-                  v: "If your organization turned on receipt reading, Aurora fills in what it can read: what was bought, the amount and the date. Each field it read says how sure it is. A value the receipt does not show stays empty for you to type; Aurora never guesses it.",
+                  v: "If your organization turned on receipt reading and you allowed AI features, Aurora fills in what it can read: what was bought, the amount and the date. Each field it read says how sure it is. A value the receipt does not show stays empty for you to type; Aurora never guesses it. The first time, Compass asks whether to allow AI features, since reading it sends the photo to a third-party AI provider; until you allow them, Aurora does not read it and you type the details. You can change this in ",
                 },
+                { t: "strong", v: "Settings" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "AI features" },
+                { t: "text", v: "." },
               ],
               [
                 { t: "text", v: "Check every field, choose the " },
@@ -3384,6 +3411,29 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " empieza de nuevo." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "La primera vez que abres Aurora, Compass te pregunta si permites las funciones de IA. Envían tus preguntas, con los registros que las responden, a un proveedor externo de IA, y no se envía nada hasta que eliges ",
+              },
+              { t: "strong", v: "Permitir" },
+              { t: "text", v: ". " },
+              { t: "strong", v: "No permitir" },
+              {
+                t: "text",
+                v: " desactiva las funciones de IA para ti en todo XOS. Puedes cambiarlo en ",
+              },
+              { t: "strong", v: "Configuración" },
+              { t: "text", v: ", " },
+              { t: "strong", v: "Funciones de IA" },
+              {
+                t: "text",
+                v: ". No impide que otras personas de tu organización usen las funciones de IA con los registros que pueden ver.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -4025,8 +4075,12 @@ export const COMPASS_HELP: HelpContent = {
               [
                 {
                   t: "text",
-                  v: "Si tu organización activó la lectura de recibos, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina.",
+                  v: "Si tu organización activó la lectura de recibos y permitiste las funciones de IA, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina. La primera vez, Compass te pregunta si permites las funciones de IA, porque leerla envía la foto a un proveedor externo de IA; hasta que las permitas, Aurora no la lee y escribes los datos. Puedes cambiarlo en ",
                 },
+                { t: "strong", v: "Configuración" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Funciones de IA" },
+                { t: "text", v: "." },
               ],
               [
                 { t: "text", v: "Revisa cada campo, elige la " },
