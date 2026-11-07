@@ -27,6 +27,11 @@ alter table private.platform_emails add column org_id uuid references app.organi
 comment on column private.platform_emails.org_id is 'The org a moderation notice is about, so the org purge (1351) takes the notice with it; null on every other template.';
 create index platform_emails_org_idx on private.platform_emails (org_id);
 
+-- An address can change before the account is deleted, so a row also names the sign-in it was sent to.
+alter table private.platform_emails add column to_user_id uuid;
+comment on column private.platform_emails.to_user_id is 'The sign-in a legal clock alert or moderation notice was sent to, so deleting that sign-in takes the row even after the person changed their address (6168); null on every other template, and for a backup contact or outside reviewer, who has none.';
+create index platform_emails_to_user_idx on private.platform_emails (to_user_id);
+
 comment on table private.platform_emails is 'Emails the platform sends in its own name rather than an org''s (Section 14.4): subprocessor subscription confirmations and change notices, party invitations, legal queue alerts and moderation outcomes that the notification queue cannot reach. Worked by the subprocessor-notices Edge Function; a row''s args, which may hold a token, are cleared once the email is sent. Legal clock alerts and moderation notices go on the periods of private.purge_legal_queue_people, and at once when the address''s sign-in is deleted or the org purged.';
 
 create table private.legal_queue_alerts (
@@ -120,20 +125,20 @@ begin
       'audience', p_path, 'time_zone', private.legal_clock_time_zone());
     -- Each recipient on their own, so one bad address leaves the others their alert.
     for v_person in
-      select distinct on (lower(u.email)) lower(u.email) as email, private.person_language(o.person_id, null) as locale
+      select distinct on (lower(u.email)) lower(u.email) as email, private.person_language(o.person_id, null) as locale, u.id as user_id
       from app.platform_operators o
       join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
       join app.people p on p.id = o.person_id
       join auth.users u on u.id = p.user_id
       where p_path = 'operator' and o.revoked_at is null and o.deleted_at is null and u.email is not null
       union all
-      select c.email, 'en-US' from private.legal_alert_contacts c where p_path = 'backup' and c.removed_at is null
+      select c.email, 'en-US', null::uuid from private.legal_alert_contacts c where p_path = 'backup' and c.removed_at is null
       union all
-      select r.email, 'en-US' from private.legal_outside_reviewers r where p_path = 'reviewer' and r.ended_at is null
+      select r.email, 'en-US', null::uuid from private.legal_outside_reviewers r where p_path = 'reviewer' and r.ended_at is null
     loop
       begin
-        insert into private.platform_emails (template, to_email, locale, args)
-        values ('legal_clock_alert', v_person.email, v_person.locale, v_args);
+        insert into private.platform_emails (template, to_email, locale, args, to_user_id)
+        values ('legal_clock_alert', v_person.email, v_person.locale, v_args, v_person.user_id);
         v_taken := v_taken + 1;
       exception when others then
         v_failed := true;
@@ -259,13 +264,16 @@ as $$
         and ((e.send_state in ('Queued', 'Sending') and e.created_at < now() - interval '1 hour')
           or (e.send_state = 'Failed' and e.created_at > now() - interval '48 hours'))),
     'alert_path_ok', cardinality(h.failing_paths) = 0,
+    -- The same people the operator path reaches: a holder whose sign-in is gone can be told nothing.
     'recipient_ok', exists (
       select 1 from app.platform_operators o
       join private.platform_operator_permissions pp on pp.operator_role = o.operator_role and pp.permission = 'legal.queue'
-      where o.revoked_at is null and o.deleted_at is null))
+      join app.people p on p.id = o.person_id
+      join auth.users u on u.id = p.user_id
+      where o.revoked_at is null and o.deleted_at is null and u.email is not null))
   from private.legal_queue_health h;
 $$;
-comment on function api_public.legal_queue_heartbeat() is 'Whether the legal queue''s alert machinery is working (ADR 0167), for the outside synthetic check: the hourly sweep finished within 2 hours, its feeds ran clean, none of its paths failed last time, no alert or notice email is stuck or newly failed, and someone holds legal.queue. Booleans only, with nothing about any item.';
+comment on function api_public.legal_queue_heartbeat() is 'Whether the legal queue''s alert machinery is working (ADR 0167), for the outside synthetic check: the hourly sweep finished within 2 hours, its feeds ran clean, none of its paths failed last time, no alert or notice email is stuck or newly failed, and someone with a sign-in and an email holds legal.queue. Booleans only, with nothing about any item.';
 revoke all on function api_public.legal_queue_heartbeat() from public, anon;
 grant execute on function api_public.legal_queue_heartbeat() to authenticated, service_role;
 

@@ -85,6 +85,7 @@ as $$
 declare
   v_notification uuid;
   v_email text;
+  v_user uuid;
 begin
   v_notification := private.notify(p_org_id, p_person_id, p_kind, 'opportunities', p_opportunity_id, p_project_id, p_args);
   -- A member with every channel of the category off gets a notification written already archived and no delivery, which
@@ -95,12 +96,12 @@ begin
     channel := 'Notification';
     return;
   end if;
-  select lower(u.email) into v_email from app.people p join auth.users u on u.id = p.user_id where p.id = p_person_id;
+  select lower(u.email), u.id into v_email, v_user from app.people p join auth.users u on u.id = p.user_id where p.id = p_person_id;
   if v_email is null then
     return;
   end if;
-  insert into private.platform_emails (template, to_email, locale, args, org_id)
-  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args), p_org_id)
+  insert into private.platform_emails (template, to_email, locale, args, org_id, to_user_id)
+  values ('moderation_notice', v_email, private.person_language(p_person_id, null), jsonb_build_object('kind', p_kind, 'values', p_args), p_org_id, v_user)
   returning id into email_id;
   channel := 'Email';
 end;
@@ -196,19 +197,18 @@ as $$
 declare
   v_email text := lower(old.email);
 begin
-  if v_email is null then
-    return null;
-  end if;
   -- They were told, if the provider took it, and the record must say so before the row that proves it goes.
   update private.moderation_appeal_reviews r set told_at = e.sent_at
   from private.platform_emails e
-  where r.notice_email_id = e.id and r.told_at is null and e.send_state = 'Sent' and e.to_email = v_email;
+  where r.notice_email_id = e.id and r.told_at is null and e.send_state = 'Sent'
+    and (e.to_user_id = old.id or e.to_email = v_email);
+  -- By the sign-in, so an address changed before the deletion goes too, and by the address for rows written before it.
   delete from private.platform_emails e
-  where e.template in ('legal_clock_alert', 'moderation_notice') and e.to_email = v_email;
+  where e.template in ('legal_clock_alert', 'moderation_notice') and (e.to_user_id = old.id or e.to_email = v_email);
   return null;
 end;
 $$;
-comment on function private.forget_legal_emails_of_sign_in() is 'After a sign-in is deleted, deletes the legal queue alerts and moderation notices addressed to it from the platform email outbox (ADR 0167), so no address or notice outlives the account.';
+comment on function private.forget_legal_emails_of_sign_in() is 'After a sign-in is deleted, deletes the legal queue alerts and moderation notices addressed to it from the platform email outbox (ADR 0167), matched by the sign-in and by its last address, so no address or notice outlives the account, even one the person had changed.';
 revoke all on function private.forget_legal_emails_of_sign_in() from public, anon, authenticated;
 
 create trigger xos_forget_legal_emails after delete on auth.users

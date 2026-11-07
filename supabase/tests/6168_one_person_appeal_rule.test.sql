@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(94);
+select plan(96);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -60,6 +60,8 @@ select is((select count(*)::int from app.notifications where recipient_person_id
 select ok((select args ->> 'kind' = 'listing_report.decided' and args -> 'values' ->> 'statement' = 'We found no violation.'
   from private.platform_emails where template = 'moderation_notice' and to_email = 'rae@reporter.test'),
   'so the outcome goes to them by email, as the policy promises');
+select is((select to_user_id from private.platform_emails where template = 'moderation_notice' and to_email = 'rae@reporter.test'),
+  pg_temp.id('rae_user'), 'naming the sign-in it went to, which an address change does not loosen');
 
 select pg_temp.as_user('rae');
 select lives_ok(format($$insert into world select 'appeal_same', app.file_moderation_appeal(%L, 'They do charge it.')$$, pg_temp.id('no_action')),
@@ -306,6 +308,10 @@ values (private.uuid_v7(), 'moderation_notice', 'tess@reporter.test', 'en-US', '
        (private.uuid_v7(), 'moderation_notice', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', pg_temp.id('org_a')),
        (private.uuid_v7(), 'legal_clock_alert', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', null),
        (private.uuid_v7(), 'party_invitation', 'tess@reporter.test', 'en-US', null, 'Sent', now() - interval '1 day', null);
+-- A notice sent to the address Tess had before she changed it, which only its sign-in ties to her now.
+insert into private.platform_emails (id, template, to_email, locale, args, send_state, sent_at, org_id, to_user_id)
+values (private.uuid_v7(), 'moderation_notice', 'tess.old@reporter.test', 'en-US', null, 'Sent', now() - interval '2 days', pg_temp.id('org_a'),
+        pg_temp.id('tess_user'));
 insert into world select 'tess_email', id from private.platform_emails where to_email = 'tess@reporter.test' and send_state = 'Failed';
 select private.sync_legal_queue_feeds();
 insert into world select 'tess_item', id from app.legal_queue_items where source_table = 'private.platform_emails' and source_id = pg_temp.id('tess_email');
@@ -313,6 +319,8 @@ select is((select item_state::text from app.legal_queue_items where id = pg_temp
 delete from auth.users where id = pg_temp.id('tess_user');
 select is((select array_agg(template) from private.platform_emails where to_email = 'tess@reporter.test'), array['party_invitation'],
   'deleting the sign-in deletes its notices and alerts from the outbox, and leaves other templates to their own rules');
+select is((select count(*)::int from private.platform_emails where to_email = 'tess.old@reporter.test'), 0,
+  'and the notice sent to the address she had before, by its sign-in');
 select private.sync_legal_queue_feeds();
 select is((select item_state::text from app.legal_queue_items where id = pg_temp.id('tess_item')), 'Withdrawn', 'and the item closes, with nobody left to tell');
 
