@@ -413,6 +413,7 @@
     "ratings": "Valoraciones",
     "ratingsAfterComplete": "Ambos lados valoran cuando la contratación está Completa.",
     "orgRated": "Valoraste con {score} de 5.",
+    "orgRatingRemoved": "Se aceptó una disputa de tu valoración y se retiró. No se puede volver a dar.",
     "partyRated": "La parte valoró a tu organización con {score} de 5.",
     "partyRatingHeld": "La parte ya valoró; se muestra cuando tú también valores o pasen 14 días.",
     "replied": "Tu respuesta: {reply}",
@@ -479,8 +480,7 @@
       "skills": "Coincidencia entre el rol y las habilidades de la persona.",
       "certifications": "Certificaciones requeridas vigentes.",
       "location": "Distancia al trabajo.",
-      "availability": "Disponibilidad para las fechas.",
-      "ratings": "Valoraciones de contrataciones completadas."
+      "availability": "Disponibilidad para las fechas."
     },
     "noPaidPlacement": "Ninguna posición se puede comprar.",
     "reportsTitle": "{count, plural, =0 {Denuncias de publicaciones} one {# denuncia de publicación} other {# denuncias de publicaciones}}",

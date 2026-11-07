@@ -646,6 +646,9 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           <p className="m-0 text-text-13">
             {t("engagements.orgRated", { score: orgRating.score })}
           </p>
+        ) : e.orgRated ? (
+          // The board still counts a rating an upheld dispute removed; the org no longer reads it (ADR 0158).
+          <Muted>{t("engagements.orgRatingRemoved")}</Muted>
         ) : null}
         {partyRating ? (
           <div className="flex flex-col gap-4 text-text-13">
@@ -671,7 +674,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
         ) : e.state === "Complete" && !e.ratingsReleased && e.partyRated ? (
           <Muted>{t("engagements.partyRatingHeld")}</Muted>
         ) : null}
-        {canRate && e.state === "Complete" && !orgRating ? (
+        {canRate && e.state === "Complete" && !orgRating && !e.orgRated ? (
           <ActionForm
             action={rateAction}
             hidden={{ org: ctx.org.slug, engagementId: e.id }}

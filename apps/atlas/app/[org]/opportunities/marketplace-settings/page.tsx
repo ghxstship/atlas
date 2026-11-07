@@ -1,4 +1,5 @@
 import { getSubscription } from "@xos/data";
+import { RECOMMENDATION_WEIGHTS } from "@xos/data/gateway";
 import { listListingReports, listPayTransparencyRules } from "@xos/data/opportunities";
 import { Muted, RowLink, Section, Table } from "@/components/opportunities/parts";
 import { InlineAlert, PageHeader, Tag, TemplateCollection } from "@/components/opportunities/ui";
@@ -6,6 +7,14 @@ import { enumKey } from "@/lib/opportunities/format";
 import { must, setupPage, type SearchParams } from "@/lib/opportunities/page";
 import { PLANS } from "@/lib/plans.generated";
 import { nodeHref } from "@/lib/shell/sitemap";
+
+/**
+ * The factors the marketplace score reads (private.recommendation_points), taken from the weights so this list cannot name
+ * one the score does not use. Ratings of people are not one of them (ADR 0158 Section 3).
+ */
+const RANKING_FACTORS = Object.keys(
+  RECOMMENDATION_WEIGHTS,
+) as (keyof typeof RECOMMENDATION_WEIGHTS)[];
 
 /** Every feature a plan includes, following its `extends` chain (Section 16). */
 function planFeatures(code: string): Set<string> {
@@ -88,11 +97,9 @@ export default async function MarketplaceSettingsPage({
         </Section>
         <Section id="marketplace-ranking" title={t("marketplace.rankingTitle")}>
           <ul className="m-0 flex flex-col gap-4 ps-20 text-text-13">
-            {(["skills", "certifications", "location", "availability", "ratings"] as const).map(
-              (f) => (
-                <li key={f}>{t(`marketplace.ranking.${f}`)}</li>
-              ),
-            )}
+            {RANKING_FACTORS.map((f) => (
+              <li key={f}>{t(`marketplace.ranking.${f}`)}</li>
+            ))}
           </ul>
           <Muted>{t("marketplace.noPaidPlacement")}</Muted>
         </Section>

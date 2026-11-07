@@ -413,6 +413,7 @@
     "ratings": "Ratings",
     "ratingsAfterComplete": "Both sides rate once the engagement is Complete.",
     "orgRated": "You rated {score} of 5.",
+    "orgRatingRemoved": "A dispute of your rating was upheld, so the rating was removed. It cannot be given again.",
     "partyRated": "The party rated your org {score} of 5.",
     "partyRatingHeld": "The party has rated; it shows once you rate too or 14 days pass.",
     "replied": "Your reply: {reply}",
@@ -479,8 +480,7 @@
       "skills": "Match between the role and the person's skills.",
       "certifications": "Required certifications held and current.",
       "location": "Distance from the work.",
-      "availability": "Availability for the dates.",
-      "ratings": "Ratings from completed engagements."
+      "availability": "Availability for the dates."
     },
     "noPaidPlacement": "No placement can be bought.",
     "reportsTitle": "{count, plural, =0 {Listing reports} one {# listing report} other {# listing reports}}",
