@@ -25,10 +25,12 @@ const KINDS: Readonly<Record<string, string>> = {
   "roster_entry.project_facts_entered": "updates.kinds.projectFactsEntered",
   // P5: an org asks for a badge photo (5822); the item opens Profile, Badge photos.
   "credential_photo.requested": "updates.kinds.badgePhotoRequested",
+  // P8 (6123): an org asks for the person's availability; it links to /profile#availability-requests.
+  "availability.requested": "updates.kinds.availabilityRequested",
 };
 
-/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin. */
-const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
+/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin, with an optional section. */
+const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}(#[A-Za-z0-9._~-]{1,64})?$/;
 
 /**
  * Gateway Home's For Your Information list (A127; Section 11.10 rule 5, one inbox model), beside Needs You: the

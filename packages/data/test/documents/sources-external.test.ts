@@ -201,6 +201,15 @@ describe("Gateway documents read the api_external views", () => {
             duration: "00:01:30",
             called_at: "2026-10-24T23:00:00Z",
           },
+          {
+            id: "q2",
+            label: "Encore",
+            position: 2,
+            planned_at: "2026-10-25T01:00:00Z",
+            duration: null,
+            called_at: null,
+            start_tbc: true,
+          },
         ]),
       ],
       [v("projects")]: [project],
@@ -209,6 +218,9 @@ describe("Gateway documents read the api_external views", () => {
     const r = await loadExternalDocumentData(run.db, "run-of-show", "r1");
     expect(r.ok && r.data.data.cues[0]?.durationSeconds).toBe(90);
     expect(r.ok && r.data.data.run.calledCount).toBe(1);
+    // A cue to be confirmed reads TBC from api_external.cues; department calls stay internal (ADR 0131).
+    expect(r.ok && r.data.data.cues.map((c) => c.startTbc)).toEqual([false, true]);
+    expect(r.ok && r.data.data.calls).toEqual([]);
 
     const badge = fakeClient({
       [v("credentials")]: [

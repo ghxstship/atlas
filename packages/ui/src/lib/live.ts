@@ -18,6 +18,8 @@ export interface LiveChange {
   readonly table: string;
   readonly type: "INSERT" | "UPDATE" | "DELETE" | "RESYNC";
   readonly id: string | null;
+  /** The row after an INSERT or UPDATE, as row level security let Realtime send it; the reread confirms it. */
+  readonly row?: Readonly<Record<string, unknown>>;
 }
 
 /** How fast batches may arrive; show mode follows cues faster than a list follows rows. */

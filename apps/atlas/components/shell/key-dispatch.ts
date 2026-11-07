@@ -11,10 +11,12 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *
  * - Keys never fire while the person types in a field, except shortcuts the registry marks `fields`
  *   (modifier chords such as Mod+K).
- * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled, read as the shell applies it to the
- *   document (singleKeyShortcutsEnabled, @xos/ui/preferences), and stay quiet inside dialogs and
- *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys. A
- *   region's own keys still answer in the region, such as a record's in the side peek.
+ * - Single character-key shortcuts (a letter, digit or symbol with no Mod, Ctrl or Alt) obey
+ *   me.shortcuts_enabled, read as the shell applies it to the document (singleKeyShortcutsEnabled,
+ *   @xos/ui/preferences); function keys F13 to F20 do not, because WCAG 2.1.4 covers character keys
+ *   only (the showcaller console answers them, ADR 0131). Keys without a modifier stay quiet inside
+ *   dialogs and menus, so they never act behind an open panel or clash with a screen reader's dialog
+ *   keys. A region's own keys still answer in the region, such as a record's in the side peek.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
  * - Record and view shortcuts answer in the region around focus (a record or collection template,
@@ -114,7 +116,11 @@ interface Pending {
  * Listens for the shell's shortcuts until the returned function is called. `state` holds what the
  * keys act on as of the latest render; nothing answers while it is empty.
  */
-export function installShellKeys(state: { readonly current: KeyState | null }): () => void {
+export function installShellKeys(
+  state: { readonly current: KeyState | null },
+  /** Presses first-press.ts held until this module arrived; they already passed the page's components. */
+  held: readonly KeyboardEvent[] = [],
+): () => void {
   let pending: Pending | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let compiled: { readonly from: ShellKeys; readonly table: Table } | null = null;
@@ -172,7 +178,8 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
 
   const onKey = (event: KeyboardEvent) => {
     const now = state.current;
-    if (now === null || event === ended || event.defaultPrevented) return;
+    if (now === null || event === ended) return;
+    if (event.defaultPrevented && !held.includes(event)) return;
     if (event.isComposing || event.repeat) return;
     const { keys } = now;
     const chord = chordOf(event, keys.platform);
@@ -214,6 +221,10 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
 
   window.addEventListener("keydown", onSequence, true);
   window.addEventListener("keydown", onKey);
+  for (const event of [...held]) {
+    onSequence(event);
+    onKey(event);
+  }
   return () => {
     clearTimeout(timer);
     window.removeEventListener("keydown", onSequence, true);

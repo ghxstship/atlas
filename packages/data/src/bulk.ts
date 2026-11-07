@@ -4,7 +4,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2130, 2150,
- * 2151, 2635, 4696 and 3140): one property across a selection, previewed, all or nothing, with the
+ * 2151, 2635, 4696, 3140 and 6122): one property across a selection, previewed, all or nothing, with the
  * inverse rows that undo it. Each resource has its own RPC; adding one is a row function, a registry row
  * and a name here.
  */
@@ -29,12 +29,17 @@ export const BULK_RESOURCES = [
   "rfqs",
   "vendors",
   "advance_allocations",
+  "cues",
 ] as const;
 export type BulkResource = (typeof BULK_RESOURCES)[number];
 
 export type BulkValue = string | number | boolean | null;
 
-/** One row of a bulk change: the values to set and, optionally, the values it must still hold. */
+/**
+ * One row of a bulk change: the values to set and, optionally, the values it must still hold. `expect` may carry
+ * `updated_at`, the version the caller loaded: a row saved since is refused as stale only over a field both people
+ * changed (migration 6100).
+ */
 export interface BulkRow {
   readonly id: string;
   readonly set: Readonly<Record<string, BulkValue>>;
@@ -46,6 +51,11 @@ export interface BulkRefusal {
   readonly id: string | null;
   readonly rule: string;
   readonly message: string;
+  /**
+   * For a stale row (bulk_stale, migration 6100): the values the row holds now for every field the row set or
+   * expected, and its updated_at, so the person sees theirs beside their own and a resend can expect that version.
+   */
+  readonly current?: Readonly<Record<string, BulkValue>>;
 }
 
 export interface BulkOutcome {
@@ -100,6 +110,9 @@ export function toBulkOutcome(raw: unknown): BulkOutcome {
       id: typeof r["id"] === "string" ? r["id"] : null,
       rule: typeof r["rule"] === "string" ? r["rule"] : "refused",
       message: typeof r["message"] === "string" ? r["message"] : "",
+      ...(typeof r["current"] === "object" && r["current"] !== null
+        ? { current: asValues(r["current"]) }
+        : {}),
     })),
     inverse: list(o["inverse"]).flatMap((r) =>
       typeof r["id"] === "string"
@@ -129,6 +142,7 @@ const RPC = {
   rfqs: "bulk_update_rfqs",
   vendors: "bulk_update_vendors",
   advance_allocations: "bulk_update_advance_allocations",
+  cues: "bulk_update_cues",
 } as const satisfies Record<BulkResource, string>;
 
 /**

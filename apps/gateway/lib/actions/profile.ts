@@ -1,5 +1,7 @@
 "use server";
 
+import { Constants } from "@xos/data/database.types";
+import type { Database } from "@xos/data/database.types";
 import {
   addAvailabilityBlock,
   APP_ENUMS,
@@ -16,6 +18,7 @@ import {
   storeMyCredentialPhoto,
   withdrawMyCredentialPhotos,
 } from "@xos/data/credential-photos";
+import { answerAvailabilityPoll } from "@xos/data/crew/availability-polls";
 import { updateMyName } from "@xos/data/identity";
 import {
   addCertification,
@@ -239,6 +242,33 @@ export async function addAvailabilityAction(
 export async function removeAvailabilityAction(blockId: string): Promise<ActionResult> {
   const ctx = await ctxOr();
   return toAction(await removeAvailabilityBlock(ctx.db, z.uuid().parse(blockId)));
+}
+
+/**
+ * Answers an availability poll an org sent (P8, 6123): one field per day, named `day:YYYY-MM-DD`, each Available,
+ * Tentative or Unavailable, or left blank. The answers go on the person's calendar kept for that org; a day the org's
+ * notice lock already holds comes back unwritten, and a closed poll is refused.
+ */
+export async function answerAvailabilityPollAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
+  const ctx = await ctxOr();
+  const pollId = z.uuid().safeParse(text(form, "pollId"));
+  const kind = z.enum(Constants.app.Enums.availability_kind);
+  const answers: { day: string; kind: Database["app"]["Enums"]["availability_kind"] }[] = [];
+  for (const [name, value] of form.entries()) {
+    const day = /^day:(\d{4}-\d{2}-\d{2})$/.exec(name)?.[1];
+    if (!day || typeof value !== "string" || value === "") continue;
+    const parsed = kind.safeParse(value);
+    if (!parsed.success) return { fieldError: "availabilityAnswer" };
+    answers.push({ day, kind: parsed.data });
+  }
+  if (!pollId.success || answers.length === 0 || answers.length > 31) {
+    return { fieldError: "availabilityAnswer" };
+  }
+  const result = await answerAvailabilityPoll(ctx.db, { pollId: pollId.data, answers });
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
 export async function saveNameAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {

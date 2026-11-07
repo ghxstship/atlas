@@ -163,6 +163,9 @@ export const KNOWN_REFUSALS = [
   "approval_subject_beneficiary",
   "approval_rejection_reason",
   "sod_approval_requester",
+  // P8: an availability poll takes answers until it closes, for its own days only (migration 6123).
+  "availability_poll_closed",
+  "availability_poll_answer",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

@@ -660,7 +660,10 @@
       "drawing_page": "PDF page",
       "image_height_px": "Image height (px)",
       "image_width_px": "Image width (px)",
-      "calibration_by": "Scale point B, y"
+      "calibration_by": "Scale point B, y",
+      "standby_at": "On standby at",
+      "start_tbc": "Time to be confirmed",
+      "curfew_at": "Curfew"
     }
   },
   "liveLink": {

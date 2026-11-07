@@ -33,6 +33,7 @@ import { SettlementForm } from "./forms-settlement-form";
 import { SettlementLineForm } from "./forms-settlement-line-form";
 import { FormSheet } from "./kit-form-sheet";
 import { InlineActionButton } from "./kit-inline-action-button";
+import { LineDeleteButton } from "./kit-line-delete-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
@@ -427,12 +428,13 @@ async function SettlementsTab({ page }: { page: FinancePage }) {
                     : c.money(l.amountMinor, peek.currency),
                   ...(editable
                     ? [
-                        <InlineActionButton
+                        <LineDeleteButton
                           key="d"
                           action={saveSettlementLineAction}
-                          fields={{ org: ctx.org.slug, id: l.id, delete: "1" }}
+                          org={ctx.org.slug}
+                          id={l.id}
+                          description={l.description}
                           label={t("finance.common.remove")}
-                          icon="Trash2"
                         />,
                       ]
                     : []),

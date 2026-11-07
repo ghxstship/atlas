@@ -333,7 +333,10 @@
     "none": "None",
     "notSet": "Not set",
     "unpriced": "Unpriced",
-    "gate": "Gate {gate} · {name}"
+    "gate": "Gate {gate} · {name}",
+    "yes": "Yes",
+    "no": "No",
+    "tbcEstimate": "TBC · est. {time}"
   },
   "fields": {
     "title": "Title",
@@ -356,7 +359,8 @@
     "timeZone": "Time zone",
     "zoneNote": "Times are in {zone}.",
     "replanReason": "Replan reason",
-    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why."
+    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why.",
+    "startTbc": "Start time to be confirmed"
   },
   "record": {
     "properties": "Record properties",
@@ -471,7 +475,8 @@
     "links": "Linked from custom objects"
   },
   "duplicate": {
-    "button": "Duplicate"
+    "button": "Duplicate",
+    "withoutDates": "Duplicate without dates"
   },
   "trash": {
     "move": "Move to Trash",
@@ -641,7 +646,17 @@
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list.",
       "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",
-      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project."
+      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project.",
+      "shift_empty": "Select at least one record to shift.",
+      "shift_too_large": "This shift moves more than 500 records with their successors. Shift fewer at a time.",
+      "place_dated": "This record already has dates; drag its bar instead.",
+      "cue_called": "A called cue keeps its time. Clear it from the selection.",
+      "cue_move_called": "A called cue keeps its place. Move an uncalled cue instead.",
+      "cue_move_before_called": "Cues move only after the last called cue. Choose a later place.",
+      "cue_standby_called": "That cue was already called, so it cannot go on standby. Choose an uncalled cue.",
+      "cue_standby_capability": "You cannot put cues on standby on this project. Ask the stage manager to do it.",
+      "cue_shift_range": "Nudge the plan by up to an hour earlier or later.",
+      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -652,7 +667,9 @@
       "scope": "That scope is not one you can open.",
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
-    }
+    },
+    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way.",
+    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",
@@ -752,6 +769,17 @@
     "baseline_locked_at": "Locked into a baseline",
     "title": "{kind} details"
   },
+  "undo": {
+    "edited": "Edited {key}.",
+    "moved": "Moved {key} to {state}.",
+    "reason": "Undid the last move.",
+    "checked": "Checked {label}.",
+    "unchecked": "Unchecked {label}.",
+    "itemRemoved": "Removed {label} from the checklist.",
+    "unassigned": "Unassigned {name}.",
+    "recurrence": "Changed how {key} repeats.",
+    "changedSince": "Someone changed this after your edit; reload to see the change."
+  },
   "quickAdd": {
     "label": "Quick add a record",
     "labelKind": "Quick add: {kind}",
@@ -764,6 +792,7 @@
       "date": "When"
     },
     "created": "{key} created",
+    "adding": "Adding {title}…",
     "field": "{name}: {value}",
     "announce": "{title}, with {fields}",
     "choose": "Choose a match for {token}",

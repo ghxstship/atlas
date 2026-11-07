@@ -1,7 +1,8 @@
 name: Nightly
 
 # Real-browser and load checks that take too long for every push. The route JavaScript budget in ci.yml
-# guards the same gate 10 budget on every push from the build manifests.
+# guards the same gate 10 script budget on every push, from the build manifests and, in the journeys
+# jobs, from the served key pages as Lighthouse counts them.
 on:
   schedule:
     - cron: "17 7 * * *"
@@ -11,10 +12,17 @@ permissions:
   contents: read
 
 jobs:
+  # Every signed-in route in the generated sitemaps (about 250 in Atlas, 60 in Gateway) and the public
+  # key pages, each against the gate 10 budgets (packages/testing/src/lighthouse-routes.ts). One app per
+  # runner: Atlas alone takes about an hour at one desktop run per page.
   lighthouse:
-    name: Lighthouse CI budgets (gate 10)
+    name: Lighthouse CI budgets (${{ matrix.app }}) (gate 10)
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [atlas, gateway, docs]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -29,28 +37,35 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
-      - run: infra/ci/supabase-images.sh start
-      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
-      - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
-      - name: Serve the three production builds and run Lighthouse
+      - if: matrix.app != 'docs'
+        run: infra/ci/supabase-images.sh start
+      - if: matrix.app != 'docs'
+        run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}
+      - name: Serve the production build and run Lighthouse
+        env:
+          APP: ${{ matrix.app }}
         run: |
-          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
-          (cd apps/atlas && ATLAS_SITE_URL=http://127.0.0.1:3006 nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &)
-          (cd apps/gateway && GATEWAY_SITE_URL=http://127.0.0.1:3127 nohup pnpm exec next start --port 3127 > /tmp/gateway.log 2>&1 &)
-          (cd apps/docs && nohup pnpm exec next start --port 3014 > /tmp/docs.log 2>&1 &)
-          for port in 3006 3127 3014; do
-            for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$port" && break; sleep 2; done
-          done
+          case "$APP" in
+            atlas) PORT=3006 ;;
+            gateway) PORT=3127 ;;
+            docs) PORT=3014 ;;
+          esac
+          if [ "$APP" != docs ]; then
+            ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+            export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
+          fi
+          (cd "apps/$APP" && ATLAS_SITE_URL=http://127.0.0.1:3006 GATEWAY_SITE_URL=http://127.0.0.1:3127 nohup pnpm exec next start --port "$PORT" > "/tmp/$APP.log" 2>&1 &)
+          for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$PORT" && break; sleep 2; done
           # The Chromium installed above. playwright-core is not hoisted, so it resolves through the
           # app's @playwright/test; from the root it failed and Lighthouse fell back to the runner's Chrome.
           CHROME_PATH=$(cd apps/atlas && node -e "console.log(require('@playwright/test').chromium.executablePath())")
           export CHROME_PATH
-          pnpm --filter @xos/testing lighthouse
+          pnpm --filter @xos/testing lighthouse "$APP"
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: lighthouse
+          name: lighthouse-${{ matrix.app }}
           path: |
             packages/testing/node_modules/.cache/lighthouse
             /tmp/*.log

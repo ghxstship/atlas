@@ -74,6 +74,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0074](0074-record-sections-and-custom-object-history.md)           | Record Sections in Every Peek, and Custom Object Record History                  | Accepted |
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
+| [0077](0077-undo-for-inline-edits-restore-and-conflicts.md)         | Undo for Inline Edits, Restore from Activity, and the Mine-or-Theirs Dialog      | Accepted |
 | [0078](0078-bulk-edit-projects-work-orders-punch-documents.md)      | Bulk Edit of Projects, Work Orders, Punch and Documents, and Work Order Undo     | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
 | [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
@@ -101,16 +102,18 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0116](0116-file-previews-and-the-brand-color-picker.md)            | File Previews and the Brand Color Picker                                         | Accepted |
 | [0117](0117-photo-location-pass-art-and-sponsor-proof-photos.md)    | Photo Location, Pass Art from the Org Logo, and Sponsor Proof Photos             | Accepted |
 | [0118](0118-route-view-transitions-and-region-boundaries.md)        | Route View Transitions and Region Boundaries                                     | Accepted |
+| [0119](0119-cue-calls-shown-from-the-realtime-row.md)               | Cue Calls Shown From the Realtime Row                                            | Accepted |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
 | [0122](0122-pseudo-locale-checks-on-every-route.md)                 | Pseudo-Locale Checks on Every Route                                              | Accepted |
 | [0123](0123-database-enums-have-one-home-in-code.md)                | Database Enums Have One Home in Code                                             | Accepted |
 | [0130](0130-live-share-links-and-display-screens.md)                | Live Share Links to Saved Views and Run-of-Show Display Screens                  | Accepted |
+| [0131](0131-show-calling-and-stream-deck-keys.md)                   | Show Calling: TBC Times, Standby, Cue Moves and Stream Deck Keys                 | Accepted |
 | [0138](0138-approval-rules-signed-out-decisions-and-reminders.md)   | Approval Rules, Signed-Out Decisions by Emailed Code, and Approval Reminders     | Proposed |
-| [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 | [0140](0140-site-plan-states-drawings-annotations-and-signage.md)   | Site Plan States, Drawings, Annotations and the Signage Register                 | Accepted |
 | [0144][adr-0144]                                                    | Travel, Lodging, Ground Transport and Local Contacts                             | Accepted |
 | [0145](0145-change-tracking.md)                                     | Change Tracking Is Computed From the Ledger Against One Instant per Person       | Accepted |
+| [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

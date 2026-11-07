@@ -192,7 +192,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/s
                         <span className="font-medium">{set.actName ?? set.label}</span>
                         <span className="text-text-12 text-text-secondary">
                           {[
-                            time(set.plannedAt),
+                            set.startTbc && set.plannedAt
+                              ? raw("show.cues.tbcEstimate", { time: time(set.plannedAt) ?? "" })
+                              : time(set.plannedAt),
                             set.actName ? set.label : null,
                             minutes(set.durationSeconds),
                           ]

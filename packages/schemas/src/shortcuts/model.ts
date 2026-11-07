@@ -107,14 +107,16 @@ export function effectiveBindings(
  */
 const LIST_SCOPE = "list";
 
+/** The showcaller console's scope: its region holds no such list and answers J and K itself (ADR 0131). */
+const SHOW_SCOPE = "show";
+
 /**
  * Whether two scopes can both be active at once: the same scope, either one global, or either one
- * the list scope, which every region may hold.
+ * the list scope, which every region but the showcaller console may hold.
  */
 export function scopesMeet(a: string, b: string): boolean {
-  return (
-    a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE || a === LIST_SCOPE || b === LIST_SCOPE
-  );
+  if (a === b || a === GLOBAL_SCOPE || b === GLOBAL_SCOPE) return true;
+  return (a === LIST_SCOPE && b !== SHOW_SCOPE) || (b === LIST_SCOPE && a !== SHOW_SCOPE);
 }
 
 /**

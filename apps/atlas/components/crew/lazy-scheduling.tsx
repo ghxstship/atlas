@@ -10,3 +10,16 @@ import dynamic from "next/dynamic";
 export const SchedulingBoard = dynamic(() =>
   import("./scheduling-board").then((m) => m.SchedulingBoard),
 );
+
+/**
+ * Availability polls (P8), loaded when a planner opens them from Crew > Shifts. They never render on the server: an
+ * inert New poll button would lose a click made before its chunk arrives, so it appears when it can answer.
+ */
+export const AvailabilityPollResults = dynamic(
+  () => import("./availability-poll-results").then((m) => m.AvailabilityPollResults),
+  { ssr: false },
+);
+
+export const AvailabilityPollDialog = dynamic(() =>
+  import("./availability-poll-dialog").then((m) => m.AvailabilityPollDialog),
+);

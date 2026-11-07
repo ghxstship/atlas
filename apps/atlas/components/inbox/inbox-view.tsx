@@ -1,7 +1,7 @@
 "use client";
 
 import { chordOf } from "@xos/schemas/shortcuts/keys";
-import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
+import { Button, Kbd } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,9 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
-import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import { quickInboxAction } from "@/app/[org]/inbox/actions";
+import { EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 // The bulk bar shows only with a selection, so it loads then (A24-009).
 import { BulkActionBar } from "@/components/lazy-ui/bulk-action-bar";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
@@ -39,6 +40,13 @@ export interface InboxRow {
 }
 
 type Quick = "approve" | "done" | "snooze";
+
+/**
+ * The reject dialog (and Radix Dialog with it) loads with the first Reject. The press is held in
+ * `rejecting` by this module, so a press before the code arrives still opens the dialog (ADR 0027).
+ */
+const rejectDialog = onDemand(() => import("./reject-dialog"));
+const prepareReject = () => void rejectDialog.load().catch(() => undefined);
 
 /**
  * Shortcuts on the focused item, by registry id (packages/schemas/shortcuts.yaml, scope inbox), with the
@@ -83,8 +91,9 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
 /**
  * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
  * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item, as the
- * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single keys obey me.shortcuts_enabled;
- * the arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
+ * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single character-key shortcuts obey
+ * me.shortcuts_enabled; function keys F13 to F20 do not, because WCAG 2.1.4 covers character keys only.
+ * The arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
  * is cleared without waiting; a refusal puts the item back and says why.
  *
  * The selection is held by item id, not by position, and the focus moves to the neighbour before the
@@ -103,6 +112,7 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<PlatformActionState>({});
   const [rejecting, setRejecting] = useState<InboxRow | null>(null);
+  const rejectModule = useOnDemand(rejectDialog, rejecting !== null);
   const [handled, setHandled] = useState(0);
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const anchor = useRef<string | null>(null);
@@ -491,6 +501,8 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                                 <Button
                                   size="sm"
                                   variant="secondary"
+                                  onPointerEnter={prepareReject}
+                                  onFocus={prepareReject}
                                   onClick={() => setRejecting(row)}
                                 >
                                   {t("inbox.reject")}
@@ -514,45 +526,25 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
           ),
         )}
       </ul>
-      {rejecting ? (
-        <Dialog
-          title={t("inbox.rejectTitle")}
-          open
-          onOpenChange={(open) => (open ? null : setRejecting(null))}
-          actions={null}
-        >
-          <p className="m-0 text-text-13">{rejecting.summary}</p>
-          <ActionForm
-            action={rejectInboxAction}
-            hidden={{ org, id: rejecting.id }}
-            label={t("inbox.rejectTitle")}
-            submitLabel={t("inbox.rejectSubmit")}
-            submitVariant="danger"
-            onDone={() => {
-              const next = neighbourOf(
-                items.map((r) => r.id),
-                rejecting.id,
-              );
-              afterDialog.current = next;
-              setSelectedId(next);
-              setHidden((prev) => new Set(prev).add(rejecting.id));
-              setHandled((n) => n + 1);
-              setRejecting(null);
-              router.refresh();
-            }}
-          >
-            <Textarea
-              id="reject-reason"
-              name="reason"
-              label={t("inbox.rejectReason")}
-              required
-              maxLength={2000}
-              rows={3}
-              width="100%"
-              autoFocus
-            />
-          </ActionForm>
-        </Dialog>
+      {rejecting && rejectModule ? (
+        <rejectModule.RejectDialog
+          org={org}
+          id={rejecting.id}
+          summary={rejecting.summary}
+          onClose={() => setRejecting(null)}
+          onRejected={() => {
+            const next = neighbourOf(
+              items.map((r) => r.id),
+              rejecting.id,
+            );
+            afterDialog.current = next;
+            setSelectedId(next);
+            setHidden((prev) => new Set(prev).add(rejecting.id));
+            setHandled((n) => n + 1);
+            setRejecting(null);
+            router.refresh();
+          }}
+        />
       ) : null}
     </div>
   );

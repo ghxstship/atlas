@@ -28,6 +28,7 @@ const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
   accountable_party_id: "work.fields.accountable",
   scope_node_id: "work.fields.scope",
   starts_at: "work.fields.starts",
+  start_tbc: "work.fields.startTbc",
   ends_at: "work.fields.ends",
   due_at: "work.fields.due",
   time_zone: "work.fields.timeZone",
@@ -148,6 +149,7 @@ export function recordHistoryItems(
       const text = typeof v === "string" ? v : JSON.stringify(v);
       if (field === "owner_party_id" || field === "accountable_party_id") return person(text);
       if (field === "record_state") return t(`work.states.${text}`);
+      if (field === "start_tbc") return t(v === true ? "work.values.yes" : "work.values.no");
       if (field === "phase_code") return w.phases.find((p) => p.value === text)?.label ?? text;
       if (field === "deleted_at") return w.when(text);
       if (field === "starts_at" || field === "ends_at" || field === "due_at") return w.when(text);

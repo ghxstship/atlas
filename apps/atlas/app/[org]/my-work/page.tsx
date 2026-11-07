@@ -125,7 +125,11 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
       when: due
         ? t("due", { when: stamp.format(new Date(due)) })
         : r.startsAt
-          ? t("starts", { when: stamp.format(new Date(r.startsAt)) })
+          ? t("starts", {
+              when: r.startTbc
+                ? w("work.values.tbcEstimate", { time: stamp.format(new Date(r.startsAt)) })
+                : stamp.format(new Date(r.startsAt)),
+            })
           : t("noDate"),
       due: at ? stamp.format(new Date(at)) : t("noDate"),
       dueState,
@@ -150,7 +154,13 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
     <TemplateCollection header={<PageHeader title={t("title")} count={records.data.length} />}>
       <MyWorkView
         org={ctx.org.slug}
-        bulk={caps.has("work.record.write") ? recordBulkConfig(ctx.org.slug, meta, w) : null}
+        bulk={
+          caps.has("work.record.write")
+            ? recordBulkConfig(ctx.org.slug, meta, w, {
+                shift: caps.has("schedule.timeline.write"),
+              })
+            : null
+        }
         groups={groups}
         views={views}
         view={view}

@@ -291,8 +291,8 @@ update private.live_view_collections set max_rows = 200 where collection_key = '
 
 select is(pg_temp.display('d') ->> 'status', 'ok', 'a display screen reads with its grant');
 select is((select array_agg(distinct key order by key) from jsonb_array_elements(pg_temp.display('d') -> 'cues') e, jsonb_object_keys(e) key),
-  array['called_at', 'duration_seconds', 'label', 'planned_at', 'position', 'segment'],
-  'each cue carries position, label, segment, planned_at, duration_seconds and called_at, never called_by or description');
+  array['called_at', 'duration_seconds', 'label', 'planned_at', 'position', 'segment', 'start_tbc'],
+  'each cue carries position, label, segment, planned_at, start_tbc (6125), duration_seconds and called_at, never called_by or description');
 select results_eq($$select r -> 'meta' ->> 'name', r -> 'meta' ->> 'default_mode', (r -> 'cues' -> 1 ->> 'duration_seconds')::int from (select pg_temp.display('d') as r) x$$,
   $$values ('Opening Night'::text, 'Backstage'::text, 2700)$$, 'with the running order''s name, the default mode and durations in seconds');
 select pg_temp.as_user('dave');

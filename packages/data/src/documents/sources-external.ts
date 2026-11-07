@@ -174,6 +174,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           totalMinor: total,
           appliedMinor: inv.applied_minor ?? 0,
           createdAt: inv.issued_at ?? inv.submitted_at ?? new Date(0).toISOString(),
+          // The external view carries no version; a rendered document never sends a change.
+          updatedAt: inv.issued_at ?? inv.submitted_at ?? new Date(0).toISOString(),
         },
         lines: mapped,
         counterpartyName: null,
@@ -254,6 +256,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
       calledByName: null,
+      startTbc: c.start_tbc === true,
+      standbyAt: null,
     }));
     return ok({
       orgId: project.data.orgId,
@@ -271,8 +275,11 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           showDate: run.show_date ?? "",
           cueCount: mapped.length,
           calledCount: mapped.filter((c) => c.calledAt !== null).length,
+          curfewAt: null,
         },
         cues: mapped,
+        // Department calls stay internal: no api_external view shows them (ADR 0131).
+        calls: [],
       },
     });
   },

@@ -11,9 +11,11 @@ import { popoverPanelClass } from "../Overlays/Overlays.tsx";
 import { type GridProps, type ListState } from "./Pickers.types.ts";
 import { rankOptions } from "./rankOptions.tsx";
 
+// A picker's list opens above whatever holds the field, a dialog or a side peek among them (z-dialog, z-peek), or it
+// shows behind its own dialog and no option can be pressed.
 export const listboxClass = cx(
   popoverPanelClass,
-  "z-dropdown p-4 max-h-(--ui-listbox-max) overflow-y-auto w-(--radix-popover-trigger-width)",
+  "z-command p-4 max-h-(--ui-listbox-max) overflow-y-auto w-(--radix-popover-trigger-width)",
 );
 
 export const optionClass = cx(

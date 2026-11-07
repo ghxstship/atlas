@@ -233,8 +233,6 @@ export default async function OverviewPage({
             <ActivityFeed
               label={a("projectLabel", { key: project.key })}
               entries={await labelActivity(db, feed.entries)}
-              views={["feed"]}
-              view="feed"
               next={null}
               paged={false}
               empty={{

@@ -3,6 +3,7 @@ import type { Database, XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import { saveVersioned, type FieldValue, type FieldValues } from "./versioned.ts";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their
@@ -246,6 +247,8 @@ export interface RecordSummary {
   readonly accountableId: string | null;
   readonly scopeNodeId: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: shown as TBC, still sorted by the estimate. */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -259,7 +262,7 @@ export interface RecordSummary {
 }
 
 const RECORD_COLUMNS =
-  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, archived_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
+  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, start_tbc, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, archived_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
 
 interface RecordRow {
   id: string;
@@ -276,6 +279,7 @@ interface RecordRow {
   accountable_party_id: string | null;
   scope_node_id: string | null;
   starts_at: string | null;
+  start_tbc: boolean;
   ends_at: string | null;
   due_at: string | null;
   time_zone: string | null;
@@ -311,6 +315,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     accountableId: row.accountable_party_id,
     scopeNodeId: row.scope_node_id,
     startsAt: row.starts_at,
+    startTbc: row.start_tbc ?? false,
     endsAt: row.ends_at,
     dueAt: row.due_at,
     timeZone: row.time_zone,
@@ -341,6 +346,10 @@ export interface RecordQuery {
   readonly to?: string;
   /** Only records with a start, end or due time. */
   readonly datedOnly?: boolean;
+  /** Only records with no start, end or due time (P8: the Unscheduled list). */
+  readonly undatedOnly?: boolean;
+  /** Leaves out records in these states. */
+  readonly excludeStates?: readonly string[];
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
   /**
@@ -381,6 +390,10 @@ export async function listRecords(
   const window = windowFilter(query.from, query.to);
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
+  if (query.undatedOnly) q = q.is("starts_at", null).is("ends_at", null).is("due_at", null);
+  if (query.excludeStates && query.excludeStates.length > 0) {
+    q = q.not("record_state", "in", `(${query.excludeStates.join(",")})`);
+  }
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
   // Trash shows every trashed record, archived or not.
   if (!query.trashed) q = applyArchived(q, query.archived);
@@ -541,6 +554,8 @@ export interface RecordInput {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  /** The start is an estimate to be confirmed; the database clears it while the start is empty. */
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -606,6 +621,7 @@ export async function createRecord(
       owner_party_id: input.ownerId ?? null,
       accountable_party_id: input.accountableId ?? null,
       starts_at: input.startsAt ?? null,
+      start_tbc: input.startTbc ?? false,
       ends_at: input.endsAt ?? null,
       due_at: input.dueAt ?? null,
       time_zone: input.timeZone ?? null,
@@ -631,6 +647,7 @@ export interface RecordPatch {
   readonly ownerId?: string | null | undefined;
   readonly accountableId?: string | null | undefined;
   readonly startsAt?: string | null | undefined;
+  readonly startTbc?: boolean | undefined;
   readonly endsAt?: string | null | undefined;
   readonly dueAt?: string | null | undefined;
   readonly timeZone?: string | null | undefined;
@@ -652,6 +669,7 @@ export async function updateRecord(
   if (patch.ownerId !== undefined) row.owner_party_id = patch.ownerId;
   if (patch.accountableId !== undefined) row.accountable_party_id = patch.accountableId;
   if (patch.startsAt !== undefined) row.starts_at = patch.startsAt;
+  if (patch.startTbc !== undefined) row.start_tbc = patch.startTbc;
   if (patch.endsAt !== undefined) row.ends_at = patch.endsAt;
   if (patch.dueAt !== undefined) row.due_at = patch.dueAt;
   if (patch.timeZone !== undefined) row.time_zone = patch.timeZone;
@@ -660,6 +678,87 @@ export async function updateRecord(
   const { data, error } = await db.from("records").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/** The record properties a versioned save writes (record page, peek), by the column that holds them. */
+const RECORD_FIELD_COLUMNS = {
+  title: "title",
+  subtype: "record_subtype",
+  scopeNodeId: "scope_node_id",
+  phaseCode: "phase_code",
+  ownerId: "owner_party_id",
+  accountableId: "accountable_party_id",
+  startsAt: "starts_at",
+  startTbc: "start_tbc",
+  endsAt: "ends_at",
+  dueAt: "due_at",
+} as const;
+
+export type RecordField = keyof typeof RECORD_FIELD_COLUMNS;
+/** Each property as text: dates as instants, startTbc as "true" or "false" (the column is a boolean). */
+export type RecordFields = Partial<Record<RecordField, string | null>>;
+
+export type RecordSaveOutcome =
+  | { readonly saved: true; readonly version: string }
+  | { readonly saved: false; readonly current: RecordFields; readonly version: string };
+
+function toColumns(fields: RecordFields): Record<string, FieldValue> {
+  const out: Record<string, FieldValue> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    const value = fields[field as RecordField];
+    if (value === undefined) continue;
+    if (field === "startTbc") out[column] = value === "true";
+    else out[column] = field === "title" && typeof value === "string" ? value.trim() : value;
+  }
+  return out;
+}
+
+function fromColumns(values: FieldValues): RecordFields {
+  const out: Record<string, string | null> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    if (column in values) {
+      const v = values[column];
+      out[field] = v === null || v === undefined ? null : String(v);
+    }
+  }
+  return out;
+}
+
+/**
+ * Saves a record's properties against the version the person edited (Section 11.7): `expect` holds the values they
+ * started from and `version` the record's updated_at. A save over someone else's change to the same property comes
+ * back as the record's current values instead of overwriting them. The replan reason is written with the save and
+ * never compared.
+ */
+export async function saveRecordFields(
+  db: XosClient,
+  id: string,
+  input: {
+    readonly set: RecordFields;
+    readonly expect?: RecordFields;
+    readonly version?: string | null;
+    readonly replanReason?: string | null;
+  },
+): Promise<Result<RecordSaveOutcome>> {
+  const set = toColumns(input.set);
+  if (input.replanReason) set["replan_reason"] = input.replanReason;
+  if (Object.keys(set).length === 0) return fail({ kind: "invalid", message: "Nothing to save." });
+  const result = await saveVersioned(
+    db,
+    "records",
+    { column: "id", value: id },
+    {
+      set,
+      ...(input.expect ? { expect: toColumns(input.expect) } : {}),
+      ...(input.version ? { version: input.version } : {}),
+    },
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.saved
+      ? { saved: true, version: result.data.version }
+      : { saved: false, current: fromColumns(result.data.current), version: result.data.version },
+  );
 }
 
 export interface TransitionInput {
@@ -714,11 +813,17 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
 /**
  * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
  * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
- * checklist is copied too, every item open.
+ * checklist is copied too, every item open. `withoutDates` leaves the copy undated, so it waits in
+ * the schedule's Unscheduled list (P8).
  */
 export async function duplicateRecord(
   db: XosClient,
-  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly withChildren?: boolean;
+    readonly withoutDates?: boolean;
+  },
 ): Promise<Result<{ id: string; number: number }>> {
   const source = await getRecord(db, input.recordId);
   if (!source.ok) return source;
@@ -737,9 +842,10 @@ export async function duplicateRecord(
     xyz: r.xyz,
     ownerId: r.ownerId,
     accountableId: r.accountableId,
-    startsAt: r.startsAt,
-    endsAt: r.endsAt,
-    dueAt: r.dueAt,
+    startsAt: input.withoutDates ? null : r.startsAt,
+    startTbc: input.withoutDates ? false : r.startTbc,
+    endsAt: input.withoutDates ? null : r.endsAt,
+    dueAt: input.withoutDates ? null : r.dueAt,
     timeZone: r.timeZone,
     extension: extension.data,
   });
@@ -836,6 +942,49 @@ export async function saveRecordExtension(
       record_kind: input.kind,
     });
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+export type ExtensionSaveOutcome =
+  { readonly saved: true } | { readonly saved: false; readonly current: ExtensionValues };
+
+/**
+ * Saves some of the kind's own attributes against the values the person started from (Section 11.7): when someone
+ * else changed one of the same attributes since, the save comes back with the current values instead. A record
+ * without its attribute row yet gets one, as in saveRecordExtension.
+ */
+export async function saveRecordExtensionFields(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly kind: string;
+    readonly set: ExtensionValues;
+    readonly expect: ExtensionValues;
+  },
+): Promise<Result<ExtensionSaveOutcome>> {
+  const editable = (values: ExtensionValues) =>
+    Object.fromEntries(
+      Object.entries(values).filter(([c]) => !EXTENSION_MACHINERY.has(c) && c !== "score"),
+    );
+  const set = editable(input.set);
+  if (Object.keys(set).length === 0) return ok({ saved: true });
+  const result = await saveVersioned(
+    db,
+    extensionTable(input.kind),
+    { column: "record_id", value: input.recordId },
+    { set, expect: editable(input.expect) },
+  );
+  if (!result.ok && result.error.kind === "not-found") {
+    const created = await saveRecordExtension(db, {
+      orgId: input.orgId,
+      recordId: input.recordId,
+      kind: input.kind,
+      fields: set,
+    });
+    return created.ok ? ok({ saved: true }) : created;
+  }
+  if (!result.ok) return result;
+  return ok(result.data.saved ? { saved: true } : { saved: false, current: result.data.current });
 }
 
 // History ----------------------------------------------------------------------------------------------
@@ -1010,6 +1159,35 @@ export async function removeChecklistItem(db: XosClient, itemId: string): Promis
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Brings a removed item back (the undo of a remove, Section 11.7), tick and all. It keeps its place when that is
+ * still free; when an item added since holds it, it goes to the end.
+ */
+export async function restoreChecklistItem(
+  db: XosClient,
+  input: { readonly recordId: string; readonly itemId: string },
+): Promise<Result<null>> {
+  const back = async (patch: { deleted_at: null; position?: number }) => {
+    const { data, error } = await db
+      .from("record_checklist_items")
+      .update(patch)
+      .eq("id", input.itemId)
+      .eq("record_id", input.recordId)
+      .not("deleted_at", "is", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+  };
+  const kept = await back({ deleted_at: null });
+  if (kept.ok || kept.error.kind !== "conflict") return kept;
+  const current = await listChecklist(db, input.recordId);
+  if (!current.ok) return current;
+  return back({
+    deleted_at: null,
+    position: Math.max(0, ...current.data.map((i) => i.position)) + 1,
+  });
+}
+
 // Assignments and watchers -----------------------------------------------------------------------------
 
 export interface Assignment {
@@ -1048,13 +1226,17 @@ export async function listAssignments(
 export async function assignRecord(
   db: XosClient,
   input: { readonly orgId: string; readonly recordId: string; readonly membershipId: string },
-): Promise<Result<null>> {
-  const { error } = await db.from("record_assignments").insert({
-    org_id: input.orgId,
-    record_id: input.recordId,
-    membership_id: input.membershipId,
-  });
-  return error ? fail(toDataError(error)) : ok(null);
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .insert({
+      org_id: input.orgId,
+      record_id: input.recordId,
+      membership_id: input.membershipId,
+    })
+    .select("id")
+    .single();
+  return error ? fail(toDataError(error)) : ok({ id: data.id });
 }
 
 export async function unassignRecord(db: XosClient, assignmentId: string): Promise<Result<null>> {
@@ -1062,6 +1244,24 @@ export async function unassignRecord(db: XosClient, assignmentId: string): Promi
     .from("record_assignments")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", assignmentId)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Brings a removed assignment back (the undo of a remove, Section 11.7), without a second assignment notice. When
+ * the person was assigned again since, it is a conflict.
+ */
+export async function restoreAssignment(
+  db: XosClient,
+  assignmentId: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .update({ deleted_at: null })
+    .eq("id", assignmentId)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -1216,6 +1416,56 @@ export async function clearRecurrence(db: XosClient, recordId: string): Promise<
     .update({ deleted_at: new Date().toISOString() })
     .eq("record_id", recordId)
     .is("deleted_at", null);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * Replaces the record's rule only while it is still `from` (null: no rule), for the undo and redo of a recurrence
+ * edit (Section 11.7). A rule someone else set or cleared since is a conflict and nothing changes.
+ */
+export async function replaceRecurrence(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly from: string | null;
+    readonly to: {
+      readonly rrule: string;
+      readonly timeZone: string;
+      readonly untilAt: string | null;
+    } | null;
+  },
+): Promise<Result<null>> {
+  if (input.from !== null) {
+    const { data, error } = await db
+      .from("record_recurrences")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("record_id", input.recordId)
+      .eq("rrule", input.from)
+      .is("deleted_at", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    if (data.length !== 1) return fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  if (input.to === null) {
+    if (input.from !== null) return ok(null);
+    // Clearing a rule that was not there: it is a conflict only when someone set one since.
+    const { data, error } = await db
+      .from("record_recurrences")
+      .select("id")
+      .eq("record_id", input.recordId)
+      .is("deleted_at", null);
+    if (error) return fail(toDataError(error));
+    return data.length === 0 ? ok(null) : fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  // With no rule expected, a rule set since holds the record's one active slot and the insert is refused.
+  const { error } = await db.from("record_recurrences").insert({
+    org_id: input.orgId,
+    record_id: input.recordId,
+    rrule: input.to.rrule,
+    time_zone: input.to.timeZone,
+    until_at: input.to.untilAt,
+  });
   return error ? fail(toDataError(error)) : ok(null);
 }
 

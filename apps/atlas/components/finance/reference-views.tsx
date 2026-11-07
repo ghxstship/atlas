@@ -37,7 +37,7 @@ import { ViewSwitcher } from "./kit-view-switcher";
 import { type Row } from "./kit.types";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "./panels";
 import { RecordCollab } from "./record";
-import { PageHeader, TemplateCollection } from "./ui";
+import { PageHeader, TemplateCollection } from "./ui-collection";
 
 /**
  * Finance reference pages (Section 4.5.5): the Universal Posting Line export (Section 3.11, journey 8),

@@ -377,6 +377,7 @@
       "live_link_view_removed": "Lo que mostraba este enlace se eliminó. Pide un enlace nuevo a quien lo envió.",
       "live_link_view_unsupported": "Esta vista cambió y ya no se puede mostrar en un enlace público. Consulta a quien lo envió.",
       "live_link_reclassified": "Esta información ya no se puede compartir en un enlace público. Consulta a quien lo envió."
-    }
+    },
+    "tbc": "Por confirmar"
   }
 }

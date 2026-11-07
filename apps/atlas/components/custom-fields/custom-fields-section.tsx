@@ -1,31 +1,24 @@
 "use client";
 
-import { checkCustomFieldInputs } from "@xos/data/custom-fields";
-import { Button, InlineAlert, PropertyList } from "@xos/ui";
+import { Button, PropertyList } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { loadCustomFieldFormAction, saveCustomFieldsAction } from "@/lib/custom-fields/actions";
-import type {
-  CustomFieldForm,
-  CustomFieldInput,
-  CustomFieldProblem,
-  CustomFieldTable,
-} from "@/lib/custom-fields/types";
-import {
-  CustomFieldControls,
-  effectiveInputs,
-  parseContextOf,
-  useOrgSlug,
-  type CustomFieldInputs,
-} from "./controls";
+import { useEffect, useState } from "react";
+import { loadCustomFieldFormAction } from "@/lib/custom-fields/actions";
+import type { CustomFieldForm, CustomFieldTable } from "@/lib/custom-fields/types";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 import { formatCustomFieldValue } from "./format";
+import { useOrgSlug } from "./org-slug";
 
 /** Copy lookups take built keys (`errors.denied`), so the catalog type is widened. */
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-/** Refusals and errors the section explains in words; anything else reads as the general refusal. */
-const EXPLAINED = new Set(["custom_value_required", "denied", "invalid", "unexpected"]);
+/**
+ * The inputs and their checks load with Edit (custom-fields-editor.tsx). The press is held in
+ * `editing`, so a press before the code arrives still opens the editor (ADR 0027).
+ */
+const editor = onDemand(() => import("./custom-fields-editor"));
+const prepareEditor = () => void editor.load().catch(() => undefined);
 
 /**
  * A row's custom fields on its record page and peek (A117): the org's fields of the table with their values, and
@@ -54,11 +47,8 @@ export function CustomFieldsSection({
   const org = useOrgSlug();
   const [loaded, setLoaded] = useState<CustomFieldForm | null>(null);
   const [editing, setEditing] = useState(false);
-  const [inputs, setInputs] = useState<CustomFieldInputs>({});
-  const [problems, setProblems] = useState<Readonly<Record<string, CustomFieldProblem>>>({});
-  const [error, setError] = useState<string | null>(null);
+  const editorModule = useOnDemand(editor, editing);
   const [status, setStatus] = useState("");
-  const [pending, startTransition] = useTransition();
   const form = loaded ?? initial ?? null;
 
   useEffect(() => {
@@ -87,44 +77,8 @@ export function CustomFieldsSection({
   };
 
   const startEditing = () => {
-    setInputs(form.inputs);
-    setProblems({});
-    setError(null);
     setStatus("");
     setEditing(true);
-  };
-
-  const save = () => {
-    // Every field is sent, so a required one left blank is caught here and by the server.
-    const all: Record<string, CustomFieldInput> = {};
-    for (const field of form.fields) all[field.key] = inputs[field.key] ?? { value: "" };
-    const sent = effectiveInputs(form, all);
-    const checked = checkCustomFieldInputs(form.fields, sent, "update", parseContextOf(form));
-    setProblems(checked.problems);
-    const first = form.fields.find((f) => checked.problems[f.key]);
-    if (first) {
-      document.getElementById(`${headingId}-cf-${first.key}`)?.focus();
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const result = await saveCustomFieldsAction(org, table, id, sent, "update");
-      if (!result.ok) {
-        if (result.problems) setProblems(result.problems);
-        const key = result.problems
-          ? "invalid"
-          : result.error && EXPLAINED.has(result.error)
-            ? result.error
-            : "refused";
-        setError(t(`errors.${key}`));
-        return;
-      }
-      const fresh = await loadCustomFieldFormAction(org, table, id);
-      if (fresh) setLoaded(fresh);
-      setEditing(false);
-      setStatus(t("saved"));
-      router.refresh();
-    });
   };
 
   return (
@@ -134,38 +88,33 @@ export function CustomFieldsSection({
           {t(table === "app.counterparties" ? "companyTitle" : "title")}
         </h3>
         {editable && form.canWrite && !editing ? (
-          <Button size="sm" variant="ghost" icon="Pencil" onClick={startEditing}>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="Pencil"
+            onPointerEnter={prepareEditor}
+            onFocus={prepareEditor}
+            onClick={startEditing}
+          >
             {t("edit")}
           </Button>
         ) : null}
       </div>
-      {editing ? (
-        <form
-          className="flex flex-col gap-12"
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault();
-            save();
+      {editing && editorModule ? (
+        <editorModule.CustomFieldsEditor
+          org={org}
+          table={table}
+          id={id}
+          form={form}
+          idPrefix={headingId}
+          onCancel={() => setEditing(false)}
+          onSaved={(fresh) => {
+            if (fresh) setLoaded(fresh);
+            setEditing(false);
+            setStatus(t("saved"));
+            router.refresh();
           }}
-        >
-          {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
-          <CustomFieldControls
-            form={form}
-            inputs={inputs}
-            problems={problems}
-            onInput={(key, input) => setInputs((current) => ({ ...current, [key]: input }))}
-            idPrefix={headingId}
-            disabled={pending}
-          />
-          <div className="flex flex-wrap items-center gap-8">
-            <Button type="submit" size="sm" variant="primary" loading={pending}>
-              {t("save")}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>
-              {t("cancel")}
-            </Button>
-          </div>
-        </form>
+        />
       ) : (
         <PropertyList
           items={form.fields.map((field) => {

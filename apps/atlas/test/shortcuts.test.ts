@@ -5,7 +5,9 @@ import { getNode, routeParams, type ATLAS_ROLES } from "@xos/ia";
 import { allCapabilities, grantsByRole, loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { sitemap } from "../ia/sitemap.generated";
+import { holdFirstPress } from "../components/shell/first-press";
 import { installShellKeys, type KeyState } from "../components/shell/key-dispatch";
+import { showActionOf, showKeyAction, stepTarget } from "../components/show/show-keys";
 import { CREATE_KINDS, createItems } from "../lib/shell/create-menu";
 import { orderForPage, type CreateItem } from "../lib/shell/create-order";
 import { buildShellNav, orderByLayout, sidebarNodeIds } from "../lib/shell/nav-model";
@@ -141,6 +143,81 @@ describe("shell keys for one person", () => {
     expect(viewer.go).not.toHaveProperty("go.finance");
     expect(viewer.go).not.toHaveProperty("go.logistics");
     expect(viewer.go).toHaveProperty("go.home");
+  });
+});
+
+describe("showcaller console keys (ADR 0131)", () => {
+  const scoped = buildShellKeys(SHORTCUT_REGISTRY, {
+    platform: "other",
+    custom: {},
+    goTargets: goTargets("owner"),
+  }).scoped;
+
+  it("gives the console the show scope's keyboard and Stream Deck keys", () => {
+    expect(scoped["show.next"]).toBe("J");
+    expect(scoped["show.deck.go"]).toBe("F13");
+    expect(scoped["show.deck.department"]).toBe("F20");
+    const actions: [string, string][] = [
+      ["F13", "go"],
+      ["F14", "standby"],
+      ["F15", "previous"],
+      ["F16", "next"],
+      ["F17", "nudge-later"],
+      ["F18", "nudge-earlier"],
+      ["F19", "jump"],
+      ["F20", "department"],
+      ["J", "next"],
+      ["K", "previous"],
+      ["S", "standby"],
+      ["T", "jump"],
+      ["]", "nudge-later"],
+      ["[", "nudge-earlier"],
+      ["D", "department"],
+    ];
+    for (const [chord, action] of actions)
+      expect(showKeyAction(chord, scoped, true), chord).toBe(action);
+  });
+
+  it("answers function keys with single-key shortcuts off, and leaves letters and symbols alone", () => {
+    expect(showKeyAction("J", scoped, false)).toBeNull();
+    expect(showKeyAction("]", scoped, false)).toBeNull();
+    expect(showKeyAction("F15", scoped, false)).toBe("previous");
+    expect(showKeyAction("F16", scoped, false)).toBe("next");
+  });
+
+  it("moves the standby from the picked cue, else the standby cue, else the current cue", () => {
+    const called = "2027-03-13T20:00:00Z";
+    const fresh = [null, null, null].map((calledAt) => ({ calledAt }));
+    const none = { picked: -1, current: -1, next: 0, standby: false };
+    // Before the first call, Next stands by cue 1 and Previous has nowhere to go.
+    expect(stepTarget(fresh, none, 1)).toBe(0);
+    expect(stepTarget(fresh, none, -1)).toBeUndefined();
+    // With cue 1 on standby, Next moves on to cue 2; a picked cue wins over the standby.
+    expect(stepTarget(fresh, { ...none, standby: true }, 1)).toBe(1);
+    expect(stepTarget(fresh, { ...none, picked: 1, standby: true }, 1)).toBe(2);
+    // Cue 2 called past a skipped cue 1: Next passes the called cue, Previous returns to the skipped one.
+    const jumped = [{ calledAt: null }, { calledAt: called }, { calledAt: null }];
+    const after = { picked: -1, current: 1, next: 2, standby: false };
+    expect(stepTarget(jumped, after, 1)).toBe(2);
+    expect(stepTarget(jumped, after, -1)).toBe(0);
+  });
+
+  it("leaves Space to RunOfShowLive and ignores keys of other scopes", () => {
+    expect(showKeyAction("Space", scoped, true)).toBeNull();
+    expect(showKeyAction("A", scoped, true)).toBeNull();
+    expect(showKeyAction("X", scoped, true)).toBeNull();
+    expect(showActionOf("inbox.approve")).toBeNull();
+    expect(showActionOf("show.deck.jump")).toBe("jump");
+  });
+
+  it("follows the person's own bindings", () => {
+    const custom = buildShellKeys(SHORTCUT_REGISTRY, {
+      platform: "other",
+      custom: { "show.deck.go": "Shift+F13" },
+      goTargets: goTargets("owner"),
+    }).scoped;
+    expect(showKeyAction("F13", custom, true)).toBeNull();
+    expect(showKeyAction("Shift+F13", custom, false)).toBe("go");
   });
 });
 
@@ -309,7 +386,7 @@ describe("shell key handler (Section 11.2)", () => {
   });
   afterEach(() => stop?.());
 
-  function start(keys: ShellKeys) {
+  function start(keys: ShellKeys, held: readonly KeyboardEvent[] = []) {
     window = new EventTarget();
     Object.assign(globalThis, { window });
     calls = [];
@@ -323,12 +400,11 @@ describe("shell key handler (Section 11.2)", () => {
         },
       },
     };
-    stop = installShellKeys(state);
+    stop = installShellKeys(state, held);
   }
 
-  function press(key: string, init: PressInit = {}): Pressed {
+  function keyEvent(key: string, init: PressInit = {}): Event {
     const event = new Event("keydown", { cancelable: true });
-    const out: Pressed = { defaultPrevented: false, stopped: false };
     Object.defineProperties(event, {
       key: { value: key },
       code: { value: init.code ?? "" },
@@ -340,6 +416,12 @@ describe("shell key handler (Section 11.2)", () => {
       isComposing: { value: false },
       target: { value: init.target ?? new FakeElement() },
     });
+    return event;
+  }
+
+  function press(key: string, init: PressInit = {}): Pressed {
+    const event = keyEvent(key, init);
+    const out: Pressed = { defaultPrevented: false, stopped: false };
     const original = event.stopPropagation.bind(event);
     event.stopPropagation = () => {
       out.stopped = true;
@@ -375,6 +457,42 @@ describe("shell key handler (Section 11.2)", () => {
       "pending:none",
       "go:/acme/home",
     ]);
+  });
+
+  it("answers the presses first-press.ts held until it arrived, in order", () => {
+    const held = [keyEvent("k", { ctrlKey: true }), keyEvent("g"), keyEvent("h")];
+    held[0]?.preventDefault();
+    start(keys(), held as unknown as KeyboardEvent[]);
+    expect(calls.slice(0, 3)).toEqual(["command:command-menu", "pending:G", "pending:none"]);
+    expect(calls[3]).toMatch(/^go:.*home/);
+  });
+
+  it("holds the first press, stopping only a browser default the shell binds", () => {
+    const k = keys();
+    window = new EventTarget();
+    Object.assign(globalThis, { window });
+    const loads: number[] = [];
+    const held: KeyboardEvent[] = [];
+    stop = holdFirstPress(
+      () => k,
+      (list) => {
+        loads.push(list.length);
+        held.push(...list);
+      },
+    );
+    const send = (key: string, init: PressInit = {}) => {
+      const event = keyEvent(key, init);
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(send("Shift")).toBe(false);
+    expect(loads).toEqual([]);
+    expect(send("k", { ctrlKey: true })).toBe(true);
+    expect(loads).toEqual([1]);
+    expect(send("c", { ctrlKey: true })).toBe(false);
+    expect(send("z", { ctrlKey: true, target: new FakeElement("INPUT") })).toBe(false);
+    expect(send("j")).toBe(false);
+    expect(loads).toEqual([1]);
   });
 
   it("cancels a sequence on another key, and after four seconds", () => {

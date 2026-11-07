@@ -127,3 +127,69 @@ test("journey 57: approve from the notification action, then 20 Inbox items by k
     }
   }
 });
+
+/**
+ * The reject dialog loads with the first Reject (ADR 0027): the first press opens it, by the button
+ * and by the R key, and rejecting takes the item off the list.
+ */
+test("reject from the Inbox: the first press opens the dialog, by button and by key", async ({
+  browser,
+  baseURL,
+}) => {
+  test.setTimeout(120_000);
+  const base = baseURL as string;
+  const producer = await (await browser.newContext()).newPage();
+  await signInAs(producer, "producer@example.com", DEMO_ORG);
+  const vendors = (await (await producer.request.get("/api/v1/vendors?limit=50")).json()) as {
+    data: { id: string; vendor_state: string }[];
+  };
+  const vendor = vendors.data.find((v) => v.vendor_state === "Active");
+  expect(vendor, "an Active demo vendor").toBeTruthy();
+  const po = await apiPost(producer.request, base, "/purchase-orders", {
+    project_id: PROJECT,
+    vendor_id: vendor?.id,
+    currency_code: "USD",
+  });
+  await apiPost(producer.request, base, "/po-lines", {
+    purchase_order_id: po["id"],
+    description: "Reject from the Inbox",
+    quantity: 1,
+    unit_price_minor: 10000,
+  });
+  const approval = await apiPost(producer.request, base, "/approval-instances", {
+    document_type: "Purchase Order",
+    document_id: po["id"],
+  });
+  try {
+    const admin = await (await browser.newContext()).newPage();
+    await signInAs(admin, "admin@example.com", DEMO_ORG);
+    await admin.goto(`/${DEMO_ORG}/inbox`);
+    await settle(admin);
+    const row = admin
+      .locator("[data-inbox-item]")
+      .filter({ has: admin.getByRole("button", { name: "Reject", exact: true }) })
+      .first();
+    const dialog = admin.getByRole("dialog", { name: "Reject with a reason" });
+
+    await row.getByRole("button", { name: "Reject", exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Reason", { exact: true })).toBeFocused();
+    await admin.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    await row.focus();
+    await admin.keyboard.press("r");
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel("Reason", { exact: true }).fill("Not this vendor.");
+    await dialog.getByRole("button", { name: "Reject", exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await expect(admin.getByText("1 item handled this visit.")).toBeVisible();
+  } finally {
+    await producer.request
+      .post(`/api/v1/approval-instances/${String(approval["id"])}/cancel`, {
+        data: { reason: "Inbox reject test data withdrawn." },
+        headers: { Origin: base, "Idempotency-Key": `a36-reject-${String(approval["id"])}` },
+      })
+      .catch(() => undefined);
+  }
+});

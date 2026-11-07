@@ -382,6 +382,8 @@ export interface LiveRecordRow {
   readonly state: string;
   readonly phase: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed: it places the row on a day, and the time shows TBC. */
+  readonly startTbc?: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -393,7 +395,10 @@ export interface PublicCue {
   readonly position: number;
   readonly label: string;
   readonly segment: string | null;
+  /** NULL for a cue to be confirmed (startTbc): the links never send its estimate as a time (6125). */
   readonly plannedAt: string | null;
+  /** True while the planned time is an estimate to be confirmed: show TBC. */
+  readonly startTbc?: boolean;
   readonly durationSeconds: number | null;
   readonly calledAt: string | null;
 }
@@ -469,6 +474,7 @@ function toCue(raw: Record<string, unknown>): PublicCue {
     label: str(raw["label"]) ?? "",
     segment: str(raw["segment"]),
     plannedAt: str(raw["planned_at"]),
+    startTbc: raw["start_tbc"] === true,
     durationSeconds: num(raw["duration_seconds"]),
     calledAt: str(raw["called_at"]),
   };
@@ -483,6 +489,7 @@ function records(rows: unknown[]): LiveRecordRow[] {
     state: str(r["state"]) ?? "",
     phase: str(r["phase"]),
     startsAt: str(r["starts_at"]),
+    startTbc: r["start_tbc"] === true,
     endsAt: str(r["ends_at"]),
     dueAt: str(r["due_at"]),
     timeZone: str(r["time_zone"]),
