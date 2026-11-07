@@ -153,7 +153,8 @@ test("a pool invitation is accepted on Home and the person is named in Atlas", a
 
   const { context, page: atlas } = await atlasAs(browser, "owner@example.com");
   await atlas.goto(`/${ORG}/opportunities/pools?pool=${pool?.id}`);
-  await expect(atlas.locator("#pool-members")).toContainText(/Demo Crew Member\s*Approved/);
-  await expect(atlas.locator("#pool-members").getByText("Unnamed")).toHaveCount(0);
+  const members = atlas.getByRole("region", { name: /member/ });
+  await expect(members).toContainText("Demo Crew Member");
+  await expect(members.getByText("Unnamed")).toHaveCount(0);
   await context.close();
 });

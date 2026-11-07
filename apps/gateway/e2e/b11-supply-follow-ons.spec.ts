@@ -81,6 +81,6 @@ test("a vendor reads an issued RFQ's lines and no prices", async ({ page }) => {
   await sql(`select app.transition_rfq($1, 'Proposed', 'Issued', 'Go.')`, [rfq?.id], PEOPLE.owner);
   await page.reload();
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
-  await expect(page.getByText("20 Stage cable", { exact: true })).toBeVisible();
+  await expect(page.getByText("20 Stage cable", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Send your quote to/).first()).toBeVisible();
 });

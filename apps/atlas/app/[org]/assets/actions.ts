@@ -561,9 +561,15 @@ export async function createMaintenancePlanAction(
         (v) => (v === "" ? undefined : v),
         z.coerce.number().int().min(1).max(999).optional(),
       ),
-      everyUnit: z
-        .enum(MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]])
-        .optional(),
+      // Once only is the select's blank value.
+      everyUnit: z.preprocess(
+        (v) => (v === "" ? undefined : v),
+        z
+          .enum(
+            MAINTENANCE_INTERVAL_UNITS as [MaintenanceIntervalUnit, ...MaintenanceIntervalUnit[]],
+          )
+          .optional(),
+      ),
       instructions: z.string().trim().max(1000).optional(),
     })
     .safeParse(

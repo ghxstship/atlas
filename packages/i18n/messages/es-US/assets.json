@@ -94,7 +94,8 @@
     "action": "Acción",
     "comment": "Comentario",
     "file": "Archivo",
-    "everyCount": "Repetir cada"
+    "everyCount": "Repetir cada",
+    "everyUnit": "Unidad"
   },
   "errors": {
     "field": "Revisa {field}.",

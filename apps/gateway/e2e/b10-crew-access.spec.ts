@@ -134,7 +134,16 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
 
   // Revoking closes the page.
   await atlas.goto(`/${ORG}/crew/access-links?view=table`);
-  await atlas.getByRole("button", { name: "Revoke" }).first().click();
+  const revoke = atlas.getByRole("button", { name: "Revoke" });
+  await expect(revoke.first()).toBeVisible();
+  // The newest is not always first, and a link left from a retry must not stand in for this one.
+  await expect(async () => {
+    while ((await revoke.count()) > 0) {
+      const live = await revoke.count();
+      await revoke.first().click();
+      await expect(revoke).toHaveCount(live - 1, { timeout: 3_000 });
+    }
+  }).toPass();
   await expect(atlas.getByText("Revoked").first()).toBeVisible();
   await worker.reload();
   await expect(worker.getByText("This link no longer works.")).toBeVisible();

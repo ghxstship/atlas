@@ -94,7 +94,8 @@
     "action": "Action",
     "comment": "Comment",
     "file": "File",
-    "everyCount": "Repeat every"
+    "everyCount": "Repeat every",
+    "everyUnit": "Unit"
   },
   "errors": {
     "field": "Check {field}.",

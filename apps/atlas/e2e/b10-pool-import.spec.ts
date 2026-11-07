@@ -66,11 +66,11 @@ test("a freelancer list: map, review, merge, commit, and the invitations appear"
   // The repeat and the bad phone are Invalid; the near name waits for a decision before anything commits.
   await expect(page.getByText("repeats an earlier row").first()).toBeVisible();
   await expect(page.getByText("not a phone number").first()).toBeVisible();
-  await expect(page.getByText(/looks like Demo Crew Member/)).toBeVisible();
+  await expect(page.getByText(/looks like Demo Crew Member/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Commit the import" })).toBeDisabled();
 
   // Merged means skipped: this person is already in a pool, and nothing is written over them.
-  await page.getByRole("button", { name: "Merge into it" }).click();
+  await page.getByRole("button", { name: "Merge into it" }).first().click();
   await expect(page.getByText("Skipped: already invited or in a pool.")).toBeVisible();
   await page.getByRole("button", { name: "Commit the import" }).click();
   await expect(page.getByText("Writing the rows")).toBeVisible();

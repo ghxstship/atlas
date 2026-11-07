@@ -121,12 +121,17 @@ test("a registration page: open it, register, approve, and the person is on the 
     [DEMO.project, title],
     DEMO.owner,
   );
-  await sql(
-    `select private.transition_lifecycle('opportunity', 'app.opportunities', 'opportunity_state', 'app.opportunity_state_transitions',
-       'opportunity_id', o.id, 'Draft', 'Published', 'Fixture.') from app.opportunities o where o.title = $1`,
-    [title],
-    DEMO.owner,
-  );
+  for (const [from, to] of [
+    ["Draft", "Pending Approval"],
+    ["Pending Approval", "Published"],
+  ]) {
+    await sql(
+      `select private.transition_lifecycle('opportunity', 'app.opportunities', 'opportunity_state', 'app.opportunity_state_transitions',
+         'opportunity_id', o.id, $2, $3, 'Fixture.') from app.opportunities o where o.title = $1`,
+      [title, from, to],
+      DEMO.owner,
+    );
+  }
   // The decision reaches them: a notification with the outcome, and the page they registered on says so.
   const [decided] = await sql<{ outcome: string }>(
     `select n.args ->> 'outcome' as outcome from app.notifications n

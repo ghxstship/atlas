@@ -131,10 +131,10 @@ test("an agreement batch: template, preview, create, send, and the masked reader
   expect(href).toMatch(/\/documents\/engagement-document\/[0-9a-f-]{36}/);
   expect((await page.request.get(href)).status()).toBe(200);
 
-  // A viewer reads engagements but not pay: the text is masked, with no PDF and no hash anywhere on the page.
+  // A producer reads engagements but not pay: the text is masked, with no PDF and no hash anywhere on the page.
   const other = await browser.newContext({ reducedMotion: "reduce" });
   const reader = await other.newPage();
-  await signInAs(reader, "viewer@example.com", DEMO_ORG);
+  await signInAs(reader, "producer@example.com", DEMO_ORG);
   await reader.goto(record);
   const masked = reader.getByRole("listitem").filter({ hasText: "Agreement for Demo Crew" });
   await expect(masked.getByText("This text holds a rate you cannot read.")).toBeVisible();
