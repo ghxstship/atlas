@@ -1891,7 +1891,7 @@
       "links": "Enlaces",
       "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
       "ownerAction": "Configuración de privacidad",
-      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar.",
+      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar o reservar.",
       "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes tengan acceso de contratación, reserva o asignación de personal en XOS. Alguien que contrate fuera de XOS aún podría leerlas. Puedes cambiarlo en tu configuración de privacidad.",
       "ratingsOwnerPrivate": "Solo tú y la organización que te calificó pueden leerlas. Nadie más las ve aquí.",
       "disputed": "Impugnada por esta persona"

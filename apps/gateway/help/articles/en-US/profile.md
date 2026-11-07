@@ -1,6 +1,6 @@
 ---
 title: Your profile
-summary: What organizations see about you, how complete it is, your certifications, availability, ratings and shares.
+summary: What organizations see about you, how complete it is, your certifications, availability and shares, and who reads your ratings.
 kind: page
 nodes: [profile]
 order: 1

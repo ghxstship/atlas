@@ -1,6 +1,6 @@
 ---
 title: Tu perfil
-summary: Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad, calificaciones y perfiles compartidos.
+summary: Lo que ven las organizaciones sobre ti, qué tan completo está, tus certificaciones, disponibilidad y perfiles compartidos, y quién lee tus calificaciones.
 kind: page
 nodes: [profile]
 order: 1
