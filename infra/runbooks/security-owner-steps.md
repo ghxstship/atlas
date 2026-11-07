@@ -19,12 +19,16 @@ State read from the GitHub API on 2026-11-06, read-only:
 
 ## Order
 
-**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts serving a mailbox that cannot receive mail. **Then merge this branch into `main`, before you run anything in steps 1 and 2 and before steps 3 and 7.** `synthetics.yml`, `post-alert.sh`, the corrected backup script and its alert, the checks step 3 requires and the workflows step 7 names exist only once it lands: run today, step 1 would run the old backup workflow and step 2's commands would fail. You can set the secrets in steps 1 and 2 before the merge, and step 1's public key goes through its own pull request. Step 1 next, the one with a legal statement waiting on it.
+**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts serving a mailbox that cannot receive mail. **Then merge this branch into `main`, before you run anything in steps 1 and 2 and before steps 3 and 7.** `synthetics.yml`, `post-alert.sh`, the corrected backup script and its alert, the checks step 3 requires and the workflows step 7 names exist only once it lands: run today, step 1 would run the old backup workflow and step 2's commands would fail. You can set the secrets in steps 1 and 2 before the merge, and step 1's public key goes through its own pull request.
+
+**Right after the merge, before anything else, check that the status refs deploy nothing.** From the merge on, the scheduled checks force-push `refs/status/history` every 5 minutes, with no secret needed. Create the incident ref too, empty, from your checkout of `main`: `infra/ci/status-incidents.sh fetch status-incidents && infra/ci/status-incidents.sh publish status-incidents`. Then, after the first scheduled run (within about 10 minutes), `git ls-remote origin 'refs/status/*'` must print two lines, and [Vercel's deployment list](https://vercel.com/ghxstship/atlas/deployments) must show nothing from either ref. Both sit outside `refs/heads` because Vercel deploys every branch push on each connected project, and the one orphan branch ever pushed here (`status-site`, 2026-10-25) failed on four of them. Vercel documents deployments for branches, and these refs are not branches, but no agent could push to GitHub to see it. If a deployment does appear, turn the schedule off with `gh workflow disable synthetics.yml --repo ghxstship/atlas` and tell an agent: it would repeat every 5 minutes.
+
+Step 1 next, the one with a legal statement waiting on it.
 
 | Step | What                                                      | Blocks                                                         |
 | ---- | --------------------------------------------------------- | -------------------------------------------------------------- |
 | 0    | Mail for `ghxstship.tech`, and one test message           | **Deploying this branch**; every address in `legal/contact.md` |
-|      | Merge this branch into `main`                             | The runs in steps 1 and 2; steps 3 and 7                       |
+|      | Merge this branch into `main`, then check Vercel at once  | The runs in steps 1 and 2; steps 3 and 7                       |
 | 1    | Secret values for the backup                              | "The weekly backup has run", once one succeeds                 |
 | 2    | The alert channel and the status page token               | Alerts reaching a person; the status page                      |
 | 3    | Branch protection on `main`                               | "Changes reach main only through pull requests"                |
@@ -67,7 +71,7 @@ From the merge, `SECURITY.md` tells a researcher whose mail bounces to use the i
 5. **Test it from outside.** Send one message from an address not on your Workspace, such as a personal account, to `security@ghxstship.tech` and to each other address. Each must arrive where you will read it. `dig +short MX ghxstship.tech` must print `1 smtp.google.com.`. Record the date, so the legal documents can rely on it.
 6. **Watch the repository's issues,** at [Watch, Custom, Issues](https://github.com/ghxstship/atlas), because the form promises an answer from there. To answer one, [draft a security advisory](https://github.com/ghxstship/atlas/security/advisories/new), which works with private reporting off, add the person as a collaborator on the draft, and say so in the issue. If they put details in the issue anyway, edit them out and tell them why.
 
-Only after step 5 should this branch deploy. **If you would rather use an address that works today,** choose one, then change `SECURITY.md`, the `Contact` line in `apps/atlas/app/.well-known/security.txt/route.ts` and `apps/gateway/app/.well-known/security.txt/route.ts`, the test in `infra/security/test/repo-controls.test.ts`, and the legal documents together. A working address at `ghxstship.pro` needs its own mailbox or group: an MX record shows the domain takes mail and says nothing about one address.
+Only after the test message in item 5 above has arrived at every address should this branch deploy. **If you would rather use an address that works today,** choose one, then change `SECURITY.md`, the `Contact` line in `apps/atlas/app/.well-known/security.txt/route.ts` and `apps/gateway/app/.well-known/security.txt/route.ts`, the test in `infra/security/test/repo-controls.test.ts`, and the legal documents together. A working address at `ghxstship.pro` needs its own mailbox or group: an MX record shows the domain takes mail and says nothing about one address.
 
 ## 1. Secret values for the backup
 
@@ -136,7 +140,7 @@ Without the webhook, an alert is only a failed run, and GitHub emails that to ju
 3. In [Vercel, Account Settings, Tokens](https://vercel.com/account/tokens), create a token limited to the team, then `gh secret set VERCEL_STATUS_TOKEN --repo ghxstship/atlas`. The variables `VERCEL_ORG_ID` and `VERCEL_STATUS_PROJECT_ID` are already set.
 4. Run it once: `gh workflow run synthetics.yml --repo ghxstship/atlas --ref main`. Open the run. All five checks should pass, `git ls-remote origin refs/status/history` should print one line, and `status.ghxstship.tech` should show a new "Last checked" on Atlas, Gateway, the API and Documentation and "Not checked yet" on the other three. No agent requested the public hosts while building this, so this first run is the first real test of the expected answers (a 401 problem document from `api.ghxstship.tech/v1/canon/departments`, a 200 from `docs.ghxstship.tech/en-US`). A check that fails here is more likely a wrong expectation than an outage.
 
-   **Then look at [Vercel's deployment list](https://vercel.com/ghxstship/atlas/deployments).** It must show nothing new from this run. The history sits on `refs/status/history` because Vercel deploys every branch push on each connected project, and the one orphan branch ever pushed here (`status-site`, 2026-10-25) failed on four of them. Vercel documents deployments for branches, and this ref is not one, but no agent could push to GitHub to see it happen. If a deployment does appear, turn the workflow off with `gh workflow disable synthetics.yml --repo ghxstship/atlas` and tell an agent: it would repeat every 5 minutes. The branch `status-site` serves no purpose now and is yours to delete if you wish.
+   The `atlas` project's [deployment list](https://vercel.com/ghxstship/atlas/deployments) must still show nothing new from this run, as in the check right after the merge (Order); only the `status` project deploys. The branch `status-site` serves no purpose now and is yours to delete if you wish.
 
 5. To test the path to the channel without an outage, send it one line. `read -rs` takes the address without echoing it or saving it in your shell history:
 
@@ -211,6 +215,8 @@ git fetch origin && git switch batch-c
 git merge --no-ff origin/main -m "merge: main, with the release X.Y.0 merge, into batch-c" -m "$TRAILERS"
 git push
 ```
+
+**Incidents do not go through `main`.** The status page reads its incident list from `refs/status/incidents`, which this ruleset does not cover, so posting or updating an incident takes minutes and deploys nothing but the status page (`incident-response.md`, Communication). Do not move the list back into a file on `main`: a pull request's required checks take over an hour, the runbook requires a post within 30 minutes, and every merge would deploy production during a deploy freeze.
 
 The deployed commit is now a merge commit with the same tree as the release commit, so record that commit in the release record. Evidence gathered after the deploy goes in with the next train; a pull request only for the record would run the full CI again. Anything that automates a release, including the orchestrator's own notes, must stop pushing to `main`. A pull request that adds a job must add it to the `required` job's `needs`.
 

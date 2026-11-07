@@ -48,8 +48,12 @@ const output = process.env["GITHUB_OUTPUT"];
 if (output) appendFileSync(output, `changed=${decision.changed}\n`);
 const summary = process.env["GITHUB_STEP_SUMMARY"];
 if (summary) {
+  // recordRun leaves out a result that starts too soon after the last recorded one (MIN_RUN_GAP_MS).
+  const counted = (r: (typeof results)[number]) =>
+    r.status === "skipped" || after.regions[r.region]?.[r.id]?.last === r;
   const rows = results.map(
-    (r) => `| ${r.id} | ${r.status} | ${r.latencyMs ?? ""} | ${r.detail ?? ""} |`,
+    (r) =>
+      `| ${r.id} | ${r.status}${counted(r) ? "" : " (not counted: too soon after the last run)"} | ${r.latencyMs ?? ""} | ${r.detail ?? ""} |`,
   );
   appendFileSync(
     summary,

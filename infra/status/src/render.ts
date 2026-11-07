@@ -13,7 +13,7 @@ import {
   type CheckHistory,
   type StatusHistory,
 } from "../../synthetics/src/run.ts";
-import type { ComponentId } from "../../synthetics/src/types.ts";
+import { COMPONENTS, type ComponentId } from "../../synthetics/src/types.ts";
 
 export type ComponentState = "operational" | "degraded" | "outage" | "unknown";
 
@@ -55,6 +55,72 @@ export interface Incident {
   readonly resolvedAt: string | null;
   /** Title and latest update per locale, written by the incident commander. */
   readonly text: Readonly<Record<string, { readonly title: string; readonly update: string }>>;
+}
+
+/** Locales every incident entry carries, matching the page's two locales. */
+export const INCIDENT_LOCALES = ["en-US", "es-US"] as const;
+
+const isTime = (value: unknown): value is string =>
+  typeof value === "string" && !Number.isNaN(Date.parse(value));
+const isText = (value: unknown): value is string =>
+  typeof value === "string" && value.trim() !== "";
+
+/**
+ * Reads the incident list from refs/status/incidents (infra/ci/status-incidents.sh), which the incident
+ * commander writes by hand. It throws with every problem listed, so a bad entry is refused before it is
+ * published and a page build never shows half of one. A missing or empty file is no incidents.
+ */
+export function parseIncidents(text: string | null): Incident[] {
+  if (text === null || text.trim() === "") return [];
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`incidents.json is not JSON: ${(error as Error).message}`, { cause: error });
+  }
+  if (!Array.isArray(data)) throw new Error("incidents.json must be a list of incidents.");
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  data.forEach((entry: unknown, index) => {
+    const where = `incident ${index + 1}`;
+    if (typeof entry !== "object" || entry === null) {
+      problems.push(`${where} is not an object.`);
+      return;
+    }
+    const e = entry as Record<string, unknown>;
+    if (!isText(e["id"])) problems.push(`${where} needs an id.`);
+    else if (ids.has(e["id"])) problems.push(`${where} repeats the id ${e["id"]}.`);
+    else ids.add(e["id"]);
+    const components = e["components"];
+    if (
+      !Array.isArray(components) ||
+      components.length === 0 ||
+      !components.every((c) => (COMPONENTS as readonly unknown[]).includes(c))
+    ) {
+      problems.push(`${where} needs components from: ${COMPONENTS.join(", ")}.`);
+    }
+    const regions = e["regions"];
+    if (!Array.isArray(regions) || regions.length === 0 || !regions.every(isText)) {
+      problems.push(`${where} needs regions.`);
+    }
+    if (!isTime(e["startedAt"])) problems.push(`${where} needs startedAt as an ISO time.`);
+    if (e["resolvedAt"] !== null && !isTime(e["resolvedAt"])) {
+      problems.push(`${where} needs resolvedAt as an ISO time, or null while it is ongoing.`);
+    }
+    const texts = e["text"];
+    for (const locale of INCIDENT_LOCALES) {
+      const t =
+        typeof texts === "object" && texts !== null
+          ? (texts as Record<string, unknown>)[locale]
+          : undefined;
+      const entryText = typeof t === "object" && t !== null ? (t as Record<string, unknown>) : {};
+      if (!isText(entryText["title"]) || !isText(entryText["update"])) {
+        problems.push(`${where} needs a title and an update in ${locale}.`);
+      }
+    }
+  });
+  if (problems.length > 0) throw new Error(problems.join("\n"));
+  return data as Incident[];
 }
 
 export interface RenderInput {

@@ -42,5 +42,5 @@
     "resolved": "Resuelto {time} UTC",
     "ongoing": "En curso"
   },
-  "footer": "Medido con revisiones sintéticas contra el servicio en vivo. Una revisión fallida se muestra como Degradado; dos seguidas, como Interrupción. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas, Gateway y la API."
+  "footer": "Medido con revisiones sintéticas contra el servicio en vivo. Una revisión fallida se muestra como Degradado; dos seguidas, con al menos 4 minutos de diferencia, como Interrupción. La cifra de disponibilidad cuenta solo esas fallas confirmadas. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas, Gateway y la API."
 }

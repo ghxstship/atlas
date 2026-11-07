@@ -42,5 +42,5 @@
     "resolved": "Resolved {time} UTC",
     "ongoing": "Ongoing"
   },
-  "footer": "Measured by synthetic checks against the live service. One failed check shows as Degraded; two in a row show as Outage. Target: 99.9 percent monthly availability for Atlas, Gateway and the API."
+  "footer": "Measured by synthetic checks against the live service. One failed check shows as Degraded; two in a row, at least 4 minutes apart, show as Outage. The uptime figure counts only those confirmed failures. Target: 99.9 percent monthly availability for Atlas, Gateway and the API."
 }

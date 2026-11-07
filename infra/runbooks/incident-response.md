@@ -44,7 +44,7 @@ Never delete data, accounts or cloud resources during an incident. Pause or isol
 
 ### Atlas or Gateway unavailable
 
-Checks: `atlas.sign_in_page`, `gateway.home`. An alert means a check failed twice in a row, about 5 minutes apart. It repeats every 6 hours while the check keeps failing, and another line says when it recovers.
+Checks: `atlas.sign_in_page`, `gateway.home`. An alert means a check failed twice in a row, at least 4 minutes apart and usually 5. A run that starts sooner after the last one, such as the hourly page run or a manual one, does not count. It repeats every 6 hours while the check keeps failing, and another line says when it recovers.
 
 1. Vercel, the project, Deployments: did a deploy land in the last hour? If yes, roll back first and investigate after.
 2. Vercel, Observability or Logs, filtered on `level:error`. Each log line is JSON with `service`, `request_id`, `trace_id` and `http_route`.
@@ -110,7 +110,14 @@ Check: `notifications.function`, not set in `synthetics.yml` for now, so the sta
 
 ## Communication
 
-- **Status page.** Add an entry to `infra/status/incidents.json` (title and update in en-US and es-US, affected components and regions, `startedAt`, `resolvedAt` set to null) and merge it. The page republishes when a failure is confirmed or ends and about once an hour, so publish it now with `gh workflow run synthetics.yml --repo ghxstship/atlas --ref main`. Update at least every 60 minutes until resolved (SLA Section 5).
+- **Status page.** Incidents live on the ref `refs/status/incidents`, not on `main`, so posting one needs no pull request, no CI run and no deployment, and does not break the deploy freeze. From any up-to-date checkout of the repository, with write access and Node from `.nvmrc`:
+
+  1. `infra/ci/status-incidents.sh fetch status-incidents` writes the current list to `status-incidents/incidents.json`, or `[]` if there is none yet.
+  2. Add an entry like the one below: title and update in en-US and es-US, affected components and regions, `startedAt`, and `resolvedAt` set to null. Keep the entries already there.
+  3. `infra/ci/status-incidents.sh publish status-incidents` checks the file, lists every problem if there is one, and publishes it. If someone else published since your fetch, it refuses: fetch again and redo the edit.
+  4. `gh workflow run synthetics.yml --repo ghxstship/atlas --ref main` puts it on the page within a few minutes. Otherwise the page shows it at its next update, about once an hour.
+
+  Update at least every 60 minutes until resolved (SLA Section 5), the same way. The folder `status-incidents/` is ignored by git.
 
   ```json
   {
@@ -133,13 +140,13 @@ Check: `notifications.function`, not set in `synthetics.yml` for now, so the sta
   ```
 
 - **In-app banner.** The Communications Lead posts the same text in the Atlas and Gateway banner.
-- **Resolution.** Set `resolvedAt`, write the final update and lift the deploy freeze.
+- **Resolution.** Set `resolvedAt`, write the final update, publish it the same way and lift the deploy freeze.
 
 ## After the incident
 
 1. **Postmortem.** For SEV1 and SEV2, hold a blameless review within 5 business days. Cover the timeline, root cause, what worked and what did not, and actions with owners and dates, each filed as an issue.
 2. **Post-incident report.** Publish it within 5 business days for any downtime under the SLA.
-3. **Error budget.** At 99.9 percent, the monthly budget is 43 minutes. When a month's budget is spent, feature releases pause until reliability work restores it (Section 5.1). The release owner checks the status page's 30-day uptime before each release.
+3. **Error budget.** At 99.9 percent, the monthly budget is 43 minutes. When a month's budget is spent, feature releases pause until reliability work restores it (Section 5.1). The release owner checks the status page's 30-day uptime before each release. That figure counts only confirmed failures, two in a row, so scattered single failures do not show in it: also read the day marks, which turn Degraded when more than 5 percent of a day's answers were slow or failed alone, and the server logs.
 4. **Update this runbook** with anything the next on-call would have needed.
 
 ## On-call setup (orchestrator)

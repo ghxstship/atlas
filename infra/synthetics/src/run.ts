@@ -120,6 +120,13 @@ export function formatAlerts(results: readonly CheckResult[], repositoryUrl: str
  * status page say Outage, so one lost request neither wakes anyone nor makes a public statement.
  */
 export const CONFIRM_AFTER_FAILS = 2;
+/**
+ * Runs closer together than this are one observation, not two. The schedule is every 5 minutes, but GitHub
+ * can delay runs and then start them almost back to back, and two failures seconds apart are not
+ * confirmation. The history keeps the first such run and drops the rest, so a streak always spans at least
+ * this long and a day's counts are not inflated by bunched runs.
+ */
+export const MIN_RUN_GAP_MS = 4 * 60_000;
 /** Then it reminds at this interval, about every six hours at one run every five minutes. */
 export const REMIND_EVERY_FAILS = 72;
 
@@ -155,6 +162,9 @@ export function decideAlerts(
   let changed = false;
   for (const result of results) {
     if (result.status === "skipped") continue;
+    // recordRun stores the result itself as `last`, so anything else means it dropped this run for coming too
+    // soon after the one before, and the run says nothing new.
+    if (after.regions[result.region]?.[result.id]?.last !== result) continue;
     const previous = before.regions[result.region]?.[result.id];
     const streak = after.regions[result.region]?.[result.id]?.failStreak ?? 0;
     const previousStreak = previous?.failStreak ?? 0;
@@ -234,11 +244,15 @@ export function emptyHistory(): StatusHistory {
   return { version: 1, updatedAt: null, regions: {} };
 }
 
-/** Folds one run into the history and drops days older than the retention window. */
+/**
+ * Folds one run into the history and drops days older than the retention window. A result that starts less
+ * than `minGapMs` after the check's last recorded one is left out (MIN_RUN_GAP_MS).
+ */
 export function recordRun(
   history: StatusHistory,
   results: readonly CheckResult[],
   at: Date,
+  minGapMs: number = MIN_RUN_GAP_MS,
 ): StatusHistory {
   const next: StatusHistory = structuredClone(history);
   next.updatedAt = at.toISOString();
@@ -247,6 +261,13 @@ export function recordRun(
     const entry = (region[result.id] ??= { component: result.component, days: {}, last: null });
     if (result.status === "skipped") {
       if (!entry.last || entry.last.status === "skipped") entry.last = result;
+      continue;
+    }
+    if (
+      entry.last &&
+      entry.last.status !== "skipped" &&
+      Date.parse(result.at) - Date.parse(entry.last.at) < minGapMs
+    ) {
       continue;
     }
     const day = result.at.slice(0, 10);

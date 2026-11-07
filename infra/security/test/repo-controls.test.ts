@@ -181,6 +181,65 @@ describe("the CI scripts", () => {
     }
   });
 
+  it("keeps incidents on their own ref, refuses a bad list and never overwrites someone else's", () => {
+    const script = join(repo, "infra/ci/status-incidents.sh");
+    const dir = mkdtempSync(join(tmpdir(), "xos-incidents-"));
+    const git = (cwd: string, ...args: string[]) =>
+      execFileSync("git", args, { cwd, encoding: "utf8", stdio: "pipe" }).trim();
+    const entry = (id: string) => ({
+      id,
+      components: ["api"],
+      regions: ["us-east"],
+      startedAt: "2026-11-07T10:00:00Z",
+      resolvedAt: null,
+      text: {
+        "en-US": { title: "API errors", update: "Investigating." },
+        "es-US": { title: "Errores de la API", update: "En investigación." },
+      },
+    });
+    try {
+      const remote = join(dir, "remote.git");
+      git(dir, "init", "--quiet", "--bare", remote);
+      const one = join(dir, "one");
+      const two = join(dir, "two");
+      git(dir, "clone", "--quiet", remote, one);
+      git(dir, "clone", "--quiet", remote, two);
+      const run = (cwd: string, ...args: string[]) =>
+        spawnSync("bash", [script, ...args], { cwd, encoding: "utf8" });
+      const list = (cwd: string) => join(cwd, "status-incidents", "incidents.json");
+
+      expect(run(one, "publish", "status-incidents").status).not.toBe(0);
+      const first = run(one, "fetch", "status-incidents");
+      expect(first.status).toBe(0);
+      expect(readFileSync(list(one), "utf8")).toBe("[]\n");
+      expect(run(two, "fetch", "status-incidents").status).toBe(0);
+
+      writeFileSync(list(one), JSON.stringify([{ ...entry("a"), startedAt: "soon" }]));
+      const refused = run(one, "publish", "status-incidents");
+      expect(refused.status).toBe(1);
+      expect(refused.stderr).toContain("incident 1 needs startedAt as an ISO time.");
+      expect(git(remote, "for-each-ref", "refs/status")).toBe("");
+
+      writeFileSync(list(one), JSON.stringify([entry("a")]));
+      expect(run(one, "publish", "status-incidents").status).toBe(0);
+      // Two in a row from the same fetch: the second builds on the first.
+      writeFileSync(list(one), JSON.stringify([entry("a"), entry("b")]));
+      expect(run(one, "publish", "status-incidents").status).toBe(0);
+      expect(git(remote, "rev-list", "--count", "refs/status/incidents")).toBe("1");
+      expect(git(remote, "for-each-ref", "refs/heads")).toBe("");
+
+      // The second person fetched before either publish, so theirs would erase both entries.
+      writeFileSync(list(two), JSON.stringify([entry("c")]));
+      const stale = run(two, "publish", "status-incidents");
+      expect(stale.status).toBe(1);
+      expect(stale.stderr).toContain("Run fetch again");
+      expect(run(two, "fetch", "status-incidents").status).toBe(0);
+      expect(JSON.parse(readFileSync(list(two), "utf8"))).toEqual([entry("a"), entry("b")]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("passes with a warning when there is no alert channel yet", () => {
     const run = spawnSync("bash", [join(repo, "infra/ci/post-alert.sh"), "text"], {
       encoding: "utf8",

@@ -10,6 +10,8 @@ on:
     - cron: "*/5 * * * *"
     # The status page also redeploys when a failure is confirmed or ends. This run keeps "last checked" to about an
     # hour. GitHub can delay or drop a scheduled run, and this group can cancel one still pending, so it is not a promise.
+    # Its checks count only if they start at least 4 minutes after the last recorded ones (MIN_RUN_GAP_MS), so
+    # it and a delayed run can never be the two failures in a row.
     - cron: "2 * * * *"
   workflow_dispatch:
 
@@ -87,10 +89,14 @@ jobs:
         run: pnpm --filter @xos/tokens build
       - name: Build the page
         if: steps.gate.outputs.run == 'true'
+        # Incidents come from refs/status/incidents, never from the checkout, so every run, from any ref, shows
+        # the incident commander's latest list (infra/ci/status-incidents.sh).
         run: |
           infra/ci/status-history.sh fetch "$RUNNER_TEMP/status-data"
+          infra/ci/status-incidents.sh fetch "$RUNNER_TEMP/status-data"
           node --experimental-strip-types --no-warnings infra/status/src/cli.ts \
-            --history "$RUNNER_TEMP/status-data/history.json" --out "$RUNNER_TEMP/status-site"
+            --history "$RUNNER_TEMP/status-data/history.json" \
+            --incidents "$RUNNER_TEMP/status-data/incidents.json" --out "$RUNNER_TEMP/status-site"
       # A static Vercel project, status.ghxstship.tech. The CLI version is pinned like every other tool here.
       - name: Deploy the page
         if: steps.gate.outputs.run == 'true'

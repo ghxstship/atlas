@@ -15,6 +15,7 @@ import {
   escapeHtml,
   format,
   lightThemeAsMediaQuery,
+  parseIncidents,
   renderStatusPage,
   uptime,
   type Incident,
@@ -56,8 +57,9 @@ function result(
   };
 }
 
+/** Folds results that share timestamps, so it turns off the gap a real schedule keeps between runs. */
 function history(results: CheckResult[]): StatusHistory {
-  return recordRun(emptyHistory(), results, NOW);
+  return recordRun(emptyHistory(), results, NOW, 0);
 }
 
 describe("state rules", () => {
@@ -205,7 +207,8 @@ describe("renderStatusPage", () => {
     function play(statuses: CheckResult["status"][], locale = "en-US") {
       let h = emptyHistory();
       return statuses.map((status, index) => {
-        const at = `2026-10-16T11:${String(40 + index * 3)}:00Z`;
+        // Five minutes apart, as scheduled, the last one at NOW.
+        const at = new Date(NOW.getTime() - (statuses.length - 1 - index) * 300_000).toISOString();
         const results = [result(check.id, check.component, status, at)];
         const after = recordRun(h, results, NOW);
         const decision = decideAlerts([check], results, h, after, "https://github.test/o/r");
@@ -256,8 +259,16 @@ describe("renderStatusPage", () => {
   it("promises no exact update time, and explains its states, in either locale", () => {
     expect(messages("en-US").description).toContain("about once an hour");
     expect(messages("es-US").description).toContain("aproximadamente una vez por hora");
-    expect(messages("en-US").footer).toContain("two in a row show as Outage");
-    expect(messages("es-US").footer).toContain("dos seguidas, como Interrupción");
+    expect(messages("en-US").footer).toContain(
+      "two in a row, at least 4 minutes apart, show as Outage",
+    );
+    expect(messages("en-US").footer).toContain(
+      "uptime figure counts only those confirmed failures",
+    );
+    expect(messages("es-US").footer).toContain("cuenta solo esas fallas confirmadas");
+    expect(messages("es-US").footer).toContain(
+      "dos seguidas, con al menos 4 minutos de diferencia",
+    );
     for (const locale of ["en-US", "es-US"]) {
       expect(JSON.stringify(messages(locale))).not.toMatch(/at least hourly|al menos cada hora/);
     }
@@ -418,5 +429,50 @@ describe("renderStatusPage", () => {
     });
     expect(html).toContain('data-state="operational">Todos los sistemas funcionan con normalidad');
     expect(html).toContain("Documentación");
+  });
+});
+
+describe("parseIncidents", () => {
+  const entry = {
+    id: "2026-10-16-api-errors",
+    components: ["api"],
+    regions: ["us-east"],
+    startedAt: "2026-10-16T14:05:00Z",
+    resolvedAt: null,
+    text: {
+      "en-US": { title: "API errors", update: "Investigating." },
+      "es-US": { title: "Errores de la API", update: "En investigación." },
+    },
+  };
+
+  it("reads a missing or empty list as no incidents", () => {
+    expect(parseIncidents(null)).toEqual([]);
+    expect(parseIncidents("  \n")).toEqual([]);
+    expect(parseIncidents("[]")).toEqual([]);
+  });
+
+  it("accepts the runbook's example", () => {
+    expect(parseIncidents(JSON.stringify([entry]))).toEqual([entry]);
+  });
+
+  it("lists every problem, so a bad entry is refused before it is published", () => {
+    const bad = {
+      ...entry,
+      components: ["apis"],
+      startedAt: "yesterday",
+      resolvedAt: "",
+      text: { "en-US": entry.text["en-US"] },
+    };
+    expect(() => parseIncidents(JSON.stringify([entry, bad, entry]))).toThrow(
+      [
+        "incident 2 needs components from: atlas, gateway, api, docs, realtime, sync, notifications.",
+        "incident 2 needs startedAt as an ISO time.",
+        "incident 2 needs resolvedAt as an ISO time, or null while it is ongoing.",
+        "incident 2 needs a title and an update in es-US.",
+        "incident 3 repeats the id 2026-10-16-api-errors.",
+      ].join("\n"),
+    );
+    expect(() => parseIncidents("{")).toThrow(/not JSON/);
+    expect(() => parseIncidents(JSON.stringify(entry))).toThrow(/must be a list/);
   });
 });

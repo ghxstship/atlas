@@ -9,6 +9,7 @@ import {
   errorDetail,
   failingRequired,
   formatAlerts,
+  MIN_RUN_GAP_MS,
   parseHistory,
   postAlerts,
   recordRun,
@@ -418,25 +419,33 @@ describe("runbook links", () => {
 describe("alert decisions", () => {
   const REQUIRED = CHECKS.filter((c) => c.id === "atlas.sign_in_page");
   const OPTIONAL = CHECKS.filter((c) => c.id === "notifications.function");
-  const run = (id: string, status: CheckResult["status"], detail: string | null = null) => ({
+  const run = (
+    id: string,
+    status: CheckResult["status"],
+    detail: string | null = null,
+    at = "2026-11-06T12:00:00.000Z",
+  ) => ({
     id,
     component: "atlas" as const,
     region: "us-east",
     status,
     latencyMs: 5,
     detail,
-    at: "2026-11-06T12:00:00.000Z",
+    at,
     runbook: "infra/runbooks/incident-response.md#atlas-or-gateway-unavailable",
   });
   const AT = new Date("2026-11-06T12:00:00Z");
   const REPO = "https://github.test/o/r";
 
-  /** Folds statuses in order and returns the decision of each run. */
+  /** Folds statuses in order, five minutes apart as scheduled, and returns the decision of each run. */
   function play(checks: readonly CheckDefinition[], statuses: CheckResult["status"][]) {
     let history = emptyHistory();
-    return statuses.map((status) => {
-      const results = [run(checks[0]?.id ?? "", status, status === "fail" ? "status_503" : null)];
-      const after = recordRun(history, results, AT);
+    return statuses.map((status, index) => {
+      const at = new Date(AT.getTime() + index * 300_000).toISOString();
+      const results = [
+        run(checks[0]?.id ?? "", status, status === "fail" ? "status_503" : null, at),
+      ];
+      const after = recordRun(history, results, new Date(at));
       const decision = decideAlerts(checks, results, history, after, REPO);
       history = after;
       return decision;
@@ -476,6 +485,29 @@ describe("alert decisions", () => {
     const [, skipped, third] = play(REQUIRED, ["fail", "skipped", "fail"]);
     expect(skipped).toMatchObject({ lines: [], changed: false });
     expect(third?.alerted).toBe(true);
+  });
+
+  it("does not let two runs seconds apart confirm a failure", () => {
+    const check = REQUIRED[0]?.id ?? "";
+    const at = (minutes: number) => new Date(AT.getTime() + minutes * 60_000).toISOString();
+    const steps: Array<[CheckResult["status"], number]> = [
+      ["fail", 0],
+      ["fail", 0.5], // a delayed run and the next one, almost back to back
+      ["fail", 5],
+    ];
+    let history = emptyHistory();
+    const decisions = steps.map(([status, minutes]) => {
+      const results = [run(check, status, status === "fail" ? "status_503" : null, at(minutes))];
+      const after = recordRun(history, results, new Date(at(minutes)));
+      const decision = decideAlerts(REQUIRED, results, history, after, REPO);
+      history = after;
+      return { decision, entry: after.regions["us-east"]?.[check] };
+    });
+    const [, bunched, later] = decisions;
+    expect(bunched?.decision).toMatchObject({ lines: [], alerted: false, changed: false });
+    expect(bunched?.entry).toMatchObject({ failStreak: 1, days: { "2026-11-06": { fail: 1 } } });
+    expect(later?.decision.alerted).toBe(true);
+    expect(MIN_RUN_GAP_MS).toBe(240_000);
   });
 
   it("never alerts for a check that is not required", () => {
