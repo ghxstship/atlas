@@ -12,10 +12,15 @@
 --   * The guest's email is optional. When it matches a verified sign-in, the attestation names that person: they get a
 --     notice, see it under their Work Details and remove it. An account opened later with that email is linked and told by
 --     the daily job, or sooner when the person acts. Changing the email, or another keeper entering values, closes the
---     attestation and opens a new one with who gave it.
---   * A person who withdrew a category cannot be attested back into it, and whoever types their email cannot tell: that
---     category is simply not saved, and the call answers the same. Only their access log shows it. The company that rosters a
---     person knows them already, and is told only that the person enters this themselves (sensitive_person_only).
+--     attestation and opens a new one with who gave it. A save with the email left blank keeps who the entry is about, because
+--     the email on file never comes back to the form: only an explicit p_clear_guest_email removes it.
+--   * A person who withdrew a category cannot be attested back into it, and nor can a person who removed that attestation be
+--     entered again on that guest's entry or by that company, until they give their own consent. A keeper who types their
+--     email cannot tell: that category is simply not saved, and the call answers the same. A keeper who also holds medical
+--     access can see the values are absent when reading the list back; only saving the data of someone who withdrew would
+--     hide that. The person's access log shows it, and no org's audit reader reads that log's sensitive_consent or guest_needs
+--     rows. The company that rosters a person knows them already, and is told only that the person enters this themselves
+--     (sensitive_person_only).
 --   * The company that rosters a person attests the same way before it enters that person's meal preference
 --     (app.attest_roster_meal_preference). The person's own meal preference needs their own consent. A meal preference is
 --     masked everywhere but for the person and for holders of data.restricted.read.medical on the project, and it reads as
@@ -27,6 +32,7 @@
 --     forms. These are backstops for the common words in English and Spanish; they do not read minds.
 --   * A guest's needs are deleted when the entry is removed or declined, and 90 days after the project ends (6163). A legal
 --     hold over the org's guest needs, or over the matched person, keeps the values, hidden, until it ends.
+--   * A soft-deleted travel request drops its meal preference at once, by every path, rather than at the row's purge.
 -- Functions start from their latest definitions: 6160_sensitive_data_consent.sql for private.erase_sensitive_category,
 -- 4655_roster_project_fact_rpcs.sql for app.save_roster_travel_request, private.roster_travel_value and
 -- private.roster_project_facts_object, 5942_transfer_views.sql for app.roster_travel_party.
@@ -206,12 +212,33 @@ set search_path = ''
 as $$
   select p_person_id is not null and not private.sensitive_consent_stands(p_person_id, p_category)
     and exists (select 1 from app.sensitive_data_consents c
-                where c.person_id = p_person_id and c.category = p_category and c.withdrawn_at is not null
-                  and c.withdrawn_by = p_person_id);
+                where c.person_id = p_person_id and c.category = p_category and c.basis = 'Own Consent'
+                  and c.withdrawn_at is not null and c.withdrawn_by = p_person_id);
 $$;
 
-comment on function private.person_withdrew_sensitive(uuid, app.sensitive_data_category) is 'True when the person themselves withdrew a category and has not consented again, so nobody else can attest them back into it.';
+comment on function private.person_withdrew_sensitive(uuid, app.sensitive_data_category) is 'True when the person themselves withdrew their own consent to a category and has not consented again, so nobody else can attest them back into it anywhere. Removing one attestation is narrower: see private.person_removed_attestation.';
 revoke all on function private.person_withdrew_sensitive(uuid, app.sensitive_data_category) from public, anon, authenticated;
+
+create or replace function private.person_removed_attestation(p_person_id uuid, p_category app.sensitive_data_category, p_entry_id uuid, p_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_person_id is not null and exists (
+    select 1 from app.sensitive_data_consents c
+    where c.person_id = p_person_id and c.category = p_category and c.basis = 'Attested Authority'
+      and c.withdrawn_by = p_person_id
+      and case when p_entry_id is not null then c.guest_list_entry_id = p_entry_id
+               else c.guest_list_entry_id is null and c.org_id = p_org_id end
+      and not exists (select 1 from app.sensitive_data_consents o
+                      where o.person_id = p_person_id and o.category = p_category and o.basis = 'Own Consent'
+                        and o.withdrawn_at is null and o.given_at >= c.withdrawn_at));
+$$;
+
+comment on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid) is 'True when the person removed an attestation about them on this guest list entry, or from this company, and has not given their own consent since: it is not entered for them there again. It reaches only that entry or that company, so one removal does not block another org''s keeper.';
+revoke all on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid) from public, anon, authenticated;
 
 create or replace function private.can_keep_guest_needs(p_entry app.guest_list_entries)
 returns boolean
@@ -300,7 +327,8 @@ create or replace function app.set_guest_care_needs(
   p_accessibility_notice_version text default null,
   p_locale text default null,
   p_surface app.sensitive_consent_surface default 'Atlas',
-  p_client_ip inet default null
+  p_client_ip inet default null,
+  p_clear_guest_email boolean default false
 )
 returns uuid
 language plpgsql
@@ -317,14 +345,14 @@ declare
   v_allergies text := nullif(btrim(p_allergies), '');
   v_diet_notes text := nullif(btrim(p_dietary_notes), '');
   v_access_notes text := nullif(btrim(p_accessibility_notes), '');
-  v_email text := nullif(lower(btrim(p_guest_email)), '');
+  v_typed text := nullif(lower(btrim(p_guest_email)), '');
+  v_email text;
   v_asked_diet boolean;
   v_asked_access boolean;
   v_keep_diet boolean;
   v_keep_access boolean;
   v_held boolean;
   v_person uuid;
-  v_named uuid;
   v_category app.sensitive_data_category;
   v_asked boolean;
   v_keep boolean;
@@ -346,6 +374,9 @@ begin
     perform private.close_guest_needs(v_entry.id);
     return null;
   end if;
+  if v_entry.entry_state = 'Declined' then
+    perform private.refuse('guest_needs_declined', 'This guest was declined, so nothing more is entered for them.');
+  end if;
   if not (coalesce(p_authority_confirmed, false) and coalesce(p_notice_confirmed, false)) then
     perform private.refuse('sensitive_attestation_required', 'Confirm you have the guest''s authority to enter this and that they have had notice.');
   end if;
@@ -356,12 +387,31 @@ begin
     perform private.assert_sensitive_notice('Accessibility', p_accessibility_notice_version, p_locale);
   end if;
 
-  -- A person who withdrew is not attested back in, and the caller cannot tell: a refusal here would answer whether an address
-  -- has an account, and whether its owner withdrew. Their category is not saved; the answer, the attestation and the audit
-  -- entry are the same; only the person's own access log shows it.
-  v_person := private.person_with_verified_email(v_email);
-  v_keep_diet := v_asked_diet and not private.person_withdrew_sensitive(v_person, 'Dietary and Allergies');
-  v_keep_access := v_asked_access and not private.person_withdrew_sensitive(v_person, 'Accessibility');
+  -- Who the entry is about. The email on file never comes back to the form, so a blank one keeps it, and an entry the person
+  -- removed themselves still knows them; only an explicit clear, or another address, says this is someone else.
+  select * into v_existing from app.guest_care_needs n where n.guest_list_entry_id = v_entry.id for update;
+  if v_typed is not null then
+    v_email := v_typed;
+    v_person := private.person_with_verified_email(v_typed);
+  elsif coalesce(p_clear_guest_email, false) then
+    v_email := null;
+    v_person := null;
+  elsif v_existing.id is not null then
+    v_email := v_existing.guest_email;
+    v_person := coalesce(v_existing.guest_person_id, private.person_with_verified_email(v_existing.guest_email));
+  else
+    select c.person_id into v_person from app.sensitive_data_consents c
+    where c.guest_list_entry_id = v_entry.id order by c.given_at desc, c.id desc limit 1;
+  end if;
+
+  -- A person who withdrew, or who removed this entry, is not attested back in, and the caller cannot tell: a refusal here would
+  -- answer whether an address has an account, and whether its owner withdrew. Their category is not saved; the answer, the
+  -- attestation and the audit entry are the same; their access log shows it. Someone entering their own needs is not attested
+  -- back into anything.
+  v_keep_diet := v_asked_diet and (v_person is not distinct from v_me or not (private.person_withdrew_sensitive(v_person, 'Dietary and Allergies')
+    or private.person_removed_attestation(v_person, 'Dietary and Allergies', v_entry.id, null)));
+  v_keep_access := v_asked_access and (v_person is not distinct from v_me or not (private.person_withdrew_sensitive(v_person, 'Accessibility')
+    or private.person_removed_attestation(v_person, 'Accessibility', v_entry.id, null)));
   if not v_keep_diet then
     v_diet := '{}';
     v_allergies := null;
@@ -372,7 +422,6 @@ begin
     v_access_notes := null;
   end if;
 
-  select * into v_existing from app.guest_care_needs n where n.guest_list_entry_id = v_entry.id for update;
   v_held := private.guest_needs_on_hold(v_existing);
   if v_keep_diet or v_keep_access then
     insert into app.guest_care_needs as n (project_id, guest_list_entry_id, dietary_needs, allergies, dietary_notes, accessibility_needs,
@@ -392,30 +441,38 @@ begin
     v_asked := case when v_category = 'Dietary and Allergies' then v_asked_diet else v_asked_access end;
     v_keep := case when v_category = 'Dietary and Allergies' then v_keep_diet else v_keep_access end;
     v_version := case when v_category = 'Dietary and Allergies' then p_dietary_notice_version else p_accessibility_notice_version end;
-    if not v_keep then
+    if not v_asked then
       perform private.close_guest_needs(v_entry.id, v_category);
+      continue;
     end if;
-    continue when not v_asked;
 
-    -- The record says who attested, about whom. Another keeper, or another person matched, is a new attestation.
-    v_named := case when v_keep then v_person end;
+    -- The record says who attested, about whom, and whether anything was saved. Another keeper, or another person matched, is a
+    -- new attestation, and whoever it stops naming finds that in their access log.
     select * into v_standing from app.sensitive_data_consents c
     where c.guest_list_entry_id = v_entry.id and c.category = v_category and c.withdrawn_at is null;
-    if v_standing.id is not null and (v_standing.given_by is distinct from v_me or v_standing.person_id is distinct from v_named) then
-      update app.sensitive_data_consents c set withdrawn_at = now(), withdrawn_by = null where c.id = v_standing.id;
+    if v_standing.id is not null and (v_standing.given_by is distinct from v_me or v_standing.person_id is distinct from v_person
+                                      or v_standing.values_saved is distinct from v_keep) then
+      if v_standing.person_id is not null and v_standing.person_id is distinct from v_person then
+        perform private.log_work_detail_event(v_standing.person_id, 'sensitive_consent.entry_unlinked', v_entry.org_id, null, '{}', '{}', null);
+      end if;
+      if v_keep then
+        update app.sensitive_data_consents c set withdrawn_at = now(), withdrawn_by = null where c.id = v_standing.id;
+      else
+        perform private.close_guest_needs(v_entry.id, v_category);
+      end if;
       v_standing := null;
     end if;
     v_consent := v_standing.id;
     if v_consent is null then
       insert into app.sensitive_data_consents (category, basis, person_id, guest_list_entry_id, org_id, notice_version, locale, surface,
-        authority_confirmed, notice_confirmed, given_by, captured_ip)
-      values (v_category, 'Attested Authority', v_named, v_entry.id, v_entry.org_id, v_version, p_locale, p_surface, true, true, v_me, p_client_ip)
+        authority_confirmed, notice_confirmed, values_saved, given_by, captured_ip)
+      values (v_category, 'Attested Authority', v_person, v_entry.id, v_entry.org_id, v_version, p_locale, p_surface, true, true, v_keep, v_me, p_client_ip)
       returning id into v_consent;
       perform private.write_audit_event(v_entry.org_id, 'guest_needs.attested', 'app.guest_list_entries', v_entry.id,
         jsonb_build_object('category', v_category, 'notice_version', v_version));
-      if v_named is not null then
-        select p.user_id into v_user from app.people p where p.id = v_named;
-        perform private.log_work_detail_event(v_named, 'sensitive_consent.attested', v_entry.org_id, null, '{}', '{}', null);
+      if v_person is not null and v_keep then
+        select p.user_id into v_user from app.people p where p.id = v_person;
+        perform private.log_work_detail_event(v_person, 'sensitive_consent.attested', v_entry.org_id, null, '{}', '{}', null);
         if v_user is not null then
           begin
             perform private.notify_account(v_user, 'account.sensitive_data_attested', jsonb_build_object('category', v_category));
@@ -440,9 +497,9 @@ begin
 end;
 $$;
 
-comment on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet) is 'Whoever keeps a guest''s entry sets the guest''s dietary and accessibility needs, each optional, as a full replacement, confirming they have the guest''s authority and that the guest has had notice (sensitive_attestation_required), with the version of the wording shown for each category and the language (sensitive_notice_version, sensitive_notice_locale). Attested per category and audited, never with values; another keeper or another matched person is a new attestation. Nothing given clears the row. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category is not attested back in: the category is not saved, the answer is the same, and only their access log shows it. Returns the guest list entry id, or NULL when cleared.';
-revoke all on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet) from public, anon;
-grant execute on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet) to authenticated, service_role;
+comment on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) is 'Whoever keeps a guest''s entry sets the guest''s dietary and accessibility needs, each optional, as a full replacement, confirming they have the guest''s authority and that the guest has had notice (sensitive_attestation_required), with the version of the wording shown for each category and the language (sensitive_notice_version, sensitive_notice_locale). Refuses guest_needs_declined for a declined guest. Attested per category and audited, never with values; another keeper or another matched person is a new attestation. Nothing given clears the row. An email matching a verified sign-in names that person, who is told and can remove it. A blank email keeps the one on file, and p_clear_guest_email removes it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: the category is not saved, the answer is the same, and their access log shows it. Returns the guest list entry id, or NULL when cleared.';
+revoke all on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) from public, anon;
+grant execute on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) to authenticated, service_role;
 
 create or replace function app.clear_guest_care_needs(p_guest_list_entry_id uuid)
 returns void
@@ -473,22 +530,25 @@ returns table (
   guest_list_entry_id uuid,
   categories app.sensitive_data_category[],
   given_by_name text,
-  given_at timestamptz
+  given_at timestamptz,
+  has_email boolean
 )
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select c.guest_list_entry_id, array_agg(c.category order by c.category), max(p.full_name), max(c.given_at)
+  select c.guest_list_entry_id, array_agg(c.category order by c.category), max(p.full_name), max(c.given_at),
+    bool_or(n.guest_email is not null or c.person_id is not null)
   from app.sensitive_data_consents c
   join app.guest_list_entries g on g.id = c.guest_list_entry_id
   left join app.people p on p.id = c.given_by
+  left join app.guest_care_needs n on n.guest_list_entry_id = c.guest_list_entry_id
   where c.withdrawn_at is null and g.project_id = p_project_id and g.deleted_at is null and private.can_keep_guest_needs(g)
   group by c.guest_list_entry_id;
 $$;
 
-comment on function app.guest_care_needs_states(uuid) is 'Which guests of a project have attested needs, in which categories, who attested and when, never the values: for whoever keeps the guest list, who does not read them back without data.restricted.read.medical.';
+comment on function app.guest_care_needs_states(uuid) is 'Which guests of a project have attested needs, in which categories, who attested and when, and whether an email is on file, never the values or the email: for whoever keeps the guest list, who does not read them back without data.restricted.read.medical. An email the keeper gave counts as on file whether or not anything was saved under it, so this says nothing about an account.';
 revoke all on function app.guest_care_needs_states(uuid) from public, anon;
 grant execute on function app.guest_care_needs_states(uuid) to authenticated, service_role;
 
@@ -535,9 +595,9 @@ begin
       select n.org_id, n.guest_list_entry_id, g.guest_name, n.dietary_needs, n.allergies, n.dietary_notes, n.accessibility_needs,
         n.accessibility_notes, n.guest_person_id,
         exists (select 1 from app.sensitive_data_consents c where c.guest_list_entry_id = n.guest_list_entry_id
-                and c.category = 'Dietary and Allergies' and c.withdrawn_at is null) as dietary_stands,
+                and c.category = 'Dietary and Allergies' and c.withdrawn_at is null and c.values_saved) as dietary_stands,
         exists (select 1 from app.sensitive_data_consents c where c.guest_list_entry_id = n.guest_list_entry_id
-                and c.category = 'Accessibility' and c.withdrawn_at is null) as accessibility_stands
+                and c.category = 'Accessibility' and c.withdrawn_at is null and c.values_saved) as accessibility_stands
       from app.guest_care_needs n
       join app.guest_list_entries g on g.id = n.guest_list_entry_id and g.deleted_at is null
       where n.project_id = p_project_id) x
@@ -601,14 +661,15 @@ security definer
 set search_path = ''
 as $$
 begin
-  if private.looks_sensitive(new.note) and not private.sensitive_write_is_system() then
+  if private.looks_sensitive(new.note) and not private.sensitive_write_is_system()
+     and (tg_op = 'INSERT' or new.note is distinct from old.note) then
     perform private.refuse('guest_note_sensitive', 'Leave dietary and accessibility needs out of the door note. Use the guest''s needs step, which records consent.');
   end if;
   return new;
 end;
 $$;
 
-comment on function private.refuse_sensitive_guest_note() is 'Before a guest''s door note is written: refuses words that name a dietary or accessibility need (guest_note_sensitive, ADR 0164), because the note has no consent step and every guest list reader sees it.';
+comment on function private.refuse_sensitive_guest_note() is 'Before a guest''s door note is written: refuses words that name a dietary or accessibility need (guest_note_sensitive, ADR 0164), because the note has no consent step and every guest list reader sees it. A note already held is left as it is until it changes, so the rest of an older guest''s entry can still be edited.';
 revoke all on function private.refuse_sensitive_guest_note() from public, anon, authenticated;
 
 create trigger t42_refuse_sensitive_guest_note before insert or update of note on app.guest_list_entries
@@ -621,17 +682,18 @@ security definer
 set search_path = ''
 as $$
 begin
-  if new.field_name is not null and new.field_name is distinct from old.field_name and private.looks_sensitive(new.header) then
+  if new.field_name is not null and private.looks_sensitive(new.header)
+     and (tg_op = 'INSERT' or new.field_name is distinct from old.field_name or new.header is distinct from old.header) then
     perform private.refuse('import_sensitive_column', 'This column looks like dietary, accessibility or diversity data. An import cannot record consent for it, so leave it unmapped and enter it on each record.');
   end if;
   return new;
 end;
 $$;
 
-comment on function private.refuse_sensitive_import_column() is 'Before an import column is mapped: refuses a source header that names sensitive data (import_sensitive_column, ADR 0164). The rest of the sheet still imports.';
+comment on function private.refuse_sensitive_import_column() is 'Before an import column is mapped, or a mapped column''s header changes: refuses a source header that names sensitive data (import_sensitive_column, ADR 0164). The rest of the sheet still imports.';
 revoke all on function private.refuse_sensitive_import_column() from public, anon, authenticated;
 
-create trigger t42_refuse_sensitive_import_column before update of field_name on app.import_job_columns
+create trigger t42_refuse_sensitive_import_column before insert or update of field_name, header on app.import_job_columns
   for each row execute function private.refuse_sensitive_import_column();
 
 create or replace function private.refuse_sensitive_custom_field()
@@ -761,7 +823,8 @@ begin
   join app.engagements e on e.id = r.engagement_id
   join app.counterparties c on c.id = e.counterparty_id
   where r.id = p_roster_entry_id;
-  if private.person_withdrew_sensitive(v_person, 'Dietary and Allergies') then
+  if private.person_withdrew_sensitive(v_person, 'Dietary and Allergies')
+     or private.person_removed_attestation(v_person, 'Dietary and Allergies', null, v_account) then
     -- The company knows this person, so there is no account to reveal. It need not know they withdrew.
     perform private.refuse('sensitive_person_only', 'Only this person can enter this.');
   end if;
@@ -890,6 +953,29 @@ revoke all on function private.record_meal_preference_change() from public, anon
 
 create trigger t86_record_meal_preference after insert or update of meal_preference, deleted_at or delete on app.roster_travel_requests
   for each row execute function private.record_meal_preference_change();
+
+-- A cleared travel request takes its meal preference with it ---------------------------------------------------------------
+
+create or replace function private.clear_meal_preference_on_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.deleted_at is not null and old.deleted_at is null and new.meal_preference is not null
+     and not private.person_on_legal_hold(private.roster_entry_person(new.roster_entry_id)) then
+    new.meal_preference := null;
+  end if;
+  return new;
+end;
+$$;
+
+comment on function private.clear_meal_preference_on_delete() is 'Before a travel request is soft deleted, by any path: drops its meal preference at once, so a cleared value does not wait for the row''s purge while the field record says it is gone. A legal hold over the person keeps it, on the deleted row nothing reads.';
+revoke all on function private.clear_meal_preference_on_delete() from public, anon, authenticated;
+
+create trigger t41_clear_meal_preference_on_delete before update of deleted_at on app.roster_travel_requests
+  for each row execute function private.clear_meal_preference_on_delete();
 
 -- Who reads a meal preference ------------------------------------------------------------------------------------------
 
@@ -1173,6 +1259,18 @@ comment on function app.roster_travel_party(uuid) is 'The travel party of a proj
 revoke all on function app.roster_travel_party(uuid) from public, anon;
 grant execute on function app.roster_travel_party(uuid) to authenticated, service_role;
 
+-- What the person's access log says stays theirs ---------------------------------------------------------------------------
+
+-- An org's audit readers read the rows naming their org (1340). These rows name it too, so that the person sees who acted, but
+-- an audit reader must not read them: they would link a guest to an account, and show that the account withdrew.
+drop policy work_detail_events_read on app.work_detail_events;
+create policy work_detail_events_read on app.work_detail_events for select to authenticated
+  using (person_id = (select private.current_person_id())
+    or (org_id in (select private.orgs_with_capability('audit.log.read'))
+        and action not like 'sensitive\_consent.%' and action not like 'guest\_needs.%'));
+
+comment on table app.work_detail_events is 'The person''s own access log for their work details (Section 8.4 access transparency): every change they make, every share and revocation, and every read or reveal by an engaging org, with the categories and changed column names but never a value. Written only by the database; the person reads all of theirs and an org''s audit readers read the rows naming their org, except sensitive_consent and guest_needs rows, which only the person reads (ADR 0164).';
+
 -- Stopping use, now with guest and roster values ------------------------------------------------------------------------
 
 create or replace function private.erase_sensitive_category(p_person_id uuid, p_account_id uuid, p_category app.sensitive_data_category)
@@ -1274,13 +1372,13 @@ as $$
   left join app.organizations o on o.id = c.org_id
   left join app.guest_list_entries g on g.id = c.guest_list_entry_id
   left join app.guest_care_needs n on n.guest_list_entry_id = c.guest_list_entry_id
-  where c.basis = 'Attested Authority' and c.withdrawn_at is null and c.account_id is null
+  where c.basis = 'Attested Authority' and c.withdrawn_at is null and c.account_id is null and c.values_saved
     and (c.person_id = private.current_person_id()
       or (n.guest_email is not null and n.guest_email = private.verified_email_of(private.current_person_id())))
   order by c.given_at desc;
 $$;
 
-comment on function app.sensitive_entries_about_me() is 'What others attested and entered about the signed-in person: on a roster entry, or on a guest list under their person or their verified sign-in email, with who, when and, for a guest list entry, the values.';
+comment on function app.sensitive_entries_about_me() is 'What others attested and entered about the signed-in person: on a roster entry, or on a guest list under their person or their verified sign-in email, with who, when and, for a guest list entry, the values. An attestation nothing was saved under is not here: there is nothing to remove, and their access log shows the attempt.';
 revoke all on function app.sensitive_entries_about_me() from public, anon;
 grant execute on function app.sensitive_entries_about_me() to authenticated, service_role;
 
@@ -1324,6 +1422,6 @@ begin
 end;
 $$;
 
-comment on function app.remove_sensitive_entry(uuid) is 'The person an attestation is about, or whoever gave it, removes it in one call: the attestation is withdrawn and the values it covers are deleted. Refuses sensitive_entry_not_yours.';
+comment on function app.remove_sensitive_entry(uuid) is 'The person an attestation is about, or whoever gave it, removes it in one call: the attestation is withdrawn and the values it covers are deleted. When the person removes it, it is not entered for them again on that guest''s entry or by that company until they give their own consent (private.person_removed_attestation). Refuses sensitive_entry_not_yours.';
 revoke all on function app.remove_sensitive_entry(uuid) from public, anon;
 grant execute on function app.remove_sensitive_entry(uuid) to authenticated, service_role;

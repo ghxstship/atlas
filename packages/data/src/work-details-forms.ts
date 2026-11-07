@@ -1,5 +1,5 @@
 import type { DataError } from "./result.ts";
-import { rowsToCsv } from "./import-parse.ts";
+import { csvField } from "./csv.ts";
 import type { GuestNeeds } from "./sensitive-consent.ts";
 import {
   ACCESSIBILITY_NEEDS,
@@ -92,6 +92,7 @@ export function parseGuestNeedsForm(form: FormData): Parsed<{
   readonly accessibilityNeeds: readonly AccessibilityNeed[];
   readonly accessibilityNotes: string | null;
   readonly guestEmail: string | null;
+  readonly clearGuestEmail: boolean;
   readonly authorityConfirmed: boolean;
   readonly noticeConfirmed: boolean;
 }> {
@@ -112,6 +113,7 @@ export function parseGuestNeedsForm(form: FormData): Parsed<{
     accessibilityNeeds: pickAll(ACCESSIBILITY_NEEDS, form, "accessibilityNeeds"),
     accessibilityNotes,
     guestEmail,
+    clearGuestEmail: form.get("clearGuestEmail") === "on",
     authorityConfirmed: form.get("authorityConfirmed") === "true",
     noticeConfirmed: form.get("noticeConfirmed") === "true",
   });
@@ -119,7 +121,8 @@ export function parseGuestNeedsForm(form: FormData): Parsed<{
 
 /** The guests' needs as CSV, for a holder of the medical capability who downloads them. */
 export function guestNeedsCsv(rows: readonly GuestNeeds[]): string {
-  return rowsToCsv([
+  // Whoever keeps the list typed these, and a spreadsheet would run a cell that starts like a formula (csv.ts, A69-005).
+  const lines = [
     [
       "guest_name",
       "dietary_needs",
@@ -136,7 +139,8 @@ export function guestNeedsCsv(rows: readonly GuestNeeds[]): string {
       r.accessibilityNeeds.join("; "),
       r.accessibilityNotes ?? "",
     ]),
-  ]);
+  ];
+  return lines.map((line) => line.map(csvField).join(",")).join("\r\n");
 }
 
 /** Passport details; `number` is null when the field was left blank (keep the number on file). */

@@ -152,8 +152,15 @@ select is((select count(*)::int from app.sensitive_entries_about_me()), 1, 'she 
 select lives_ok($$select app.remove_sensitive_entry((select consent_id from app.sensitive_entries_about_me()))$$, 'and removes it');
 select pg_temp.as_platform();
 select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'the value goes with it');
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'sensitive_person_only:%', 'the company she removed it from cannot attest her back in');
 select pg_temp.as_user('mo');
 select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
+select pg_temp.as_user('victor');
+select lives_ok(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'until she gives her own consent');
+select pg_temp.as_user('mo');
 select app.withdraw_sensitive_consent('Dietary and Allergies');
 select pg_temp.as_user('victor');
 select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
@@ -195,6 +202,14 @@ select pg_temp.as_platform();
 select ok((select consent_id is not null and cleared_at is null from app.sensitive_field_records where person_id = pg_temp.id('kai') and field_code = 'meal_preference'),
   'the field record stands on her consent');
 
+-- The report: consent state where the org holds the data, and nothing about anyone else it merely rosters.
+select pg_temp.as_user('alice');
+select is((select standing::text from app.sensitive_consent_report(pg_temp.id('org_a')) where subject_id = pg_temp.id('kai') and field_code = 'meal_preference'),
+  'Consent Given', 'a meal preference on the org''s project shows the consent it stands on');
+select results_eq($$select standing::text, withdrawn_at from app.sensitive_consent_report(pg_temp.id('org_a')) where subject_id = pg_temp.id('mo') and field_code = 'meal_preference'$$,
+  $$values ('No Record'::text, null::timestamptz)$$, 'a rostered person who withdrew, with nothing shared or held here, reads as No Record');
+select pg_temp.as_platform();
+
 -- A value from before consent was recorded: hidden from everyone but the person, and a re-save starts nothing over.
 insert into app.roster_travel_requests (roster_entry_id, inbound_airport_code, meal_preference)
 values (pg_temp.id('e_mo'), 'MIA', 'Kosher');
@@ -229,6 +244,8 @@ select pg_temp.as_user('kai');
 select app.clear_roster_project_fact(pg_temp.id('e_kai'), 'Travel');
 select pg_temp.as_platform();
 select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('kai') and field_code = 'meal_preference'), 'clearing the travel request clears the field record');
+select ok((select bool_and(meal_preference is null) from app.roster_travel_requests where roster_entry_id = pg_temp.id('e_kai')),
+  'and the value itself, not at the row''s purge');
 select pg_temp.as_user('kai');
 select app.save_roster_travel_request(pg_temp.id('e_kai'), 'MIA', 'MIA', '2027-06-01', '2027-06-04', 'Aisle', null, true, false, null);
 select pg_temp.as_platform();

@@ -14,7 +14,7 @@ Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para alimen
 
 Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás, en **Datos del proyecto**, y los guarda solo para ese proyecto.
 
-Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.
+Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto, al Propietario de la organización y a cualquier otra persona a quien la organización dé acceso a datos médicos.
 
 Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway. Tu [perfil](help:profile) muestra tus contactos.
 

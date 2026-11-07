@@ -34,7 +34,8 @@ function HiddenFields({ values }: { values: Readonly<Record<string, string>> }) 
 
 /**
  * Two steps: the attestation, then the needs. Each step has its own few fields, and the needs are all optional. What is
- * on file does not come back here: whoever keeps the list reads it only with medical access, so saving replaces it.
+ * on file does not come back here: whoever keeps the list reads it only with medical access, so saving replaces it. The
+ * email is the exception: left empty it stays on file, so a routine correction still reaches the person it names.
  */
 export function GuestNeedsDialog({
   hidden,
@@ -192,9 +193,16 @@ export function GuestNeedsDialog({
             width="100%"
             autoComplete="off"
             label={needsT("email")}
-            help={needsT("emailHelp")}
+            help={needsT(recorded?.hasEmail ? "emailOnFile" : "emailHelp")}
             {...(state.fieldErrors?.["guestEmail"] ? { error: t("errors.invalid") } : {})}
           />
+          {recorded?.hasEmail ? (
+            <Checkbox
+              id={`${id}-clear-email`}
+              name="clearGuestEmail"
+              label={needsT("clearEmail")}
+            />
+          ) : null}
         </form>
       ) : (
         <div className="flex flex-col gap-12">

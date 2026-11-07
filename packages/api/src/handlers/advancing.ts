@@ -119,6 +119,7 @@ export const handlers = defineHandlers("Advancing", {
         p_accessibility_needs: b["accessibility_needs"] ?? [],
         p_accessibility_notes: b["accessibility_notes"] ?? null,
         p_guest_email: b["guest_email"] ?? null,
+        p_clear_guest_email: b["clear_guest_email"] === true,
         p_authority_confirmed: b["authority_confirmed"] === true,
         p_notice_confirmed: b["notice_confirmed"] === true,
         p_dietary_notice_version: b["dietary_notice_version"] ?? null,

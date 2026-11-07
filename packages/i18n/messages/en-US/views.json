@@ -670,6 +670,7 @@
       "given_by": "Given by",
       "given_at": "Given",
       "captured_ip": "IP address",
+      "values_saved": "Values saved",
       "withdrawn_at": "Withdrawn",
       "withdrawn_by": "Withdrawn by",
       "field_code": "Field",

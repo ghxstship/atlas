@@ -180,7 +180,8 @@
       "accessibilityViewed": "Accessibility needs viewed",
       "guestNeedsViewed": "Your guest needs were viewed",
       "mealViewed": "Meal preference read",
-      "attestationNotSaved": "Someone tried to enter data for you; it was not saved"
+      "attestationNotSaved": "Someone tried to enter data for you; it was not saved",
+      "entryUnlinked": "An entry on a guest list no longer names you"
     }
   },
   "org": {
@@ -258,6 +259,7 @@
     "sensitive_notice_locale": "Reload the page and try again.",
     "sensitive_attestation_required": "Confirm both statements to continue.",
     "sensitive_person_only": "Only this person can enter this.",
+    "guest_needs_declined": "This guest was declined, so nothing more is entered for them.",
     "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
     "sensitive_entry_not_yours": "Only the person this is about, or whoever entered it, can remove it.",
     "sensitive_consent_category": "A company holds only supplier diversity status.",
@@ -428,28 +430,28 @@
         "title": "Before you add dietary and allergy details",
         "collected": "Your dietary needs, allergies and dietary notes, and any meal preference you give on a project. These can reveal your health or your religion.",
         "why": "So a production you choose to share them with can feed you safely. We use them for nothing else, and no AI feature reads them.",
-        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. A meal preference you give on a project goes to those same people on that project. Other people there see these details locked. Catering planners see counts of five or more people, with no names. Your company cannot read them. If it enters your meal preference, it cannot read it back, you are told, and you can remove it.",
+        "who": "You. If you share this category with a project, these people also see them: that organization's Owner, the catering lead and on-site medical roles on that project, and anyone else the organization gives medical data access there. Each read shows in your access log. A meal preference you give on a project goes to those same people on that project. Other people there see these details locked. Catering planners see counts of five or more people, with no names. Your company cannot read them. If it enters your meal preference, it cannot read it back, you are told, and you can remove it.",
         "withdraw": "Withdraw under Work Details at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
-        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can have it removed at any time.",
         "attestCollected": "The guest's dietary needs, allergies and dietary notes. These can reveal their health or religion.",
         "attestWhy": "So the production can feed the guest safely. They are used for nothing else, and no AI feature reads them.",
-        "attestWho": "On this project, the organization's Owner and the catering lead and on-site medical roles, each read logged. Whoever keeps the guest list sees only who attested and when. They are deleted when the guest is removed or declined, and at the latest 90 days after the project ends.",
+        "attestWho": "On this project, the organization's Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access there, each read logged. Whoever keeps the guest list sees only who attested and when. They are deleted when the guest is removed or declined, and at the latest 90 days after the project ends.",
         "attestAuthority": "I have this person's authority to enter this.",
         "attestNotice": "This person has been told what is entered, why and who sees it, and that they can have it removed.",
         "mealTitle": "Enter a meal preference for this person",
         "mealBody": "A meal preference can reveal health or religion. It is optional, and it is used only to feed them on this project. No AI feature reads it.",
-        "mealWho": "On this project, the organization's Owner and the catering lead and on-site medical roles read it, each read logged. Once it is saved, your company cannot read it back. The person is told and can remove it."
+        "mealWho": "On this project, the organization's Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access there read it, each read logged. Once it is saved, your company cannot read it back. The person is told and can remove it."
       },
       "accessibility": {
         "title": "Before you add accessibility details",
         "collected": "Your accessibility needs and notes. These can reveal a disability or a health condition.",
         "why": "So a production you choose to share them with can plan for you and get you out safely. We use them for nothing else, and no AI feature reads them.",
-        "who": "You. If you share this category with a project, that organization's Owner and the catering lead and on-site medical roles on that project also see them, and each read shows in your access log. Other people there see them locked. Your company cannot read them.",
+        "who": "You. If you share this category with a project, these people also see them: that organization's Owner, the catering lead and on-site medical roles on that project, and anyone else the organization gives medical data access there. Each read shows in your access log. Other people there see them locked. Your company cannot read them.",
         "withdraw": "Withdraw under Work Details at any time, in one step. We stop using the details at once and delete them. If a legal hold reaches your data, we keep them hidden until the hold ends, then delete them.",
-        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can remove it at any time.",
+        "attest": "Someone is entering this for another person. Enter it only if that person asked you to or agreed, and has been told what is entered, why and who sees it. They can have it removed at any time.",
         "attestCollected": "The guest's accessibility needs and notes. These can reveal a disability or a health condition.",
         "attestWhy": "So the production can plan for the guest and get them out safely. They are used for nothing else, and no AI feature reads them.",
-        "attestWho": "The same people, on the same terms, as dietary needs: the Owner and the catering lead and on-site medical roles on this project, each read logged, and deleted at the same times.",
+        "attestWho": "The same people, on the same terms, as dietary needs: the Owner, the catering lead and on-site medical roles on this project, and anyone else the organization gives medical data access there, each read logged, and deleted at the same times.",
         "attestAuthority": "I have this person's authority to enter this.",
         "attestNotice": "This person has been told what is entered, why and who sees it, and that they can have it removed."
       },
@@ -509,7 +511,7 @@
     },
     "about": {
       "title": "Entered for you by someone else",
-      "description": "Someone said they had your authority to enter these. Remove anything you did not agree to.",
+      "description": "Someone said they had your authority to enter these. Remove anything you did not agree to. Whoever entered it cannot enter it for you there again unless you agree to it yourself.",
       "none": "Nobody has entered anything for you.",
       "by": "{name} on {date}",
       "byOrg": "{name}, {org}, on {date}",
@@ -576,6 +578,8 @@
       "accessibilityNotes": "Accessibility notes",
       "email": "Guest's email",
       "emailHelp": "Optional. If they have an XOS account, they are told and can remove this.",
+      "emailOnFile": "An email is on file. Leave this empty to keep it, or enter another to replace it.",
+      "clearEmail": "Remove the email on file",
       "save": "Save needs",
       "clear": "Remove needs",
       "cancel": "Cancel",

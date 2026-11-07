@@ -104,7 +104,7 @@
       },
       "sensitive_consent_needed": {
         "subject": "Confirm or delete your sensitive details",
-        "body": "You have dietary, accessibility or supplier diversity details on file from before we recorded consent. They are hidden from everyone else. Agree under Settings, Work Details, or we delete them in 30 days."
+        "body": "You have dietary, accessibility or supplier diversity details on file from before we recorded consent. They are hidden from everyone else. Agree where you keep them, under Settings, Work Details, or on your profile for supplier diversity, or we delete them in 30 days."
       }
     },
     "report": {

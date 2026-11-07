@@ -104,7 +104,7 @@
       },
       "sensitive_consent_needed": {
         "subject": "Confirma o elimina tus datos sensibles",
-        "body": "Tienes datos de dieta, accesibilidad o diversidad de proveedores guardados de antes de que registráramos el consentimiento. Están ocultos para los demás. Acepta en Configuración, Datos de trabajo, o los eliminaremos en 30 días."
+        "body": "Tienes datos de dieta, accesibilidad o diversidad de proveedores guardados de antes de que registráramos el consentimiento. Están ocultos para los demás. Acepta donde los guardas, en Configuración, Datos de trabajo, o en tu perfil para la diversidad de proveedores, o los eliminaremos en 30 días."
       }
     },
     "report": {

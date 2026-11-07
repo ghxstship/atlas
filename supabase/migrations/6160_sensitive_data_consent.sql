@@ -63,8 +63,8 @@ revoke all on private.sensitive_notice_versions from public, anon, authenticated
 grant select on private.sensitive_notice_versions to service_role;
 
 insert into private.sensitive_notice_versions (category, notice_version, text_sha256_en_us, text_sha256_es_us) values
-  ('Dietary and Allergies', '2026-11-06', 'ce491a3e79d6f018d808a938b6b4e50f5fa427b4b8cce8a73d06d7865ca32e56', 'c83e0468416b36efaed8fe88fbede4996abb72207393d270481b5a66e5279fcc'),
-  ('Accessibility', '2026-11-06', 'ac684586754bd358add71ec9041ecaea088b544a21cc5c3f0c7d783d28835cdc', 'e1d8614b6c2c3209cf7194e634decfd5171b5d7f3c4a7c112403b074036b4596'),
+  ('Dietary and Allergies', '2026-11-06', '303b3e622e4dfefa2eaf53a7868ae56d93aa00edf853cf86839dd8eb20b1ca8f', '39b497beacee16ea7be8c60264b5a185eb5db90b067a013a218d5d6ac7e4842a'),
+  ('Accessibility', '2026-11-06', 'ee8488ba6d1f259158985e3c91fe765e15ed2c3159fc403eed8c1ee54e54c00a', 'f011dd994016f05b978c5d6dc8702ce54375597fe2e4ea9125d967a29cd684e7'),
   ('Supplier Diversity', '2026-11-06', '75bfaaa6f72191488dd503ce1b83ffb0464439164cb02cfb21cbee37224ea21d', '65a68564806dca003dbf0b6247ea5b3d9ee25e21e01259c4548323816c123fc5');
 
 -- Consents ------------------------------------------------------------------------------------------------------------
@@ -82,6 +82,7 @@ create table app.sensitive_data_consents (
   surface app.sensitive_consent_surface not null,
   authority_confirmed boolean not null default false,
   notice_confirmed boolean not null default false,
+  values_saved boolean not null default true,
   given_by uuid not null references app.people (id),
   given_at timestamptz not null default now(),
   captured_ip inet,
@@ -133,6 +134,7 @@ call private.describe('app.sensitive_data_consents', 'Consent to hold one catego
   'surface', 'Where it was captured.',
   'authority_confirmed', 'The person attesting confirmed they have the person''s authority to enter this.',
   'notice_confirmed', 'The person attesting confirmed the person has had notice of what is entered and why.',
+  'values_saved', 'False for an attestation about someone who withdrew or removed it: it records that someone attested, and nothing was saved under it. Nothing reads values on it.',
   'given_by', 'Person who consented or attested.',
   'given_at', 'When it was given. Set by the database.',
   'captured_ip', 'Client IP address at capture, as evidence: passed by the platform server, or read from the request when absent. Only the database writes it.',
@@ -144,7 +146,13 @@ call private.describe('app.sensitive_data_consents', 'Consent to hold one catego
 
 alter table app.sensitive_data_consents enable row level security;
 revoke all on app.sensitive_data_consents from public, anon, authenticated;
-grant select on app.sensitive_data_consents to authenticated;
+-- Whoever gave an attestation, and the org's data.request.manage holders, read its row too. person_id would tell them that an
+-- address has an account, values_saved and withdrawn_by that its owner withdrew, and captured_ip belongs to whoever attested
+-- and is not for the person it is about. So none of those four is selectable: the person reads what is about them through
+-- app.sensitive_entries_about_me and app.my_sensitive_consents.
+grant select (id, category, basis, account_id, guest_list_entry_id, org_id, notice_version, locale, surface,
+  authority_confirmed, notice_confirmed, given_by, given_at, withdrawn_at, created_at, updated_at)
+  on app.sensitive_data_consents to authenticated;
 grant all on app.sensitive_data_consents to service_role;
 create policy sensitive_data_consents_read on app.sensitive_data_consents for select to authenticated
   using (person_id = (select private.current_person_id())

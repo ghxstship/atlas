@@ -300,7 +300,7 @@ export const workDetailHandlers = {
     if (grant["withdrawn_at"] === null) {
       if (grant["basis"] === "Attested Authority" && grant["account_id"] === null) {
         await run(rpc(context.db, "remove_sensitive_entry", { p_consent_id: params.id }));
-      } else if (grant["account_id"] !== null || grant["person_id"] === me) {
+      } else if (grant["account_id"] !== null || grant["given_by"] === me) {
         await run(
           rpc(context.db, "withdraw_sensitive_consent", {
             p_category: grant["category"],

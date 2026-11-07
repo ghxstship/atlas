@@ -11,7 +11,8 @@
 --   * app.my_sensitive_states: what waits for the person's consent, what a hold keeps, and their meal preferences, so Work
 --     Details can show them.
 --   * app.sensitive_consent_report: consent state per subject and field for an org's data.request.manage holders, never
---     a value, and never whether a value is held.
+--     a value. A person's own consent shows only where they shared the category with that org, or against a meal preference
+--     on its project, which its readers already see as locked.
 
 -- Values already held -------------------------------------------------------------------------------------------------
 
@@ -173,9 +174,10 @@ begin
   where cardinality(n.dietary_needs) = 0 and n.allergies is null and n.dietary_notes is null
     and cardinality(n.accessibility_needs) = 0 and n.accessibility_notes is null and not private.guest_needs_on_hold(n);
 
-  -- A guest's needs last until 90 days after the project ends: its last day, or when it was archived or deleted. A project with
-  -- no end date never ends, so they last until a year after they last changed. An attestation whose values were not saved goes
-  -- the same way. A legal hold defers this.
+  -- A guest's needs last until 90 days after the project ends, in its own time zone: the earliest of its last day and when it
+  -- was archived or deleted. A project with no end date never ends, so they last until a year after they last changed. An
+  -- attestation whose values were not saved goes the same way. A legal hold defers the deletion, not the end of use: the
+  -- attestation closes now, nothing reads the values, and the step above deletes them when the hold ends.
   for v_row in
     select distinct g.id as entry
     from app.guest_list_entries g
@@ -183,9 +185,9 @@ begin
     left join app.guest_care_needs n on n.guest_list_entry_id = g.id
     left join app.sensitive_data_consents c on c.guest_list_entry_id = g.id and c.withdrawn_at is null
     where (n.id is not null or c.id is not null)
-      and g.org_id not in (select private.held_org_ids('app.guest_care_needs'))
-      and not private.guest_needs_on_hold(n)
-      and (coalesce(p.ends_on, p.archived_at::date, p.deleted_at::date) < (now() - interval '90 days')::date
+      and (c.id is not null or not private.guest_needs_on_hold(n))
+      and (least(p.ends_on, (p.archived_at at time zone p.time_zone)::date, (p.deleted_at at time zone p.time_zone)::date)
+             < ((now() at time zone p.time_zone) - interval '90 days')::date
         or (p.ends_on is null and p.archived_at is null and p.deleted_at is null
             and greatest(n.updated_at, c.given_at) < now() - interval '1 year'))
   loop
@@ -196,7 +198,7 @@ begin
 end;
 $$;
 
-comment on function private.run_sensitive_data_job() is 'The daily job of ADR 0164: tells each person once what waits for their consent, and a failed notice is tried again and starts no clock; clears values that waited over 30 days and values a legal hold kept after a withdrawal once the hold ends; links guest needs to an account opened later and tells the person; deletes guest values with no standing attestation; deletes a guest''s needs 90 days after the project ends, or a year after they last changed on a project with no end date. A legal hold defers every deletion. Returns how many it cleared.';
+comment on function private.run_sensitive_data_job() is 'The daily job of ADR 0164: tells each person once what waits for their consent, and a failed notice is tried again and starts no clock; clears values that waited over 30 days and values a legal hold kept after a withdrawal once the hold ends; links guest needs to an account opened later and tells the person; deletes guest values with no standing attestation; deletes a guest''s needs 90 days after the project ends, or a year after they last changed on a project with no end date. A legal hold defers every deletion but not the end of use. Returns how many it cleared.';
 revoke all on function private.run_sensitive_data_job() from public, anon, authenticated;
 grant execute on function private.run_sensitive_data_job() to service_role;
 
@@ -304,7 +306,7 @@ begin
     join app.supplier_diversity_certifications c on c.id = s.supplier_diversity_certification_id
     where s.org_id = p_org_id and s.revoked_at is null and s.deleted_at is null
     union
-    select 'Guest', c.person_id, null::uuid, c.guest_list_entry_id, c.category
+    select 'Guest', null::uuid, null::uuid, c.guest_list_entry_id, c.category
     from app.sensitive_data_consents c
     where c.org_id = p_org_id and c.guest_list_entry_id is not null
     union
@@ -352,9 +354,20 @@ begin
     where c.category = s.cat
       and case when s.guest is not null then c.guest_list_entry_id = s.guest
                when s.account is not null then c.account_id = s.account
-               else c.person_id = s.id and c.guest_list_entry_id is null and (c.basis = 'Own Consent'
+               else c.person_id = s.id and c.guest_list_entry_id is null and (
+                 -- A person's own consent is this org's to know where they shared the category with it, or where a meal
+                 -- preference standing on it is on this org's project, which its readers already see as locked. Anyone else
+                 -- it merely rosters reads as No Record: whether they consented or withdrew elsewhere is not its business.
+                 (c.basis = 'Own Consent' and (s.code <> 'meal_preference'
+                   or exists (select 1 from people_shared ps where ps.person_id = s.id and ps.shared = 'Dietary Needs')
+                   or (c.withdrawn_at is null and exists (
+                     select 1 from app.roster_travel_requests t
+                     join private.roster_people r on r.roster_entry_id = t.roster_entry_id
+                     join app.engagement_roster_entries x on x.id = t.roster_entry_id and x.deleted_at is null
+                     join app.engagements e on e.id = x.engagement_id and e.org_id = p_org_id and e.deleted_at is null
+                     where r.person_id = s.id and t.meal_preference is not null and t.deleted_at is null))))
                  -- A company's attestation covers its meal preference and nothing else.
-                 or (s.code = 'meal_preference' and (c.org_id = p_org_id or exists (
+                 or (s.code = 'meal_preference' and c.basis = 'Attested Authority' and (c.org_id = p_org_id or c.withdrawn_at is null and exists (
                    select 1 from private.roster_people r
                    join app.engagement_roster_entries x on x.id = r.roster_entry_id and x.deleted_at is null
                    join app.engagements e on e.id = x.engagement_id and e.org_id = p_org_id and e.deleted_at is null
@@ -367,7 +380,7 @@ begin
 end;
 $$;
 
-comment on function app.sensitive_consent_report(uuid) is 'Consent state per subject and sensitive field for an org''s data.request.manage holders, else 42501: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of supplier diversity certifications shared with it. A company''s attestation is shown against the meal preference only. Never a value, and never whether a value is held: every field a subject''s category covers is listed.';
+comment on function app.sensitive_consent_report(uuid) is 'Consent state per subject and sensitive field for an org''s data.request.manage holders, else 42501: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of supplier diversity certifications shared with it. A company''s attestation is shown against the meal preference only. Never a value. Every field a subject''s category covers is listed whether or not a value is held; a person''s own consent shows only where they shared the category with this org, or against a meal preference on its project, and otherwise reads as No Record.';
 revoke all on function app.sensitive_consent_report(uuid) from public, anon;
 grant execute on function app.sensitive_consent_report(uuid) to authenticated, service_role;
 

@@ -45,6 +45,7 @@ export const SENSITIVE_CONSENT_RULES = [
   "sensitive_person_only",
   "sensitive_entry_not_yours",
   "sensitive_consent_category",
+  "guest_needs_declined",
 ] as const;
 
 /**
@@ -275,7 +276,9 @@ export interface GuestNeedsInput {
   readonly dietaryNotes: string | null;
   readonly accessibilityNeeds: readonly GuestAccessibilityNeed[];
   readonly accessibilityNotes: string | null;
+  /** Null keeps the email on file, which never comes back to a form; `clearGuestEmail` removes it. */
   readonly guestEmail: string | null;
+  readonly clearGuestEmail?: boolean;
   readonly authorityConfirmed: boolean;
   readonly noticeConfirmed: boolean;
   readonly locale: string;
@@ -303,6 +306,7 @@ export async function setGuestNeeds(
     ...(input.dietaryNotes ? { p_dietary_notes: input.dietaryNotes } : {}),
     ...(input.accessibilityNotes ? { p_accessibility_notes: input.accessibilityNotes } : {}),
     ...(input.guestEmail ? { p_guest_email: input.guestEmail } : {}),
+    ...(input.clearGuestEmail ? { p_clear_guest_email: true } : {}),
     ...(input.clientIp ? { p_client_ip: input.clientIp } : {}),
   });
   if (error) return fail(toDataError(error));
@@ -324,6 +328,8 @@ export interface GuestNeedsState {
   readonly categories: readonly SensitiveCategory[];
   readonly givenByName: string | null;
   readonly givenAt: string;
+  /** An email is on file. The form shows that, so a blank field reads as keeping it; the email itself never comes back. */
+  readonly hasEmail: boolean;
 }
 
 /** Which guests of a project have attested needs, for whoever keeps the list; never the values. */
@@ -339,6 +345,7 @@ export async function listGuestNeedsStates(
       categories: row.categories,
       givenByName: row.given_by_name,
       givenAt: row.given_at,
+      hasEmail: row.has_email,
     })),
   );
 }

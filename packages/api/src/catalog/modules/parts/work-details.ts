@@ -513,18 +513,16 @@ const SensitiveConsent = defineResource({
   name: "SensitiveConsent",
   table: "app.sensitive_data_consents",
   description:
-    "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs.",
+    "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens.",
   base: "global",
   serverSet: [
     "basis",
-    "person_id",
     "guest_list_entry_id",
     "org_id",
     "surface",
     "given_by",
     "given_at",
     "withdrawn_at",
-    "withdrawn_by",
   ],
   immutable: ["category", "notice_version", "locale", "account_id"],
   fields: {
@@ -534,7 +532,6 @@ const SensitiveConsent = defineResource({
       Constants.app.Enums.sensitive_consent_basis,
       "Own Consent, or Attested Authority when someone else entered it.",
     ),
-    person_id: orNull(fields.ref("person the data is about")),
     account_id: orNull(fields.ref("external account whose supplier diversity status it covers")),
     guest_list_entry_id: orNull(fields.ref("guest list entry the attestation covers")),
     org_id: orNull(fields.ref("org whose member attested")),
@@ -563,7 +560,6 @@ const SensitiveConsent = defineResource({
     given_by: fields.ref("person who consented or attested"),
     given_at: fields.instant("When it was given."),
     withdrawn_at: orNull(fields.instant("When it was withdrawn; null while it stands.")),
-    withdrawn_by: orNull(fields.ref("person who withdrew it")),
   },
 });
 
@@ -614,7 +610,7 @@ const SensitiveConsentReportRow = z
   .meta({
     id: "SensitiveConsentReportRow",
     description:
-      "Consent state of one sensitive field of one subject. Never a value, and never whether a value is held.",
+      "Consent state of one sensitive field of one subject. Never a value.",
   });
 
 export const workDetailResources: readonly ResourceSpec[] = [
@@ -629,7 +625,7 @@ export const workDetailResources: readonly ResourceSpec[] = [
       collectionQuery("report", {
         summary: "Consent state per sensitive field",
         description:
-          "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held.",
+          "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of certifications shared with it. Never a value. A person's own consent shows only where they shared the category with the org, or against a meal preference on its project; otherwise No Record.",
         paged: true,
         response: SensitiveConsentReportRow,
       }),
