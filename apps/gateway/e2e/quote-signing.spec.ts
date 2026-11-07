@@ -123,11 +123,7 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
   const { versionId } = await sentQuote(engagement.id, name);
 
   await signIn(page, "client@example.com", "/home");
-  const item = page
-    .getByRole("listitem")
-    .filter({ hasText: `Quote` })
-    .filter({ hasText: name })
-    .first();
+  const item = page.getByRole("listitem").filter({ hasText: `Quote` }).first();
   await expect(page.getByRole("link", { name: "Review quote", exact: true }).first()).toBeVisible();
   await expect(item.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
 
@@ -143,7 +139,11 @@ test("signed in, a quote is signed after a confirmation, never from Home in one 
   await expect(next.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
 
   await page.goto(`/work/engagements/${engagement.key}/documents`);
-  const row = page.getByRole("listitem").filter({ hasText: name });
+  // The document is named by the quote's number and version (B13); this engagement holds only this quote.
+  const row = page
+    .getByRole("list", { name: "Documents" })
+    .getByRole("listitem")
+    .filter({ hasText: "Quote" });
   await row.getByRole("button", { name: "Sign", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Accept this quote" });
   await expect(dialog.getByText("$250.00", { exact: true })).toBeVisible();
