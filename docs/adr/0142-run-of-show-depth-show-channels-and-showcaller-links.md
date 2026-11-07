@@ -39,6 +39,27 @@ A link, a QR code or a token and access code alone open nothing. The owner ruled
 
 pgTAP 6244 covers no session, a person off the project and a person on it; journey `b3-showcaller-portal` covers the same three.
 
+### Links with no account (owner decisions of 2026-11-06)
+
+The owner reviewed every other link that works with a token or code and no account.
+
+| Link                                             | Access decided                                        | Ends with its project |
+| ------------------------------------------------ | ----------------------------------------------------- | --------------------- |
+| File share, `/share/{token}`                     | Token plus code, always                               | Yes                   |
+| Live view, `/share/view/{token}`                 | Token plus code                                       | Yes                   |
+| Display screen, `/share/screen/{token}`          | Token plus code                                       | Yes                   |
+| Advance, Gateway `/advance/{token}`              | Token plus code                                       | Yes                   |
+| Signing, Gateway `/sign/{token}`                 | Token plus code                                       | Yes                   |
+| Approval, Gateway `/auth/act/{token}` signed out | Token plus emailed code                               | Yes                   |
+| Showcaller, `/share/showcaller/{token}`          | Signed-in person on the project, then token plus code | Yes                   |
+| Calendar feeds, `/ical/{feedFile}`               | Token only                                            | No                    |
+| Email and guest unsubscribe links                | Token only                                            | No                    |
+| Kiosk punch                                      | Device key plus PIN                                   | No                    |
+
+- **File shares always take a code (6281).** The guard always mints one, `app.create_share_link` and the API no longer take a choice, a check holds every live row to it, and `api_public.open_share_link` refuses a row with none. A live link with no code is removed by the migration; the demo seed holds no share links and production no customer data.
+- **A link ends with its project (6280).** A project has ended when it is Complete or Canceled in `app.project_state`, or archived, or in Trash: the opposite of the live project test 3070 already uses. `private.project_link_open` is checked where each link opens and, for grants, on each read. A file share's project comes from the file's subject; a file with no project keeps its link. Reopening or restoring a project lets its unexpired links open again. The refusal comes before the lockout and the code and says only "This link has ended", with no project detail, and an approval link's read answers no org or email for it. A token agreement (`api_public.read_agreement`, no page in either app today) with a project stops the same way and answers nothing; one with no project is unchanged.
+- **The certificate check keeps its four fields (6282).** `api_public.verify_certification` answers the holder's name, the certification, its issuing body and its expiry, only for the right 96-bit code, a holder who consented and a certificate still current. That is what a check needs. A removed person's certificate no longer confirms.
+
 ### 2. Showcaller links are their own table
 
 `app.showcaller_links` is a table of its own, not a third `app.live_link_kind`. Live links (3780) only read;

@@ -195,6 +195,23 @@ set local session_replication_role = replica;
 update app.engagements set engagement_state = 'Blocked' where id = pg_temp.id('eng_ivy_a');
 set local session_replication_role = origin;
 select is(pg_temp.as_person('ivy', format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good'))) ->> 'reason', 'showcaller_link_not_on_project', 'and an engagement that stops being Active stops its grant at once');
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Complete');
+select is(pg_temp.anon(format('select api_public.open_showcaller_link(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:code'))) ->> 'reason', 'showcaller_link_ended', 'a showcaller link stops opening when its project ends');
+select is(pg_temp.anon(format('select api_public.showcaller_run(%L, %L, null)', pg_temp.val('p1'), pg_temp.val('p1:good'))) ->> 'reason', 'showcaller_link_ended', 'and its grant reads nothing');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
 select pg_temp.as_user('dave');
 select app.revoke_showcaller_link(pg_temp.k('p1'));
 select pg_temp.as_platform();

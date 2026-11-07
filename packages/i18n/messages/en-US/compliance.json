@@ -29,8 +29,7 @@
       "expiresOn": "Expires on",
       "expiresHelp": "The link stops opening at the end of this day. Up to {days} days ahead.",
       "noExpiry": "Leave empty for a link that never expires.",
-      "accessCode": "Ask for a 6-digit access code",
-      "accessCodeForced": "Confidential files always ask for an access code.",
+      "accessCodeForced": "Every link gets a 6-digit access code, shown once.",
       "recipient": "Recipient's email",
       "recipientHelp": "Their email is printed on every page they download.",
       "note": "What is it for?",
@@ -50,7 +49,6 @@
       "expires": "Expires {date}",
       "never": "Never expires",
       "opened": "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
-      "codeRequired": "Access code",
       "for": "For {email}",
       "revoked": "Revoked",
       "locked": "Locked after 5 wrong codes",
@@ -81,6 +79,7 @@
     "submit": "Open file",
     "watermark": "Confidential PDFs and images download as a PDF with your email and the time on every page.",
     "refusals": {
+      "share_link_ended": "This link has ended.",
       "share_link_invalid": "This link does not work. It may have been revoked or mistyped.",
       "share_link_locked": "This link is locked after too many wrong codes. Ask the sender for a new one.",
       "share_link_expired": "This link has expired. Ask the sender for a new one.",
@@ -366,6 +365,7 @@
     "range": "{start} to {end}",
     "published": "Published {date}",
     "refusals": {
+      "live_link_ended": "This link has ended.",
       "live_link_invalid": "This link does not work. It may have been revoked, replaced by a new one or mistyped.",
       "live_link_rate_limited": "Too many attempts from your network. Wait 10 minutes and try again.",
       "live_link_locked": "This link is locked after too many wrong codes. Ask the sender for a new one.",
@@ -404,6 +404,7 @@
     "refusals": {
       "showcaller_link_sign_in": "Sign in to open this running order.",
       "showcaller_link_not_on_project": "This running order opens only for people on its project. Ask the production to invite you; once you are onboarded, this link opens.",
+      "showcaller_link_ended": "This link has ended.",
       "showcaller_link_invalid": "This showcaller link is no longer available. Ask the production for a new link.",
       "showcaller_link_rate_limited": "Too many requests from this device or network. Wait a minute, then try again.",
       "showcaller_link_locked": "This link is locked after too many wrong codes. Ask the production to regenerate it.",

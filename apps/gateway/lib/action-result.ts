@@ -108,6 +108,8 @@ export const KNOWN_REFUSALS = [
   "credential_names_closed",
   // R10: the advance link's typed sections, uploads, guests and crew roster (migrations 4730 and 4731).
   "advance_token_invalid",
+  "advance_link_ended",
+  "document_link_ended",
   "advance_token_locked",
   "advance_token_expired",
   "advance_access_code",

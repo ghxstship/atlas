@@ -36,10 +36,11 @@ begin
 end $$;
 
 -- Volatile api_public functions that a read-only call does not refuse. record_cookie_consent checks no secret: it
--- only logs a consent choice, which a read-only call cannot write.
+-- only logs a consent choice, which a read-only call cannot write. Showcaller RPCs are not anon's (ADR 0142); 6244 tests theirs.
 select is_empty($$
   select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'api_public' and p.provolatile = 'v' and p.proname <> 'record_cookie_consent'
+    and has_function_privilege('anon', p.oid, 'execute')
     and pg_temp.read_only_outcome(p.oid::regprocedure) <> '25006 this call changes data: send it with POST'
 $$, 'every volatile api_public RPC refuses a read-only (GET) call before looking anything up');
 

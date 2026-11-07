@@ -8827,7 +8827,6 @@ export interface Components {
   };
   ShareLinkCreate: {
     attachment_id: string;
-    access_code_required?: boolean;
     recipient_email?: string | null;
     note?: string | null;
     expires_at?: string | null;

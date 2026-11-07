@@ -29,8 +29,7 @@
       "expiresOn": "Vence el",
       "expiresHelp": "El enlace deja de abrirse al final de este día. Hasta {days} días a partir de hoy.",
       "noExpiry": "Déjalo vacío para un enlace que nunca vence.",
-      "accessCode": "Pedir un código de acceso de 6 dígitos",
-      "accessCodeForced": "Los archivos confidenciales siempre piden un código de acceso.",
+      "accessCodeForced": "Cada enlace recibe un código de acceso de 6 dígitos, que se muestra una sola vez.",
       "recipient": "Correo del destinatario",
       "recipientHelp": "Su correo se imprime en cada página que descargue.",
       "note": "¿Para qué es?",
@@ -50,7 +49,6 @@
       "expires": "Vence el {date}",
       "never": "Nunca vence",
       "opened": "{count, plural, =0 {Aún no se ha abierto} one {Abierto una vez} other {Abierto # veces}}",
-      "codeRequired": "Código de acceso",
       "for": "Para {email}",
       "revoked": "Revocado",
       "locked": "Bloqueado tras 5 códigos incorrectos",
@@ -81,6 +79,7 @@
     "submit": "Abrir archivo",
     "watermark": "Los PDF y las imágenes confidenciales se descargan como un PDF con tu correo y la hora en cada página.",
     "refusals": {
+      "share_link_ended": "Este enlace ha terminado.",
       "share_link_invalid": "Este enlace no funciona. Puede que lo hayan revocado o que esté mal escrito.",
       "share_link_locked": "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
       "share_link_expired": "Este enlace venció. Pide uno nuevo a quien lo envió.",
@@ -366,6 +365,7 @@
     "range": "{start} a {end}",
     "published": "Publicado el {date}",
     "refusals": {
+      "live_link_ended": "Este enlace ha terminado.",
       "live_link_invalid": "Este enlace no funciona. Puede que lo hayan revocado, reemplazado por uno nuevo o que esté mal escrito.",
       "live_link_rate_limited": "Demasiados intentos desde tu red. Espera 10 minutos y vuelve a intentarlo.",
       "live_link_locked": "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
@@ -404,6 +404,7 @@
     "refusals": {
       "showcaller_link_sign_in": "Inicie sesión para abrir este guion.",
       "showcaller_link_not_on_project": "Este guion solo se abre para las personas de su proyecto. Pida a la producción que le invite; cuando termine la incorporación, este enlace se abrirá.",
+      "showcaller_link_ended": "Este enlace ha terminado.",
       "showcaller_link_invalid": "Este enlace de llamado ya no está disponible. Pida un enlace nuevo a la producción.",
       "showcaller_link_rate_limited": "Demasiadas solicitudes desde este dispositivo o red. Espere un minuto y vuelva a intentarlo.",
       "showcaller_link_locked": "Este enlace se bloqueó por demasiados códigos incorrectos. Pida a la producción que lo regenere.",

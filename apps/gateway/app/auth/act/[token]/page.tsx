@@ -38,6 +38,18 @@ export default async function ActionLinkPage({ params }: PageProps<"/auth/act/[t
       ? await readSignedOutApprovalLink(await createServerSupabase(), token)
       : null;
     const link = signedOut?.ok ? signedOut.data : null;
+    // A link that ended with its project says only that, with nothing about the project.
+    if (link?.state === "ended")
+      return (
+        <div className="flex flex-col gap-16">
+          <span className="text-text-tertiary">
+            <Icon name="MailCheck" size={28} />
+          </span>
+          <InlineAlert tone="warning">
+            {tr("gateway.auth.actionLink.signedOut.state.ended")}
+          </InlineAlert>
+        </div>
+      );
     // Any other link, a member's included, needs a sign-in as before (A127).
     if (!link || link.state === "sign_in" || link.state === "invalid" || link.action === null)
       redirect(`/auth/sign-in?next=${encodeURIComponent(next)}`);

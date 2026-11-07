@@ -125,6 +125,8 @@
       "credential_names_closed": "Ya pasó la fecha límite para asignar nombres a los pases. Contacta a la organización para cambiar quién los tiene.",
       "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
+      "advance_link_ended": "Este enlace ha terminado.",
+      "document_link_ended": "Este enlace ha terminado.",
       "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
       "advance_access_code": "Ese código de acceso no coincide. Abre el enlace de nuevo y escribe los seis dígitos de tu mensaje.",
       "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
@@ -2030,6 +2032,8 @@
     },
     "refusals": {
       "advance_access_code": "Ese código de acceso no coincide. Revisa los seis dígitos de tu mensaje e inténtalo de nuevo.",
+      "advance_link_ended": "Este enlace ha terminado.",
+      "document_link_ended": "Este enlace ha terminado.",
       "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
       "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
       "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
@@ -2495,6 +2499,7 @@
         "codeGoesTo": "Enviamos un código de 6 dígitos a {email}.",
         "signInInstead": "Iniciar sesión para decidir",
         "state": {
+          "ended": "Este enlace ha terminado.",
           "used": "Esto ya se resolvió. No hay nada más que hacer.",
           "expired": "Este enlace venció. Inicia sesión para decidir o pide a la organización que lo envíe de nuevo.",
           "locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir."
@@ -2518,6 +2523,7 @@
           "reject": "Rechazado con tu motivo."
         },
         "outcome": {
+          "approval_link_ended": "Este enlace ha terminado.",
           "approval_link_code_wrong": "Ese código es incorrecto o venció. {attemptsLeft, plural, one {Te queda # intento} other {Te quedan # intentos}} antes de que el enlace se bloquee.",
           "approval_link_locked": "Demasiados códigos incorrectos. Este enlace está bloqueado; inicia sesión para decidir.",
           "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",

@@ -188,6 +188,25 @@ select is((select (proargnames[18:])::text from pg_proc where oid = 'api_public.
   '{section_kind,window_kind,max_lines,per_person,choices,answer_id,answer_note,answer_lines,answer_files,can_answer,guest_cap,guests_used,roster_summary,project_time_zone,roster_people,recorded_by_producer}',
   'and appends the typed section columns, then B15''s recorded_by_producer (6273)');
 select pg_temp.as_anon();
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Complete');
+select is((select reason from api_public.preview_advance('xadv_r10vendor', '424242')), 'advance_link_ended', 'an advance link stops opening when its project ends');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+select pg_temp.as_anon();
 create temporary table pv on commit drop as select * from api_public.preview_advance('xadv_r10vendor', '424242');
 select pg_temp.as_platform();
 select is((select count(*)::int from pv), 5, 'one row per section');

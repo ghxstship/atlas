@@ -25,7 +25,6 @@ export const shareLinkHandlers: HandlerSet<"Platform"> = {
     >(
       rpc(context.db, "create_share_link", {
         p_attachment_id: body.attachment_id,
-        p_access_code_required: body.access_code_required ?? false,
         ...((body.expires_at ?? null) === null ? {} : { p_expires_at: body.expires_at }),
         ...((body.recipient_email ?? null) === null
           ? {}

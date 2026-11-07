@@ -47315,7 +47315,7 @@ export interface ShareLink {
   readonly attachment_version_id: string | null;
   readonly classification: Classification;
   /**
-   * True when the link asks for a 6-digit access code; always true for a Confidential file.
+   * Always true: every link asks for a 6-digit access code.
    */
   readonly access_code_required: boolean;
   /**
@@ -47375,7 +47375,7 @@ export interface ShareLinkToken {
    */
   readonly token: string;
   /**
-   * The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+   * The 6-digit access code. Shown once; send it apart from the link.
    * Pattern: `^[0-9]{6}$`.
    */
   readonly access_code: string | null;
@@ -47396,10 +47396,6 @@ export interface ShareLinkCreate {
    * Format: `uuid`.
    */
   readonly attachment_id: string;
-  /**
-   * True when the link asks for a 6-digit access code; always true for a Confidential file.
-   */
-  readonly access_code_required?: boolean;
   /**
    * Who the link is for, lowercased. Required for a Confidential file.
    * Format: `email`.
