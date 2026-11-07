@@ -742,7 +742,8 @@
       "keeps": "También eliminamos tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
       "confirm": "Cerrar este inicio de sesión",
       "back": "Volver",
-      "queued": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar este inicio de sesión se eliminan. Si puedes, conéctate y deja que se suban primero."
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar este inicio de sesión se elimina. Si puedes, conéctate y deja que se suba primero.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar este inicio de sesión se eliminan. Si puedes, conéctate y deja que se suban primero."
     },
     "refused": {
       "title": "Tu inicio de sesión está cerrado",
@@ -755,7 +756,7 @@
       "onShift": "Marcaste entrada en {org}, así que tu cuenta no se puede eliminar ahora.",
       "soleOwner": "Eres el único propietario de {org}, así que tu cuenta no se puede eliminar ahora.",
       "other": "Tu cuenta no se puede eliminar ahora.",
-      "next": "No puedes usar Compass con este inicio de sesión. Cerramos tu sesión en todos los dispositivos y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "next": "Listo cierra tu sesión, en todos los dispositivos cuando tienes conexión. Hasta que la cuenta se cierre, Compass te lo volverá a preguntar cada vez que inicies sesión. Contáctanos y terminaremos de cerrarla.",
       "contact": "Contáctanos"
     },
     "documents": {
@@ -776,7 +777,8 @@
       "title": "Compass necesita tu aceptación",
       "sentence": "No puedes usar Compass sin aceptar estos documentos. Puedes revisarlos de nuevo, cerrar sesión o eliminar tu cuenta.",
       "back": "Revisar de nuevo",
-      "queued": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se eliminan de este dispositivo."
+      "queuedOne": "1 cambio en este dispositivo no se ha subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se elimina de este dispositivo.",
+      "queuedOther": "{count} cambios en este dispositivo no se han subido, como las horas que trabajaste. Al cerrar sesión o eliminar tu cuenta se eliminan de este dispositivo."
     },
     "connection": {
       "title": "Conéctate para continuar",

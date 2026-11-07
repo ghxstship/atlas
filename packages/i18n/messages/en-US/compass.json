@@ -742,7 +742,8 @@
       "keeps": "We also delete your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
       "confirm": "Close This Sign-In",
       "back": "Go Back",
-      "queued": "{count} changes on this device have not uploaded, such as hours you worked. Closing this sign-in deletes them. Connect and let them upload first if you can."
+      "queuedOne": "1 change on this device has not uploaded, such as hours you worked. Closing this sign-in deletes it. Connect and let it upload first if you can.",
+      "queuedOther": "{count} changes on this device have not uploaded, such as hours you worked. Closing this sign-in deletes them. Connect and let them upload first if you can."
     },
     "refused": {
       "title": "Your sign-in is closed",
@@ -755,7 +756,7 @@
       "onShift": "You are clocked in at {org}, so your account cannot be deleted now.",
       "soleOwner": "You are the only owner of {org}, so your account cannot be deleted now.",
       "other": "Your account cannot be deleted now.",
-      "next": "You cannot use Compass with this sign-in. We signed you out everywhere and will ask again when you sign in. Contact us and we will finish closing it.",
+      "next": "Done signs you out, on every device when you are online. Until the account is closed, Compass asks again each time you sign in. Contact us and we will finish closing it.",
       "contact": "Contact Us"
     },
     "documents": {
@@ -776,7 +777,8 @@
       "title": "Compass needs your agreement",
       "sentence": "You cannot use Compass without agreeing to these documents. You can review them again, sign out or delete your account.",
       "back": "Review Again",
-      "queued": "{count} changes on this device have not uploaded, such as hours you worked. Signing out or deleting your account deletes them from this device."
+      "queuedOne": "1 change on this device has not uploaded, such as hours you worked. Signing out or deleting your account deletes it from this device.",
+      "queuedOther": "{count} changes on this device have not uploaded, such as hours you worked. Signing out or deleting your account deletes them from this device."
     },
     "connection": {
       "title": "Connect to continue",

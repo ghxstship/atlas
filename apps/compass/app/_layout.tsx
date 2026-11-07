@@ -122,7 +122,8 @@ function Gatekeeper(): ReactElement {
         />
         <QueuedWarning
           testID="legal-connection-queued"
-          messageKey="compass.legalGate.declined.queued"
+          oneKey="compass.legalGate.declined.queuedOne"
+          otherKey="compass.legalGate.declined.queuedOther"
         />
         <Button
           testID="legal-connection-sign-out"

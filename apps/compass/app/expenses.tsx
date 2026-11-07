@@ -229,7 +229,7 @@ function ReceiptForm({
           </Text>
         </View>
       ) : aurora === "ask" ? (
-        <AiDisclosure testID="expense-ai-disclosure" />
+        <AiDisclosure testID="expense-ai-disclosure" withinForm />
       ) : aurora === "reading" && aiChoice !== "Allowed" ? null : (
         <InlineAlert
           testID={`expense-aurora-${aurora}`}

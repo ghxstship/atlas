@@ -37,10 +37,13 @@ type Step =
  */
 export function QueuedWarning({
   testID,
-  messageKey,
+  oneKey,
+  otherKey,
 }: {
   readonly testID: string;
-  readonly messageKey: string;
+  /** The sentence for one queued change, and for any other count, since Compass picks plurals by key. */
+  readonly oneKey: string;
+  readonly otherKey: string;
 }): ReactElement | null {
   const { t } = useTranslation();
   const { store } = useCompass();
@@ -55,7 +58,13 @@ export function QueuedWarning({
     };
   }, [store]);
   if (count === 0) return null;
-  return <InlineAlert testID={testID} tone="warning" message={t(messageKey, { count })} />;
+  return (
+    <InlineAlert
+      testID={testID}
+      tone="warning"
+      message={t(count === 1 ? oneKey : otherKey, { count })}
+    />
+  );
 }
 
 /**
@@ -169,9 +178,19 @@ export function LegalGate({
    */
   const leave = async (held: boolean) => {
     setBusy(true);
+    setFailed(false);
     await forgetOnThisDevice().catch(() => undefined);
-    const ended = held ? await client.auth.signOut({ scope: "global" }) : null;
-    if (!held || ended?.error) await client.auth.signOut({ scope: "local" });
+    const ended = held ? await client.auth.signOut({ scope: "global" }).catch(() => null) : null;
+    const local =
+      !held || !ended || ended.error
+        ? await client.auth.signOut({ scope: "local" }).catch(() => null)
+        : ended;
+    // A sign-out that ended the session leaves this screen through its auth event. One that could not, such as with an
+    // expired token and no connection, keeps the screen, says so and lets the person try again.
+    if (!local || local.error) {
+      setBusy(false);
+      setFailed(true);
+    }
   };
 
   const problem = failed ? (
@@ -219,7 +238,8 @@ export function LegalGate({
         </Text>
         <QueuedWarning
           testID="legal-gate-age-queued"
-          messageKey="compass.legalGate.declined.queued"
+          oneKey="compass.legalGate.declined.queuedOne"
+          otherKey="compass.legalGate.declined.queuedOther"
         />
         <Button
           testID="legal-gate-age-sign-out"
@@ -248,7 +268,11 @@ export function LegalGate({
       <Screen testID="legal-gate-under" title={t("compass.legalGate.under.title")}>
         <Text>{t("compass.legalGate.under.sentence")}</Text>
         <Text tone="secondary">{t("compass.legalGate.under.keeps")}</Text>
-        <QueuedWarning testID="legal-gate-under-queued" messageKey="compass.legalGate.under.queued" />
+        <QueuedWarning
+          testID="legal-gate-under-queued"
+          oneKey="compass.legalGate.under.queuedOne"
+          otherKey="compass.legalGate.under.queuedOther"
+        />
         {problem}
         <Button
           testID="legal-gate-under-confirm"
@@ -286,6 +310,7 @@ export function LegalGate({
         <Text tone="secondary">
           {t(held ? "compass.legalGate.held.next" : "compass.legalGate.refused.minors")}
         </Text>
+        {problem}
         {held ? (
           <Button
             testID="legal-gate-contact"
@@ -313,7 +338,8 @@ export function LegalGate({
         <Text>{t("compass.legalGate.declined.sentence")}</Text>
         <QueuedWarning
           testID="legal-gate-declined-queued"
-          messageKey="compass.legalGate.declined.queued"
+          oneKey="compass.legalGate.declined.queuedOne"
+          otherKey="compass.legalGate.declined.queuedOther"
         />
         <Button
           testID="legal-gate-declined-back"

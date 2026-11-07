@@ -12,8 +12,11 @@ import { Button, Card, InlineAlert, Text, useTheme } from "../ui";
  */
 export function AiDisclosure({
   testID = "ai-disclosure",
+  withinForm = false,
 }: {
   readonly testID?: string;
+  /** Shown inside a form whose save is the screen's one primary action, so Allow does not compete with it. */
+  readonly withinForm?: boolean;
 }): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -55,6 +58,7 @@ export function AiDisclosure({
         ) : null}
         <Button
           testID={`${testID}-allow`}
+          {...(withinForm ? { variant: "secondary" as const } : {})}
           block
           loading={busy}
           disabled={busy}

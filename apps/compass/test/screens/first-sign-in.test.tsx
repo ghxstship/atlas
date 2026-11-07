@@ -27,7 +27,9 @@ const h = vi.hoisted(() => ({
   aiChoice: "unknown" as string,
 }));
 
-vi.mock("react-native", () => ({ View: ({ children }: { children: ReactNode }) => <div>{children}</div> }));
+vi.mock("react-native", () => ({
+  View: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 vi.mock("expo-linking", () => ({ openURL: h.openURL }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -55,12 +57,28 @@ vi.mock("../../src/ui", () => ({
       {message}
     </div>
   ),
-  Button: (props: { testID: string; label: string; disabled?: boolean; onPress: () => void }) => (
-    <button data-testid={props.testID} disabled={props.disabled} onClick={props.onPress}>
+  Button: (props: {
+    testID: string;
+    label: string;
+    disabled?: boolean;
+    variant?: string;
+    onPress: () => void;
+  }) => (
+    <button
+      data-testid={props.testID}
+      data-variant={props.variant ?? "primary"}
+      disabled={props.disabled}
+      onClick={props.onPress}
+    >
       {props.label}
     </button>
   ),
-  Switch: (props: { testID: string; label: string; value: boolean; onChange: (v: boolean) => void }) => (
+  Switch: (props: {
+    testID: string;
+    label: string;
+    value: boolean;
+    onChange: (v: boolean) => void;
+  }) => (
     <label>
       {props.label}
       <input
@@ -81,6 +99,13 @@ vi.mock("../../src/runtime/CompassProvider", () => ({
         signOut: h.localSignOut,
         getUser: vi.fn(async () => ({ data: { user: null } })),
         getSession: async () => ({ data: { session: { user: { id: "u1" } } } }),
+        // Compass asks after the second factor, so the session has passed any it holds.
+        mfa: {
+          getAuthenticatorAssuranceLevel: async () => ({
+            data: { currentLevel: "aal2", nextLevel: "aal2" },
+            error: null,
+          }),
+        },
       },
       storage: {
         from: (bucket: string) => ({
@@ -209,8 +234,12 @@ describe("first sign-in: the age", () => {
   it("offers both answers with equal weight and states no rule first", async () => {
     render(<LegalGate needs={firstSignIn} />);
     expect(screen.getByTestId("legal-gate-age")).toBeTruthy();
-    expect(screen.getByTestId("legal-gate-age-over").textContent).toBe("compass.legalGate.age.over");
-    expect(screen.getByTestId("legal-gate-age-under").textContent).toBe("compass.legalGate.age.under");
+    expect(screen.getByTestId("legal-gate-age-over").textContent).toBe(
+      "compass.legalGate.age.over",
+    );
+    expect(screen.getByTestId("legal-gate-age-under").textContent).toBe(
+      "compass.legalGate.age.under",
+    );
     expect(screen.queryByText(/compass.legalGate.under.title/)).toBeNull();
   });
 
@@ -354,7 +383,30 @@ describe("first sign-in: an answer of under 18", () => {
   it("warns before closing deletes hours still on the device", async () => {
     h.queued = 2;
     await answerUnder();
+    expect(screen.getByTestId("legal-gate-under-queued").textContent).toContain(
+      "compass.legalGate.under.queuedOther",
+    );
     expect(screen.getByTestId("legal-gate-under-queued").textContent).toContain('"count":2');
+  });
+
+  it("says one change, not one changes, when one is waiting", async () => {
+    h.queued = 1;
+    await answerUnder();
+    expect(screen.getByTestId("legal-gate-under-queued").textContent).toContain(
+      "compass.legalGate.under.queuedOne",
+    );
+  });
+
+  it("lets the person try Done again when the sign-out could not end the session", async () => {
+    await answerUnder();
+    await press("legal-gate-under-confirm");
+    h.localSignOut.mockResolvedValue({ error: { message: "offline" } });
+    await press("legal-gate-leave");
+    expect(screen.getByTestId("legal-gate-failed")).toBeTruthy();
+    expect((screen.getByTestId("legal-gate-leave") as HTMLButtonElement).disabled).toBe(false);
+    h.localSignOut.mockResolvedValue({ error: null });
+    await press("legal-gate-leave");
+    expect(h.localSignOut).toHaveBeenCalledTimes(2);
   });
 
   it("says why an account cannot close, sends the person to us, and ends every session", async () => {
@@ -399,7 +451,9 @@ describe("a change to a document", () => {
   };
 
   it("records the announced version when reviewed during its notice period", async () => {
-    render(<LegalGate needs={{ age: false, documents: [], changes: [change] }} onLater={vi.fn()} />);
+    render(
+      <LegalGate needs={{ age: false, documents: [], changes: [change] }} onLater={vi.fn()} />,
+    );
     expect(screen.getByTestId("legal-gate-change-mobile-eula")).toBeTruthy();
     await press("legal-gate-agree");
     await press("legal-gate-accept");
@@ -427,6 +481,13 @@ describe("the first-use AI disclosure", () => {
     await press("ai-disclosure-allow");
     expect(h.chooseAi).toHaveBeenCalledWith("Allowed");
     expect(screen.getByTestId("ai-disclosure-failed")).toBeTruthy();
+  });
+
+  it("keeps Allow from competing with a form's save, as one primary action per screen", () => {
+    render(<AiDisclosure testID="expense-ai-disclosure" withinForm />);
+    expect(screen.getByTestId("expense-ai-disclosure-allow").getAttribute("data-variant")).toBe(
+      "secondary",
+    );
   });
 
   it("offers only turning back on to someone who declined", () => {
