@@ -337,6 +337,24 @@ describe("runStripeCancellations", () => {
     expect(failing.sent).toEqual([]);
   });
 
+  it("still sends the cancels when the alert mail cannot be built or sent", async () => {
+    const memory = memoryStore([IMMEDIATE], { alerts: [ALERT] });
+    const run = await runStripeCancellations({
+      stripe: fakeStripe().client,
+      store: memory.store,
+      worker: "w",
+      livemode: false,
+      sink: {
+        send: async () => {
+          throw new Error("RESEND_API_KEY is not valid");
+        },
+      },
+    });
+    expect(run).toMatchObject({ accepted: 1, alertsSent: 0 });
+    expect(run.alertsWaiting).toBeGreaterThan(0);
+    expect(memory.finished.map((f) => f.cancellationId)).toEqual([IMMEDIATE.cancellationId]);
+  });
+
   it("sends open alerts before it calls Stripe, so an alert cannot clear unseen, and again for what the run raised", async () => {
     const order: string[] = [];
     const raised: BillingAlert = { ...ALERT, alertId: "a-2", kind: "cancel_delayed" };

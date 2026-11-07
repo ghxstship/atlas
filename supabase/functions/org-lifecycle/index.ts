@@ -6,9 +6,9 @@
 //      the former Owner.
 //   2. Custom domains (Section 12): domain.provision, domain.check and domain.release jobs through the Vercel
 //      Domains API (Atlas and Gateway hosts) and the Resend domains API (sending domains).
-//   3. Stripe cancels (ADR 0161, migration 6140): sends each cancel that is due and has not been accepted, retrying with
-//      backoff until it is, then closes Checkout sessions on orgs that are ending and emails open billing alerts to
-//      XOS_BILLING_ALERT_EMAIL. It runs first, since an org cannot finish deletion until its cancel is accepted.
+//   3. Stripe cancels (ADR 0161, 6140): sends each due cancel, retrying with backoff until Stripe accepts, closes
+//      Checkout on ending orgs and emails open billing alerts to XOS_BILLING_ALERT_EMAIL. It runs first, since an org
+//      cannot finish deletion until its cancel is accepted.
 //
 // Mail: XOS_LIFECYCLE_MAILPIT_URL sends to the local stack's Inbucket (Mailpit) and only to a local host;
 // otherwise XOS_EMAIL_TRANSPORT=resend sends through Resend to recipients XOS_EMAIL_ALLOWLIST allows (any
@@ -91,14 +91,16 @@ function domainProviders(): DomainProviders {
   };
 }
 
-/** Emails a billing alert to the platform owner. Without an address it waits, and the console and the logs still show it. */
-function billingAlertSink(mailer: ReportMailer) {
+/** Emails a billing alert, or with no address it waits. The mailer is built on first send: bad mail never stops a cancel. */
+function billingAlertSink(mailer: () => ReportMailer) {
   const to = optional("XOS_BILLING_ALERT_EMAIL");
   if (to === null) return null;
+  let built: ReportMailer | null = null;
   return {
     send: async (alert: BillingAlert) => {
+      built ??= mailer();
       const text = `${alert.detail}\n\nAlert ${alert.alertId}, raised ${alert.raisedAt}.`;
-      await mailer.send({
+      await built.send({
         to,
         toName: null,
         subject: `XOS billing alert: ${alert.kind}`,
@@ -128,7 +130,7 @@ async function stripeCancellations(worker: string) {
       store: stripeCancellationStore(serviceDb()),
       worker,
       livemode: billingLivemode(billing),
-      sink: billingAlertSink(lifecycleMailer()),
+      sink: billingAlertSink(lifecycleMailer),
     });
     // Sentry and the log drain see this whatever the mail does.
     if (run.failed > 0 || run.alertsWaiting > 0 || run.outOfTime) {
