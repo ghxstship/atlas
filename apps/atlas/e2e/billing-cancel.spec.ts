@@ -174,9 +174,7 @@ test("when Stripe is unreachable the org is canceled, the page tells the truth, 
   await expect.poll(() => noticesOf(slug)).toContain("billing.cancellation_confirmed");
 });
 
-test("deleting an org cancels Stripe, and recovering it leaves the paid plan ended", async ({
-  page,
-}) => {
+test("deleting an org cancels Stripe at once", async ({ page }) => {
   test.setTimeout(180_000);
   const { slug, name, email, subscription } = await paidOrg(page, "deleteorg");
   await stepUp(page, email);
