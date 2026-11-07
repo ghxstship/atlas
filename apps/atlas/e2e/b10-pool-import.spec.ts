@@ -83,7 +83,7 @@ test("a freelancer list: map, review, merge, commit, and the invitations appear"
 
   await page.goto(`/${DEMO_ORG}/opportunities/pools`);
   await page.getByRole("link", { name: `Freelancers ${id}` }).click();
-  const invitations = page.locator("#pool-invitations");
+  const invitations = page.locator(`section[aria-labelledby="pool-invitations"]`);
   await expect(invitations.getByText(`cleo-${id}@example.com`)).toBeVisible();
   await expect(invitations.getByText("Pending").first()).toBeVisible();
   // The rate went through the chosen format: 1.250,50 is one thousand two hundred fifty and a half.
