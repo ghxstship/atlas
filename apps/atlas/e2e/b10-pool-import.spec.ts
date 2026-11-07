@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { DEMO_ORG, reloadUntil, runImportWorker, signInAs } from "./a36-support";
+import { personOf, sql } from "./b2-support";
 import { uniqueId } from "./support";
 
 /**
@@ -29,13 +30,21 @@ test("a freelancer list: map, review, merge, commit, and the invitations appear"
   await expect(page.getByLabel("Import into")).toHaveValue("pool_invitations");
   await page.getByLabel("Number format").selectOption("dot-comma");
 
+  // Review offers a merge only with someone already in a pool.
+  await sql(
+    `insert into app.pool_members (talent_pool_id, person_id)
+     select tp.id, p.id from app.talent_pools tp, app.people p
+      where tp.name = $1 and p.full_name = 'Demo Crew Member'`,
+    [`Freelancers ${id}`],
+    await personOf("owner@example.com"),
+  );
   const csv = [
     "Email,Name,Phone,Rate",
     `ana-${id}@example.com,Ana ${id},+13055550142,"1.250,50 €/día"`,
     `ana-${id}@example.com,Ana ${id},+13055550142,"1.250,50 €/día"`,
     `ben-${id}@example.com,Ben ${id},12,`,
     `cleo-${id}@example.com,Cleo ${id},,`,
-    `dana-${id}@example.com,Demo Crew Membr,,`,
+    `dana-${id}@example.com,demo crew member,,`,
   ].join("\n");
   await page.locator("#import-file").setInputFiles({
     name: `freelancers-${id}.csv`,

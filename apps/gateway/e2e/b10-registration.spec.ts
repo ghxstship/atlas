@@ -96,7 +96,14 @@ test("a registration page: open it, register, approve, and the person is on the 
 
   // Atlas approves through the picker, and the Pools page names the person.
   await atlas.goto(`/${ORG}/opportunities/registration-pages`);
-  await atlas.getByRole("combobox", { name: "People to decide" }).click();
+  // The picker loads on a press (ADR 0027).
+  const peopleToDecide = atlas.getByRole("combobox", { name: "People to decide" });
+  await expect(async () => {
+    const pick = atlas.getByRole("button", { name: "People to decide" });
+    if (await pick.isVisible()) await pick.click();
+    await expect(peopleToDecide).toBeVisible({ timeout: 3_000 });
+  }).toPass();
+  await peopleToDecide.click();
   await atlas.getByRole("option", { name: new RegExp(`Reggie Crew ${id}`) }).click();
   await atlas.keyboard.press("Escape");
   await atlas.getByRole("button", { name: /Approve 1 person/ }).click();

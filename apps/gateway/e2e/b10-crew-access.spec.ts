@@ -101,7 +101,14 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   await expect(worker.getByRole("link", { name: /map/i })).toHaveCount(0);
   await row.getByRole("button", { name: "Accept shift" }).click();
   await expect(worker.getByRole("status")).toContainText("Shift accepted");
-  await expect(row.getByText("Accepted")).toBeVisible();
+  // Accepted, the row no longer matches the Published filter above.
+  await expect(
+    worker
+      .getByRole("listitem")
+      .filter({ hasText: /PST|PDT/ })
+      .filter({ hasText: "Accepted" })
+      .first(),
+  ).toBeVisible();
   await expect(async () => {
     const [state] = await sql<{ shift_state: string }>(
       `select shift_state from app.shifts where id = $1`,

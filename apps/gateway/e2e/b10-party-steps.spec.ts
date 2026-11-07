@@ -90,7 +90,14 @@ test("the crew person signs one agreement and declines another; Atlas countersig
     .filter({ has: atlas.getByRole("button", { name: "Countersign signed" }) })
     .first();
   await row.getByRole("button", { name: "Countersign signed" }).click();
-  await expect(row.getByText(/Executed: 1/)).toBeVisible();
+  // Countersigned, the row loses the button the filter above reads.
+  await expect(
+    atlas
+      .getByRole("listitem")
+      .filter({ hasText: `Sign me ${tag}` })
+      .filter({ hasText: /Executed: 1/ })
+      .first(),
+  ).toBeVisible();
 
   // The Automatic item passed with no reviewer.
   const [passed] = await sql<{ outcome: string; verified_by: string | null }>(
@@ -146,7 +153,7 @@ test("a pool invitation is accepted on Home and the person is named in Atlas", a
 
   const { context, page: atlas } = await atlasAs(browser, "owner@example.com");
   await atlas.goto(`/${ORG}/opportunities/pools?pool=${pool?.id}`);
-  await expect(atlas.locator("#pool-members").getByText("Approved").first()).toBeVisible();
+  await expect(atlas.locator("#pool-members")).toContainText(/Demo Crew Member\s*Approved/);
   await expect(atlas.locator("#pool-members").getByText("Unnamed")).toHaveCount(0);
   await context.close();
 });

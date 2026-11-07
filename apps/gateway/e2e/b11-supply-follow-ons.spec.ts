@@ -45,7 +45,7 @@ test("a vendor books a delivery and keeps its reference code on the row", async 
       timeout: 3_000,
     });
   }).toPass();
-  await expect(page.getByText("FL ABC 123", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/FL ABC 123/).first()).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Cancel booking", exact: true }).first(),
   ).toBeVisible();

@@ -60,7 +60,8 @@ test("budget lines import from a spreadsheet with a preview", async ({ page }) =
     ]);
 
     // Undo removes the created line and restores the updated one.
-    await page.getByRole("button", { name: "Undo the whole batch" }).click();
+    await page.getByLabel("Why undo it").fill("Imported the wrong sheet.");
+    await page.getByRole("button", { name: "Undo the batch" }).click();
     await expect
       .poll(async () => {
         const rows = await localSql<{ n: string }>(
