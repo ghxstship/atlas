@@ -292,7 +292,7 @@
     "listing_report": {
       "decided": {
         "subject": "We reviewed the listing {title} you reported",
-        "body": "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months."
+        "body": "{action, select, Removed {We removed the listing. {statement}} Restricted {We restricted the listing. {statement}} Restored {We restored the listing. {statement} You can appeal this decision within six months by writing to abuse@ghxstship.tech.} other {We took no action on the listing. {statement} You can appeal this decision within six months by writing to abuse@ghxstship.tech.}}"
       }
     },
     "moderation_appeal": {

@@ -292,7 +292,7 @@
     "listing_report": {
       "decided": {
         "subject": "Revisamos el anuncio {title} que denunciaste",
-        "body": "{action, select, Removed {Retiramos el anuncio.} Restricted {Restringimos el anuncio.} Restored {Restablecimos el anuncio.} other {No tomamos ninguna medida sobre el anuncio.}} {statement} Puedes apelar esta decisión en un plazo de seis meses."
+        "body": "{action, select, Removed {Retiramos el anuncio. {statement}} Restricted {Restringimos el anuncio. {statement}} Restored {Restablecimos el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a abuse@ghxstship.tech.} other {No tomamos ninguna medida sobre el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a abuse@ghxstship.tech.}}"
       }
     },
     "moderation_appeal": {

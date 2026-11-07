@@ -259,6 +259,27 @@ describe("catalog", () => {
     }
   });
 
+  it("offers a reporter an appeal only where the database takes one, and says where (1473)", () => {
+    const args = { title: "Riggers", statement: "Stands." };
+    for (const locale of ["en-US", "es-US"] as const) {
+      for (const action of ["No Action", "Restored"]) {
+        expect(
+          formatMessage(locale, "kinds.listing_report.decided.body", { ...args, action }),
+        ).toContain("abuse@ghxstship.tech");
+      }
+      for (const action of ["Removed", "Restricted"]) {
+        expect(
+          formatMessage(locale, "kinds.listing_report.decided.body", { ...args, action }),
+        ).not.toMatch(/appeal|apelar/i);
+      }
+    }
+    expect(
+      formatMessage("en-US", "kinds.listing_report.decided.body", { ...args, action: "No Action" }),
+    ).toBe(
+      "We took no action on the listing. Stands. You can appeal this decision within six months by writing to abuse@ghxstship.tech.",
+    );
+  });
+
   it("names every legal queue matter in both languages (6165)", () => {
     const enums = readFileSync(
       new URL("../../data/src/enums.generated.ts", import.meta.url),
