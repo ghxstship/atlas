@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(55);
+select plan(60);
 
 create temporary table k (key text primary key, token text, code text);
 grant select, insert, update, delete on k to public;
@@ -103,6 +103,34 @@ select is((select link_state || ' ' || action || ' ' || org_name from api_public
   'ready approve Northwind Live', 'signed out, the link says what it does and for which org');
 select is((select masked_email from api_public.read_approval_link(pg_temp.token('ivy_approve'))), 'i***@freelance.test',
   'and to which masked address the code goes');
+
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'), 'Canceled');
+select pg_temp.as_anon();
+select is((select link_state from api_public.read_approval_link(pg_temp.token('ivy_approve'))), 'ended', 'an approval link stops opening when its project ends');
+select is((select coalesce(action, org_name, masked_email) from api_public.read_approval_link(pg_temp.token('ivy_approve'))), null, 'and names no action, org or email');
+select is((select outcome from api_public.preview_approval_link(pg_temp.token('ivy_approve'), '000000')), 'approval_link_ended', 'a preview says it ended');
+select is((select outcome from api_public.use_approval_link(pg_temp.token('ivy_approve'), '000000')), 'approval_link_ended', 'and it decides nothing');
+select throws_ok(format('select api_public.request_approval_link_code(%L)', pg_temp.token('ivy_approve')), 'XR001', null, 'and sends no code');
+select pg_temp.as_platform();
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
+
+select pg_temp.as_anon();
+
 select is((select link_state from api_public.read_approval_link('xact_nonsense')), 'invalid', 'a malformed token is invalid');
 select is((select link_state from api_public.read_approval_link(
   regexp_replace(pg_temp.token('ivy_approve'), '\.[0-9a-f]{32}$', '.' || repeat('0', 32)))), 'invalid', 'so is a forged one');

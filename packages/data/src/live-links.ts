@@ -60,6 +60,7 @@ export function liveLinkPath(kind: LiveLinkKind, token: string): string {
 
 export const LIVE_LINK_REFUSALS = [
   "live_link_invalid",
+  "live_link_ended",
   "live_link_rate_limited",
   "live_link_locked",
   "live_link_expired",

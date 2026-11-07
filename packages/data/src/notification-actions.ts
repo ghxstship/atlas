@@ -117,7 +117,8 @@ export async function actThroughLink(
  * request, shows the request once the code is entered, and decides with the token and the code. Every call runs as
  * anon through api_public; wrong codes count across both links of the notification and lock them at 5.
  */
-export type SignedOutLinkState = "ready" | "used" | "expired" | "locked" | "sign_in" | "invalid";
+export type SignedOutLinkState =
+  "ready" | "used" | "expired" | "locked" | "sign_in" | "invalid" | "ended";
 
 export interface SignedOutApprovalLink {
   readonly state: SignedOutLinkState;
@@ -130,6 +131,7 @@ export interface SignedOutApprovalLink {
 }
 
 const SIGNED_OUT_STATES: readonly SignedOutLinkState[] = [
+  "ended",
   "ready",
   "used",
   "expired",
@@ -203,6 +205,7 @@ export async function requestApprovalLinkCode(db: XosClient, token: string): Pro
 
 /** The outcome of a code check or a decision through a signed-out link. */
 export type SignedOutOutcome =
+  | "approval_link_ended"
   | "ok"
   | "decided"
   | "notification_action_invalid"
@@ -213,6 +216,7 @@ export type SignedOutOutcome =
   | "notification_action_reason";
 
 const OUTCOMES: readonly SignedOutOutcome[] = [
+  "approval_link_ended",
   "ok",
   "decided",
   "notification_action_invalid",

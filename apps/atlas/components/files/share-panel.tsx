@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import { Button, InlineAlert, Input, Select } from "@xos/ui";
 import {
   CLASSIFICATIONS,
   maxShareDays,
@@ -91,7 +91,6 @@ function LinkRow({
             t("row.made", {
               date: format.dateTime(new Date(link.createdAt), { dateStyle: "medium" }),
             })}
-          {link.accessCodeRequired ? ` · ${t("row.codeRequired")}` : ""}
         </span>
         <span>
           {link.expiresAt
@@ -255,7 +254,6 @@ export function SharePanel({
               const result = await createShareLinkAction(org, {
                 attachmentId,
                 expiresOn: String(form.get("expiresOn") ?? ""),
-                accessCode: confidential || form.get("accessCode") === "on",
                 recipientEmail: String(form.get("recipientEmail") ?? "").trim(),
                 note: String(form.get("note") ?? ""),
               });
@@ -281,13 +279,9 @@ export function SharePanel({
                 : t("share.create.expiresHelp", { days: limit })
             }
           />
-          {confidential ? (
-            <p className="m-0 text-text-12 text-text-secondary">
-              {t("share.create.accessCodeForced")}
-            </p>
-          ) : (
-            <Checkbox id={`${id}-code`} name="accessCode" label={t("share.create.accessCode")} />
-          )}
+          <p className="m-0 text-text-12 text-text-secondary">
+            {t("share.create.accessCodeForced")}
+          </p>
           <Input
             id={`${id}-recipient`}
             name="recipientEmail"

@@ -86367,7 +86367,6 @@ export type Database = {
       };
       create_share_link: {
         Args: {
-          p_access_code_required?: boolean;
           p_attachment_id: string;
           p_expires_at?: string;
           p_note?: string;

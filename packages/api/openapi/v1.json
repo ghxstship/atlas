@@ -65710,7 +65710,7 @@
           "classification": { "$ref": "#/components/schemas/Classification" },
           "access_code_required": {
             "type": "boolean",
-            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+            "description": "Always true: every link asks for a 6-digit access code.",
             "example": false
           },
           "recipient_email": {
@@ -65803,7 +65803,7 @@
           "access_code": {
             "type": ["string", "null"],
             "pattern": "^[0-9]{6}$",
-            "description": "The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.",
+            "description": "The 6-digit access code. Shown once; send it apart from the link.",
             "example": "042424"
           },
           "classification": { "$ref": "#/components/schemas/Classification" },
@@ -65825,11 +65825,6 @@
             "format": "uuid",
             "description": "Identifier of the file the link shares.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "access_code_required": {
-            "type": "boolean",
-            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
-            "example": false
           },
           "recipient_email": {
             "type": ["string", "null"],
@@ -172011,7 +172006,6 @@
             "application/json": {
               "example": {
                 "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "access_code_required": false,
                 "recipient_email": "alex.rivera@northwindlive.example",
                 "note": "Stage plot for the venue",
                 "expires_at": "2026-10-08T14:30:00Z"

@@ -1,7 +1,7 @@
 /**
  * Share links (A82, migration 1380, Section 8.6, finding A65-016): links that open one version of a
  * file without an account. Public files may have a link without an expiry, Internal links need an
- * expiry, Confidential links need an expiry, an access code and the recipient's email, and
+ * expiry, Confidential links need an expiry and the recipient's email, every link has an access code, and
  * Restricted files never get one. catalog/modules/platform.ts spreads these into the Platform
  * additions. The anonymous open is not an API operation: it is the api_public.open_share_link token
  * RPC, which the web shells call.
@@ -20,6 +20,7 @@ const ShareLink = editDefinition(
     description:
       "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links.",
     serverSet: [
+      "access_code_required",
       "attachment_version_id",
       "classification",
       "failed_attempts",
@@ -28,7 +29,7 @@ const ShareLink = editDefinition(
       "revoked_at",
       "revoked_by",
     ],
-    immutable: ["attachment_id", "access_code_required", "recipient_email", "note", "expires_at"],
+    immutable: ["attachment_id", "recipient_email", "note", "expires_at"],
     fields: {
       attachment_id: fields.ref("file the link shares"),
       attachment_version_id: orNull(
@@ -36,7 +37,7 @@ const ShareLink = editDefinition(
       ),
       classification: Classification,
       access_code_required: fields.bool(
-        "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+        "Always true: every link asks for a 6-digit access code.",
         false,
       ),
       recipient_email: orNull(
@@ -56,7 +57,7 @@ const ShareLink = editDefinition(
     },
   }),
   // An anonymous open counts on the row, so the last updater can be nobody.
-  { nullable: ["created_by", "updated_by"], optionalOnCreate: ["access_code_required"] },
+  { nullable: ["created_by", "updated_by"] },
 );
 
 const ShareLinkToken = z
@@ -75,8 +76,7 @@ const ShareLinkToken = z
         .string()
         .regex(/^[0-9]{6}$/)
         .meta({
-          description:
-            "The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.",
+          description: "The 6-digit access code. Shown once; send it apart from the link.",
           example: "042424",
         }),
     ),

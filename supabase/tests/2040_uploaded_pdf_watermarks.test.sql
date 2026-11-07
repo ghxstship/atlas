@@ -78,10 +78,10 @@ update app.attachments set classification = 'Confidential' where id in (select i
 select pg_temp.as_user('bob');
 select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days')$$),
   'share_link_recipient', 'a Confidential PDF link still names its recipient');
-select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '45 days', true, 'ana@venue.test')$$),
+select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '45 days', 'ana@venue.test')$$),
   'share_link_expiry_range', 'and still expires within 30 days');
 insert into k select 'pdf_link', l.share_link_id, l.token || ' ' || l.access_code
-from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', false, 'Ana@Venue.test') l;
+from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', 'Ana@Venue.test') l;
 select results_eq($$select classification::text, access_code_required, recipient_email from app.share_links where id = (select id from k where key = 'pdf_link')$$,
   $$values ('Confidential'::text, true, 'ana@venue.test'::text)$$,
   'a Confidential PDF gets a link with an access code for its recipient');
@@ -95,7 +95,7 @@ select is((select count(*)::int from app.file_access_log where action = 'Share L
 
 -- An image the watermark cannot carry is never shared or downloaded --------------------------------------------------
 select pg_temp.as_user('bob');
-select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'stage.webp'), now() + interval '7 days', true, 'ana@venue.test')$$),
+select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'stage.webp'), now() + interval '7 days', 'ana@venue.test')$$),
   'share_link_watermark_unsupported', 'a Confidential WebP image cannot carry the watermark, so it is not shared by link');
 select is(pg_temp.rule_of($$select * from app.record_file_download((select id from k where key = 'stage.webp:version'))$$),
   'download_watermark_unsupported', 'nor downloaded in the app, where it would leave unmarked');
@@ -120,7 +120,7 @@ select is((select count(*)::int from app.file_access_log where action = 'Downloa
 
 select pg_temp.as_user('alice');
 update app.attachments set classification = 'Restricted' where id = (select id from k where key = 'payroll.pdf');
-select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'payroll.pdf'), now() + interval '7 days', true, 'ana@venue.test')$$),
+select is(pg_temp.rule_of($$select * from app.create_share_link((select id from k where key = 'payroll.pdf'), now() + interval '7 days', 'ana@venue.test')$$),
   'share_link_restricted', 'a Restricted PDF never gets a share link');
 select is(pg_temp.rule_of($$select * from app.record_file_download((select id from k where key = 'payroll.pdf:version'))$$),
   'step_up_required', 'downloading a Restricted PDF needs step-up');

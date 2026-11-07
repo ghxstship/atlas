@@ -137,9 +137,9 @@ select throws_ok($$insert into private.file_download_tickets (ticket_hash, attac
 -- Share links: the recipient who calls the open RPC and the function directly gets nothing ---------------------------
 select pg_temp.as_user('bob');
 insert into k select 'pdf_link', l.share_link_id, l.token || ' ' || l.access_code
-from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test') l;
+from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', 'ana@venue.test') l;
 select pg_temp.as_user('dave');
-insert into k select 'notes_link', l.share_link_id, l.token || ' '
+insert into k select 'notes_link', l.share_link_id, l.token || ' ' || l.access_code
 from app.create_share_link((select id from k where key = 'notes.pdf'), now() + interval '7 days') l;
 select matches(pg_temp.open_ticket('pdf_ticket', 'pdf_link'), '^xdlt_', 'the right code opens the Confidential PDF link');
 select is(pg_temp.consume((select val from k where key = 'pdf_ticket'), false), 'none',
@@ -157,7 +157,7 @@ select is(pg_temp.consume((select val from k where key = 'notes_ticket'), true),
 
 select pg_temp.as_user('bob');
 insert into k select 'pdf_link2', l.share_link_id, l.token || ' ' || l.access_code
-from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test') l;
+from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', 'ana@venue.test') l;
 select matches(pg_temp.open_ticket('pdf_ticket2', 'pdf_link2'), '^xdlt_', 'a second link opens');
 select pg_temp.as_user('alice');
 update app.attachments set classification = 'Restricted' where id = (select id from k where key = 'rider.pdf');

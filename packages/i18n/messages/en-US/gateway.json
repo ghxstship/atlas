@@ -138,6 +138,8 @@
       "booking_event_reused": "This booking was already used for another window or company. Reload and try again.",
       "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
       "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
+      "advance_link_ended": "This link has ended.",
+      "document_link_ended": "This link has ended.",
       "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
       "advance_access_code": "That access code does not match. Open the link again and enter the six digits from your message.",
       "token_invalid": "This link is not valid. Use the latest link the organization sent.",
@@ -2167,6 +2169,8 @@
     },
     "refusals": {
       "advance_access_code": "That access code does not match. Check the six digits in your message and try again.",
+      "advance_link_ended": "This link has ended.",
+      "document_link_ended": "This link has ended.",
       "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
       "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
       "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
@@ -2706,6 +2710,7 @@
         "codeGoesTo": "We email a 6-digit code to {email}.",
         "signInInstead": "Sign in to decide instead",
         "state": {
+          "ended": "This link has ended.",
           "used": "This was already handled. Nothing else to do.",
           "expired": "This link has expired. Sign in to decide, or ask the organization to send it again.",
           "locked": "Too many wrong codes. This link is locked; sign in to decide."
@@ -2729,6 +2734,7 @@
           "reject": "Rejected with your reason."
         },
         "outcome": {
+          "approval_link_ended": "This link has ended.",
           "approval_link_code_wrong": "That code is wrong or has expired. {attemptsLeft, plural, one {# try left} other {# tries left}} before the link locks.",
           "approval_link_locked": "Too many wrong codes. This link is locked; sign in to decide.",
           "notification_action_used": "This was already handled. Nothing else to do.",

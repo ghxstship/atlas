@@ -70,7 +70,7 @@ test("a showcaller on the project calls and edits one running order with a link 
   });
   await expect(
     dialog.getByText(
-      "Anyone with this link and code can call cues and edit this running order until it expires.",
+      "Anyone on this project with this link and code can call cues and edit this running order until it expires.",
     ),
   ).toBeVisible();
   await expectDialogWithinLoad(dialog);
@@ -94,6 +94,7 @@ test("a showcaller on the project calls and edits one running order with a link 
   const offProject = await visitor(browser);
   const outsider = uniqueId();
   await signUp(offProject, { name: "Omar Outside", email: testEmail("outside", outsider) });
+  await offProject.waitForURL("**/auth/organization");
   await offProject.goto(path);
   await expect(offProject.getByText("opens only for people on its project")).toBeVisible();
   await expect(offProject.getByLabel("Access code")).toHaveCount(0);

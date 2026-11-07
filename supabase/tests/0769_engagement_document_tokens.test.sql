@@ -59,6 +59,31 @@ select is((select reason from api_public.token_document((select token from tok w
 select is((select reason from api_public.token_document('xdoc_nothing', '123456')), 'document_token_invalid', 'an unknown token is refused');
 select is((select title from api_public.token_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'))), 'Crew Agreement',
   'the link and code open the document');
+
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142).
+select pg_temp.as_platform();
+create function pg_temp.end_project(p_id uuid, p_state text) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = p_state::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state, archived_at = null, deleted_at = null where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project((select e.project_id from app.engagement_documents d join app.engagements e on e.id = d.engagement_id where d.id = pg_temp.id('doc')), 'Complete');
+select is((select reason from api_public.token_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'))), 'document_link_ended', 'a signing link stops opening when its project ends');
+select is((select reason from api_public.token_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'))), 'document_link_ended', 'and says nothing else');
+select is((select title from api_public.token_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'))), null, 'no document details come back');
+select is((select reason from api_public.token_sign_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'), 'Ivy')), 'document_link_ended', 'and it cannot be signed');
+select pg_temp.reopen_project((select e.project_id from app.engagement_documents d join app.engagements e on e.id = d.engagement_id where d.id = pg_temp.id('doc')));
+
+select pg_temp.as_anon();
+
 select is((select reason from api_public.token_sign_document((select token from tok where key = 'a'), (select access_code from tok where key = 'a'), '  ')),
   'document_signer_name', 'signing needs the signer''s name');
 select ok((select signed_at is not null and refusal is null from api_public.token_sign_document((select token from tok where key = 'a'),

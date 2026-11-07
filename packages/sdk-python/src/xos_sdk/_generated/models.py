@@ -26435,7 +26435,7 @@ class ShareLink(TypedDict):
     #: Clean version the link opens, set from the file's current version.
     attachment_version_id: Optional[str]
     classification: Classification
-    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    #: Always true: every link asks for a 6-digit access code.
     access_code_required: bool
     #: Who the link is for, lowercased. Required for a Confidential file.
     recipient_email: Optional[str]
@@ -26462,7 +26462,7 @@ class ShareLinkToken(TypedDict):
     share_link_id: str
     #: The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
     token: str
-    #: The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+    #: The 6-digit access code. Shown once; send it apart from the link.
     access_code: Optional[str]
     classification: Classification
     #: When the link stops opening.
@@ -26477,8 +26477,6 @@ class _ShareLinkCreateRequired(TypedDict):
 class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
     """Fields accepted when creating a ShareLink."""
 
-    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
-    access_code_required: bool
     #: Who the link is for, lowercased. Required for a Confidential file.
     recipient_email: Optional[str]
     #: What the link is for.

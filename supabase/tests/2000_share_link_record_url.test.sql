@@ -22,8 +22,8 @@ select app.record_attachment_scan((select id from k where key = 'upload'), true)
 insert into k select 'file', v.attachment_id, null from app.attachment_versions v where v.id = (select id from k where key = 'upload');
 
 select pg_temp.as_user('dave');
-insert into k select 'link', l.share_link_id, l.token
-from app.create_share_link((select id from k where key = 'file'), now() + interval '7 days', false, null, 'For the venue') l;
+with l as (select * from app.create_share_link((select id from k where key = 'file'), now() + interval '7 days', null, 'For the venue'))
+insert into k select 'link', l.share_link_id, l.token from l union all select 'link:code', null, l.access_code from l;
 
 -- Opens the link as an anonymous caller and keeps the answered row.
 create function pg_temp.open(p_token text) returns record
@@ -33,7 +33,7 @@ declare
 begin
   perform pg_temp.as_anon();
   perform set_config('request.headers', json_build_object('x-forwarded-for', '198.51.100.9')::text, true);
-  select * into v_row from api_public.open_share_link(p_token, null) limit 1;
+  select * into v_row from api_public.open_share_link(p_token, (select val from k where key = 'link:code')) limit 1;
   perform pg_temp.as_platform();
   return v_row;
 end $$;

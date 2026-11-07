@@ -105,6 +105,8 @@ begin
     o_reason := 'live_link_invalid';
   elsif o_link.expires_at <= now() then
     o_reason := 'live_link_expired';
+  elsif not private.project_link_open(o_link.project_id) then
+    o_reason := 'live_link_ended';
   end if;
   -- A link locked by wrong codes keeps serving the devices that already proved the code: the lock stops guessing, and
   -- must not let anyone holding the address blank every screen.
