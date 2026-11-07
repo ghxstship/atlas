@@ -96,6 +96,7 @@ update app.person_profiles set visibility = 'Public';
 insert into k select 'ivy', handle from app.person_profiles;
 select pg_temp.as_platform();
 select ok(private.rating_released(pg_temp.id('eng_ivy_a')) and private.rating_released(pg_temp.id('eng_ivy_b')), 'both of ivy''s engagements are released');
+insert into k select 'ivy_a_released', released_at::text from private.rating_releases where engagement_id = pg_temp.id('eng_ivy_a');
 
 -- Off by default: another org's roles read nothing ---------------------------------------------------------------------
 select pg_temp.as_user('xavier');
@@ -147,6 +148,8 @@ select ok(pg_temp.id('eng_ivy_a') in (select private.internal_engagement_ids('op
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.ratings where id = pg_temp.id('rate_ivy_a')), 0, 'but never the person''s rating');
 select is((select count(*)::int from api_external.ratings where id = pg_temp.id('rate_ivy_a')), 0, 'by any path');
+select is((select released_at::text from app.rating_release_times where engagement_id = pg_temp.id('eng_ivy_a')), (select txt from k where key = 'ivy_a_released'),
+  'API v1''s release time still reads for the partner, from the release record rather than from both ratings');
 
 -- Company and vendor ratings stay as they are ---------------------------------------------------------------------------
 select pg_temp.as_user('quinn');
@@ -492,6 +495,8 @@ select results_eq($$select org_name, rating_score::int, rating_comment from app.
 select is((select count(*)::int from app.notifications where kind = 'rating_dispute.decided' and recipient_person_id = pg_temp.id('ivy')), 1, 'the person is told');
 select pg_temp.as_user('carol');
 select is((select count(*)::int from app.ratings where id = pg_temp.id('rate_ivy_a')), 0, 'and for the org');
+select is((select released_at::text from app.rating_release_times where engagement_id = pg_temp.id('eng_ivy_a')), (select txt from k where key = 'ivy_a_released'),
+  'the org still reads when the ratings were released, though its own rating was removed');
 select is((select count(*)::int from app.rating_disputes where id = pg_temp.id('dispute_a')), 1, 'which still sees the dispute');
 select results_eq($$select party_name, rating_score::int, rating_comment from app.rating_dispute_subjects() where dispute_id = (select id from world where key = 'dispute_a')$$,
   $$values ('Ivy Marchetti', null::int, null::text)$$, 'and can still tell who it was about, without the removed words');
@@ -614,6 +619,11 @@ select is(enum_range(null::app.account_role)::text[], array['Account Owner', 'Ac
   'every account role is classified: owners and admins count as staffing, finance and members do not');
 select is(enum_range(null::app.account_engagement_duty)::text[], array['Advancing Lead', 'Member'],
   'every account duty is classified: an Advancing Lead counts as staffing, a Member does not');
+-- Who is rated: a new external role type would otherwise count as a company and read for anyone signed in, so it fails here
+-- until it is read against private.rating_is_of_individual.
+select is(enum_range(null::app.external_role_type)::text[],
+  array['Client', 'Vendor', 'Contractor', 'Crew', 'Staff', 'Artist', 'Artist Representative', 'Sponsor'],
+  'every external role type is classified: Contractor, Crew, Staff and Artist work can be an individual''s, the rest is a company''s');
 
 -- Account deletion knows about the opt-in, and a deleted account withdraws it ---------------------------------------------
 select ok('app.rating_sharing_consents' = any (private.account_deletion_tables()), 'a legal hold naming the opt-in record blocks the deletion that writes to it');

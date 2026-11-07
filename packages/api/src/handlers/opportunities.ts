@@ -278,7 +278,8 @@ interface RatingRow extends AuditRow {
 
 /**
  * When the ratings of each engagement were released (ADR 0019 item 6): when the second rating arrived, or 14 days
- * after the engagement completed; null while held.
+ * after the engagement completed; null while held. Read from app.rating_release_times, which takes it from the release
+ * record, because the reader may no longer see both ratings of an engagement (ADR 0158).
  */
 async function releaseTimes(
   db: XosClient,
@@ -287,33 +288,13 @@ async function releaseTimes(
   const ids = [...new Set(engagementIds)];
   const result = new Map<string, string | null>();
   if (ids.length === 0) return result;
-  const [ratings, completions] = await Promise.all([
-    db
-      .from("ratings")
-      .select("engagement_id, submitted_at")
-      .in("engagement_id", ids)
-      .is("deleted_at", null),
-    db
-      .from("engagement_state_transitions")
-      .select("engagement_id, created_at")
-      .in("engagement_id", ids)
-      .eq("to_state", "Complete"),
-  ]);
-  if (ratings.error !== null) throw ratings.error;
-  if (completions.error !== null) throw completions.error;
-  for (const id of ids) {
-    const both = (ratings.data ?? [])
-      .filter((r) => r.engagement_id === id)
-      .map((r) => r.submitted_at);
-    const completedAt = (completions.data ?? []).find((c) => c.engagement_id === id)?.created_at;
-    const lapse = completedAt
-      ? new Date(Date.parse(completedAt) + 14 * 86_400_000).toISOString()
-      : null;
-    const second = both.length >= 2 ? (both.sort().at(-1) ?? null) : null;
-    const candidates = [second, lapse && Date.parse(lapse) <= Date.now() ? lapse : null].filter(
-      (v): v is string => v !== null,
-    );
-    result.set(id, candidates.length === 0 ? null : (candidates.sort()[0] ?? null));
+  const { data, error } = await db
+    .from("rating_release_times")
+    .select("engagement_id, released_at")
+    .in("engagement_id", ids);
+  if (error !== null) throw error;
+  for (const row of data ?? []) {
+    if (row.engagement_id !== null) result.set(row.engagement_id, row.released_at);
   }
   return result;
 }

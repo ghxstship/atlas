@@ -21,6 +21,8 @@
 --     itself stays unedited as evidence, as do its insert in the org's audit ledger and what the console's operator reads.
 --   * An org's soft delete of an engagement changes nothing about its ratings: the rated side keeps reading, answering and
 --     disputing, and the rating stays on a shared list, so no one removes a rating by deleting what it hangs from.
+--   * app.rating_release_times gives API v1 the release time from the release record, not from both ratings, which a
+--     reader may no longer both see.
 -- The rule looks only at who is asking and which engagement the rating came from, never at the score or the comment.
 -- Ratings stay always on and an org's prompt setting still hides nothing (ADR 0038).
 
@@ -520,6 +522,42 @@ grant execute on function api_public.person_profile_shared_ratings(text) to auth
 comment on table app.ratings is 'Two-sided ratings of a completed engagement (Section 4.4.3): the org rates the party and the party rates the org. Both are released together once both are in or 14 days after the engagement completed. An org''s rating of an individual reads only inside that org and for that person (ADR 0158); a rating of a company or vendor and a party''s rating of an org read for anyone signed in. Ratings are never edited, withdrawn or suppressed by the org or the rated side (Section 14.9); gateway.ratings_enabled only decides whether the org''s members are prompted to rate and never hides or removes a rating (ADR 0038). Moderation follows policy only (abuse, personal data, a wrong or false statement), whatever the score. Internal org notes and internal ratings live elsewhere and never appear here.';
 comment on column app.ratings.comment is 'Comment on the rating. Who reads it depends on who was rated, never on what it says (ADR 0158).';
 comment on table app.rating_replies is 'The rated side''s one reply to a released rating (Section 4.4.3). It is read wherever the rating is.';
+
+-- When an engagement's ratings were released ------------------------------------------------------------------------
+
+-- API v1's Rating.released_at worked it out from both ratings of the engagement, which the reader can no longer always
+-- read (a partner on an individual's engagement, an org whose rating was removed). The release is recorded apart from
+-- the ratings, so the time no longer depends on which of them the reader sees.
+create or replace function private.rating_released_at(p_engagement_id uuid)
+returns timestamptz
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select least(
+    (select r.released_at from private.rating_releases r where r.engagement_id = p_engagement_id),
+    (select min(t.created_at) + interval '14 days' from app.engagement_state_transitions t
+     where t.engagement_id = p_engagement_id and t.to_state = 'Complete' and t.created_at <= now() - interval '14 days'));
+$$;
+
+comment on function private.rating_released_at(uuid) is 'When an engagement''s ratings were released: when the second rating arrived, or 14 days after the engagement completed, whichever came first; NULL while held. Says nothing about who may read either rating.';
+revoke all on function private.rating_released_at(uuid) from public, anon;
+grant execute on function private.rating_released_at(uuid) to authenticated, service_role;
+
+create or replace view app.rating_release_times with (security_invoker = true) as
+select distinct g.engagement_id, private.rating_released_at(g.engagement_id) as released_at
+from app.ratings g;
+
+call private.describe('app.rating_release_times', 'When the ratings of each engagement were released, one row per engagement with a rating the reader can read (ADR 0019 item 6, ADR 0158). Rows follow app.ratings'' policies, so the reader learns a time only for an engagement whose rating they already read.', array[
+  'engagement_id', 'Engagement whose ratings these are.',
+  'released_at', 'When the second rating arrived, or 14 days after the engagement completed, whichever came first; NULL while held.'
+]);
+
+revoke all on app.rating_release_times from public, anon;
+grant select on app.rating_release_times to authenticated, service_role;
+-- 1650 grants the backup login SELECT on every new relation; pg_dump never reads a view's rows.
+revoke select on app.rating_release_times from xos_backup;
 
 -- Disputes: reads, ledger and upkeep ---------------------------------------------------------------------------------
 
