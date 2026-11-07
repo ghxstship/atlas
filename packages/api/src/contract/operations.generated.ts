@@ -4097,6 +4097,7 @@ export interface Components {
     >;
     accessibility_notes?: string | null;
     guest_email?: string | null;
+    clear_guest_email?: boolean;
     authority_confirmed: boolean;
     notice_confirmed: boolean;
     dietary_notice_version?: string | null;
@@ -8326,7 +8327,6 @@ export interface Components {
     updated_at: string;
     category: Components["SensitiveDataCategory"];
     basis: Components["SensitiveConsentBasis"];
-    person_id: string | null;
     account_id: string | null;
     guest_list_entry_id: string | null;
     org_id: string | null;
@@ -8338,7 +8338,6 @@ export interface Components {
     given_by: string;
     given_at: string;
     withdrawn_at: string | null;
-    withdrawn_by: string | null;
   };
   SensitiveConsentBasis: "Own Consent" | "Attested Authority";
   SensitiveConsentCreate: {

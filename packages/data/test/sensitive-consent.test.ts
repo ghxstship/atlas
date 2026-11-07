@@ -96,6 +96,30 @@ describe("the wording of a consent", () => {
     expect(esUS.consent.notices.dietary.withdraw).toContain("Datos de trabajo");
   });
 
+  it("says who else can read it: anyone the organization gives medical data access", () => {
+    for (const notice of [enUS.consent.notices.dietary, enUS.consent.notices.accessibility]) {
+      expect(notice.who).toContain("anyone else the organization gives medical data access");
+      expect(notice.attestWho).toContain("anyone else the organization gives medical data access");
+    }
+    expect(enUS.consent.notices.dietary.mealWho).toContain(
+      "anyone else the organization gives medical data access",
+    );
+    for (const notice of [esUS.consent.notices.dietary, esUS.consent.notices.accessibility]) {
+      expect(notice.who).toContain("dé acceso a datos médicos");
+      expect(notice.attestWho).toContain("dé acceso a datos médicos");
+    }
+    expect(esUS.consent.notices.dietary.mealWho).toContain("dé acceso a datos médicos");
+  });
+
+  it("does not tell an attester the guest can remove it themselves", () => {
+    for (const notice of [enUS.consent.notices.dietary, enUS.consent.notices.accessibility]) {
+      expect(notice.attest).toContain("can have it removed");
+    }
+    for (const notice of [esUS.consent.notices.dietary, esUS.consent.notices.accessibility]) {
+      expect(notice.attest).toContain("hacer que se elimine");
+    }
+  });
+
   it("never claims anyone reviewed it", () => {
     const text = JSON.stringify([enUS.consent, esUS.consent]);
     expect(text).not.toMatch(/attorney|counsel|lawyer|abogad|legally/i);
@@ -297,7 +321,34 @@ describe("a guest's needs", () => {
       "categories",
       "givenByName",
       "givenAt",
+      "hasEmail",
     ]);
+  });
+
+  it("leaves the email on file unless the keeper removes it", async () => {
+    const { db, rpc } = rpcClient(entry);
+    const input = {
+      guestListEntryId: entry,
+      dietaryNeeds: ["Vegan"] as const,
+      allergies: null,
+      dietaryNotes: null,
+      accessibilityNeeds: [],
+      accessibilityNotes: null,
+      guestEmail: null,
+      authorityConfirmed: true,
+      noticeConfirmed: true,
+      locale: "en-US",
+      surface: "Atlas" as const,
+    };
+    await setGuestNeeds(db, input);
+    expect(rpc.mock.calls[0]?.[1]).not.toHaveProperty("p_guest_email");
+    expect(rpc.mock.calls[0]?.[1]).not.toHaveProperty("p_clear_guest_email");
+    await setGuestNeeds(db, { ...input, clearGuestEmail: true });
+    expect(rpc.mock.calls[1]?.[1]).toMatchObject({ p_clear_guest_email: true });
+    const parsed = parseGuestNeedsForm(form({ guestId: entry, clearGuestEmail: "on" }));
+    expect(parsed.ok && parsed.value.clearGuestEmail).toBe(true);
+    const plain = parseGuestNeedsForm(form({ guestId: entry }));
+    expect(plain.ok && plain.value.clearGuestEmail).toBe(false);
   });
 
   it("downloads as CSV for whoever may read it", () => {
@@ -313,6 +364,25 @@ describe("a guest's needs", () => {
       },
     ]);
     expect(csv).toContain('"Jordan, Vale",Vegan; Kosher,Peanuts,,,');
+  });
+
+  it("downloads nothing a spreadsheet would run as a formula", () => {
+    const csv = guestNeedsCsv([
+      {
+        guestListEntryId: entry,
+        guestName: '=HYPERLINK("https://evil.example","Jo")',
+        dietaryNeeds: [],
+        allergies: "+1 peanuts",
+        dietaryNotes: "@sum(1)",
+        accessibilityNeeds: [],
+        accessibilityNotes: "-step free",
+      },
+    ]);
+    const cells = csv.split("\r\n")[1];
+    expect(cells).toContain(`"'=HYPERLINK(""https://evil.example"",""Jo"")"`);
+    expect(cells).toContain("'+1 peanuts");
+    expect(cells).toContain("'@sum(1)");
+    expect(cells).toContain("'-step free");
   });
 });
 

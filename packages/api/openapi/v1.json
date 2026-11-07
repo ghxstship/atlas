@@ -52933,8 +52933,13 @@
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 320,
-            "description": "The guest's email, so they can see this and remove it.",
+            "description": "The guest's email, so they can see this and remove it. Left out, the email on file stays.",
             "example": "jo@example.com"
+          },
+          "clear_guest_email": {
+            "type": "boolean",
+            "description": "Removes the email on file.",
+            "example": false
           },
           "authority_confirmed": {
             "type": "boolean",
@@ -57095,12 +57100,6 @@
           },
           "category": { "$ref": "#/components/schemas/SensitiveDataCategory" },
           "basis": { "$ref": "#/components/schemas/SensitiveConsentBasis" },
-          "person_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person the data is about.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "account_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -57157,12 +57156,6 @@
             "format": "date-time",
             "description": "When it was withdrawn; null while it stands.",
             "example": "2026-10-08T14:30:00Z"
-          },
-          "withdrawn_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who withdrew it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -57171,7 +57164,6 @@
           "updated_at",
           "category",
           "basis",
-          "person_id",
           "account_id",
           "guest_list_entry_id",
           "org_id",
@@ -57180,10 +57172,9 @@
           "surface",
           "given_by",
           "given_at",
-          "withdrawn_at",
-          "withdrawn_by"
+          "withdrawn_at"
         ],
-        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs."
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens."
       },
       "SensitiveDataCategory": {
         "type": "string",
@@ -57311,7 +57302,7 @@
           "given_by_name",
           "withdrawn_at"
         ],
-        "description": "Consent state of one sensitive field of one subject. Never a value, and never whether a value is held."
+        "description": "Consent state of one sensitive field of one subject. Never a value."
       },
       "SensitiveConsentStanding": {
         "type": "string",
@@ -149985,7 +149976,7 @@
         "x-xos-capability": "advancing.rider.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
         "summary": "Set a guest's dietary and access needs",
-        "description": "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category is not attested back in: it is not saved, and the answer is the same. The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: it is not saved, and the answer is the same. Refuses 422 guest_needs_declined for a declined guest. The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -150012,6 +150003,7 @@
                 "accessibility_needs": ["Step-Free Access"],
                 "accessibility_notes": "Needs a seat near the exit.",
                 "guest_email": "jo@example.com",
+                "clear_guest_email": false,
                 "authority_confirmed": true,
                 "notice_confirmed": true,
                 "dietary_notice_version": "2026-11-06",
@@ -154356,7 +154348,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List sensitive consent rows",
-        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -154382,7 +154374,6 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "category": "Dietary and Allergies",
                       "basis": "Own Consent",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -154393,8 +154384,7 @@
                       "notice_confirmed": false,
                       "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "given_at": "2026-10-08T14:30:00Z",
-                      "withdrawn_at": "2026-10-08T14:30:00Z",
-                      "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "withdrawn_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -154415,7 +154405,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Create a sensitive consent",
-        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -154450,7 +154440,6 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "category": "Dietary and Allergies",
                   "basis": "Own Consent",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -154461,8 +154450,7 @@
                   "notice_confirmed": false,
                   "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "given_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
               }
@@ -154484,7 +154472,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Get a sensitive consent",
-        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.",
+        "description": "A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -154517,7 +154505,6 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "category": "Dietary and Allergies",
                   "basis": "Own Consent",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -154528,8 +154515,7 @@
                   "notice_confirmed": false,
                   "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "given_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
               }
@@ -154583,7 +154569,6 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "category": "Dietary and Allergies",
                   "basis": "Own Consent",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -154594,8 +154579,7 @@
                   "notice_confirmed": false,
                   "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "given_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_at": "2026-10-08T14:30:00Z",
-                  "withdrawn_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
               }
@@ -154618,7 +154602,7 @@
         "x-xos-capability": "data.request.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
         "summary": "Consent state per sensitive field",
-        "description": "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of certifications shared with it. Never a value. A person's own consent shows only where they shared the category with the org, or against a meal preference on its project; otherwise No Record. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "responses": {
           "200": {
             "description": "The result.",

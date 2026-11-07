@@ -609,8 +609,7 @@ const SensitiveConsentReportRow = z
   })
   .meta({
     id: "SensitiveConsentReportRow",
-    description:
-      "Consent state of one sensitive field of one subject. Never a value.",
+    description: "Consent state of one sensitive field of one subject. Never a value.",
   });
 
 export const workDetailResources: readonly ResourceSpec[] = [

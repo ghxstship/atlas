@@ -2426,7 +2426,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access.",
               },
             ],
           },
@@ -5810,7 +5810,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto, al Propietario de la organización y a cualquier otra persona a quien la organización dé acceso a datos médicos.",
               },
             ],
           },

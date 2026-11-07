@@ -187,6 +187,45 @@ test("whoever keeps a guest list attests, and only the Owner reads the needs bac
   );
   expect(audited?.n ?? 0).toBeGreaterThan(0);
 
+  // The email never comes back to the form. Saving with the field empty keeps it, and taking it off is explicit.
+  const attest = async () => {
+    await row.getByRole("button", { name: `Dietary and access needs for ${guest}` }).click();
+    await needs.getByLabel("I have this person's authority to enter this.").check();
+    await needs
+      .getByLabel(
+        "This person has been told what is entered, why and who sees it, and that they can have it removed.",
+      )
+      .check();
+    await needs.getByRole("button", { name: "Continue" }).click();
+  };
+  const email = async () => {
+    const [held] = await localSql<{ email: string | null }>(
+      `select n.guest_email as email from app.guest_care_needs n
+         join app.guest_list_entries g on g.id = n.guest_list_entry_id where g.guest_name = $1`,
+      [guest],
+    );
+    return held?.email ?? null;
+  };
+  await attest();
+  await needs.getByLabel("Guest's email", { exact: true }).fill(`guest.${id}@example.test`);
+  await needs.getByLabel("Allergies").fill("Shellfish");
+  await needs.getByRole("button", { name: "Save needs" }).click();
+  await expect(needs).toBeHidden();
+  await expect.poll(email).toBe(`guest.${id}@example.test`);
+  await attest();
+  await expect(needs.getByText("An email is on file.", { exact: false })).toBeVisible();
+  await needs.getByLabel("Allergies").fill("Shellfish, severe");
+  await needs.getByRole("button", { name: "Save needs" }).click();
+  await expect(needs).toBeHidden();
+  await expect.poll(email).toBe(`guest.${id}@example.test`);
+  await attest();
+  await needs.getByLabel("Remove the email on file", { exact: true }).check();
+  await needs.getByLabel("Allergies").fill("Shellfish, severe");
+  expect(await cognitiveLoadProblems(page)).toEqual([]);
+  await needs.getByRole("button", { name: "Save needs" }).click();
+  await expect(needs).toBeHidden();
+  await expect.poll(email).toBeNull();
+
   // Removing the needs is one step, and the guest stays.
   await row.getByRole("button", { name: `Dietary and access needs for ${guest}` }).click();
   await needs.getByRole("button", { name: "Remove needs" }).click();

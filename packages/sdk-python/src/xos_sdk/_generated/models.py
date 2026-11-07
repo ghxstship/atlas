@@ -21872,8 +21872,10 @@ class GuestNeedsRequest(_GuestNeedsRequestRequired, total=False):
     accessibility_needs: List[Literal["Step-Free Access", "Accessible Parking", "Accessible Restroom", "Seating", "Sign Language Interpreter", "Captioning", "Large Print", "Service Animal", "Quiet Space", "Assistance on Arrival"]]
     #: Accessibility needs in words.
     accessibility_notes: Optional[str]
-    #: The guest's email, so they can see this and remove it.
+    #: The guest's email, so they can see this and remove it. Left out, the email on file stays.
     guest_email: Optional[str]
+    #: Removes the email on file.
+    clear_guest_email: bool
     #: Version of the dietary wording the caller read.
     dietary_notice_version: Optional[str]
     #: Version of the accessibility wording the caller read.
@@ -23327,8 +23329,6 @@ class _SensitiveConsentRequired(TypedDict):
     updated_at: str
     category: SensitiveDataCategory
     basis: SensitiveConsentBasis
-    #: Identifier of the person the data is about.
-    person_id: Optional[str]
     #: Identifier of the external account whose supplier diversity status it covers.
     account_id: Optional[str]
     #: Identifier of the guest list entry the attestation covers.
@@ -23346,12 +23346,10 @@ class _SensitiveConsentRequired(TypedDict):
     given_at: str
     #: When it was withdrawn; null while it stands.
     withdrawn_at: Optional[str]
-    #: Identifier of the person who withdrew it.
-    withdrawn_by: Optional[str]
 
 
 class SensitiveConsent(_SensitiveConsentRequired, total=False):
-    """A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs."""
+    """A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens."""
 
     #: With account_id: the caller confirms they have authority to declare for the company. Refused with 422 sensitive_attestation_required without it.
     authority_confirmed: bool
@@ -23388,7 +23386,7 @@ class SensitiveConsentReportRowPage(TypedDict):
 
 
 class SensitiveConsentReportRow(TypedDict):
-    """Consent state of one sensitive field of one subject. Never a value, and never whether a value is held."""
+    """Consent state of one sensitive field of one subject. Never a value."""
 
     #: Person, Guest or Company.
     subject_kind: str

@@ -52312,6 +52312,7 @@ export type Database = {
           person_id: string | null;
           surface: Database["app"]["Enums"]["sensitive_consent_surface"];
           updated_at: string;
+          values_saved: boolean;
           withdrawn_at: string | null;
           withdrawn_by: string | null;
         };
@@ -52334,6 +52335,7 @@ export type Database = {
           person_id?: string | null;
           surface: Database["app"]["Enums"]["sensitive_consent_surface"];
           updated_at?: string;
+          values_saved?: boolean;
           withdrawn_at?: string | null;
           withdrawn_by?: string | null;
         };
@@ -52355,6 +52357,7 @@ export type Database = {
           person_id?: string | null;
           surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
           updated_at?: string;
+          values_saved?: boolean;
           withdrawn_at?: string | null;
           withdrawn_by?: string | null;
         };
@@ -73354,6 +73357,7 @@ export type Database = {
           given_at: string;
           given_by_name: string;
           guest_list_entry_id: string;
+          has_email: boolean;
         }[];
       };
       handbook_acknowledgment_status: {
@@ -75902,6 +75906,7 @@ export type Database = {
           p_accessibility_notice_version?: string;
           p_allergies?: string;
           p_authority_confirmed?: boolean;
+          p_clear_guest_email?: boolean;
           p_client_ip?: unknown;
           p_dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
           p_dietary_notes?: string;

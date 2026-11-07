@@ -55,10 +55,10 @@ select throws_like($$select app.give_sensitive_consent('Dietary and Allergies', 
   'sensitive_notice_locale:%', 'and a consent with no language');
 select lives_ok($$select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'es-US', 'Compass')$$, 'she consents');
 select is((select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'es-US', 'Compass')),
-  (select id from app.sensitive_data_consents where person_id = pg_temp.id('ivy') and category = 'Dietary and Allergies'),
+  (select id from app.sensitive_data_consents where given_by = pg_temp.id('ivy') and basis = 'Own Consent' and category = 'Dietary and Allergies'),
   'consenting again returns the same grant');
 select results_eq($$select notice_version, locale, surface::text, basis::text, given_by, withdrawn_at is null
-    from app.sensitive_data_consents where person_id = pg_temp.id('ivy') and category = 'Dietary and Allergies'$$,
+    from app.sensitive_data_consents where given_by = pg_temp.id('ivy') and category = 'Dietary and Allergies'$$,
   $$values ('2026-11-06'::text, 'es-US'::text, 'Compass'::text, 'Own Consent'::text, pg_temp.id('ivy'), true)$$,
   'the record holds the text version, the language, the surface, the person and that it stands');
 select is((select count(*)::int from app.my_sensitive_consents()), 1, 'she reads her standing consent');
@@ -71,7 +71,7 @@ select lives_ok($$update app.person_work_details set allergies = 'Peanuts', diet
 select throws_like($$update app.person_work_details set accessibility_needs = '{Seating}' where person_id = pg_temp.id('ivy')$$,
   'sensitive_consent_required:%', 'consent is specific: dietary consent does not cover accessibility');
 select is(pg_temp.fields('ivy'), array['allergies', 'dietary_needs'], 'the field record names the fields held, field by field');
-select ok((select bool_and(consent_id = (select id from app.sensitive_data_consents where person_id = pg_temp.id('ivy') and category = 'Dietary and Allergies'))
+select ok((select bool_and(consent_id = (select id from app.sensitive_data_consents where given_by = pg_temp.id('ivy') and category = 'Dietary and Allergies'))
   from app.sensitive_field_records where person_id = pg_temp.id('ivy')), 'each stands on the consent');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('ivy') and action = 'sensitive_consent.given'), 1,
   'her access log shows it');
@@ -97,7 +97,7 @@ select pg_temp.as_user('ivy');
 select throws_like($$update app.person_work_details set allergies = 'Peanuts' where person_id = pg_temp.id('ivy')$$,
   'sensitive_consent_required:%', 'and a new value needs consent again');
 select lives_ok($$select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway')$$, 'a new grant opens a new row');
-select is((select count(*)::int from app.sensitive_data_consents where person_id = pg_temp.id('ivy')), 2, 'the old one stays as evidence');
+select is((select count(*)::int from app.sensitive_data_consents where given_by = pg_temp.id('ivy')), 2, 'the old one stays as evidence');
 
 -- A legal hold keeps the values, hidden -------------------------------------------------------------------------------
 update app.person_work_details set allergies = 'Peanuts' where person_id = pg_temp.id('ivy');

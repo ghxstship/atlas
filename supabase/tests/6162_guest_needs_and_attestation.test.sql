@@ -137,9 +137,11 @@ select is((select person_id from app.sensitive_data_consents where guest_list_en
 select is(pg_temp.told('rae'), 1, 'and she is told');
 select pg_temp.as_user('carol');
 select app.set_guest_care_needs(pg_temp.id('guest_r'), '{Halal}', null, null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+insert into world select 'rae_old', c.id from app.sensitive_data_consents c where c.person_id = pg_temp.id('rae') and c.guest_list_entry_id = pg_temp.id('guest_r') limit 1;
 select pg_temp.as_user('rae');
 select is((select count(*)::int from app.sensitive_entries_about_me()), 0, 'correcting the email: the first person no longer reads the guest''s values');
-select throws_like(format($$select app.remove_sensitive_entry(%L)$$, (select c.id from app.sensitive_data_consents c where c.person_id = pg_temp.id('rae') and c.guest_list_entry_id = pg_temp.id('guest_r') limit 1)),
+select throws_like(format($$select app.remove_sensitive_entry(%L)$$, pg_temp.id('rae_old')),
   'sensitive_entry_not_yours:%', 'and cannot delete them');
 select pg_temp.as_platform();
 select is(pg_temp.told('tam'), 1, 'the second person is told');
@@ -147,6 +149,14 @@ select is((select person_id from app.sensitive_field_records where guest_list_en
   'and the field record names her');
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('rae') and action = 'sensitive_consent.entry_unlinked'), 1,
   'the first person''s access log says the entry no longer names her');
+
+select pg_temp.as_user('alice');
+select app.set_guest_care_needs(pg_temp.id('guest_r'), '{Kosher}', null, null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+select is((select given_by from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_r') and withdrawn_at is null), pg_temp.id('alice'),
+  'another keeper entering values is recorded as who attested');
+select is((select count(*)::int from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_r') and withdrawn_at is not null and withdrawn_by = pg_temp.id('tam')), 0,
+  'and what she replaced does not read as a withdrawal by the person');
 
 -- The keeper corrects an allergy: the email never comes back to the form, so it stays blank there.
 select pg_temp.as_user('carol');
@@ -190,15 +200,10 @@ select ok((select guest_email is null and guest_person_id is null from app.guest
 select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('tam') and action = 'sensitive_consent.entry_unlinked'), 1, 'and says so in her access log');
 select pg_temp.as_user('alice');
 select is((select has_email from app.guest_care_needs_states(pg_temp.id('prj_a')) where guest_list_entry_id = pg_temp.id('guest_r')), false, 'and the form no longer says one is on file');
+select is((select count(*)::int from app.sensitive_consent_report(pg_temp.id('org_a')) where subject_id = pg_temp.id('guest_r') and field_code = 'guest_dietary_needs'), 1,
+  'the report lists a guest once, however many people an email named, so it does not show who had an account');
 select app.set_guest_care_needs(pg_temp.id('guest_r'), '{Kosher}', null, null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
 select pg_temp.as_platform();
-select pg_temp.as_user('alice');
-select app.set_guest_care_needs(pg_temp.id('guest_r'), '{Kosher}', null, null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
-select pg_temp.as_platform();
-select is((select given_by from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_r') and withdrawn_at is null), pg_temp.id('alice'),
-  'another keeper entering values is recorded as who attested');
-select is((select count(*)::int from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_r') and withdrawn_at is not null and withdrawn_by = pg_temp.id('tam')), 0,
-  'and what she replaced does not read as a withdrawal by the person');
 
 -- A category read stands on its own attestation ---------------------------------------------------------------------------
 insert into app.legal_holds (org_id, table_name, matter) values (pg_temp.id('org_a'), 'app.guest_care_needs', 'Guest dispute 2026-22.');
@@ -292,7 +297,7 @@ with x as (insert into app.guest_list_entries (project_id, guest_name) values (p
   insert into world select 'guest_e', id from x;
 select app.set_guest_care_needs(pg_temp.id('guest_e'), '{Vegan}', null, null, '{}', null, null, true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
 select pg_temp.as_platform();
-update app.projects set starts_on = null, ends_on = (now() - interval '91 days')::date where id = pg_temp.id('prj_a');
+update app.projects set starts_on = null, ends_on = (now() - interval '92 days')::date where id = pg_temp.id('prj_a');
 insert into app.legal_holds (org_id, table_name, matter) values (pg_temp.id('org_a'), 'app.guest_care_needs', 'Guest dispute 2026-23.');
 select private.run_sensitive_data_job();
 select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_e')), 1, 'a hold defers the 90 days after the project ends');
@@ -358,7 +363,7 @@ select throws_like($$update app.guest_list_entries set note = 'Vegan' where id =
 -- A declined guest takes no needs.
 with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Declined Guest') returning id)
   insert into world select 'guest_dec', id from x;
-select pg_temp.as_platform();
+select pg_temp.as_user('alice');
 update app.guest_list_entries set entry_state = 'Declined' where id = pg_temp.id('guest_dec');
 select pg_temp.as_user('carol');
 select throws_like($$select app.set_guest_care_needs(pg_temp.id('guest_dec'), '{Vegan}', null, null, '{}', null, null, true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas')$$,

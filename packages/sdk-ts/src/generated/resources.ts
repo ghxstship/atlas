@@ -35500,7 +35500,7 @@ export class GuestListEntriesResource extends $Resource {
   /**
    * Set a guest's dietary and access needs
    *
-   * Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category is not attested back in: it is not saved, and the answer is the same. The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: it is not saved, and the answer is the same. Refuses 422 guest_needs_declined for a declined guest. The values never come back here. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /guest-list-entries/{id}/set-needs` (operation `guestListEntries.setNeeds`).
    * Requires the capability `advancing.rider.write`.
@@ -37439,7 +37439,7 @@ export class SensitiveConsentsResource extends $Resource {
   /**
    * List sensitive consent rows
    *
-   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /sensitive-consents` (operation `sensitiveConsents.list`).
    * Requires the capability `me.work_details.write`.
@@ -37458,7 +37458,7 @@ export class SensitiveConsentsResource extends $Resource {
   /**
    * List sensitive consent rows
    *
-   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Returns a cursor page of sensitive consent rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -37479,7 +37479,7 @@ export class SensitiveConsentsResource extends $Resource {
   /**
    * Create a sensitive consent
    *
-   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Creates a sensitive consent. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /sensitive-consents` (operation `sensitiveConsents.create`).
    * Requires the capability `me.work_details.write`.
@@ -37498,7 +37498,7 @@ export class SensitiveConsentsResource extends $Resource {
   /**
    * Get a sensitive consent
    *
-   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.
+   * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens. Returns one sensitive consent with its `ETag`. A sensitive consent the caller may not see returns 404.
    *
    * `GET /sensitive-consents/{id}` (operation `sensitiveConsents.get`).
    * Requires the capability `me.work_details.write`.
@@ -37534,7 +37534,7 @@ export class SensitiveConsentsResource extends $Resource {
   /**
    * Consent state per sensitive field
    *
-   * For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the guests and people it attested for, and the owners of certifications shared with it. Never a value, and never whether a value is held. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of certifications shared with it. Never a value. A person's own consent shows only where they shared the category with the org, or against a meal preference on its project; otherwise No Record. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /sensitive-consents/report` (operation `sensitiveConsents.report`).
    * Requires the capability `data.request.manage`.

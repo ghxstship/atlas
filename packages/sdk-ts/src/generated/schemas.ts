@@ -39428,10 +39428,14 @@ export interface GuestNeedsRequest {
    */
   readonly accessibility_notes?: string | null;
   /**
-   * The guest's email, so they can see this and remove it.
+   * The guest's email, so they can see this and remove it. Left out, the email on file stays.
    * Length: 1 to 320.
    */
   readonly guest_email?: string | null;
+  /**
+   * Removes the email on file.
+   */
+  readonly clear_guest_email?: boolean;
   /**
    * The caller has the guest's authority to enter this.
    */
@@ -42416,7 +42420,7 @@ export interface SensitiveConsentPage {
 }
 
 /**
- * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs.
+ * A consent to hold one category of sensitive data, or an attestation that someone else has the person's authority and that the person has had notice (ADR 0164). A new dietary, allergy, accessibility or supplier diversity value is refused with 422 sensitive_consent_required until one stands; clearing a value never needs one. Evidence: nothing changes after capture but a one-time withdrawal. The subject reads every row about them; whoever gave it reads theirs. A row does not name the person it is about, or who withdrew it, because whoever gave it reads it too: a person reads what was entered about them through the Work Details screens.
  */
 export interface SensitiveConsent {
   /**
@@ -42436,11 +42440,6 @@ export interface SensitiveConsent {
   readonly updated_at: string;
   readonly category: SensitiveDataCategory;
   readonly basis: SensitiveConsentBasis;
-  /**
-   * Identifier of the person the data is about.
-   * Format: `uuid`.
-   */
-  readonly person_id: string | null;
   /**
    * Identifier of the external account whose supplier diversity status it covers.
    * Format: `uuid`.
@@ -42488,11 +42487,6 @@ export interface SensitiveConsent {
    * Format: `date-time`.
    */
   readonly withdrawn_at: string | null;
-  /**
-   * Identifier of the person who withdrew it.
-   * Format: `uuid`.
-   */
-  readonly withdrawn_by: string | null;
 }
 
 /**
@@ -42554,7 +42548,7 @@ export interface SensitiveConsentReportRowPage {
 }
 
 /**
- * Consent state of one sensitive field of one subject. Never a value, and never whether a value is held.
+ * Consent state of one sensitive field of one subject. Never a value.
  */
 export interface SensitiveConsentReportRow {
   /**

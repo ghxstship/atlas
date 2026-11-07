@@ -17,7 +17,6 @@ const row = (over: Record<string, unknown>) => ({
   id: GRANT,
   category: "Accessibility",
   basis: "Own Consent",
-  person_id: PERSON,
   account_id: null,
   guest_list_entry_id: null,
   org_id: null,
@@ -29,7 +28,6 @@ const row = (over: Record<string, unknown>) => ({
   given_by: PERSON,
   given_at: "2026-11-06T10:00:00Z",
   withdrawn_at: null,
-  withdrawn_by: null,
   created_at: "2026-11-06T10:00:00Z",
   updated_at: "2026-11-06T10:00:00Z",
   ...over,
@@ -155,6 +153,11 @@ describe("Identity: consent for sensitive data (ADR 0164)", () => {
     const withdrawn = await success(http.post(`/sensitive-consents/${GRANT}/withdraw`, {}));
     await expectContract(withdrawn, "sensitiveConsents.withdraw");
     expect(db.calls.map((c) => c.name)).toContain("withdraw_sensitive_consent");
+    // Whoever gave an attestation reads the row too, so it never names the person, or who withdrew it.
+    expect(withdrawn).not.toHaveProperty("person_id");
+    expect(withdrawn).not.toHaveProperty("withdrawn_by");
+    expect(withdrawn).not.toHaveProperty("captured_ip");
+    expect(withdrawn).not.toHaveProperty("values_saved");
   });
 
   it("removes an attestation about the person through its own RPC", async () => {

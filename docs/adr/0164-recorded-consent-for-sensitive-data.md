@@ -62,20 +62,31 @@ Owner or Admin who declares it.
 
 The record says who attested, about whom. Another keeper entering values, or another person matched by a changed email, closes the
 attestation and opens a new one, and the person newly matched is told. An account opened or an address confirmed later is linked by
-the daily job, or sooner when the person acts, and they are told.
+the daily job, or sooner when the person acts, and they are told. The email on file never comes back to the form, because whoever
+keeps the list may not read it, so a save with the field empty keeps it and keeps the person it names. The form says an email is on
+file. Taking it off is an explicit tick, or typing another address, and whoever it stops naming finds that in their access log.
 
-A person who withdrew a category cannot be attested back into it. Refusing the email would answer whether an address has an account,
-and that its owner withdrew, which is itself sensitive. So that category is simply not saved, and the answer, the attestation and the
-audit entry are the same as for any address. Only the person's access log shows it. The keeper sees that they attested, which is true,
-not that needs are on file, so nothing they are told is false.
-The company that
-rosters a person knows them, so it is refused (`sensitive_person_only`) in words that do not say they withdrew.
+A person who withdrew a category cannot be attested back into it anywhere. A person who removed one attestation cannot be entered again
+on that guest's entry, or by that company, and another keeper's entry elsewhere still saves. Either lifts when they give their own
+consent. The Work Details list says so where they remove it. Refusing the email would answer whether an address has an account, and that its
+owner withdrew, which is itself sensitive. So that category is simply not saved, and the answer, the attestation and the audit entry
+are the same as for any address. The attestation names the person and records that nothing was saved (`values_saved`). A keeper does
+not read any of that: `person_id`, `withdrawn_by`, `values_saved` and `captured_ip` are not selectable on
+`app.sensitive_data_consents`, and the `sensitive_consent` and `guest_needs` rows of the access log are the person's alone, though they
+name the org, so an audit reader does not read them. The keeper sees that they attested, which is true, not that needs are on file.
+The person's access log shows the attempt. There is nothing for them to remove, so it is not on their list of entries.
+
+Two limits are accepted. A keeper who also holds medical access can read the list back and see the values are absent, and only saving
+the data of someone who withdrew would hide that: that reader is already trusted with this data, and the read is logged. And anyone
+keeping the list sees an attestation end when the person removes it, because the removal has to take effect. The company that rosters a
+person knows them, so it is refused (`sensitive_person_only`) in words that do not say they withdrew.
 
 ### 6. Only the roles that need it read it
 
 Dietary needs and notes and accessibility needs and notes join allergies as Restricted under `data.restricted.read.medical`, on
 ADR 0105's terms: never directly selectable, read through a function by the Owner and, on their project, the catering lead and
-on-site medical roles, every read logged. A hospitality reader sees them locked. A company never reads them. Catering planners keep
+on-site medical roles and anyone else the organization gives the capability, through a custom role or a grant, every read logged. The
+wording people agree to says so. A hospitality reader sees them locked. A company never reads them. Catering planners keep
 counts of five or more. A meal preference is dietary data and takes the same terms everywhere it is read (`app.roster_project_facts`,
 `app.roster_travel_party` and API v1 roster facts). It is on the project already, so it needs no separate share: holders on that
 project read it, logged as `meal_preference.viewed`. It reads as absent while neither the person's consent nor the attestation of the
@@ -101,8 +112,11 @@ waiting. Marking existing data as consented would have been a false record.
 `app.sensitive_field_records` holds, per subject and field, the grant the value stands on, who entered it, when, and when it was
 cleared, never a value. A person's meal preference is one record across their roster entries, kept by a trigger so that every path
 that removes one is covered. `app.sensitive_consent_report` gives data.request.manage holders the consent state per subject and field,
-listing every field a subject's category covers for that org, so it does not even show whether a value is held. Whoever an org rosters
-is listed for their meal preference. A company's attestation is shown against the meal preference and nothing else.
+listing every field a subject's category covers for that org, so it does not show whether a value is held. Whoever an org rosters is
+listed for their meal preference. A person's own consent shows only where they shared the category with that org, or against a meal
+preference on its project, which its readers already see as locked. Anyone else it rosters reads as No Record, because whether they
+consented or withdrew elsewhere is not its business. A company's attestation is shown against the meal preference and nothing else,
+and to the producing org only while it stands. A guest is listed once, whoever an email named.
 
 ### 9. Free text is a backstop, not a classifier
 
@@ -115,11 +129,15 @@ column and the rest of the sheet imports. `private.question_looks_sensitive` doe
 
 ### 10. Deletion and legal holds
 
-A guest's needs are deleted when the entry is removed or declined, and 90 days after the project ends: its last day, or when it was
-archived or deleted. A project with no end date never ends, so they go a year after they last changed. Account deletion closes what a
-guest list holds about the person, under their person or only their verified email. A legal hold over the org's guest needs, or over
-the person they name, defers every deletion. Use still stops: the attestation closes, nothing reads the values, and the daily job
-deletes them when the hold ends. A hold over a company's certifications defers their de-identifying the same way.
+A guest's needs are deleted when the entry is removed or declined, and 90 days after the project ends, counted in its own time zone:
+the earliest of its last day and when it was archived or deleted. A project with no end date never ends, so they go a year after they
+last changed. A declined guest takes no new needs (`guest_needs_declined`). Account deletion closes what a guest list holds about the
+person, under their person or only their verified email. A legal hold over the org's guest needs, or over the person they name, defers
+every deletion the system makes: withdrawal, removal, expiry and the daily job. Use still stops: the attestation closes, also when the
+retention date passes under the hold, nothing reads the values, and the daily job deletes them when the hold ends. A hold over a
+company's certifications defers their de-identifying the same way. A hold does not lock a person's own form: someone who blanks or
+changes their own value changes their own record, as they could before this work. Clearing a travel request drops its meal preference
+at once, except under a hold, when it stays on the deleted row that nothing reads.
 
 ## Alternatives
 
@@ -133,6 +151,8 @@ deletes them when the hold ends. A hold over a company's certifications defers t
 
 - A person with no consent sees a short step where the forms were; everything else works as before.
 - A hospitality reader who planned from dietary lists now sees counts, or needs the catering lead role on the project.
+- An API client of `/sensitive-consents` no longer sees `person_id` or `withdrawn_by`. That resource is new with this work, so nothing
+  released changes.
 - Org readers with only `vendors.vendor.read` no longer see shared certifications.
 - `private.looks_sensitive` will sometimes refuse an innocent door note; the message says what to do.
 - A question's wording is only a backstop: "Anything we should know?" passes, and its answers can hold this data. So can other free
