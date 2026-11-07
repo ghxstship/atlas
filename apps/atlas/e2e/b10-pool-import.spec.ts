@@ -32,8 +32,8 @@ test("a freelancer list: map, review, merge, commit, and the invitations appear"
 
   // Review offers a merge only with someone already in a pool.
   await sql(
-    `insert into app.pool_members (talent_pool_id, person_id)
-     select tp.id, p.id from app.talent_pools tp, app.people p
+    `insert into app.pool_members (talent_pool_id, person_id, standing)
+     select tp.id, p.id, 'Approved' from app.talent_pools tp, app.people p
       where tp.name = $1 and p.full_name = 'Demo Crew Member'`,
     [`Freelancers ${id}`],
     await personOf("owner@example.com"),
