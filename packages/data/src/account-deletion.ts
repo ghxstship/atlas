@@ -8,6 +8,7 @@
  * (legal hold, on shift, sole owner, wrong email) deletes nothing and comes back as a typed refusal.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { authFailure, needsSecondFactor, type Assurance } from "./auth-assurance.ts";
 import type { XosClient } from "./client.ts";
 import { minimumAgeConfirmed, type AgeRefusal, type AgeSurface } from "./consent.ts";
 import { removeCredentialPhotoObjects, withdrawMyCredentialPhotos } from "./credential-photos.ts";
@@ -119,6 +120,9 @@ export async function removeProfileMedia(
   return ok(published.data + staged.data);
 }
 
+/** How many entries one Storage list call returns. */
+const LIST_PAGE = 1000;
+
 /**
  * Removes every object under a folder of a bucket, nested folders included. Storage answers a delete the caller may not
  * make with no error and nothing removed, so this fails when any object stays.
@@ -134,10 +138,14 @@ async function removeFolder(
   const folders = [root];
   while (folders.length > 0) {
     const folder = folders.pop() as string;
-    const listed = await bucket.list(folder, { limit: 1000 });
-    if (listed.error) return fail({ kind: "unexpected", message: listed.error.message });
-    for (const o of listed.data) {
-      (o.id === null ? folders : files).push(`${folder}/${o.name}`);
+    // Page through a folder, so one with more entries than a page holds is emptied too.
+    for (let offset = 0; ; offset += LIST_PAGE) {
+      const listed = await bucket.list(folder, { limit: LIST_PAGE, offset });
+      if (listed.error) return fail({ kind: "unexpected", message: listed.error.message });
+      for (const o of listed.data) {
+        (o.id === null ? folders : files).push(`${folder}/${o.name}`);
+      }
+      if (listed.data.length < LIST_PAGE) break;
     }
   }
   let removed = 0;
@@ -196,6 +204,22 @@ export async function deleteMyAccount(
 }
 
 /**
+ * The session's assurance with the person's factors read from Supabase Auth now, not from a stored session that may predate
+ * a factor: a server action's cookie session can.
+ */
+async function currentAssurance(client: SupabaseClient): Promise<Result<Assurance>> {
+  const { data: current } = await client.auth.getSession();
+  const { data, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel(
+    current.session?.access_token,
+  );
+  if (error) return fail(authFailure(error));
+  return ok({
+    current: data.currentLevel === "aal2" ? "aal2" : "aal1",
+    next: data.nextLevel === "aal2" ? "aal2" : "aal1",
+  });
+}
+
+/**
  * The signed-in person answered that they are under 18 and confirmed it (ADR 0156). The one way an app closes such an
  * account: their badge photos, profile media (a public bucket, read by URL, that nobody could reach once the sign-in is
  * gone) and support screenshots go first, while they can still reach them, because SQL cannot delete storage objects. Then
@@ -203,8 +227,9 @@ export async function deleteMyAccount(
  * that names them. After it the session has no sign-in behind it; an account that is held keeps its sign-in, so the caller
  * ends every session.
  *
- * Nothing is removed from someone who has confirmed 18, whom the database then refuses, or from an account a legal hold, an
- * open shift or being an only owner keeps open. A file that cannot be removed stops the closure, so it can be tried again
+ * Nothing is removed from someone who has confirmed 18, whom the database then refuses, from a sign-in that holds a second
+ * factor it has not passed (refused as age_second_factor), or from an account a legal hold, an open shift or being an only
+ * owner keeps open. A file that cannot be removed stops the closure, so it can be tried again
  * rather than leave a photo with no owner.
  */
 export async function refuseMinimumAge(
@@ -214,6 +239,17 @@ export async function refuseMinimumAge(
   const confirmed = await minimumAgeConfirmed(client as unknown as XosClient);
   if (!confirmed.ok) return confirmed;
   if (!confirmed.data) {
+    // Closing is as final as deleting: a sign-in that holds a second factor passes it before any file goes. The
+    // database refuses the closure on its own too (age_second_factor), but only after the files would be gone.
+    const assurance = await currentAssurance(client);
+    if (!assurance.ok) return assurance;
+    if (needsSecondFactor(assurance.data)) {
+      return fail({
+        kind: "refusal",
+        rule: "age_second_factor",
+        message: "Verify your second factor before you close this account. Nothing was changed.",
+      });
+    }
     const preview = await previewAccountDeletion(client);
     if (!preview.ok) return preview;
     if (preview.data.blockers.length === 0) {

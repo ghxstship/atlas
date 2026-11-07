@@ -59,6 +59,8 @@ let refusals: Record<string, unknown>[] = [];
 let refusal: Record<string, unknown> = { outcome: "Account Removed" };
 /** The signed-in user's metadata, as Supabase Auth's /user returns it. */
 let userMetadata: Record<string, unknown>;
+/** The signed-in user's second factors, as Supabase Auth's /user returns them. */
+let userFactors: { id: string; status: string; factor_type: string }[] = [];
 /** Worker Terms rows the acceptance log holds for the person. */
 let accepted: { document_slug: string }[];
 /** Acceptances written through app.record_legal_acceptances. */
@@ -97,6 +99,7 @@ beforeEach(() => {
   jar.host.value = "127.0.0.1:3127";
   tokenRequests = [];
   userMetadata = { full_name: "Sam Rivera" };
+  userFactors = [];
   accepted = [];
   recorded = [];
   ages = [];
@@ -114,7 +117,11 @@ beforeEach(() => {
       return json(session());
     }
     if (url.pathname === "/auth/v1/user") {
-      return json({ ...(session()["user"] as object), user_metadata: userMetadata });
+      return json({
+        ...(session()["user"] as object),
+        user_metadata: userMetadata,
+        factors: userFactors,
+      });
     }
     if (url.pathname === "/rest/v1/legal_acceptances") return json(accepted);
     if (url.pathname === "/rest/v1/rpc/record_legal_acceptances") {
@@ -393,6 +400,19 @@ describe("an answer of under 18 (ADR 0156)", () => {
     storageRemoves = false;
     expect(await closeUnderAgeAccount()).toEqual({ error: "unexpected" });
     expect(closing).not.toContain("close");
+    expect(signOuts).toEqual([]);
+  });
+
+  it("asks a sign-in that holds a second factor to pass it, and removes nothing until then", async () => {
+    const { closeUnderAgeAccount } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    await callback(new URLSearchParams({ code: "abc", provider: "google" }).toString());
+    userFactors = [{ id: "f1", status: "verified", factor_type: "totp" }];
+    await expect(closeUnderAgeAccount()).rejects.toMatchObject({
+      url: "/auth/mfa?next=%2Fauth%2Fage%3Funder%3D1",
+    });
+    expect(closing).toEqual([]);
+    expect(refusals).toEqual([]);
     expect(signOuts).toEqual([]);
   });
 

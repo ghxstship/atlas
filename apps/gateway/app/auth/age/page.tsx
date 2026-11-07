@@ -1,8 +1,10 @@
 import type { Metadata, Route } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { tokenAal } from "@xos/data/auth-assurance";
 import { minimumAgeConfirmed } from "@xos/data/consent";
 import { AgeQuestionForm, AgeUnderConfirmForm } from "@/components/auth/forms";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { safeNext } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -15,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * The age question on its own (ADR 0156): the minimum age is 18 in every app, so the proxy sends anyone who has not
  * answered at 18 here before any signed-in page: an earlier 16, or an account a provider made. Someone who has answered
  * goes straight on. With `under=1` they chose under 18, and this says what closing the account means and asks them to
- * confirm it.
+ * confirm it. The auth pages sit outside the proxy's sitemap, so this one asks for a held second factor itself.
  */
 export default async function AgeQuestionPage({ searchParams }: PageProps<"/auth/age">) {
   const query = await searchParams;
@@ -23,6 +25,17 @@ export default async function AgeQuestionPage({ searchParams }: PageProps<"/auth
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  // This page can close the account, so it sits behind the second factor like the pages the proxy guards (Section 9).
+  if ((data.user.factors ?? []).some((f) => f.status === "verified")) {
+    const { data: current } = await db.auth.getSession();
+    if (tokenAal(current.session?.access_token) === "aal1") {
+      const search = new URLSearchParams({
+        ...(query["under"] === "1" ? { under: "1" } : {}),
+        next,
+      });
+      redirect(secondFactorRedirect("/auth/age", `?${search.toString()}`) as Route);
+    }
+  }
   const age = await minimumAgeConfirmed(db);
   if (age.ok && age.data) redirect(next as Route);
   const t = await getTranslations("gateway.auth.ageQuestion");

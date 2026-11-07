@@ -131,6 +131,9 @@ async function stopAccountIfUnderAge(form: FormData, back: string): Promise<void
 export async function closeUnderAgeAccount(): Promise<FormState> {
   const db = await createServerSupabase();
   const refused = await refuseMinimumAge(untyped(db), "Gateway");
+  // A sign-in that holds a second factor passes it before this can close the account (Section 9); nothing was removed.
+  if (!refused.ok && refused.error.kind === "refusal" && refused.error.rule === "age_second_factor")
+    redirect(secondFactorRedirect("/auth/age", "?under=1") as Route);
   if (!refused.ok) return { error: "unexpected" };
   const held = refused.data.outcome === "Account Held";
   await db.auth.signOut({ scope: held ? "global" : "local" });

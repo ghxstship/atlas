@@ -17,12 +17,30 @@ interface Rpc {
  * A client whose RPCs answer from queues and whose storage holds the given objects: profile-media paths,
  * or `upload-staging:<name>` for a staged upload.
  */
-function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = false) {
+function fake(
+  rpcs: Record<string, Rpc[]>,
+  objects: string[] = [],
+  failRemove = false,
+  assurance: { currentLevel: string; nextLevel: string } = {
+    currentLevel: "aal1",
+    nextLevel: "aal1",
+  },
+) {
   const calls: string[] = [];
   const stored = new Set(objects);
   const key = (bucket: string, path: string) =>
     bucket === "profile-media" ? path : `${bucket}:${path}`;
   const client = {
+    auth: {
+      getSession: () =>
+        Promise.resolve({ data: { session: { access_token: "jwt" } }, error: null }),
+      mfa: {
+        getAuthenticatorAssuranceLevel: (jwt?: string) => {
+          calls.push(`aal:${jwt ?? ""}`);
+          return Promise.resolve({ data: assurance, error: null });
+        },
+      },
+    },
     rpc(name: string, args?: unknown) {
       calls.push(`rpc:${name}:${JSON.stringify(args ?? null)}`);
       const next = rpcs[name]?.shift();
@@ -31,7 +49,7 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
     },
     storage: {
       from: (bucket: string) => ({
-        list: (folder: string) => {
+        list: (folder: string, options: { limit?: number; offset?: number } = {}) => {
           calls.push(`list:${bucket}:${folder}`);
           const names = new Map<string, boolean>();
           const prefix = key(bucket, `${folder}/`);
@@ -41,8 +59,10 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
             const [head, ...tail] = rest.split("/");
             names.set(head ?? "", tail.length > 0 || names.get(head ?? "") === true);
           }
+          const offset = options.offset ?? 0;
+          const page = [...names].slice(offset, offset + (options.limit ?? 100));
           return Promise.resolve({
-            data: [...names].map(([name, isFolder]) => ({ name, id: isFolder ? null : name })),
+            data: page.map(([name, isFolder]) => ({ name, id: isFolder ? null : name })),
             error: null,
           });
         },
@@ -425,6 +445,30 @@ describe("closing an account after an answer of under 18 (ADR 0156)", () => {
       expect(stored.size).toBe(FILES.length);
       expect(calls.some((c) => c.includes("refuse_minimum_age"))).toBe(false);
     }
+  });
+
+  it("removes nothing, and closes nothing, until a sign-in passes the second factor it holds", async () => {
+    const { client, calls, stored } = fake(answers(), FILES, false, {
+      currentLevel: "aal1",
+      nextLevel: "aal2",
+    });
+    expect(await refuseMinimumAge(client, "Gateway")).toEqual({
+      ok: false,
+      error: expect.objectContaining({ kind: "refusal", rule: "age_second_factor" }),
+    });
+    expect(stored.size).toBe(FILES.length);
+    // The factors are read from Supabase Auth for this token, not from a stored session.
+    expect(calls).toContain("aal:jwt");
+    expect(calls.some((c) => c.startsWith("remove:") || c.includes("refuse_minimum_age"))).toBe(
+      false,
+    );
+  });
+
+  it("empties a folder with more files than one list returns", async () => {
+    const many = Array.from({ length: 1001 }, (_, i) => `${PERSON}/portfolio/${i}.png`);
+    const { client, stored } = fake(answers(), many);
+    expect((await refuseMinimumAge(client, "Compass")).ok).toBe(true);
+    expect(stored.size).toBe(0);
   });
 
   it("reads an account that closed with an org's records behind it", async () => {
