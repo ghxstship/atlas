@@ -72046,6 +72046,12 @@ export type Database = {
         }[];
       };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
+      console_price_book_currencies: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          currency_code: string;
+        }[];
+      };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
@@ -72075,6 +72081,7 @@ export type Database = {
           p_code: string;
           p_country_codes: string[];
           p_currency_codes: string[];
+          p_is_new: boolean;
           p_locale_codes: string[];
           p_name_en: string;
           p_name_es: string;

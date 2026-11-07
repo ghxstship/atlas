@@ -684,7 +684,7 @@ set search_path = ''
 as $$
 begin
   perform private.require_platform_operator('tenants.read');
-  return query select distinct lp.currency_code from private.plan_list_prices lp order by lp.currency_code;
+  return query select distinct lp.currency_code::text from private.plan_list_prices lp order by 1;
 end;
 $$;
 comment on function app.console_price_book_currencies() is 'Every currency the price book has, for choosing a territory''s currencies: the same list app.console_save_territory checks, so a currency a territory gave up can still be chosen again (tenants.read).';
@@ -721,7 +721,7 @@ begin
   return p_code;
 end;
 $$;
-comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Signup follows at once, and prices and languages usually within a minute and at most about 11, as each server's read of the offering catches up (ADR 0160), with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
+comment on function app.console_set_territory_offered(text, boolean, text) is 'An Administrator (territories.write) opens or closes a territory, with a reason, on the console ledger. Signup follows at once, and prices and languages usually within a minute and at most about 11, as each server''s read of the offering catches up (ADR 0160), with no code change. Refuses territory_transition_not_allowed when it is already in that state and territory_last_offered for the last open territory. Closing touches no existing organization.';
 revoke all on function app.console_set_territory_offered(text, boolean, text) from public, anon;
 grant execute on function app.console_set_territory_offered(text, boolean, text) to authenticated;
 
@@ -865,6 +865,6 @@ begin
   order by o.name;
 end;
 $$;
-comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none, with the contract of an exception when one let them in (tenants.read). A company account is one with an Account Owner: a customer's counterparty is not one of them, whether nobody belongs to it or only the Account Members its roster invitations added (private.ensure_accepted_membership). The list a person reviews; nothing acts on it.';
+comment on function app.console_orgs_outside_territories() is 'Organizations using Atlas and Gateway company accounts whose stated country is outside the offered territories, or who stated none, with the contract of an exception when one let them in (tenants.read). A company account is one with an Account Owner: a customer''s counterparty is not one of them, whether nobody belongs to it or only the Account Members its roster invitations added (private.ensure_accepted_membership). The list a person reviews; nothing acts on it.';
 revoke all on function app.console_orgs_outside_territories() from public, anon;
 grant execute on function app.console_orgs_outside_territories() to authenticated;
