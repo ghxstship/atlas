@@ -131,6 +131,7 @@
     "legal_queue_due": "Enter the date the document sets, after the day it arrived.",
     "legal_queue_subject": "No account uses that email. Leave it empty if the content has no account behind it.",
     "legal_queue_related": "Name the reference of the DMCA notice this answers.",
+    "legal_queue_org": "Name the organization by its slug, as the Tenants page shows it. If its data is already deleted, add the request as another written promise and tell the person nothing is left to return.",
     "legal_queue_note": "Say what was done, in up to 4,000 characters.",
     "legal_queue_first_response": "This item has no first response waiting.",
     "legal_queue_fed": "This item follows its source. Act on the source, and it follows.",
@@ -806,6 +807,8 @@
       "subjectHelp": "Email of the account the notice names, for the repeat infringer count. Leave empty if there is none.",
       "related": "Reference of the DMCA notice it answers",
       "relatedHelp": "For example LQ-2026-00001.",
+      "org": "Organization slug",
+      "orgHelp": "As the Tenants page shows it. Its deletion is held until this item closes.",
       "due": "Date the document sets",
       "dueHelp": "In {zone} time. The rule cannot compute this one, so check it twice.",
       "submit": "Add to the queue",
@@ -959,9 +962,11 @@
       "State Changed": "State changed",
       "Extended": "Extended",
       "Source Changed": "Followed its source",
-      "Alert Sent": "Alert sent",
+      "Alert Sent": "Alert queued for email",
       "Re-Review": "Re-review",
-      "Person Told": "Person told"
+      "Person Told": "Person told",
+      "Hold Placed": "Legal hold placed on the organization",
+      "Hold Released": "Legal hold released"
     },
     "rules": {
       "dsar_privacy": {
@@ -1038,7 +1043,7 @@
       },
       "omitted_data_return": {
         "label": "Return of data the export omits",
-        "source": "Data Processing Agreement 10.2 and Terms 11.2: return it in 30 days and hold the deletion until then."
+        "source": "Data Processing Agreement 10.2 and Terms 11.2: return it in 30 days. Adding it places a legal hold on the organization, so its deletion waits until this item closes."
       },
       "customer_privacy_help": {
         "label": "Customer's request for privacy help",
@@ -1053,7 +1058,7 @@
         "source": "The Customer's clock (Data Processing Agreement 8.1): 30 days, or 90 extended. XOS only watches it."
       },
       "abuse_appeal": {
-        "label": "Appeal of a restriction, by email",
+        "label": "Appeal of a moderation decision, by email",
         "source": "Acceptable Use Policy 7: a fresh, documented re-review, with the person told the result. The 30 days are our own target."
       },
       "undelivered_notice": {

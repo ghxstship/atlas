@@ -76,7 +76,15 @@ describe("legal queue", () => {
           government_requests: [{ year: 2026, received: 1 }],
           contacts: [{ id: "c1", name: "Backup", email: "backup@example.test" }],
           outside_reviewer: null,
-          rules: [{ code: "security_report", matter: "Security Report", due_from_document: false }],
+          rules: [
+            { code: "security_report", matter: "Security Report", due_from_document: false },
+            {
+              code: "omitted_data_return",
+              matter: "Other Promise",
+              due_from_document: false,
+              holds_org_data: true,
+            },
+          ],
         }),
         refused("step_up_required"),
       ],
@@ -106,6 +114,7 @@ describe("legal queue", () => {
     expect(queue.ok && queue.data.governmentRequests).toEqual([{ year: 2026, received: 1 }]);
     expect(queue.ok && queue.data.outsideReviewer).toBeNull();
     expect(queue.ok && queue.data.rules[0]?.dueFromDocument).toBe(false);
+    expect(queue.ok && queue.data.rules.map((r) => r.holdsOrgData)).toEqual([false, true]);
     expect((await getLegalQueue(db)).ok).toBe(false);
   });
 
@@ -198,6 +207,7 @@ describe("legal queue", () => {
       p_subject_email: null,
       p_related_reference: null,
       p_due_local: "2026-12-01T17:00",
+      p_org_slug: null,
     });
     expect((await noteLegalQueueItem(db, "i1", "Called them.")).ok).toBe(true);
     expect((await recordLegalFirstResponse(db, "i1", "Acknowledged.")).ok).toBe(true);

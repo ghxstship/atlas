@@ -52,6 +52,7 @@ export async function addLegalQueueItemAction(
     subjectEmail: field(form, "subjectEmail") || null,
     relatedReference: field(form, "relatedReference") || null,
     dueLocal,
+    orgSlug: field(form, "orgSlug") || null,
   });
   if (result.ok) refresh();
   return fromResult(result);

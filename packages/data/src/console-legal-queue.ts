@@ -125,6 +125,8 @@ export interface LegalQueue {
     readonly code: string;
     readonly matter: LegalQueueMatter;
     readonly dueFromDocument: boolean;
+    /** The item names a Customer org and holds its deletion while open. */
+    readonly holdsOrgData: boolean;
   }[];
 }
 
@@ -196,6 +198,7 @@ export async function getLegalQueue(db: XosClient, open = true): Promise<Result<
           code: str(r["code"]),
           matter: str(r["matter"]) as LegalQueueMatter,
           dueFromDocument: bool(r["due_from_document"]),
+          holdsOrgData: bool(r["holds_org_data"]),
         };
       }),
     };
@@ -302,6 +305,8 @@ export interface NewLegalQueueItem {
   readonly relatedReference?: string | null;
   /** The date the document sets, for a rule that takes it from there, as typed in that same zone. */
   readonly dueLocal?: string | null;
+  /** On a return of omitted data: the org's slug, which the item places a legal hold on. */
+  readonly orgSlug?: string | null;
 }
 
 export async function addLegalQueueItem(
@@ -320,6 +325,7 @@ export async function addLegalQueueItem(
       p_subject_email: input.subjectEmail ?? null,
       p_related_reference: input.relatedReference ?? null,
       p_due_local: input.dueLocal ?? null,
+      p_org_slug: input.orgSlug ?? null,
     },
     str,
   );

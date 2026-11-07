@@ -36,7 +36,8 @@ create type app.legal_queue_basis as enum ('Statute', 'Published Promise', 'Inte
 comment on type app.legal_queue_basis is 'What a clock rests on (ADR 0167): a statute or regulation, a promise in a published document, a target GHXSTSHIP sets for itself where the law says only "timely" or "expeditiously", or a clock that belongs to a Customer, which the queue only watches.';
 
 create type app.legal_queue_event_kind as enum (
-  'Received', 'First Response', 'Note', 'State Changed', 'Extended', 'Source Changed', 'Alert Sent', 'Re-Review', 'Person Told'
+  'Received', 'First Response', 'Note', 'State Changed', 'Extended', 'Source Changed', 'Alert Sent', 'Re-Review', 'Person Told',
+  'Hold Placed', 'Hold Released'
 );
 comment on type app.legal_queue_event_kind is 'One entry in a legal queue item''s log (ADR 0167).';
 
@@ -178,6 +179,7 @@ create table private.legal_queue_rules (
   customer_clock boolean not null default false,
   operator_closes boolean not null default false,
   re_review_required boolean not null default false,
+  holds_org_data boolean not null default false,
   alert_leads interval[] not null,
   sort_order smallint not null,
   constraint legal_queue_rules_code check (code ~ '^[a-z][a-z_]*$'),
@@ -205,6 +207,7 @@ comment on column private.legal_queue_rules.hand_entered is 'Offered when adding
 comment on column private.legal_queue_rules.customer_clock is 'The clock is a Customer''s own: the item is watched, not worked, and alerts once when overdue.';
 comment on column private.legal_queue_rules.operator_closes is 'A fed item an operator moves by hand, because nothing else can finish it, such as a notice that could not be delivered.';
 comment on column private.legal_queue_rules.re_review_required is 'Closing needs a fresh, documented re-review and a record of how the person was told: an appeal that arrived by email (ADR 0167).';
+comment on column private.legal_queue_rules.holds_org_data is 'The item names a Customer org and places a legal hold on it while open, so its deletion waits: a return of data the export omits (Terms 11.2, DPA 10.2).';
 comment on column private.legal_queue_rules.alert_leads is 'How long before each clock ends an alert goes out.';
 comment on column private.legal_queue_rules.sort_order is 'Order in the add form.';
 
@@ -250,6 +253,8 @@ insert into private.legal_queue_rules (code, matter, basis, first_amount, first_
   ('dsar_customer_register', 'Data Subject Request', 'Customer Clock', null, null, 30, 'Days', null, null, null, null, false, false, true, false, false, '{}', 220),
   ('undelivered_notice', 'Undelivered Notice', 'Internal Target', null, null, 2, 'Business Days', null, null, null, null, false, false, false, true, false, '{14 days,1 day}', 230),
   ('queue_feed_failure', 'Queue Failure', 'Internal Target', null, null, 1, 'Business Days', null, null, null, null, false, false, false, false, false, '{14 days}', 240);
+-- A request for what the export omits holds the org's deletion until the return is done (Terms 11.2 and 11.4, DPA 10.2).
+update private.legal_queue_rules set holds_org_data = true where code = 'omitted_data_return';
 
 -- The items ------------------------------------------------------------------------------------------------------------
 
@@ -317,6 +322,7 @@ create table app.legal_queue_items (
   court_action_filed boolean not null default false,
   re_review_same_person boolean,
   outside_reviewer_id uuid references private.legal_outside_reviewers (id),
+  legal_hold_id uuid references app.legal_holds (id) on delete set null,
   closed_at timestamptz,
   created_at timestamptz not null default now(),
   created_by uuid references app.people (id),
@@ -342,6 +348,7 @@ create index legal_queue_items_subject_idx on app.legal_queue_items (subject_per
 create index legal_queue_items_related_idx on app.legal_queue_items (related_item_id);
 create index legal_queue_items_created_by_idx on app.legal_queue_items (created_by);
 create index legal_queue_items_outside_reviewer_idx on app.legal_queue_items (outside_reviewer_id);
+create index legal_queue_items_legal_hold_idx on app.legal_queue_items (legal_hold_id);
 
 call private.describe('app.legal_queue_items', 'One piece of legal or security work with its clock (ADR 0167): a data subject request, a DMCA notice or counter-notice, an abuse report or appeal, a security report, an accessibility complaint, a government data request or another written promise. Added by hand in the operator console, or fed from a record the system already creates. Read and written only through the console RPCs, which need legal.queue and a second factor. Never deleted by an operator: a mistake is Withdrawn with a reason.', array[
   'id', 'Item id, UUID v7.',
@@ -350,7 +357,7 @@ call private.describe('app.legal_queue_items', 'One piece of legal or security w
   'title', 'A short description. For a fed item a code: the kind of request, or Marketplace listing, which the console words from its catalog. It reads a listing''s own title from its source, so deleting the org leaves no tenant data here.',
   'details', 'What the matter asks, with no more personal data than the work needs.',
   'requester_contact', 'Who to answer, for an item added by hand. Fed items never hold one; an undelivered notice reads its address live from the outbox.',
-  'tenant_org_id', 'Tenant a fed item concerns. Not org_id: this is the platform''s record, not the tenant''s, so deleting the org clears this link and keeps the evidence the clock was met.',
+  'tenant_org_id', 'Tenant a fed item concerns, or the org a return of omitted data is for. Not org_id: this is the platform''s record, not the tenant''s, so deleting the org clears this link and keeps the evidence the clock was met.',
   'subject_person_id', 'Account a DMCA notice or repeat infringer review is about, which the repeat infringer count reads.',
   'related_item_id', 'The DMCA notice a counter-notice answers.',
   'source_table', 'Table of the record that fed the item; null for an item added by hand. For a moderation notice that reached no one it is the notice''s kind instead, listing.moderated or listing_report.decided, because the record may also have an item of its own.',
@@ -366,6 +373,7 @@ call private.describe('app.legal_queue_items', 'One piece of legal or security w
   'court_action_filed', 'On a DMCA counter-notice: the notifier told the designated agent of a court action, so the material stays down.',
   're_review_same_person', 'On an appeal that arrived by email: whether the person who made the first decision did the re-review, which the person is told. Null until it is closed.',
   'outside_reviewer_id', 'On an appeal that arrived by email: the outside reviewer who decided it, when one is appointed.',
+  'legal_hold_id', 'On a return of omitted data: the legal hold the item placed on the Customer org, which holds its deletion and is released when the item closes. Cleared if the org is later purged.',
   'closed_at', 'When the item reached Completed, Refused or Withdrawn.',
   'created_at', 'When the row was written. Set by the database.',
   'created_by', 'Operator who added the item; null for the feed.',

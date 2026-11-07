@@ -509,13 +509,15 @@ Everything with a legal clock lives in the console at `/legal-queue` (ADR 0167).
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
 | `privacy@ghxstship.tech`       | Data subject request, from Brazil, appeal of a refused request, deletion by email, privacy complaint, Customer's request for help |
 | `copyright@ghxstship.tech`     | DMCA notice, DMCA counter-notice                                                                                                  |
-| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material, appeal of a restriction                                                |
+| `abuse@ghxstship.tech`         | Abuse report, intimate image, child sexual abuse material, appeal of a moderation decision                                        |
 | `security@ghxstship.tech`      | Security report, personal data breach                                                                                             |
 | `accessibility@ghxstship.tech` | Accessibility report, accessibility review request                                                                                |
 | `legal@ghxstship.tech`         | Government data request, return of omitted data, another written promise                                                          |
 | `support@ghxstship.tech`       | Accessibility reports and manual cancel and refund promises, when they arrive there                                               |
 
 Give each mailbox an auto-reply saying it was received and when to expect an answer, using only the numbers the published documents state.
+
+A request for the data the export omits holds the org's deletion until the return is done (Terms 11.2 and 11.4, DPA 10.2). Add it the day it arrives as "Return of data the export omits", with the org's slug from the Tenants page: that places a legal hold on the org, which the deletion job and the purge honour, and closing the item releases it. If the org is already purged, nothing is left to return: add it as another written promise and say so to the person.
 
 **2. Connect the alert paths.**
 

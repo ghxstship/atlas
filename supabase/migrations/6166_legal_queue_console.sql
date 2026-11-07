@@ -231,7 +231,7 @@ begin
       select jsonb_build_object('id', o.id, 'name', o.reviewer_name, 'organization', o.organization_name, 'email', o.email, 'appointed_at', o.appointed_at)
       from private.legal_outside_reviewers o where o.ended_at is null),
     'rules', (
-      select jsonb_agg(jsonb_build_object('code', r.code, 'matter', r.matter, 'due_from_document', r.due_from_document) order by r.sort_order)
+      select jsonb_agg(jsonb_build_object('code', r.code, 'matter', r.matter, 'due_from_document', r.due_from_document, 'holds_org_data', r.holds_org_data) order by r.sort_order)
       from private.legal_queue_rules r where r.hand_entered));
 end;
 $$;
@@ -306,6 +306,12 @@ grant execute on function app.console_legal_queue_item(uuid) to authenticated;
 
 -- The work -------------------------------------------------------------------------------------------------------------
 
+-- A return of omitted data places its hold while the org waits to be deleted, which is when the org is read-only and the
+-- hold matters most, and releases it once the return is done. The hold only keeps data, so writing it then takes nothing.
+insert into private.read_only_exempt_tables (table_name, rationale) values
+  ('app.legal_holds', 'A hold is placed and released while the org waits to be deleted, which is when it holds the deletion.');
+drop trigger if exists t15_refuse_read_only_org on app.legal_holds;
+
 create function app.console_add_legal_queue_item(
   p_rule_code text,
   p_title text,
@@ -314,7 +320,8 @@ create function app.console_add_legal_queue_item(
   p_requester_contact text default null,
   p_subject_email text default null,
   p_related_reference text default null,
-  p_due_local timestamp default null
+  p_due_local timestamp default null,
+  p_org_slug text default null
 )
 returns uuid
 language plpgsql
@@ -329,6 +336,8 @@ declare
   v_due timestamptz := private.legal_local_instant(p_due_local);
   v_subject uuid;
   v_related uuid;
+  v_org app.organizations;
+  v_hold uuid;
   v_id uuid;
 begin
   select * into v_rule from private.legal_queue_rules r where r.code = p_rule_code and r.hand_entered;
@@ -364,15 +373,32 @@ begin
       perform private.refuse('legal_queue_related', 'Name the reference of the DMCA notice this answers.');
     end if;
   end if;
-  v_id := private.open_legal_queue_item(v_rule.code, p_title, v_received, p_details, p_requester_contact, null, v_subject,
+  if v_rule.holds_org_data then
+    select * into v_org from app.organizations o where o.slug = lower(btrim(p_org_slug)) for update;
+    if v_org.id is null then
+      perform private.refuse('legal_queue_org', 'Name the organization by its slug, as the Tenants page shows it. If its data is already deleted, add the request as another written promise and tell the person nothing is left to return.');
+    end if;
+  end if;
+  v_id := private.open_legal_queue_item(v_rule.code, p_title, v_received, p_details, p_requester_contact, v_org.id, v_subject,
     v_related, null, null, v_due, v_operator);
+  -- Terms 11.2 and 11.4, DPA 10.2: the request holds the deletion until the return is done. The org's own legal hold is
+  -- what the deletion job, the storage cleanup, the purge and the retention purge already honour, so the item places one.
+  if v_rule.holds_org_data then
+    insert into app.legal_holds (org_id, table_name, matter, created_by)
+    values (v_org.id, null, format('Return of data the export omits, GHXSTSHIP reference %s',
+      (select i.reference from app.legal_queue_items i where i.id = v_id)), v_operator)
+    returning id into v_hold;
+    update app.legal_queue_items set legal_hold_id = v_hold where id = v_id;
+    insert into private.legal_queue_events (legal_queue_item_id, event_kind, actor_person_id)
+    values (v_id, 'Hold Placed', v_operator);
+  end if;
   perform private.log_legal_queue_action('legal_queue.added', 'app.legal_queue_items', v_id);
   return v_id;
 end;
 $$;
-comment on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp) is 'Adds an item by hand (legal.queue, ADR 0167) from a mailbox, a letter or a call. Times are typed in the zone the queue counts in (private.legal_local_instant), so each takes the offset of its own day. The clock starts when the matter arrived, not when it is entered, and the rule computes it. A government request or other written promise takes its due time from the document. A DMCA notice may name the account it is about, for the repeat infringer count, and a counter-notice names the notice it answers. Returns the item id.';
-revoke all on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp) from public, anon;
-grant execute on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp) to authenticated;
+comment on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp, text) is 'Adds an item by hand (legal.queue, ADR 0167) from a mailbox, a letter or a call. Times are typed in the zone the queue counts in (private.legal_local_instant), so each takes the offset of its own day. The clock starts when the matter arrived, not when it is entered, and the rule computes it. A government request or other written promise takes its due time from the document. A DMCA notice may name the account it is about, for the repeat infringer count, and a counter-notice names the notice it answers. A return of omitted data names the org by slug and places a legal hold on it, so its deletion waits until the item closes. Returns the item id.';
+revoke all on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp, text) from public, anon;
+grant execute on function app.console_add_legal_queue_item(text, text, timestamp, text, text, text, text, timestamp, text) to authenticated;
 
 create function private.legal_queue_item_for_work(p_item_id uuid)
 returns app.legal_queue_items
@@ -537,7 +563,17 @@ begin
   elsif v_closing and v_item.rule_code = 'dmca_counter_notice' then
     perform private.queue_repeat_infringer_review(
       (select n.subject_person_id from app.legal_queue_items n where n.id = v_item.related_item_id), v_operator);
-  elsif p_next = 'Completed' and v_item.rule_code = 'undelivered_notice' then
+  end if;
+  -- The return is done, refused or withdrawn: the deletion it held may go ahead. A hold the Customer released stays released.
+  if v_closing and v_item.legal_hold_id is not null then
+    update app.legal_holds h set released_at = now(), updated_at = now(), updated_by = v_operator
+    where h.id = v_item.legal_hold_id and h.released_at is null;
+    if found then
+      insert into private.legal_queue_events (legal_queue_item_id, event_kind, actor_person_id)
+      values (v_item.id, 'Hold Released', v_operator);
+    end if;
+  end if;
+  if p_next = 'Completed' and v_item.rule_code = 'undelivered_notice' then
     -- The operator reached the person another way, and the reason says how. The appeal's record now says they were told.
     update private.moderation_appeal_reviews r set told_by = 'Operator', told_at = now()
     where (v_item.source_table = 'private.platform_emails' and r.notice_email_id = v_item.source_id)
@@ -546,7 +582,7 @@ begin
   return v_id;
 end;
 $$;
-comment on function app.console_transition_legal_queue_item(uuid, app.legal_queue_state, app.legal_queue_state, text, boolean, text, text, boolean, boolean) is 'Moves a legal queue item through its lifecycle (legal.queue, ADR 0167) with a compare-and-set on the expected state and a reason, which the log keeps. Refuses a fed item that follows its source, and a DMCA restoration before its earliest day. Closing an appeal that arrived by email needs a documented re-review and how the person was told, says whether the first decider did it, and while an outside reviewer is appointed records their decision. Closing a DMCA notice or counter-notice rechecks the repeat infringer count. Completing an undelivered notice records that the person was told another way. Returns the log entry id.';
+comment on function app.console_transition_legal_queue_item(uuid, app.legal_queue_state, app.legal_queue_state, text, boolean, text, text, boolean, boolean) is 'Moves a legal queue item through its lifecycle (legal.queue, ADR 0167) with a compare-and-set on the expected state and a reason, which the log keeps. Refuses a fed item that follows its source, and a DMCA restoration before its earliest day. Closing an appeal that arrived by email needs a documented re-review and how the person was told, says whether the first decider did it, and while an outside reviewer is appointed records their decision. Closing a DMCA notice or counter-notice rechecks the repeat infringer count. Completing an undelivered notice records that the person was told another way. Closing a return of omitted data releases the legal hold it placed. Returns the log entry id.';
 revoke all on function app.console_transition_legal_queue_item(uuid, app.legal_queue_state, app.legal_queue_state, text, boolean, text, text, boolean, boolean) from public, anon;
 grant execute on function app.console_transition_legal_queue_item(uuid, app.legal_queue_state, app.legal_queue_state, text, boolean, text, text, boolean, boolean) to authenticated;
 

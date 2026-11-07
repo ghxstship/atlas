@@ -11,6 +11,7 @@ interface Rule {
   readonly code: string;
   readonly matter: LegalQueueMatter;
   readonly dueFromDocument: boolean;
+  readonly holdsOrgData: boolean;
 }
 
 /**
@@ -105,6 +106,16 @@ export function LegalQueueAddForm({
             name="relatedReference"
             label={t("add.related")}
             help={t("add.relatedHelp")}
+            required
+          />
+        ) : null}
+        {rule?.holdsOrgData ? (
+          <Input
+            id="legal-add-org"
+            name="orgSlug"
+            label={t("add.org")}
+            help={t("add.orgHelp")}
+            maxLength={100}
             required
           />
         ) : null}

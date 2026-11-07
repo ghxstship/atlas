@@ -131,6 +131,7 @@
     "legal_queue_due": "Ingresa la fecha que fija el documento, posterior al día en que llegó.",
     "legal_queue_subject": "Ninguna cuenta usa ese correo. Déjalo vacío si no hay una cuenta detrás del contenido.",
     "legal_queue_related": "Indica la referencia del aviso DMCA al que responde.",
+    "legal_queue_org": "Indica la organización por su identificador, como aparece en la página de Organizaciones. Si sus datos ya se eliminaron, agrega la solicitud como otra promesa escrita y dile a la persona que no queda nada que devolver.",
     "legal_queue_note": "Di qué se hizo, en hasta 4,000 caracteres.",
     "legal_queue_first_response": "Este elemento no tiene una primera respuesta pendiente.",
     "legal_queue_fed": "Este elemento sigue a su origen. Actúa sobre el origen y este lo seguirá.",
@@ -806,6 +807,8 @@
       "subjectHelp": "Correo de la cuenta que nombra el aviso, para el conteo de infractores reincidentes. Déjalo vacío si no hay ninguna.",
       "related": "Referencia del aviso DMCA al que responde",
       "relatedHelp": "Por ejemplo, LQ-2026-00001.",
+      "org": "Identificador de la organización",
+      "orgHelp": "Como aparece en la página de Organizaciones. Su eliminación queda retenida hasta que este elemento se cierre.",
       "due": "Fecha que fija el documento",
       "dueHelp": "En hora de {zone}. La regla no puede calcular esta fecha, así que revísala dos veces.",
       "submit": "Agregar a la cola",
@@ -959,9 +962,11 @@
       "State Changed": "Cambio de estado",
       "Extended": "Prórroga",
       "Source Changed": "Siguió a su origen",
-      "Alert Sent": "Alerta enviada",
+      "Alert Sent": "Alerta en cola para el correo",
       "Re-Review": "Nueva revisión",
-      "Person Told": "Persona informada"
+      "Person Told": "Persona informada",
+      "Hold Placed": "Retención legal aplicada a la organización",
+      "Hold Released": "Retención legal liberada"
     },
     "rules": {
       "dsar_privacy": {
@@ -1038,7 +1043,7 @@
       },
       "omitted_data_return": {
         "label": "Devolución de datos que la exportación omite",
-        "source": "Acuerdo de Tratamiento de Datos 10.2 y Términos 11.2: devolverlos en 30 días y detener la eliminación hasta entonces."
+        "source": "Acuerdo de Tratamiento de Datos 10.2 y Términos 11.2: devolverlos en 30 días. Al agregarlo se aplica una retención legal a la organización, así que su eliminación espera hasta que este elemento se cierre."
       },
       "customer_privacy_help": {
         "label": "Pedido de ayuda de privacidad de un cliente",
@@ -1053,7 +1058,7 @@
         "source": "El plazo del cliente (Acuerdo de Tratamiento de Datos 8.1): 30 días, o 90 con prórroga. XOS solo lo vigila."
       },
       "abuse_appeal": {
-        "label": "Apelación de una restricción, por correo",
+        "label": "Apelación de una decisión de moderación, por correo",
         "source": "Política de Uso Aceptable 7: una nueva revisión documentada, y se comunica el resultado a la persona. Los 30 días son nuestro propio objetivo."
       },
       "undelivered_notice": {
