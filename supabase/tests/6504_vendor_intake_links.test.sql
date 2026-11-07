@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(27);
+select plan(28);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -135,6 +135,24 @@ select is(pg_temp.read_only_open(), '25006', 'a read-only (GET) open is refused 
 select pg_temp.as_platform();
 select is(pg_temp.open('xvin_' || repeat('0', 64), '000000') ->> 'reason', 'intake_link_invalid', 'an unknown token is refused');
 select is(pg_temp.open(split_part(pg_temp.v('audio'), ' ', 1), null) ->> 'reason', 'intake_access_code_required', 'the code is asked for');
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142): ended, it refuses before the code; reopened, it opens.
+reset role;
+create function pg_temp.end_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = 'Complete' where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'));
+select is(pg_temp.open(split_part(pg_temp.v('audio'), ' ', 1), '000000') ->> 'reason', 'intake_link_ended', 'an intake link of a Complete project has ended, before its code');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
 select is(pg_temp.open(split_part(pg_temp.v('audio'), ' ', 1), case when split_part(pg_temp.v('audio'), ' ', 2) = '000000' then '111111' else '000000' end)
   ->> 'reason', 'intake_access_code', 'a wrong code is refused');
 select pg_temp.put('grant', null, pg_temp.open(split_part(pg_temp.v('audio'), ' ', 1), split_part(pg_temp.v('audio'), ' ', 2)) ->> 'grant');

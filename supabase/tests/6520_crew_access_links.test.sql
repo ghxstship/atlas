@@ -81,6 +81,24 @@ select is(pg_temp.refusal(format($$select * from app.issue_crew_access_links('%s
 select is(pg_temp.refusal(format($$select * from app.issue_crew_access_links('%s', '[{"membership_id": "%s"}, {"membership_id": "%s"}]')$$, pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), pg_temp.id('gina@org_a'))),
   'crew_access_not_working', 'a refused worker fails the whole call');
 select is(pg_temp.reason('frank'), null, 'so frank''s link was not revoked by that call');
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142): ended, it refuses before the code; reopened, it opens.
+reset role;
+create function pg_temp.end_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = 'Complete' where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'));
+select is(pg_temp.reason('frank', '000000'), 'crew_access_link_ended', 'a crew access link of a Complete project has ended, before its code');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
 
 -- The other arms: roster, engagement and a self entry, whose person resolves through the engagement.
 select pg_temp.issue('stella', jsonb_build_object('roster_entry_id', pg_temp.id('e_stella')));

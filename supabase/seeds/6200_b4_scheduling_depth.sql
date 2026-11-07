@@ -1,14 +1,14 @@
 -- 6200_b4_scheduling_depth.sql
 -- B4 Scheduling depth (RRR-228, ADR 0143). Demo data for day types, the anchor, workload and clashes on the Demo Summer
 -- Series (0107, 0108): its anchor day, a Load In, a Show and a split Load Out and Travel day, effort estimates on three
--- open tasks, and a side-stage running order on the show day where the headliner (Demo Multi Role, 1080) is also booked
+-- open tasks, and a side-stage running order on the show day where the headliner (Demo Artist, 1080, an outside artist) is also booked
 -- for an acoustic set while the main stage plays (set_two_stages), followed five minutes later by the Demo Harbor Trio
 -- (a changeover under the 15-minute minimum). Opening Night's running order stays as 0108 and 6110 left it. Idempotent.
 
 do $$
 declare
   c_project constant uuid := '01920000-0000-7000-8000-000000001001';
-  c_artist constant uuid := '01920000-0000-7000-8000-000010800110';
+  c_artist constant uuid := '01920000-0000-7000-8000-000010800105';
   c_trio constant uuid := '01920000-0000-7000-8000-000029300101';
   e_headliner constant uuid := '01920000-0000-7000-8000-000029300201';
   e_trio constant uuid := '01920000-0000-7000-8000-000029300202';

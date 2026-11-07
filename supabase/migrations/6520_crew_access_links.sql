@@ -451,6 +451,11 @@ begin
     return query select null::uuid, 'crew_access_token_invalid'::text;
     return;
   end if;
+  -- Before the lockout and the code: a link ends with its project (ADR 0142).
+  if not private.project_link_open(v_link.project_id) then
+    return query select null::uuid, 'crew_access_link_ended'::text;
+    return;
+  end if;
   if v_link.failed_attempts >= 5 then
     return query select null::uuid, 'crew_access_token_locked'::text;
     return;

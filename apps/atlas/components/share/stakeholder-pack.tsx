@@ -18,7 +18,8 @@ export async function PackCodeForm({
   hasGrants: boolean;
 }) {
   const t = await getTranslations("compliance.stakeholderPack");
-  const locked = reason === "pack_locked" || reason === "pack_link_expired";
+  const locked =
+    reason === "pack_locked" || reason === "pack_link_expired" || reason === "pack_link_ended";
   return (
     <div className="mx-auto flex max-w-layout-form flex-col gap-16">
       <p className="m-0 text-text-14 text-text-secondary">{t("intro")}</p>

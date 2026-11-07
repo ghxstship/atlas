@@ -57,7 +57,11 @@ export default async function PublicFormPage({
       refusal={
         reason && reason !== "form_link_grant" ? t(`gateway.tokens.refusals.${reason}`) : null
       }
-      stop={reason === "form_link_locked" || reason === "form_link_expired"}
+      stop={
+        reason === "form_link_locked" ||
+        reason === "form_link_expired" ||
+        reason === "form_link_ended"
+      }
     />
   );
   if (grant === null || (asked !== null && formLinkAsksForCode(asked))) {

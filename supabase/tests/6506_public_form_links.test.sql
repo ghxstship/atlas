@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(44);
+select plan(46);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -174,6 +174,27 @@ select is(pg_temp.submit('a', jsonb_build_object('ok', true, 'on', repeat('x', 3
 
 -- A response ------------------------------------------------------------------------------------------------------------
 select is(pg_temp.submit('a', '{"ok": true, "load": "Light"}', '198.51.100.87') ->> 'status', 'ok', 'a valid response is filed');
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142): ended, it refuses before the code; reopened, it opens.
+reset role;
+create function pg_temp.end_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = 'Complete' where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'));
+select pg_temp.anon();
+select is(api_public.open_form_link(pg_temp.v('a'), '000000', '198.51.100.88') ->> 'reason', 'form_link_ended', 'a form link of a Complete project has ended, before its code');
+select pg_temp.as_platform();
+select is(pg_temp.submit('a', '{"ok": true, "load": "Light"}', '198.51.100.89') ->> 'reason', 'form_link_ended', 'and its grant files nothing more');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
 select pg_temp.put('resp', (select s.id from app.form_submissions s where s.form_link_id = pg_temp.k('a')), null);
 select is((select submission_state::text || '/' || coalesce(submitted_by_membership_id::text, 'no member') || '/' || respondent_name || '/' || respondent_email || '/' || score::text
   from app.form_submissions where id = pg_temp.k('resp')), (select 'Submitted/no member/' || btrim(pe.full_name) || '/' || lower(u.email) || '/3' from world w join auth.users u on u.id = w.id join app.people pe on pe.user_id = u.id where w.key = 'xavier_user'), 'stored Submitted with no member, the respondent''s name and lower-case email, and its score');

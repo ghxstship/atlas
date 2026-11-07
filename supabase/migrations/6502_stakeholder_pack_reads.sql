@@ -109,6 +109,8 @@ set search_path = ''
 as $$
   select case
     when p_pack.id is null or p_pack.revoked_at is not null or p_pack.deleted_at is not null then 'pack_revoked'
+    -- A pack ends with its project (owner decision of 2026-11-06, ADR 0142).
+    when not private.project_link_open(p_pack.project_id) then 'pack_link_ended'
     when p_recipient.id is null or p_recipient.revoked_at is not null or p_recipient.deleted_at is not null then 'pack_recipient_revoked'
     when p_link.revoked_at is not null then 'pack_link_invalid'
     when p_link.expires_at <= now() or p_pack.expires_at <= now() then 'pack_link_expired'

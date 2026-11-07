@@ -22,6 +22,7 @@ export const INTAKE_REFUSALS = [
   "intake_link_invalid",
   "intake_link_rate_limited",
   "intake_link_expired",
+  "intake_link_ended",
   "intake_link_full",
   "intake_link_locked",
   "intake_access_code_required",

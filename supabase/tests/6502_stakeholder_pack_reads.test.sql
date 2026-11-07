@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(54);
+select plan(55);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update, delete on k to public;
@@ -135,6 +135,24 @@ select is(pg_temp.open('x', pg_temp.v('t1'), case when pg_temp.v('r1') = '000000
   'a wrong code is refused');
 select is((select failed_attempts::int from app.stakeholder_pack_recipients where id = pg_temp.k('r1')), 1, 'and counted on the recipient');
 select is(pg_temp.open('g1', pg_temp.v('t1'), pg_temp.v('r1')), 'ok', 'the right code opens the pack');
+-- A link ends with its project (owner decision of 2026-11-06, ADR 0142): ended, it refuses before the code; reopened, it opens.
+reset role;
+create function pg_temp.end_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  perform set_config('t.state', (select project_state::text from app.projects where id = p_id), true);
+  set local session_replication_role = replica;
+  update app.projects set project_state = 'Complete' where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+create function pg_temp.reopen_project(p_id uuid) returns void language plpgsql as $f$
+begin
+  set local session_replication_role = replica;
+  update app.projects set project_state = current_setting('t.state')::app.project_state where id = p_id;
+  set local session_replication_role = origin;
+end $f$;
+select pg_temp.end_project(pg_temp.id('prj_a'));
+select is(pg_temp.open('g_end', pg_temp.v('t1'), pg_temp.v('r1')), 'pack_link_ended', 'a pack stops opening when its project is Complete');
+select pg_temp.reopen_project(pg_temp.id('prj_a'));
 select matches(pg_temp.v('g1'), '^xpkg_[0-9a-f]{64}$', 'and earns an xpkg_ device grant');
 select ok(pg_temp.v('g1:expires')::timestamptz <= now() + interval '7 days'
   and pg_temp.v('g1:expires')::timestamptz <= (select expires_at from private.stakeholder_pack_links where token_hash = extensions.digest(pg_temp.v('t1'), 'sha256')),

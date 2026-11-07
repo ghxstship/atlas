@@ -131,3 +131,13 @@ with Regenerate. 6501 refactors P1's readers with no change in behavior; a later
   is unset, and report deliveries keep working.
 - Pack live items use P1's xlink channels, so production Realtime must accept the anonymous private-channel join P1 needs.
 - Until then they refresh by pull.
+
+## Amendment 2026-11-07: the link rulings of ADR 0142
+
+The owner's rulings of 2026-11-06 (ADR 0142) hold here as well. A stakeholder pack, a vendor intake link and a public form
+link all belong to a project, and each stops opening when that project is Complete or Canceled, or is archived or in Trash:
+`pack_link_ended`, `intake_link_ended` and `form_link_ended`. The refusal comes at each family's one choke point
+(`private.stakeholder_pack_state_reason`, the open function and the reader), before the lockout and the code, and says only
+that the link has ended. Reopening or restoring the project lets unexpired links open again. A pack's files already need the
+recipient's code, which keeps the ruling that file shares always take one. The display link a pack carries is a live link,
+which 6280 already ends with its project (carried into 6501's `private.live_link_reader`).

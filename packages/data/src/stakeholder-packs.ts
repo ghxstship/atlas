@@ -45,6 +45,7 @@ export const PACK_REFUSALS = [
   "pack_link_invalid",
   "pack_link_rate_limited",
   "pack_link_expired",
+  "pack_link_ended",
   "pack_revoked",
   "pack_recipient_revoked",
   "pack_locked",

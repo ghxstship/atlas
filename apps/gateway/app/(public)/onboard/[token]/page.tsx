@@ -59,7 +59,11 @@ export default async function VendorIntakePage({
           action={`${path}/open`}
           intro={t("gatewayOnboarding.intake.codeIntro")}
           refusal={asked && asked !== "intake_grant" ? t(`gateway.tokens.refusals.${asked}`) : null}
-          stop={asked === "intake_link_locked" || asked === "intake_link_expired"}
+          stop={
+            asked === "intake_link_locked" ||
+            asked === "intake_link_expired" ||
+            asked === "intake_link_ended"
+          }
         />
       </>
     );

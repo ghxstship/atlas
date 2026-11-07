@@ -55,6 +55,7 @@ export const KNOWN_REFUSALS = [
   "intake_link_full",
   "intake_link_invalid",
   "intake_link_expired",
+  "intake_link_ended",
   "intake_link_rate_limited",
   "intake_grant",
   "intake_invoice_used",

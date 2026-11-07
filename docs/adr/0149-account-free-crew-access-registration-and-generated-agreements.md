@@ -72,3 +72,11 @@ The new RPCs are reached through `@xos/data` only. oasdiff shows no difference.
 - Account deletion's reach grows: registrations and claimed invitations give an Erasure row, a legal hold on the new tables blocks the deletion, and the person's answers, invitations and standing rates are hard deleted while the pool membership stays with a blank name.
 - The Better Stack log drains must mask `/shifts/` and `xcrw_` (`infra/runbooks/production.md`).
 - Maps and payments stay out of scope. A counsel-reviewed agreement template is a later decision.
+
+## Amendment 2026-11-07: the link rulings of ADR 0142
+
+A crew access link belongs to a project and stops opening when that project is Complete or Canceled, or is archived or in
+Trash (`crew_access_link_ended`, owner ruling of 2026-11-06 in ADR 0142), checked in `private.resolve_crew_access_link`
+before the lockout and the code. A registration page belongs to a pool, not a project, and shows only public copy without
+an account, so the ruling does not reach it. A generated agreement is signed through the document token resolver, which
+6280 already ends with its project.

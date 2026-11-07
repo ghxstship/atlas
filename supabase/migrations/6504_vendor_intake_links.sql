@@ -502,6 +502,10 @@ begin
   if v_link.revoked_at is not null or v_link.deleted_at is not null then
     return private.live_link_refusal('intake_link_invalid');
   end if;
+  -- Before the lockout and the code: a link ends with its project (ADR 0142).
+  if not private.project_link_open(v_link.project_id) then
+    return private.live_link_refusal('intake_link_ended');
+  end if;
   if v_link.failed_attempts >= 5 then
     perform private.note_vendor_intake_failure(v_subjects.o_hop, v_subjects.o_subject);
     return private.live_link_refusal('intake_link_locked');
@@ -581,6 +585,8 @@ begin
   end if;
   if o_link.revoked_at is not null or o_link.deleted_at is not null then
     o_reason := 'intake_link_invalid';
+  elsif not private.project_link_open(o_link.project_id) then
+    o_reason := 'intake_link_ended';
   elsif o_link.expires_at <= now() then
     o_reason := 'intake_link_expired';
   elsif not v_granted then

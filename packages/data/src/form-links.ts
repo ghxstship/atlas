@@ -21,6 +21,7 @@ export const FORM_LINK_REFUSALS = [
   "form_link_invalid",
   "form_link_rate_limited",
   "form_link_expired",
+  "form_link_ended",
   "form_link_locked",
   "form_link_access_code_required",
   "form_link_access_code",
