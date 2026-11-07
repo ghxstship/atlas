@@ -233,7 +233,7 @@ test("journey 70: Trash, restore, duplicate with children and watch", async ({ p
   await expectSettledAccessible(page);
 
   // Duplicating copies the record and its checklist into a new Proposed record.
-  await page.getByRole("button", { name: "Duplicate" }).click();
+  await page.getByRole("button", { name: "Duplicate", exact: true }).click();
   await page.waitForURL((url) => url.pathname.endsWith("-2"));
   await expect(
     page.getByRole("heading", { name: "Pack the cable trunks", level: 1 }),
