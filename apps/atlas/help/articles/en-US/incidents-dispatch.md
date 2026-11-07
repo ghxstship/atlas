@@ -18,7 +18,7 @@ The dispatch board shows open incidents by state and on the map. Assign responde
 
 ## Crisis alerts
 
-Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, email and push, and the alert shows how many were told. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.
+Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, push, email and, for those who turned it on, text, and the alert shows how many were told. The Inbox has it at once; push and text reach phones within minutes, and email can take longer for a large alert. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.
 
 ## Emergency codes and radio channels
 

@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(67);
+select plan(76);
 
 create function pg_temp.notes(p_person text, p_kind text, p_alert uuid) returns integer
 language sql as $$
@@ -186,6 +186,12 @@ insert into app.suppression_list (org_id, channel, address, reason)
 values (pg_temp.id('org_a'), 'Email', 'dave@northwind.test', 'Hard Bounce');
 select pg_temp.drill('bounced');
 select is(pg_temp.told('bounced'), pg_temp.told('base') - 1, 'an email to a suppressed address does not count');
+-- Dave then unsubscribes from all mail: the notification email is not transactional, so the claim suppresses it.
+update app.suppression_list set lifted_at = now() where address = 'dave@northwind.test';
+insert into app.suppression_list (org_id, channel, address, reason)
+values (pg_temp.id('org_a'), 'Email', 'dave@northwind.test', 'Unsubscribe');
+select pg_temp.drill('unsubscribed');
+select is(pg_temp.told('unsubscribed'), pg_temp.told('base') - 1, 'nor does an email to someone who unsubscribed from all mail');
 select pg_temp.safety_channels('dave', true, true, true);
 update app.suppression_list set lifted_at = now() where address = 'dave@northwind.test';
 
@@ -285,6 +291,49 @@ select is((select c.people_told from app.crisis_alerts c where c.id = (select id
 select is((select c.people_not_sent from app.crisis_alerts c where c.id = (select id from a where key = 'frank_recovers')), 0, 'and is not reported as failed');
 
 select is((select schedule from cron.job where jobname = 'xos_send_waiting_crisis_alerts'), '15 seconds', 'the worker runs every 15 seconds');
+
+-- An all-clear reaches whoever the worker has still to tell, or is telling as it is given --------------------------------
+create or replace function private.crisis_alert_inline_budget() returns interval
+language sql immutable set search_path = '' as $$ select interval '0 seconds' $$;
+select pg_temp.drill('racing');
+select pg_temp.as_user('alice');
+update app.crisis_alerts set ended_at = now() where id = (select id from a where key = 'racing');
+select pg_temp.as_platform();
+select is((select count(*)::integer from private.crisis_alert_sends s where s.alert_id = (select id from a where key = 'racing') and s.kind = 'crisis_alert.ended'),
+  (select count(*)::integer from private.crisis_alert_sends s where s.alert_id = (select id from a where key = 'racing') and s.kind = 'crisis_alert.issued'
+     and s.person_id <> pg_temp.id('alice')) + 1,
+  'the all-clear is queued for everyone still to be told but who gave it, and for who announced it');
+-- What a worker run was doing as the all-clear was given: it told frank and committed after the all-clear's statement.
+select private.send_crisis_alert_note(pg_temp.id('org_a'), pg_temp.id('frank'), 'crisis_alert.issued', (select id from a where key = 'racing'), pg_temp.id('prj_a'),
+  (select s.message_args from private.crisis_alert_sends s where s.alert_id = (select id from a where key = 'racing') and s.person_id = pg_temp.id('frank') and s.kind = 'crisis_alert.issued'));
+delete from private.crisis_alert_sends s where s.alert_id = (select id from a where key = 'racing') and s.person_id = pg_temp.id('frank') and s.kind = 'crisis_alert.issued';
+select ok(private.send_waiting_crisis_alerts() > 0, 'the worker runs');
+select is(pg_temp.notes('frank', 'crisis_alert.ended', (select id from a where key = 'racing')), 1, 'someone told while the all-clear was given still hears it ended');
+select is(pg_temp.notes('dave', 'crisis_alert.issued', (select id from a where key = 'racing')) + pg_temp.notes('dave', 'crisis_alert.ended', (select id from a where key = 'racing')), 0,
+  'someone whose turn had not come hears of neither');
+select is(pg_temp.notes('carol', 'crisis_alert.ended', (select id from a where key = 'racing')), 1, 'and who announced it hears the all-clear');
+select is((select count(*)::integer from private.crisis_alert_sends s where s.alert_id = (select id from a where key = 'racing')), 0, 'leaving nothing waiting');
+create or replace function private.crisis_alert_inline_budget() returns interval
+language sql immutable set search_path = '' as $$ select interval '3 seconds' $$;
+
+-- A crisis alert goes out before an older backlog ---------------------------------------------------------------------------
+create temporary table backlog as
+select private.notify(pg_temp.id('org_a'), pg_temp.id('frank'),
+  (select t.kind from private.notification_templates t
+   join private.notification_categories c on c.code = t.category_code and c.urgent
+   where t.channel = 'Email'
+     and not exists (select 1 from private.notification_quiet_hours_bypass b where b.kind = t.kind)
+   order by t.kind limit 1),
+  'app.incidents', gen_random_uuid(), pg_temp.id('prj_a'), '{}'::jsonb) as id;
+update app.notification_deliveries set deliver_after = now() - interval '1 day'
+where notification_id = (select id from backlog) and channel = 'Email';
+select is((select count(*)::integer from app.notification_deliveries where notification_id = (select id from backlog) and channel = 'Email'), 1,
+  'an older email of a kind that waits for quiet hours is due');
+select pg_temp.drill('first_out');
+select pg_temp.as_platform();
+select count(*) from app.claim_notification_deliveries('Email', 1);
+select is((select d.attempt_count::integer from app.notification_deliveries d where d.notification_id = (select id from backlog) and d.channel = 'Email'), 0,
+  'the claim takes a crisis alert ahead of it');
 
 -- Refused, it tells nobody -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('gina');

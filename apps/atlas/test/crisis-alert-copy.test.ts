@@ -8,9 +8,15 @@ import { alertReach } from "@/lib/incidents/alert-reach";
  * What Atlas says after a crisis alert (launch flag, 2026-11-06): how many people were told, honestly when that is nobody
  * or not everyone yet, and never that emergency services were contacted.
  */
-for (const [locale, messages, emergency] of [
-  ["en-US", enUS, "XOS does not contact emergency services."],
-  ["es-US", esUS, "XOS no contacta a los servicios de emergencia."],
+for (const [locale, messages, emergency, later, text] of [
+  ["en-US", enUS, "XOS does not contact emergency services.", /email can take longer/, /text/],
+  [
+    "es-US",
+    esUS,
+    "XOS no contacta a los servicios de emergencia.",
+    /correo puede tardar más/,
+    /texto/,
+  ],
 ] as const) {
   describe(`crisis alert confirmation in ${locale}`, () => {
     const t = createTranslator({ locale, messages: { incidents: messages } });
@@ -22,6 +28,15 @@ for (const [locale, messages, emergency] of [
       expect(many).toContain(emergency);
       expect(t("incidents.alerts.issued", { count: 1, onSite: "0", waiting: 0 })).toContain("1 ");
       expect(t("incidents.alerts.reach", { count: 12, onSite: 5 })).toContain("12");
+    });
+
+    it("does not say a phone has it when the worker is still sending", () => {
+      // The Inbox has it as the alert is written; push, text and email leave from the delivery worker.
+      expect(t("incidents.alerts.issued", { count: 1005, onSite: "400", waiting: 0 })).toMatch(
+        later,
+      );
+      expect(t("incidents.alerts.reachHelp")).toMatch(later);
+      expect(t("incidents.alerts.reachHelp")).toMatch(text);
     });
 
     it("says so when nobody could be told, and what to do instead", () => {

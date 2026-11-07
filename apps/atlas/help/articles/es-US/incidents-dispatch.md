@@ -18,7 +18,7 @@ Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de resp
 
 ## Alertas de crisis
 
-Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, correo y notificaciones push, y la alerta muestra a cuántas personas se avisó. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.
+Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, notificaciones push, correo y, para quienes lo activaron, mensajes de texto, y la alerta muestra a cuántas personas se avisó. La Bandeja de entrada la recibe al instante; las notificaciones push y los mensajes de texto llegan a los teléfonos en minutos, y el correo puede tardar más en una alerta grande. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.
 
 ## Códigos de emergencia y canales de radio
 

@@ -151,6 +151,31 @@ async function dispatchEmail(store, transport, limit = 50) {
   };
 }
 //#endregion
+//#region src/notifications/drain.ts
+/** Each batch's counts are added up; a summary holds counts only. */
+async function drain(run, options) {
+  const now = options.now ?? Date.now;
+  const started = now();
+  const total = {};
+  let batches = 0;
+  for (;;) {
+    const summary = await run(options.batch);
+    batches += 1;
+    for (const [key, value] of Object.entries(summary))
+      if (typeof value === "number") total[key] = (total[key] ?? 0) + value;
+    if (
+      summary.attempted === 0 ||
+      batches >= options.maxBatches ||
+      now() - started >= options.budgetMs
+    )
+      break;
+  }
+  return {
+    ...total,
+    batches,
+  };
+}
+//#endregion
 //#region src/notifications/push.ts
 /**
  * Push notifications through the Expo push service (Section 5, ADR 0030, finding A65-012). Compass
@@ -619,6 +644,7 @@ export {
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
+  drain,
   notificationStore,
   pushStore,
   readEmailEnv,

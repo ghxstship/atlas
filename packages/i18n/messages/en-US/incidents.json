@@ -8,7 +8,7 @@
     "cleared": "All-clear given.",
     "heading": "Crisis alerts",
     "issue": "Announce alert",
-    "issued": "{waiting, plural, =0 {{count, plural, =0 {Alert recorded, but XOS could not reach anyone on this project. Tell people by radio or in person now.} one {Alert sent to # person, {onSite} of them clocked in on this project.} other {Alert sent to # people, {onSite} of them clocked in on this project.}}} one {Alert recorded and sent to {count} so far, with # more person still being told. Use radio or tell people in person too.} other {Alert recorded and sent to {count} so far, with # more people still being told. Use radio or tell people in person too.}} XOS does not contact emergency services.",
+    "issued": "{waiting, plural, =0 {{count, plural, =0 {Alert recorded, but XOS could not reach anyone on this project. Tell people by radio or in person now.} one {Alert going to # person, {onSite} of them clocked in on this project. Inbox has it now; push and text reach phones within minutes, and email can take longer for a large alert.} other {Alert going to # people, {onSite} of them clocked in on this project. Inbox has it now; push and text reach phones within minutes, and email can take longer for a large alert.}}} one {Alert recorded and going to {count} so far, with # more person still being told. Use radio or tell people in person too.} other {Alert recorded and going to {count} so far, with # more people still being told. Use radio or tell people in person too.}} XOS does not contact emergency services.",
     "issuedAt": "Announced {time}",
     "message": "Announcement",
     "messageHelp": "What people must do now, in one or two sentences.",
@@ -18,7 +18,7 @@
     "reachNotSent": "{count, plural, one {XOS could not send it to # person. Tell them by radio or in person.} other {XOS could not send it to # people. Tell them by radio or in person.}}",
     "reachSoFar": "Sent to {count} so far, {onSite} of them clocked in.",
     "reachWaiting": "{count, plural, one {# more person still being told.} other {# more people still being told.}}",
-    "reachHelp": "XOS tells the people clocked in on or assigned to this project and its dispatchers, through their Inbox, email and push. It does not contact emergency services: in an emergency, call your local emergency number."
+    "reachHelp": "XOS tells the people clocked in on or assigned to this project and its dispatchers, through their Inbox, push, email and, for those who turned it on, text. The Inbox has it at once; push and text reach phones within minutes, and email can take longer for a large alert. It does not contact emergency services: in an emergency, call your local emergency number."
   },
   "anySeverity": "Any severity",
   "anyState": "Any state",

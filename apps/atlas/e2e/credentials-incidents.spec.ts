@@ -233,7 +233,8 @@ test.describe("Emergency codes and the radio plan", () => {
     await page.getByRole("button", { name: "Announce alert" }).click();
     // The confirmation says what happened, with how many were told, and never implies emergency services were called.
     const confirmation = page.getByRole("status").filter({
-      hasText: /Alert sent to \d+ (person|people), \d+ of them clocked in on this project\./,
+      hasText:
+        /Alert going to \d+ (person|people), \d+ of them clocked in on this project\. Inbox has it now/,
     });
     await expect(confirmation).toBeVisible();
     await expect(confirmation).toContainText("XOS does not contact emergency services.");

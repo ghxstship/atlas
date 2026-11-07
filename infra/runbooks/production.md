@@ -270,7 +270,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb` and `xos_export_render`, which migrations create, sections Exchange rates and Exports) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; `xos_fx_rates_ecb` and `xos_export_render`, which migrations create, sections Exchange rates and Exports; and `xos_send_waiting_crisis_alerts`, every 15 seconds from migration 6070, without which a large crisis alert stops at the people told inline and Atlas keeps showing the rest as still being told) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -703,7 +703,7 @@ expired.
 
 ## Push and SMS (OWNER)
 
-`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
+`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; a run sends up to 600 pushes, 200 texts and 50 emails, the kinds that bypass quiet hours (safety alerts, a crisis alert and its all-clear) before any backlog (6070), so a crisis alert's emails to a large project take many minutes; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
 
 ### Push (Expo push service, ADR 0030)
 
