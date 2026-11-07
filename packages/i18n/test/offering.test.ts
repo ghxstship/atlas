@@ -117,7 +117,8 @@ describe("where XOS is offered (ADR 0160)", () => {
     const good = offeringFrom([...DEFAULT_OFFERING.territories]);
     const cached = createOfferingCache(
       () => {
-        const read = reads.length === 0 ? Promise.resolve(good) : new Promise<Offering>((r) => (finish = r));
+        const read =
+          reads.length === 0 ? Promise.resolve(good) : new Promise<Offering>((r) => (finish = r));
         reads.push(read);
         return read;
       },

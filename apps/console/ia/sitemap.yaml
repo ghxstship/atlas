@@ -17,7 +17,8 @@ audience:
   dimension: operator-role
   roles: [administrator, support, trust-and-safety]
 chrome:
-  topBar: [tenants, metrics, flags, territories, support, moderation, banners, funnels, team, activity]
+  topBar:
+    [tenants, metrics, flags, territories, support, moderation, banners, funnels, team, activity]
 nodes:
   - id: console
     kind: group
