@@ -4,8 +4,18 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
+import {
+  AGE_OLD_ENOUGH,
+  AGE_UNDER,
+  ageMetadata,
+  confirmMinimumAge,
+  minimumAgeConfirmed,
+  owesAgeAnswer,
+  recordAgeRefusal,
+} from "@xos/data/consent";
+import { refuseMinimumAge } from "@xos/data/account-deletion";
 import { recordLegalAcceptances } from "@xos/data/settings";
+import { untyped } from "@xos/data/untyped";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import {
@@ -74,7 +84,14 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
-  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
+  if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
+  // Likewise anyone who has not answered at 18: an earlier 16, or a provider's account (ADR 0156). The terms page asks itself.
+  const asksItself = next.split("?")[0] === "/auth/terms";
+  redirect(
+    (!asksItself && (await owesAgeAnswer(db))
+      ? `/auth/age?next=${encodeURIComponent(next)}`
+      : next) as Route,
+  );
 }
 
 /** The terms box was ticked; account creation needs it (Section 14.4, finding A59-025). */
@@ -82,13 +99,50 @@ function acceptedTerms(form: FormData): boolean {
   return form.get("acceptTerms") === "yes";
 }
 
-/** The "16 or older" box was ticked; account creation needs it (Section 14.3, 14.9, A65-014). */
+/** The person answered 18 or older; account creation needs it (Section 14.3, 14.9, migration 6840). */
 function ageTicked(form: FormData): boolean {
-  return form.get("ageConfirmed") === "16";
+  return form.get("ageConfirmed") === AGE_OLD_ENOUGH;
+}
+
+/**
+ * An answer of under 18 on a sign-up form ends here: no account is created, nothing typed is kept and
+ * the refusal is counted with nothing that identifies the person. Answers only when it was not that.
+ */
+async function stopSignUpIfUnderAge(form: FormData): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  await recordAgeRefusal(await createServerSupabase(), "Gateway");
+  redirect("/auth/age-refused");
+}
+
+/**
+ * An answer of under 18 from someone already signed in, whose account a provider or an earlier rule made. It closes the
+ * account, so one radio button never does that alone: /auth/age says what closing means and asks them to confirm
+ * (closeUnderAgeAccount), and lets them go back to `back`.
+ */
+async function stopAccountIfUnderAge(form: FormData, back: string): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  redirect(`/auth/age?under=1&next=${encodeURIComponent(back)}` as Route);
+}
+
+/**
+ * The person confirmed they are under 18: the account closes (app.refuse_minimum_age) and the session goes with it. An
+ * account that cannot close yet stays, so every session it has ends, and it is asked again at its next sign-in.
+ */
+export async function closeUnderAgeAccount(): Promise<FormState> {
+  const db = await createServerSupabase();
+  const refused = await refuseMinimumAge(untyped(db), "Gateway");
+  // A sign-in that holds a second factor passes it before this can close the account (Section 9); nothing was removed.
+  if (!refused.ok && refused.error.kind === "refusal" && refused.error.rule === "age_second_factor")
+    redirect(secondFactorRedirect("/auth/age", "?under=1") as Route);
+  if (!refused.ok) return { error: "unexpected" };
+  const held = refused.data.outcome === "Account Held";
+  await db.auth.signOut({ scope: held ? "global" : "local" });
+  redirect(`/auth/age-refused?outcome=${held ? "held" : "closed"}`);
 }
 
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
   const signUp = form.get("intent") === "sign-up";
+  if (signUp) await stopSignUpIfUnderAge(form);
   const values = {
     email: text(form, "email"),
     ...(signUp
@@ -174,6 +228,7 @@ export async function reauthenticate(_: FormState, form: FormData): Promise<Form
 }
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
+  await stopSignUpIfUnderAge(form);
   const values = {
     fullName: text(form, "fullName"),
     email: text(form, "email"),
@@ -220,6 +275,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
  */
 export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<FormState> {
   const next = safeNext(form.get("next"), HOME);
+  await stopAccountIfUnderAge(form, `/auth/terms?next=${encodeURIComponent(next)}`);
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
@@ -240,5 +296,21 @@ export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<F
     clientIp: clientIp(await headers()),
   });
   if (!recorded.ok) return { error: "unexpected", values: { acceptTerms: "yes" } };
+  redirect(next as Route);
+}
+
+/**
+ * The age question on its own (/auth/age), for anyone who has not answered at 18. They answer once,
+ * and go on to where they were going.
+ */
+export async function answerAgeQuestion(_: FormState, form: FormData): Promise<FormState> {
+  const next = safeNext(form.get("next"), HOME);
+  await stopAccountIfUnderAge(form, next);
+  const db = await createServerSupabase();
+  const { data } = await db.auth.getUser();
+  if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  if (!ageTicked(form)) return { fieldErrors: { ageConfirmed: "age" } };
+  const confirmed = await confirmMinimumAge(db, "Gateway", clientIp(await headers()));
+  if (!confirmed.ok) return { error: "unexpected" };
   redirect(next as Route);
 }

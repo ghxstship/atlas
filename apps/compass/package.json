@@ -13,7 +13,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit",
-    "test": "vitest run --coverage",
+    "test": "vitest run --coverage && vitest run --config vitest.screens.config.ts",
     "generate:navigation": "XOS_WRITE_GENERATED=1 vitest run test/navigation.test.ts",
     "generate:help": "XOS_WRITE_GENERATED=1 vitest run test/help.test.ts",
     "generate:widget-strings": "XOS_WRITE_GENERATED=1 vitest run test/widget-gallery.test.ts",

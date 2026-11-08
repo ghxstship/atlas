@@ -126,6 +126,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0153](0153-event-types-setup-completeness-and-project-copy.md)                 | Event Types, Setup Completeness and Copying a Past Project                            | Accepted |
 | [0154](0154-aurora-intake-recorded-answers-restricted-fees-open-suggestions.md) | Aurora Intake: Answers Recorded for a Recipient, Restricted Fees and Open Suggestions | Proposed |
 | [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)                    | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place      | Proposed |
+| [0156](0156-minimum-age-18-and-compass-acceptance.md)                           | One Minimum Age of 18, Compass First Sign-In Acceptance and the AI Choice             | Proposed |
 | [0158](0158-ratings-of-people-stay-with-the-org-that-gave-them.md)              | Ratings of People Stay with the Org That Gave Them                                    | Accepted |
 | [0160](0160-offered-territories-united-states-launch.md)                        | One Source of Truth for Offered Territories, With a United States Launch              | Proposed |
 | [0161](0161-stripe-cancellation-and-auto-renewal.md)                            | Stopping Stripe and the Auto-Renewal Terms                                            | Proposed |

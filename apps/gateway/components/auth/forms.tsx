@@ -1,9 +1,14 @@
 "use client";
 
+import { AGE_OLD_ENOUGH, AGE_UNDER } from "@xos/data/consent";
+import type { Route } from "next";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState, type ReactNode } from "react";
 import {
   acceptSignUpTerms,
+  answerAgeQuestion,
+  closeUnderAgeAccount,
   sendMagicLink,
   signInWithPassword,
   signUp,
@@ -139,30 +144,56 @@ export function SignInForm({ next, initial = "link" }: { next: string; initial?:
 }
 
 /**
- * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2), asked wherever an account is
- * created or first used; the action records it (migration 1381).
+ * The age question (Section 14.3, 14.9; Terms of Service 3.2): both answers with equal weight, and no rule stated until
+ * it is answered (ADR 0156). Every way of creating or first using an account asks it; the action records it
+ * (migrations 1381 and 6840), and an answer of under 18 ends there.
  */
 function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
   const t = useAuthCopy();
   const error = state.fieldErrors?.["ageConfirmed"];
+  const answer = state.values?.["ageConfirmed"];
+  const describedBy = error ? `${id}-error` : undefined;
   return (
-    <div className="flex flex-col gap-4">
-      <Checkbox
-        id={id}
-        name="ageConfirmed"
-        value="16"
-        required
-        defaultChecked={state.values?.["ageConfirmed"] === "16"}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        label={<span className="text-text-13">{t("fields.age")}</span>}
-      />
+    <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
+      <legend className="mb-8 text-text-13 font-medium">{t("fields.ageLegend")}</legend>
+      <label
+        htmlFor={id}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
+        <input
+          id={id}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_OLD_ENOUGH}
+          required
+          defaultChecked={answer === AGE_OLD_ENOUGH}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.age")}</span>
+      </label>
+      <label
+        htmlFor={`${id}-under`}
+        className="xos-check inline-flex cursor-pointer items-center gap-8 text-text-13"
+      >
+        <input
+          id={`${id}-under`}
+          type="radio"
+          name="ageConfirmed"
+          value={AGE_UNDER}
+          required
+          defaultChecked={answer === AGE_UNDER}
+          aria-describedby={describedBy}
+          className="xos-check-input"
+        />
+        <span>{t("fields.ageUnder")}</span>
+      </label>
       {error ? (
         <p id={`${id}-error`} className="m-0 text-text-13 text-danger-text">
           {t("errors.age")}
         </p>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
 
@@ -269,7 +300,7 @@ export function TermsForm({
 }: {
   next: string;
   termsLabel: ReactNode;
-  /** The person has not confirmed they are 16 or older yet. */
+  /** The person has not confirmed they are 18 or older yet. */
   askAge?: boolean;
 }) {
   const t = useAuthCopy();
@@ -298,6 +329,49 @@ export function TermsForm({
       </div>
       {askAge ? <AgeConfirmation id="terms-age" state={state} /> : null}
       <Submit pending={pending}>{t("terms.submit")}</Submit>
+    </form>
+  );
+}
+
+/**
+ * What an answer of under 18 does to an existing account, before it does it: closing cannot be undone, so an adult who
+ * chose the wrong answer gets to go back (ADR 0156). No field: the page's whole question is this one button.
+ */
+export function AgeUnderConfirmForm({ back }: { back: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(closeUnderAgeAccount, INITIAL);
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <Button
+        type="submit"
+        variant="danger"
+        disabled={pending}
+        aria-busy={pending}
+        className="w-full"
+      >
+        {t("ageQuestion.under.confirm")}
+      </Button>
+      <Link
+        href={`/auth/age?next=${encodeURIComponent(back)}` as Route}
+        className="text-center text-text-13 text-accent-text underline"
+      >
+        {t("ageQuestion.under.back")}
+      </Link>
+    </form>
+  );
+}
+
+/** The age question on its own, for anyone who has not answered at 18 (/auth/age). */
+export function AgeQuestionForm({ next }: { next: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(answerAgeQuestion, INITIAL);
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <input type="hidden" name="next" value={next} />
+      <AgeConfirmation id="age-question" state={state} />
+      <Submit pending={pending}>{t("ageQuestion.submit")}</Submit>
     </form>
   );
 }

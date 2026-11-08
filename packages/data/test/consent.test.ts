@@ -5,7 +5,12 @@ import {
   CONSENT_BANNER_VERSION,
   ageMetadata,
   confirmMinimumAge,
+  MINIMUM_AGE,
   minimumAgeConfirmed,
+  owesAgeAnswer,
+  parseLegalStanding,
+  readLegalStanding,
+  recordAiChoice,
   newVisitorId,
   parseConsent,
   preferenceCookieOptions,
@@ -93,9 +98,23 @@ describe("recording", () => {
   });
 });
 
-describe("16 or older", () => {
-  it("carries the ticked box in the sign-up metadata", () => {
-    expect(ageMetadata("Gateway")).toEqual({ age_confirmed: "16", signup_surface: "Gateway" });
+describe("18 or older", () => {
+  it("carries the answer in the sign-up metadata", () => {
+    expect(MINIMUM_AGE).toBe(18);
+    expect(ageMetadata("Gateway")).toEqual({ age_confirmed: "18", signup_surface: "Gateway" });
+  });
+
+  it("owes an answer only when the server says none was given, and lets a failed read through", async () => {
+    const { db } = fakeClient({
+      "rpc:minimum_age_confirmed": [
+        okResponse(false),
+        okResponse(true),
+        errorResponse("42501", "not signed in"),
+      ],
+    });
+    expect(await owesAgeAnswer(db)).toBe(true);
+    expect(await owesAgeAnswer(db)).toBe(false);
+    expect(await owesAgeAnswer(db)).toBe(false);
   });
 
   it("reads and records the confirmation", async () => {
@@ -113,5 +132,62 @@ describe("16 or older", () => {
     });
     expect(calls[1]?.steps[0]?.[1][0]).toEqual({ p_surface: "Atlas", p_client_ip: "203.0.113.5" });
     expect((await confirmMinimumAge(db, "Atlas", null)).ok).toBe(false);
+  });
+});
+
+describe("what a sign-in owes", () => {
+  it("reads the standing, and takes anything malformed as owing", async () => {
+    const { db } = fakeClient({
+      "rpc:my_legal_standing": [
+        okResponse({
+          age_confirmed: true,
+          accepted_documents: ["mobile-eula"],
+          worker_terms_apply: false,
+          ai_choice: "Allowed",
+          ai_disclosure_version: "2026-11-06",
+          closing_blocked: true,
+        }),
+        errorResponse("42501", "not signed in"),
+      ],
+    });
+    expect(await readLegalStanding(db)).toEqual({
+      ok: true,
+      data: {
+        ageConfirmed: true,
+        acceptedDocuments: ["mobile-eula"],
+        workerTermsApply: false,
+        aiChoice: "Allowed",
+        aiDisclosureVersion: "2026-11-06",
+        closingBlocked: true,
+      },
+    });
+    expect((await readLegalStanding(db)).ok).toBe(false);
+    expect(parseLegalStanding({ ai_choice: "Maybe" })).toEqual({
+      ageConfirmed: false,
+      acceptedDocuments: [],
+      workerTermsApply: true,
+      aiChoice: null,
+      aiDisclosureVersion: null,
+      closingBlocked: false,
+    });
+  });
+
+  it("records the AI choice with the words the person saw", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:record_ai_choice": [okResponse("2026-11-06T10:00:00Z")],
+    });
+    expect(
+      await recordAiChoice(db, {
+        surface: "Compass",
+        disclosureVersion: "2026-11-06",
+        choice: "Declined",
+        clientIp: null,
+      }),
+    ).toEqual({ ok: true, data: "2026-11-06T10:00:00Z" });
+    expect(calls[0]?.steps[0]?.[1][0]).toEqual({
+      p_surface: "Compass",
+      p_disclosure_version: "2026-11-06",
+      p_choice: "Declined",
+    });
   });
 });

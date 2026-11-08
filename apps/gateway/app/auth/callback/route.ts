@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
+import { owesAgeAnswer } from "@xos/data/consent";
 import { clientIp, missingSignUpAcceptances, recordPendingAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
@@ -50,5 +51,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (oauth && (await missingSignUpAcceptances(db)).length > 0) {
     return goTo(next === HOME ? "/auth/terms" : `/auth/terms?next=${encodeURIComponent(next)}`);
   }
+  // Anyone else who has not answered at 18 does so now, however the account was made (ADR 0156). A failed read carries on:
+  // the proxy asks at the next page.
+  if (await owesAgeAnswer(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
   return goTo(next);
 }

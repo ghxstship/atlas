@@ -2667,7 +2667,9 @@
       "email": "Email",
       "password": "Password",
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
-      "age": "I am 16 or older."
+      "age": "I am 18 or older",
+      "ageUnder": "I am under 18",
+      "ageLegend": "Your age"
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -2819,7 +2821,27 @@
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
-      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
+      "age": "Choose the answer that is true for you."
+    },
+    "ageRefused": {
+      "title": "XOS accounts are for people 18 and older",
+      "sentence": "You told us you are under 18, so we did not create an account. We did not keep what you typed.",
+      "closed": "You told us you are under 18, so your account is closed. We deleted your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+      "held": "You told us you are under 18, but your account cannot be deleted yet: a legal hold, an open shift or being an organization's only owner stands in the way. We signed you out everywhere, you cannot use this account, and we will ask again when you sign in. Contact us and we will finish closing it.",
+      "minors": "If you are working or attending an event, the adult or organization responsible for you can keep your details in their own records. You do not need an account for that.",
+      "contact": "Contact us"
+    },
+    "ageQuestion": {
+      "title": "Confirm your age",
+      "lead": "XOS asks everyone who has not answered yet.",
+      "submit": "Continue",
+      "under": {
+        "title": "Confirm your answer",
+        "sentence": "XOS accounts are for people 18 and older. If you are under 18, we close this account.",
+        "consequences": "Closing it ends your memberships, cancels work under way and deletes your sign-in, your profile and its files, your badge photos, your settings, what you sent our support team, and the answers and personal agreements you gave XOS. It cannot be undone. Any organization you worked with keeps the records the law requires, such as hours you worked, and a note with your email address that your account was deleted, and XOS keeps a record of that deletion with your account IDs but no name. XOS also keeps a monthly count of people under 18 it turned away, which does not identify you. Deleted data stays in backups until they expire.",
+        "confirm": "I am under 18. Close my account",
+        "back": "Go back"
+      }
     }
   },
   "work": {

@@ -24,6 +24,10 @@
     "actionAdmin": "Abrir la configuración de funciones de IA",
     "actionMember": "Pide a un administrador que lo active en Configuración, Funciones de IA."
   },
+  "declined": {
+    "sentence": "Desactivaste las funciones de IA para ti.",
+    "action": "Solo tú puedes volver a activarlas, en Compass, Configuración, Funciones de IA. No se envía nada hasta que lo hagas."
+  },
   "notInPlan": {
     "title": "Aurora AI no está en tu plan",
     "reason": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Un propietario puede cambiar el plan en Configuración, Facturación y plan.",
@@ -154,6 +158,8 @@
       "notInPlan": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Un propietario puede cambiar el plan en Configuración, Facturación y plan.",
       "offTitle": "Esta función de IA está desactivada",
       "off": "Un administrador desactivó esta función en Configuración, Funciones de IA. No se envió nada.",
+      "declinedTitle": "Las funciones de IA están desactivadas para ti",
+      "declined": "Desactivaste las funciones de IA para ti en Compass. Para usarlas, actívalas en Compass, Configuración, Funciones de IA. No se envió nada.",
       "limitTitle": "Se agotó la asignación de Aurora de este mes",
       "limit": "Su organización usó las {allowance, number} solicitudes de este mes. La asignación se renueva el primer día del mes próximo, o un propietario puede pasar a un plan mayor.",
       "errorTitle": "Aurora no pudo cargar",
@@ -164,6 +170,7 @@
       "quota": "Su organización usó las solicitudes de Aurora de este mes. No se cambió nada. La asignación se renueva el primer día del mes próximo.",
       "notInPlan": "Aurora AI no está en su plan, así que no se envió nada.",
       "off": "Un administrador desactivó esta función. No se envió nada.",
+      "declined": "Desactivaste las funciones de IA para ti. No se envió nada. Puedes volver a activarlas en Compass, Configuración, Funciones de IA.",
       "notConfigured": "Aurora no está configurada en esta implementación. Pida al operador de la plataforma que conecte el proveedor del modelo.",
       "offline": "No se pudo contactar a Aurora. Revise su conexión e inténtelo de nuevo. No se cambió nada.",
       "forbidden": "No tiene acceso para hacer esto. No se cambió nada.",

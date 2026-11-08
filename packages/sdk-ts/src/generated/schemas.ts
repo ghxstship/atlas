@@ -44045,6 +44045,10 @@ export interface AuroraStatus {
    * Whether the plan includes Aurora AI.
    */
   readonly plan_includes_aurora: boolean;
+  /**
+   * Whether the caller turned AI features off for themselves, in Compass, Settings. Their enabled_features is then empty whatever the org's setting, and only they can turn them back on. False with no recorded choice and for an API key.
+   */
+  readonly declined_by_person: boolean;
 }
 
 /**

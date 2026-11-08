@@ -1,4 +1,4 @@
--- pgTAP: migration 1381, finding A65-014 (RRR-127). Sign-up records "16 or older" from the ticked box; other sign-ins
+-- pgTAP: migrations 1381 and 6840, finding A65-014 (RRR-127). Sign-up records "18 or older" from the form's answer; other sign-ins
 -- confirm through app.confirm_minimum_age; the cookie banner's decision is stored server-side, and a Global Privacy
 -- Control signal is recorded and refuses every non-essential category.
 begin;
@@ -21,19 +21,19 @@ begin
   insert into world select p_key, p.id from app.people p where p.user_id = v_user;
 end $$;
 
-select pg_temp.sign_up('ticked', 'ticked@signup.test', '{"full_name": "Tess Ticked", "age_confirmed": "16", "signup_surface": "Gateway"}');
+select pg_temp.sign_up('ticked', 'ticked@signup.test', '{"full_name": "Tess Ticked", "age_confirmed": "18", "signup_surface": "Gateway"}');
 select pg_temp.sign_up('google', 'google@signup.test', '{"full_name": "Gus Google"}');
 select pg_temp.sign_up('forged', 'forged@signup.test', '{"full_name": "Fay Forged", "age_confirmed": "yes"}');
 
 select results_eq($$select surface, minimum_age::int from private.age_confirmations where person_id = pg_temp.id('ticked')$$,
-  $$values ('Gateway'::text, 16)$$, 'a sign-up with the box ticked records the confirmation and its surface');
+  $$values ('Gateway'::text, 18)$$, 'a sign-up that answered 18 or older records the confirmation and its surface');
 select is((select count(*)::int from private.age_confirmations where person_id = pg_temp.id('google')), 0,
-  'a sign-in without the box records nothing');
+  'a sign-in without the question records nothing');
 select is((select count(*)::int from private.age_confirmations where person_id = pg_temp.id('forged')), 0,
   'only the exact value the form sends counts');
 
 select pg_temp.as_user('ticked');
-select ok(app.minimum_age_confirmed(), 'the person who ticked the box reads their confirmation');
+select ok(app.minimum_age_confirmed(), 'the person who answered reads their confirmation');
 select pg_temp.as_user('google');
 select ok(not app.minimum_age_confirmed(), 'a first Google sign-in has not confirmed yet');
 select throws_ok($$select app.confirm_minimum_age('Elsewhere')$$, 'XR001', null, 'the surface is one of the three shells');
@@ -43,9 +43,9 @@ create temporary table t (label text primary key, at timestamptz);
 grant select, insert on t to public;
 insert into t values ('repeat', app.confirm_minimum_age('Gateway'));
 select pg_temp.as_platform();
-select is((select at from t where label = 'repeat'), (select confirmed_at from private.age_confirmations where person_id = pg_temp.id('google')),
+select is((select at from t where label = 'repeat'), (select confirmed_at from private.age_confirmations where person_id = pg_temp.id('google') and minimum_age = 18),
   'a repeat keeps the first confirmation');
-select is((select surface from private.age_confirmations where person_id = pg_temp.id('google')), 'Atlas',
+select is((select surface from private.age_confirmations where person_id = pg_temp.id('google') and minimum_age = 18), 'Atlas',
   'and its surface');
 select pg_temp.as_user('google');
 select throws_ok($$select * from private.age_confirmations$$, '42501', null, 'the evidence table is never readable by signed-in callers');

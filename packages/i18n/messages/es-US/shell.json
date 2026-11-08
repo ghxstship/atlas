@@ -956,7 +956,9 @@
       "orgCountryChoose": "Elige un país",
       "orgSlug": "Dirección web",
       "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
-      "age": "Tengo 16 años o más."
+      "age": "Tengo 18 años o más",
+      "ageUnder": "Tengo menos de 18 años",
+      "ageLegend": "Tu edad"
     },
     "or": "o",
     "signIn": {
@@ -1044,7 +1046,7 @@
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Atlas reserva esa dirección web. Elige otra.",
-      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
+      "age": "Elige la respuesta que sea cierta para ti."
     },
     "networkRestricted": {
       "title": "Su red no está permitida",
@@ -1056,6 +1058,26 @@
       "reasonHelp": "Al menos 20 caracteres.",
       "start": "Tomar acceso de emergencia",
       "back": "Elegir otra organización"
+    },
+    "ageRefused": {
+      "title": "Las cuentas de XOS son para personas de 18 años en adelante",
+      "sentence": "Nos dijiste que tienes menos de 18 años, así que no creamos una cuenta. No guardamos lo que escribiste.",
+      "closed": "Nos dijiste que tienes menos de 18 años, así que tu cuenta está cerrada. Eliminamos tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+      "held": "Nos dijiste que tienes menos de 18 años, pero tu cuenta aún no se puede eliminar: lo impide una retención legal, un turno abierto o ser el único propietario de una organización. Cerramos tu sesión en todos los dispositivos, no puedes usar esta cuenta y te lo volveremos a preguntar cuando inicies sesión. Contáctanos y terminaremos de cerrarla.",
+      "minors": "Si trabajas o asistes a un evento, el adulto o la organización responsable de ti puede guardar tus datos en sus propios registros. No necesitas una cuenta para eso.",
+      "contact": "Contáctanos"
+    },
+    "ageQuestion": {
+      "title": "Confirma tu edad",
+      "lead": "XOS se lo pregunta a todas las personas que aún no han respondido.",
+      "submit": "Continuar",
+      "under": {
+        "title": "Confirma tu respuesta",
+        "sentence": "Las cuentas de XOS son para personas de 18 años o más. Si tienes menos de 18 años, cerramos esta cuenta.",
+        "consequences": "Al cerrarla, terminan tus membresías, se cancela el trabajo en curso y se elimina tu inicio de sesión, tu perfil y sus archivos, tus fotos de credencial, tu configuración, lo que enviaste a nuestro equipo de soporte y las respuestas y los acuerdos personales que diste a XOS. No se puede deshacer. Cualquier organización con la que hayas trabajado conserva los registros que exige la ley, como las horas que trabajaste, y una nota con tu correo electrónico que indica que tu cuenta se eliminó, y XOS conserva un registro de esa eliminación con los identificadores de tu cuenta, sin tu nombre. XOS también conserva un recuento mensual de las personas menores de 18 años que rechazó, que no te identifica. Los datos eliminados permanecen en las copias de seguridad hasta que caducan.",
+        "confirm": "Tengo menos de 18 años. Cerrar mi cuenta",
+        "back": "Volver"
+      }
     }
   },
   "roles": {

@@ -19,6 +19,14 @@ export function secondFactorRedirect(path: string, search: string): string {
 }
 
 /**
+ * The age question for a request, carrying where to return. Like the second factor, the proxy applies it to the sitemap
+ * routes that need a session (ADR 0156).
+ */
+export function ageRedirect(path: string, search: string): string {
+  return `/auth/age?next=${encodeURIComponent(safeNext(`${path}${search}`, "/home"))}`;
+}
+
+/**
  * The WebAuthn relying party for security keys as a second factor, from WEBAUTHN_RP_ID and WEBAUTHN_RP_ORIGINS
  * (the values of Supabase Auth's [auth.webauthn]), or null when they are not set.
  */

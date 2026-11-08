@@ -29,7 +29,7 @@ export function OrganizationForm({
   dpa: { href: string; title: string };
   /** Every country by name, in the reader's language (ADR 0160). */
   countries: readonly { value: string; label: string }[];
-  /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
+  /** The person has not confirmed they are 18 or older yet (a first provider sign-in). */
   askAge?: boolean;
 }) {
   const t = useAuthCopy();

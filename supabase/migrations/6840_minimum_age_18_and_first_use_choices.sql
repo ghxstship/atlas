@@ -1,0 +1,608 @@
+-- 6155_minimum_age_18_and_first_use_choices.sql
+-- RRR-248, legal issue 4: Compass recorded no acceptance and asked no age, and the documents, Google Play and the AI text
+-- disagreed about the age. One minimum age of 18 now holds for every XOS account in every app, and Compass asks before
+-- anything else. This migration:
+--   * raises the age the shells ask to 18. private.age_confirmations keeps every 16 confirmation as the evidence it was
+--     when given, so a person can hold one row per age, and only an 18 confirmation counts from here on;
+--   * enforces the age where it counts, on the server, whichever app or API asks: nobody without an 18 confirmation adds
+--     themselves to an org or an account (a trigger on the membership tables, so every way of joining is covered, today's
+--     and later ones) or reaches the AI provider (app.ai_begin_request, app.ai_enabled_features). The AI provider's terms
+--     are why that second gate exists;
+--   * records a refusal: private.age_refusals holds the surface, the month and what happened to the account, under a random
+--     id, so a row cannot be matched by time to a deleted person. app.refuse_minimum_age closes the signed-in person's
+--     account and erases what XOS itself holds about them (their personal acceptances, age answers and AI choices);
+--     api_public.record_age_refusal counts an answer given before any account exists. An account that cannot close yet
+--     (a legal hold, an open shift, an only owner) goes on private.age_refusal_holds for the platform team. SQL cannot
+--     delete storage objects, so the shared client removes the person's files first (@xos/data/account-deletion); so that
+--     it can, the owner of a support screenshot may now delete it, and a person can now see their own profile-media
+--     folder, without which no deletion ever removed anything from it;
+--   * answers what a Compass sign-in still owes (app.my_legal_standing): the age, the personal documents accepted so far,
+--     whether the Worker Terms apply and the AI choice. Acceptances still go through app.record_legal_acceptances (0850)
+--     and announced changes through app.pending_legal_reacceptances (1383);
+--   * records the first-use AI choice (Apple guideline 5.1.2(i)) in private.ai_disclosure_choices, append-only, and makes
+--     a decline bind on the server: app.ai_begin_request refuses it and app.ai_enabled_features answers nothing, whichever
+--     app asks. A person with no recorded choice keeps the org's setting, since only Compass asks today.
+
+-- Minimum age ------------------------------------------------------------------------------------------------------------
+
+alter table private.age_confirmations
+  drop constraint age_confirmations_person_key,
+  drop constraint age_confirmations_minimum_age,
+  alter column minimum_age set default 18,
+  add constraint age_confirmations_person_age_key unique (person_id, minimum_age),
+  add constraint age_confirmations_minimum_age check (minimum_age in (16, 18));
+
+comment on table private.age_confirmations is 'Each person''s confirmation of the account minimum age (Section 14.3 Children, Section 14.9 Minors; Terms of Service 3.2): one row per person and age, written at sign-up from the answer on the form or later through app.confirm_minimum_age, never changed. The minimum is 18; a row at 16 is evidence of the earlier rule and no longer counts. Read by the person through app.minimum_age_confirmed().';
+comment on column private.age_confirmations.minimum_age is 'The age confirmed: 18, the account minimum, or 16 for a confirmation given under the earlier rule.';
+
+create or replace function app.confirm_minimum_age(p_surface text, p_client_ip inet default null)
+returns timestamptz
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.require_person();
+  v_at timestamptz;
+begin
+  if p_surface is null or p_surface not in ('Atlas', 'Gateway', 'Compass') then
+    perform private.refuse('age_surface', 'Name the surface the confirmation came from: Atlas, Gateway or Compass.');
+  end if;
+  insert into private.age_confirmations (person_id, user_id, minimum_age, surface, ip)
+  values (v_person, (select auth.uid()), 18, p_surface, coalesce(p_client_ip, private.request_ip()))
+  on conflict (person_id, minimum_age) do nothing;
+  select c.confirmed_at into v_at from private.age_confirmations c where c.person_id = v_person and c.minimum_age = 18;
+  return v_at;
+end;
+$$;
+
+comment on function app.confirm_minimum_age(text, inet) is 'Records that the signed-in person confirmed they are 18 or older (Section 14.3, 14.9), on the surface they used. The first confirmation stands; a repeat answers its time. The client address comes from the platform server, or from the request when absent.';
+revoke all on function app.confirm_minimum_age(text, inet) from public, anon;
+grant execute on function app.confirm_minimum_age(text, inet) to authenticated, service_role;
+
+create or replace function private.minimum_age_met(p_person_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+      select 1 from private.age_confirmations c
+      where c.person_id = p_person_id and c.minimum_age = 18)
+    -- A service account is a person row so that its API keys have an audit identity (0922). It has no age to give and no
+    -- screen to answer on, and its org answers for it, so API keys keep what they could do before this rule.
+    or exists (
+      select 1 from app.service_accounts s
+      where s.person_id = p_person_id and s.deleted_at is null);
+$$;
+
+comment on function private.minimum_age_met(uuid) is 'True when the person has confirmed they are 18 or older, or is a service account, which has no age to give. A confirmation at the earlier age of 16 does not count.';
+revoke all on function private.minimum_age_met(uuid) from public, anon, authenticated;
+
+create or replace function app.minimum_age_confirmed()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.minimum_age_met(private.current_person_id());
+$$;
+
+comment on function app.minimum_age_confirmed() is 'True when the signed-in person has confirmed they are 18 or older. A confirmation at the earlier age of 16 does not count. Until it is true the web shells ask before any signed-in page, Compass asks before it opens, and the database refuses joining an org and AI features.';
+revoke all on function app.minimum_age_confirmed() from public, anon;
+grant execute on function app.minimum_age_confirmed() to authenticated, service_role;
+
+-- Joining needs the answer, however the join is reached ------------------------------------------------------------------
+
+create or replace function private.require_minimum_age_to_join()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- Someone adding themselves. A provisioning service (SCIM), an Admin adding someone else and the platform's own jobs
+  -- are not the person answering; that person is asked before their first page.
+  if new.person_id = private.current_person_id() and not private.minimum_age_met(new.person_id) then
+    perform private.refuse('minimum_age_unconfirmed', 'Confirm you are 18 or older before you create or join an organization.');
+  end if;
+  return new;
+end;
+$$;
+
+comment on function private.require_minimum_age_to_join() is 'Before insert on app.memberships and app.account_memberships, and before a company account membership someone else added is accepted: a signed-in person adding themselves (creating an org, accepting an invite or link, joining by single sign-on) must have confirmed they are 18 or older. It is a trigger so every way of joining is covered, through the web shells, the public API or a direct call. XR001 minimum_age_unconfirmed.';
+revoke all on function private.require_minimum_age_to_join() from public, anon, authenticated;
+
+create trigger t06_require_minimum_age before insert on app.memberships
+  for each row execute function private.require_minimum_age_to_join();
+create trigger t06_require_minimum_age before insert on app.account_memberships
+  for each row execute function private.require_minimum_age_to_join();
+-- A company can add a person who then confirms it (2630, 2636, 4752): the confirmation is the person joining.
+create trigger t06_require_minimum_age_to_accept before update of accepted_at on app.account_memberships
+  for each row when (old.accepted_at is null and new.accepted_at is not null)
+  execute function private.require_minimum_age_to_join();
+
+-- A form still in a browser during the release can send 16: it is kept as what it was, and the person is asked again.
+create or replace function private.record_signup_age_confirmation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_surface text := coalesce(new.raw_user_meta_data ->> 'signup_surface', 'Atlas');
+  v_age smallint := case coalesce(new.raw_user_meta_data ->> 'age_confirmed', '') when '18' then 18 when '16' then 16 end;
+begin
+  if v_age is null then
+    return new;
+  end if;
+  insert into private.age_confirmations (person_id, user_id, minimum_age, surface, ip)
+  select p.id, new.id, v_age, case when v_surface in ('Atlas', 'Gateway', 'Compass') then v_surface else 'Atlas' end, private.request_ip()
+  from app.people p where p.user_id = new.id
+  on conflict (person_id, minimum_age) do nothing;
+  return new;
+end;
+$$;
+
+comment on function private.record_signup_age_confirmation() is 'After a sign-up whose metadata says age_confirmed = 18 (the person answered 18 or older on a sign-up form), records the age confirmation for the new person. A 16 from a form loaded before the rule changed is kept as a 16, which does not count.';
+revoke all on function private.record_signup_age_confirmation() from public, anon, authenticated;
+
+-- Refusals ---------------------------------------------------------------------------------------------------------------
+
+create table private.age_refusals (
+  id uuid primary key default gen_random_uuid(),
+  surface text not null,
+  minimum_age smallint not null default 18,
+  outcome text not null,
+  refused_month date not null default date_trunc('month', now() at time zone 'utc')::date,
+  constraint age_refusals_surface check (surface in ('Atlas', 'Gateway', 'Compass')),
+  constraint age_refusals_minimum_age check (minimum_age = 18),
+  constraint age_refusals_outcome check (outcome in ('No Account', 'Account Removed', 'Account Closed', 'Account Held')),
+  constraint age_refusals_month check (extract(day from refused_month) = 1)
+);
+
+comment on table private.age_refusals is 'Each time someone answered that they are under 18 (Section 14.3, 14.9): only the surface, the month and what happened to the account. It names no person, sign-in, email or address. The time is kept to the month and the id is random, not time-ordered, so a row cannot be matched by its time to a deleted person, a deletion record or an org''s erasure entry.';
+comment on column private.age_refusals.id is 'Refusal id: random (UUID v4), not time-ordered like other ids, so it says nothing about when.';
+comment on column private.age_refusals.surface is 'Where the person answered: Atlas, Gateway or Compass.';
+comment on column private.age_refusals.minimum_age is 'The minimum age the person answered they do not meet.';
+comment on column private.age_refusals.outcome is 'No Account: answered before any account existed. Account Removed: the sign-in and the person row are gone. Account Closed: an org''s records or another reference keep a nameless person row; the sign-in is gone. Account Held: a legal hold, an open shift or being the only owner stops deletion, so the account stays, on private.age_refusal_holds, and is asked again at each sign-in. A person is counted once: answering again while held, or closing the account later, adds no second row.';
+comment on column private.age_refusals.refused_month is 'The first day of the UTC month the person answered in. Set by the database.';
+
+alter table private.age_refusals enable row level security;
+revoke all on private.age_refusals from public, anon, authenticated;
+grant select on private.age_refusals to service_role;
+
+create table private.age_refusal_holds (
+  person_id uuid primary key references app.people (id) on delete cascade,
+  surface text not null,
+  reason text not null,
+  held_at timestamptz not null default now(),
+  constraint age_refusal_holds_surface check (surface in ('Atlas', 'Gateway', 'Compass')),
+  constraint age_refusal_holds_reason check (reason in ('account_delete_legal_hold', 'account_delete_on_shift', 'account_delete_sole_owner'))
+);
+
+comment on table private.age_refusal_holds is 'People who answered that they are under 18 and whose account could not close yet: the platform team''s list of accounts to finish closing. Unlike private.age_refusals this names the person, because XOS still holds their account and has to act on what they said. A row stays if the person later answers 18 or older, so that conflict stays visible; the platform team decides. It goes when the account closes.';
+comment on column private.age_refusal_holds.person_id is 'Person who answered under 18.';
+comment on column private.age_refusal_holds.surface is 'Where the person last answered: Atlas, Gateway or Compass.';
+comment on column private.age_refusal_holds.reason is 'Why deletion could not run: account_delete_legal_hold, account_delete_on_shift or account_delete_sole_owner.';
+comment on column private.age_refusal_holds.held_at is 'When the person last answered. Set by the database.';
+
+alter table private.age_refusal_holds enable row level security;
+revoke all on private.age_refusal_holds from public, anon, authenticated;
+grant select, delete on private.age_refusal_holds to service_role;
+
+create or replace function private.forget_age_refusal_hold()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  delete from private.age_refusal_holds where person_id = new.id;
+  -- The AI choices go too, with the address they came from: the account can no longer use AI features, and the org's own
+  -- AI request log already shows what the person ran, which a decline would have refused.
+  delete from private.ai_disclosure_choices where person_id = new.id;
+  return null;
+end;
+$$;
+
+comment on function private.forget_age_refusal_hold() is 'When the person is deleted (app.delete_my_account soft-deletes app.people): removes their age refusal hold, since there is no longer an account to close, and their AI choices with the addresses they came from.';
+revoke all on function private.forget_age_refusal_hold() from public, anon, authenticated;
+
+create trigger t85_forget_age_refusal_hold after update of deleted_at on app.people
+  for each row when (new.deleted_at is not null and old.deleted_at is null)
+  execute function private.forget_age_refusal_hold();
+
+create or replace function api_public.record_age_refusal(p_surface text)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_client text;
+begin
+  perform private.require_read_write();
+  if p_surface is null or p_surface not in ('Atlas', 'Gateway', 'Compass') then
+    return false;
+  end if;
+  -- The shells call this from their servers, so the address is often the shell's own: the limit only stops a flood.
+  v_client := coalesce(host(private.request_ip()), 'unknown');
+  if private.rate_limit_exceeded('age_refusal', v_client, 300, interval '10 minutes') then
+    return false;
+  end if;
+  perform private.note_rate_event('age_refusal', v_client);
+  insert into private.age_refusals (surface, outcome) values (p_surface, 'No Account');
+  return true;
+end;
+$$;
+
+comment on function api_public.record_age_refusal(text) is 'Named public RPC for a sign-up form (Section 14.3, 14.9): counts an answer of under 18 given before any account exists, so nothing the person typed is kept. At most 300 per client address in 10 minutes, a limit that works when the web shells call it from their servers. The address is used only for that limit, as a hash pruned within a day. Returns false when refused.';
+revoke all on function api_public.record_age_refusal(text) from public;
+grant execute on function api_public.record_age_refusal(text) to anon, authenticated, service_role;
+
+create or replace function private.erase_age_refused_records(p_person_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  delete from private.ai_disclosure_choices where person_id = p_person_id;
+  delete from private.age_confirmations where person_id = p_person_id;
+  delete from private.age_refusal_holds where person_id = p_person_id;
+  -- Between the person and XOS: what they told the platform team and set for themselves. No org's record rests on these.
+  delete from private.account_support_requests where person_id = p_person_id;
+  delete from private.integration_oauth_states where person_id = p_person_id;
+  delete from app.feedback_submissions where person_id = p_person_id;
+  delete from app.person_notification_preferences where person_id = p_person_id;
+  delete from app.person_notification_settings where person_id = p_person_id;
+  delete from app.person_calendar_feeds where person_id = p_person_id;
+  delete from app.shortcut_bindings where person_id = p_person_id;
+  delete from app.blocks where person_id = p_person_id or blocked_person_id = p_person_id;
+  delete from app.person_work_details where person_id = p_person_id;
+  delete from app.person_emergency_contacts where person_id = p_person_id;
+  delete from app.person_loyalty_programs where person_id = p_person_id;
+  -- These logs are append-only, and these rows no longer serve anyone. A cookie choice or a browser's opt-out signal proves
+  -- a choice a closed account no longer needs, on any org's page. An org's own acceptances, with org_id set, stay as that
+  -- org's evidence.
+  perform private.begin_trusted_operation('retention_purge');
+  delete from app.cookie_consent_events where person_id = p_person_id;
+  delete from app.privacy_signals where person_id = p_person_id;
+  delete from app.legal_acceptances where person_id = p_person_id and org_id is null;
+  delete from app.work_detail_events where person_id = p_person_id and org_id is null;
+  perform private.end_trusted_operation('retention_purge');
+end;
+$$;
+
+comment on function private.erase_age_refused_records(uuid) is 'Removes what XOS itself holds about a person who answered under 18: AI choices, age answers, any hold, personal legal acceptances with their sign-in id and address, cookie choices and opt-out signals made while signed in, what they sent the platform team (support requests, feedback) and their personal settings and work details. Acceptances on an org''s behalf stay as that org''s evidence. Storage objects are removed by the caller first (refuseMinimumAge, @xos/data/account-deletion), since SQL cannot.';
+revoke all on function private.erase_age_refused_records(uuid) from public, anon, authenticated;
+
+create or replace function app.refuse_minimum_age(p_surface text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_person uuid := private.require_person();
+  v_email text;
+  v_blocker jsonb;
+  v_counted boolean;
+  v_invented boolean := false;
+  v_outcome text := 'Account Removed';
+begin
+  if p_surface is null or p_surface not in ('Atlas', 'Gateway', 'Compass') then
+    perform private.refuse('age_surface', 'Name the surface the refusal came from: Atlas, Gateway or Compass.');
+  end if;
+  -- Someone who has confirmed 18 is not asked again, so an answer of under 18 from them is not an answer to this question.
+  if private.minimum_age_met(v_person) then
+    perform private.refuse('age_already_confirmed', 'This account has confirmed its age. To close it, delete your account in Settings.');
+  end if;
+  -- Closing is as final as deleting: a sign-in that holds a second factor passes it first, as every page asks (Section 9).
+  if private.session_aal() <> 'aal2' and private.has_verified_second_factor(v_uid) then
+    perform private.refuse('age_second_factor', 'Verify your second factor before you close this account. Nothing was changed.');
+  end if;
+
+  -- One row per person in the count: a held account that answers again, or closes later, is the same refusal.
+  v_counted := exists (select 1 from private.age_refusal_holds h where h.person_id = v_person);
+  v_blocker := private.account_deletion_blockers(v_person) -> 0;
+  if v_blocker is not null then
+    insert into private.age_refusal_holds (person_id, surface, reason)
+    values (v_person, p_surface, v_blocker ->> 'code')
+    on conflict (person_id) do update set surface = excluded.surface, reason = excluded.reason, held_at = now();
+    if not v_counted then
+      insert into private.age_refusals (surface, outcome) values (p_surface, 'Account Held');
+    end if;
+    return jsonb_build_object('outcome', 'Account Held', 'reason', v_blocker ->> 'code', 'org_name', v_blocker ->> 'org_name');
+  end if;
+
+  v_email := (select lower(u.email) from auth.users u where u.id = v_uid);
+  -- app.delete_my_account confirms against the stored address. A sign-in with none gets a stand-in here, in the
+  -- transaction that deletes it, so it can close too. An org's register needs an address, so it holds this stand-in, and
+  -- its entry says so below.
+  if v_email is null then
+    v_email := format('closed-%s@example.invalid', v_uid);
+    v_invented := true;
+    update auth.users set email = v_email where id = v_uid;
+  end if;
+
+  if exists (select 1 from private.person_related_org_ids(v_person)) then
+    -- A person some org has records about: those records stay as the law requires, each org's erasure register gets its
+    -- entry, and private.account_deletions records the deletion as it does for anyone.
+    perform app.delete_my_account(v_email);
+    if v_invented then
+      update app.dsar_requests
+      set details = details || ' The account had no email address, so the address on this entry is a stand-in.'
+      where subject_person_id = v_person and subject_email = v_email;
+    end if;
+    perform private.erase_age_refused_records(v_person);
+    v_outcome := 'Account Closed';
+  else
+    -- No org behind the account, so nothing has to stay: neither the sign-in, nor the person, nor a record of them.
+    perform private.erase_age_refused_records(v_person);
+    begin
+      delete from auth.users where id = v_uid;
+      delete from app.people where id = v_person;
+    exception when foreign_key_violation or restrict_violation then
+      -- Their own profile data or another reference holds the row: delete it the usual way, leaving no deletion record.
+      perform app.delete_my_account(v_email);
+      delete from private.account_deletions where person_id = v_person;
+      -- Erasing work details logs it in the person's own access log, which would otherwise keep the row.
+      perform private.begin_trusted_operation('retention_purge');
+      delete from app.work_detail_events where person_id = v_person and org_id is null;
+      perform private.end_trusted_operation('retention_purge');
+      begin
+        delete from app.people where id = v_person;
+      exception when foreign_key_violation or restrict_violation then
+        v_outcome := 'Account Closed';
+      end;
+    end;
+  end if;
+
+  if not v_counted then
+    insert into private.age_refusals (surface, outcome) values (p_surface, v_outcome);
+  end if;
+  return jsonb_build_object('outcome', v_outcome);
+end;
+$$;
+
+comment on function app.refuse_minimum_age(text) is 'The signed-in person answered that they are under 18 (Section 14.3, 14.9). The sign-in goes, and so does what private.erase_age_refused_records removes; the caller removes their files first. With no org behind the account the person row goes too, unless something else still refers to it (Account Closed, with no name). With org records it is deleted as app.delete_my_account does: each org keeps the records the law requires and an erasure entry that holds the person''s email address, and private.account_deletions keeps the ids. A legal hold, an open shift or being the only owner stops deletion: the answer names why and the person goes on private.age_refusal_holds. Each person adds one row to private.age_refusals, which names no one. Refuses an account that has already confirmed 18.';
+revoke all on function app.refuse_minimum_age(text) from public, anon;
+grant execute on function app.refuse_minimum_age(text) to authenticated, service_role;
+
+-- 1034 left support screenshots to the diagnostics' retention, with no way to delete one through the API. A closure after
+-- an answer of under 18 has to remove them, and only the person's own client can. Only the owner, only their own.
+create policy support_screenshots_delete on storage.objects for delete to authenticated
+  using (bucket_id = 'support-screenshots'
+    and private.support_screenshot_owner(name) = (select private.current_person_id()));
+
+-- 0860 gave profile-media a delete policy and no select policy, since a public bucket serves its files by URL. But the
+-- Storage API lists, and answers a delete, through select: a person saw an empty folder and removed nothing, with no error.
+-- So every account deletion since SIM-004 has left its public photos and certificate scans behind. A person now sees their
+-- own folder, which is no new exposure: anyone holding the URL can already read these files.
+create policy profile_media_owner_read on storage.objects for select to authenticated
+  using (bucket_id = 'profile-media'
+    and private.brand_object_org(name) = (select private.current_person_id()));
+
+-- The AI choice ----------------------------------------------------------------------------------------------------------
+
+create table private.ai_disclosure_choices (
+  id uuid primary key default private.uuid_v7(),
+  person_id uuid not null references app.people (id) on delete cascade,
+  surface text not null,
+  disclosure_version text not null,
+  choice text not null,
+  decided_at timestamptz not null default now(),
+  ip inet,
+  constraint ai_disclosure_choices_surface check (surface in ('Atlas', 'Gateway', 'Compass')),
+  constraint ai_disclosure_choices_version check (char_length(btrim(disclosure_version)) between 1 and 50),
+  constraint ai_disclosure_choices_choice check (choice in ('Allowed', 'Declined'))
+);
+
+create index ai_disclosure_choices_person_idx on private.ai_disclosure_choices (person_id, decided_at desc, id desc);
+
+comment on table private.ai_disclosure_choices is 'What each person chose when told what AI features send to a third-party AI provider (Apple guideline 5.1.2(i), AI Features Notice): append-only, one row per choice, the latest one stands. A Declined choice turns AI features off for the person in every app.';
+comment on column private.ai_disclosure_choices.id is 'Choice id (UUID v7).';
+comment on column private.ai_disclosure_choices.person_id is 'Person who chose.';
+comment on column private.ai_disclosure_choices.surface is 'Where the person chose: Atlas, Gateway or Compass.';
+comment on column private.ai_disclosure_choices.disclosure_version is 'Version of the words the person was shown.';
+comment on column private.ai_disclosure_choices.choice is 'Allowed or Declined.';
+comment on column private.ai_disclosure_choices.decided_at is 'When the person chose. Set by the database.';
+comment on column private.ai_disclosure_choices.ip is 'Client address the choice came from, as the platform server or the database saw it.';
+
+alter table private.ai_disclosure_choices enable row level security;
+revoke all on private.ai_disclosure_choices from public, anon, authenticated;
+grant select on private.ai_disclosure_choices to service_role;
+
+create or replace function private.ai_declined(p_person_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((
+    select c.choice = 'Declined' from private.ai_disclosure_choices c
+    where c.person_id = p_person_id
+    order by c.decided_at desc, c.id desc
+    limit 1), false);
+$$;
+
+comment on function private.ai_declined(uuid) is 'True when the person''s latest AI choice is Declined. No recorded choice is not a decline.';
+revoke all on function private.ai_declined(uuid) from public, anon, authenticated;
+
+create or replace function app.ai_declined_by_me()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.ai_declined(private.current_person_id());
+$$;
+
+comment on function app.ai_declined_by_me() is 'True when the signed-in person''s latest AI choice is Declined, so a surface that cannot change the choice can say why AI features are off for them, rather than blame an org setting. False with no recorded choice and for a service account.';
+revoke all on function app.ai_declined_by_me() from public, anon;
+grant execute on function app.ai_declined_by_me() to authenticated, service_role;
+
+create or replace function app.record_ai_choice(
+  p_surface text,
+  p_disclosure_version text,
+  p_choice text,
+  p_client_ip inet default null
+)
+returns timestamptz
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.require_person();
+  v_at timestamptz;
+begin
+  if p_surface is null or p_surface not in ('Atlas', 'Gateway', 'Compass') then
+    perform private.refuse('ai_choice_surface', 'Name the surface the choice came from: Atlas, Gateway or Compass.');
+  end if;
+  if p_choice is null or p_choice not in ('Allowed', 'Declined') then
+    perform private.refuse('ai_choice_value', 'The choice is Allowed or Declined.');
+  end if;
+  if p_disclosure_version is null or char_length(btrim(p_disclosure_version)) not between 1 and 50 then
+    perform private.refuse('ai_choice_version', 'Name the version of the words the person was shown.');
+  end if;
+  insert into private.ai_disclosure_choices (person_id, surface, disclosure_version, choice, ip)
+  values (v_person, p_surface, btrim(p_disclosure_version), p_choice, coalesce(p_client_ip, private.request_ip()))
+  returning decided_at into v_at;
+  return v_at;
+end;
+$$;
+
+comment on function app.record_ai_choice(text, text, text, inet) is 'Records what the signed-in person chose when told what AI features send to a third-party AI provider, with the version of the words they saw. Each choice adds a row and the latest stands. Answers the time.';
+revoke all on function app.record_ai_choice(text, text, text, inet) from public, anon;
+grant execute on function app.record_ai_choice(text, text, text, inet) to authenticated, service_role;
+
+-- What a sign-in still owes ----------------------------------------------------------------------------------------------
+
+create or replace function app.my_legal_standing()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid := private.require_person();
+  v_member boolean;
+  v_engaged boolean;
+  v_choice record;
+begin
+  v_member := exists (
+    select 1 from app.memberships m
+    where m.person_id = v_person and m.deleted_at is null and (m.valid_to is null or m.valid_to > now()));
+  v_engaged := exists (select 1 from app.engagements e where e.person_id = v_person and e.deleted_at is null)
+    or exists (select 1 from private.my_roster_entry_ids('roster'));
+  select c.choice, c.disclosure_version, c.decided_at into v_choice
+  from private.ai_disclosure_choices c
+  where c.person_id = v_person
+  order by c.decided_at desc, c.id desc
+  limit 1;
+  return jsonb_build_object(
+    'age_confirmed', private.minimum_age_met(v_person),
+    'accepted_documents', coalesce((
+      select jsonb_agg(distinct a.document_slug) from app.legal_acceptances a
+      where a.person_id = v_person and a.org_id is null and a.deleted_at is null), '[]'::jsonb),
+    -- The Worker Terms govern anyone not working purely as an org's member (Mobile EULA section 1).
+    'worker_terms_apply', v_engaged or not v_member,
+    'ai_choice', v_choice.choice,
+    'ai_disclosure_version', v_choice.disclosure_version,
+    -- Compass reads this before it revokes an Apple grant for an account that would not close anyway.
+    'closing_blocked', private.account_deletion_blockers(v_person) -> 0 is not null);
+end;
+$$;
+
+comment on function app.my_legal_standing() is 'What the signed-in person has given so far, for the Compass first sign-in step: the 18 confirmation, the personal documents accepted at any version, whether the Worker Terms apply to them (they hold an engagement or a roster entry, or no active membership) and their latest AI choice with the version of the words they saw, and whether a hold, an open shift or being an only owner would stop the account closing. Announced changes come from app.pending_legal_reacceptances.';
+revoke all on function app.my_legal_standing() from public, anon;
+grant execute on function app.my_legal_standing() to authenticated, service_role;
+
+-- A decline binds on the server ------------------------------------------------------------------------------------------
+
+create or replace function app.ai_begin_request(
+  p_org_id uuid,
+  p_feature app.ai_feature,
+  p_model text,
+  p_subject_table text default null,
+  p_subject_id uuid default null
+)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := private.current_person_id();
+  v_request uuid;
+begin
+  if v_me is null or not private.is_member(p_org_id) then
+    raise exception using errcode = '42501', message = 'Aurora requests need an active membership in the org';
+  end if;
+  -- The AI provider's terms are for adults. Someone who has not answered is asked before their next page; a service
+  -- account's API key has no age to give and passes (ADR 0156).
+  if not private.minimum_age_met(v_me) then
+    perform private.refuse('ai_age_unconfirmed', 'Confirm you are 18 or older to use AI features. Nothing was sent.');
+  end if;
+  if private.ai_declined(v_me) then
+    perform private.refuse('ai_declined_by_person', 'You turned AI features off. Nothing was sent. You can turn them back on in Compass, Settings.');
+  end if;
+  if not private.org_has_feature(p_org_id, 'aurora_ai') then
+    perform private.refuse('aurora_not_in_plan', 'Aurora AI is not in this org''s plan. Upgrade to Core or above to use it.');
+  end if;
+  if not private.ai_feature_enabled(p_org_id, p_feature) then
+    perform private.refuse('aurora_feature_off', format('An Admin has not turned on %s in Settings, AI Features.', replace(p_feature::text, '_', ' ')));
+  end if;
+  -- One request at a time per org passes the count, so concurrent requests cannot overrun the allowance.
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('aurora:' || p_org_id::text, 0));
+  perform private.assert_within_plan_limit(p_org_id, 'aurora_requests_per_month', private.ai_requests_this_month(p_org_id) + 1);
+
+  insert into app.ai_requests (org_id, person_id, feature, model, subject_table, subject_id)
+  values (p_org_id, v_me, p_feature, p_model, p_subject_table, p_subject_id)
+  returning id into v_request;
+  insert into app.ai_usage (request_id) values (v_request);
+  return v_request;
+end;
+$$;
+
+comment on function app.ai_begin_request(uuid, app.ai_feature, text, text, uuid) is 'Authorizes and meters one Aurora request (ADR 0020): active membership, the person has confirmed they are 18 or older or is a service account (XR001 ai_age_unconfirmed) and has not declined AI features (XR001 ai_declined_by_person), aurora_ai in the plan, the feature turned on, and the monthly allowance (XR001 plan_limit_exceeded when it is used up). Returns the request id the caller completes with app.ai_complete_request.';
+revoke all on function app.ai_begin_request(uuid, app.ai_feature, text, text, uuid) from public, anon;
+grant execute on function app.ai_begin_request(uuid, app.ai_feature, text, text, uuid) to authenticated, service_role;
+
+create or replace function app.ai_enabled_features(p_org_id uuid)
+returns setof app.ai_feature
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  -- plpgsql resolves 'aurora_ai' at call time: the enum value arrives in 0901, after this migration.
+  if not private.is_member(p_org_id) or not private.org_has_feature(p_org_id, 'aurora_ai')
+     or not private.minimum_age_met(private.current_person_id())
+     or private.ai_declined(private.current_person_id()) then
+    return;
+  end if;
+  return query select f from unnest(enum_range(null::app.ai_feature)) as f
+    where private.ai_feature_enabled(p_org_id, f);
+end;
+$$;
+
+comment on function app.ai_enabled_features(uuid) is 'Features a member may use right now: turned on by an Admin and included in the plan. Empty for non-members, for a person who has not confirmed they are 18 or older (a service account passes), and for a person who declined AI features.';
+revoke all on function app.ai_enabled_features(uuid) from public, anon;
+grant execute on function app.ai_enabled_features(uuid) to authenticated, service_role;

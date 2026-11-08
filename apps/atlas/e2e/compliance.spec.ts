@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import pg from "pg";
+import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Browser, type Page } from "./engine-test";
 import { ORG, signIn } from "./a16-support";
 import { openDocument, uploadAttachment } from "./attachment-support";
@@ -8,7 +9,7 @@ import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } f
 
 /**
  * A82 compliance journeys (RRR-127, findings A65-014 and A65-016): the cookie banner and Global
- * Privacy Control (Section 14.3), "16 or older" at sign-up (Sections 14.3 and 14.9), and share links
+ * Privacy Control (Section 14.3), "18 or older" at sign-up (Sections 14.3 and 14.9), and share links
  * with the Section 8.6 rules and watermark, the Subprocessor List change notice subscription and
  * re-acceptance after a material change (Section 14.4), and the OSHA and WH-347 forms (Section 14.5). The config sends Global Privacy Control so the banner stays out of other journeys;
  * these tests open their own contexts without it.
@@ -75,7 +76,7 @@ test.describe("cookie consent", () => {
   });
 });
 
-test.describe("16 or older", () => {
+test.describe("18 or older", () => {
   test("sign-up asks and records the age before the account exists", async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -86,10 +87,10 @@ test.describe("16 or older", () => {
     await page.locator("#signup-password").fill(PASSWORD);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(
-      page.getByText("Confirm that you are 16 or older. XOS accounts are for people 16 and over."),
+      page.getByText("Choose the answer that is true for you.", { exact: true }),
     ).toBeVisible();
     await expectAccessible(page);
-    // Typed input is kept; ticking the box creates the account.
+    // Typed input is kept; answering 18 or older creates the account.
     await expect(page.locator("#signup-email")).toHaveValue(testEmail("age", id));
     await page.locator("#signup-password").fill(PASSWORD);
     await page.locator("#signup-age").check();
@@ -98,6 +99,139 @@ test.describe("16 or older", () => {
     await page.waitForURL("**/auth/organization");
     await expect(page.locator("#org-age")).toHaveCount(0);
     await createOrganization(page, { name: `Age ${id}`, slug: `age-${id}` });
+    await context.close();
+  });
+
+  test("an answer of under 18 makes no account and keeps nothing typed", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    const email = testEmail("under", id);
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Una Under");
+    await page.locator("#signup-email").fill(email);
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.locator("#signup-age-under").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.waitForURL("**/auth/age-refused");
+    await expect(
+      page.getByRole("heading", { name: "XOS accounts are for people 18 and older" }),
+    ).toBeVisible();
+    await expectAccessible(page);
+    const admin = createClient(
+      process.env["E2E_SUPABASE_URL"] ?? "",
+      process.env["E2E_SUPABASE_SERVICE_KEY"] ?? "",
+    );
+    const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    expect(data.users.some((user) => user.email === email)).toBe(false);
+    await context.close();
+  });
+});
+
+test.describe("18 or older, for an account with no answer", () => {
+  test("one answer never closes the account: it says what closing means and asks", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    const email = testEmail("noanswer", id);
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Nia Noanswer");
+    await page.locator("#signup-email").fill(email);
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.locator("#signup-age").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.waitForURL("**/auth/organization");
+    // The account as a provider, single sign-on or a rule from before the question leaves it: no answer at all.
+    const [person] = await localSql<{ person: string; user_id: string }>(
+      `select p.id as person, u.id as user_id from app.people p join auth.users u on u.id = p.user_id where u.email = $1`,
+      [email],
+    );
+    await localSql(`delete from private.age_confirmations where person_id = $1`, [person?.person]);
+
+    // With no org, the entry route goes on to creating one, and that form asks too.
+    await page.goto("/");
+    await page.waitForURL("**/auth/organization");
+    await page.locator("#org-age-under").check();
+    await page.getByRole("button", { name: "Create organization" }).click();
+    await page.waitForURL((url) => url.searchParams.get("under") === "1");
+    await expect(page.getByRole("heading", { name: "Confirm your answer" })).toBeVisible();
+    await expectAccessible(page);
+    const [kept] = await localSql<{ n: string }>(
+      `select count(*)::text as n from auth.users where email = $1`,
+      [email],
+    );
+    expect(kept?.n).toBe("1");
+
+    // Going back is how an adult who chose wrongly recovers.
+    await page.getByRole("link", { name: "Go back", exact: true }).click();
+    await page.waitForURL((url) => url.pathname === "/auth/age" && !url.searchParams.has("under"));
+    await page.locator("#age-question-under").check();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get("under") === "1");
+
+    // Files only their client can remove, one of them in a public bucket read by URL.
+    const admin = createClient(
+      process.env["E2E_SUPABASE_URL"] ?? "",
+      process.env["E2E_SUPABASE_SERVICE_KEY"] ?? "",
+    );
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+      "base64",
+    );
+    const files = [
+      ["profile-media", `${person?.person}/avatar.png`],
+      ["profile-media", `${person?.person}/certificates/osha.png`],
+      ["support-screenshots", `${person?.person}/shot.png`],
+    ] as const;
+    for (const [bucket, path] of files) {
+      const uploaded = await admin.storage
+        .from(bucket)
+        .upload(path, png, { contentType: "image/png" });
+      expect(uploaded.error).toBeNull();
+    }
+
+    await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
+    await page.waitForURL((url) => url.pathname === "/auth/age-refused");
+    await expect(page.getByText(/XOS also keeps a monthly count/)).toBeVisible();
+
+    const [objects] = await localSql<{ n: string }>(
+      `select count(*)::text as n from storage.objects where bucket_id in ('profile-media', 'support-screenshots') and name like $1`,
+      [`${person?.person}/%`],
+    );
+    expect(objects?.n).toBe("0");
+
+    const [left] = await localSql<{ users: string; people: string }>(
+      `select (select count(*) from auth.users where id = $1)::text as users,
+              (select count(*) from app.people where id = $2)::text as people`,
+      [person?.user_id, person?.person],
+    );
+    expect(left).toEqual({ users: "0", people: "0" });
+    await context.close();
+  });
+
+  test("is asked before any page, and answering 18 or older carries on", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    const email = testEmail("lateanswer", id);
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Lee Late");
+    await page.locator("#signup-email").fill(email);
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.locator("#signup-age").check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.waitForURL("**/auth/organization");
+    await createOrganization(page, { name: `Late ${id}`, slug: `late-${id}` });
+    await localSql(
+      `delete from private.age_confirmations c using app.people p, auth.users u
+        where c.person_id = p.id and p.user_id = u.id and u.email = $1`,
+      [email],
+    );
+    await page.goto(`/late-${id}/home`);
+    await page.waitForURL((url) => url.pathname === "/auth/age");
+    await page.locator("#age-question").check();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL(`**/late-${id}/home`);
     await context.close();
   });
 });

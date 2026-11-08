@@ -30,6 +30,9 @@ describe("feature availability", () => {
       kind: "not-in-plan",
     });
     expect(featureAvailability(status(), "summaries")).toEqual({ kind: "off" });
+    expect(
+      featureAvailability(status({ enabled_features: [], declined_by_person: true }), "drafting"),
+    ).toEqual({ kind: "declined" });
     expect(featureAvailability(status({ used: 500 }), "drafting")).toEqual({
       kind: "limit-reached",
       allowance: 500,
@@ -53,6 +56,7 @@ describe("problem kinds", () => {
     expect(problemKind(p(422, "plan_limit_exceeded"))).toBe("quota");
     expect(problemKind(p(422, "aurora_not_in_plan"))).toBe("not-in-plan");
     expect(problemKind(p(422, "aurora_feature_off"))).toBe("off");
+    expect(problemKind(p(422, "ai_declined_by_person"))).toBe("declined");
     expect(problemKind(p(422, "aurora_not_configured"))).toBe("not-configured");
     expect(problemKind(p(422, "aurora_draft_list_not_empty"))).toBe("list-not-empty");
     expect(problemKind(p(403, null))).toBe("forbidden");

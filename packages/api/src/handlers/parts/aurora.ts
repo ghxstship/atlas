@@ -46,6 +46,7 @@ import {
   type VocabularyTerm,
 } from "@xos/ai";
 import {
+  aiDeclinedByMe,
   advanceDraftScope,
   applyContractIntake,
   applyDraftedList,
@@ -883,9 +884,10 @@ export function auroraHandlers(
 
     "aurora.status": async (_request, context) => {
       const org = requireOrg(context);
-      const [features, allowance] = await Promise.all([
+      const [features, allowance, declined] = await Promise.all([
         listEnabledAiFeatures(context.db, org.id),
         getAiAllowance(context.db, org.id),
+        aiDeclinedByMe(context.db),
       ]);
       const a = unwrap(allowance);
       return ok({
@@ -893,6 +895,7 @@ export function auroraHandlers(
         used: a.used,
         allowance: a.allowance,
         plan_includes_aurora: a.planIncludesAurora,
+        declined_by_person: unwrap(declined),
       });
     },
 

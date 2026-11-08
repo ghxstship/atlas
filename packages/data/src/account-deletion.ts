@@ -8,7 +8,9 @@
  * (legal hold, on shift, sole owner, wrong email) deletes nothing and comes back as a typed refusal.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { authFailure, needsSecondFactor, type Assurance } from "./auth-assurance.ts";
 import type { XosClient } from "./client.ts";
+import { minimumAgeConfirmed, type AgeRefusal, type AgeSurface } from "./consent.ts";
 import { removeCredentialPhotoObjects, withdrawMyCredentialPhotos } from "./credential-photos.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { UPLOAD_STAGING_BUCKET, stagedUploadName } from "./staged-uploads.ts";
@@ -59,6 +61,9 @@ export interface AccountDeletionResult {
 
 /** The bucket and folder of the person's own profile media (0860: paths start with the person id). */
 export const PROFILE_MEDIA_BUCKET = "profile-media";
+
+/** Screenshots a person attached to a support request or feedback (1034: paths start with the person id). */
+export const SUPPORT_SCREENSHOTS_BUCKET = "support-screenshots";
 
 function kept(value: unknown): KeptRecord[] {
   return (Array.isArray(value) ? value : []).map((k: Record<string, unknown>) => ({
@@ -123,7 +128,13 @@ export async function removeProfileMedia(
   return ok(published.data + staged.data);
 }
 
-/** Removes every object under a folder of a bucket, nested folders included. */
+/** How many entries one Storage list call returns. */
+const LIST_PAGE = 1000;
+
+/**
+ * Removes every object under a folder of a bucket, nested folders included. Storage answers a delete the caller may not
+ * make with no error and nothing removed, so this fails when any object stays.
+ */
 async function removeFolder(
   client: SupabaseClient,
   bucketId: string,
@@ -135,17 +146,28 @@ async function removeFolder(
   const folders = [root];
   while (folders.length > 0) {
     const folder = folders.pop() as string;
-    const listed = await bucket.list(folder, { limit: 1000 });
-    if (listed.error) return fail({ kind: "unexpected", message: listed.error.message });
-    for (const o of listed.data) {
-      (o.id === null ? folders : files).push(`${folder}/${o.name}`);
+    // Page through a folder, so one with more entries than a page holds is emptied too.
+    for (let offset = 0; ; offset += LIST_PAGE) {
+      const listed = await bucket.list(folder, { limit: LIST_PAGE, offset });
+      if (listed.error) return fail({ kind: "unexpected", message: listed.error.message });
+      for (const o of listed.data) {
+        (o.id === null ? folders : files).push(`${folder}/${o.name}`);
+      }
+      if (listed.data.length < LIST_PAGE) break;
     }
   }
   let removed = 0;
   for (let i = 0; i < files.length; i += 100) {
-    const gone = await bucket.remove(files.slice(i, i + 100));
+    const batch = files.slice(i, i + 100);
+    const gone = await bucket.remove(batch);
     if (gone.error) return fail({ kind: "unexpected", message: gone.error.message });
-    removed += gone.data.length;
+    if (gone.data.length < batch.length) {
+      return fail({
+        kind: "unexpected",
+        message: `${batch.length - gone.data.length} object(s) in ${bucketId} could not be removed.`,
+      });
+    }
+    removed += batch.length;
   }
   return ok(removed);
 }
@@ -187,4 +209,81 @@ export async function deleteMyAccount(
   const { data, error } = await client.rpc("delete_my_account", { p_confirm_email: confirmEmail });
   if (error) return fail(toDataError(error));
   return ok(parseResult((data ?? {}) as Record<string, unknown>));
+}
+
+/**
+ * The session's assurance with the person's factors read from Supabase Auth now, not from a stored session that may predate
+ * a factor: a server action's cookie session can.
+ */
+async function currentAssurance(client: SupabaseClient): Promise<Result<Assurance>> {
+  const { data: current } = await client.auth.getSession();
+  const { data, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel(
+    current.session?.access_token,
+  );
+  if (error) return fail(authFailure(error));
+  return ok({
+    current: data.currentLevel === "aal2" ? "aal2" : "aal1",
+    next: data.nextLevel === "aal2" ? "aal2" : "aal1",
+  });
+}
+
+/**
+ * The signed-in person answered that they are under 18 and confirmed it (ADR 0156). The one way an app closes such an
+ * account: their badge photos, profile media (a public bucket, read by URL, that nobody could reach once the sign-in is
+ * gone) and support screenshots go first, while they can still reach them, because SQL cannot delete storage objects. Then
+ * app.refuse_minimum_age removes the account and what XOS itself holds about them, and records the refusal with nothing
+ * that names them. After it the session has no sign-in behind it; an account that is held keeps its sign-in, so the caller
+ * ends every session.
+ *
+ * Nothing is removed from someone who has confirmed 18, whom the database then refuses, from a sign-in that holds a second
+ * factor it has not passed (refused as age_second_factor), or from an account a legal hold, an open shift or being an only
+ * owner keeps open. A file that cannot be removed stops the closure, so it can be tried again
+ * rather than leave a photo with no owner.
+ */
+export async function refuseMinimumAge(
+  client: SupabaseClient,
+  surface: AgeSurface,
+): Promise<Result<AgeRefusal>> {
+  const confirmed = await minimumAgeConfirmed(client as unknown as XosClient);
+  if (!confirmed.ok) return confirmed;
+  if (!confirmed.data) {
+    // Closing is as final as deleting: a sign-in that holds a second factor passes it before any file goes. The
+    // database refuses the closure on its own too (age_second_factor), but only after the files would be gone.
+    const assurance = await currentAssurance(client);
+    if (!assurance.ok) return assurance;
+    if (needsSecondFactor(assurance.data)) {
+      return fail({
+        kind: "refusal",
+        rule: "age_second_factor",
+        message: "Verify your second factor before you close this account. Nothing was changed.",
+      });
+    }
+    const preview = await previewAccountDeletion(client);
+    if (!preview.ok) return preview;
+    if (preview.data.blockers.length === 0) {
+      const photos = await removeMyCredentialPhotos(client);
+      if (!photos.ok) return photos;
+      const media = await removeProfileMedia(client, preview.data.personId);
+      if (!media.ok) return media;
+      const screenshots = await removeFolder(
+        client,
+        SUPPORT_SCREENSHOTS_BUCKET,
+        preview.data.personId,
+      );
+      if (!screenshots.ok) return screenshots;
+    }
+  }
+  const { data, error } = await client.rpc("refuse_minimum_age", { p_surface: surface });
+  if (error) return fail(toDataError(error));
+  const row = (data ?? {}) as Record<string, unknown>;
+  if (row["outcome"] === "Account Held") {
+    return ok({
+      outcome: "Account Held",
+      reason: String(row["reason"] ?? ""),
+      orgName: typeof row["org_name"] === "string" ? row["org_name"] : null,
+    });
+  }
+  return ok({
+    outcome: row["outcome"] === "Account Closed" ? "Account Closed" : "Account Removed",
+  });
 }

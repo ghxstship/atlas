@@ -50,6 +50,7 @@ async function signUp(): Promise<XosClient> {
   const { error } = await db.auth.signUp({
     email,
     password: `Live-${randomBytes(12).toString("base64url")}`,
+    options: { data: { age_confirmed: "18", signup_surface: "Atlas" } },
   });
   if (error) throw error;
   return db as unknown as XosClient;

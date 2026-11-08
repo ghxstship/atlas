@@ -7,8 +7,18 @@ import {
   isOrgSlug,
   listMyOrganizations,
 } from "@xos/data";
-import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
+import {
+  AGE_OLD_ENOUGH,
+  AGE_UNDER,
+  ageMetadata,
+  confirmMinimumAge,
+  minimumAgeConfirmed,
+  owesAgeAnswer,
+  recordAgeRefusal,
+} from "@xos/data/consent";
+import { refuseMinimumAge } from "@xos/data/account-deletion";
 import { acceptInviteLink } from "@xos/data/profiles";
+import { untyped } from "@xos/data/untyped";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import { isCountryCode } from "@xos/i18n/formats";
 import type { Route } from "next";
@@ -22,6 +32,7 @@ import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { enabledProviders, isOAuthProvider, providerQueryParams } from "@/lib/auth/providers";
 import { notOfferedValues } from "@/lib/auth/territory";
 import { safeNext, signInErrorPath, siteUrl } from "@/lib/auth/redirect";
+import { ssoLanding } from "@/lib/auth/sso-landing";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -52,14 +63,47 @@ function text(form: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/** The "16 or older" box was ticked (Section 14.3, 14.9). */
+/** The person answered 18 or older (Section 14.3, 14.9, migration 6840). */
 function ageTicked(form: FormData): boolean {
-  return form.get("ageConfirmed") === "16";
+  return form.get("ageConfirmed") === AGE_OLD_ENOUGH;
+}
+
+/**
+ * An answer of under 18 on a sign-up form ends here: no account is created, nothing typed is kept and
+ * the refusal is counted with nothing that identifies the person. Answers only when it was not that.
+ */
+async function stopSignUpIfUnderAge(form: FormData): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  await recordAgeRefusal(await createServerSupabase(), "Atlas");
+  redirect("/auth/age-refused");
+}
+
+/**
+ * An answer of under 18 from someone already signed in, whose account a provider, single sign-on or an earlier rule made.
+ * It closes the account, so one radio button never does that alone: /auth/age says what closing means and asks them to
+ * confirm (closeUnderAgeAccount), and lets them go back to `back`.
+ */
+async function stopAccountIfUnderAge(form: FormData, back: string): Promise<void> {
+  if (form.get("ageConfirmed") !== AGE_UNDER) return;
+  redirect(`/auth/age?under=1&next=${encodeURIComponent(back)}` as Route);
+}
+
+/**
+ * The person confirmed they are under 18: the account closes (app.refuse_minimum_age) and the session goes with it. An
+ * account that cannot close yet stays, so every session it has ends, and it is asked again at its next sign-in.
+ */
+export async function closeUnderAgeAccount(): Promise<FormState> {
+  const db = await createServerSupabase();
+  const refused = await refuseMinimumAge(untyped(db), "Atlas");
+  if (!refused.ok) return { error: "unexpected" };
+  const held = refused.data.outcome === "Account Held";
+  await db.auth.signOut({ scope: held ? "global" : "local" });
+  redirect(`/auth/age-refused?outcome=${held ? "held" : "closed"}`);
 }
 
 /**
  * An account that has not confirmed its age yet (a first Google sign-in) confirms it before it
- * creates or joins an org. Answers a field error when the box was needed and not ticked.
+ * creates or joins an org. Answers a field error when the question was needed and not answered.
  */
 async function requireAge(
   db: Awaited<ReturnType<typeof createServerSupabase>>,
@@ -99,7 +143,16 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
   // response renders its target without passing the proxy, so the address bar would keep the target.
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
-  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
+  if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
+  // Likewise anyone who has not answered at 18: an earlier 16, a provider's account or one made by an org (ADR 0156). The
+  // pages that create or join an org ask themselves.
+  const path = next.split("?")[0] ?? "";
+  const asksItself = path === "/auth/organization" || path.startsWith("/auth/invite/");
+  redirect(
+    (!asksItself && (await owesAgeAnswer(db))
+      ? `/auth/age?next=${encodeURIComponent(next)}`
+      : next) as Route,
+  );
 }
 
 /**
@@ -117,6 +170,7 @@ export async function signInWithEmail(state: FormState, form: FormData): Promise
  * or "Create account" with a password (method=password). Both keep the full name.
  */
 export async function signUpWithEmail(state: FormState, form: FormData): Promise<FormState> {
+  await stopSignUpIfUnderAge(form);
   if (form.get("method") === "password") return signUp(state, form);
   const fullName = text(form, "fullName");
   if (fullName === "" || fullName.length > 200) {
@@ -131,6 +185,7 @@ export async function signUpWithEmail(state: FormState, form: FormData): Promise
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
   const fullName = text(form, "fullName");
   const signUp = form.get("intent") === "sign-up";
+  if (signUp) await stopSignUpIfUnderAge(form);
   const values = {
     email: text(form, "email"),
     ageConfirmed: text(form, "ageConfirmed"),
@@ -149,7 +204,7 @@ export async function sendMagicLink(_: FormState, form: FormData): Promise<FormS
       shouldCreateUser: signUp,
       emailRedirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", next),
       // Applied only when Supabase creates the account: private.handle_new_auth_user (0206) copies
-      // full_name into app.people, and the ticked "16 or older" box is recorded (migration 1381).
+      // full_name into app.people, and the answer of 18 or older is recorded (migration 6840).
       ...(signUp
         ? { data: { ...(fullName ? { full_name: fullName } : {}), ...ageMetadata("Atlas") } }
         : {}),
@@ -202,6 +257,7 @@ export async function reauthenticate(_: FormState, form: FormData): Promise<Form
 // Sign up -----------------------------------------------------------------------------------------
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
+  await stopSignUpIfUnderAge(form);
   const values = {
     fullName: text(form, "fullName"),
     email: text(form, "email"),
@@ -236,6 +292,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
 // Organization ------------------------------------------------------------------------------------
 
 export async function createOrganizationAction(_: FormState, form: FormData): Promise<FormState> {
+  await stopAccountIfUnderAge(form, "/auth/organization");
   const values = {
     orgName: text(form, "orgName"),
     orgSlug: text(form, "orgSlug").toLowerCase(),
@@ -304,8 +361,25 @@ const PASSED_LINK_REFUSALS = new Set([
   "member_blocked",
 ]);
 
+/**
+ * The age question on its own (/auth/age), for anyone who has not answered at 18. They answer once, and go on to where
+ * they were going. A single sign-on joins its org here when the question stopped it in the callback.
+ */
+export async function answerAgeQuestion(_: FormState, form: FormData): Promise<FormState> {
+  const next = safeNext(form.get("next"));
+  await stopAccountIfUnderAge(form, next);
+  const db = await createServerSupabase();
+  const { data: auth } = await db.auth.getUser();
+  if (!auth.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  const ageError = await requireAge(db, form);
+  if (ageError) return { fieldErrors: ageError };
+  const landing = await ssoLanding(db, auth.user.app_metadata["provider"], next);
+  redirect((landing ?? signInErrorPath("member_blocked", next)) as Route);
+}
+
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {
   const token = text(form, "token");
+  await stopAccountIfUnderAge(form, `/auth/invite/${encodeURIComponent(token)}`);
   const db = await createServerSupabase();
   const ageError = await requireAge(db, form);
   if (ageError) return { fieldErrors: ageError };

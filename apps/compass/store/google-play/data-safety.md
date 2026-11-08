@@ -2,7 +2,7 @@
 
 The answers for Play Console, App content, for Compass 4.0.0 (`pro.ghxstship.compass`). Prepared by A68 (RRR-113) on main 7ccd1fd9 from the same code reading as the App Store answers (`store/ios/app-privacy.md`, which names the source of each data type). The owner enters them in Play Console; nothing uploads them automatically.
 
-Play's terms: **collected** means sent off the device; **shared** means sent to a third party. Processors acting for GHXSTSHIP (Supabase, Expo push, Firebase Cloud Messaging, Anthropic when Aurora is on) are service providers, which Play does not count as sharing. Data handled only on the device (the encrypted offline database, biometrics, the geofence check before a punch) is not collected.
+Play's terms: **collected** means sent off the device; **shared** means sent to a third party. Processors acting for GHXSTSHIP (Supabase, Expo push, Firebase Cloud Messaging, Anthropic when an organization turns Aurora on and the person allows it at first use) are service providers, which Play does not count as sharing. Data handled only on the device (the encrypted offline database, biometrics, the geofence check before a punch) is not collected.
 
 ## Data safety
 
@@ -61,7 +61,7 @@ Every collected type below is: collected, **not shared**, **not processed epheme
 | Ads                               | No, the app does not contain ads                                                                                                             |
 | App access                        | All or some functionality is restricted; the demo account instructions are in `store/review-notes.md`, Google Play: App access               |
 | Content rating                    | The IARC questionnaire answers in `store/age-rating.md`                                                                                      |
-| Target audience and content       | 18 and over only. Compass is a workplace app; nothing in it appeals to children                                                              |
+| Target audience and content       | 18 and over only, as Compass asks at first sign-in (ADR 0156). It is a workplace app; nothing in it appeals to children                      |
 | News app                          | No                                                                                                                                           |
 | Government app                    | No                                                                                                                                           |
 | Financial features                | None                                                                                                                                         |

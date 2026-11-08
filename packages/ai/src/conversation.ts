@@ -18,6 +18,8 @@ export type Availability =
   | { readonly kind: "ready"; readonly status: AuroraStatusResult }
   | { readonly kind: "not-in-plan" }
   | { readonly kind: "off" }
+  /** The person turned AI features off for themselves; only they can turn them back on, in Compass, Settings. */
+  | { readonly kind: "declined" }
   | { readonly kind: "limit-reached"; readonly allowance: number }
   | { readonly kind: "error"; readonly problem: AuroraProblem };
 
@@ -54,6 +56,7 @@ export interface ConversationState {
 
 export function availabilityOf(status: AuroraStatusResult): Availability {
   if (!status.plan_includes_aurora) return { kind: "not-in-plan" };
+  if (status.declined_by_person === true) return { kind: "declined" };
   if (!status.enabled_features.includes("assistant")) return { kind: "off" };
   if (status.allowance !== null && status.used >= status.allowance) {
     return { kind: "limit-reached", allowance: status.allowance };

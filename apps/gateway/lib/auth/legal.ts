@@ -24,17 +24,29 @@ export interface GatewayLegalDocument {
 
 /**
  * The documents Gateway publishes: those it links at account creation, in the order the sign-up
- * form names them, then the Cookie Policy the cookie banner links (Section 14.3, A82).
+ * form names them, the Cookie Policy the cookie banner links (Section 14.3, A82), and the Legal
+ * Contact page someone is sent to when their account cannot be closed yet (ADR 0156).
  */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "worker-terms", title: "Worker Terms", version: "1.0.0-draft", accept: true },
   { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0-draft", accept: false },
   { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0-draft", accept: false },
+  { slug: "contact", title: "Legal Contact", version: "1.0.0-draft", accept: false },
 ];
 
 /** A document Gateway publishes at /legal/{slug}, or undefined. */
 export function gatewayLegalDocument(slug: string): GatewayLegalDocument | undefined {
   return GATEWAY_LEGAL_DOCUMENTS.find((d) => d.slug === slug);
+}
+
+/**
+ * The announced changes Gateway asks about: documents it publishes and asks people to accept. The Mobile EULA is Compass's
+ * to ask (ADR 0156), and Gateway has no page for it, so accepting here would record text the person could not read.
+ */
+export function askedInGateway<T extends { readonly documentSlug: string }>(
+  changes: readonly T[],
+): T[] {
+  return changes.filter((c) => gatewayLegalDocument(c.documentSlug)?.accept);
 }
 
 export interface Acceptance {

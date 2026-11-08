@@ -77,7 +77,8 @@ begin
   perform pg_temp.as_platform();
   insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at)
   values (v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', p_email, now(),
-          jsonb_build_object('full_name', p_name), now(), now());
+          -- Everyone here answered 18 or older at sign-up (ADR 0156); suites about the question make their own people.
+          jsonb_build_object('full_name', p_name, 'age_confirmed', '18', 'signup_surface', 'Atlas'), now(), now());
   insert into world values (p_key || '_user', v_user);
   insert into world select p_key, p.id from app.people p where p.user_id = v_user;
 end $$;

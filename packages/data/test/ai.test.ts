@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  aiDeclinedByMe,
   applyDraftedList,
   createAuroraStore,
   draftedListIsEmpty,
@@ -109,6 +110,19 @@ describe("allowance, features and the never-send list", () => {
       data: ["assistant", "mapping"],
     });
     expect((await listEnabledAiFeatures(db, "o1")).ok).toBe(false);
+  });
+
+  it("reads whether the person turned AI features off for themselves", async () => {
+    const { db } = fakeClient({
+      "rpc:ai_declined_by_me": [
+        okResponse(true),
+        okResponse(null),
+        errorResponse("42501", "denied"),
+      ],
+    });
+    expect(await aiDeclinedByMe(db)).toEqual({ ok: true, data: true });
+    expect(await aiDeclinedByMe(db)).toEqual({ ok: true, data: false });
+    expect((await aiDeclinedByMe(db)).ok).toBe(false);
   });
 
   it("reads the never-send list", async () => {
