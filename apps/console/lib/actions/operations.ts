@@ -2,6 +2,7 @@
 
 import {
   decideAppeal,
+  decideEscalation,
   decideListing,
   endBanner,
   endSupportSession,
@@ -21,6 +22,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { actionContext } from "@/lib/operator";
 import { failed, field, fromResult, type ActionState } from "@/lib/action-state";
+import { contentGroundsFor, type ContentModerationAction } from "@xos/data/content-safety";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -35,6 +37,7 @@ const KINDS: readonly ConsoleBanner["kind"][] = enums.systemBannerKind;
 const SEVERITIES: readonly ConsoleBanner["severity"][] = enums.systemBannerSeverity;
 const AUDIENCES: readonly BannerAudience[] = enums.systemBannerAudience;
 const ROLES: readonly OperatorRole[] = enums.platformOperatorRole;
+const CONTENT_ACTIONS: readonly ContentModerationAction[] = enums.contentModerationAction;
 
 const pick = <T extends string>(list: readonly T[], value: string): T | undefined =>
   list.find((v) => v === value);
@@ -80,6 +83,36 @@ export async function decideListingAction(_: ActionState, form: FormData): Promi
   if (result.ok) {
     revalidatePath(`/moderation/${opportunityId}`);
     revalidatePath("/moderation");
+  }
+  return fromResult(result);
+}
+
+/**
+ * GHXSTSHIP decides a post, comment or message whose reports the org left undecided past their 24 hours (6196), with
+ * the statement of reasons in parts an org moderator gives.
+ */
+export async function decideEscalationAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext("moderation.decide");
+  if (!ctx.ok) return failed(ctx.key);
+  const subjectId = field(form, "subjectId");
+  const action = pick(CONTENT_ACTIONS, field(form, "action"));
+  const ground = pick(GROUNDS, field(form, "ground"));
+  const ruleReference = field(form, "ruleReference");
+  const facts = field(form, "facts");
+  const statement = field(form, "statement");
+  if (!Uuid.safeParse(subjectId).success || !action || !ground) return failed("errors.invalid");
+  if (!contentGroundsFor(action).includes(ground)) return failed("refusals.moderation_ground");
+  if (ruleReference === "" || facts === "" || statement === "") return failed("errors.invalid");
+  const result = await decideEscalation(ctx.db, subjectId, {
+    action,
+    ground,
+    ruleReference,
+    facts,
+    statement,
+  });
+  if (result.ok) {
+    revalidatePath(`/reported-content/${subjectId}`);
+    revalidatePath("/reported-content");
   }
   return fromResult(result);
 }

@@ -6,7 +6,12 @@ export const sitemap: Sitemap = {
   schemaVersion: 1,
   shell: "console",
   home: "tenants",
-  params: { orgId: { type: "uuid" }, sessionId: { type: "uuid" }, opportunityId: { type: "uuid" } },
+  params: {
+    orgId: { type: "uuid" },
+    sessionId: { type: "uuid" },
+    opportunityId: { type: "uuid" },
+    subjectId: { type: "uuid" },
+  },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
   chrome: {
     topBar: [
@@ -15,6 +20,7 @@ export const sitemap: Sitemap = {
       "flags",
       "support",
       "moderation",
+      "reported-content",
       "banners",
       "funnels",
       "team",
@@ -81,6 +87,22 @@ export const sitemap: Sitemap = {
               kind: "record",
               label: "nav.console.listing",
               route: "/moderation/{opportunityId}",
+            },
+          ],
+        },
+        {
+          id: "reported-content",
+          kind: "page",
+          label: "nav.console.reportedContent",
+          route: "/reported-content",
+          visibility: { administrator: "full", support: "hidden", "trust-and-safety": "full" },
+          list: { views: ["table"], default: "table" },
+          children: [
+            {
+              id: "reported-content.item",
+              kind: "record",
+              label: "nav.console.reportedItem",
+              route: "/reported-content/{subjectId}",
             },
           ],
         },

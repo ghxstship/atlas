@@ -556,6 +556,8 @@
     "supportSession": "Support Session",
     "moderation": "Moderation",
     "listing": "Reported Listing",
+    "reportedContent": "Reported Content",
+    "reportedItem": "Reported Item",
     "banners": "System Banners",
     "funnels": "Funnels",
     "team": "Platform Team",

@@ -181,9 +181,13 @@ describe("objectionable language before a write is queued (migration 6195)", () 
   });
 
   it("lets other text and other writes through", () => {
-    expect(holdsObjectionableText("send_chat_message", { p_body: "Add spice to the order." })).toBe(false);
+    expect(holdsObjectionableText("send_chat_message", { p_body: "Add spice to the order." })).toBe(
+      false,
+    );
     expect(holdsObjectionableText("send_chat_message", { p_body: 42 })).toBe(false);
     expect(holdsObjectionableText("recognize", {})).toBe(false);
-    expect(holdsObjectionableText("log_lost_item", { p_description: "Shut up, spic." })).toBe(false);
+    expect(holdsObjectionableText("log_lost_item", { p_description: "Shut up, spic." })).toBe(
+      false,
+    );
   });
 });
