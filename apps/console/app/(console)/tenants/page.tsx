@@ -1,8 +1,11 @@
-import { searchOrgs } from "@xos/data/console";
+import { can, listBillingAlerts, searchOrgs } from "@xos/data/console";
 import type { Metadata, Route } from "next";
 import NextLink from "next/link";
+import { ActionForm } from "@/components/action-form";
+import { ReasonField } from "@/components/fields";
 import { Empty, PageHeader, Table } from "@/components/page";
 import { Button, Input, Select } from "@/components/ui";
+import { resolveBillingAlertAction } from "@/lib/actions/tenants";
 import { getConsoleFormat } from "@/lib/format";
 import { requirePermission } from "@/lib/operator";
 
@@ -13,7 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("tenants.title") };
 }
 
-/** Tenant search (A90, Section 4.10): orgs by name, slug, Owner email and plan in force. */
+/**
+ * Tenant search (A90, Section 4.10): orgs by name, slug, Owner email and plan in force. Open billing alerts come first
+ * (ADR 0161), since they mean a customer may be charged and they outlast the org they name.
+ */
 export default async function TenantsPage({ searchParams }: PageProps<"/tenants">) {
   const ctx = await requirePermission("tenants.read");
   const query = await searchParams;
@@ -23,10 +29,51 @@ export default async function TenantsPage({ searchParams }: PageProps<"/tenants"
       ? query["plan"]
       : "";
   const { t, label, instant, number } = await getConsoleFormat();
-  const result = await searchOrgs(ctx.db, { query: q, planCode: plan || null });
+  const [result, alerts] = await Promise.all([
+    searchOrgs(ctx.db, { query: q, planCode: plan || null }),
+    listBillingAlerts(ctx.db),
+  ]);
+  const closable = can(ctx.operator, "plans.write");
   return (
     <>
       <PageHeader title={t("tenants.title")} intro={t("tenants.intro")} />
+      {alerts.ok && alerts.data.length > 0 ? (
+        <Table
+          caption={t("tenants.billingAlerts.title")}
+          testId="billing-alerts"
+          columns={[
+            t("tenants.billingAlerts.kind"),
+            t("tenants.billingAlerts.org"),
+            t("tenants.billingAlerts.detail"),
+            t("tenants.billingAlerts.raised"),
+            t("tenants.billingAlerts.close"),
+          ]}
+          rows={alerts.data.map((alert) => ({
+            key: alert.id,
+            cells: [
+              label("billingAlerts", alert.kind),
+              alert.orgName ?? alert.orgId ?? t("common.none"),
+              alert.detail,
+              instant(alert.raisedAt),
+              closable ? (
+                <ActionForm
+                  key="close"
+                  action={resolveBillingAlertAction}
+                  hidden={{ alertId: alert.id }}
+                  submitLabel={t("tenants.billingAlerts.close")}
+                  successLabel={t("tenants.billingAlerts.closed")}
+                  variant="secondary"
+                  label={t("tenants.billingAlerts.close")}
+                >
+                  <ReasonField t={t} id={`close-alert-${alert.id}`} />
+                </ActionForm>
+              ) : (
+                t("common.none")
+              ),
+            ],
+          }))}
+        />
+      ) : null}
       <form
         method="get"
         role="search"

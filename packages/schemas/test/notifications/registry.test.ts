@@ -65,8 +65,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
     // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), B2's vendor_intake.submitted (6505), B9's
     // shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), and B10's crew registration and agreement kinds (2999).
-    // And the crisis alert and its all-clear (6800).
-    expect(registry.kinds).toHaveLength(98);
+    // And the crisis alert and its all-clear (6800), and the five renewal and Stripe cancel notices of ADR 0161 (6810, 6811).
+    expect(registry.kinds).toHaveLength(103);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -108,10 +108,10 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
     ]);
-    // Billing notices wait until morning, although the account category is urgent; the pause notices too (B16).
+    // Billing notices wait until morning, although the account category is urgent; the pause notices (B16), renewal and cancel notices (ADR 0161) too.
     expect(
       registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
-    ).toEqual([null, null, null, null, null, null]);
+    ).toEqual(Array.from({ length: 11 }, () => null));
     // B16 (ADR 0155 D2): a connected app's proposal reaches the Inbox and a push, never email.
     expect(notificationKind("agent.change_proposed")?.channels).toEqual(["In App", "Push"]);
     // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.

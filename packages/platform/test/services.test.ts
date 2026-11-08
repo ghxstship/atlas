@@ -370,6 +370,9 @@ describe("stores", () => {
         sync_subscription_from_stripe: () => "active",
         record_addon_purchase_from_stripe: () => "purchase-1",
         finish_billing_checkout_from_stripe: () => true,
+        reconcile_stripe_subscription: () => "proceed",
+        note_stripe_subscription_terms: () => true,
+        note_stripe_charge: () => false,
       },
       { stripe_events: { processed_at: null }, stripe_subscription_links: { org_id: "org-7" } },
     );
@@ -414,12 +417,54 @@ describe("stores", () => {
       }),
     ).resolves.toBe("purchase-1");
     await expect(store.finishCheckout("cs_test_2", "Completed")).resolves.toBe(true);
+    await expect(
+      store.reconcileSubscription({
+        orgId: "org-7",
+        customerId: "cus_1",
+        subscriptionId: "sub_1",
+        status: "active",
+        livemode: false,
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe("proceed");
+    await expect(
+      store.noteSubscriptionTerms({
+        subscriptionId: "sub_1",
+        cancelAt: new Date(0),
+        amountMinor: 100,
+        currency: "usd",
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe(true);
+    await expect(
+      store.noteSubscriptionTerms({
+        subscriptionId: "sub_1",
+        cancelAt: null,
+        amountMinor: null,
+        currency: null,
+        eventCreatedAt: new Date(0),
+      }),
+    ).resolves.toBe(true);
+    await expect(
+      store.noteCharge({
+        subscriptionId: "sub_1",
+        invoiceId: "in_1",
+        amountMinor: 100,
+        currency: "usd",
+        billingReason: null,
+        paidAt: new Date(0),
+      }),
+    ).resolves.toBe(false);
     expect(calls.map((c) => c.fn)).toEqual([
       "record_stripe_event",
       "finish_stripe_event",
       "sync_subscription_from_stripe",
       "record_addon_purchase_from_stripe",
       "finish_billing_checkout_from_stripe",
+      "reconcile_stripe_subscription",
+      "note_stripe_subscription_terms",
+      "note_stripe_subscription_terms",
+      "note_stripe_charge",
     ]);
     expect(calls[4]?.args).toEqual({
       p_stripe_checkout_session_id: "cs_test_2",

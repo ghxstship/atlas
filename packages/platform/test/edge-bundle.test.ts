@@ -76,7 +76,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
-    lazy: ["pdfkit", "resend"],
+    lazy: ["pdfkit", "resend", "stripe"],
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },

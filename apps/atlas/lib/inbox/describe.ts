@@ -53,6 +53,10 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "billing.payment_failed": ["days"],
   // B16 (6051, 6052): when a pause resumes (or none), and which connected app proposed which operation.
   "billing.paused": ["resumesOn"],
+  // ADR 0161: what a renewal and a cancel say, which each notice carries with it.
+  "billing.purchase_confirmed": ["plan", "term", "price", "nextChargeOn"],
+  "billing.renewal_reminder": ["plan", "price", "renewsOn"],
+  "billing.plan_ending": ["plan", "endsOn"],
   "agent.change_proposed": ["app", "operation"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],

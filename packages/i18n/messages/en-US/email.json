@@ -169,6 +169,26 @@
       "resumed": {
         "subject": "Your organization has resumed",
         "body": "The pause has ended. The organization is writable again and billing continues."
+      },
+      "purchase_confirmed": {
+        "subject": "Your {plan} plan is confirmed",
+        "body": "Your {plan} plan renews automatically every {term, select, Annual {year} other {month}} at {price}, plus tax, until you cancel. The next charge is on {nextChargeOn, date, long}. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "renewal_reminder": {
+        "subject": "Your {plan} plan renews on {renewsOn, date, long}",
+        "body": "Your annual {plan} plan renews automatically for another year on {renewsOn, date, long}, and your payment method is charged {price, select, none {the plan's annual price, which the billing portal shows} other {{price}}}, plus tax. To stop it, choose End plan in Settings, Billing and Plan any time before that date. The plan then runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it."
+      },
+      "cancellation_confirmed": {
+        "subject": "Your subscription is canceled",
+        "body": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it."
+      },
+      "plan_ending": {
+        "subject": "Your {plan} plan ends on {endsOn, date, long}",
+        "body": "Stripe has accepted your request. Your {plan} plan will not renew and you will not be charged again. It keeps working until {endsOn, date, long}, and then the organization moves to the Access plan with its data intact. Time you already paid for is not refunded unless the law requires it."
+      },
+      "cancellation_delayed": {
+        "subject": "Your cancellation is not confirmed yet",
+        "body": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically, our team has been alerted, and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it."
       }
     },
     "message": {

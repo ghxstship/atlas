@@ -122,7 +122,7 @@ function optionalText(row, key) {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
 }
-/** BillingStore over the 0560, 1250 and 1640 RPCs. */
+/** BillingStore over the 0560, 1250, 1640 and 6810 RPCs. */
 function billingStore(db) {
   return {
     async recordStripeEvent(event) {
@@ -187,6 +187,40 @@ function billingStore(db) {
         p_paid_at: input.paidAt.toISOString(),
       });
       return String(id);
+    },
+    async reconcileSubscription(input) {
+      const state = await db.rpc("reconcile_stripe_subscription", {
+        p_org_id: input.orgId,
+        p_stripe_customer_id: input.customerId,
+        p_stripe_subscription_id: input.subscriptionId,
+        p_stripe_status: input.status,
+        p_livemode: input.livemode,
+        p_event_created_at: input.eventCreatedAt.toISOString(),
+      });
+      return String(state);
+    },
+    async noteSubscriptionTerms(input) {
+      return (
+        (await db.rpc("note_stripe_subscription_terms", {
+          p_stripe_subscription_id: input.subscriptionId,
+          p_cancel_at: input.cancelAt?.toISOString() ?? null,
+          p_amount_minor: input.amountMinor,
+          p_currency_code: input.currency,
+          p_event_created_at: input.eventCreatedAt.toISOString(),
+        })) === true
+      );
+    },
+    async noteCharge(input) {
+      return (
+        (await db.rpc("note_stripe_charge", {
+          p_stripe_subscription_id: input.subscriptionId,
+          p_stripe_invoice_id: input.invoiceId,
+          p_amount_minor: input.amountMinor,
+          p_currency_code: input.currency,
+          p_billing_reason: input.billingReason,
+          p_paid_at: input.paidAt.toISOString(),
+        })) === true
+      );
     },
     async finishCheckout(sessionId, state) {
       return (
@@ -437,7 +471,10 @@ export {
   inboundStore,
   kioskPunch,
   notificationStore,
+  optionalText,
   recipientProfile,
   restDb,
+  rows,
+  text,
   webhookStore,
 };

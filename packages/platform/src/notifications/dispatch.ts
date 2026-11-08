@@ -118,6 +118,16 @@ async function propsFor(
         },
       };
     }
+    // A billing notice renders as a notification, without one-tap actions, and is transactional (ADR 0161).
+    case "billing_notice":
+      return {
+        code: "billing_notice",
+        props: {
+          kind: claim.kind,
+          args: messageArgs(claim.messageArgs),
+          url: await store.linkFor(claim),
+        },
+      };
     case "export_ready":
       return { code: "export_ready", props: exportReady.parse(claim.messageArgs) };
     case "import_finished":

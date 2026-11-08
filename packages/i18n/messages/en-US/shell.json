@@ -1194,7 +1194,7 @@
       "redirecting": "Opening Stripe…",
       "portal": {
         "title": "Billing portal",
-        "body": "Change the plan or the payment method, download invoices or cancel in the Stripe billing portal. A canceled plan runs to the end of the period paid for, then the organization moves to Access.",
+        "body": "Change the plan or the payment method and download invoices in the Stripe billing portal. Moving between monthly and annual billing is not done there: end this plan, then choose the new term here when it ends, so you see and agree to the new renewal terms first.",
         "bodyEnded": "Download past invoices and update billing details in the Stripe billing portal.",
         "period": "Billed {term, select, Annual {yearly} other {monthly}}. The current period ends on {date}.",
         "open": "Open the billing portal"
@@ -1212,7 +1212,13 @@
         "checkout_completed": "A checkout for this organization just completed. The plan shown here updates in a moment.",
         "billing_price_missing": "This plan is not on sale in Stripe yet. Try again later, or contact support.",
         "billing_no_customer": "This organization has not paid through Stripe yet. Choose a plan first.",
-        "other": "Billing did not go through. Try again, or contact support."
+        "other": "Billing did not go through. Try again, or contact support.",
+        "renewal_consent_required": "Agree to the renewal terms to continue.",
+        "renewal_initials_required": "Type your initials to agree to an annual renewal.",
+        "renewal_terms_changed": "These terms have changed. Read the new ones on this page, then agree again.",
+        "renewal_price_mismatch": "The price changed. Reload the page and try again.",
+        "renewal_date_range": "The first charge date changed. Reload the page and try again.",
+        "billing_no_subscription": "This organization has no paid plan to end."
       },
       "errors": {
         "input": "Choose a plan and a billing term.",
@@ -1238,7 +1244,38 @@
         "buy": "Buy a pack"
       },
       "foundingOffer": "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
-      "pricesInUsd": "Prices in US dollars before tax. EUR, GBP, CAD and AUD prices apply at checkout."
+      "pricesInUsd": "Prices in US dollars before tax.",
+      "checkoutTerms": "It renews automatically until you end it. We are emailing you the terms, and you can end the plan on this page at any time.",
+      "renewal": {
+        "title": "Review the {plan} plan",
+        "statementMonthly": "{plan} renews automatically every month at {price} {currency} a month, plus tax, until you cancel. Your first charge of {price} {currency} is on {date}, and your payment method is then charged each month on that day. A promotion code changes the price only for the period it states, and we can change the price at a renewal only after giving you 30 days of notice. To cancel, choose End plan in Settings, Billing and Plan at any time. The next renewal stops and the plan runs to the end of the period you paid for. Fees already paid are not refunded unless the law requires it.",
+        "statementAnnual": "{plan} renews automatically every year at {price} {currency} a year, plus tax, until you cancel. Your first charge of {price} {currency} is on {date}, and your payment method is then charged each year on that day. A promotion code changes the price only for the period it states, and we can change the price at a renewal only after giving you 30 days of notice. We email you a reminder 30 days before each renewal. To cancel, choose End plan in Settings, Billing and Plan at any time. The next renewal stops and the plan runs to the end of the year you paid for. Fees already paid are not refunded unless the law requires it.",
+        "agree": "I agree to these renewal terms, and I authorize XOS to charge my payment method through Stripe until I cancel.",
+        "initials": "Your initials",
+        "initialsHelp": "An annual plan renews for a full year, so we ask you to initial these terms.",
+        "continue": "Agree and continue to payment",
+        "back": "Back to the plans",
+        "planNames": {
+          "core": "Core",
+          "pro": "Pro",
+          "team": "Team"
+        }
+      },
+      "endPlan": {
+        "title": "End the plan",
+        "body": "Stops the next renewal. The plan keeps working to the end of the period you paid for, then the organization moves to the Access plan with its data intact. You will not be charged again. Time you already paid for is not refunded unless the law requires it.",
+        "submit": "End plan",
+        "sent": "We have your request and are sending it to Stripe. This page shows when Stripe accepts it."
+      },
+      "stripeCancel": {
+        "acceptedTitle": "Subscription canceled",
+        "acceptedBody": "Stripe has accepted the cancellation and will not charge this subscription again. Time you already paid for is not refunded unless the law requires it.",
+        "queuedTitle": "Cancellation not confirmed yet",
+        "queuedBody": "We have your cancellation and are sending it to Stripe, our payment provider. Stripe has not accepted it yet, so the subscription may still be active. You do not need to do anything. We keep trying automatically and we will email you as soon as it is accepted. If a charge reaches you after you canceled, write to support@ghxstship.tech and we will refund it.",
+        "endingTitle": "This plan is ending",
+        "endingBody": "Stripe has accepted your request. The plan keeps working until {date} and you will not be charged again. To keep the plan, renew it in the billing portal before then.",
+        "endingBodyNoDate": "Stripe has accepted your request. The plan keeps working to the end of the period you paid for and you will not be charged again. To keep the plan, renew it in the billing portal before then."
+      }
     },
     "organizations": {
       "leave": "Leave",

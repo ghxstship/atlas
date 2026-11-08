@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(79);
+select plan(84);
 
 create temporary table k (key text primary key, at timestamptz, id uuid);
 grant select, insert, update on k to public;
@@ -122,6 +122,14 @@ select pg_temp.as_user('alice');
 select throws_ok($$select * from app.begin_subscription_pause(pg_temp.id('org_a'), 2, false)$$, 'XR001',
   'step_up_required: Confirm it is you with your second factor to change billing.', 'step-up is asked last');
 
+-- A plan that is ending does not pause: the Owner has been told it will not charge again.
+insert into k (key, id) select 'plan_end', c.cancellation_id from app.request_plan_end(pg_temp.id('org_a'), false) c;
+select pg_temp.as_user_stepped_up('alice');
+select throws_ok($$select * from app.begin_subscription_pause(pg_temp.id('org_a'), 2, false)$$, 'XR001',
+  'pause_plan_ending: This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.', 'a plan that is ending cannot pause, even before Stripe has accepted that');
+select pg_temp.as_platform();
+update private.stripe_cancellations set cancellation_state = 'Withdrawn' where id = (select id from k where key = 'plan_end');
+
 -- Pausing --------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user_stepped_up('alice');
 select results_eq($$select * from app.begin_subscription_pause(pg_temp.id('org_a'), 2, false)$$,
@@ -136,6 +144,12 @@ select results_eq($$select source::text, starts_at, resumes_at, requested_by fro
   'the Owner''s pause starts at the paid period end and resumes two whole months later');
 select throws_ok($$select app.record_subscription_pause(pg_temp.id('org_a'), 2, false, 'sub_Wr0ng')$$, 'XR001',
   'pause_open: This organization already has a pause. Resume it or cancel it first.', 'a second pause is refused');
+-- A pause that has not started only comes off, which charges nothing, so ending the plan does not stop that.
+insert into k (key, id) select 'plan_end_2', c.cancellation_id from app.request_plan_end(pg_temp.id('org_a'), false) c;
+select lives_ok($$select * from app.begin_subscription_resume(pg_temp.id('org_a'), false)$$, 'a pause that has not started can still come off a plan that is ending');
+select pg_temp.as_platform();
+update private.stripe_cancellations set cancellation_state = 'Withdrawn' where id = (select id from k where key = 'plan_end_2');
+select pg_temp.as_user_stepped_up('alice');
 select results_eq($$select source::text, months, started from app.subscription_pause_status(pg_temp.id('org_a'))$$,
   $$values ('Owner'::text, 2, false)$$, 'Billing and Plan reads the scheduled pause');
 select is(pg_temp.sync('active', true, (pg_temp.open_pause()).resumes_at - interval '1 hour', now()), 'active',
@@ -201,6 +215,13 @@ select throws_ok($$select * from app.begin_subscription_resume(pg_temp.id('org_a
   'step_up_required: Confirm it is you with your second factor to change billing.', 'resuming needs step-up too');
 select pg_temp.as_user_stepped_up('dave');
 select throws_ok($$select * from app.begin_subscription_resume(pg_temp.id('org_a'), false)$$, '42501', null, 'and the billing capability');
+select pg_temp.as_user_stepped_up('alice');
+-- Resuming a pause that has started charges at once, so a plan that is ending stays paused until it ends.
+insert into k (key, id) select 'plan_end_3', c.cancellation_id from app.request_plan_end(pg_temp.id('org_a'), false) c;
+select throws_ok($$select * from app.begin_subscription_resume(pg_temp.id('org_a'), false)$$, 'XR001',
+  'pause_plan_ending: This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.', 'a started pause on a plan that is ending does not resume, even before Stripe has accepted that');
+select pg_temp.as_platform();
+update private.stripe_cancellations set cancellation_state = 'Withdrawn' where id = (select id from k where key = 'plan_end_3');
 select pg_temp.as_user_stepped_up('alice');
 select results_eq($$select * from app.begin_subscription_resume(pg_temp.id('org_a'), false)$$, $$values ('sub_N0rthw1nd'::text, true)$$,
   'begin_subscription_resume works while the org is read-only and says the pause has started');
@@ -306,6 +327,12 @@ insert into app.org_deletion_requests (org_id, reason, recover_until, requested_
 values (pg_temp.id('org_b'), 'Closing down.', now() + interval '7 days', pg_temp.id('xavier'));
 select is((select end_reason::text from app.subscription_pauses where org_id = pg_temp.id('org_b')), 'Canceled',
   'a deletion request ends the pause too');
+select pg_temp.as_service();
+select is(app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', 'sub_H4rb0r', 'team', 'Annual', 'paused', now() + interval '200 days', false,
+  0, false, null, now() + interval '1 minute')::text, 'canceled', 'a paused status on an org being deleted changes nothing (6810)');
+select pg_temp.as_platform();
+select is((select count(*)::integer from app.subscription_pauses where org_id = pg_temp.id('org_b') and ended_at is null), 0, 'and opens no pause');
+update app.org_deletion_requests set recovered_at = now(), recovered_by = pg_temp.id('xavier') where org_id = pg_temp.id('org_b');
 select pg_temp.as_service();
 select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb0r', 'sub_H4rb0r', 'team', 'Annual', 'paused', now() + interval '200 days', false,
   0, false, null, now() + interval '1 minute');

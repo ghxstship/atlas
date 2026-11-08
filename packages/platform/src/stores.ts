@@ -127,18 +127,18 @@ export function restDb(options: RestDbOptions): PlatformDb {
   };
 }
 
-function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
+export function rows(data: unknown): readonly Readonly<Record<string, unknown>>[] {
   return Array.isArray(data) ? (data as Readonly<Record<string, unknown>>[]) : [];
 }
 
-function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
+export function text(row: Readonly<Record<string, unknown>> | undefined, key: string): string {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
   return value;
 }
 
-function optionalText(
+export function optionalText(
   row: Readonly<Record<string, unknown>> | undefined,
   key: string,
 ): string | null {
@@ -146,7 +146,7 @@ function optionalText(
   return typeof value === "string" ? value : null;
 }
 
-/** BillingStore over the 0560, 1250 and 1640 RPCs. */
+/** BillingStore over the 0560, 1250, 1640 and 6810 RPCs. */
 export function billingStore(db: PlatformDb): BillingStore {
   return {
     async recordStripeEvent(event) {
@@ -206,6 +206,38 @@ export function billingStore(db: PlatformDb): BillingStore {
         p_paid_at: input.paidAt.toISOString(),
       });
       return String(id);
+    },
+    async reconcileSubscription(input) {
+      const state = await db.rpc("reconcile_stripe_subscription", {
+        p_org_id: input.orgId,
+        p_stripe_customer_id: input.customerId,
+        p_stripe_subscription_id: input.subscriptionId,
+        p_stripe_status: input.status,
+        p_livemode: input.livemode,
+        p_event_created_at: input.eventCreatedAt.toISOString(),
+      });
+      return String(state);
+    },
+    async noteSubscriptionTerms(input) {
+      const applied = await db.rpc("note_stripe_subscription_terms", {
+        p_stripe_subscription_id: input.subscriptionId,
+        p_cancel_at: input.cancelAt?.toISOString() ?? null,
+        p_amount_minor: input.amountMinor,
+        p_currency_code: input.currency,
+        p_event_created_at: input.eventCreatedAt.toISOString(),
+      });
+      return applied === true;
+    },
+    async noteCharge(input) {
+      const raised = await db.rpc("note_stripe_charge", {
+        p_stripe_subscription_id: input.subscriptionId,
+        p_stripe_invoice_id: input.invoiceId,
+        p_amount_minor: input.amountMinor,
+        p_currency_code: input.currency,
+        p_billing_reason: input.billingReason,
+        p_paid_at: input.paidAt.toISOString(),
+      });
+      return raised === true;
     },
     async finishCheckout(sessionId, state) {
       const known = await db.rpc("finish_billing_checkout_from_stripe", {

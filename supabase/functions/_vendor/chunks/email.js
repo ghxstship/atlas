@@ -11,6 +11,7 @@ import { translator } from "./email-messages.js";
  */
 var TEMPLATE_CODES = [
   "notification",
+  "billing_notice",
   "digest",
   "invite",
   "report_delivery",

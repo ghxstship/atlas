@@ -128,6 +128,113 @@ export async function getBillingAccount(
   });
 }
 
+// Renewal consent and Stripe cancels (migrations 6810 and 6811, ADR 0161) -------------------------------------------
+
+/** app.record_renewal_consent: records exactly what the Owner agreed to before Checkout opens. */
+export async function recordRenewalConsent(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly planCode: string;
+    readonly interval: BillingInterval;
+    readonly livemode: boolean;
+    readonly amountMinor: number;
+    readonly currency: string;
+    readonly nextChargeOn: string;
+    readonly textVersion: string;
+    readonly locale: string;
+    readonly statement: string;
+    readonly initials: string | null;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("record_renewal_consent", {
+    p_org_id: input.orgId,
+    p_plan_code: input.planCode,
+    p_billing_interval: input.interval,
+    p_amount_minor: input.amountMinor,
+    p_currency_code: input.currency,
+    p_next_charge_on: input.nextChargeOn,
+    p_text_version: input.textVersion,
+    p_locale: input.locale,
+    p_statement: input.statement,
+    p_initials: input.initials ?? "",
+    p_livemode: input.livemode,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+export type StripeCancelMode = Database["app"]["Enums"]["stripe_cancel_mode"];
+export type StripeCancellationState = Database["app"]["Enums"]["stripe_cancellation_state"];
+
+/** A cancel of a Stripe subscription, as far as Stripe has said. */
+export interface StripeCancellation {
+  readonly id: string;
+  readonly stripeSubscriptionId: string;
+  readonly mode: StripeCancelMode;
+  readonly state: StripeCancellationState;
+  readonly requestedAt: string;
+  readonly acceptedAt: string | null;
+  /** When Stripe will end a subscription whose cancel at period end it accepted. */
+  readonly endsAt: string | null;
+}
+
+function toCancellation(row: {
+  readonly cancellation_id: string;
+  readonly stripe_subscription_id: string;
+  readonly cancel_mode: StripeCancelMode;
+  readonly cancellation_state: StripeCancellationState;
+  readonly requested_at: string;
+  readonly accepted_at: unknown;
+  readonly ends_at: unknown;
+}): StripeCancellation {
+  return {
+    id: row.cancellation_id,
+    stripeSubscriptionId: row.stripe_subscription_id,
+    mode: row.cancel_mode,
+    state: row.cancellation_state,
+    requestedAt: row.requested_at,
+    acceptedAt: textOrNull(row.accepted_at),
+    endsAt: textOrNull(row.ends_at),
+  };
+}
+
+/** app.stripe_cancellation_status: where the org's Stripe cancels stand, newest first. */
+export async function getStripeCancellations(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<StripeCancellation[]>> {
+  const { data, error } = await db.rpc("stripe_cancellation_status", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  return ok(data.map(toCancellation));
+}
+
+/** app.request_plan_end: the Owner ends the paid plan at the end of the period paid for. */
+export async function requestPlanEnd(
+  db: XosClient,
+  input: { readonly orgId: string; readonly livemode: boolean },
+): Promise<
+  Result<{
+    readonly cancellationId: string;
+    readonly stripeSubscriptionId: string;
+    readonly state: StripeCancellationState;
+  }>
+> {
+  const { data, error } = await db.rpc("request_plan_end", {
+    p_org_id: input.orgId,
+    p_livemode: input.livemode,
+  });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (row === undefined)
+    return fail({ kind: "unexpected", message: "request_plan_end returned no row" });
+  return ok({
+    cancellationId: row.cancellation_id,
+    stripeSubscriptionId: row.stripe_subscription_id,
+    state: row.cancellation_state,
+  });
+}
+
 // Subscription pause (B16, migration 6051, ADR 0155 D4) -----------------------------------------------------------
 
 /** When a pause the database checked starts and resumes, and the Stripe subscription to pause. */

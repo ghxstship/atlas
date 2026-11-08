@@ -1017,6 +1017,7 @@
       "tax_forms": "Tus formularios fiscales, conservados 7 años porque lo exige la ley fiscal.",
       "engagements": "Tus registros de contratación y acuerdos firmados, conservados 7 años.",
       "org_records": "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
+      "billing_consent": "Los términos de renovación que aceptaste al comprar un plan de pago para una organización, con tu correo de acceso y tus iniciales, conservados 7 años y durante un año después de que termine ese plan, como prueba de lo acordado.",
       "audit_trail": "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
       "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo."
     },

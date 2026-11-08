@@ -161,6 +161,7 @@ const PAUSE_REFUSALS = [
   "pause_not_active",
   "pause_none",
   "pause_needs_payment_method",
+  "pause_plan_ending",
   "org_read_only",
   "sandbox_not_billable",
   "billing_through_partner",

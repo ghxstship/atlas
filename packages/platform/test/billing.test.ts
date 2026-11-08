@@ -5,7 +5,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   BillingNotConfiguredError,
   NotSelfServeError,
-  PORTAL_CONFIGURATION_KEY,
+  PORTAL_CONFIGURATION_KEYS,
   PriceNotFoundError,
   StripeSignatureError,
   addonForLookupKey,
@@ -70,7 +70,8 @@ function fakeStripe(prices: Record<string, string>) {
           return {
             data: [
               { id: "bpc_default", metadata: {} },
-              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } },
+              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Monthly } },
+              { id: "bpc_year", metadata: { xos_portal: PORTAL_CONFIGURATION_KEYS.Annual } },
             ],
           };
         },
@@ -100,6 +101,10 @@ function memoryStore(
     failSync?: boolean;
     /** Checkout sessions Atlas opened, which finishCheckout knows. */
     opened?: string[];
+    /** What reconciliation answers; proceed unless a test says otherwise. */
+    reconcile?: string;
+    failReconcile?: boolean;
+    failCharge?: boolean;
   } = {},
 ) {
   const events = new Map<
@@ -109,7 +114,24 @@ function memoryStore(
   const syncs: Parameters<BillingStore["syncSubscription"]>[0][] = [];
   const purchases: Parameters<BillingStore["recordAddonPurchase"]>[0][] = [];
   const finished: { sessionId: string; state: string }[] = [];
+  const reconciled: Parameters<BillingStore["reconcileSubscription"]>[0][] = [];
+  const terms: Parameters<BillingStore["noteSubscriptionTerms"]>[0][] = [];
+  const charges: Parameters<BillingStore["noteCharge"]>[0][] = [];
   const store: BillingStore = {
+    async reconcileSubscription(input) {
+      if (options.failReconcile) throw new Error("reconcile failed");
+      reconciled.push(input);
+      return options.reconcile ?? "proceed";
+    },
+    async noteSubscriptionTerms(input) {
+      terms.push(input);
+      return true;
+    },
+    async noteCharge(input) {
+      if (options.failCharge) throw new Error("charge failed");
+      charges.push(input);
+      return input.amountMinor > 0;
+    },
     async finishCheckout(sessionId, state) {
       finished.push({ sessionId, state });
       return (options.opened ?? []).includes(sessionId);
@@ -151,7 +173,7 @@ function memoryStore(
       return input.status === "past_due" ? "past_due" : "active";
     },
   };
-  return { store, events, syncs, purchases, finished };
+  return { store, events, syncs, purchases, finished, reconciled, terms, charges };
 }
 
 function subscriptionEvent(
@@ -381,8 +403,9 @@ describe("checkout", () => {
 
   it("finds the portal configuration stripe:setup created and opens the portal with it", async () => {
     const { client, calls } = fakeStripe({});
-    const configuration = await findPortalConfiguration(client);
+    const configuration = await findPortalConfiguration(client, "Monthly");
     expect(configuration).toBe("bpc_xos");
+    expect(await findPortalConfiguration(client, "Annual")).toBe("bpc_year");
     await createPortalSession(client, "cus_1", "https://a.test/billing", configuration);
     expect(calls.at(-1)?.params).toEqual({
       customer: "cus_1",
@@ -517,7 +540,7 @@ describe("Stripe webhook", () => {
     const cases = [
       { event: subscriptionEvent({ id: "evt_live", livemode: true }), reason: /mode/ },
       {
-        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.paid" },
+        event: { ...subscriptionEvent({ id: "evt_inv" }), type: "invoice.created" },
         reason: /No action/,
       },
       { event: subscriptionEvent({ id: "evt_noorg", orgId: null }), reason: /no org/ },

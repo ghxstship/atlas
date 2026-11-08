@@ -1,5 +1,6 @@
 import { databaseEnums } from "@xos/config/database-enums";
 import { describe, expect, it } from "vitest";
+import type { StripeCancelMode } from "../src/billing/cancel.ts";
 import type { BillingInterval } from "../src/billing/plans.ts";
 import type { ActionAudience } from "../src/notifications/action-links.ts";
 import type { SmsKeywordAction } from "../src/notifications/sms.ts";
@@ -11,6 +12,7 @@ import { PUNCH_KINDS } from "../src/stores.ts";
  * type must name each member once, so its keys are the union's members.
  */
 const intervals: Record<BillingInterval, true> = { Monthly: true, Annual: true };
+const cancelModes: Record<StripeCancelMode, true> = { Immediately: true, "At Period End": true };
 const audiences: Record<ActionAudience, true> = { Atlas: true, Gateway: true };
 const keywordActions: Record<SmsKeywordAction, true> = {
   "Opt Out": true,
@@ -20,6 +22,7 @@ const keywordActions: Record<SmsKeywordAction, true> = {
 
 const lists: readonly (readonly [string, readonly string[]])[] = [
   ["app.billing_interval", Object.keys(intervals)],
+  ["app.stripe_cancel_mode", Object.keys(cancelModes)],
   ["app.shortcut_shell", Object.keys(audiences)],
   ["app.sms_consent_action", Object.keys(keywordActions)],
   ["app.punch_kind", PUNCH_KINDS],

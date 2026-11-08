@@ -10,7 +10,9 @@ import type { StripeClient } from "./env.ts";
  *
  * The database cannot see a Stripe trial (it maps trialing to active), so the subscription is read from Stripe first
  * and a trial, an existing pause_collection, an inactive status or a plan item that is not monthly is refused here,
- * before Stripe is changed.
+ * before Stripe is changed. So is a plan that is ending: the database refuses one XOS knows of (6810), and Stripe's read
+ * catches one set in the portal whose event has not arrived, since resuming a started pause charges at once and the Owner
+ * has been told this plan will not charge again.
  */
 
 /** What pausing and resuming need from the database (migration 6051). Refusals are thrown as the store throws them. */
@@ -42,7 +44,12 @@ export interface PauseAccountStore {
 }
 
 export type PauseRefusalRule =
-  "pause_trial" | "pause_open" | "pause_annual" | "pause_not_active" | "pause_needs_payment_method";
+  | "pause_trial"
+  | "pause_open"
+  | "pause_annual"
+  | "pause_not_active"
+  | "pause_needs_payment_method"
+  | "pause_plan_ending";
 
 /** Stripe's subscription cannot pause or resume as asked; the rule names why. Nothing in Stripe changed. */
 export class PauseRefusedError extends Error {
@@ -63,11 +70,24 @@ interface SubscriptionView {
   readonly status?: string;
   readonly trial_end?: number | null;
   readonly pause_collection?: unknown;
+  readonly cancel_at_period_end?: boolean;
+  readonly cancel_at?: number | null;
   readonly items?: {
     readonly data?: readonly {
       readonly price?: { readonly recurring?: { readonly interval?: string } | null };
     }[];
   };
+}
+
+const PLAN_ENDING_REFUSAL =
+  "This plan is ending, so billing cannot pause or resume. It runs to the end of the period you paid for.";
+
+/** Stripe will end this subscription at a date already set. */
+function planEnding(subscription: SubscriptionView): boolean {
+  return (
+    subscription.cancel_at_period_end === true ||
+    (subscription.cancel_at !== null && subscription.cancel_at !== undefined)
+  );
 }
 
 /** Why Stripe's subscription cannot pause now, or null when it can. */
@@ -86,6 +106,9 @@ export function pauseRefusal(subscription: SubscriptionView, now: Date): PauseRe
   }
   if (subscription.pause_collection !== null && subscription.pause_collection !== undefined) {
     return new PauseRefusedError("pause_open", "Billing is already paused in Stripe.");
+  }
+  if (planEnding(subscription)) {
+    return new PauseRefusedError("pause_plan_ending", PLAN_ENDING_REFUSAL);
   }
   const intervals = (subscription.items?.data ?? []).map((i) => i.price?.recurring?.interval);
   if (intervals.some((i) => i !== undefined && i !== "month")) {
@@ -150,9 +173,10 @@ function needsPaymentMethod(error: unknown): boolean {
 /**
  * Resumes the org's subscription now:
  *   1. the database's checks, step-up last
- *   2. Stripe's subscription is read: a paused status (a trial that ended without a card) is resumed with a new
- *      period from now; otherwise pause_collection is cleared, and once the pause has started a new period starts
- *      today with no proration and is charged at once (a failed charge enters dunning as usual)
+ *   2. Stripe's subscription is read: a pause that has started on a plan that is ending is refused, because a new period
+ *      would charge; a paused status (a trial that ended without a card) is resumed with a new period from now; otherwise
+ *      pause_collection is cleared, and once the pause has started a new period starts today with no proration and is
+ *      charged at once (a failed charge enters dunning as usual)
  *   3. the resume is recorded
  */
 export async function resumeSubscription(
@@ -164,6 +188,9 @@ export async function resumeSubscription(
   const subscription = (await stripe.subscriptions.retrieve(
     begun.stripeSubscriptionId,
   )) as SubscriptionView;
+  if (begun.started && planEnding(subscription)) {
+    throw new PauseRefusedError("pause_plan_ending", PLAN_ENDING_REFUSAL);
+  }
   if (subscription.status === "paused") {
     try {
       const params: Stripe.SubscriptionResumeParams = { billing_cycle_anchor: { type: "now" } };

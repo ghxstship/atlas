@@ -1,6 +1,11 @@
 import type Stripe from "stripe";
 import type { PlanRegistry } from "@xos/schemas/plans";
-import { extraSeatForLookupKey, planForLookupKey, type BillingInterval } from "./plans.ts";
+import {
+  bookPriceFor,
+  extraSeatForLookupKey,
+  planForLookupKey,
+  type BillingInterval,
+} from "./plans.ts";
 
 /** What the webhook handler needs from the database (implemented over the 0560, 1250 and 1640 RPCs). */
 export interface BillingStore {
@@ -48,6 +53,36 @@ export interface BillingStore {
    * opened it, such as an add-on payment.
    */
   finishCheckout(sessionId: string, state: "Completed" | "Expired"): Promise<boolean>;
+  /**
+   * app.reconcile_stripe_subscription (6810), before the sync: proceed for an ordinary subscription; anything else means
+   * the org is gone or ending, or XOS already asked Stripe to stop, so the sync must not run. Runs for a subscription of
+   * any price, because a stray one on a deleted org can charge as well.
+   */
+  reconcileSubscription(input: {
+    readonly orgId: string;
+    readonly customerId: string;
+    readonly subscriptionId: string;
+    readonly status: string;
+    readonly livemode: boolean;
+    readonly eventCreatedAt: Date;
+  }): Promise<string>;
+  /** app.note_stripe_subscription_terms (6810), after the sync: when Stripe ends it and what each period charges. */
+  noteSubscriptionTerms(input: {
+    readonly subscriptionId: string;
+    readonly cancelAt: Date | null;
+    readonly amountMinor: number | null;
+    readonly currency: string | null;
+    readonly eventCreatedAt: Date;
+  }): Promise<boolean>;
+  /** app.note_stripe_charge (6810): a paid invoice, which raises an alert when XOS was asked to stop that subscription. */
+  noteCharge(input: {
+    readonly subscriptionId: string;
+    readonly invoiceId: string;
+    readonly amountMinor: number;
+    readonly currency: string;
+    readonly billingReason: string | null;
+    readonly paidAt: Date;
+  }): Promise<boolean>;
 }
 
 export type WebhookOutcome =
@@ -141,11 +176,59 @@ function pauseCollectionOf(
 }
 
 /**
+ * What the subscription charges each period before tax, in the currency it pays in. A multi-currency price (stripe-setup
+ * gives each one currency_options) states only its default currency on the subscription, so a subscriber in another currency
+ * reads the price's own option when the event expanded it, else the price book. The amount is null when none of them says,
+ * so a notice never quotes the default currency's amount to someone Stripe charges in another.
+ */
+function recurringAmount(
+  registry: PlanRegistry,
+  subscription: Stripe.Subscription,
+): { readonly amountMinor: number | null; readonly currency: string | null } {
+  const items = subscription.items.data;
+  const currency = subscription.currency ?? items[0]?.price.currency ?? null;
+  if (currency === null) return { amountMinor: null, currency: null };
+  let amountMinor = 0;
+  for (const item of items) {
+    const { price } = item;
+    const option = price.currency_options?.[currency]?.unit_amount;
+    const unit =
+      typeof option === "number"
+        ? option
+        : price.currency === currency && typeof price.unit_amount === "number"
+          ? price.unit_amount
+          : bookPriceFor(registry, price.lookup_key, currency);
+    if (unit === null) return { amountMinor: null, currency };
+    amountMinor += unit * (item.quantity ?? 1);
+  }
+  return { amountMinor, currency };
+}
+
+/** When Stripe will end the subscription because a cancel was accepted, or null while it renews. */
+function cancelAtOf(subscription: Stripe.Subscription, periodEnd: number | null): Date | null {
+  if (typeof subscription.cancel_at === "number") return new Date(subscription.cancel_at * 1000);
+  if (subscription.cancel_at_period_end && periodEnd !== null) return new Date(periodEnd * 1000);
+  return null;
+}
+
+/** The subscription an invoice bills, in the pinned API's shape or the older top-level field. */
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const nested = invoice.parent?.subscription_details?.subscription;
+  const older = (invoice as unknown as { readonly subscription?: string | { id: string } | null })
+    .subscription;
+  const found = nested ?? older ?? null;
+  return typeof found === "string" ? found : (found?.id ?? null);
+}
+
+/**
  * Verifies a Stripe webhook with the SubtleCrypto provider (works in Node and Deno, needs no API key),
  * stores the event once (idempotent ingestion), and applies:
- *   - subscription events through app.sync_subscription_from_stripe, with the plan from the plan
- *     price's lookup key, the extra seats from the quantity of the plan's extra-seat price, and the pause
- *     (pause_collection, a paused status and the event's created time, B16)
+ *   - subscription events through app.reconcile_stripe_subscription first (6810): a live subscription on a deleted or
+ *     ending org, or one XOS already asked to stop, is queued for cancel and raises an alert, and never reaches the sync
+ *   - then app.sync_subscription_from_stripe, with the plan from the plan price's lookup key, the extra seats from the
+ *     quantity of the plan's extra-seat price, and the pause (pause_collection, a paused status and the event's created
+ *     time, B16), then app.note_stripe_subscription_terms for the cancel date and the amount each period charges
+ *   - paid invoices through app.note_stripe_charge, which raises an alert when XOS was asked to stop that subscription
  *   - completed and expired plan checkouts Atlas opened through app.finish_billing_checkout_from_stripe
  *     (1640); the plan itself follows the subscription events
  *   - completed, paid Checkout sessions for a one-time add-on through
@@ -178,13 +261,17 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
   const session = CHECKOUT_EVENTS.has(event.type)
     ? (event.data.object as Stripe.Checkout.Session)
     : null;
+  const invoice = event.type === "invoice.paid" ? (event.data.object as Stripe.Invoice) : null;
   const customerId =
     subscription !== null
       ? customerIdOf(subscription.customer)
       : session !== null
         ? customerIdOf(session.customer)
         : null;
-  const metadataOrg = (subscription ?? session)?.metadata?.["org_id"] ?? null;
+  const metadataOrg =
+    (subscription ?? session)?.metadata?.["org_id"] ??
+    invoice?.parent?.subscription_details?.metadata?.["org_id"] ??
+    null;
   const orgId =
     metadataOrg ?? (customerId === null ? null : await request.store.orgForCustomer(customerId));
 
@@ -205,6 +292,30 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
 
   if (event.livemode !== request.livemode)
     return ignore("Event mode does not match the configured key");
+  if (invoice !== null) {
+    const subscriptionId = invoiceSubscriptionId(invoice);
+    if (subscriptionId === null) return ignore("The invoice bills no subscription");
+    try {
+      const raised = await request.store.noteCharge({
+        subscriptionId,
+        invoiceId: invoice.id,
+        amountMinor: invoice.amount_paid,
+        currency: invoice.currency,
+        billingReason: invoice.billing_reason,
+        paidAt: new Date(event.created * 1000),
+      });
+      await request.store.finishStripeEvent(recorded.rowId, null);
+      return {
+        outcome: "applied",
+        eventId: event.id,
+        state: raised ? "charged_after_cancel" : "charge_noted",
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await request.store.finishStripeEvent(recorded.rowId, message);
+      return { outcome: "failed", eventId: event.id, error: message };
+    }
+  }
   if (subscription === null && session === null) return ignore(`No action for ${event.type}`);
   if (orgId === null)
     return ignore(`The ${subscription ? "subscription" : "payment"} names no org`);
@@ -212,22 +323,54 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
   let apply: () => Promise<string>;
   if (subscription !== null) {
     if (customerId === null) return ignore("The subscription names no customer");
+    const status =
+      event.type === "customer.subscription.deleted" ? "canceled" : subscription.status;
+    const eventCreatedAt = new Date(event.created * 1000);
+    let reconciled: string;
+    try {
+      reconciled = await request.store.reconcileSubscription({
+        orgId,
+        customerId,
+        subscriptionId: subscription.id,
+        status,
+        livemode: event.livemode,
+        eventCreatedAt,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await request.store.finishStripeEvent(recorded.rowId, message);
+      return { outcome: "failed", eventId: event.id, error: message };
+    }
+    if (reconciled !== "proceed") {
+      await request.store.finishStripeEvent(recorded.rowId, null);
+      return { outcome: "applied", eventId: event.id, state: reconciled };
+    }
     const read = readSubscriptionItems(request.registry, subscription);
     if ("ignore" in read) return ignore(read.ignore);
-    apply = () =>
-      request.store.syncSubscription({
+    apply = async () => {
+      const state = await request.store.syncSubscription({
         orgId,
         customerId,
         subscriptionId: subscription.id,
         planCode: read.planCode,
         interval: read.interval,
-        status: event.type === "customer.subscription.deleted" ? "canceled" : subscription.status,
+        status,
         currentPeriodEnd: read.periodEnd === null ? null : new Date(read.periodEnd * 1000),
         livemode: event.livemode,
         extraSeats: read.extraSeats,
         pauseCollection: pauseCollectionOf(subscription),
-        eventCreatedAt: new Date(event.created * 1000),
+        eventCreatedAt,
       });
+      const amount = recurringAmount(request.registry, subscription);
+      await request.store.noteSubscriptionTerms({
+        subscriptionId: subscription.id,
+        cancelAt: status === "canceled" ? null : cancelAtOf(subscription, read.periodEnd),
+        amountMinor: amount.amountMinor,
+        currency: amount.currency,
+        eventCreatedAt,
+      });
+      return state;
+    };
   } else {
     const paid = session as Stripe.Checkout.Session;
     const finished =

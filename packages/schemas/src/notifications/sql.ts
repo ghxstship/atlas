@@ -30,8 +30,10 @@ import type { NotificationKindRegistry } from "./model.ts";
  * B9's shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), B10's crew_registration.decided,
  * crew_registration.invited and engagement_document.sent (6522, 6524), B11's rfq.quote_reminder and rfq.not_awarded
  * (6538) and B13's quote.accepted (6554), and carries 6499's. 6999 (merge train 11, the legal and safety
- * work) adds the crisis alert and its all-clear, crisis_alert.issued and crisis_alert.ended (6800), and carries
- * 6799's. Each sits at the top of its train's block so the highest
+ * work) adds the crisis alert and its all-clear, crisis_alert.issued and crisis_alert.ended (6800), and the auto-renewal notices and the truth about a
+ * Stripe cancel: (billing.purchase_confirmed, billing.renewal_reminder, billing.cancellation_confirmed, billing.plan_ending and
+ * billing.cancellation_delayed; 6810, 6811, ADR 0161), with the transactional billing_notice email no setting or
+ * unsubscribe stops, and carries 6799's. Each sits at the top of its train's block so the highest
  * seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =

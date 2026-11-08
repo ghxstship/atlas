@@ -123,7 +123,9 @@
     "operator_revoked": "This role was already revoked.",
     "operator_last_administrator": "The platform team keeps at least one Administrator. Grant another first.",
     "funnel_alert_missing": "That funnel alert no longer exists. Reload the page.",
-    "funnel_alert_resolved": "The funnel recovered and its alert is closed."
+    "funnel_alert_resolved": "The funnel recovered and its alert is closed.",
+    "billing_alert_reason": "Say what was done about it, in up to 500 characters.",
+    "billing_alert_unknown": "This alert is already closed."
   },
   "tenants": {
     "title": "Tenants",
@@ -145,7 +147,16 @@
     },
     "canceled": "Canceled, read-only",
     "active": "Active",
-    "clientOf": "Client of {partner}"
+    "clientOf": "Client of {partner}",
+    "billingAlerts": {
+      "title": "Billing alerts",
+      "kind": "Alert",
+      "org": "Org",
+      "detail": "What happened",
+      "raised": "Raised",
+      "close": "Close alert",
+      "closed": "Alert closed."
+    }
   },
   "plans": {
     "access": "Access",
@@ -704,5 +715,14 @@
     "title": "This page did not load",
     "body": "Something went wrong while loading it. Try again; if it keeps failing, reload the page.",
     "action": "Try again"
+  },
+  "billingAlerts": {
+    "cancel_delayed": "Stripe has not accepted a cancel",
+    "active_on_deleted_org": "Live subscription on a deleted org",
+    "active_after_cancel": "Live subscription after a cancel",
+    "charged_after_cancel": "Charged after a cancel",
+    "deletion_blocked": "Deletion waiting on Stripe",
+    "cancel_missing": "Stripe did not know a live subscription",
+    "notice_undelivered": "Billing notice not emailed"
   }
 }

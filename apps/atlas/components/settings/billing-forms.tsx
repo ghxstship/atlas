@@ -1,18 +1,20 @@
 "use client";
 
-import { Button, InlineAlert, type ButtonProps } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, type ButtonProps } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useMemo, useRef } from "react";
+import { useActionState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
-import { openBillingPortalAction, startCheckoutAction } from "@/lib/billing/actions";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { endPlanAction, openBillingPortalAction, startCheckoutAction } from "@/lib/billing/actions";
 import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform/state";
 import type { Database } from "@xos/data/database.types";
 
 /**
- * Billing and Plan's buttons (ADR 0033 decision 59): one opens Stripe Checkout for a plan, the other
- * the Stripe customer portal. Each posts to a server action in lib/billing/actions.ts, which answers with the
- * Stripe URL the browser then goes to. A step-up refusal opens A77's step-up dialog, and verifying submits the
- * form again; every other refusal shows its copy under `shell.settings.billing.refusals`.
+ * Billing and Plan's forms (ADR 0033 decision 59, ADR 0161): one agrees to the renewal terms and opens Stripe Checkout
+ * for a plan, one opens the Stripe customer portal, one ends the plan. Checkout and the portal post to a server action in
+ * lib/billing/actions.ts, which answers with the Stripe URL the browser then goes to. A step-up refusal opens A77's
+ * step-up dialog, and verifying submits the form again; every other refusal shows its copy under
+ * `shell.settings.billing.refusals`.
  */
 
 type Action = (state: PlatformActionState, form: FormData) => Promise<PlatformActionState>;
@@ -58,12 +60,14 @@ function StripeForm({
   hidden = {},
   label,
   variant = "secondary",
+  children,
 }: {
   action: Action;
   org: string;
   hidden?: Readonly<Record<string, string>>;
   label: string;
   variant?: ButtonProps["variant"];
+  children?: ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(action, INITIAL_PLATFORM_STATE);
   const ref = useRef<HTMLFormElement>(null);
@@ -77,11 +81,18 @@ function StripeForm({
   }, [state]);
   return (
     <>
-      <form ref={ref} action={formAction} aria-label={label} className="flex flex-col gap-8">
+      <form
+        ref={ref}
+        action={formAction}
+        onSubmit={keepInputOnSubmit(formAction)}
+        aria-label={label}
+        className="flex flex-col gap-8"
+      >
         <input type="hidden" name="org" value={org} />
         {Object.entries(hidden).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}
+        {children}
         <div>
           <Button type="submit" variant={variant} loading={pending || Boolean(state.ok)}>
             {label}
@@ -96,28 +107,73 @@ function StripeForm({
   );
 }
 
-/** Opens Stripe Checkout for a self-serve plan and term. */
-export function CheckoutButton({
+/**
+ * Agrees to the renewal terms on the page and opens Stripe Checkout for that plan and term. Nothing is ticked for the
+ * Owner; an annual plan also asks for initials (Wisconsin 134.49). The hash ties the agreement to the statement shown.
+ */
+export function RenewalConsentForm({
   org,
   plan,
   interval,
+  hash,
   label,
-  variant,
 }: {
   org: string;
   plan: string;
   interval: Database["app"]["Enums"]["billing_interval"];
+  hash: string;
   label: string;
-  variant?: ButtonProps["variant"];
 }) {
+  const t = useBillingT();
   return (
     <StripeForm
       action={startCheckoutAction}
       org={org}
-      hidden={{ plan, interval }}
+      hidden={{ plan, interval, hash }}
       label={label}
-      {...(variant === undefined ? {} : { variant })}
-    />
+      variant="primary"
+    >
+      <Checkbox name="agree" required label={t("renewal.agree")} />
+      {interval === "Annual" ? (
+        <Input
+          id="renewal-initials"
+          name="initials"
+          label={t("renewal.initials")}
+          help={t("renewal.initialsHelp")}
+          required
+          autoComplete="off"
+          maxLength={12}
+          width="100%"
+        />
+      ) : null}
+    </StripeForm>
+  );
+}
+
+/** Ends the plan at the end of the period paid for: one button, online, with no second factor (ADR 0161). */
+export function EndPlanForm({ org, label }: { org: string; label: string }) {
+  const t = useBillingT();
+  const [state, formAction, pending] = useActionState(endPlanAction, INITIAL_PLATFORM_STATE);
+  return (
+    <form
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      aria-label={label}
+      className="flex flex-col gap-8"
+    >
+      <input type="hidden" name="org" value={org} />
+      <div>
+        <Button type="submit" variant="secondary" loading={pending}>
+          {label}
+        </Button>
+      </div>
+      <div aria-live="polite">
+        {state.rule || state.error ? <Outcome state={state} /> : null}
+        {state.ok ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("endPlan.sent")}</p>
+        ) : null}
+      </div>
+    </form>
   );
 }
 

@@ -25,7 +25,13 @@ export interface AccountDeletionBlocker {
 }
 
 export type KeptCategory =
-  "time_and_pay" | "tax_forms" | "engagements" | "org_records" | "audit_trail" | "erasure_request";
+  | "time_and_pay"
+  | "tax_forms"
+  | "engagements"
+  | "org_records"
+  | "billing_consent"
+  | "audit_trail"
+  | "erasure_request";
 
 export interface KeptRecord {
   readonly category: KeptCategory;

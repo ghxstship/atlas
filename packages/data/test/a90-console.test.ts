@@ -16,11 +16,13 @@ import {
   groundsFor,
   listActionLog,
   listBanners,
+  listBillingAlerts,
   listFlags,
   listOpenSupportSessions,
   listOperators,
   openSupportArea,
   parseSupportView,
+  resolveBillingAlert,
   revokeOperator,
   saveBanner,
   searchOrgs,
@@ -145,6 +147,49 @@ describe("operator console: tenants", () => {
       p_query: null,
       p_plan_code: null,
       p_limit: 50,
+    });
+  });
+
+  it("lists open billing alerts and closes one (ADR 0161)", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:console_billing_alerts": [
+        ok([
+          {
+            alert_id: "a-1",
+            alert_kind: "active_on_deleted_org",
+            subject_org_id: null,
+            org_name: null,
+            stripe_subscription_id: "sub_1",
+            detail: "Stripe says sub_1 is active.",
+            raised_at: "2026-11-06T00:00:00Z",
+            occurrences: 2,
+          },
+        ]),
+      ],
+      "rpc:console_resolve_billing_alert": [ok("a-1")],
+    });
+    expect(await listBillingAlerts(db)).toEqual({
+      ok: true,
+      data: [
+        {
+          id: "a-1",
+          kind: "active_on_deleted_org",
+          orgId: null,
+          orgName: null,
+          stripeSubscriptionId: "sub_1",
+          detail: "Stripe says sub_1 is active.",
+          raisedAt: "2026-11-06T00:00:00Z",
+          occurrences: 2,
+        },
+      ],
+    });
+    expect(await resolveBillingAlert(db, "a-1", "Refunded in Stripe.")).toEqual({
+      ok: true,
+      data: "a-1",
+    });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).toEqual({
+      p_alert_id: "a-1",
+      p_reason: "Refunded in Stripe.",
     });
   });
 

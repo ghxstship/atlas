@@ -71,6 +71,15 @@ async function propsFor(claim, store) {
         },
       };
     }
+    case "billing_notice":
+      return {
+        code: "billing_notice",
+        props: {
+          kind: claim.kind,
+          args: messageArgs(claim.messageArgs),
+          url: await store.linkFor(claim),
+        },
+      };
     case "export_ready":
       return {
         code: "export_ready",
