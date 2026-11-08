@@ -94,6 +94,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "." },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it. The email stays on file when you save again with the field empty; to take it off, tick Remove the email on file.",
+          },
+        ],
+      },
       { t: "h2", v: "Guest passes and guest emails" },
       {
         t: "p",
@@ -1466,7 +1475,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, email and push, and the alert shows how many were told. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.",
+            v: "Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, push, email and, for those who turned it on, text, and the alert shows how many were told. The Inbox has it at once; push and text reach phones within minutes, and email can take longer for a large alert. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.",
           },
         ],
       },
@@ -2168,7 +2177,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. An org that needs adults sets the minimum age to 18.",
+            v: "People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. Every registrant is 18 or older, as every XOS account is; set a higher minimum age when the work needs one.",
           },
         ],
       },
@@ -4354,6 +4363,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las necesidades de dieta y acceso de un invitado son opcionales y tienen su propio paso en la fila del invitado, no en la nota de acceso. Confirmas que tienes la autorización del invitado y que se le ha avisado, y el registro muestra que fuiste tú. Solo ves quién lo declaró y cuándo; el Propietario, los roles de jefe de catering y personal médico en sitio, y cualquier otra persona a quien la organización dé acceso a datos médicos las leen, y cada lectura queda registrada. Si das el correo del invitado y tiene una cuenta de XOS, se le avisa y puede eliminarlas. El correo sigue registrado cuando guardas de nuevo con el campo vacío; para quitarlo, marca Quitar el correo registrado.",
+          },
+        ],
+      },
       { t: "h2", v: "Pases de invitado y correos a invitados" },
       {
         t: "p",
@@ -5742,7 +5760,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, correo y notificaciones push, y la alerta muestra a cuántas personas se avisó. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.",
+            v: "Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, notificaciones push, correo y, para quienes lo activaron, mensajes de texto, y la alerta muestra a cuántas personas se avisó. La Bandeja de entrada la recibe al instante; las notificaciones push y los mensajes de texto llegan a los teléfonos en minutos, y el correo puede tardar más en una alerta grande. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.",
           },
         ],
       },
@@ -6443,7 +6461,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Una organización que requiere adultos pone la edad mínima en 18.",
+            v: "Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Toda persona que se registra tiene 18 años o más, como toda cuenta de XOS; pon una edad mínima mayor cuando el trabajo la necesite.",
           },
         ],
       },

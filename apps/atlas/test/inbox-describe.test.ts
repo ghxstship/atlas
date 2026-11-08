@@ -480,9 +480,11 @@ describe("Inbox item copy", () => {
         const label = copy.t(`inbox.kinds.${kind}`);
         expect(out.summary, kind).not.toBe("");
         expect(out.detail, kind).not.toBe("");
-        expect(`${out.summary} ${out.detail}`, kind).not.toMatch(
-          /undefined|[{}]|\b[a-z_]{3,}\.[a-z_]{3,}\b/,
-        );
+        // A raw key reads like kinds.thing; the one contact address (support@ghxstship.pro) is not one.
+        expect(
+          `${out.summary} ${out.detail}`.replaceAll("support@ghxstship.pro", ""),
+          kind,
+        ).not.toMatch(/undefined|[{}]|\b[a-z_]{3,}\.[a-z_]{3,}\b/);
         // The email copy, not the bare kind label, describes every kind that has copy.
         if (copy.hasEmail(`kinds.${kind}.subject`)) expect(out.summary, kind).not.toBe(label);
       }
