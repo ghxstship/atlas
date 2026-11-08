@@ -4,30 +4,40 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
 
 /**
  * The public homepage (RRR-248). A signed-out visitor at the root reads what XOS is, finds the way
- * to sign in, and reaches the Privacy Policy and the Consumer Health Data Privacy Policy from the
- * footer, as Washington's and Nevada's health data laws and Google's OAuth review ask. The sign-in
- * page carries the same links. A signed-in person still lands on their org's start page.
+ * to sign in, and reaches the legal documents from the footer: the Privacy Policy Google's OAuth
+ * review asks for, and the Consumer Health Data Privacy Policy Washington's and Nevada's health data
+ * laws ask for once the registry publishes it (lib/legal-links.ts). Every link the footer shows opens
+ * a page that answers 200. The sign-in page carries the same links. A signed-in person still lands on
+ * their org's start page.
  */
 test.use({ reducedMotion: "reduce" });
 
-const LEGAL_LINKS = [
+/** Links the footer shows on this build of Atlas, whatever else the registry has published. */
+const ALWAYS_LINKED = [
   { name: "Privacy Policy", href: "/legal/privacy-policy" },
-  {
-    name: "Consumer Health Data Privacy Policy",
-    href: "/legal/consumer-health-data-privacy-policy",
-  },
   { name: "Terms of Service", href: "/legal/terms-of-service" },
+  { name: "Worker Terms", href: "/legal/worker-terms" },
   { name: "Cookie settings", href: "/legal/cookie-settings" },
   { name: "Contact", href: "/legal/contact" },
 ] as const;
 
+/** Every legal link the page shows names a /legal page, the expected ones among them, and each answers 200. */
 async function expectLegalLinks(page: Page): Promise<void> {
   const legal = page.getByRole("navigation", { name: "Legal" });
-  for (const link of LEGAL_LINKS) {
+  for (const link of ALWAYS_LINKED) {
     await expect(legal.getByRole("link", { name: link.name, exact: true })).toHaveAttribute(
       "href",
       link.href,
     );
+  }
+  const hrefs = await legal
+    .getByRole("link")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+  expect(hrefs.length).toBeGreaterThanOrEqual(ALWAYS_LINKED.length);
+  for (const href of hrefs) {
+    expect(href).toMatch(/^\/legal\/[a-z-]+$/);
+    const response = await page.request.get(href);
+    expect(response.status(), href).toBe(200);
   }
 }
 
