@@ -933,6 +933,7 @@
     "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",
     "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
     "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
     "weather_feed_unsupported": "El feed oficial cubre sedes de EE. UU. con ubicación. Ubica la sede primero.",
     "weather_feed_worker_fields": "El feed define su propia estación, URL de pronóstico y hora de verificación.",
     "weather_feed_payload": "El feed oficial envió algo que no pudimos leer. Lo intentará de nuevo.",

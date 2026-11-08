@@ -28,9 +28,19 @@ import {
   type Parsed,
 } from "@xos/data/work-details-forms";
 import type { WorkDetailsPatch } from "@xos/data/work-details";
+import {
+  disownSensitiveEntry,
+  giveSensitiveConsent,
+  removeSensitiveEntry,
+  SENSITIVE_CATEGORIES,
+  withdrawSensitiveConsent,
+  type SensitiveCategory,
+} from "@xos/data/sensitive-consent";
 import { regionFromLocale, toE164 } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { redirect } from "next/navigation";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
 
@@ -50,6 +60,8 @@ export interface WorkDetailsFormState {
   readonly ok?: boolean;
   /** A revealed passport number, shown once and never stored. */
   readonly revealed?: string;
+  /** A consent was withdrawn while a legal hold keeps the values, hidden, until it ends (ADR 0164). */
+  readonly held?: boolean;
 }
 
 type State = WorkDetailsFormState;
@@ -76,6 +88,59 @@ async function savePatch(form: FormData, parsed: Parsed<WorkDetailsPatch>): Prom
   if (!parsed.ok) return rejected(parsed);
   const { db } = await viewerPerson();
   return done(form, await saveMyWorkDetails(db, parsed.value));
+}
+
+// Consent for sensitive data (ADR 0164) --------------------------------------------------------------------------------
+
+const CATEGORY_NAMES: readonly string[] = SENSITIVE_CATEGORIES;
+
+function categoryOf(form: FormData): SensitiveCategory | null {
+  const value = form.get("category");
+  return typeof value === "string" && CATEGORY_NAMES.includes(value)
+    ? (value as SensitiveCategory)
+    : null;
+}
+
+/** Records the viewer's consent with the wording's version, the language it was shown in and the surface. */
+export async function giveSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(
+    form,
+    await giveSensitiveConsent(db, {
+      category,
+      locale: await getLocale(),
+      surface: "Atlas",
+      clientIp: clientIp(await headers()),
+    }),
+  );
+}
+
+/** Withdraws a category in one call: use stops at once and the values are cleared. */
+export async function withdrawSensitiveConsentAction(_: State, form: FormData): Promise<State> {
+  const category = categoryOf(form);
+  if (!category) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  const result = await withdrawSensitiveConsent(db, category);
+  const state = done(form, result);
+  return result.ok && !result.data.erased ? { ...state, held: true } : state;
+}
+
+/** Removes what someone else entered about the viewer. */
+export async function removeSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await removeSensitiveEntry(db, id));
+}
+
+/** The viewer says a guest list entry their email matched is about someone else; the guest's needs stay with the keeper. */
+export async function disownSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await disownSensitiveEntry(db, id));
 }
 
 // Work details ------------------------------------------------------------------------------------------

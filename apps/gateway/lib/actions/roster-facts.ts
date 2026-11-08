@@ -1,5 +1,13 @@
 "use server";
 
+import {
+  attestRosterMealPreference,
+  giveSensitiveConsent,
+  rosterMealConsentStands,
+} from "@xos/data/sensitive-consent";
+import { getLocale } from "next-intl/server";
+import { headers } from "next/headers";
+import { clientIp } from "@/lib/auth/legal";
 import { Constants } from "@xos/data/database.types";
 import type { Parsed } from "@xos/data/work-details-forms";
 import {
@@ -126,12 +134,50 @@ export async function previousRosterFactsAction(
 export async function viewRosterFactsAction(
   rosterEntryId: string,
 ): Promise<
-  | { readonly ok: true; readonly facts: RosterProjectFacts }
+  | { readonly ok: true; readonly facts: RosterProjectFacts; readonly mealConsent: boolean }
   | { readonly ok: false; readonly error: string }
 > {
   if (!entryId.safeParse(rosterEntryId).success) return { ok: false, error: "denied" };
-  const result = await getRosterProjectFacts(await db(), rosterEntryId);
+  const client = await db();
+  const [result, mealConsent] = await Promise.all([
+    getRosterProjectFacts(client, rosterEntryId),
+    rosterMealConsentStands(client, rosterEntryId),
+  ]);
   return result.ok
-    ? { ok: true, facts: result.data }
+    ? { ok: true, facts: result.data, mealConsent }
     : { ok: false, error: rosterFactErrorKey(result.error) };
+}
+
+/**
+ * The company's attestation before it enters a person's meal preference (ADR 0164): it has the person's authority, and the
+ * person has had notice. The person is told and can remove it.
+ */
+export async function attestRosterMealAction(
+  rosterEntryId: string,
+  authorityConfirmed: boolean,
+  noticeConfirmed: boolean,
+): Promise<{ readonly ok: true } | { readonly ok: false; readonly error: string }> {
+  if (!entryId.safeParse(rosterEntryId).success) return { ok: false, error: "denied" };
+  const result = await attestRosterMealPreference(await db(), {
+    rosterEntryId,
+    locale: await getLocale(),
+    surface: "Gateway",
+    authorityConfirmed,
+    noticeConfirmed,
+    clientIp: clientIp(await headers()),
+  });
+  return result.ok ? { ok: true } : { ok: false, error: rosterFactErrorKey(result.error) };
+}
+
+/** The person's own consent before they enter their own meal preference. */
+export async function consentRosterMealAction(): Promise<
+  { readonly ok: true } | { readonly ok: false; readonly error: string }
+> {
+  const result = await giveSensitiveConsent(await db(), {
+    category: "Dietary and Allergies",
+    locale: await getLocale(),
+    surface: "Gateway",
+    clientIp: clientIp(await headers()),
+  });
+  return result.ok ? { ok: true } : { ok: false, error: rosterFactErrorKey(result.error) };
 }

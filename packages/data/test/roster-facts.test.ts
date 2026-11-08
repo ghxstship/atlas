@@ -301,6 +301,7 @@ describe("project fact rows for display", () => {
         outboundOn: "2027-05-04",
         seatPreference: "Aisle",
         mealPreference: null,
+        mealPreferenceMasked: false,
         needsGroundTransport: true,
         needsLodging: false,
         travelNotes: null,

@@ -180,6 +180,12 @@ test("crew roster: return with a reason, bulk accept, and the profile peek", asy
       ]);
     }
     await localSql("select app.respond_roster_entry($1, 'Accepted')", [entryOne], AGENCY.staffOne);
+    // ADR 0164: nothing reads without the person's consent.
+    await localSql(
+      "select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway')",
+      [],
+      AGENCY.staffOne,
+    );
     await localSql(
       "select app.share_work_details($1, '{Dietary Needs}'::app.work_detail_category[])",
       [accepted],

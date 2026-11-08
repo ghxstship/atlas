@@ -237,6 +237,7 @@
       "invitation_closed": "Esta invitación ya se respondió o se revocó. Invita de nuevo a la dirección.",
       "opportunity_hidden_client_named": "Mientras el cliente y el evento están ocultos, el título y la descripción no pueden nombrar el proyecto, su cliente ni el lugar. Quita el nombre o muestra el cliente y el evento.",
       "opportunity_hidden_client_published": "Esta publicación ya mostró su cliente y su evento, así que ya no se pueden ocultar. Publica una oportunidad nueva para ocultarlos.",
+      "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
       "rating_dispute_decided": "Esta impugnación ya se decidió.",
       "rating_dispute_answered": "Tu organización ya respondió a esta impugnación.",
       "rating_dispute_response": "Escribe tu respuesta en un máximo de 4,000 caracteres.",

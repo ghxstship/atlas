@@ -20,7 +20,7 @@ import {
   removeActions,
   setCapabilities,
 } from "../correct.ts";
-import { collectionAction, itemAction, resource } from "../define.ts";
+import { collectionAction, collectionQuery, itemAction, resource } from "../define.ts";
 import {
   ADVANCE_TRACKS,
   advanceTrackActions,
@@ -187,6 +187,57 @@ const sendEmailBody = z
 const sendEmailResponse = z
   .object({ send_id: fields.uuid("The send; read its rows' states at /guest-email-sends/{id}.") })
   .meta({ id: "GuestEmailSendQueued", description: "A queued guest email send." });
+const GuestNeedsRequest = z
+  .object({
+    dietary_needs: z.array(z.enum(Constants.app.Enums.dietary_need)).optional(),
+    allergies: orNull(
+      fields.text("Allergies, with how severe.", "Peanuts, severe", 500),
+    ).optional(),
+    dietary_notes: orNull(fields.text("Other dietary notes.", "No pork.", 500)).optional(),
+    accessibility_needs: z.array(z.enum(Constants.app.Enums.accessibility_need)).optional(),
+    accessibility_notes: orNull(
+      fields.text("Accessibility needs in words.", "Needs a seat near the exit.", 1000),
+    ).optional(),
+    guest_email: orNull(
+      fields.text(
+        "The guest's email, so they can see this and remove it. Left out, the email on file stays.",
+        "jo@example.com",
+        320,
+      ),
+    ).optional(),
+    clear_guest_email: fields.bool("Removes the email on file.", false).optional(),
+    authority_confirmed: fields.bool("The caller has the guest's authority to enter this.", true),
+    notice_confirmed: fields.bool(
+      "The guest has been told what is entered, why and who sees it.",
+      true,
+    ),
+    dietary_notice_version: orNull(
+      fields.text("Version of the dietary wording the caller read.", "2026-11-06", 20),
+    ).optional(),
+    accessibility_notice_version: orNull(
+      fields.text("Version of the accessibility wording the caller read.", "2026-11-06", 20),
+    ).optional(),
+    locale: fields.text("Language the wording was shown in.", "en-US", 10),
+  })
+  .meta({
+    id: "GuestNeedsRequest",
+    description: "A guest's needs, under the caller's attestation.",
+  });
+
+const GuestNeeds = z
+  .object({
+    guest_list_entry_id: fields.uuid("The guest."),
+    guest_name: fields.text("Name the guest gives at the door.", "Jordan Vale", 200),
+    dietary_needs: z.array(z.enum(Constants.app.Enums.dietary_need)),
+    allergies: orNull(fields.text("Allergies.", "Peanuts, severe", 500)),
+    dietary_notes: orNull(fields.text("Other dietary notes.", "No pork.", 500)),
+    accessibility_needs: z.array(z.enum(Constants.app.Enums.accessibility_need)),
+    accessibility_notes: orNull(fields.text("Accessibility notes.", "Near the exit.", 1000)),
+  })
+  .meta({
+    id: "GuestNeeds",
+    description: "A guest's needs, for a holder of the medical capability.",
+  });
 
 export const additions = defineAdditions("Advancing", {
   resources: [
@@ -208,6 +259,27 @@ export const additions = defineAdditions("Advancing", {
               }),
             })
             .meta({ id: "GuestDecisionRequest", description: "Decision on a requested guest." }),
+        }),
+        itemAction("setNeeds", {
+          summary: "Set a guest's dietary and access needs",
+          description:
+            "Sets the guest's needs through `app.set_guest_care_needs`, as a full replacement, all optional; nothing given clears them. Whoever keeps the entry confirms they have the guest's authority and that the guest has had notice (422 sensitive_attestation_required), with the version of the wording they were shown for each category they enter and its language (422 sensitive_notice_version). Attested per category with who gave it, and audited without values; another keeper or another matched person is a new attestation. An email matching a verified sign-in names that person, who is told and can remove it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: it is not saved, and the answer is the same. Refuses 422 guest_needs_declined for a declined guest. The values never come back here.",
+          body: GuestNeedsRequest,
+        }),
+        itemAction("clearNeeds", {
+          summary: "Remove a guest's dietary and access needs",
+          description:
+            "Deletes the guest's needs and withdraws the attestation through `app.clear_guest_care_needs`, also while the org is read-only.",
+        }),
+        collectionQuery("needs", {
+          summary: "Read guests' dietary and access needs",
+          description:
+            "The guests' needs on a project through `app.read_guest_care_needs`, for holders of data.restricted.read.medical on it, else 403. Every read is written to the org's audit ledger and to the access log of each guest with an account. Standard exports never carry these columns.",
+          paged: true,
+          response: GuestNeeds,
+          query: z.object({
+            project_id: fields.ref("project"),
+          }),
         }),
         itemAction("checkIn", {
           summary: "Check a guest in",
@@ -244,6 +316,9 @@ export const additions = defineAdditions("Advancing", {
         decide: "advancing.submission.review",
         checkIn: "advancing.rider.write",
         sendEmail: "advancing.rider.write",
+        setNeeds: "advancing.rider.write",
+        clearNeeds: "advancing.rider.write",
+        needs: "data.restricted.read.medical",
       },
     },
     guestEmailSends: { read: "advancing.packet.read" },

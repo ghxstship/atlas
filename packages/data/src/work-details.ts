@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { Constants, type Database, type Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { SENSITIVE_CONSENT_RULES } from "./sensitive-consent.ts";
 
 /**
  * Work Details (Section 4.5.6 item 10, migration 1340, A78): a person's dietary and accessibility
@@ -56,6 +57,8 @@ export const WORK_DETAIL_RULES = [
   "work_detail_category_retired",
   // R6a (4664): Contact is shared with at least one other category.
   "work_detail_share_contact_alone",
+  // ADR 0164 (6850 to 6852): a new sensitive value needs consent, and what follows from it.
+  ...SENSITIVE_CONSENT_RULES,
 ] as const;
 
 /**
@@ -108,6 +111,19 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   // A catering's roster counts (R7, 4695): one row per person counted.
   "dietary_needs.counted": "dietaryNeedsCounted",
   "allergies.counted": "allergiesCounted",
+  // ADR 0164: consent to sensitive data and the Restricted reads of it (6850 to 6853).
+  "sensitive_consent.given": "consentGiven",
+  "sensitive_consent.withdrawn": "consentWithdrawn",
+  "sensitive_consent.withdrawn_on_hold": "consentWithdrawnOnHold",
+  "sensitive_consent.attested": "attested",
+  "sensitive_consent.attestation_not_saved": "attestationNotSaved",
+  "sensitive_consent.entry_removed": "entryRemoved",
+  "sensitive_consent.entry_unlinked": "entryUnlinked",
+  "sensitive_consent.values_cleared": "valuesCleared",
+  "dietary_needs.viewed": "dietaryViewed",
+  "accessibility_needs.viewed": "accessibilityViewed",
+  "guest_needs.viewed": "guestNeedsViewed",
+  "meal_preference.viewed": "mealViewed",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */
@@ -146,16 +162,12 @@ export interface WorkDetails extends DietaryDetails, AccessibilityDetails, Passp
 }
 
 const DETAIL_COLUMNS =
-  "id, person_id, dietary_needs, dietary_notes, accessibility_needs, accessibility_notes, passport_number_last4, passport_issuing_country, passport_expires_on, passport_name, updated_at";
+  "id, person_id, passport_number_last4, passport_issuing_country, passport_expires_on, passport_name, updated_at";
 
 type DetailRow = Pick<
   Database["app"]["Tables"]["person_work_details"]["Row"],
   | "id"
   | "person_id"
-  | "dietary_needs"
-  | "dietary_notes"
-  | "accessibility_needs"
-  | "accessibility_notes"
   | "passport_number_last4"
   | "passport_issuing_country"
   | "passport_expires_on"
@@ -163,17 +175,19 @@ type DetailRow = Pick<
   | "updated_at"
 >;
 
-/** The row with its allergies, which the owner reads through app.my_allergies (Restricted, R6a). */
-function toWorkDetails(r: DetailRow, allergies: string | null): WorkDetails {
+/** The owner's Restricted needs, read through app.my_allergies and app.my_work_detail_needs (R6a, ADR 0164). */
+type MyNeeds = DietaryDetails & AccessibilityDetails;
+
+function toWorkDetails(r: DetailRow, needs: MyNeeds): WorkDetails {
   return {
     id: r.id,
     personId: r.person_id,
     updatedAt: r.updated_at,
-    dietaryNeeds: r.dietary_needs,
-    allergies,
-    dietaryNotes: r.dietary_notes,
-    accessibilityNeeds: r.accessibility_needs,
-    accessibilityNotes: r.accessibility_notes,
+    dietaryNeeds: needs.dietaryNeeds,
+    allergies: needs.allergies,
+    dietaryNotes: needs.dietaryNotes,
+    accessibilityNeeds: needs.accessibilityNeeds,
+    accessibilityNotes: needs.accessibilityNotes,
     passportNumber: null,
     passportNumberLast4: r.passport_number_last4,
     passportNumberMasked: r.passport_number_last4 !== null,
@@ -183,11 +197,22 @@ function toWorkDetails(r: DetailRow, allergies: string | null): WorkDetails {
   };
 }
 
-/** The owner's allergies: the Restricted column is never selected directly (Section 8.3). */
-async function myAllergies(db: XosClient): Promise<Result<string | null>> {
-  const { data, error } = await db.rpc("my_allergies");
-  if (error) return fail(toDataError(error));
-  return ok(data ?? null);
+/** The owner's Restricted needs: these columns are never selected directly (Section 8.3, ADR 0164). */
+async function myNeeds(db: XosClient): Promise<Result<MyNeeds>> {
+  const [allergies, needs] = await Promise.all([
+    db.rpc("my_allergies"),
+    db.rpc("my_work_detail_needs"),
+  ]);
+  if (allergies.error) return fail(toDataError(allergies.error));
+  if (needs.error) return fail(toDataError(needs.error));
+  const row = (needs.data ?? [])[0];
+  return ok({
+    dietaryNeeds: row?.dietary_needs ?? [],
+    allergies: allergies.data ?? null,
+    dietaryNotes: row?.dietary_notes ?? null,
+    accessibilityNeeds: row?.accessibility_needs ?? [],
+    accessibilityNotes: row?.accessibility_notes ?? null,
+  });
 }
 
 /** The signed-in person's work details, or null before they record any. */
@@ -199,9 +224,9 @@ export async function getMyWorkDetails(db: XosClient): Promise<Result<WorkDetail
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return ok(null);
-  const allergies = await myAllergies(db);
-  if (!allergies.ok) return allergies;
-  return ok(toWorkDetails(data as DetailRow, allergies.data));
+  const needs = await myNeeds(db);
+  if (!needs.ok) return needs;
+  return ok(toWorkDetails(data as DetailRow, needs.data));
 }
 
 /** Fields the owner writes directly; the passport number goes through `setMyPassportNumber`. */
@@ -241,9 +266,9 @@ export async function saveMyWorkDetails(
     .select(DETAIL_COLUMNS)
     .single();
   if (error) return fail(toDataError(error));
-  const allergies = await myAllergies(db);
-  if (!allergies.ok) return allergies;
-  return ok(toWorkDetails(data as DetailRow, allergies.data));
+  const needs = await myNeeds(db);
+  if (!needs.ok) return needs;
+  return ok(toWorkDetails(data as DetailRow, needs.data));
 }
 
 /** Sets or clears (null) the signed-in person's passport number; the database encrypts it. */
@@ -577,11 +602,16 @@ export interface SharedWorkDetails {
    * does not hold data.restricted.read.medical on the project (R6a), so allergies is null.
    */
   readonly dietary:
-    | (DietaryDetails & { readonly allergiesOnFile: boolean; readonly allergiesMasked: boolean })
+    | (DietaryDetails & {
+        readonly allergiesOnFile: boolean;
+        readonly allergiesMasked: boolean;
+        /** Needs or notes are recorded and the reader does not hold the capability (ADR 0164). */
+        readonly dietaryMasked: boolean;
+      })
     | null;
-  /** The Restricted medical read (R6a): present when Dietary Needs is shared and the reader holds the medical capability. */
+  /** The Restricted medical read (R6a, ADR 0164): present when Dietary or Accessibility Needs is shared and the reader holds the medical capability. */
   readonly medical: SharedMedicalNeeds | null;
-  readonly accessibility: AccessibilityDetails | null;
+  readonly accessibility: (AccessibilityDetails & { readonly accessibilityMasked: boolean }) | null;
   /** The travel profile is loyalty programs since R6a. */
   readonly travel: { readonly loyaltyPrograms: readonly SharedLoyaltyProgram[] } | null;
   readonly passport: PassportDetails | null;
@@ -594,6 +624,10 @@ export interface SharedContact {
 
 export interface SharedMedicalNeeds {
   readonly allergies: string | null;
+  readonly dietaryNeeds: readonly DietaryNeed[];
+  readonly dietaryNotes: string | null;
+  readonly accessibilityNeeds: readonly AccessibilityNeed[];
+  readonly accessibilityNotes: string | null;
 }
 
 type JsonObject = { readonly [key: string]: Json | undefined };
@@ -646,13 +680,23 @@ export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
             dietary["allergies_on_file"] === true || str(dietary["allergies"]) !== null,
           allergiesMasked: dietary["allergies_masked"] === true,
           dietaryNotes: str(dietary["dietary_notes"]),
+          dietaryMasked: dietary["dietary_masked"] === true,
         }
       : null,
-    medical: medical ? { allergies: str(medical["allergies"]) } : null,
+    medical: medical
+      ? {
+          allergies: str(medical["allergies"]),
+          dietaryNeeds: list<DietaryNeed>(medical["dietary_needs"]),
+          dietaryNotes: str(medical["dietary_notes"]),
+          accessibilityNeeds: list<AccessibilityNeed>(medical["accessibility_needs"]),
+          accessibilityNotes: str(medical["accessibility_notes"]),
+        }
+      : null,
     accessibility: accessibility
       ? {
           accessibilityNeeds: list<AccessibilityNeed>(accessibility["accessibility_needs"]),
           accessibilityNotes: str(accessibility["accessibility_notes"]),
+          accessibilityMasked: accessibility["accessibility_masked"] === true,
         }
       : null,
     travel: travel

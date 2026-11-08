@@ -151,6 +151,9 @@
     "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
     "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
     "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
+    "import_sensitive_column": "This column looks like dietary, accessibility or diversity data. An import cannot record consent for it, so leave it unmapped.",
+    "custom_field_sensitive": "A custom field cannot hold dietary, accessibility or diversity data. Use Work Details or the guest's needs step.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step.",
     "shift_reconfirm_answered": "This shift was already confirmed, or nobody is asking any more.",
     "shift_no_show_self": "You cannot mark yourself as a no-show. Tell your supervisor.",
     "shift_no_show_state": "Mark a no-show once the shift has started and someone is on it.",
@@ -573,6 +576,7 @@
       "invalid_duration": "not a duration",
       "unknown_space": "no space at this venue has this name",
       "invalid_plus_ones": "not 0 to 20",
+      "sensitive_note": "names a dietary or access need: leave it out of the note",
       "unknown_show": "no show of this project has this name",
       "unknown_party": "no company of this org has this name",
       "too_long": "too long",
@@ -786,7 +790,9 @@
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
         "session_signed_out": "Session signed out",
-        "work_details_moved": "Work details moved to each project"
+        "work_details_moved": "Work details moved to each project",
+        "sensitive_data_attested": "Data entered for you",
+        "sensitive_consent_needed": "Sensitive details wait for your consent"
       },
       "announcement": {
         "posted": "Announcement posted"

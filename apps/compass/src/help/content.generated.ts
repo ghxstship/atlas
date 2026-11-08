@@ -2601,7 +2601,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access.",
               },
             ],
           },
@@ -2614,6 +2614,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "link", v: "profile", href: "help:profile" },
               { t: "text", v: " shows your contacts." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here. Remove them, and whoever entered them cannot enter them for you again, by your account or email, in that organization until you agree. If a guest list entry is someone else, choose This is not me.",
+              },
             ],
           },
         ],
@@ -6204,7 +6213,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto, al Propietario de la organización y a cualquier otra persona a quien la organización dé acceso a datos médicos.",
               },
             ],
           },
@@ -6217,6 +6226,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "link", v: "perfil", href: "help:profile" },
               { t: "text", v: " muestra tus contactos." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí. Elimínalos, y quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en esa organización hasta que lo aceptes. Si una entrada de la lista de invitados es de otra persona, elige No soy yo.",
+              },
             ],
           },
         ],

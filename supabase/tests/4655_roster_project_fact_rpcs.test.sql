@@ -127,6 +127,135 @@ select pg_temp.as_user('pia');
 select lives_ok(pg_temp.vehicle('e_mo', 'Toyota'), 'the Advancing Lead corrects it');
 select pg_temp.as_platform();
 select is(pg_temp.notified('mo', 'roster_entry.project_facts_entered', 'e_mo'), 2, 'each company write queues one notification');
+
+-- ADR 0164: a meal preference needs the company's attestation, and the person is told and removes it.
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegetarian')$$, pg_temp.id('e_mo')),
+  'sensitive_consent_required:%', 'the company enters no meal preference without an attestation');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true)$$, pg_temp.id('e_mo')),
+  'sensitive_attestation_required:%', 'and the attestation needs both statements');
+select lives_ok(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'the company attests');
+select ok(app.roster_meal_consent_stands(pg_temp.id('e_mo')), 'so the form shows the field');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegetarian')$$, pg_temp.id('e_mo')),
+  'and the company enters it');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' -> 'meal_preference'), 'null'::jsonb, 'it cannot read back what it entered');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' ->> 'meal_preference_masked'), 'true', 'and sees that one is on file');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04')$$, pg_temp.id('e_mo')), 'it changes the dates');
+select pg_temp.as_platform();
+select is((select t.meal_preference from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'Vegetarian', 'which leaves the meal preference as it is');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications n where n.recipient_person_id = pg_temp.id('mo') and n.kind = 'account.sensitive_data_attested'), 1,
+  'the person is told');
+select pg_temp.as_user('mo');
+select is((select count(*)::int from app.sensitive_entries_about_me()), 1, 'she sees the attestation');
+select lives_ok($$select app.remove_sensitive_entry((select consent_id from app.sensitive_entries_about_me()))$$, 'and removes it');
+select pg_temp.as_platform();
+select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'the value goes with it');
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'sensitive_person_only:%', 'the company she removed it from cannot attest her back in');
+select pg_temp.as_user('mo');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
+select pg_temp.as_user('victor');
+select lives_ok(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'until she gives her own consent');
+select pg_temp.as_user('mo');
+select throws_like($$select app.disown_sensitive_entry((select consent_id from app.sensitive_entries_about_me()))$$,
+  'sensitive_entry_not_guest:%', 'a company names the person it rosters, so she removes its entry rather than say it is someone else');
+select pg_temp.as_user('mo');
+select app.withdraw_sensitive_consent('Dietary and Allergies');
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
+  'sensitive_person_only:%', 'a person who withdrew is not attested back in, and the company is not told she withdrew');
+select pg_temp.as_platform();
+update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.id('e_mo');
+
+-- ADR 0164: who reads a meal preference, and only while a grant stands ---------------------------------------------------
+create function pg_temp.meal(p_who text, p_entry text) returns jsonb
+language sql as $$ select pg_temp.facts(p_who, p_entry) -> 'travel' $$;
+select pg_temp.as_user('kai');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegan')$$, pg_temp.id('e_kai')),
+  'sensitive_consent_required:%', 'a person enters no meal preference without consent');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, null, false, false, 'Vegan, nut allergy')$$, pg_temp.id('e_kai')),
+  'travel_note_sensitive:%', 'and the box next to it refuses the same words');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'MIA', 'MIA', '2027-06-01', '2027-06-04', null, 'Vegan')$$, pg_temp.id('e_kai')),
+  'with consent she does');
+select pg_temp.as_platform();
+select is(pg_temp.meal('kai', 'e_kai') ->> 'meal_preference', 'Vegan', 'she reads it');
+select is(pg_temp.meal('alice', 'e_kai') ->> 'meal_preference', 'Vegan', 'the Owner, who holds the medical capability, reads it');
+select is(pg_temp.events('kai', 'meal_preference.viewed'), 1, 'logged as a Restricted read in the person''s access log');
+select is((select count(*)::int from app.audit_events where action = 'meal_preference.viewed' and subject_id = pg_temp.id('e_kai')), 1, 'and the audit ledger');
+select is(pg_temp.meal('hops', 'e_kai') -> 'meal_preference', 'null'::jsonb, 'a hospitality reader does not');
+select is(pg_temp.meal('hops', 'e_kai') ->> 'meal_preference_masked', 'true', 'and sees it locked');
+select is(pg_temp.meal('victor', 'e_kai') -> 'meal_preference', 'null'::jsonb, 'nor does the company');
+select is(pg_temp.meal('victor', 'e_kai') ->> 'meal_preference_masked', 'true', 'which sees it locked too');
+select pg_temp.as_user('hops');
+select is((select r -> 'travel' ->> 'meal_preference' from app.roster_travel_party(pg_temp.id('prj_a')) r where (r ->> 'roster_entry_id')::uuid = pg_temp.id('e_kai')), null,
+  'the travel party keeps it from a hospitality reader');
+select is((select r -> 'travel' ->> 'meal_preference_masked' from app.roster_travel_party(pg_temp.id('prj_a')) r where (r ->> 'roster_entry_id')::uuid = pg_temp.id('e_kai')), 'true',
+  'and says so');
+select throws_ok($$select meal_preference from app.roster_travel_requests$$, '42501', null, 'the column is not selectable');
+select lives_ok($$select seat_preference from app.roster_travel_requests$$, 'the rest of the row is');
+select pg_temp.as_user('alice');
+select is((select r -> 'travel' ->> 'meal_preference' from app.roster_travel_party(pg_temp.id('prj_a')) r where (r ->> 'roster_entry_id')::uuid = pg_temp.id('e_kai')), 'Vegan',
+  'the Owner reads it there');
+select pg_temp.as_platform();
+select ok((select consent_id is not null and cleared_at is null from app.sensitive_field_records where person_id = pg_temp.id('kai') and field_code = 'meal_preference'),
+  'the field record stands on her consent');
+
+-- The report: consent state where the org holds the data, and nothing about anyone else it merely rosters.
+select pg_temp.as_user('alice');
+select is((select standing::text from app.sensitive_consent_report(pg_temp.id('org_a')) where subject_id = pg_temp.id('kai') and field_code = 'meal_preference'),
+  'Consent Given', 'a meal preference on the org''s project shows the consent it stands on');
+select results_eq($$select standing::text, withdrawn_at from app.sensitive_consent_report(pg_temp.id('org_a')) where subject_id = pg_temp.id('mo') and field_code = 'meal_preference'$$,
+  $$values ('No Record'::text, null::timestamptz)$$, 'a rostered person who withdrew, with nothing shared or held here, reads as No Record');
+select pg_temp.as_platform();
+
+-- A value from before consent was recorded: hidden from everyone but the person, and a re-save starts nothing over.
+insert into app.roster_travel_requests (roster_entry_id, inbound_airport_code, meal_preference)
+values (pg_temp.id('e_mo'), 'MIA', 'Kosher');
+select ok((select awaiting_since is not null and consent_id is null from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'),
+  'a meal preference with no grant waits');
+update app.sensitive_field_records set awaiting_since = now() - interval '10 days', awaiting_notified_at = now() - interval '9 days'
+where person_id = pg_temp.id('mo') and field_code = 'meal_preference';
+select pg_temp.as_user('mo');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' ->> 'meal_preference'), 'Kosher', 'she still reads it');
+select is((select meal_preferences from app.my_sensitive_states() where category = 'Dietary and Allergies' and waiting), array['Kosher'],
+  'Work Details knows she holds only a meal preference, and that it waits');
+select lives_ok(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Kosher')$$, pg_temp.id('e_mo')),
+  'she changes her dates and leaves it as it is');
+select throws_like(format($$select app.save_roster_travel_request(%L, 'FLL', 'MIA', '2027-06-01', '2027-06-04', null, 'Halal')$$, pg_temp.id('e_mo')),
+  'sensitive_consent_required:%', 'but cannot change it');
+select pg_temp.as_platform();
+select ok((select awaiting_since < now() - interval '9 days' and awaiting_notified_at < now() - interval '8 days' and consent_id is null
+  from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'), 'saving the rest of the form ends no wait');
+select pg_temp.as_user('alice');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' -> 'meal_preference'), 'null'::jsonb, 'with no grant it reads as absent, even to the Owner');
+select is((app.roster_project_facts(pg_temp.id('e_mo')) -> 'travel' ->> 'meal_preference_masked'), 'false', 'and is not even marked locked');
+select pg_temp.as_platform();
+update app.sensitive_field_records set awaiting_notified_at = now() - interval '31 days' where person_id = pg_temp.id('mo') and field_code = 'meal_preference';
+select private.run_sensitive_data_job();
+select ok((select t.meal_preference is null from app.roster_travel_requests t where t.roster_entry_id = pg_temp.id('e_mo') and t.deleted_at is null), 'and it is cleared when the 30 days are up');
+select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('mo') and field_code = 'meal_preference'), 'the field record says so');
+select pg_temp.as_platform();
+update app.roster_travel_requests set deleted_at = now() where roster_entry_id = pg_temp.id('e_mo');
+
+-- Any way a value leaves, the field record follows.
+select pg_temp.as_user('kai');
+select app.clear_roster_project_fact(pg_temp.id('e_kai'), 'Travel');
+select pg_temp.as_platform();
+select ok((select cleared_at is not null from app.sensitive_field_records where person_id = pg_temp.id('kai') and field_code = 'meal_preference'), 'clearing the travel request clears the field record');
+select ok((select bool_and(meal_preference is null) from app.roster_travel_requests where roster_entry_id = pg_temp.id('e_kai')),
+  'and the value itself, not at the row''s purge');
+select pg_temp.as_user('kai');
+select app.save_roster_travel_request(pg_temp.id('e_kai'), 'MIA', 'MIA', '2027-06-01', '2027-06-04', 'Aisle', null, true, false, null);
+select pg_temp.as_platform();
+select private.begin_trusted_operation('project_facts_erase');
+delete from app.roster_travel_requests where roster_entry_id = pg_temp.id('e_kai') and deleted_at is not null;
+select private.end_trusted_operation('project_facts_erase');
+
 select is((pg_temp.facts('mo', 'e_mo') -> 'entered_by_person' ->> 'vehicle')::boolean, false, 'the company entered it');
 select pg_temp.as_user('mo');
 select lives_ok(pg_temp.vehicle('e_mo', 'Honda'), 'mo overwrites the company row');

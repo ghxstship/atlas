@@ -56,6 +56,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "account.session_signed_out": { count: "2" },
   // R6a's one-time move (4664), as private.move_profile_work_details stores it.
   "account.work_details_moved": { moved: "both" },
+  "account.sensitive_data_attested": { category: "Accessibility" },
+  "account.sensitive_consent_needed": {},
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },

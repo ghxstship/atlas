@@ -169,7 +169,19 @@
       "projectFactsExpired": "Datos del proyecto eliminados después de cerrar la contratación",
       "projectFactsErased": "Datos del proyecto eliminados",
       "dietaryNeedsCounted": "Contó tus necesidades alimentarias para el catering",
-      "allergiesCounted": "Contó tus alergias para el catering"
+      "allergiesCounted": "Contó tus alergias para el catering",
+      "consentGiven": "Aceptaste que se guarden estos datos",
+      "consentWithdrawn": "Retiraste el consentimiento y los datos se eliminaron",
+      "consentWithdrawnOnHold": "Retiraste el consentimiento; una retención legal mantiene los datos ocultos por ahora",
+      "attested": "Alguien introdujo datos por ti",
+      "entryRemoved": "Se eliminaron datos introducidos por ti",
+      "valuesCleared": "Se eliminaron datos a la espera de consentimiento",
+      "dietaryViewed": "Necesidades de dieta consultadas",
+      "accessibilityViewed": "Necesidades de accesibilidad consultadas",
+      "guestNeedsViewed": "Se consultaron tus necesidades de invitado",
+      "mealViewed": "Preferencia de comida consultada",
+      "attestationNotSaved": "Alguien intentó introducir datos por ti; no se guardaron",
+      "entryUnlinked": "Una entrada de una lista de invitados ya no te menciona"
     }
   },
   "org": {
@@ -200,7 +212,9 @@
     "reveal": "Mostrar número de pasaporte",
     "revealReason": "Motivo",
     "revealReasonHelp": "Se registra con la consulta, por ejemplo Reserva de los vuelos de junio.",
-    "revealed": "Número de pasaporte: {number}"
+    "revealed": "Número de pasaporte: {number}",
+    "dietaryMasked": "Necesidades de dieta: restringido, solo acceso médico",
+    "accessibilityMasked": "Necesidades de accesibilidad: restringido, solo acceso médico"
   },
   "errors": {
     "passport_number_format": "Un número de pasaporte tiene de 5 a 20 letras y dígitos.",
@@ -239,7 +253,18 @@
     "vehicle_fields_required": "Da la marca, el modelo, la placa y la región que la emitió.",
     "plate_format": "Una placa tiene de 1 a 10 letras y dígitos.",
     "plate_region_format": "Da la región como un código como US-FL, o solo el código del país.",
-    "project_fact_kind_required": "Indica qué datos borrar."
+    "project_fact_kind_required": "Indica qué datos borrar.",
+    "sensitive_consent_required": "Acepta el texto antes de guardar esto. Nada más del formulario lo necesita.",
+    "sensitive_notice_version": "Este texto cambió. Recarga la página y lee la versión actual.",
+    "sensitive_notice_locale": "Recarga la página e inténtalo de nuevo.",
+    "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",
+    "sensitive_person_only": "Solo esta persona puede introducir esto.",
+    "guest_needs_declined": "Este invitado fue rechazado, así que ya no se introduce nada más para él.",
+    "travel_note_sensitive": "No incluyas necesidades de dieta ni de acceso en las notas de viaje. Añade una preferencia de comida o usa Datos de trabajo, que registran el consentimiento.",
+    "sensitive_entry_not_yours": "Solo la persona a la que se refiere, o quien lo introdujo, puede eliminarlo.",
+    "sensitive_entry_not_guest": "Tu empresa introdujo esto para ti por tu nombre, así que se refiere a ti. Elimínalo en su lugar.",
+    "sensitive_consent_category": "Una empresa solo guarda su estado de diversidad de proveedores.",
+    "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento."
   },
   "compass": {
     "edit": "Editar datos de trabajo",
@@ -399,5 +424,176 @@
       }
     },
     "offline": "Estás sin conexión. Los datos del proyecto solo se guardan en línea, así que conéctate para guardar."
+  },
+  "consent": {
+    "notices": {
+      "dietary": {
+        "title": "Antes de añadir datos de dieta y alergias",
+        "collected": "Tus necesidades de dieta, alergias y notas de dieta, y cualquier preferencia de comida que indiques en un proyecto. Estos datos pueden revelar tu salud o tu religión.",
+        "why": "Para que una producción con la que decidas compartirlos pueda alimentarte con seguridad. No los usamos para nada más y ninguna función de IA los lee.",
+        "who": "Tú. Si compartes esta categoría con un proyecto, también los ven estas personas: el Propietario de esa organización, los roles de jefe de catering y personal médico en sitio de ese proyecto, y cualquier otra persona a quien la organización dé acceso a datos médicos allí. Cada lectura aparece en tu registro de acceso. Una preferencia de comida que indiques en un proyecto llega a esas mismas personas de ese proyecto. Las demás personas ven estos datos bloqueados. Quienes planifican el catering ven recuentos de cinco o más personas, sin nombres. Tu empresa no puede leerlos. Si introduce tu preferencia de comida, no puede volver a leerla, se te avisa y puedes eliminarla.",
+        "withdraw": "Retira tu consentimiento en Datos de trabajo en cualquier momento, en un solo paso. Dejamos de usar los datos de inmediato y los eliminamos. Si una retención legal alcanza tus datos, los mantenemos ocultos hasta que termine y luego los eliminamos.",
+        "attest": "Alguien está introduciendo esto para otra persona. Hazlo solo si esa persona te lo pidió o estuvo de acuerdo, y le has dicho qué se introduce, por qué y quién lo ve. Puede hacer que se elimine en cualquier momento.",
+        "attestCollected": "Las necesidades de dieta, las alergias y las notas de dieta del invitado. Estos datos pueden revelar su salud o su religión.",
+        "attestWhy": "Para que la producción pueda alimentar al invitado con seguridad. No se usan para nada más y ninguna función de IA los lee.",
+        "attestWho": "En este proyecto, el Propietario de la organización, los roles de jefe de catering y personal médico en sitio, y cualquier otra persona a quien la organización dé acceso a datos médicos allí, y cada lectura queda registrada. Quien lleva la lista de invitados solo ve quién lo declaró y cuándo. Se eliminan cuando se quita o se rechaza al invitado y, como máximo, 90 días después de que termine el proyecto.",
+        "attestAuthority": "Tengo autorización de esta persona para introducir esto.",
+        "attestNotice": "A esta persona se le ha dicho qué se introduce, por qué y quién lo ve, y que puede hacer que se elimine.",
+        "mealTitle": "Introducir una preferencia de comida para esta persona",
+        "mealBody": "Una preferencia de comida puede revelar la salud o la religión. Es opcional y solo se usa para alimentarla en este proyecto. Ninguna función de IA la lee.",
+        "mealWho": "En este proyecto la leen el Propietario de la organización, los roles de jefe de catering y personal médico en sitio, y cualquier otra persona a quien la organización dé acceso a datos médicos allí, y cada lectura queda registrada. Una vez guardada, tu empresa no puede volver a leerla. Se le avisa a la persona y puede eliminarla."
+      },
+      "accessibility": {
+        "title": "Antes de añadir datos de accesibilidad",
+        "collected": "Tus necesidades y notas de accesibilidad. Estos datos pueden revelar una discapacidad o una condición de salud.",
+        "why": "Para que una producción con la que decidas compartirlos pueda planificar para ti y sacarte con seguridad. No los usamos para nada más y ninguna función de IA los lee.",
+        "who": "Tú. Si compartes esta categoría con un proyecto, también los ven estas personas: el Propietario de esa organización, los roles de jefe de catering y personal médico en sitio de ese proyecto, y cualquier otra persona a quien la organización dé acceso a datos médicos allí. Cada lectura aparece en tu registro de acceso. Las demás personas los ven bloqueados. Tu empresa no puede leerlos.",
+        "withdraw": "Retira tu consentimiento en Datos de trabajo en cualquier momento, en un solo paso. Dejamos de usar los datos de inmediato y los eliminamos. Si una retención legal alcanza tus datos, los mantenemos ocultos hasta que termine y luego los eliminamos.",
+        "attest": "Alguien está introduciendo esto para otra persona. Hazlo solo si esa persona te lo pidió o estuvo de acuerdo, y le has dicho qué se introduce, por qué y quién lo ve. Puede hacer que se elimine en cualquier momento.",
+        "attestCollected": "Las necesidades y notas de accesibilidad del invitado. Estos datos pueden revelar una discapacidad o una condición de salud.",
+        "attestWhy": "Para que la producción pueda planificar para el invitado y sacarlo con seguridad. No se usan para nada más y ninguna función de IA los lee.",
+        "attestWho": "Las mismas personas, en las mismas condiciones, que las necesidades de dieta: el Propietario, los roles de jefe de catering y personal médico en sitio de este proyecto, y cualquier otra persona a quien la organización dé acceso a datos médicos allí, cada lectura registrada, y se eliminan en los mismos momentos.",
+        "attestAuthority": "Tengo autorización de esta persona para introducir esto.",
+        "attestNotice": "A esta persona se le ha dicho qué se introduce, por qué y quién lo ve, y que puede hacer que se elimine."
+      },
+      "diversity": {
+        "title": "Antes de añadir una certificación de diversidad de proveedores",
+        "collected": "El tipo de certificación, el organismo certificador, su número y sus fechas. Esto puede revelar raza, sexo, orientación sexual, discapacidad o condición de veterano.",
+        "why": "Para que una organización con un programa de diversidad de proveedores pueda contarla, si decides compartirla. No la usamos para nada más y ninguna función de IA la lee.",
+        "who": "Tú, o los Propietarios y Administradores de la empresa a la que pertenece. Si la compartes con una organización, también la ven los miembros de allí con acceso a datos restringidos, y cada lectura aparece en tu registro de acceso.",
+        "withdraw": "Retira tu consentimiento aquí en cualquier momento, en un solo paso. Dejamos de usarla de inmediato, terminamos cada uso compartido y la quitamos. Si una retención legal alcanza tus datos, la mantenemos oculta hasta que termine y luego la quitamos.",
+        "attest": "Estás declarando esto en nombre de una empresa. Hazlo solo si tienes autoridad para hablar por la empresa, y a las personas que describe se les ha dicho qué se declara, por qué y quién lo ve.",
+        "attestAuthority": "Tengo autoridad para declarar esto en nombre de la empresa.",
+        "attestNotice": "A las personas que describe se les ha dicho qué se declara, por qué y quién lo ve."
+      }
+    },
+    "headings": {
+      "collected": "Qué recopilamos",
+      "why": "Por qué",
+      "who": "Quién lo ve",
+      "withdraw": "Cómo retirar el consentimiento"
+    },
+    "agree": "Acepto",
+    "notNow": "Ahora no",
+    "gate": {
+      "dietary": "Nada de esto es obligatorio. Lee qué recopilamos antes de añadir algo.",
+      "accessibility": "Nada de esto es obligatorio. Lee qué recopilamos antes de añadir algo.",
+      "diversity": "Nada de esto es obligatorio. Lee qué recopilamos antes de añadir una certificación.",
+      "reviewDietary": "Añadir datos de dieta",
+      "reviewAccessibility": "Añadir datos de accesibilidad",
+      "reviewDiversity": "Añadir una certificación",
+      "waiting": "Tienes datos guardados de antes de que registráramos el consentimiento. Están ocultos para los demás, y los eliminamos {days} días después de avisarte, salvo que aceptes.",
+      "confirm": "Conservarlos",
+      "held": "Retiraste tu consentimiento. Una retención legal alcanza tus datos, así que lo que introdujiste queda oculto para todos hasta que termine, y luego lo eliminamos.",
+      "onFile": "Guardado: {values}",
+      "mealOnFile": "Preferencia de comida en un proyecto: {value}"
+    },
+    "given": "Aceptaste el {date}, versión del texto {version}.",
+    "withdrawAction": {
+      "dietary": "Retirar el consentimiento y eliminar los datos de dieta",
+      "accessibility": "Retirar el consentimiento y eliminar los datos de accesibilidad",
+      "diversity": "Retirar el consentimiento y quitar las certificaciones",
+      "title": "¿Retirar tu consentimiento?",
+      "body": "Dejamos de usarlo de inmediato, terminamos cualquier uso compartido y lo eliminamos. Puedes volver a añadirlo más adelante.",
+      "confirm": "Retirar y eliminar",
+      "cancel": "Conservarlo",
+      "held": "Consentimiento retirado. Una retención legal alcanza tus datos, así que los mantenemos ocultos hasta que termine y luego los eliminamos.",
+      "done": "Consentimiento retirado. Los datos se han eliminado."
+    },
+    "attest": {
+      "required": "Confirma ambas declaraciones para continuar."
+    },
+    "meal": {
+      "addOwn": "Añadir una preferencia de comida",
+      "addForPerson": "Añadir una preferencia de comida para esta persona",
+      "locked": "Opcional. Acepta primero el texto sobre dieta; todo lo demás de este formulario se guarda sin ello.",
+      "lockedValue": "Bloqueado",
+      "masked": "Hay una preferencia de comida guardada y tu empresa no puede leerla. Introduce una nueva para reemplazarla o deja esto vacío para conservarla."
+    },
+    "about": {
+      "title": "Introducido por otra persona",
+      "description": "Alguien dijo tener tu autorización para introducir esto. Elimina lo que no hayas aceptado: quien lo introdujo no podrá volver a introducirlo por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, y nadie podrá hacerlo en esa entrada de la lista de invitados, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.",
+      "none": "Nadie ha introducido nada por ti.",
+      "by": "{name} el {date}",
+      "byOrg": "{name}, {org}, el {date}",
+      "guest": "Lista de invitados: {guest}",
+      "removeNamed": "Eliminar {category}",
+      "disown": "No soy yo",
+      "disownNamed": "No soy yo: {guest}",
+      "removeFailed": "No se pudo completar, así que sigue guardado. Vuelve a intentarlo."
+    },
+    "categories": {
+      "Dietary and Allergies": "Dieta y alergias",
+      "Accessibility": "Accesibilidad",
+      "Supplier Diversity": "Diversidad de proveedores"
+    },
+    "report": {
+      "title": "Consentimiento de datos sensibles",
+      "description": "Estado del consentimiento de cada campo sensible, nunca los datos.",
+      "none": "No se comparten datos sensibles con esta organización.",
+      "subject": "Persona o invitado",
+      "category": "Categoría",
+      "field": "Campo",
+      "standing": "Consentimiento",
+      "version": "Versión del texto",
+      "given": "Dado",
+      "givenBy": "Dado por",
+      "withdrawn": "Retirado",
+      "download": "Descargar",
+      "kinds": {
+        "Person": "Persona",
+        "Guest": "Invitado",
+        "Company": "Empresa"
+      },
+      "standings": {
+        "Consent Given": "Consentimiento dado",
+        "Attested": "Declarado por otra persona",
+        "Withdrawn": "Retirado",
+        "No Record": "Sin registro"
+      },
+      "fields": {
+        "dietary_needs": "Necesidades de dieta",
+        "allergies": "Alergias",
+        "dietary_notes": "Notas de dieta",
+        "meal_preference": "Preferencia de comida",
+        "accessibility_needs": "Necesidades de accesibilidad",
+        "accessibility_notes": "Notas de accesibilidad",
+        "supplier_diversity_kind": "Tipo de certificación",
+        "supplier_diversity_certificate": "Número de certificado",
+        "guest_dietary_needs": "Necesidades de dieta del invitado",
+        "guest_allergies": "Alergias del invitado",
+        "guest_dietary_notes": "Notas de dieta del invitado",
+        "guest_accessibility_needs": "Necesidades de accesibilidad del invitado",
+        "guest_accessibility_notes": "Notas de accesibilidad del invitado"
+      }
+    },
+    "guestNeeds": {
+      "open": "Necesidades",
+      "openNamed": "Necesidades de dieta y acceso de {name}",
+      "tag": "Declarado",
+      "recorded": "Declarado por {name}, {date}.",
+      "replaces": "Al guardar se reemplaza lo registrado. Solo vuelves a verlo con acceso médico.",
+      "dietaryNeeds": "Necesidades de dieta",
+      "allergies": "Alergias",
+      "allergiesHelp": "Indica la gravedad de cada una.",
+      "dietaryNotes": "Otras notas de dieta",
+      "accessibilityNeeds": "Necesidades de accesibilidad",
+      "accessibilityNotes": "Notas de accesibilidad",
+      "email": "Correo del invitado",
+      "emailHelp": "Opcional. Si tiene una cuenta de XOS, se le avisa y puede eliminarlo.",
+      "emailOnFile": "Hay un correo registrado. Déjalo vacío para conservarlo o escribe otro para reemplazarlo.",
+      "clearEmail": "Quitar el correo registrado",
+      "save": "Guardar necesidades",
+      "clear": "Eliminar necesidades",
+      "cancel": "Cancelar",
+      "read": "Leer necesidades de invitados",
+      "readTitle": "Necesidades de invitados de este proyecto",
+      "readHelp": "Cada lectura queda registrada. Úsalas solo para atender al invitado.",
+      "readNone": "Ningún invitado tiene necesidades registradas.",
+      "guest": "Invitado",
+      "download": "Descargar",
+      "close": "Cerrar",
+      "continue": "Continuar"
+    }
   }
 }

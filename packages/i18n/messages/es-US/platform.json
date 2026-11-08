@@ -151,6 +151,9 @@
     "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
     "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
     "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
+    "import_sensitive_column": "Esta columna parece contener datos de dieta, accesibilidad o diversidad. Una importación no puede registrar el consentimiento, así que déjala sin asignar.",
+    "custom_field_sensitive": "Un campo personalizado no puede guardar datos de dieta, accesibilidad o diversidad. Usa Datos de trabajo o el paso de necesidades del invitado.",
+    "question_sensitive": "Una pregunta no puede pedir datos de dieta, accesibilidad o de grupos protegidos, porque responderla no registra ningún consentimiento. Usa Datos de trabajo o el paso de necesidades del invitado.",
     "shift_reconfirm_answered": "Este turno ya se confirmó, o ya nadie lo está preguntando.",
     "shift_no_show_self": "No puedes marcarte como ausente. Avísale a tu supervisor.",
     "shift_no_show_state": "Marca la ausencia cuando el turno haya empezado y haya alguien asignado.",
@@ -573,6 +576,7 @@
       "invalid_duration": "no es una duración",
       "unknown_space": "ningún espacio de este recinto tiene este nombre",
       "invalid_plus_ones": "no está entre 0 y 20",
+      "sensitive_note": "menciona una necesidad de dieta o acceso: no la incluyas en la nota",
       "unknown_show": "ningún show de este proyecto tiene este nombre",
       "unknown_party": "ninguna empresa de esta organización tiene este nombre",
       "too_long": "demasiado largo",
@@ -786,7 +790,9 @@
         "security_changed": "Cambió la seguridad de la cuenta",
         "recovery_code_used": "Código de recuperación usado",
         "session_signed_out": "Sesión cerrada",
-        "work_details_moved": "Datos de trabajo pasados a cada proyecto"
+        "work_details_moved": "Datos de trabajo pasados a cada proyecto",
+        "sensitive_data_attested": "Datos introducidos por ti",
+        "sensitive_consent_needed": "Datos sensibles a la espera de tu consentimiento"
       },
       "announcement": {
         "posted": "Anuncio publicado"

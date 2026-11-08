@@ -46,6 +46,9 @@ export async function SharedSupplierDiversity({ ctx }: { ctx: OrgContext }) {
             </Link>
           ) : null}
         </p>
+      ) : !ctx.capabilities.has("data.restricted.read.government_id") ? (
+        /* ADR 0164: the kind is Restricted, so the vendor capability alone reads none. */
+        <p className="m-0 text-text-13 text-text-secondary">{t("diversity.restricted")}</p>
       ) : (
         <SharedList ctx={ctx} date={date} t={t} />
       )}

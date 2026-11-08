@@ -43,6 +43,7 @@ select throws_ok($$select app.add_supplier_diversity_certification('Veteran-Owne
 
 -- One call, one insert, one log entry ------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway');
 select app.add_supplier_diversity_certification('Women-Owned', ' Florida Office of Supplier Diversity ',
   p_person_id => pg_temp.id('ivy'), p_certificate_number => 'fl-wbe-2026-118842', p_issued_on => '2026-01-15',
   p_expires_on => '2028-01-15') as v_cert \gset
@@ -65,6 +66,7 @@ select is((select certificate_number_last4 from app.my_supplier_diversity() wher
   'a declaration without a number stores none');
 
 select pg_temp.as_user('victor');
+select app.give_sensitive_consent('Supplier Diversity', '2026-11-06', 'en-US', 'Gateway', pg_temp.id('acct_v'), true, true);
 select app.add_supplier_diversity_certification('Minority-Owned', 'National Minority Supplier Development Council',
   p_account_id => pg_temp.id('acct_v'), p_certificate_number => 'NMSDC-55-0912') as v_acct_cert \gset
 select is((select certificate_number_last4 from app.my_supplier_diversity(pg_temp.id('acct_v'))), '0912',

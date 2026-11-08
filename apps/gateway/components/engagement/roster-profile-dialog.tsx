@@ -100,7 +100,9 @@ function profileItems(
       label: t("roster.profile.dietary"),
       value: block(
         lines([
-          d.dietary.dietaryNeeds.map((n) => label("dietaryNeeds", n)).join(", "),
+          d.dietary.dietaryMasked
+            ? t("roster.profile.onFile")
+            : d.dietary.dietaryNeeds.map((n) => label("dietaryNeeds", n)).join(", "),
           note("org.notes", d.dietary.dietaryNotes),
         ]),
       ),
@@ -115,7 +117,11 @@ function profileItems(
       label: t("roster.profile.accessibility"),
       value: block(
         lines([
-          d.accessibility.accessibilityNeeds.map((n) => label("accessibilityNeeds", n)).join(", "),
+          d.accessibility.accessibilityMasked
+            ? t("roster.profile.onFile")
+            : d.accessibility.accessibilityNeeds
+                .map((n) => label("accessibilityNeeds", n))
+                .join(", "),
           note("org.notes", d.accessibility.accessibilityNotes),
         ]),
       ),

@@ -933,6 +933,7 @@
     "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
     "content_moderation_nothing_open": "Every report about this was already decided.",
     "content_moderation_authority": "Reviewing reported content needs permission to manage communication.",
+    "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step.",
     "weather_feed_unsupported": "The official feed covers US venues with a location. Locate the venue first.",
     "weather_feed_worker_fields": "The feed sets its own station, forecast URL and check time.",
     "weather_feed_payload": "The official feed sent something we could not read. It will try again.",

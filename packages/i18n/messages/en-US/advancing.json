@@ -156,6 +156,7 @@
     "advance_dock_zone": "Choose a live dock zone.",
     "dock_slot_overlap": "Another slot holds that dock then. Choose another dock or move the slot.",
     "credential_names_closed": "The naming deadline has passed for the party; change the names from Allocations.",
+    "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent.",
     "guest_pass_category": "A pass type is an Access category of this project. Choose one from the list.",
     "guest_host_not_on_project": "A host is a member of your organization or engaged on this project. Choose someone from the list.",
     "guest_entry_production_fields": "The pass type, table and host are set by the production.",
@@ -583,7 +584,7 @@
       "show": "Show",
       "wholeProject": "Whole project",
       "note": "Note for the door",
-      "noteHelp": "Optional. For example, side stage or press.",
+      "noteHelp": "Optional. For example, side stage or press. Keep dietary and access needs out of this note.",
       "approveNow": "Approve now as a production comp"
     },
     "actions": {

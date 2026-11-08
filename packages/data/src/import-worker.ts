@@ -17,6 +17,7 @@ import {
   type Sheet,
   type SheetLayout,
   type SuggestionSource,
+  looksSensitive,
 } from "./import-parse.ts";
 import {
   GoogleSheetError,
@@ -575,6 +576,8 @@ export async function validateRow(
       const projectId = destination.project?.id ?? null;
       for (const f of ["guest_name", "note", "table_label"]) bounded(f);
       await set("guest_email", importGuestEmail, "invalid_email");
+      // ADR 0164: the door note has no consent step; the guard refuses these words too (guest_note_sensitive, 6852).
+      await set("note", (v) => (looksSensitive(v) ? null : v), "sensitive_note");
       await set(
         "plus_ones",
         (v) => {

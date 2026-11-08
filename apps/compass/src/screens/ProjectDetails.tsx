@@ -14,6 +14,7 @@ import {
 import { SHOE_SIZE_SYSTEM_KEYS } from "@xos/data/roster-facts-display";
 import { SEAT_PREFERENCES, workDetailLabelKey } from "@xos/data/work-details";
 import { useRouter, type Href } from "expo-router";
+import { rosterMealConsentStands } from "@xos/data/sensitive-consent";
 import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -27,6 +28,7 @@ import { useCompass } from "../runtime/CompassProvider";
 import { SIZE_CHOICES } from "../settings/workDetails";
 import { Button, Card, InlineAlert, ListRow, Screen, Switch, Text, TextField } from "../ui";
 import { ChoiceRow, ChoiceSheet } from "./settings/ChoiceSheet";
+import { ConsentStep } from "./settings/WorkDetails";
 import { LabeledChoice } from "./settings/parts";
 
 const P = "workDetails.projectFacts";
@@ -93,13 +95,18 @@ export function ProjectDetailsEntry({ entryId }: { readonly entryId: string }): 
   const { t } = useTranslation();
   const { db, online } = useOnline();
   const [facts, setFacts] = useState<RosterProjectFacts | null>(null);
+  const [mealConsent, setMealConsent] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!online) return undefined;
     let live = true;
-    void getRosterProjectFacts(db, entryId).then((r) => {
+    void Promise.all([
+      getRosterProjectFacts(db, entryId),
+      rosterMealConsentStands(db, entryId),
+    ]).then(([r, consent]) => {
       if (!live) return;
+      setMealConsent(consent);
       if (r.ok) setFacts(r.data);
       else setFailed(true);
     });
@@ -133,6 +140,7 @@ export function ProjectDetailsEntry({ entryId }: { readonly entryId: string }): 
             online={online}
             kind={kind}
             facts={facts}
+            mealConsent={mealConsent}
             onSaved={() => setAttempt((n) => n + 1)}
           />
         ))
@@ -148,12 +156,15 @@ function FactCard({
   online,
   kind,
   facts,
+  mealConsent,
   onSaved,
 }: {
   readonly db: XosClient;
   readonly online: boolean;
   readonly kind: ProjectFactKind;
   readonly facts: RosterProjectFacts;
+  /** ADR 0164: the person's consent stands, so the meal preference field shows; everything else saves without it. */
+  readonly mealConsent: boolean;
   readonly onSaved: () => void;
 }): ReactElement {
   const { t } = useTranslation();
@@ -234,7 +245,18 @@ function FactCard({
         ]}
         onChange={set("seatPreference")}
       />,
-      text("mealPreference"),
+      mealConsent || fields["mealPreference"] ? (
+        text("mealPreference")
+      ) : (
+        <ConsentStep
+          key="mealPreference"
+          category="Dietary and Allergies"
+          db={db}
+          waiting={false}
+          onChanged={onSaved}
+          testID={`${id}-meal-consent`}
+        />
+      ),
       text("travelNotes"),
     ];
   } else if (kind === "Uniform") {

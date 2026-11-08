@@ -38,6 +38,8 @@ Allocations say what each party and person is given for a production: badges, pa
 
 Related: [Venues, spaces and site plans](help:places).
 
+A guest's dietary and access needs are optional and have their own step on the guest's row, not the door note. You confirm you have the guest's authority and that they have had notice, and the record shows it was you. You see only who attested and when; the Owner, the catering lead and on-site medical roles, and anyone else the organization gives medical data access read them, and each read is logged. Give the guest's email and, if they have an XOS account, they are told and can remove it. The email stays on file when you save again with the field empty; to take it off, tick Remove the email on file.
+
 ## Guest passes and guest emails
 
 Each guest can have a pass type (an Access category of the project, such as GUEST or VIP), a table, a host from the project's people, and an email address. Add guest asks for the pass type and email; set the table and host from the guest's pass details. When a guest is approved they get a pass code; Print pass and Download pass give their A6 pass with the code the door scans. Guests have passes, not credentials.

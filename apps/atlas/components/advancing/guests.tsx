@@ -24,6 +24,9 @@ import { AddGuestDialog, GuestActions } from "./guest-forms";
 import { RecordCollab } from "./record-collab";
 import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
+import { canReadGuestNeeds, listGuestNeedsStates } from "@xos/data/sensitive-consent";
+import { GuestNeedsReadTrigger } from "./guest-needs-read-trigger";
+import { GuestNeedsTrigger } from "./guest-needs-trigger";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 import { CollectionPage } from "@/components/platform/collection-page";
 import { ResultRegion } from "@/components/operations/result-region";
@@ -64,7 +67,7 @@ export async function GuestList({
   const t = await getTranslate();
   const format = await getFormatter();
   const stateFilter = GUEST_STATES.find((s) => s === search["filter"]);
-  const [guests, scopes, categories, people, sends, locale] = await Promise.all([
+  const [guests, scopes, categories, people, sends, locale, needsStates, canReadNeeds] = await Promise.all([
     listGuests(ctx.viewer.db, {
       orgId: ctx.org.id,
       projectId: project.id,
@@ -75,9 +78,13 @@ export async function GuestList({
     can.rider ? projectPeople(ctx, project.id) : Promise.resolve([]),
     listGuestEmailSends(ctx.viewer.db, project.id),
     getLocale(),
+    listGuestNeedsStates(ctx.viewer.db, project.id),
+    canReadGuestNeeds(ctx.viewer.db, project.id),
   ]);
   if (!guests.ok) throw new Error(`Cannot list guests: ${JSON.stringify(guests.error)}`);
   if (!scopes.ok) throw new Error(`Cannot list scopes: ${JSON.stringify(scopes.error)}`);
+  const needsOf = (guestId: string) =>
+    (needsStates.ok ? needsStates.data : []).find((n) => n.guestListEntryId === guestId) ?? null;
   const scopeOptions = scopes.data.map((s) => ({ value: s.id, label: `${s.code} · ${s.name}` }));
   const scopeName = (id: string | null) =>
     scopes.data.find((s) => s.id === id)?.name ?? t("advancing.guests.wholeProject");
@@ -144,6 +151,9 @@ export async function GuestList({
             ? {
                 actions: (
                   <>
+                    {canReadNeeds ? (
+                      <GuestNeedsReadTrigger org={ctx.org.slug} projectId={project.id} />
+                    ) : null}
                     {importHref ? (
                       <Link href={importHref} className="text-text-13 text-accent-text underline">
                         {t("advancing.guests.import")}
@@ -276,6 +286,14 @@ export async function GuestList({
                     <Tag tone="accent">{t("advancing.guests.viaGateway")}</Tag>
                   ) : null}
                 </div>
+                {can.rider && g.state !== "Declined" ? (
+                  <GuestNeedsTrigger
+                    hidden={{ org: ctx.org.slug }}
+                    guestId={g.id}
+                    guestName={g.guestName}
+                    state={needsOf(g.id)}
+                  />
+                ) : null}
                 <GuestActions
                   org={ctx.org.slug}
                   guest={item(g)}

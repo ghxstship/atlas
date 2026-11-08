@@ -11,6 +11,8 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "advance_track_signed_off",
   "advance_track_revoke_reason",
   "advance_section_stale",
+  // ADR 0164: the door note has no consent step.
+  "guest_note_sensitive",
   "advance_packet_send",
   "advance_packet_sent",
   "advance_packet_no_sections",

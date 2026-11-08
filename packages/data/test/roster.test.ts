@@ -284,6 +284,7 @@ describe("roster", () => {
     expect(result.ok && result.data.reader).toBe("company");
     expect(result.ok && result.data.rosterEntryId).toBe("r1");
     expect(result.ok && result.data.dietary).toEqual({
+      dietaryMasked: false,
       dietaryNeeds: ["Vegetarian"],
       allergies: null,
       allergiesOnFile: true,

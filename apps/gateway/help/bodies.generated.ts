@@ -4040,7 +4040,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
           },
         ],
       },
@@ -4050,6 +4050,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Your skills, certifications, rates and availability are in " },
           { t: "link", v: "Profile settings", href: "help:settings-profile" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them: whoever entered them cannot enter them for you again, by your account or email, anywhere in that organization, until you agree yourself. If a guest list entry is about someone else, choose This is not me: your name and email come off it, and the guest's needs stay with whoever keeps the list.",
+          },
         ],
       },
     ],
@@ -8368,7 +8377,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, el Propietario de la organización y cualquier otra persona a quien la organización dé acceso a datos médicos pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
           },
         ],
       },
@@ -8378,6 +8387,15 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Tus habilidades, certificaciones, tarifas y disponibilidad están en " },
           { t: "link", v: "Configuración del perfil", href: "help:settings-profile" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos: quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.",
+          },
         ],
       },
     ],

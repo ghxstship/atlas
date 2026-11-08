@@ -30,6 +30,11 @@ begin
     update app.people set given_name = 'Demo', family_name = 'Crew Member'
     where id = v_crew and given_name is null and family_name is null;
 
+    -- ADR 0164: the demo crew member consented before these values were entered.
+    insert into app.sensitive_data_consents (category, basis, person_id, notice_version, locale, surface, given_by)
+    values ('Dietary and Allergies', 'Own Consent', v_crew, '2026-11-06', 'en-US', 'Gateway', v_crew)
+    on conflict do nothing;
+
     perform private.begin_trusted_operation('passport_number_write');
     insert into app.person_work_details (id, person_id, dietary_needs, allergies, passport_number, passport_number_last4,
       passport_issuing_country, passport_expires_on, passport_name)
@@ -49,6 +54,10 @@ begin
   end if;
 
   if exists (select 1 from app.people where id = v_owner) then
+    insert into app.sensitive_data_consents (category, basis, person_id, notice_version, locale, surface, given_by)
+    values ('Dietary and Allergies', 'Own Consent', v_owner, '2026-11-06', 'en-US', 'Atlas', v_owner)
+    on conflict do nothing;
+
     insert into app.person_work_details (id, person_id, dietary_needs)
     values (v_owner_details, v_owner, '{Pescatarian}')
     on conflict (id) do nothing;

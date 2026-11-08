@@ -355,6 +355,7 @@
       "smallDisadvantagedBusiness": "Small disadvantaged business",
       "hubzone": "HUBZone business",
       "other": "Other certification"
-    }
+    },
+    "restricted": "Restricted: shared certifications are read only by people with restricted data access."
   }
 }

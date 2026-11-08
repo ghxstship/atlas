@@ -56,12 +56,14 @@ select results_eq($$select classification::text, read_capability from private.co
 -- Owner writes -------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
 insert into world select 'wd_ivy', app.ensure_my_work_details();
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Atlas');
+select app.give_sensitive_consent('Accessibility', '2026-11-06', 'en-US', 'Atlas');
 select is(app.ensure_my_work_details(), pg_temp.id('wd_ivy'), 'ensure_my_work_details returns the same row');
 -- Uniform sizes and travel preferences are entered per roster entry since R6a (4664).
 select lives_ok($$update app.person_work_details set dietary_needs = '{Vegan,Nut Free,Vegan}',
   allergies = 'Peanuts, severe', accessibility_needs = '{Seating}', passport_issuing_country = 'IT', passport_expires_on = '2031-04-30', passport_name = 'IVY MARCHETTI'
   where id = (select id from world where key = 'wd_ivy')$$, 'the owner fills in her work details');
-select is((select dietary_needs::text from app.person_work_details where id = pg_temp.id('wd_ivy')), '{Vegan,"Nut Free"}',
+select is((select dietary_needs::text from app.my_work_detail_needs()), '{Vegan,"Nut Free"}',
   'each dietary need is kept once, in enum order');
 select lives_ok($$insert into app.person_emergency_contacts (person_id, full_name, relationship, phone_e164, sort_order)
   values ((select id from world where key = 'ivy'), 'Marco Marchetti', 'Brother', '+393471234567', 0)$$, 'the owner adds an emergency contact');

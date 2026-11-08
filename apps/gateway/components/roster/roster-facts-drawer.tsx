@@ -35,6 +35,7 @@ export function RosterFactsDrawer({
 }) {
   const t = useTranslations("workDetails") as unknown as Translate;
   const [facts, setFacts] = useState<RosterProjectFacts | null>(null);
+  const [mealConsent, setMealConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entering, setEntering] = useState(false);
   const [reads, setReads] = useState(0);
@@ -42,8 +43,10 @@ export function RosterFactsDrawer({
     let live = true;
     void viewRosterFactsAction(rosterEntryId).then((r) => {
       if (!live) return;
-      if (r.ok) setFacts(r.facts);
-      else setError(r.error);
+      if (r.ok) {
+        setFacts(r.facts);
+        setMealConsent(r.mealConsent);
+      } else setError(r.error);
     });
     return () => {
       live = false;
@@ -70,6 +73,7 @@ export function RosterFactsDrawer({
             mode="person"
             personName={name}
             projectName={projectName}
+            mealConsent={mealConsent}
             onDone={onClose}
             onSaved={() => setReads((n) => n + 1)}
           />
@@ -81,6 +85,7 @@ export function RosterFactsDrawer({
           mode="company"
           personName={name}
           projectName={projectName}
+          mealConsent={mealConsent}
           onSaved={() => setReads((n) => n + 1)}
           onDone={() => {
             setEntering(false);

@@ -21,6 +21,7 @@ import {
   Textarea,
 } from "@xos/ui";
 import { useTranslations } from "next-intl";
+import { MealConsentGate } from "./meal-consent-gate";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type ReactNode } from "react";
 import {
@@ -60,6 +61,7 @@ export function ProjectFactsWizard({
   mode,
   personName,
   projectName,
+  mealConsent,
   onDone,
   onSaved,
 }: {
@@ -67,6 +69,8 @@ export function ProjectFactsWizard({
   mode: WizardMode;
   personName: string;
   projectName: string;
+  /** The person's consent, or the company's attestation, stands, so the meal preference field shows (ADR 0164). */
+  mealConsent: boolean;
   onDone?: () => void;
   /** After each save or clear, for a caller whose facts are not server props (a drawer reads them again). */
   onSaved?: () => void;
@@ -180,7 +184,19 @@ export function ProjectFactsWizard({
         }}
         noValidate
       >
-        <StepForm t={t} kind={kind} facts={facts} values={values} fieldError={fieldError} />
+        <StepForm
+          t={t}
+          kind={kind}
+          facts={facts}
+          values={values}
+          fieldError={fieldError}
+          mode={mode}
+          mealConsent={mealConsent}
+          onConsent={() => {
+            onSaved?.();
+            router.refresh();
+          }}
+        />
         <div className="flex flex-wrap gap-8">
           {mode === "person" ? (
             <Button type="button" variant="secondary" size="sm" onClick={() => fillFromLast(kind)}>
@@ -232,12 +248,18 @@ function StepForm({
   facts,
   values,
   fieldError,
+  mode,
+  mealConsent,
+  onConsent,
 }: {
   t: Translate;
   kind: ProjectFactKind;
   facts: RosterProjectFacts;
   values: Value;
   fieldError: (name: string) => string | undefined;
+  mode: WizardMode;
+  mealConsent: boolean;
+  onConsent: () => void;
 }) {
   const label = (name: string) => t(`projectFacts.fields.${name}.label`);
   const help = (name: string) => t(`projectFacts.fields.${name}.help`);
@@ -329,16 +351,20 @@ function StepForm({
         ]}
       />
     ),
-    mealPreference: (
-      <Input
-        name="mealPreference"
-        label={label("mealPreference")}
-        help={help("mealPreference")}
-        maxLength={100}
-        defaultValue={travel?.mealPreference ?? ""}
-        {...err("mealPreference")}
-      />
-    ),
+    // ADR 0164: a meal preference is dietary data. Everything else on the form saves without the step.
+    mealPreference:
+      mealConsent || travel?.mealPreference ? (
+        <Input
+          name="mealPreference"
+          label={label("mealPreference")}
+          help={travel?.mealPreferenceMasked ? t("consent.meal.masked") : help("mealPreference")}
+          maxLength={100}
+          defaultValue={travel?.mealPreference ?? ""}
+          {...err("mealPreference")}
+        />
+      ) : (
+        <MealConsentGate rosterEntryId={facts.rosterEntryId} mode={mode} onGranted={onConsent} />
+      ),
     travelNotes: (
       <Textarea
         name="travelNotes"

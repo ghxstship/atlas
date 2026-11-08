@@ -237,6 +237,7 @@
       "invitation_closed": "This invitation was answered or revoked. Invite the address again instead.",
       "opportunity_hidden_client_named": "While the client and event are hidden, the title and description cannot name the project, its client or the venue. Remove the name, or show the client and event.",
       "opportunity_hidden_client_published": "This listing already showed its client and event, so they can no longer be hidden. Post a new opportunity to hide them.",
+      "question_sensitive": "A question cannot ask for dietary, accessibility or protected-group details, because answering it records no consent. Use Work Details or the guest's needs step.",
       "rating_dispute_decided": "This dispute has already been decided.",
       "rating_dispute_answered": "Your organization has already answered this dispute.",
       "rating_dispute_response": "Write your answer in up to 4,000 characters.",

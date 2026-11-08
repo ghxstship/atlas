@@ -355,6 +355,7 @@
       "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
       "hubzone": "Empresa HUBZone",
       "other": "Otra certificación"
-    }
+    },
+    "restricted": "Restringido: las certificaciones compartidas solo las leen personas con acceso a datos restringidos."
   }
 }

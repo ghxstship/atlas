@@ -115,7 +115,18 @@ const TravelValue = z
     inbound_on: orNull(fields.date("Day the person travels to the project.")),
     outbound_on: orNull(fields.date("Day the person travels home.")),
     seat_preference: seat(),
-    meal_preference: orNull(str("Meal preference.", "Vegetarian")),
+    meal_preference: orNull(
+      str(
+        "Meal preference. Restricted: only the person, and holders of data.restricted.read.medical on the project while a grant stands, read it.",
+        "Vegetarian",
+      ),
+    ),
+    meal_preference_masked: fields
+      .bool(
+        "One is on file that the caller may not read. Absent when there is nothing to mask.",
+        false,
+      )
+      .optional(),
     needs_ground_transport: fields.bool("The person needs a pickup on arrival.", true),
     needs_lodging: fields.bool("The person needs a room.", false),
     travel_notes: orNull(str("Notes for the travel desk.", "Arriving with a guitar case.")),
@@ -223,7 +234,11 @@ const RosterTravelRequestInput = z
     outbound_on: orNull(fields.date("Day the person travels home; on or after inbound_on.")),
     seat_preference: seat().optional(),
     meal_preference: orNull(
-      z.string().max(100).meta({ description: "Meal preference.", example: "Vegetarian" }),
+      z.string().max(100).meta({
+        description:
+          "Meal preference: needs the person's consent, or the company's attestation (422 sensitive_consent_required). A company sends null to leave one as it is, because it cannot read it back.",
+        example: "Vegetarian",
+      }),
     ).optional(),
     needs_ground_transport: z
       .boolean()

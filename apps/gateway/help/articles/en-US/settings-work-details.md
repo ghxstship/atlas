@@ -10,6 +10,8 @@ Settings, Work Details holds what organizations need to feed, book and look afte
 
 Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on and keeps them only for that project: open the engagement and choose **Project details**.
 
-An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.
+An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, the organization's Owner, and anyone else the organization gives medical data access can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.
 
 Your skills, certifications, rates and availability are in [Profile settings](help:settings-profile).
+
+Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them: whoever entered them cannot enter them for you again, by your account or email, anywhere in that organization, until you agree yourself. If a guest list entry is about someone else, choose This is not me: your name and email come off it, and the guest's needs stay with whoever keeps the list.

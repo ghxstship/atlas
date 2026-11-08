@@ -66,8 +66,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), B2's vendor_intake.submitted (6505), B9's
     // shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), and B10's crew registration and agreement kinds (2999).
     // And the crisis alert and its all-clear (6800), and the five renewal and Stripe cancel notices of ADR 0161 (6810, 6811),
-    // and the two rating dispute kinds of ADR 0158 (6821).
-    expect(registry.kinds).toHaveLength(105);
+    // and the two rating dispute kinds of ADR 0158 (6821),
+    // and the two sensitive data notices of ADR 0164 (6852, 6853).
+    expect(registry.kinds).toHaveLength(107);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
