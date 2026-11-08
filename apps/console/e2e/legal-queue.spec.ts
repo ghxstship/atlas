@@ -46,7 +46,7 @@ async function addItem(
   await form.getByLabel("When it arrived", { exact: true }).fill(localValue(input.receivedMs));
   if (input.contact) await form.getByLabel("Who to answer", { exact: true }).fill(input.contact);
   await form.getByRole("button", { name: "Add to the queue" }).click();
-  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
 }
 
 test("the one Administrator works a security report from arrival to close, and the sweep alerts them", async ({
@@ -56,7 +56,11 @@ test("the one Administrator works a security report from arrival to close, and t
   await signInOperator(page, email, "/legal-queue");
   await expect(page.getByRole("heading", { level: 1, name: "Legal Queue" })).toBeVisible();
   await expect(page.getByTestId("outside-reviewer")).toContainText("None is appointed");
-  await expect(page.getByText("No backup contact yet.")).toBeVisible();
+  await expect(
+    page.getByText("No backup contact yet. One full inbox could hide a missed clock.", {
+      exact: true,
+    }),
+  ).toBeVisible();
 
   // It arrived 20 days ago, so both of its clocks have already passed.
   const title = `XSS in search ${uniqueId()}`;
@@ -99,8 +103,8 @@ test("the one Administrator works a security report from arrival to close, and t
 
   await row.getByRole("link", { name: item?.reference ?? "" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
-  await expect(page.getByText("researcher@example.test")).toBeVisible();
-  await expect(page.getByTestId("legal-log")).toContainText("Alert sent");
+  await expect(page.getByText("researcher@example.test", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("legal-log")).toContainText("Alert queued for email");
 
   const first = page.getByTestId("legal-first");
   await first.getByLabel("What you sent", { exact: true }).fill("Acknowledged by email.");
@@ -118,7 +122,9 @@ test("the one Administrator works a security report from arrival to close, and t
   // A refusal keeps what was typed: the reason here is only spaces, which the database refuses.
   await move.getByLabel("What happened", { exact: true }).fill("   ");
   await move.getByRole("button", { name: "Save" }).click();
-  await expect(move.getByText("Every state change carries a reason.")).toBeVisible();
+  await expect(
+    move.getByText("Every state change carries a reason.", { exact: true }),
+  ).toBeVisible();
   await move.getByLabel("What happened", { exact: true }).fill("Plan sent and fix released.");
   await move.getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("legal-log")).toContainText("Plan sent and fix released.");
@@ -168,7 +174,7 @@ test("times are typed in the queue's own zone, so a date across daylight saving 
   await form.getByLabel("When it arrived", { exact: true }).fill("2026-02-02T23:30");
   await form.getByLabel("Date the document sets", { exact: true }).fill("2027-03-20T17:00");
   await form.getByRole("button", { name: "Add to the queue" }).click();
-  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
 
   const [item] = await sql<{ received: boolean; due: boolean }>(
     `select received_at = '2026-02-02 23:30-05'::timestamptz as received,
@@ -203,7 +209,7 @@ test("a Support operator reads that queue actions happened, and nothing about th
     .getByLabel("Date the document sets", { exact: true })
     .fill(localValue(Date.now() + 7 * 86_400_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
-  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
   await page
     .getByTestId("legal-queue")
     .getByRole("row")
@@ -219,7 +225,9 @@ test("a Support operator reads that queue actions happened, and nothing about th
   await page.context().clearCookies();
   await signInOperator(page, support, "/activity");
   const activity = page.getByTestId("activity");
-  await expect(activity.getByText("Moved a legal queue item").first()).toBeVisible();
+  await expect(
+    activity.getByText("Moved a legal queue item", { exact: true }).first(),
+  ).toBeVisible();
   await expect(activity).not.toContainText(reason);
   await expect(activity).not.toContainText("government_request");
   const response = await page.goto("/legal-queue");
@@ -254,11 +262,19 @@ test("an appeal that arrives by email gets a computed clock, and closes only wit
   await move.getByLabel("New state", { exact: true }).selectOption("Completed");
   await move.getByLabel("What happened", { exact: true }).fill("Upheld: the suspension stands.");
   await move.getByRole("button", { name: "Save" }).click();
-  await expect(move.getByText("Record what you looked at again", { exact: false })).toBeVisible();
+  await expect(
+    move.getByText(
+      "Record what you looked at again and how you weighed the grounds, in up to 4,000 characters.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await move.getByLabel("What you looked at again", { exact: true }).fill("Read the logs again.");
   await move.getByRole("button", { name: "Save" }).click();
   await expect(
-    move.getByText("Say how and when you told the person", { exact: false }),
+    move.getByText(
+      "Say how and when you told the person the result and the reasons, in up to 1,000 characters.",
+      { exact: true },
+    ),
   ).toBeVisible();
   // What was typed stays through both refusals.
   await expect(move.getByLabel("What happened", { exact: true })).toHaveValue(
@@ -271,7 +287,9 @@ test("an appeal that arrives by email gets a computed clock, and closes only wit
   await move.getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("legal-move")).toHaveCount(0);
   await expect(page.getByTestId("legal-log")).toContainText("Read the logs again.");
-  await expect(page.getByText("The person who made the first decision")).toBeVisible();
+  await expect(
+    page.getByText("The person who made the first decision", { exact: true }),
+  ).toBeVisible();
   await expectAccessibleInBothThemes(page);
 });
 
@@ -315,7 +333,7 @@ test("the backup contact and outside reviewer forms work, and an outside reviewe
     .getByLabel("Statement of reasons", { exact: true })
     .fill("We removed it. You may appeal.");
   await decide.getByRole("button", { name: "Record the decision" }).click();
-  await expect(decide.getByText("Decision recorded and sent.")).toBeVisible();
+  await expect(decide.getByText("Decision recorded and sent.", { exact: true })).toBeVisible();
   const [decision] = await sql<{ id: string }>(
     `select id from app.moderation_actions where opportunity_id = $1 order by decided_at desc limit 1`,
     [listing.id],
@@ -327,7 +345,12 @@ test("the backup contact and outside reviewer forms work, and an outside reviewe
   );
 
   await page.reload();
-  await expect(page.getByText("This appeal goes to Noor Adeyemi", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText(
+      "This appeal goes to Noor Adeyemi, the outside reviewer. Record their decision once they have made it.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   const form = page.getByTestId("decide-appeal");
   await form
     .getByLabel("Reasons sent to the appellant", { exact: true })
@@ -336,7 +359,9 @@ test("the backup contact and outside reviewer forms work, and an outside reviewe
     .getByLabel("What you looked at again", { exact: true })
     .fill("Noor read the file and wrote the decision.");
   await form.getByRole("button", { name: "Record Noor Adeyemi's decision" }).click();
-  await expect(page.getByText("Noor Adeyemi, the outside reviewer, re-reviewed it.")).toBeVisible();
+  await expect(
+    page.getByText("Noor Adeyemi, the outside reviewer, re-reviewed it.", { exact: true }),
+  ).toBeVisible();
 
   await page.goto("/legal-queue");
   const reviewer = page.getByRole("form", { name: "End the appointment" });
@@ -361,7 +386,7 @@ test("a DMCA counter-notice cannot be closed before its earliest day, unless a c
     .getByLabel("When it arrived", { exact: true })
     .fill(localValue(Date.now() - 3_600_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
-  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
   const [notice] = await sql<{ reference: string }>(
     `select reference from app.legal_queue_items where title = $1`,
     [noticeTitle],
@@ -379,7 +404,7 @@ test("a DMCA counter-notice cannot be closed before its earliest day, unless a c
     .getByLabel("When it arrived", { exact: true })
     .fill(localValue(Date.now() - 3_600_000));
   await form.getByRole("button", { name: "Add to the queue" }).click();
-  await expect(form.getByText("Added to the queue.")).toBeVisible();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
 
   await page
     .getByTestId("legal-queue")
@@ -393,7 +418,10 @@ test("a DMCA counter-notice cannot be closed before its earliest day, unless a c
   await move.getByLabel("What happened", { exact: true }).fill("Restored.");
   await move.getByRole("button", { name: "Save" }).click();
   await expect(
-    move.getByText("The statute does not allow this before its earliest day.", { exact: false }),
+    move.getByText(
+      "The statute does not allow this before its earliest day. Wait for it, or record the court action.",
+      { exact: true },
+    ),
   ).toBeVisible();
   await expect(move.getByLabel("What happened", { exact: true })).toHaveValue("Restored.");
 
@@ -422,7 +450,7 @@ test("one operator decides an appeal of their own decision by a documented re-re
     .getByLabel("Statement of reasons", { exact: true })
     .fill("We removed it. You may appeal.");
   await decide.getByRole("button", { name: "Record the decision" }).click();
-  await expect(decide.getByText("Decision recorded and sent.")).toBeVisible();
+  await expect(decide.getByText("Decision recorded and sent.", { exact: true })).toBeVisible();
 
   const [decision] = await sql<{ id: string }>(
     `select id from app.moderation_actions where opportunity_id = $1 order by decided_at desc limit 1`,
@@ -441,13 +469,19 @@ test("one operator decides an appeal of their own decision by a documented re-re
   await expect(row.getByText("Moderation appeal", { exact: true })).toBeVisible();
   await row.getByRole("link").click();
   await expect(
-    page.getByText("This item follows the record that created it", { exact: false }),
+    page.getByText(
+      "This item follows the record that created it, so its state changes when that record does.",
+      { exact: true },
+    ),
   ).toBeVisible();
   await expect(page.getByTestId("legal-move")).toHaveCount(0);
   await page.getByRole("link", { name: "Open the listing" }).click();
 
   await expect(
-    page.getByText("You made the decision this appeal is about.", { exact: false }),
+    page.getByText(
+      "You made the decision this appeal is about. Look at it afresh: the record and the notice to the person will both say the same person re-reviewed it.",
+      { exact: true },
+    ),
   ).toBeVisible();
   const form = page.getByTestId("decide-appeal");
   await form
@@ -455,16 +489,23 @@ test("one operator decides an appeal of their own decision by a documented re-re
     .fill("A card check breaks no rule.");
   await form.getByLabel("What you looked at again", { exact: true }).fill("  ");
   await form.getByRole("button", { name: "Decide the appeal" }).click();
-  await expect(form.getByText("Record what you looked at again", { exact: false })).toBeVisible();
+  await expect(
+    form.getByText(
+      "Record what you looked at again and how you weighed the grounds, in up to 4,000 characters.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await form
     .getByLabel("What you looked at again", { exact: true })
     .fill("Read the statute the appeal cites.");
   await form.getByLabel("Outcome", { exact: true }).selectOption("Reversed");
   await form.getByRole("button", { name: "Decide the appeal" }).click();
   await expect(
-    page.getByText("The person who made the first decision re-reviewed it."),
+    page.getByText("The person who made the first decision re-reviewed it.", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("Re-review: Read the statute the appeal cites.")).toBeVisible();
+  await expect(
+    page.getByText("Re-review: Read the statute the appeal cites.", { exact: true }),
+  ).toBeVisible();
 
   const [told] = await sql<{ reviewer: string; state: string }>(
     `select n.message_args ->> 'reviewer' as reviewer, i.item_state::text as state
