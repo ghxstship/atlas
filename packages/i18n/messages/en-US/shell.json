@@ -7,6 +7,32 @@
     "name": "Gateway",
     "tagline": "Find work, get onboarded, deliver and get paid."
   },
+  "landing": {
+    "brand": "XOS",
+    "title": "Run every live production in one place",
+    "lead": "XOS is production software from GHXSTSHIP Industries LLC for the teams who put on live events and experiences, and for the crew, vendors and artists they hire. One account opens all three apps.",
+    "signIn": "Sign in",
+    "apps": {
+      "title": "Three apps, one account",
+      "atlas": "For production teams",
+      "gateway": "For crew, vendors, artists, clients and sponsors",
+      "compass": "For the field, on iOS and Android",
+      "compassTagline": "Field operations that keep working without a signal."
+    },
+    "google": {
+      "title": "Signing in with Google",
+      "body": "If you sign in with Google, XOS receives your name, email address and Google account identifier, and uses them to create your account and sign you in. The <privacy>Privacy Policy</privacy> explains how we handle them."
+    },
+    "availability": "XOS is offered in the United States to people 18 and older."
+  },
+  "legalLinks": {
+    "label": "Legal",
+    "privacy": "Privacy Policy",
+    "healthData": "Consumer Health Data Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie settings",
+    "contact": "Contact"
+  },
   "pages": {
     "home": {
       "today": {

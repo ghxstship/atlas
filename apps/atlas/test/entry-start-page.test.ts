@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * signed-in person to the start page as it applies in the workspace their filter chose, so a workspace's own
  * start page beats the org's (A65-001).
  */
-const jar = vi.hoisted(() => ({ workspace: undefined as string | undefined }));
+const jar = vi.hoisted(() => ({ workspace: undefined as string | undefined, signedIn: true }));
 const resolved = vi.hoisted(() => ({ calls: [] as { orgId: string; workspaceId?: string }[] }));
 
 vi.mock("next/headers", () => ({
@@ -23,7 +23,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 vi.mock("@/lib/shell/context", () => ({
-  getViewer: async () => ({ db: {}, userId: "u1", person: { id: "p1" } }),
+  getViewer: async () => (jar.signedIn ? { db: {}, userId: "u1", person: { id: "p1" } } : null),
   getMyOrganizations: async () => [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }],
 }));
 vi.mock("@xos/data", () => ({
@@ -47,7 +47,10 @@ vi.mock("@xos/data/settings", () => ({
   },
 }));
 
+vi.mock("@/components/public-home", () => ({ PublicHome: () => null }));
+
 const { default: EntryPage } = await import("../app/page");
+const { PublicHome } = await import("@/components/public-home");
 
 async function landing(query: Record<string, string> = {}): Promise<string> {
   try {
@@ -61,6 +64,7 @@ async function landing(query: Record<string, string> = {}): Promise<string> {
 describe("entry start page (shell.start_page)", () => {
   beforeEach(() => {
     jar.workspace = undefined;
+    jar.signedIn = true;
     resolved.calls = [];
   });
 
@@ -81,5 +85,19 @@ describe("entry start page (shell.start_page)", () => {
     expect(await landing({ open: "inbox" })).toBe("redirect:/northwind-live/inbox");
     expect(resolved.calls).toEqual([]);
     expect(await landing({ open: "settings" })).toBe("redirect:/northwind-live/projects");
+  });
+
+  it("shows a signed-out visitor the public homepage instead of sending them to sign in", async () => {
+    jar.signedIn = false;
+    const page = await EntryPage({ searchParams: Promise.resolve({}) } as Parameters<
+      typeof EntryPage
+    >[0]);
+    expect(page).toMatchObject({ type: PublicHome });
+    expect(resolved.calls).toEqual([]);
+  });
+
+  it("still completes an email link that fell back to the root before the homepage", async () => {
+    jar.signedIn = false;
+    expect(await landing({ code: "abc" })).toBe("redirect:/auth/callback?code=abc");
   });
 });
