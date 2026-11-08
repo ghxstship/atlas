@@ -945,6 +945,7 @@
       "tax_forms": "Your tax forms, kept 7 years because tax law requires it.",
       "engagements": "Your engagement records and signed agreements, kept 7 years.",
       "org_records": "Records you created for an organization, such as incident reports, kept by that organization without your name.",
+      "billing_consent": "The renewal terms you agreed to when you bought a paid plan for an organization, with your sign-in email and initials, kept 7 years and for a year after that plan ends, as proof of what was agreed.",
       "audit_trail": "The security audit trail, kept 7 years. Your personal details in it are removed after 90 days.",
       "erasure_request": "A record that you asked for this erasure, so each organization can show it was done."
     },
