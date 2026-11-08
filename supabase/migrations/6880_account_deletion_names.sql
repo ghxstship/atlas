@@ -8,7 +8,7 @@
 --     family_name together. The sign-in it deletes takes its identities with it, the Apple names and email included.
 --   * private.erase_account_contacts: the account's own addresses. Its SCIM identities (the user name an identity
 --     provider sent, usually a work email, and the provider's id for it) are soft-deleted, made inactive and given
---     placeholders, so a later push from the provider never finds the person. The invitations it accepted to an org, an
+--     made-up values, so a later push from the provider never finds the person. The invitations it accepted to an org, an
 --     external account or a crew roster keep their row and dates, with the address replaced by one at erased.invalid
 --     (RFC 2606), so no org can match the nameless person back to an address.
 --   * private.wage_record_names: the rule for names on wage records. Payroll records must name the worker (29 CFR
@@ -230,7 +230,7 @@ begin
 end;
 $$;
 
-comment on function private.erase_account_contacts(uuid) is 'Erases the contact fields an account leaves outside the person (6880): its SCIM identities are soft-deleted, made inactive and given placeholder user names and ids, and the invitations it accepted or claimed (org, external account and crew roster) get an address at erased.invalid. Called by app.delete_my_account once the person is deleted.';
+comment on function private.erase_account_contacts(uuid) is 'Erases the contact fields an account leaves outside the person (6880): its SCIM identities are soft-deleted, made inactive and given made-up user names and ids, and the invitations it accepted or claimed (org, external account and crew roster) get an address at erased.invalid. Called by app.delete_my_account once the person is deleted.';
 revoke all on function private.erase_account_contacts(uuid) from public, anon, authenticated;
 
 create or replace function private.account_contact_org_ids(p_person_id uuid)

@@ -80,7 +80,7 @@ select is((select (message_args ->> 'nextChargeOn')::bigint from app.notificatio
 select pg_temp.as_user('nina');
 select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'EUR', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
   'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'the price must be the plan''s in that currency');
-select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'XXX', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
+select throws_ok($$select app.record_renewal_consent(pg_temp.id('org_n'), 'core', 'Monthly', 14900, 'QQQ', current_date, '2026-11-06', 'en-US', 'x', '', true)$$, 'XR001',
   'renewal_price_mismatch: The price shown is not the plan''s price. Reload the page and try again.', 'and a currency the price book does not have is refused');
 insert into world values ('consent_trial', app.record_renewal_consent(pg_temp.id('org_t'), 'core', 'Annual', 139000, 'eur', (now() at time zone 'UTC')::date + 10, '2026-11-06', 'en-US', 'Core renews every year.', 'NL', true));
 select pg_temp.as_platform();
