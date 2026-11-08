@@ -2858,6 +2858,17 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "To stop seeing someone, block them from their card. A block hides their posts, comments, shout-outs and messages, and they are not told. See ",
+              },
+              { t: "link", v: "Blocked people", href: "help:blocked-people" },
+              { t: "text", v: "." },
+            ],
+          },
         ],
       },
       {
@@ -6266,6 +6277,17 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "A cada persona puedes llamarla o escribirle con un toque, y muestra sus reconocimientos.",
               },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para dejar de ver a alguien, bloquéalo desde su tarjeta. Un bloqueo oculta sus publicaciones, comentarios, reconocimientos y mensajes, y no se le avisa. Consulta ",
+              },
+              { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],

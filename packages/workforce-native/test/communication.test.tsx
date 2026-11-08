@@ -486,6 +486,31 @@ describe("DirectoryScreen", () => {
     fireEvent.click(button("clearSearch"));
     expect(onSearch).toHaveBeenCalledWith("");
     expect(onScopeChange).toHaveBeenCalledWith(false);
+    expect(screen.queryByRole("button", { name: /^block/ })).toBeNull();
+  });
+
+  it("offers a block on everyone's card but the viewer's own (App Store Review Guideline 1.2)", async () => {
+    const onBlock = vi.fn();
+    const dl = labels<DirectoryScreenLabels>(["call", "message", "recognitions", "block"]);
+    const { container } = render(
+      <DirectoryScreen
+        status="ready"
+        labels={dl}
+        people={[person(), person({ membershipId: "m2", preferredName: null, name: "Ana" })]}
+        search=""
+        onSiteOnly={false}
+        onSearch={vi.fn()}
+        onScopeChange={vi.fn()}
+        onCall={vi.fn()}
+        onMessage={vi.fn()}
+        onBlock={onBlock}
+        myMembershipIds={["m1"]}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: 'block("Sam")' })).toBeNull();
+    fireEvent.click(button('block("Ana")'));
+    expect(onBlock).toHaveBeenCalledWith("m2", "Ana");
+    await expectAccessible(container);
   });
 });
 

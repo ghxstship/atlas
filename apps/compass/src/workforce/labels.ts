@@ -153,6 +153,7 @@ export function directoryLabels(t: T): DirectoryScreenLabels {
     call: (name) => t(`${C}.directory.call`, { name }),
     message: (name) => t(`${C}.directory.message`, { name }),
     recognitions: (count) => t(`${C}.directory.recognitions`, { count }),
+    block: (name) => t("compass.safety.block", { name }),
   };
 }
 
