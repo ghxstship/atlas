@@ -24,7 +24,8 @@ import {
 import { CheckoutCompletedError } from "../src/billing/upgrade.ts";
 import { handleStripeWebhook, type BillingStore } from "../src/billing/webhook.ts";
 import { stripeCancellationStore } from "../src/billing/cancel-store.ts";
-import { billingStore, type PlatformDb } from "../src/stores.ts";
+import { billingStore } from "../src/billing/store.ts";
+import type { PlatformDb } from "../src/stores.ts";
 
 /**
  * Stopping a Stripe subscription (ADR 0161, migration 6810): the call is idempotent and never loses a failure, the worker

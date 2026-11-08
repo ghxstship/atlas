@@ -2,7 +2,6 @@
 // Never edit by hand; the @xos/platform tests fail when this file differs from the build output.
 import { PlatformDbError, recipientProfile } from "./platform-stores.js";
 import { isLocale } from "./i18n-locales.js";
-import { formatMessage } from "./email-messages.js";
 import { z } from "zod";
 //#region ../ia/src/handoff.ts
 /** The Compass URL scheme (apps/compass/app.json `scheme`). */
@@ -982,6 +981,22 @@ function notificationArgs(raw) {
 function localeOf(value) {
   return value !== null && value !== void 0 && isLocale(value) ? value : "en-US";
 }
+var loaded = null;
+/**
+ * Loads the email catalog's copy, which push and SMS text read too. Edge Functions load it on first use, not at boot:
+ * the catalog holds every kind's copy in both locales, and notification-dispatch, sms-webhook and import-run stay
+ * inside their boot budgets only without it (merge train 11). Every async path that formats copy awaits this first.
+ */
+async function loadNotificationCopy() {
+  loaded ??= (await import("./email-messages.js")).formatMessage;
+  return loaded;
+}
+/** The formatter loadNotificationCopy loaded. Throws before that, so a path that forgets to load it fails in tests. */
+function notificationCopy() {
+  if (loaded === null)
+    throw new Error("Notification copy is not loaded: await loadNotificationCopy() first");
+  return loaded;
+}
 /**
  * A kind's copy for push and SMS, from the `email` catalog under the registry's keys
  * (`email.kinds.<subject>.<event>`), the one home of notification copy on every channel (Section 3.15).
@@ -991,8 +1006,8 @@ function notificationText(kind, raw, locale, timeZone) {
   const keys = copyKeys(kind);
   const args = notificationArgs(raw);
   return {
-    title: formatMessage(locale, keys.subject, args, timeZone),
-    body: formatMessage(locale, keys.body, args, timeZone),
+    title: notificationCopy()(locale, keys.subject, args, timeZone),
+    body: notificationCopy()(locale, keys.body, args, timeZone),
   };
 }
 /** Shortens text to a limit on a word boundary where it can, ending with an ellipsis. */
@@ -1243,6 +1258,7 @@ function createSmsProvider(env, options = {}) {
 }
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 async function smsBody(claim, store) {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
@@ -1299,6 +1315,7 @@ async function dispatchSms(store, provider, limit = 50) {
  * so one bad text never sinks the texts held with it.
  */
 async function smsSummaryBody(summary, store) {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
   const args = {
@@ -1492,7 +1509,7 @@ async function handleTwilioWebhook(request, store, options) {
       : keyword.action === "Opt In"
         ? "sms.start"
         : "sms.help";
-  return twiml(formatMessage("en-US", key, { helpContact: options.helpContact }));
+  return twiml((await loadNotificationCopy())("en-US", key, { helpContact: options.helpContact }));
 }
 //#endregion
 //#region src/notifications/stores.ts
@@ -1775,6 +1792,7 @@ export {
   dispatchSmsSummaries,
   handleTwilioWebhook,
   isRecordKey,
+  loadNotificationCopy,
   localeOf,
   notificationKind,
   notificationText,

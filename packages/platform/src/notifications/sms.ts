@@ -1,6 +1,5 @@
-import { formatMessage } from "@xos/email/messages";
 import { z } from "zod";
-import { clip, localeOf, notificationText } from "./copy.ts";
+import { clip, loadNotificationCopy, localeOf, notificationText } from "./copy.ts";
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";
 
 /**
@@ -327,6 +326,7 @@ export interface SmsStore {
 
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 export async function smsBody(claim: ClaimedSms, store: SmsStore): Promise<string> {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
@@ -424,6 +424,7 @@ export async function smsSummaryBody(
   summary: ClaimedSmsSummary,
   store: SmsSummaryStore,
 ): Promise<string> {
+  const formatMessage = await loadNotificationCopy();
   const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
   const args = {
@@ -645,5 +646,6 @@ export async function handleTwilioWebhook(
       : keyword.action === "Opt In"
         ? "sms.start"
         : "sms.help";
+  const formatMessage = await loadNotificationCopy();
   return twiml(formatMessage("en-US", key, { helpContact: options.helpContact }));
 }

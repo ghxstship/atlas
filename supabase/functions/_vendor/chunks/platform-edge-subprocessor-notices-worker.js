@@ -2,7 +2,7 @@
 // Never edit by hand; the @xos/platform tests fail when this file differs from the build output.
 import { isLocale } from "./i18n-locales.js";
 import { createTransport, readEmailEnv } from "./email-env.js";
-import { sendEmail } from "./email.js";
+import { sendEmail } from "./email-send.js";
 //#region src/legal/platform-emails.ts
 function str(value, what) {
   if (typeof value !== "string" || value.length === 0) throw new Error(`Missing ${what}`);

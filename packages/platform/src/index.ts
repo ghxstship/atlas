@@ -262,10 +262,10 @@ export {
   type ResendReceivedEvent,
   type ResendSignatureHeaders,
 } from "./inbound/resend.ts";
+export { billingStore } from "./billing/store.ts";
 export {
   PUNCH_KINDS,
   PlatformDbError,
-  billingStore,
   inboundStore,
   isPlatformEmailKind,
   kioskPunch,

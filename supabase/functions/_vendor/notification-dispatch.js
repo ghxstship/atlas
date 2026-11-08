@@ -8,13 +8,14 @@ import {
   createTransport,
   readEmailEnv,
 } from "./chunks/email-env.js";
-import { isTemplateCode, sendEmail } from "./chunks/email.js";
+import { isTemplateCode, sendEmail } from "./chunks/email-send.js";
 import {
   clip,
   createSmsProvider,
   dispatchSms,
   dispatchSmsSummaries,
   isRecordKey,
+  loadNotificationCopy,
   localeOf,
   notificationKind,
   notificationText,
@@ -321,6 +322,7 @@ async function inBatches(items, size, concurrency, run) {
  */
 async function dispatchPush(store, client, options = {}) {
   const claims = await store.claimPush(options.limit ?? 50);
+  if (claims.length > 0) await loadNotificationCopy();
   const pending = [];
   const failedEarly = /* @__PURE__ */ new Map();
   const recipients = /* @__PURE__ */ new Map();

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import enUS from "../../i18n/messages/en-US/workDetails.json" with { type: "json" };
 import esUS from "../../i18n/messages/es-US/workDetails.json" with { type: "json" };
 import type { XosClient } from "../src/client.ts";
-import { looksSensitive, SENSITIVE_WORDS } from "../src/import-parse.ts";
+import { looksSensitive, SENSITIVE_WORDS } from "../src/sensitive-words.ts";
 import {
   canonicalNotice,
   disownSensitiveEntry,

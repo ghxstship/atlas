@@ -70,9 +70,10 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
   "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
   "kiosk-punch": { boot: [], lazy: [] },
+  // Merge train 11: the email copy and its formatter load on the first email, push or text (loadNotificationCopy).
   "notification-dispatch": {
-    boot: ["intl-messageformat", "zod"],
-    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+    boot: ["zod"],
+    lazy: ["@react-email/components", "intl-messageformat", "react/jsx-runtime", "resend"],
   },
   "org-lifecycle": {
     boot: ["@supabase/supabase-js", "zod"],
@@ -82,7 +83,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
-  "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  "sms-webhook": { boot: ["zod"], lazy: ["intl-messageformat"] },
   // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
   "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
