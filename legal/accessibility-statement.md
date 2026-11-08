@@ -57,7 +57,7 @@ These are our design rules and what we have built. They are not results of testi
 
 If you have trouble using any part of XOS, or need information in another format, tell us:
 
-- by email: the accessibility mailbox listed on our contact page at /legal/contact, which reaches GHXSTSHIP directly
+- by email: support@ghxstship.pro with "Accessibility" in the subject line, which reaches GHXSTSHIP directly
 - by mail: the postal address listed on that contact page
 - in the Service: Help, then Contact Support. Say in your message that it is about accessibility. In Compass and in Gateway's platform support, this reaches GHXSTSHIP about your own account. In Atlas, it reaches your organization's admins first
 
@@ -67,7 +67,7 @@ If you are a crew member, vendor or other external party using XOS for an organi
 
 ## 6. Formal Complaints
 
-If you are not satisfied with our response, you may ask for review by writing to the accessibility mailbox with "Review" in the subject. We respond within 10 business days. A person looks at your complaint afresh and records the reasons. GHXSTSHIP is a small team, so that person may be the one who first responded, and if so we tell you.
+If you are not satisfied with our response, you may ask for review by writing to support@ghxstship.pro with "Accessibility" in the subject line with "Review" in the subject. We respond within 10 business days. A person looks at your complaint afresh and records the reasons. GHXSTSHIP is a small team, so that person may be the one who first responded, and if so we tell you.
 
 You may also contact the enforcement body in your country. In the United States, the Department of Justice takes complaints under the Americans with Disabilities Act at ada.gov/file-a-complaint.
 
@@ -86,7 +86,7 @@ We review this statement at least once a year and after each major release.
 - Generated PDFs, emails and the documentation site were not part of the October 2026 evaluation. They have automated checks only, and email zoom has not been tested.
 - Compass Live Activities and home screen widgets were not reviewed.
 - The October 2026 evaluation did not use Edge, Firefox or Safari. Section 10 says where automated checks reach further.
-- The Contact Support form has no accessibility category. Use the mailbox, or say so in your message.
+- The Contact Support form has no accessibility category. Use support@ghxstship.pro with "Accessibility" in the subject line, or say so in your message.
 
 ## 10. Supported Browsers
 

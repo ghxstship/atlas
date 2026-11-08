@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
     url: https://github.com/ghxstship/atlas/security/policy
-    about: Email security@ghxstship.tech, and never put details of a finding in a public issue. If your email bounces or goes unanswered, use the form on this page to ask for a private way to report.
+    about: Email support@ghxstship.pro, and never put details of a finding in a public issue. If your email bounces or goes unanswered, use the form on this page to ask for a private way to report.

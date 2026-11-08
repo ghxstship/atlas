@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Email **security@ghxstship.tech**. Do not put details of a finding in a public issue. If this repository's Security tab shows "Report a vulnerability", you may use GitHub private vulnerability reporting instead.
+Email **support@ghxstship.pro**. Do not put details of a finding in a public issue. If this repository's Security tab shows "Report a vulnerability", you may use GitHub private vulnerability reporting instead.
 
 If your email bounces, or you have no answer within 3 business days, open the issue form [Ask for a private way to report a security finding](https://github.com/ghxstship/atlas/issues/new?template=security_private_channel.yml). It asks only why you need one. Add no details of the finding, and we will give you a private way to send them.
 

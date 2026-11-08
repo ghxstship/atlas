@@ -13,7 +13,7 @@ GHXSTSHIP Industries LLC ("GHXSTSHIP") welcomes reports from security researcher
 
 ## 1. How to Report
 
-- **Email:** the security mailbox listed on our contact page at /legal/contact. Use this channel today.
+- **Email:** support@ghxstship.pro with "Security" in the subject line. Use this channel today.
 - **GitHub:** private vulnerability reporting on the `ghxstship/atlas` repository is not turned on at this time. Use it only if the Security tab shows "Report a vulnerability".
 - Do not put details of a finding in a public issue, post them on a forum, or contact Customers about a vulnerability. If your email bounces, or you have no answer within 3 business days, use the issue form "Ask for a private way to report a security finding" (https://github.com/ghxstship/atlas/issues/new?template=security_private_channel.yml). It asks only why you need one, and we then give you a private way to send the details. The form needs a GitHub account.
 
@@ -50,7 +50,7 @@ We do not share your name or contact details with others without your permission
 - a Customer's own systems, including anything on its custom domain other than the XOS application itself
 - reports from automated scanners without a demonstrated impact, missing best-practice headers without an exploit, and clickjacking on pages with no sensitive action
 
-Anything not listed as in scope is out of scope. If you are not sure, ask at the security mailbox before you test.
+Anything not listed as in scope is out of scope. If you are not sure, ask at support@ghxstship.pro with "Security" in the subject line before you test.
 
 ## 4. Rules of Engagement
 
@@ -70,8 +70,8 @@ This safe harbor does not cover conduct that violates the rules above or the law
 
 ## 6. security.txt
 
-Our security.txt file under RFC 9116 is kept at `legal/security/security.txt` in the repository. It is served at `/.well-known/security.txt` on `atlas.ghxstship.tech`, `gateway.ghxstship.tech` and `api.ghxstship.tech` from the release that includes it, and not yet on the documentation site, the console or the status page. Its contact is the security mailbox.
+Our security.txt file under RFC 9116 is kept at `legal/security/security.txt` in the repository. It is served at `/.well-known/security.txt` on `atlas.ghxstship.tech`, `gateway.ghxstship.tech` and `api.ghxstship.tech` from the release that includes it, and not yet on the documentation site, the console or the status page. Its contact is support@ghxstship.pro with "Security" in the subject line.
 
 ## 7. Questions
 
-Questions about this policy go to the security mailbox listed on our contact page at /legal/contact.
+Questions about this policy go to support@ghxstship.pro with "Security" in the subject line.

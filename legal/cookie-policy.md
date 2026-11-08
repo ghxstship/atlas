@@ -80,4 +80,4 @@ Each consent decision on Atlas and Gateway records a hash of the random visitor 
 
 ## 7. Changes and Contact
 
-We publish the current version of this policy at /legal/cookie-policy. The end of that page lists every version with its effective date and a summary of changes, and you can ask the privacy mailbox for the text of an earlier version. If we add a category, we ask for your consent again. Questions go to the privacy mailbox listed on our contact page at /legal/contact.
+We publish the current version of this policy at /legal/cookie-policy. The end of that page lists every version with its effective date and a summary of changes, and you can ask support@ghxstship.pro with "Privacy" in the subject line for the text of an earlier version. If we add a category, we ask for your consent again. Questions go to support@ghxstship.pro with "Privacy" in the subject line.

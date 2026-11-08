@@ -94,7 +94,7 @@ Ratings may not be bought, incentivized or suppressed. Nothing in these Terms st
 
 You may ask the Organization for access to, correction of, or deletion of your work data, and exercise the other rights your local law gives you. For your account itself, you can:
 
-- ask for a copy of your account data through the privacy mailbox listed on our contact page
+- ask for a copy of your account data through support@ghxstship.pro with "Privacy" in the subject line
 - correct your profile and Work Details at any time in Gateway or Compass, apart from a record a verifier has to change
 - delete your account in Compass (More, Settings, Delete Account) or in Gateway (Settings, Account), which needs a connection and your typed sign-in email. The Delete Your Account page at /legal/account-deletion explains what else you can do if you cannot sign in
 
@@ -106,7 +106,7 @@ Time and pay records, tax forms, and engagement records and signed agreements st
 
 ## 10. Rules
 
-You must follow the Acceptable Use Policy and, for the app, the Mobile End User License Agreement. Report an Organization's listing using the Report action in Gateway, a post, comment or chat message using the Report action in Compass, and other problems through the abuse mailbox listed on our contact page. Report a safety concern to the Organization and, if needed, to the authorities. XOS is not an emergency service and does not replace your site's safety plan, so call the emergency services in an emergency and do not rely on the app to do it for you.
+You must follow the Acceptable Use Policy and, for the app, the Mobile End User License Agreement. Report an Organization's listing using the Report action in Gateway, a post, comment or chat message using the Report action in Compass, and other problems through support@ghxstship.pro with "Abuse Report" in the subject line. Report a safety concern to the Organization and, if needed, to the authorities. XOS is not an emergency service and does not replace your site's safety plan, so call the emergency services in an emergency and do not rely on the app to do it for you.
 
 ## 11. Ending These Terms
 
@@ -122,8 +122,8 @@ GHXSTSHIP is not responsible for the Organization's acts, decisions or payments.
 
 ## 13. Changes, Law and Contact
 
-Each version of these Terms is shown at /legal with its version number and is in effect from the effective date it states. We give a copy of an earlier version on request to the legal notices mailbox listed on our contact page. We tell you in Gateway and Compass at least 30 days before a material change takes effect. Until you accept a material change to these Terms, the version you last accepted continues to apply to you, unless the law requires the change sooner. A change to the Acceptable Use Policy applies as that policy says. An acceptance recorded before the first version of these Terms takes effect is a record of a draft and binds neither you nor us. We ask you to accept the first version in effect, and until you do we may limit your account to reading your own records and deleting your account. Deleting your account never requires you to accept anything first: Gateway's terms step lets you go to Settings, Account and delete it without accepting, and Compass offers the same at its first sign-in step.
+Each version of these Terms is shown at /legal with its version number and is in effect from the effective date it states. We give a copy of an earlier version on request to support@ghxstship.pro with "Legal Notice" in the subject line. We tell you in Gateway and Compass at least 30 days before a material change takes effect. Until you accept a material change to these Terms, the version you last accepted continues to apply to you, unless the law requires the change sooner. A change to the Acceptable Use Policy applies as that policy says. An acceptance recorded before the first version of these Terms takes effect is a record of a draft and binds neither you nor us. We ask you to accept the first version in effect, and until you do we may limit your account to reading your own records and deleting your account. Deleting your account never requires you to accept anything first: Gateway's terms step lets you go to Settings, Account and delete it without accepting, and Compass offers the same at its first sign-in step.
 
-These Terms are governed by the laws of the State of Florida, and disputes go to the state and federal courts in Miami-Dade County, Florida, except where the law of your place of residence gives you protections, including a right to bring a claim at home, that cannot be waived. These Terms contain no arbitration clause and no class action waiver. Questions about your account go to the support mailbox listed on our contact page at /legal/contact. Questions about your work go to the Organization through Messages.
+These Terms are governed by the laws of the State of Florida, and disputes go to the state and federal courts in Miami-Dade County, Florida, except where the law of your place of residence gives you protections, including a right to bring a claim at home, that cannot be waived. These Terms contain no arbitration clause and no class action waiver. Questions about your account go to support@ghxstship.pro with "Support" in the subject line. Questions about your work go to the Organization through Messages.
 
-We send you notices at the email address you sign in with or show them in Gateway. Notices to us go to the legal notices mailbox listed on our contact page. If a court finds part of these Terms unenforceable, the rest stays in effect. If we do not enforce a term, we can still enforce it later.
+We send you notices at the email address you sign in with or show them in Gateway. Notices to us go to support@ghxstship.pro with "Legal Notice" in the subject line. If a court finds part of these Terms unenforceable, the rest stays in effect. If we do not enforce a term, we can still enforce it later.

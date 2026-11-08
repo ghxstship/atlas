@@ -4,7 +4,7 @@
 # The documentation site, the console and the status page do not serve it yet. Renew Expires at a
 # release, less than a year ahead. If the repository goes private, Policy must point at the published
 # /legal/responsible-disclosure-policy page instead.
-Contact: mailto:security@ghxstship.tech
+Contact: mailto:support@ghxstship.pro
 Expires: 2027-09-30T00:00:00.000Z
 Policy: https://github.com/ghxstship/atlas/blob/main/SECURITY.md
 Preferred-Languages: en

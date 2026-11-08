@@ -36,7 +36,7 @@ Each release has two files attached to it on the public repository once the rele
 - `xos-<version>.cdx.json`, a software bill of materials in CycloneDX format, listing the production dependencies of that release
 - `xos-<version>-third-party-notices.md`, generated from that file, which lists every npm component by name and version, grouped by license, with the license identifier (SPDX)
 
-Each npm package's own `LICENSE` file, in the package on the npm registry, carries its copyright notice and full license text. The notices list covers npm components. Native libraries added when the iOS and Android apps are built are not on it. If you need information about a component that is not listed, or a release's files are not yet public, ask the legal notices mailbox in Section 6.
+Each npm package's own `LICENSE` file, in the package on the npm registry, carries its copyright notice and full license text. The notices list covers npm components. Native libraries added when the iOS and Android apps are built are not on it. If you need information about a component that is not listed, or a release's files are not yet public, ask support@ghxstship.pro with "Legal Notice" in the subject line in Section 6.
 
 ## 4. License Compliance
 
@@ -55,4 +55,4 @@ Contributions are accepted under the Developer Certificate of Origin described i
 
 ## 6. Questions
 
-License questions go to the legal notices mailbox listed on our contact page at /legal/contact. A license change requires the Owner's written approval under `GOVERNANCE.md`.
+License questions go to support@ghxstship.pro with "Legal Notice" in the subject line. A license change requires the Owner's written approval under `GOVERNANCE.md`.

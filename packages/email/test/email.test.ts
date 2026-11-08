@@ -280,7 +280,7 @@ describe("catalog", () => {
       for (const action of ["No Action", "Restored"]) {
         expect(
           formatMessage(locale, "kinds.listing_report.decided.body", { ...args, action }),
-        ).toContain("abuse@ghxstship.tech");
+        ).toContain("support@ghxstship.pro");
       }
       for (const action of ["Removed", "Restricted"]) {
         expect(
@@ -291,7 +291,7 @@ describe("catalog", () => {
     expect(
       formatMessage("en-US", "kinds.listing_report.decided.body", { ...args, action: "No Action" }),
     ).toBe(
-      "We took no action on the listing. Stands. You can appeal this decision within six months by writing to abuse@ghxstship.tech.",
+      "We took no action on the listing. Stands. You can appeal this decision within six months by writing to support@ghxstship.pro with Appeal in the subject line.",
     );
   });
 

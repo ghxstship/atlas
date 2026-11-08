@@ -4,75 +4,55 @@ The repository now holds everything it can for these controls. Each step below n
 
 State read from the GitHub API on 2026-11-06, read-only:
 
-| Control                           | State on 2026-11-06                                                           |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| Repository visibility             | **Public**, though `infra/ci/README.md` recorded it as private on 2026-10-24  |
-| Mail for `ghxstship.tech`         | **No MX record**, so `security@` and every other address there cannot receive |
-| Weekly backup                     | Failed on its only two runs, 2026-10-26 and 2026-11-02 (below)                |
-| Actions secrets in the repository | `SUPABASE_ACCESS_TOKEN` only                                                  |
-| `production-backup` environment   | Exists, with no secret and **no branch rule**                                 |
-| Backup storage                    | No bucket yet; since 2026-11-08 the workflow stores no backup on GitHub       |
-| Branch protection on `main`       | None, and no ruleset                                                          |
-| Private vulnerability reporting   | Off                                                                           |
-| Secret scanning, push protection  | Off                                                                           |
-| Dependabot alerts                 | Off                                                                           |
-| CodeQL default setup              | Off, which is right now that `codeql.yml` exists                              |
+| Control                           | State on 2026-11-06                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| Repository visibility             | **Public**, though `infra/ci/README.md` recorded it as private on 2026-10-24   |
+| Mail for `ghxstship.tech`         | **No MX record**; since 2026-11-08 no document names an address there (step 0) |
+| Weekly backup                     | Failed on its only two runs, 2026-10-26 and 2026-11-02 (below)                 |
+| Actions secrets in the repository | `SUPABASE_ACCESS_TOKEN` only                                                   |
+| `production-backup` environment   | Exists, with no secret and **no branch rule**                                  |
+| Backup storage                    | No bucket yet; since 2026-11-08 the workflow stores no backup on GitHub        |
+| Branch protection on `main`       | None, and no ruleset                                                           |
+| Private vulnerability reporting   | Off                                                                            |
+| Secret scanning, push protection  | Off                                                                            |
+| Dependabot alerts                 | Off                                                                            |
+| CodeQL default setup              | Off, which is right now that `codeql.yml` exists                               |
 
 ## Order
 
-**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts serving a mailbox that cannot receive mail. **Then merge this branch into `main`, before you run anything in steps 1 and 2 and before steps 3 and 7.** `synthetics.yml`, `post-alert.sh`, the corrected backup script and its alert, the checks step 3 requires and the workflows step 7 names exist only once it lands: run today, step 1 would run the old backup workflow and step 2's commands would fail. You can set the secrets in steps 1 and 2 before the merge, and step 1's public key goes through its own pull request.
+**Finish step 0 before this branch deploys.** Merging to `main` deploys it, and it starts naming `support@ghxstship.pro` as the one contact address. **Then merge this branch into `main`, before you run anything in steps 1 and 2 and before steps 3 and 7.** `synthetics.yml`, `post-alert.sh`, the corrected backup script and its alert, the checks step 3 requires and the workflows step 7 names exist only once it lands: run today, step 1 would run the old backup workflow and step 2's commands would fail. You can set the secrets in steps 1 and 2 before the merge, and step 1's public key goes through its own pull request.
 
 **Right after the merge, before anything else, check that the status refs deploy nothing.** From the merge on, the scheduled checks force-push `refs/status/history` every 5 minutes, with no secret needed. Create the incident ref too, empty, from your checkout of `main`: `infra/ci/status-incidents.sh fetch status-incidents && infra/ci/status-incidents.sh publish status-incidents`. Then, after the first scheduled run (within about 10 minutes), `git ls-remote origin 'refs/status/*'` must print two lines, and [Vercel's deployment list](https://vercel.com/ghxstship/atlas/deployments) must show nothing from either ref. Both sit outside `refs/heads` because Vercel deploys every branch push on each connected project, and the one orphan branch ever pushed here (`status-site`, 2026-10-25) failed on four of them. Vercel documents deployments for branches, and these refs are not branches, but no agent could push to GitHub to see it. If a deployment does appear, turn the schedule off with `gh workflow disable synthetics.yml --repo ghxstship/atlas` and tell an agent: it would repeat every 5 minutes.
 
 Step 1 next, the one with a legal statement waiting on it.
 
-| Step | What                                                      | Blocks                                                         |
-| ---- | --------------------------------------------------------- | -------------------------------------------------------------- |
-| 0    | Mail for `ghxstship.tech`, and one test message           | **Deploying this branch**; every address in `legal/contact.md` |
-|      | Merge this branch into `main`, then check Vercel at once  | The runs in steps 1 and 2; steps 3 and 7                       |
-| 1    | Secret values for the backup, and its private bucket      | "The weekly backup has run", once one succeeds                 |
-| 2    | The alert channel and the status page token               | Alerts reaching a person; the status page                      |
-| 3    | Branch protection on `main`                               | "Changes reach main only through pull requests"                |
-| 4    | Commit signing, after one release under step 3            | "Commits on main are signed"                                   |
-| 5    | Private vulnerability reporting                           | The second disclosure channel                                  |
-| 6    | Vercel staged rollout, before the first customer signs in | "Atlas rolls out in stages"                                    |
-| 7    | Renovate, Dependabot alerts, secret scanning              | "Dependency update requests run"                               |
-| 8    | Confirm the production values                             | Re-reading the Security Overview and DPA Annex II              |
+| Step | What                                                      | Blocks                                                       |
+| ---- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| 0    | `support@ghxstship.pro`, and one test message             | **Deploying this branch**; the address in `legal/contact.md` |
+|      | Merge this branch into `main`, then check Vercel at once  | The runs in steps 1 and 2; steps 3 and 7                     |
+| 1    | Secret values for the backup, and its private bucket      | "The weekly backup has run", once one succeeds               |
+| 2    | The alert channel and the status page token               | Alerts reaching a person; the status page                    |
+| 3    | Branch protection on `main`                               | "Changes reach main only through pull requests"              |
+| 4    | Commit signing, after one release under step 3            | "Commits on main are signed"                                 |
+| 5    | Private vulnerability reporting                           | The second disclosure channel                                |
+| 6    | Vercel staged rollout, before the first customer signs in | "Atlas rolls out in stages"                                  |
+| 7    | Renovate, Dependabot alerts, secret scanning              | "Dependency update requests run"                             |
+| 8    | Confirm the production values                             | Re-reading the Security Overview and DPA Annex II            |
 
-## 0. Mail for `ghxstship.tech`
+## 0. The support address, `support@ghxstship.pro`
 
-**The domain cannot receive mail today.** `dig +short MX ghxstship.tech` returned nothing on 2026-11-06, and the domain has no TXT record either. `ghxstship.pro` has Google's MX records, and the subdomains `send.mail` and `inbound` have their own, which do not help the top-level addresses. No agent sent a test message, but with no MX a sender falls back to the Vercel A records, so a report should bounce.
+**One address since 2026-11-08.** The owner decided that the single public contact address is `support@ghxstship.pro`. `SECURITY.md`, both `security.txt` route handlers, `legal/security/security.txt`, the legal documents, email footers and refusals name it, and each document asks the writer to put the purpose in the subject line (`legal/contact.md`). `ghxstship.tech` still has no MX record (`dig +short MX ghxstship.tech` returned nothing on 2026-11-06), and nothing names an address there any longer. `ghxstship.pro` has Google's MX records.
 
-GitHub private reporting is off too (step 5). So after this branch deploys, `SECURITY.md` and `security.txt` send researchers to a mailbox that does not exist, while promising an answer in 3 business days and a safe harbor that depends on reporting to us. The failure is the same for every address in `legal/contact.md`: `privacy@` takes data subject requests, which carry legal deadlines, `copyright@` is the DMCA agent's address, and `legal@`, `support@`, `abuse@` and `accessibility@` are published as well.
+GitHub private reporting is off too (step 5). So the address must work before this branch deploys: `SECURITY.md` and `security.txt` promise an answer in 3 business days and a safe harbor that depends on reporting to us, and privacy requests and DMCA notices carry legal deadlines.
 
-From the merge, `SECURITY.md` tells a researcher whose mail bounces to use the issue form "Ask for a private way to report a security finding", which asks only why they need one. GitHub reads issue forms from `main`, so the form does not exist until then. That keeps one door open for security, for someone with a GitHub account, and no other address. It is not a replacement for this step.
+From the merge, `SECURITY.md` tells a researcher whose mail bounces to use the issue form "Ask for a private way to report a security finding", which asks only why they need one. GitHub reads issue forms from `main`, so the form does not exist until then. It is not a replacement for this step.
 
-1. **Add the domain to your Google Workspace,** the one `ghxstship.pro`'s Google MX records suggest you already have: [Admin console, Account, Domains, Manage domains](https://admin.google.com/ac/domains/manage), Add a domain, `ghxstship.tech`, as a secondary domain. Google gives you a TXT value to prove you own it. The domain uses Vercel's nameservers, so add it there:
+1. **Make sure the address exists** in your Google Workspace for `ghxstship.pro`, as a user or, better, a group at [Directory, Groups](https://admin.google.com/ac/groups) so that a second person can be added later. A group refuses outside mail by default: set **Who can post** to "Anyone on the web", or the mail bounces.
+2. **Keep automated mail out of it.** DMARC aggregate reports and other automated XML go to a separate address (production runbook, Email from mail.ghxstship.tech), because this inbox carries a 3 business day promise that those reports would bury.
+3. **Test it from outside.** Send one message from an address not on your Workspace, such as a personal account, to `support@ghxstship.pro` with "Security" in the subject line. It must arrive where you will read it. Record the date, so the legal documents can rely on it.
+4. **Watch the repository's issues,** at [Watch, Custom, Issues](https://github.com/ghxstship/atlas), because the form promises an answer from there. To answer one, [draft a security advisory](https://github.com/ghxstship/atlas/security/advisories/new), which works with private reporting off, add the person as a collaborator on the draft, and say so in the issue. If they put details in the issue anyway, edit them out and tell them why.
 
-   ```sh
-   vercel dns add ghxstship.tech '@' TXT '<the value Google gives you>' --scope ghxstship
-   ```
-
-2. **Route the mail to Google:**
-
-   ```sh
-   vercel dns add ghxstship.tech '@' MX smtp.google.com 1 --scope ghxstship
-   ```
-
-   Vercel's A records for the sites stay as they are. Do not touch the records under `mail.` or `inbound.`, which belong to Resend and to reply by email.
-
-3. **Create the addresses:** `security`, `legal`, `privacy`, `support`, `abuse`, `accessibility` and `copyright`, as groups at [Directory, Groups](https://admin.google.com/ac/groups) so that a second person can be added later. Google's groups refuse outside mail by default: set **Who can post** to "Anyone on the web" on each, or the mail bounces all the same.
-4. **Say who may send for these addresses.** `p=none` blocks nothing yet, as with `mail.ghxstship.tech` (ADR 0033, decision 46): it changes no delivery, and `mail.` keeps its own policy. Leave `rua` out. It would send daily automated XML to whatever address it names, and `security@` carries a 3 business day promise that those reports would bury. Add it, to a separate address, when someone will read the reports, and tighten `p` after that:
-
-   ```sh
-   vercel dns add ghxstship.tech '@' TXT 'v=spf1 include:_spf.google.com ~all' --scope ghxstship
-   vercel dns add ghxstship.tech _dmarc TXT 'v=DMARC1; p=none' --scope ghxstship
-   ```
-
-5. **Test it from outside.** Send one message from an address not on your Workspace, such as a personal account, to `security@ghxstship.tech` and to each other address. Each must arrive where you will read it. `dig +short MX ghxstship.tech` must print `1 smtp.google.com.`. Record the date, so the legal documents can rely on it.
-6. **Watch the repository's issues,** at [Watch, Custom, Issues](https://github.com/ghxstship/atlas), because the form promises an answer from there. To answer one, [draft a security advisory](https://github.com/ghxstship/atlas/security/advisories/new), which works with private reporting off, add the person as a collaborator on the draft, and say so in the issue. If they put details in the issue anyway, edit them out and tell them why.
-
-Only after the test message in item 5 above has arrived at every address should this branch deploy. **If you would rather use an address that works today,** choose one, then change `SECURITY.md`, the `Contact` line in `apps/atlas/app/.well-known/security.txt/route.ts` and `apps/gateway/app/.well-known/security.txt/route.ts`, the test in `infra/security/test/repo-controls.test.ts`, and the legal documents together. A working address at `ghxstship.pro` needs its own mailbox or group: an MX record shows the domain takes mail and says nothing about one address.
+Only after the test message in item 3 above has arrived should this branch deploy.
 
 ## 1. Secret values for the backup
 
@@ -85,7 +65,7 @@ Since 2026-11-08 the archive goes to a private bucket you create in items 7 to 9
 1. **Create the backup key on your own machine, not in CI.** Install GnuPG if you need it (`brew install gnupg`).
 
    ```sh
-   gpg --quick-generate-key "XOS Backup <security@ghxstship.tech>" ed25519 cert 3y
+   gpg --quick-generate-key "XOS Backup <support@ghxstship.pro>" ed25519 cert 3y
    FPR=$(gpg --list-keys --with-colons "XOS Backup" | awk -F: '/^fpr:/ {print $10; exit}')
    gpg --quick-add-key "$FPR" cv25519 encr 3y
    ```
@@ -348,7 +328,7 @@ The `Signed-off-by` trailer is a different thing, the DCO. No check enforces it,
 
 ## 5. Private vulnerability reporting
 
-Email to `security@ghxstship.tech` is the named channel (`SECURITY.md`), and it works only after step 0. GitHub's channel is a second door, not a replacement, because a researcher without an account still needs the email. GitHub documents this feature for public repositories, so it also depends on the visibility decision in section 8.
+Email to `support@ghxstship.pro` is the named channel (`SECURITY.md`), and it works only after step 0. GitHub's channel is a second door, not a replacement, because a researcher without an account still needs the email. GitHub documents this feature for public repositories, so it also depends on the visibility decision in section 8.
 
 Turn it on at [Settings, Code security, Private vulnerability reporting](https://github.com/ghxstship/atlas/settings/security_analysis), or:
 
@@ -401,4 +381,4 @@ An agent checked each of these against the code on 2026-11-06. Each is a value i
 | Sentry DSNs and projects | Vercel and Supabase secrets; Sentry                                                                         | `SENTRY_DSN` set. `production.md` names the projects `xos-atlas` and `xos-gateway`, `incident-response.md` names them `atlas` and `gateway`, and no code names either: tell us which is right                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `xos_backup` password    | Set by you in step 1                                                                                        | The login cannot sign in until you set one (migration 1650)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | Point-in-time recovery   | [Supabase, Database, Backups](https://supabase.com/dashboard/project/fquuqnzlpobaawucczgq/database/backups) | The 1 hour recovery point depends on it (`backup-and-restore.md`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Security mailbox         | `security@ghxstship.tech`                                                                                   | **Cannot receive mail: no MX record on 2026-11-06.** Step 0. `security.txt` and `SECURITY.md` send reports there                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Contact address          | `support@ghxstship.pro`                                                                                     | Step 0: confirm it receives outside mail. `security.txt` and `SECURITY.md` send reports there                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |

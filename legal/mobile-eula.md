@@ -39,7 +39,7 @@ You must not:
 - distribute the App under an XOS mark except as the Trademark Policy allows
 - use the App on a device you know is compromised in a way that defeats its security controls
 
-There is no tolerance in the App for objectionable content or abusive users: this EULA and the Acceptable Use Policy prohibit both. In chat and the feed you can report content and block a person. A block hides that person's posts, comments and messages from you at once. A report goes to the moderators of the organization that runs the workspace, who are notified at once and aim to decide within 24 hours. GHXSTSHIP does not see those reports. To reach GHXSTSHIP about any content in the App, including when an organization's moderators do not respond, write to the abuse mailbox listed on our contact page at /legal/contact. A person reads what you send, and Section 7 of the Acceptable Use Policy says what we can do.
+There is no tolerance in the App for objectionable content or abusive users: this EULA and the Acceptable Use Policy prohibit both. In chat and the feed you can report content and block a person. A block hides that person's posts, comments and messages from you at once. A report goes to the moderators of the organization that runs the workspace, who are notified at once and aim to decide within 24 hours. GHXSTSHIP does not see those reports. To reach GHXSTSHIP about any content in the App, including when an organization's moderators do not respond, write to support@ghxstship.pro with "Abuse Report" in the subject line. A person reads what you send, and Section 7 of the Acceptable Use Policy says what we can do.
 
 Nothing in this EULA stops you from giving an honest review of the App or of XOS, including in an app store.
 
@@ -102,7 +102,7 @@ If you obtained the App from the Apple App Store, these terms also apply and con
 5. **Product claims.** GHXSTSHIP, not Apple, is responsible for addressing any claims by you or a third party relating to the App or your possession and use of it, including product liability claims, claims that the App fails to conform to any applicable legal or regulatory requirement, and claims arising under consumer protection, privacy or similar legislation. This EULA does not limit GHXSTSHIP's liability to you beyond what the law permits.
 6. **Intellectual property.** If a third party claims that the App or your possession and use of it infringes that third party's intellectual property rights, GHXSTSHIP, not Apple, is solely responsible for the investigation, defense, settlement and discharge of that claim.
 7. **Legal compliance.** You represent and warrant that you are not located in a country subject to a United States government embargo or designated by the United States government as a "terrorist supporting" country, and that you are not listed on any United States government list of prohibited or restricted parties.
-8. **Developer name and address.** Questions, complaints and claims about the App go to GHXSTSHIP Industries LLC, Miami, FL, United States, at support@ghxstship.tech. The full postal address and telephone number are listed on our contact page at /legal/contact.
+8. **Developer name and address.** Questions, complaints and claims about the App go to GHXSTSHIP Industries LLC, Miami, FL, United States, at support@ghxstship.pro. The full postal address and telephone number are listed on our contact page at /legal/contact.
 9. **Third-party terms.** You must comply with applicable third-party terms when using the App, for example your wireless data service agreement.
 10. **Third-party beneficiary.** Apple and its subsidiaries are third-party beneficiaries of this EULA. Once you accept this EULA, Apple has the right, and is deemed to have accepted the right, to enforce this EULA against you as a third-party beneficiary.
 
@@ -116,7 +116,7 @@ This EULA is governed by the laws of the State of Florida, United States, withou
 
 ## 13. Changes to This EULA
 
-Each version of this EULA is shown at /legal/mobile-eula with its version number and is in effect from the effective date it states. We keep earlier versions, which you can ask for at the support mailbox. For a material change, the App asks you to accept the new version during the 30 days' notice we give before it takes effect. From its effective date, the App holds until you accept it. If you do not agree to the new version, you can sign out or delete your account from that step, and stop using the App and delete it.
+Each version of this EULA is shown at /legal/mobile-eula with its version number and is in effect from the effective date it states. We keep earlier versions, which you can ask for at support@ghxstship.pro with "Support" in the subject line. For a material change, the App asks you to accept the new version during the 30 days' notice we give before it takes effect. From its effective date, the App holds until you accept it. If you do not agree to the new version, you can sign out or delete your account from that step, and stop using the App and delete it.
 
 ## 14. General
 
@@ -124,4 +124,4 @@ If a court finds part of this EULA unenforceable, the rest stays in effect. If w
 
 ## 15. Contact
 
-Questions about this EULA go to the support mailbox listed on our contact page at /legal/contact.
+Questions about this EULA go to support@ghxstship.pro with "Support" in the subject line.

@@ -1,5 +1,5 @@
 name: Ask for a private way to report a security finding
-description: Your email to security@ghxstship.tech bounced, or had no answer within 3 business days. This asks for a private channel and holds no details.
+description: Your email to support@ghxstship.pro bounced, or had no answer within 3 business days. This asks for a private channel and holds no details.
 title: Request for a private way to report a security finding
 body:
   - type: markdown
@@ -11,7 +11,7 @@ body:
     attributes:
       label: Why you are asking
       options:
-        - My email to security@ghxstship.tech bounced
+        - My email to support@ghxstship.pro bounced
         - I had no answer within 3 business days
     validations:
       required: true

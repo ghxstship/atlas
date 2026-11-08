@@ -270,7 +270,7 @@ ${p.desc}
 
 ## Contact Information
 
-GHXSTSHIP Industries LLC. Accessibility questions go to the accessibility mailbox listed on our contact page at /legal/contact, with a response within 5 business days as our Accessibility Statement commits.
+GHXSTSHIP Industries LLC. Accessibility questions go to support@ghxstship.pro with "Accessibility" in the subject line, with a response within 5 business days as our Accessibility Statement commits.
 
 ## Notes
 

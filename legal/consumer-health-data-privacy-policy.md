@@ -52,7 +52,7 @@ Health data is used only to keep it for you and to show it to the people who nee
 
 - **Withdraw your consent** in one step under Work Details. Use stops at once, the values are cleared, the category leaves every share, and what others entered about you is cleared, including guest list entries matched only by your verified email. If an organization has a legal hold over those records, the values stay hidden from everyone until the hold ends, and are then cleared. Someone else cannot enter that category for you again after you withdraw.
 - **See, correct or delete** your own health data at any time in Work Details, or delete your account.
-- **Ask us** for a copy of your health data, a list of the organizations and providers we have shared it with, or anything else about it, through the privacy mailbox on our contact page at /legal/contact. We answer within 30 days. If we refuse, we tell you why and how to appeal, and we answer an appeal within 45 days.
+- **Ask us** for a copy of your health data, a list of the organizations and providers we have shared it with, or anything else about it, through support@ghxstship.pro with "Privacy" in the subject line. We answer within 30 days. If we refuse, we tell you why and how to appeal, and we answer an appeal within 45 days.
 - **No penalty.** We do not treat you differently for using these rights.
 
 Data an organization holds about you is the organization's to answer for, so ask it first. If you ask us, we pass your request to it and help it answer.
@@ -76,4 +76,4 @@ Health data is held in Restricted fields that cannot be selected directly. Every
 
 ## 10. Changes and Contact
 
-Each version of this policy is shown at /legal/consumer-health-data-privacy-policy with its version number, and it is in effect from the effective date it states. Questions go to the privacy mailbox on our contact page at /legal/contact.
+Each version of this policy is shown at /legal/consumer-health-data-privacy-policy with its version number, and it is in effect from the effective date it states. Questions go to support@ghxstship.pro with "Privacy" in the subject line.

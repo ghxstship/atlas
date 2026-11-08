@@ -55,7 +55,7 @@ A restore drill script restores the latest backup to an isolated environment, ru
 | Hosting provider outage for the web applications | Status page and banner; Compass continues offline; redeploy to a secondary region when the provider allows                                                                                                    |
 | Loss of a subprocessor (email, SMS, push, AI)    | Degrade the affected feature, queue messages for retry, and inform Customers                                                                                                                                  |
 | Compromise of the delivery pipeline              | Freeze releases, rotate credentials, rebuild from a verified commit, and follow the Incident Response Policy                                                                                                  |
-| Loss of key personnel                            | Documented runbooks, a backup reader for the mailboxes, once the Owner names one, who can acknowledge and reach the Owner, and break-glass credentials held in the password manager under the Owner's control |
+| Loss of key personnel                            | Documented runbooks, a backup reader for the support@ghxstship.pro inbox, once the Owner names one, who can acknowledge and reach the Owner, and break-glass credentials held in the password manager under the Owner's control |
 
 ## 7. Roles
 

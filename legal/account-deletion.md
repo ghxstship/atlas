@@ -15,7 +15,7 @@ This page explains how to delete your XOS account, whether or not you have the C
 
 - **In Compass:** More, then Settings, then Delete Account. You need a connection. Compass also offers Delete Account at its first sign-in step, without agreeing to anything.
 - **On the web, with no app:** sign in to Gateway at gateway.ghxstship.tech, using the same sign-in you use anywhere in XOS, then go to Settings, Account, Delete Account. If you use Atlas, your account deletes here too. Atlas has no Delete Account page of its own. If you have only used Atlas and sign in with a provider such as Google, Gateway first asks you to accept the Worker Terms. You do not have to accept them to delete your account: choose Delete my account instead on that page, which takes you to Settings, Account without accepting anything. The email route below also works.
-- **If you cannot sign in:** write from your account's email address to the support mailbox listed on our contact page at atlas.ghxstship.tech/legal/contact. We confirm you control that address, tell you if anything in Section 2 stops the deletion, and finish within 30 days.
+- **If you cannot sign in:** write from your account's email address to support@ghxstship.pro with "Support" in the subject line. We confirm you control that address, tell you if anything in Section 2 stops the deletion, and finish within 30 days.
 
 You confirm by typing the email address you sign in with. Compass may also ask for your biometric check if you have turned that on, and asks you to hold the delete button. If you signed in with Apple, Compass shows Apple's sheet once more so we can revoke our access. If that fails, your account is still deleted, and you can remove XOS from Sign in with Apple in your Apple Account settings.
 
@@ -29,7 +29,7 @@ Nothing is deleted while any of these is true. Compass and Gateway tell you whic
 
 If you answered that you are under 18 and one of these stops your account from closing, Compass and Gateway send you to Legal Contact. Choosing Done signs you out, on every device when you are online, and you are asked again at each sign-in until it closes.
 
-**If you cannot clear it.** While a deletion is stopped you can still change or remove your profile, Work Details and settings yourself. If an organization does not release its hold, or you cannot hand over ownership, write to the privacy mailbox on our contact page. We answer within 30 days, tell you what we can erase, what has to stay and why, and you can appeal as Section 7 of our Privacy Policy describes. We do not erase records a hold covers.
+**If you cannot clear it.** While a deletion is stopped you can still change or remove your profile, Work Details and settings yourself. If an organization does not release its hold, or you cannot hand over ownership, write to support@ghxstship.pro with "Privacy" in the subject line. We answer within 30 days, tell you what we can erase, what has to stay and why, and you can appeal as Section 7 of our Privacy Policy describes. We do not erase records a hold covers.
 
 ## 3. What Is Deleted
 
@@ -81,7 +81,7 @@ We keep these, and we keep your person record without your full name so that rec
 | The renewal terms you agreed to when you bought a paid plan for an organization, with your sign-in email and initials; and, for an organization you owned, Stripe cancel records, renewal reminders and billing alerts | Proof of what was agreed and of the cancellation                                                                                               | The renewal terms 7 years from when you agreed, or until a year after that plan ends if that is later; the rest 7 years. Both including after the organization is deleted |
 | Consent and acceptance records, such as the documents you accepted                                                                                                                                                     | Proof                                                                                                                                          | As our Data Retention and Deletion Policy sets out                                                                                                                        |
 
-Each organization's own privacy notice explains how it handles what it keeps. You can ask an organization to delete records it is not required to keep, or ask us, using the privacy mailbox on our contact page, and we pass your request on.
+Each organization's own privacy notice explains how it handles what it keeps. You can ask an organization to delete records it is not required to keep, or ask us, using support@ghxstship.pro with "Privacy" in the subject line, and we pass your request on.
 
 ## 5. Timing
 
@@ -89,4 +89,4 @@ Deletion runs at once in Compass and Gateway. A request by email finishes within
 
 ## 6. Help
 
-If you cannot sign in or get stuck, contact the support mailbox listed on our contact page at atlas.ghxstship.tech/legal/contact.
+If you cannot sign in or get stuck, contact support@ghxstship.pro with "Support" in the subject line.

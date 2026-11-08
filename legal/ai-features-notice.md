@@ -73,7 +73,7 @@ When you use the assistant, the interface shows that you are interacting with an
 
 ## 8. Logging and Retention
 
-**In XOS.** Prompts and outputs are logged as a record of AI use. Access to the log is limited to people in the organization who hold the audit capability, and each person for their own requests. Before storage, email addresses, US Social Security number patterns, card-length numbers and phone numbers are replaced with labels. Names, addresses and other details stay in the log. Prompts include the record text sent to the model. Document contents are not logged, only a note that a document was sent. The log is kept for 7 years under our Data Retention and Deletion Policy. A Customer cannot shorten that period, the log can outlast the record it quotes, and deleting an account does not change it. To have a person's data erased from the log, a Customer writes to the privacy mailbox as Section 3 of that Policy describes.
+**In XOS.** Prompts and outputs are logged as a record of AI use. Access to the log is limited to people in the organization who hold the audit capability, and each person for their own requests. Before storage, email addresses, US Social Security number patterns, card-length numbers and phone numbers are replaced with labels. Names, addresses and other details stay in the log. Prompts include the record text sent to the model. Document contents are not logged, only a note that a document was sent. The log is kept for 7 years under our Data Retention and Deletion Policy. A Customer cannot shorten that period, the log can outlast the record it quotes, and deleting an account does not change it. To have a person's data erased from the log, a Customer writes to support@ghxstship.pro with "Privacy" in the subject line as Section 3 of that Policy describes.
 
 **At Anthropic.** As read on 6 November 2026, Anthropic's published retention policy says API inputs and outputs are deleted within 30 days, content flagged for a usage policy violation can be kept for up to 2 years and safety scores for up to 7 years, with other exceptions for law or agreement. Check [its current policy](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data). We do not claim any shorter retention arrangement with Anthropic.
 
@@ -85,7 +85,7 @@ Each feature has a fixed evaluation test set and an accuracy threshold. The eval
 
 - **Organizations** can turn any feature off in Settings, AI Features at any time.
 - **Individuals** can decline AI features in Compass, Settings, AI Features, which turns them off for that person across XOS (Section 1), and can ask their organization's Admin to turn them off for everyone. Records are always available without AI. A person whose records are in an organization that uses AI cannot turn it off for those records alone.
-- **Questions** go to your organization's Admin, or to the privacy mailbox listed on our contact page at /legal/contact.
+- **Questions** go to your organization's Admin, or to support@ghxstship.pro with "Privacy" in the subject line.
 
 ## 11. AI Assistants a Customer Connects
 

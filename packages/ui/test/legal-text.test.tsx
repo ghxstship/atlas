@@ -135,7 +135,7 @@ describe("LegalText", () => {
 
   it("links documents through hrefFor, email addresses, and written links", () => {
     show(
-      "At /legal/contact and atlas.ghxstship.tech/legal/privacy-policy. Write to legal@ghxstship.tech. Not /legal/missing or /legal. Read [the policy](https://example.com/p).\n",
+      "At /legal/contact and atlas.ghxstship.tech/legal/privacy-policy. Write to support@ghxstship.pro. Not /legal/missing or /legal. Read [the policy](https://example.com/p).\n",
     );
     expect(screen.getByRole("link", { name: "/legal/contact" }).getAttribute("href")).toBe(
       "/legal/contact",
@@ -145,8 +145,8 @@ describe("LegalText", () => {
         .getByRole("link", { name: "atlas.ghxstship.tech/legal/privacy-policy" })
         .getAttribute("href"),
     ).toBe("/legal/privacy-policy");
-    expect(screen.getByRole("link", { name: "legal@ghxstship.tech" }).getAttribute("href")).toBe(
-      "mailto:legal@ghxstship.tech",
+    expect(screen.getByRole("link", { name: "support@ghxstship.pro" }).getAttribute("href")).toBe(
+      "mailto:support@ghxstship.pro",
     );
     expect(screen.getByRole("link", { name: "the policy" }).getAttribute("href")).toBe(
       "https://example.com/p",

@@ -5,7 +5,7 @@
  */
 export const dynamic = "force-static";
 
-const SECURITY_TXT = `Contact: mailto:security@ghxstship.tech
+const SECURITY_TXT = `Contact: mailto:support@ghxstship.pro
 Expires: 2027-09-30T00:00:00.000Z
 Policy: https://github.com/ghxstship/atlas/blob/main/SECURITY.md
 Preferred-Languages: en

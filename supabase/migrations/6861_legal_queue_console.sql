@@ -331,7 +331,7 @@ begin
   perform private.refuse_agent_write();
   if tg_op <> 'INSERT' and exists (
     select 1 from app.legal_queue_items i where i.legal_hold_id = old.id and i.closed_at is null) then
-    perform private.refuse('legal_hold_queue', 'GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to legal@ghxstship.tech.');
+    perform private.refuse('legal_hold_queue', 'GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to support@ghxstship.pro with Return of Data in the subject line.');
   end if;
   v_reason := private.org_read_only_reason(v_row.org_id);
   if v_reason is not null then

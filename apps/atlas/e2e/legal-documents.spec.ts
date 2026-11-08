@@ -57,9 +57,9 @@ test.describe("without JavaScript", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Legal Contact" })).toBeVisible();
     await expect(
       page.getByRole("region", { name: "Mailboxes" }).getByRole("link", {
-        name: "legal@ghxstship.tech",
+        name: "support@ghxstship.pro",
       }),
-    ).toHaveAttribute("href", "mailto:legal@ghxstship.tech");
+    ).toHaveAttribute("href", "mailto:support@ghxstship.pro");
   });
 
   test("an internal document is never served", async ({ page }) => {

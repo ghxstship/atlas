@@ -58,7 +58,7 @@ Customers on plans that include white label may apply their own brand and remove
 
 ## 7. Requests and Reports
 
-Requests for permission, and reports of misuse, go to the Owner named in `GOVERNANCE.md` through the legal notices mailbox listed on our contact page at /legal/contact. A request should say which Mark you want to use, where and how, and include a sample if you have one. A report should say what was used, where we can see it, and why it may confuse people. Changes to this policy require the Owner's written approval.
+Requests for permission, and reports of misuse, go to the Owner named in `GOVERNANCE.md` through support@ghxstship.pro with "Legal Notice" in the subject line. A request should say which Mark you want to use, where and how, and include a sample if you have one. A report should say what was used, where we can see it, and why it may confuse people. Changes to this policy require the Owner's written approval.
 
 ## 8. Other Companies' Marks
 

@@ -13,9 +13,9 @@ GHXSTSHIP Industries LLC ("GHXSTSHIP") respects intellectual property rights and
 
 ## 1. Designated Agent
 
-Our designated agent for notices of claimed infringement is the person named as DMCA designated agent on our contact page at /legal/contact, at the postal address, telephone number and copyright mailbox listed there. The contact page also states whether that designation is registered in the US Copyright Office's DMCA Designated Agent Directory at copyright.gov/dmca-directory.
+Our designated agent for notices of claimed infringement is the person named as DMCA designated agent on our contact page at /legal/contact, at the postal address, telephone number and email address listed there (support@ghxstship.pro, with "Copyright" in the subject line). The contact page also states whether that designation is registered in the US Copyright Office's DMCA Designated Agent Directory at copyright.gov/dmca-directory.
 
-Send only copyright notices and counter-notices to the agent. Every other request has its own mailbox on the contact page.
+Send only copyright notices and counter-notices to the agent. Every other request goes to the same address with its own purpose in the subject line, as the contact page lists.
 
 ## 2. Filing a Notice of Infringement
 
@@ -55,10 +55,10 @@ We terminate, in appropriate circumstances, the accounts of users who are repeat
 
 People in the European Union may report any content they consider illegal, including infringing content:
 
-- through the abuse mailbox on our contact page, which anyone can use without an account
+- through support@ghxstship.pro with "Abuse Report" in the subject line, which anyone can use without an account
 - through the Report action on a Gateway marketplace listing, if you are signed in
 
-The Report action on a chat message, post or comment goes to the moderators of the organization that runs that workspace, not to us. To reach GHXSTSHIP about that content, use the abuse mailbox.
+The Report action on a chat message, post or comment goes to the moderators of the organization that runs that workspace, not to us. To reach GHXSTSHIP about that content, use support@ghxstship.pro with "Abuse Report" in the subject line.
 
 Your notice should give:
 
@@ -75,7 +75,7 @@ Code in our public repository is licensed under the AGPL-3.0 or MIT licenses, an
 
 ## 8. Other Illegal or Harmful Content
 
-Anyone, in any country and with or without an account, may use the abuse mailbox on our contact page to report other content that is illegal or harmful in XOS. Say where the content is and why you are reporting it. For an emergency, call your local emergency number first.
+Anyone, in any country and with or without an account, may use support@ghxstship.pro with "Abuse Report" in the subject line to report other content that is illegal or harmful in XOS. Say where the content is and why you are reporting it. For an emergency, call your local emergency number first.
 
 You can also report an intimate image of a person, real or digitally made, shared without that person's consent. You do not need an account to report one, and you do not need to attach the image. So that we can find it and reach you, please send:
 

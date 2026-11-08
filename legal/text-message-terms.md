@@ -33,7 +33,7 @@ In your personal settings in XOS, you can agree to get work notifications from a
 
 - **Reply STOP to stop.** We also accept QUIT, END, REVOKE, OPT OUT, CANCEL, UNSUBSCRIBE or STOPALL when the word is the whole message. A request to stop applies to every organization that had your consent for that number. You can also turn texts off in your personal settings.
 - **Reply START, YES or UNSTOP** to turn messages back on.
-- **Reply HELP for help.** We also accept INFO when the word is the whole message. For support, write to the support mailbox on our contact page at /legal/contact.
+- **Reply HELP for help.** We also accept INFO when the word is the whole message. For support, write to support@ghxstship.pro with "Support" in the subject line.
 
 ## 5. Privacy
 

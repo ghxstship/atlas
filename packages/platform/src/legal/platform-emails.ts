@@ -44,7 +44,7 @@ export interface PlatformEmailOptions {
   readonly gatewayUrl?: string;
   /** Console origin: a legal queue alert links an operator to the queue. Without it the alert has no link. */
   readonly consoleUrl?: string;
-  /** From address, for example notices@ghxstship.tech. */
+  /** From address, for example support@ghxstship.pro. */
   readonly from: string;
   /** The platform's postal address (CAN-SPAM, CASL). */
   readonly postalAddress: string;

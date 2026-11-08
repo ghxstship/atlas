@@ -63,7 +63,7 @@ select is((select count(*)::int from app.legal_holds where org_id = pg_temp.id('
 -- to every other hold write.
 select pg_temp.as_user('xavier');
 select throws_ok(format($$update app.legal_holds set released_at = now() where id = %L$$, (pg_temp.hold()).id),
-  'XR001', 'legal_hold_queue: GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to legal@ghxstship.tech.',
+  'XR001', 'legal_hold_queue: GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to support@ghxstship.pro with Return of Data in the subject line.',
   'the Owner cannot release the hold the queue placed');
 select throws_ok(format($$insert into app.legal_holds (org_id, matter) values (%L, 'Our own hold')$$, pg_temp.id('org_b')),
   'XR001', 'org_read_only: This organization is waiting to be deleted and is read-only. The Owner can recover it in Settings, Danger zone, during the 7 days.',

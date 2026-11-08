@@ -94,4 +94,4 @@ We have not been audited or certified against any framework named here. They are
 
 ## 10. Reporting a Vulnerability
 
-See our Responsible Disclosure Policy. Security questions from Customers go to the security mailbox listed on our contact page at /legal/contact. Customers and prospective customers doing a security review can also ask that mailbox for what exists today, under a confidentiality agreement: our OWASP ASVS matrix, threat model and policies, along with our data protection impact assessment template. We have no audit report or independent penetration test to share, as Sections 1 and 6 say.
+See our Responsible Disclosure Policy. Security questions from Customers go to support@ghxstship.pro with "Security" in the subject line. Customers and prospective customers doing a security review can also ask that address for what exists today, under a confidentiality agreement: our OWASP ASVS matrix, threat model and policies, along with our data protection impact assessment template. We have no audit report or independent penetration test to share, as Sections 1 and 6 say.

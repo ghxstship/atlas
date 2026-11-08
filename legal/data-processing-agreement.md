@@ -19,7 +19,7 @@ This Data Processing Agreement (the "DPA") forms part of the Terms of Service (t
 - **Subprocessor** means a third party GHXSTSHIP engages that processes Customer Personal Data.
 - **EU SCCs** means the standard contractual clauses for the transfer of personal data to third countries adopted by European Commission Implementing Decision (EU) 2021/914 of 4 June 2021.
 - **UK Addendum** means the International Data Transfer Addendum to the EU Commission Standard Contractual Clauses, version B1.0, issued by the UK Information Commissioner under section 119A of the Data Protection Act 2018 and in force from 21 March 2022, as revised from time to time.
-- **Contact Page** means the page at /legal/contact listing GHXSTSHIP's postal address, privacy and security mailboxes, privacy officer and appointed representatives.
+- **Contact Page** means the page at /legal/contact listing GHXSTSHIP's postal address, email address, privacy officer and appointed representatives.
 - Terms such as "controller", "processor", "data subject", "personal data", "processing" and "supervisory authority" have the meanings Data Protection Laws give them. Under the CCPA, "controller" includes "business" and "processor" includes "service provider".
 
 ## 2. Roles and Scope
@@ -65,7 +65,7 @@ GHXSTSHIP personnel open Customer Data in the Service only during a support sess
 
 A support session cannot find, return or erase data, and it shows only limited areas of an organization. So outside a session, GHXSTSHIP personnel may access Customer Personal Data only:
 
-- on the Customer's written instruction under Section 8.3 or 10.2, or a person's request to delete their own account through the mailbox that the account deletion page names
+- on the Customer's written instruction under Section 8.3 or 10.2, or a person's request to delete their own account through the email address that the account deletion page names
 - to run and verify backups and restores
 - to respond to a security or availability incident
 - where the law compels it or to prevent imminent harm to people or to the Service
@@ -100,7 +100,7 @@ GHXSTSHIP's written policy limits access to production infrastructure to named p
 
 8.2 If GHXSTSHIP receives a request about Customer Personal Data, it will route it to the Customer without undue delay and will not answer it except to confirm the routing, unless the Customer authorizes it. A person's deletion of their own account follows Section 8.4 instead.
 
-8.3 GHXSTSHIP will give reasonable help with requests the Customer cannot answer through the Service. That includes finding, returning or erasing data about a person across tables, and about a person who has no account, on the Customer's written instruction through the privacy mailbox on the Contact Page. GHXSTSHIP responds within 10 business days of that instruction, saying what it has done and anything it cannot do and why. Business days are Monday to Friday, except US federal holidays, in New York time.
+8.3 GHXSTSHIP will give reasonable help with requests the Customer cannot answer through the Service. That includes finding, returning or erasing data about a person across tables, and about a person who has no account, on the Customer's written instruction through support@ghxstship.pro with "Privacy" in the subject line. GHXSTSHIP responds within 10 business days of that instruction, saying what it has done and anything it cannot do and why. Business days are Monday to Friday, except US federal holidays, in New York time.
 
 8.4 **A person's own account deletion.** A person can delete their own account in Gateway or Compass, and it takes effect at once. GHXSTSHIP does not route this to the Customer first, and the Customer gets no notice before it happens. The Customer instructs the effects below by accepting this DPA:
 
@@ -125,7 +125,7 @@ The Customer's only control before the deletion is an active legal hold, which r
 
 10.1 **Export during the term.** An Owner, using a second factor, can download an organization export at any time as one archive with a manifest. It holds JSON and CSV of the organization's tables, limited to the columns the Owner may read, and Clean files from the attachments store up to 500 files and 500 MB. The manifest counts what was left out. The export does not include Restricted columns, files in other stores or files past those limits. The Customer can also read Customer Personal Data through the Service and the public API.
 
-10.2 **Return of what the export omits.** At the Customer's choice, on a written request to the legal notices mailbox on the Contact Page made before deletion, GHXSTSHIP will return Customer Personal Data the export omits in a commonly used format within 30 days of the request, subject to security checks. A request made before deletion holds the deletion until the return is complete, as Section 11.2 of the Agreement says. While GHXSTSHIP returns the data, nobody in the Customer's organization can release that hold. To withdraw the request, the Customer writes to legal@ghxstship.tech. A request made after the organization's data has been purged cannot be met, and GHXSTSHIP says so.
+10.2 **Return of what the export omits.** At the Customer's choice, on a written request to support@ghxstship.pro with "Return of Data" in the subject line, made before deletion,, GHXSTSHIP will return Customer Personal Data the export omits in a commonly used format within 30 days of the request, subject to security checks. A request made before deletion holds the deletion until the return is complete, as Section 11.2 of the Agreement says. While GHXSTSHIP returns the data, nobody in the Customer's organization can release that hold. To withdraw the request, the Customer writes to support@ghxstship.pro. A request made after the organization's data has been purged cannot be met, and GHXSTSHIP says so.
 
 10.3 **Deletion.** An Owner's two actions lead to deletion, and so does any other ending of the Agreement:
 
@@ -195,11 +195,11 @@ Section 15 of the Agreement applies to this DPA as it applies to the Agreement. 
 
 **A. Parties**
 
-| Role                      | Party                                                                                                                                                                                                            |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data exporter             | The Customer, at the address and with the contact person in its account settings. Activities: using the Service to run its organization.                                                                         |
-| Data importer             | GHXSTSHIP Industries LLC, at the postal address on the Contact Page. Contact person: the privacy officer named on the Contact Page, through the privacy mailbox on that page. Activities: providing the Service. |
-| Role of the data importer | Processor (Module Two) or subprocessor (Module Three)                                                                                                                                                            |
+| Role                      | Party                                                                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data exporter             | The Customer, at the address and with the contact person in its account settings. Activities: using the Service to run its organization.                                                                                                              |
+| Data importer             | GHXSTSHIP Industries LLC, at the postal address on the Contact Page. Contact person: the privacy officer named on the Contact Page, through support@ghxstship.pro with "Privacy" in the subject line on that page. Activities: providing the Service. |
+| Role of the data importer | Processor (Module Two) or subprocessor (Module Three)                                                                                                                                                                                                 |
 
 **B. Description of transfer**
 

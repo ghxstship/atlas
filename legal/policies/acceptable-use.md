@@ -21,7 +21,7 @@ Employees, contractors and anyone else with access to GHXSTSHIP systems, includi
 - Use company systems for GHXSTSHIP business. Limited personal use is allowed if it does not affect security, performance or other people.
 - Follow the Information Security Policy and its supporting policies.
 - Protect information according to the Data Classification Policy.
-- Report suspected incidents, lost devices and phishing immediately to the person on call, through the on-call channel once it is connected, or otherwise by email to security@ghxstship.tech.
+- Report suspected incidents, lost devices and phishing immediately to the person on call, through the on-call channel once it is connected, or otherwise by email to support@ghxstship.pro.
 
 ## 3. Accounts and Credentials
 

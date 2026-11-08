@@ -25,7 +25,7 @@ Atlas 4.0 is the internal web application of XOS 4.0, used by organization membe
 
 ## Contact Information
 
-GHXSTSHIP Industries LLC. Accessibility questions go to the accessibility mailbox listed on our contact page at /legal/contact, with a response within 5 business days as our Accessibility Statement commits.
+GHXSTSHIP Industries LLC. Accessibility questions go to support@ghxstship.pro with "Accessibility" in the subject line, with a response within 5 business days as our Accessibility Statement commits.
 
 ## Notes
 
@@ -227,14 +227,14 @@ The WCAG tables also report Section 508 Chapter 5 (501.1) and Chapter 6 (602.3),
 
 ### Chapter 6: Support Documentation and Services
 
-| Criteria                                                         | Conformance Level | Remarks and Explanations                                                                                                         |
-| ---------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 601.1 Scope                                                      | Supports          | Heading only; see 602 and 603.                                                                                                   |
-| 602.2 Accessibility and Compatibility Features                   | Supports          | The help center documents keyboard shortcuts, themes and accessibility settings.                                                 |
-| 602.3 Electronic Support Documentation                           | Supports          | The documentation site and help center are web content built on the same design system; they are not covered by this audit pass. |
-| 602.4 Alternate Formats for Non-Electronic Support Documentation | Supports          | Support documentation is electronic; alternate formats are provided on request through the accessibility mailbox.                |
-| 603.2 Information on Accessibility and Compatibility Features    | Supports          | Support staff answer accessibility questions through the accessibility mailbox within 5 business days (Accessibility Statement). |
-| 603.3 Accommodation of Communication Needs                       | Supports          | Support works by email, web form and in-app ticket, so no single channel is required.                                            |
+| Criteria                                                         | Conformance Level | Remarks and Explanations                                                                                                                                              |
+| ---------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 601.1 Scope                                                      | Supports          | Heading only; see 602 and 603.                                                                                                                                        |
+| 602.2 Accessibility and Compatibility Features                   | Supports          | The help center documents keyboard shortcuts, themes and accessibility settings.                                                                                      |
+| 602.3 Electronic Support Documentation                           | Supports          | The documentation site and help center are web content built on the same design system; they are not covered by this audit pass.                                      |
+| 602.4 Alternate Formats for Non-Electronic Support Documentation | Supports          | Support documentation is electronic; alternate formats are provided on request through support@ghxstship.pro with "Accessibility" in the subject line.                |
+| 603.2 Information on Accessibility and Compatibility Features    | Supports          | Support staff answer accessibility questions through support@ghxstship.pro with "Accessibility" in the subject line within 5 business days (Accessibility Statement). |
+| 603.3 Accommodation of Communication Needs                       | Supports          | Support works by email, web form and in-app ticket, so no single channel is required.                                                                                 |
 
 ## EN 301 549 Report
 

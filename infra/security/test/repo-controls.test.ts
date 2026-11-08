@@ -369,7 +369,7 @@ describe("the disclosure contact", () => {
       Date.parse(expires),
       "Renew Expires in security.txt, less than a year ahead.",
     ).toBeGreaterThan(Date.now());
-    expect(read("SECURITY.md")).toContain("security@ghxstship.tech");
+    expect(read("SECURITY.md")).toContain("support@ghxstship.pro");
   });
 
   describe("the way in if the mailbox fails", () => {
@@ -399,7 +399,7 @@ describe("the disclosure contact", () => {
       const link = /^ {4}url: (.+)$/m.exec(chooser)?.[1];
       expect(link).toBe("https://github.com/ghxstship/atlas/security/policy");
       const about = /^ {4}about: (.+)$/m.exec(chooser)?.[1] ?? "";
-      expect(about).toContain("security@ghxstship.tech");
+      expect(about).toContain("support@ghxstship.pro");
       expect(about).toContain("use the form on this page");
       expect(about).not.toMatch(/never in a public issue/i);
     });
