@@ -20,7 +20,8 @@
     "types:check": "node --experimental-strip-types --no-warnings scripts/generate-types.ts --check",
     "enums:generate": "node --experimental-strip-types --no-warnings scripts/generate-enums.ts",
     "documents:fonts": "node --experimental-strip-types --no-warnings scripts/generate-document-fonts.ts",
-    "documents:verapdf": "node --experimental-strip-types --no-warnings scripts/verapdf-documents.ts"
+    "documents:verapdf": "node --experimental-strip-types --no-warnings scripts/verapdf-documents.ts",
+    "content-filter:migration": "node --experimental-strip-types --no-warnings scripts/content-filter-migration.ts"
   },
   "dependencies": {
     "@supabase/realtime-js": "2.117.3",
