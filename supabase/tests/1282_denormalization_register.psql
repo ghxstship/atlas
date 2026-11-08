@@ -427,6 +427,7 @@ insert into register_restated values
   ('private.block_release_reminders_sent.release_on', 'app.accommodation_blocks.release_on', 'fact'),
   ('private.file_download_tickets.attachment_version_id', 'app.share_links.attachment_version_id', 'fact'),
   ('private.file_download_tickets.expires_at', 'app.share_links.expires_at', 'own'),
+  ('private.guest_needs_disowned.person_id', 'app.guest_list_entries.person_id', 'own'),
   ('private.live_link_grants.expires_at', 'app.live_links.expires_at', 'own'),
   ('private.notification_action_codes.delivery_id', 'private.notification_action_tokens.delivery_id', 'own'),
   ('private.notification_action_codes.expires_at', 'private.notification_action_tokens.expires_at', 'own'),

@@ -37532,6 +37532,22 @@ export class SensitiveConsentsResource extends $Resource {
   }
 
   /**
+   * Say a guest list entry is about someone else
+   *
+   * For the person a guest's needs name by their verified email, through `app.disown_sensitive_entry`: their name and email come off the entry, which never names them again, and the guest's needs and the keeper's attestation stay. Returns the attestation, which still stands. Refuses 422 sensitive_entry_not_yours, and sensitive_entry_not_guest for a company's attestation, which names the person it rosters. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /sensitive-consents/{id}/disown` (operation `sensitiveConsents.disown`).
+   * Requires the capability `me.work_details.write`.
+   */
+  disown(id: string, options?: $MutationOptions): Promise<$ApiResponse<SensitiveConsent>> {
+    return this.client.request<SensitiveConsent>(
+      $OPERATIONS["sensitiveConsents.disown"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
    * Consent state per sensitive field
    *
    * For holders of data.request.manage in the org, through `app.sensitive_consent_report`: the people who share a category with it, the people it rosters (their meal preference), the guests and people it attested for, and the owners of certifications shared with it. Never a value. A person's own consent shows only where they shared the category with the org, or against a meal preference on its project; otherwise No Record. A rule that refuses the request returns 422 with `refusal` and `reason`.

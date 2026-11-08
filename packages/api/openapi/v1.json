@@ -154594,6 +154594,72 @@
         }
       }
     },
+    "/sensitive-consents/{id}/disown": {
+      "post": {
+        "operationId": "sensitiveConsents.disown",
+        "tags": ["Identity"],
+        "x-xos-table": "app.sensitive_data_consents",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Say a guest list entry is about someone else",
+        "description": "For the person a guest's needs name by their verified email, through `app.disown_sensitive_entry`: their name and email come off the entry, which never names them again, and the guest's needs and the keeper's attestation stay. Returns the attestation, which still stands. Refuses 422 sensitive_entry_not_yours, and sensitive_entry_not_guest for a company's attestation, which names the person it rosters. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sensitive consent.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sensitive consent.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "category": "Dietary and Allergies",
+                  "basis": "Own Consent",
+                  "account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_list_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "notice_version": "2026-11-06",
+                  "locale": "en-US",
+                  "surface": "Atlas",
+                  "authority_confirmed": false,
+                  "notice_confirmed": false,
+                  "given_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "given_at": "2026-10-08T14:30:00Z",
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SensitiveConsent" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/sensitive-consents/report": {
       "get": {
         "operationId": "sensitiveConsents.report",

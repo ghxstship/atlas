@@ -1463,6 +1463,7 @@ export type OperationId =
   | "sensitiveConsents.create"
   | "sensitiveConsents.get"
   | "sensitiveConsents.withdraw"
+  | "sensitiveConsents.disown"
   | "sensitiveConsents.report"
   | "sensitiveFieldRecords.list"
   | "workDetails.list"
@@ -35239,6 +35240,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "me.work_details.write",
     scopes: ["me"],
   },
+  "sensitiveConsents.disown": {
+    id: "sensitiveConsents.disown",
+    resource: "sensitiveConsents",
+    verb: "disown",
+    method: "POST",
+    path: "/sensitive-consents/{id}/disown",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "SensitiveConsent",
+    item: null,
+    tag: "Identity",
+    summary: "Say a guest list entry is about someone else",
+    capability: "me.work_details.write",
+    scopes: ["me"],
+  },
   "sensitiveConsents.report": {
     id: "sensitiveConsents.report",
     resource: "sensitiveConsents",
@@ -44599,6 +44623,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "sensitiveConsents.create",
       "sensitiveConsents.get",
       "sensitiveConsents.withdraw",
+      "sensitiveConsents.disown",
       "sensitiveConsents.report",
     ],
   },

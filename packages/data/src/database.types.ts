@@ -72872,6 +72872,7 @@ export type Database = {
         Args: { p_inbound_message_id: string; p_reason?: string };
         Returns: undefined;
       };
+      disown_sensitive_entry: { Args: { p_consent_id: string }; Returns: undefined };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;

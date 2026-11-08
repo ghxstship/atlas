@@ -34824,6 +34824,22 @@ class SensitiveConsentsResource(Resource):
         """
         return self._client.request(OPERATIONS["sensitiveConsents.withdraw"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
+    def disown(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SensitiveConsent]:
+        """Say a guest list entry is about someone else
+
+        For the person a guest's needs name by their verified email, through `app.disown_sensitive_entry`: their name and email come off the entry, which never names them again, and the guest's needs and the keeper's attestation stay. Returns the attestation, which still stands. Refuses 422 sensitive_entry_not_yours, and sensitive_entry_not_guest for a company's attestation, which names the person it rosters. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /sensitive-consents/{id}/disown`` (operation ``sensitiveConsents.disown``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["sensitiveConsents.disown"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
     def report(
         self,
         *,

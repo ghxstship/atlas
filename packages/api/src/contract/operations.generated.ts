@@ -26121,6 +26121,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["SensitiveConsent"] };
   };
+  "sensitiveConsents.disown": {
+    module: "Identity";
+    method: "post";
+    path: "/sensitive-consents/{id}/disown";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SensitiveConsent"] };
+  };
   "sensitiveConsents.report": {
     module: "Identity";
     method: "get";
@@ -30384,6 +30393,7 @@ export interface ModuleOperations {
     | "sensitiveConsents.create"
     | "sensitiveConsents.get"
     | "sensitiveConsents.withdraw"
+    | "sensitiveConsents.disown"
     | "sensitiveConsents.report"
     | "sensitiveFieldRecords.list"
     | "workDetails.list"

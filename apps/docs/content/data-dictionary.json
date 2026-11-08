@@ -67278,7 +67278,7 @@
           "type": "app.sensitive_consent_basis"
         },
         {
-          "comment": "Person the data is about; NULL for a company, or for a guest with no account.",
+          "comment": "Person the data is about; NULL for a company, for a guest with no account, or once the person an email matched said the guest is someone else.",
           "name": "person_id",
           "nullable": true,
           "references": "app.people.id",
