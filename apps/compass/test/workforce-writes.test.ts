@@ -176,7 +176,7 @@ describe("journey 66: claiming open shifts", () => {
 
 describe("objectionable language before a write is queued (migration 6195)", () => {
   it("finds a slur in a chat message or a shout-out, folded as the database folds it", () => {
-    expect(holdsObjectionableText("send_chat_message", { p_body: "Shut up, $p1c." })).toBe(true);
+    expect(holdsObjectionableText("send_chat_message", { p_body: "Shut up, b3an3r." })).toBe(true);
     expect(holdsObjectionableText("recognize", { p_message: "Thanks, you sudaca." })).toBe(true);
   });
 
@@ -186,7 +186,7 @@ describe("objectionable language before a write is queued (migration 6195)", () 
     );
     expect(holdsObjectionableText("send_chat_message", { p_body: 42 })).toBe(false);
     expect(holdsObjectionableText("recognize", {})).toBe(false);
-    expect(holdsObjectionableText("log_lost_item", { p_description: "Shut up, spic." })).toBe(
+    expect(holdsObjectionableText("log_lost_item", { p_description: "Shut up, beaner." })).toBe(
       false,
     );
   });

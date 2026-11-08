@@ -14,6 +14,10 @@
 --     them, marketplace listings, and person and organization profiles. It refuses the write with a plain sentence
 --     (content_objectionable) and never alters the text. An update is checked only when the text itself changes, so
 --     a later term never blocks other changes to an older row.
+--   * private.suggest_handle (0860) again, so a handle XOS makes from a person's name or an org's slug never holds a
+--     listed term: such a base falls back to member or company, as a name too short for a handle already does.
+--     app.ensure_my_profile and app.ensure_organization_profile create profiles with it, and the person never typed
+--     that handle, so the filter must never refuse it.
 -- No row records what was refused: the text never reaches the database, and the person sees the refusal at once.
 
 create table private.objectionable_terms (
@@ -144,33 +148,61 @@ create trigger t36_refuse_objectionable_text
 create trigger t36_refuse_objectionable_text before insert or update of handle, about on app.organization_profiles
   for each row execute function private.refuse_objectionable_text('handle', 'about');
 
+-- Handles XOS makes ------------------------------------------------------------------------------------------------------
+
+create or replace function private.suggest_handle(p_kind app.handle_kind, p_base text)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_base text := left(trim(both '-' from regexp_replace(regexp_replace(lower(coalesce(p_base, '')), '[^a-z0-9]+', '-', 'g'), '-{2,}', '-', 'g')), 30);
+  v_try text;
+  i integer := 0;
+begin
+  if char_length(v_base) < 3 or private.objectionable_term(v_base) is not null then
+    v_base := case when p_kind = 'Person' then 'member' else 'company' end;
+  end if;
+  loop
+    v_try := case when i = 0 then v_base else v_base || '-' || (1000 + floor(random() * 9000))::integer end;
+    exit when private.objectionable_term(v_try) is null
+      and not exists (select 1 from private.reserved_org_slugs r where r.slug = v_try)
+      and not exists (select 1 from private.handle_redirects r where r.handle_kind = p_kind and r.handle = v_try and r.expires_at > now())
+      and not exists (select 1 from app.person_profiles p where p_kind = 'Person' and p.handle = v_try)
+      and not exists (select 1 from app.organization_profiles o where p_kind = 'Organization' and o.handle = v_try);
+    i := i + 1;
+    if i > 50 then
+      perform private.refuse('handle_unavailable', 'No free handle was found; choose one yourself.');
+    end if;
+  end loop;
+  return v_try;
+end;
+$$;
+
+comment on function private.suggest_handle(app.handle_kind, text) is 'A free handle derived from a name: the name in lowercase with hyphens, then with a random four-digit suffix until free. A name that gives fewer than three characters, or a base that holds a term the objectionable language filter refuses (6195), gives member or company instead, so a profile XOS creates is never refused for a handle the person did not choose.';
+revoke all on function private.suggest_handle(app.handle_kind, text) from public, anon, authenticated;
+
 -- The list ---------------------------------------------------------------------------------------------------------------
 -- objectionable-terms: generated from packages/data/src/objectionable-terms.ts; do not edit by hand.
 select private.load_objectionable_terms($terms$[
   {"term":"beaner","language":"en"},
   {"term":"cunt","language":"en"},
-  {"term":"dyke","language":"en"},
   {"term":"fag","language":"en"},
   {"term":"faggot","language":"en"},
-  {"term":"gook","language":"en"},
   {"term":"heil hitler","language":"en"},
   {"term":"jigaboo","language":"en"},
-  {"term":"kike","language":"en"},
   {"term":"nigga","language":"en"},
   {"term":"nigger","language":"en"},
-  {"term":"paki","language":"en"},
   {"term":"porch monkey","language":"en"},
   {"term":"raghead","language":"en"},
-  {"term":"retard","language":"en"},
   {"term":"shemale","language":"en"},
   {"term":"sieg heil","language":"en"},
-  {"term":"spic","language":"en"},
   {"term":"towelhead","language":"en"},
   {"term":"wetback","language":"en"},
   {"term":"joto","language":"es"},
-  {"term":"marica","language":"es"},
   {"term":"maricon","language":"es"},
-  {"term":"mayate","language":"es"},
   {"term":"negrata","language":"es"},
   {"term":"sudaca","language":"es"}
 ]$terms$::jsonb);

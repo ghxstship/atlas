@@ -38,7 +38,7 @@ describe("the objectionable language filter (App Store Review Guideline 1.2)", (
     expect(objectionableTerm("those F4GS again")).toBe("fag");
     expect(objectionableTerm("Sieg   Heil!")).toBe("sieg heil");
     expect(objectionableTerm("son unos maricones")).toBe("maricon");
-    expect(objectionableTerm("retards")).toBe("retard");
+    expect(objectionableTerm("towelheads")).toBe("towelhead");
     expect(holdsObjectionableLanguage(null, "fine", "w3tback")).toBe(true);
   });
 
@@ -58,6 +58,22 @@ describe("the objectionable language filter (App Store Review Guideline 1.2)", (
     expect(objectionableTerm(null)).toBeNull();
     expect(objectionableTerm(undefined)).toBeNull();
     expect(holdsObjectionableLanguage("Load-in at noon")).toBe(false);
+  });
+
+  it("lets names and phrases through that are also slurs, since the filter refuses with nobody to override it", () => {
+    for (const fine of [
+      "Kike Ramírez runs the dock",
+      "kike-ramirez",
+      "Dick Van Dyke tribute night",
+      "Spic and Span cleaning crew",
+      "Retard the ignition timing",
+      "Paki Kahananui on follow spot",
+      "Wipe the gook off the lens",
+      "Un mayate en la carpa",
+      "Marica Novak, stagehand",
+    ]) {
+      expect(objectionableTerm(fine), fine).toBeNull();
+    }
   });
 
   it("checks against another list, and an empty list finds nothing", () => {
