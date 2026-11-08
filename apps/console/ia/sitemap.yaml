@@ -13,12 +13,13 @@ params:
   orgId: { type: uuid }
   sessionId: { type: uuid }
   opportunityId: { type: uuid }
+  itemId: { type: uuid }
 audience:
   dimension: operator-role
   roles: [administrator, support, trust-and-safety]
 chrome:
   topBar:
-    [tenants, metrics, flags, territories, support, moderation, banners, funnels, team, activity]
+    [tenants, metrics, flags, territories, support, moderation, legal-queue, banners, funnels, team, activity]
 nodes:
   - id: console
     kind: group
@@ -82,6 +83,17 @@ nodes:
                 kind: record
                 label: nav.console.ratingDispute
                 route: /rating-disputes/{disputeId}
+      - id: legal-queue
+        kind: page
+        label: nav.console.legalQueue
+        route: /legal-queue
+        visibility: { administrator: full, support: hidden, trust-and-safety: hidden }
+        list: { views: [table], default: table }
+        children:
+          - id: legal-queue.item
+            kind: record
+            label: nav.console.legalQueueItem
+            route: /legal-queue/{itemId}
       - id: banners
         kind: page
         label: nav.console.banners

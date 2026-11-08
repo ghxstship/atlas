@@ -15,7 +15,8 @@ import { IDLE, type ActionState } from "@/lib/action-state";
 /**
  * A console form over a server action (Section 11.7): it posts natively before hydration, shows the action's error
  * as a sentence from the catalog (a refusal by its rule, else a general one) and confirms success in a live region.
- * The database decides every rule; this only says what it decided.
+ * The database decides every rule; this only says what it decided. Submitting through onSubmit keeps what the operator
+ * typed when the database refuses, which a bare form action would wipe; `action` stays so it still posts unhydrated.
  */
 export function ActionForm({
   action,

@@ -23,11 +23,11 @@ import {
 import { guestNeedsCsv, parseGuestNeedsForm } from "../src/work-details-forms.ts";
 
 const CONSENT_SQL = readFileSync(
-  new URL("../../../supabase/migrations/6160_sensitive_data_consent.sql", import.meta.url),
+  new URL("../../../supabase/migrations/6850_sensitive_data_consent.sql", import.meta.url),
   "utf8",
 );
 const GUEST_SQL = readFileSync(
-  new URL("../../../supabase/migrations/6162_guest_needs_and_attestation.sql", import.meta.url),
+  new URL("../../../supabase/migrations/6852_guest_needs_and_attestation.sql", import.meta.url),
   "utf8",
 );
 

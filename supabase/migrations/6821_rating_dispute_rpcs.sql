@@ -1,4 +1,4 @@
--- 6146_rating_dispute_rpcs.sql
+-- 6821_rating_dispute_rpcs.sql
 -- RRR-248, ADR 0158. The route a rated person disputes a rating through (6820 holds the table):
 --   * app.file_rating_dispute: the rated person, once per rating, once it is released.
 --   * app.respond_to_rating_dispute: the org that gave the rating answers once. It cannot decide.

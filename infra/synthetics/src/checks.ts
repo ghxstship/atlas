@@ -253,6 +253,45 @@ export const notificationsReachable: CheckDefinition = {
   },
 };
 
+export const legalQueueHeartbeat: CheckDefinition = {
+  id: "legal_queue.heartbeat",
+  component: "notifications",
+  requires: ["SUPABASE_URL", "SUPABASE_ANON_KEY", "XOS_SYNTHETIC_EMAIL", "XOS_SYNTHETIC_PASSWORD"],
+  budgetMs: 1000,
+  required: true,
+  internal: true,
+  runbook: `${RUNBOOK}#legal-queue-heartbeat-failing`,
+  async probe(context) {
+    // A stopped pg_cron cannot raise an alert about itself, and the queue page warns only someone who opens it. The answer
+    // is booleans about the machinery, and nothing about any item.
+    const token = await accessToken(context);
+    if (typeof token !== "string") return token;
+    const response = await request(
+      context,
+      `${base(context.env["SUPABASE_URL"])}/rest/v1/rpc/legal_queue_heartbeat`,
+      {
+        method: "POST",
+        headers: {
+          apikey: context.env["SUPABASE_ANON_KEY"] ?? "",
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          "content-profile": "api_public",
+        },
+        body: "{}",
+      },
+    );
+    const bad = expectStatus(response, 200);
+    if (bad) return bad;
+    const beat = (await response.json()) as Record<string, unknown>;
+    if (beat["sweep_ok"] !== true) return failed("sweep_stale");
+    if (beat["feeds_ok"] !== true) return failed("feed_failing");
+    if (beat["alert_path_ok"] !== true) return failed("alert_path_failing");
+    if (beat["email_ok"] !== true) return failed("alert_email_stuck_or_failed");
+    if (beat["recipient_ok"] !== true) return failed("no_alert_recipient");
+    return ok;
+  },
+};
+
 /** Checks in run order: sign-in runs before the API read that reuses its token. */
 export const CHECKS: readonly CheckDefinition[] = [
   atlasSignIn,
@@ -263,4 +302,5 @@ export const CHECKS: readonly CheckDefinition[] = [
   realtimeJoin,
   syncLiveness,
   notificationsReachable,
+  legalQueueHeartbeat,
 ];

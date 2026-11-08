@@ -529,6 +529,7 @@
     "legal_hold_table_unknown": "Elija datos que tengan un período de retención.",
     "legal_hold_released": "Esta retención ya está levantada.",
     "legal_hold_immutable": "Una retención nunca se edita, solo se levanta.",
+    "legal_hold_queue": "GHXSTSHIP puso esta retención mientras devuelve los datos que su exportación dejó fuera. Se levanta cuando termina la devolución. Para retirar la solicitud, escriba a legal@ghxstship.tech.",
     "department_unknown": "Uno de los departamentos no está en el canon.",
     "discipline_unknown": "Una de las disciplinas no está en el canon.",
     "discipline_department_not_in_use": "Elija también el departamento de cada disciplina.",

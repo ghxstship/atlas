@@ -1,4 +1,4 @@
--- 6160_sensitive_data_consent.sql
+-- 6850_sensitive_data_consent.sql
 -- RRR-248 issue 5, ADR 0164. Allergies, dietary needs, accessibility needs and supplier diversity status could be typed in
 -- with no consent wording. This adds the recorded, specific, withdrawable consent that every entry point now passes.
 --

@@ -217,6 +217,28 @@ describe("Edge Function bundles", () => {
     }
   });
 
+  it("send a reporter the appeal sentence the email catalog has now, in both locales (1473)", () => {
+    // notification-dispatch formats listing_report.decided from the vendored copy, not the catalog, so a
+    // copy change without bundle:edge would still send the old sentence.
+    const fn = graph("notification-dispatch");
+    const sent = [...fn.boot, ...fn.lazy].map((file) => readEdgeFile(file) ?? "").join("\n");
+    for (const locale of ["en-US", "es-US"]) {
+      const email = JSON.parse(
+        readFileSync(new URL(`../../i18n/messages/${locale}/email.json`, import.meta.url), "utf8"),
+      ) as { kinds: { listing_report: { decided: { body: string } } } };
+      const body = JSON.stringify(email.kinds.listing_report.decided.body);
+      expect(
+        sent.includes(body),
+        `${locale} listing_report.decided.body is stale; run bundle:edge`,
+      ).toBe(true);
+    }
+    // The old copy promised every reporter an appeal and ended there, without abuse@.
+    expect(
+      /within six months\."|en un plazo de seis meses\."/.test(sent),
+      "the old appeal sentence",
+    ).toBe(false);
+  });
+
   it("never bundle a whole message catalog, only the namespaces the functions use", () => {
     for (const [path, text] of committedEdgeFiles()) {
       expect(text, path).not.toContain("i18n/src/catalogs.generated");

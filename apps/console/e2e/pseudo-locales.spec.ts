@@ -83,7 +83,18 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
   );
   const listing = await reportedListing();
   const email = await newOperator("Administrator", "Ada Administrator");
-  const data = withText(await databaseText(DATABASE_URL), [listing.title, email]);
+  const [legalItem] = await sql<{ id: string }>(
+    `select private.open_legal_queue_item('security_report', 'Open redirect report', now()) as id`,
+  );
+  const [legalReference] = await sql<{ reference: string }>(
+    `select reference from app.legal_queue_items where id = $1`,
+    [legalItem?.id],
+  );
+  const data = withText(await databaseText(DATABASE_URL), [
+    listing.title,
+    email,
+    legalReference?.reference ?? "",
+  ]);
 
   problems.push(...(await check(page, base, "/auth/sign-in", data)));
 
@@ -103,6 +114,7 @@ test("every console route shows no hard-coded or clipped string", async ({ page,
     orgId: DEMO.org,
     sessionId: session?.id as string,
     opportunityId: listing.id,
+    itemId: legalItem?.id as string,
   };
   const paths = flattenRoutes(sitemap).flatMap((r) => {
     const path = fillRoute(r.route, params);

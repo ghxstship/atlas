@@ -1,4 +1,4 @@
--- 6155_minimum_age_18_and_first_use_choices.sql
+-- 6840_minimum_age_18_and_first_use_choices.sql
 -- RRR-248, legal issue 4: Compass recorded no acceptance and asked no age, and the documents, Google Play and the AI text
 -- disagreed about the age. One minimum age of 18 now holds for every XOS account in every app, and Compass asks before
 -- anything else. This migration:

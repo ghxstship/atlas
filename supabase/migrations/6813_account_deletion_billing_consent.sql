@@ -1,4 +1,4 @@
--- 6143_account_deletion_billing_consent.sql
+-- 6813_account_deletion_billing_consent.sql
 -- Legal billing issue 1 (RRR-248, ADR 0161 D6.4): account deletion says what it keeps (SIM-004), and a renewal consent
 -- (6811) keeps the person's sign-in email and initials as evidence of what was agreed. app.delete_my_account leaves it, so
 -- the list Compass and Gateway show before and after deletion names it whenever the person agreed to one.

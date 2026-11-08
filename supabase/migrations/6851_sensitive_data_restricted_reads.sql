@@ -1,4 +1,4 @@
--- 6161_sensitive_data_restricted_reads.sql
+-- 6851_sensitive_data_restricted_reads.sql
 -- RRR-248 issue 5, ADR 0164 (extends ADR 0105). Who reads sensitive data, once a person has consented.
 --
 --   * Dietary needs, dietary notes, accessibility needs, accessibility notes and a roster entry's meal preference join

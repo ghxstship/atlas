@@ -416,6 +416,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     title: "Festival Riggers",
     outcome: "Upheld",
     statement: "The fee request breaks the marketplace rules.",
+    reviewer: "same",
+    reviewerName: "",
   },
   // Rating disputes (ADR 0158, 6821).
   "rating_dispute.filed": { ground: "False Statement", project: "Summer Series" },

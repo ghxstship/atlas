@@ -35,7 +35,7 @@ import type { NotificationKindRegistry } from "./model.ts";
  * billing.cancellation_delayed; 6810, 6811, ADR 0161), with the transactional billing_notice email no setting or
  * unsubscribe stops, the rating dispute notices rating_dispute.filed and
  * rating_dispute.decided (6821, ADR 0158), the sensitive data notices account.sensitive_data_attested and account.sensitive_consent_needed
- * (ADR 0164, 6852 and 6853), and carries 6799's. Each sits at the top of its train's block so the highest
+ * (ADR 0164, 6852 and 6853), the legal queue's legal_clock_alert and moderation_notice emails (ADR 0167), and carries 6799's. Each sits at the top of its train's block so the highest
  * seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =

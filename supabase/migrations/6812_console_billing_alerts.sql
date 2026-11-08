@@ -1,4 +1,4 @@
--- 6142_console_billing_alerts.sql
+-- 6812_console_billing_alerts.sql
 -- Legal billing issue 1 (RRR-248, ADR 0161): the operator console lists open billing alerts, so the platform owner can see
 -- them whether or not the email reached anyone, and closes one once it is dealt with, such as a charge refunded by hand.
 

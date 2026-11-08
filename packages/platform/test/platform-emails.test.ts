@@ -156,6 +156,134 @@ describe("platform emails", () => {
     }
   });
 
+  it("sends the legal queue's digest in the clock's own time zone, with a link for an operator", async () => {
+    const transport = new RecordingTransport();
+    const items = [
+      {
+        reference: "LQ-2026-00001",
+        matter: "Security Report",
+        clock: "First Response",
+        // The last second of 12 November in New York is already 13 November in UTC.
+        clock_at: "2026-11-13T04:59:59Z",
+        overdue: false,
+      },
+    ];
+    const { s, finished } = store([
+      {
+        id: "e5",
+        template: "legal_clock_alert",
+        to: "owner@example.test",
+        locale: "en-US",
+        args: {
+          items,
+          overdue: 0,
+          due_soon: 1,
+          audience: "operator",
+          time_zone: "America/New_York",
+        },
+      },
+      {
+        id: "e6",
+        template: "legal_clock_alert",
+        to: "backup@example.test",
+        locale: "es-US",
+        args: {
+          items: [
+            {
+              reference: "LQ-2026-00001",
+              clock: "Due",
+              clock_at: "2026-11-13T04:59:59Z",
+              overdue: true,
+            },
+          ],
+          overdue: 1,
+          due_soon: 0,
+          audience: "backup",
+          time_zone: "America/New_York",
+        },
+      },
+    ]);
+    const summary = await dispatchPlatformEmails(s, transport, {
+      ...OPTIONS,
+      consoleUrl: "https://console.xos.test",
+    });
+    expect(summary).toEqual({ attempted: 2, sent: 2, failed: 0 });
+    expect(finished.every((f) => f[1])).toBe(true);
+    const [operator, backup] = transport.sent;
+    expect(operator?.subject).toBe("XOS legal queue: 1 clock is coming due");
+    expect(operator?.text).toContain(
+      "LQ-2026-00001, security report: first response due November 12, 2026",
+    );
+    expect(operator?.html).toContain("https://console.xos.test/legal-queue");
+    expect(backup?.subject).toBe("Cola legal de XOS: 1 plazo está vencido");
+    expect(backup?.text).toContain("LQ-2026-00001: vence el 12 de noviembre de 2026");
+    expect(backup?.text).toContain("Vencido.");
+    expect(backup?.html).not.toContain("console.xos.test");
+  });
+
+  it("sends a statement of reasons by email when the notification queue reached nobody", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([
+      {
+        id: "e8",
+        template: "moderation_notice",
+        to: "carol@org.test",
+        locale: "es-US",
+        args: {
+          kind: "listing.moderated",
+          values: {
+            title: "Summer Series Riggers",
+            action: "Removed",
+            ground: "Terms Violation",
+            ruleReference: "Acceptable Use Policy 3.2",
+            statement: "Pide una tarifa.",
+            actorName: "XOS",
+          },
+        },
+      },
+    ]);
+    expect(await dispatchPlatformEmails(s, transport, OPTIONS)).toEqual({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+    expect(transport.sent[0]?.subject).toBe("Retiramos tu anuncio Summer Series Riggers");
+    expect(transport.sent[0]?.text).toContain("Pide una tarifa.");
+  });
+
+  it("sends a moderation outcome in the notice's own words to someone the queue cannot reach", async () => {
+    const transport = new RecordingTransport();
+    const { s } = store([
+      {
+        id: "e7",
+        template: "moderation_notice",
+        to: "rae@reporter.test",
+        locale: "en-US",
+        args: {
+          kind: "moderation_appeal.decided",
+          values: {
+            title: "Summer Series Riggers",
+            outcome: "Reversed",
+            statement: "The fee is charged.",
+            reviewer: "same",
+            reviewerName: "",
+            actorName: "XOS",
+          },
+        },
+      },
+    ]);
+    expect(await dispatchPlatformEmails(s, transport, OPTIONS)).toEqual({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+    expect(transport.sent[0]?.subject).toBe("We reversed our decision on Summer Series Riggers");
+    expect(transport.sent[0]?.text).toContain(
+      "The person who made the first decision did this review",
+    );
+    expect(transport.sent[0]?.headers?.["List-Unsubscribe"]).toBeUndefined();
+  });
+
   it("records a failure instead of dropping it", async () => {
     const { s, finished } = store([
       {

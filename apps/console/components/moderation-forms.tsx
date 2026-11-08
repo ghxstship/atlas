@@ -119,18 +119,30 @@ export function DecideAppealForm({
   opportunityId,
   appealId,
   reversesNoAction,
+  outsideReviewerName,
 }: {
   opportunityId: string;
   appealId: string;
   reversesNoAction: boolean;
+  /** The named outside reviewer the appeal goes to; the operator then records their decision. */
+  outsideReviewerName: string | null;
 }) {
   const t = useTranslations("console");
   const [outcome, setOutcome] = useState<"Upheld" | "Reversed">("Upheld");
   return (
     <ActionForm
       action={decideAppealAction}
-      hidden={{ opportunityId, appealId }}
-      submitLabel={t("moderation.decideAppeal")}
+      hidden={{
+        opportunityId,
+        appealId,
+        // While a reviewer is appointed, this form can only record their decision, and its button says so.
+        ...(outsideReviewerName ? { outsideReviewerDecided: "yes" } : {}),
+      }}
+      submitLabel={
+        outsideReviewerName
+          ? t("moderation.recordOutside", { name: outsideReviewerName })
+          : t("moderation.decideAppeal")
+      }
       successLabel={t("moderation.appealDecided")}
       label={t("moderation.decideAppeal")}
       testId="decide-appeal"
@@ -145,6 +157,16 @@ export function DecideAppealForm({
           { value: "Reversed", label: t("moderation.reverse") },
         ]}
         onChange={(e) => setOutcome(e.target.value === "Reversed" ? "Reversed" : "Upheld")}
+      />
+      <Textarea
+        id={`appeal-${appealId}-re-review`}
+        name="reReviewNotes"
+        label={t("moderation.reReview")}
+        help={t("moderation.reReviewHelp")}
+        maxLength={4000}
+        rows={3}
+        required
+        width="100%"
       />
       <Textarea
         id={`appeal-${appealId}-statement`}

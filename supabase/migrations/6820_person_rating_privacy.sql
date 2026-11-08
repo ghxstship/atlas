@@ -1,4 +1,4 @@
--- 6145_person_rating_privacy.sql
+-- 6820_person_rating_privacy.sql
 -- RRR-248, ADR 0158. A rating an org gives a named person may be a consumer report once another org can read it on a
 -- platform used for hiring (15 U.S.C. 1681a), so an org's rating of a person stays with the org that gave it:
 --   * private.rating_is_of_individual says when an org's rating is of a person: the engagement names a person and either

@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-11-06
 - Decider: Issue 3 of the AI legal audit (RRR-248), on the owner's instruction to take the most future-proof, defensible option. Made by AI; no attorney has reviewed it.
-- Migration: `6150_offered_territories.sql`
+- Migration: `6830_offered_territories.sql`
 - Amends: ADR 0053 (Beta locales are choices only while a territory holding them is open); ADR 0037 (a run with no locale named skips a closed territory's locale)
 
 ## Context

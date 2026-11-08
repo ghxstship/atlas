@@ -575,6 +575,8 @@
     "supportSession": "Support Session",
     "moderation": "Moderation",
     "listing": "Reported Listing",
+    "legalQueue": "Legal Queue",
+    "legalQueueItem": "Legal Queue Item",
     "banners": "System Banners",
     "funnels": "Funnels",
     "team": "Platform Team",

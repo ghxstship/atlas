@@ -5,7 +5,9 @@ import {
   errorDetail,
   failingRequired,
   formatAlerts,
+  legalQueueHeartbeat,
   parseHistory,
+  publicResults,
   recordRun,
   runChecks,
   type CheckDefinition,
@@ -57,6 +59,14 @@ function healthyRoutes(): Record<string, Route> {
     "https://sync.test/probes/liveness": () => new Response("ok"),
     "https://sync.test/probes/readiness": () => new Response("ok"),
     "https://ref.supabase.test/functions/v1/notification-dispatch": () => json({}, 401),
+    "https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat": () =>
+      json({
+        sweep_ok: true,
+        feeds_ok: true,
+        alert_path_ok: true,
+        email_ok: true,
+        recipient_ok: true,
+      }),
   };
 }
 
@@ -118,6 +128,7 @@ describe("runChecks", () => {
       ["realtime.join", "pass"],
       ["sync.liveness", "pass"],
       ["notifications.function", "pass"],
+      ["legal_queue.heartbeat", "pass"],
     ]);
     expect(f.calls.filter((c) => c.url.includes("/auth/v1/token"))).toHaveLength(1);
     const read = f.calls.find((c) => c.url.includes("/api/v1/projects"));
@@ -161,6 +172,14 @@ describe("runChecks", () => {
     routes["https://atlas.test/api/v1/openapi.json"] = () => json({ openapi: "3.0.0" });
     routes["https://sync.test/probes/readiness"] = () => new Response("no", { status: 503 });
     routes["https://ref.supabase.test/functions/v1/notification-dispatch"] = () => json({}, 500);
+    routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () =>
+      json({
+        sweep_ok: false,
+        feeds_ok: true,
+        alert_path_ok: true,
+        email_ok: true,
+        recipient_ok: true,
+      });
     const f = fakeFetch(routes);
     const ws = fakeSocket(
       JSON.stringify({ event: "phx_reply", ref: "1", payload: { status: "error" } }),
@@ -181,10 +200,58 @@ describe("runChecks", () => {
       ["realtime.join", "fail", "join_error"],
       ["sync.liveness", "fail", "readiness_status_503"],
       ["notifications.function", "fail", "status_500"],
+      ["legal_queue.heartbeat", "fail", "status_400"],
     ]);
     expect(failingRequired(CHECKS, results).map((r) => r.id)).not.toContain(
       "notifications.function",
     );
+    // A stopped sweep pages on-call and stays off the public status page, which is about the service Customers use.
+    expect(failingRequired(CHECKS, results).map((r) => r.id)).toContain("legal_queue.heartbeat");
+    expect(formatAlerts(results, "https://github.test/repo").join()).toContain(
+      "legal_queue.heartbeat",
+    );
+    expect(publicResults(CHECKS, results).map((r) => r.id)).not.toContain("legal_queue.heartbeat");
+    expect(publicResults(CHECKS, results)).toHaveLength(results.length - 1);
+  });
+
+  it.each([
+    [
+      { sweep_ok: false, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "sweep_stale",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: false, alert_path_ok: true, email_ok: true, recipient_ok: true },
+      "feed_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: false, email_ok: true, recipient_ok: true },
+      "alert_path_failing",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: false, recipient_ok: true },
+      "alert_email_stuck_or_failed",
+    ],
+    [
+      { sweep_ok: true, feeds_ok: true, alert_path_ok: true, email_ok: true, recipient_ok: false },
+      "no_alert_recipient",
+    ],
+  ])("says which part of the legal queue's machinery stopped: %j", async (beat, detail) => {
+    const routes = healthyRoutes();
+    routes["https://ref.supabase.test/rest/v1/rpc/legal_queue_heartbeat"] = () => json(beat);
+    const f = fakeFetch(routes);
+    const [result] = await runChecks([legalQueueHeartbeat], {
+      env: ENV,
+      region: "us-east",
+      fetch: f.impl,
+      openWebSocket: fakeSocket(okReply).open,
+      now: clock(1),
+    });
+    expect(result).toMatchObject({ status: "fail", detail });
+    const call = f.calls.find((c) => c.url.includes("legal_queue_heartbeat"));
+    expect(call?.init?.headers as Record<string, string>).toMatchObject({
+      "content-profile": "api_public",
+      authorization: "Bearer jwt-token",
+    });
   });
 
   it("covers the remaining failure shapes", async () => {

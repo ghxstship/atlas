@@ -1,4 +1,4 @@
--- 6070_crisis_alert_notifications.sql
+-- 6800_crisis_alert_notifications.sql
 -- Launch flag (owner, 2026-11-06, RRR-247): a crisis alert wrote app.crisis_alerts and a subject event and told nobody,
 -- while Atlas said "Alert announced." Announcing one now sends crisis_alert.issued through private.notify, so Inbox,
 -- email, text and push all follow the channels that system already uses, and the alert records how many people it

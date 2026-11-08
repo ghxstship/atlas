@@ -645,6 +645,55 @@ export const laborSegment = ["Regular", "Overtime", "Double Time"] as const;
 export const laborTeamKind = ["Own Team", "Agency", "Engaged"] as const;
 /** app.language_proficiency */
 export const languageProficiency = ["Basic", "Conversational", "Fluent", "Native"] as const;
+/** app.legal_queue_basis */
+export const legalQueueBasis = [
+  "Statute",
+  "Published Promise",
+  "Internal Target",
+  "Customer Clock",
+] as const;
+/** app.legal_queue_clock_unit */
+export const legalQueueClockUnit = ["Hours", "Days", "Business Days", "Months Or 30 Days"] as const;
+/** app.legal_queue_event_kind */
+export const legalQueueEventKind = [
+  "Received",
+  "First Response",
+  "Note",
+  "State Changed",
+  "Extended",
+  "Source Changed",
+  "Alert Sent",
+  "Re-Review",
+  "Person Told",
+  "Hold Placed",
+  "Hold Released",
+] as const;
+/** app.legal_queue_matter */
+export const legalQueueMatter = [
+  "Data Subject Request",
+  "Privacy Complaint",
+  "DMCA Notice",
+  "DMCA Counter-Notice",
+  "Repeat Infringer Review",
+  "Abuse Report",
+  "Moderation Appeal",
+  "Security Report",
+  "Personal Data Breach",
+  "Accessibility Complaint",
+  "Government Data Request",
+  "Other Promise",
+  "Undelivered Notice",
+  "Queue Failure",
+] as const;
+/** app.legal_queue_state */
+export const legalQueueState = [
+  "Received",
+  "In Progress",
+  "Waiting",
+  "Completed",
+  "Refused",
+  "Withdrawn",
+] as const;
 /** app.listing_report_reason */
 export const listingReportReason = [
   "Illegal Content",

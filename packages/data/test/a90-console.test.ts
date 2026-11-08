@@ -636,7 +636,12 @@ describe("operator console: moderation", () => {
               decided_by_name: null,
               decision_statement: null,
               decided_at: null,
-              decidable_by_me: true,
+              my_own_decision: true,
+              re_review_notes: null,
+              same_reviewer: false,
+              outside_reviewer_name: null,
+              told_by: null,
+              has_review: false,
             },
           ],
         }),
@@ -648,7 +653,8 @@ describe("operator console: moderation", () => {
     expect(queue.ok && queue.data[0]?.openReports).toBe(2);
     const detail = await getListingDetail(db, "op1");
     expect(detail.ok && detail.data.decisions[0]?.ruleReference).toBe("AUP 3.2");
-    expect(detail.ok && detail.data.appeals[0]?.decidableByMe).toBe(true);
+    expect(detail.ok && detail.data.appeals[0]?.myOwnDecision).toBe(true);
+    expect(detail.ok && detail.data.outsideReviewer).toBeNull();
     expect(
       await decideListing(db, {
         opportunityId: "op1",
@@ -664,13 +670,25 @@ describe("operator console: moderation", () => {
       p_ground: "Terms Violation",
     });
     expect(
-      await decideAppeal(db, { appealId: "a1", outcome: "Upheld", statement: "Stands." }),
+      await decideAppeal(db, {
+        appealId: "a1",
+        outcome: "Upheld",
+        statement: "Stands.",
+        reReviewNotes: "Read the listing again.",
+      }),
     ).toEqual({ ok: true, data: "a1" });
-    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({ p_action: null, p_facts: null });
+    expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({
+      p_action: null,
+      p_facts: null,
+      p_re_review_notes: "Read the listing again.",
+      p_outside_reviewer_decided: false,
+    });
     await decideAppeal(db, {
       appealId: "a2",
       outcome: "Reversed",
       statement: "Remove.",
+      reReviewNotes: "Read the listing again.",
+      outsideReviewerDecided: true,
       newDecision: {
         action: "Removed",
         ground: "Illegal Content",

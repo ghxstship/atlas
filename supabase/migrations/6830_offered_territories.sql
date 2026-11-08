@@ -1,4 +1,4 @@
--- 6150_offered_territories.sql
+-- 6830_offered_territories.sql
 -- Launch offers XOS in the United States only (ADR 0160, issue 3 of the AI legal audit; no attorney has reviewed it). GDPR
 -- Recital 23 names currency and language as signs of an intent to offer, so a closed territory's prices and languages
 -- stay switched off, and no organization starts outside an offered territory, without deleting anything that opens the

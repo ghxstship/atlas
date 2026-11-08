@@ -131,6 +131,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0160](0160-offered-territories-united-states-launch.md)                        | One Source of Truth for Offered Territories, With a United States Launch              | Proposed |
 | [0161](0161-stripe-cancellation-and-auto-renewal.md)                            | Stopping Stripe and the Auto-Renewal Terms                                            | Proposed |
 | [0164](0164-recorded-consent-for-sensitive-data.md)                             | Recorded Consent Before Sensitive Data Is Saved                                       | Accepted |
+| [0167](0167-legal-queue-and-one-person-appeals.md)                              | The Legal Queue, and an Appeal Rule One Person Can Keep                               | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
 

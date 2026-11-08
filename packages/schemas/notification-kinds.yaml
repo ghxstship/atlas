@@ -92,6 +92,12 @@ email_templates:
   - code: billing_notice
     transactional: true
     description: A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).
+  - code: legal_clock_alert
+    transactional: true
+    description: The legal queue's digest of clocks coming due or overdue, to platform operators, a backup contact or an outside reviewer (ADR 0167).
+  - code: moderation_notice
+    transactional: true
+    description: The outcome of a moderation decision or appeal, for a person the notification queue cannot reach (ADR 0167).
 
 categories:
   - code: mentions
@@ -342,14 +348,14 @@ kinds:
     category: safety
     bypasses_quiet_hours: true
     emitted_by:
-      - emitter: supabase/migrations/6070_crisis_alert_notifications.sql#private.notify_crisis_alert_issued
-        test: supabase/tests/6070_crisis_alert_notifications.test.sql
+      - emitter: supabase/migrations/6800_crisis_alert_notifications.sql#private.notify_crisis_alert_issued
+        test: supabase/tests/6800_crisis_alert_notifications.test.sql
   - kind: crisis_alert.ended
     category: safety
     bypasses_quiet_hours: true
     emitted_by:
-      - emitter: supabase/migrations/6070_crisis_alert_notifications.sql#private.notify_crisis_alert_ended
-        test: supabase/tests/6070_crisis_alert_notifications.test.sql
+      - emitter: supabase/migrations/6800_crisis_alert_notifications.sql#private.notify_crisis_alert_ended
+        test: supabase/tests/6800_crisis_alert_notifications.test.sql
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
@@ -392,17 +398,17 @@ kinds:
   - kind: account.sensitive_data_attested
     category: account
     emitted_by:
-      - emitter: supabase/migrations/6162_guest_needs_and_attestation.sql#app.set_guest_care_needs
-        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
-      - emitter: supabase/migrations/6162_guest_needs_and_attestation.sql#app.attest_roster_meal_preference
-        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
-      - emitter: supabase/migrations/6163_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
-        test: supabase/tests/6162_guest_needs_and_attestation.test.sql
+      - emitter: supabase/migrations/6852_guest_needs_and_attestation.sql#app.set_guest_care_needs
+        test: supabase/tests/6852_guest_needs_and_attestation.test.sql
+      - emitter: supabase/migrations/6852_guest_needs_and_attestation.sql#app.attest_roster_meal_preference
+        test: supabase/tests/6852_guest_needs_and_attestation.test.sql
+      - emitter: supabase/migrations/6853_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
+        test: supabase/tests/6852_guest_needs_and_attestation.test.sql
   - kind: account.sensitive_consent_needed
     category: account
     emitted_by:
-      - emitter: supabase/migrations/6163_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
-        test: supabase/tests/6163_sensitive_data_backlog_and_report.test.sql
+      - emitter: supabase/migrations/6853_sensitive_data_backlog_and_report.sql#private.run_sensitive_data_job
+        test: supabase/tests/6853_sensitive_data_backlog_and_report.test.sql
   - kind: billing.payment_failed
     category: account
     emitted_by:
@@ -452,32 +458,32 @@ kinds:
     category: account
     email_template: billing_notice
     emitted_by:
-      - emitter: supabase/migrations/6141_renewal_consent.sql#private.confirm_purchase_terms
-        test: supabase/tests/6141_renewal_consent.test.sql
+      - emitter: supabase/migrations/6811_renewal_consent.sql#private.confirm_purchase_terms
+        test: supabase/tests/6811_renewal_consent.test.sql
   - kind: billing.renewal_reminder
     category: account
     email_template: billing_notice
     emitted_by:
-      - emitter: supabase/migrations/6141_renewal_consent.sql#private.run_billing_renewal_reminders
-        test: supabase/tests/6141_renewal_consent.test.sql
+      - emitter: supabase/migrations/6811_renewal_consent.sql#private.run_billing_renewal_reminders
+        test: supabase/tests/6811_renewal_consent.test.sql
   - kind: billing.cancellation_confirmed
     category: account
     email_template: billing_notice
     emitted_by:
-      - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.accept_stripe_cancellation
-        test: supabase/tests/6140_stripe_cancellations.test.sql
+      - emitter: supabase/migrations/6810_stripe_cancellations.sql#private.accept_stripe_cancellation
+        test: supabase/tests/6810_stripe_cancellations.test.sql
   - kind: billing.plan_ending
     category: account
     email_template: billing_notice
     emitted_by:
-      - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.accept_stripe_cancellation
-        test: supabase/tests/6140_stripe_cancellations.test.sql
+      - emitter: supabase/migrations/6810_stripe_cancellations.sql#private.accept_stripe_cancellation
+        test: supabase/tests/6810_stripe_cancellations.test.sql
   - kind: billing.cancellation_delayed
     category: account
     email_template: billing_notice
     emitted_by:
-      - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.mark_stripe_cancellation_delayed
-        test: supabase/tests/6140_stripe_cancellations.test.sql
+      - emitter: supabase/migrations/6810_stripe_cancellations.sql#private.mark_stripe_cancellation_delayed
+        test: supabase/tests/6810_stripe_cancellations.test.sql
   - kind: organization.deletion_requested
     category: account
     emitted_by:
@@ -525,33 +531,33 @@ kinds:
   - kind: listing.moderated
     category: account
     emitted_by:
-      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
-      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
+      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided; 6863 sends a restriction's statement by email when the queue reaches nobody.
+      - emitter: supabase/migrations/6863_one_person_appeal_rule.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: listing_report.decided
     category: account
     emitted_by:
-      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
-      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
+      # 1590 made the notice name the platform, not the operator who decided; 6863 tells a reporter the queue cannot reach by email.
+      - emitter: supabase/migrations/6863_one_person_appeal_rule.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: moderation_appeal.decided
     category: account
     emitted_by:
-      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
-      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
-        test: supabase/tests/1473_moderation_console.test.sql
+      # 1590 made the notice name the platform, not the operator who decided; 6863 made it say who re-reviewed the appeal.
+      - emitter: supabase/migrations/6863_one_person_appeal_rule.sql#app.console_decide_appeal
+        test: supabase/tests/6863_one_person_appeal_rule.test.sql
   # Rating disputes (ADR 0158, 6821): the org that gave a rating hears of a dispute, and the rated person and the org
   # hear the operator's decision, which names the platform and never the operator.
   - kind: rating_dispute.filed
     category: account
     emitted_by:
-      - emitter: supabase/migrations/6146_rating_dispute_rpcs.sql#app.file_rating_dispute
-        test: supabase/tests/6145_person_rating_privacy.test.sql
+      - emitter: supabase/migrations/6821_rating_dispute_rpcs.sql#app.file_rating_dispute
+        test: supabase/tests/6820_person_rating_privacy.test.sql
   - kind: rating_dispute.decided
     category: account
     emitted_by:
-      - emitter: supabase/migrations/6146_rating_dispute_rpcs.sql#app.console_decide_rating_dispute
-        test: supabase/tests/6145_person_rating_privacy.test.sql
+      - emitter: supabase/migrations/6821_rating_dispute_rpcs.sql#app.console_decide_rating_dispute
+        test: supabase/tests/6820_person_rating_privacy.test.sql
   # Reported posts, comments and messages (ADR 0033 decision 57, 1630): a new report and a report still undecided after
   # 24 hours reach the org's moderators as safety notices; the outcome reaches each reporter, and the statement of
   # reasons reaches the author when the content is removed.

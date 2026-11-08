@@ -1,4 +1,4 @@
--- 6141_renewal_consent.sql
+-- 6811_renewal_consent.sql
 -- Legal billing issue 1 (RRR-248, ADR 0161): what auto-renewal law needs around a paid plan. Built to the strictest reading
 -- found, since ROSCA's reach to business buyers is disputed and small producers buy XOS: ROSCA (15 U.S.C. 8403), California's
 -- Automatic Renewal Law as the design standard, and Wisconsin 134.49 and New York GOL 5-903 for annual business contracts.

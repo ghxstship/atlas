@@ -21,7 +21,7 @@ import {
 } from "../src/offering.ts";
 
 const migration = readFileSync(
-  new URL("../../../supabase/migrations/6150_offered_territories.sql", import.meta.url),
+  new URL("../../../supabase/migrations/6830_offered_territories.sql", import.meta.url),
   "utf8",
 );
 

@@ -126,6 +126,7 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
   const appealId = field(form, "appealId");
   const outcome = field(form, "outcome");
   const statement = field(form, "statement");
+  const reReviewNotes = field(form, "reReviewNotes");
   if (
     !Uuid.safeParse(appealId).success ||
     (outcome !== "Upheld" && outcome !== "Reversed") ||
@@ -144,10 +145,18 @@ export async function decideAppealAction(_: ActionState, form: FormData): Promis
           facts: field(form, "facts"),
         }
       : null;
-  const result = await decideAppeal(ctx.db, { appealId, outcome, statement, newDecision });
+  const result = await decideAppeal(ctx.db, {
+    appealId,
+    outcome,
+    statement,
+    reReviewNotes,
+    newDecision,
+    outsideReviewerDecided: field(form, "outsideReviewerDecided") === "yes",
+  });
   if (result.ok) {
     revalidatePath(`/moderation/${opportunityId}`);
     revalidatePath("/moderation");
+    revalidatePath("/legal-queue");
   }
   return fromResult(result);
 }

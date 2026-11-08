@@ -360,13 +360,13 @@
     "listing_report": {
       "decided": {
         "subject": "Revisamos el anuncio {title} que denunciaste",
-        "body": "{action, select, Removed {Retiramos el anuncio.} Restricted {Restringimos el anuncio.} Restored {Restablecimos el anuncio.} other {No tomamos ninguna medida sobre el anuncio.}} {statement} Puedes apelar esta decisión en un plazo de seis meses."
+        "body": "{action, select, Removed {Retiramos el anuncio. {statement}} Restricted {Restringimos el anuncio. {statement}} Restored {Restablecimos el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a abuse@ghxstship.tech.} other {No tomamos ninguna medida sobre el anuncio. {statement} Puedes apelar esta decisión en un plazo de seis meses escribiendo a abuse@ghxstship.tech.}}"
       }
     },
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
-        "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
+        "body": "{outcome, select, Reversed {Revisamos tu apelación desde cero y revertimos la decisión.} other {Revisamos tu apelación desde cero y mantuvimos la decisión.}} {reviewer, select, same {La persona que tomó la primera decisión hizo esta revisión.} outside {{reviewerName}, revisor externo, hizo esta revisión.} other {Alguien que no tomó la primera decisión hizo esta revisión.}} {statement}"
       }
     },
     "rating_dispute": {
@@ -638,6 +638,33 @@
     "poolSubject": "{inviterName} te invita a unirte a la lista de equipo de {orgName}",
     "poolRole": "Rol: {jobTitle}",
     "poolHow": "Inicia sesión en Gateway con esta dirección y acepta en Inicio antes del {expiresAt, date, long}. ¿No lo esperabas? Ignóralo."
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {Cola legal de XOS: {dueSoon, plural, one {# plazo está por vencer} other {# plazos están por vencer}}} one {Cola legal de XOS: # plazo está vencido} other {Cola legal de XOS: # plazos están vencidos}}",
+    "open": "Abrir la cola legal",
+    "intro": {
+      "operator": "Estos plazos te necesitan. Abre la cola para atenderlos y deja constancia de lo que hiciste.",
+      "backup": "Eres un contacto de respaldo de la cola legal de GHXSTSHIP Industries LLC. Estos plazos están vencidos. Asegúrate de que el propietario lo haya visto.",
+      "reviewer": "Estas apelaciones te corresponden como revisor externo de GHXSTSHIP Industries LLC. GHXSTSHIP te envía cada expediente por separado."
+    },
+    "item": "{reference}: {clock, select, Due {vence} other {la primera respuesta vence}} el {at, date, long} a las {at, time, short}, hora de Nueva York{overdue, select, yes {. Vencido.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {vence} other {la primera respuesta vence}} el {at, date, long} a las {at, time, short}, hora de Nueva York{overdue, select, yes {. Vencido.} other {.}}",
+    "matters": {
+      "Data Subject Request": "solicitud de derechos de datos",
+      "Privacy Complaint": "queja de privacidad",
+      "DMCA Notice": "aviso DMCA",
+      "DMCA Counter-Notice": "contraaviso DMCA",
+      "Repeat Infringer Review": "revisión de infractor reincidente",
+      "Abuse Report": "denuncia de abuso",
+      "Moderation Appeal": "apelación de moderación",
+      "Security Report": "informe de seguridad",
+      "Personal Data Breach": "violación de datos personales",
+      "Accessibility Complaint": "queja de accesibilidad",
+      "Government Data Request": "solicitud de datos del gobierno",
+      "Other Promise": "otro compromiso",
+      "Undelivered Notice": "aviso no entregado",
+      "Queue Failure": "fallo de la cola"
+    }
   },
   "guest_message": {
     "invitationSubject": "{orgName} te invita a {projectName}",

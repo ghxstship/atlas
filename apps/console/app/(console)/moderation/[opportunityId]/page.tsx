@@ -30,7 +30,7 @@ export default async function ListingPage({ params }: PageProps<"/moderation/[op
     if (detail.error.kind === "not-found") notFound();
     throw new Error(`Cannot read the listing: ${detail.error.kind}`);
   }
-  const { listing, reports, decisions, appeals } = detail.data;
+  const { listing, reports, decisions, appeals, outsideReviewer } = detail.data;
   const { t, label, instant } = f;
   return (
     <>
@@ -142,23 +142,56 @@ export default async function ListingPage({ params }: PageProps<"/moderation/[op
                 </span>
                 <span>{a.grounds}</span>
                 {a.state === "Open" ? (
-                  a.decidableByMe ? (
+                  <>
+                    {outsideReviewer ? (
+                      <InlineAlert tone="info">
+                        {t("moderation.appealOutside", { name: outsideReviewer.name })}
+                      </InlineAlert>
+                    ) : a.myOwnDecision ? (
+                      <InlineAlert tone="info">{t("moderation.appealOwn")}</InlineAlert>
+                    ) : null}
                     <DecideAppealForm
                       opportunityId={listing.id}
                       appealId={a.id}
                       reversesNoAction={a.decision === "No Action" || a.decision === "Restored"}
+                      outsideReviewerName={outsideReviewer?.name ?? null}
                     />
-                  ) : (
-                    <InlineAlert tone="info">{t("moderation.appealOwn")}</InlineAlert>
-                  )
+                  </>
                 ) : (
-                  <span className="text-text-12 text-text-secondary">
-                    {t("moderation.appealState", {
-                      state: label("appealStates", a.state),
-                      when: instant(a.decidedAt),
-                      name: a.decidedByName ?? t("common.unknownPerson"),
-                      statement: a.decisionStatement ?? "",
-                    })}
+                  <span className="flex flex-col gap-4 text-text-12 text-text-secondary">
+                    <span>
+                      {t("moderation.appealState", {
+                        state: label("appealStates", a.state),
+                        when: instant(a.decidedAt),
+                        name: a.decidedByName ?? t("common.unknownPerson"),
+                        statement: a.decisionStatement ?? "",
+                      })}
+                    </span>
+                    {a.reReviewNotes ? (
+                      <span>{t("moderation.appealRecord", { notes: a.reReviewNotes })}</span>
+                    ) : null}
+                    {a.outsideReviewerName ? (
+                      <span>
+                        {t("moderation.reviewerOutside", { name: a.outsideReviewerName })}
+                      </span>
+                    ) : a.sameReviewer ? (
+                      <span>{t("moderation.reviewerSame")}</span>
+                    ) : null}
+                    {a.toldAt ? (
+                      <span>
+                        {a.toldBy === "Operator"
+                          ? t("moderation.toldByOperator", { when: instant(a.toldAt) })
+                          : t("moderation.told", { when: instant(a.toldAt) })}
+                      </span>
+                    ) : a.hasReview && (!a.toldBy || a.noticeState === "Failed") ? (
+                      <InlineAlert tone="danger">
+                        {t(a.toldBy ? "moderation.noticeFailed" : "moderation.notTold")}
+                      </InlineAlert>
+                    ) : a.hasReview && a.toldBy === "Email" && a.noticeState === null ? (
+                      <span>{t("moderation.noticeGone")}</span>
+                    ) : a.hasReview && a.toldBy === "Email" ? (
+                      <span>{t("moderation.noticeOnItsWay")}</span>
+                    ) : null}
                   </span>
                 )}
               </li>

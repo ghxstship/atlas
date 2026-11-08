@@ -1,4 +1,4 @@
--- 6162_guest_needs_and_attestation.sql
+-- 6852_guest_needs_and_attestation.sql
 -- RRR-248 issue 5, ADR 0164. When someone else enters sensitive data for a person.
 --
 --   * app.guest_care_needs: a guest's dietary needs, allergies, accessibility needs and notes, one row per guest list entry,
@@ -38,7 +38,7 @@
 --   * A guest's needs are deleted when the entry is removed or declined, and 90 days after the project ends (6853). A legal
 --     hold over the org's guest needs, or over the matched person, keeps the values, hidden, until it ends.
 --   * A soft-deleted travel request drops its meal preference at once, by every path, rather than at the row's purge.
--- Functions start from their latest definitions: 6160_sensitive_data_consent.sql for private.erase_sensitive_category,
+-- Functions start from their latest definitions: 6850_sensitive_data_consent.sql for private.erase_sensitive_category,
 -- 4655_roster_project_fact_rpcs.sql for app.save_roster_travel_request, private.roster_travel_value and
 -- private.roster_project_facts_object, 5942_transfer_views.sql for app.roster_travel_party.
 

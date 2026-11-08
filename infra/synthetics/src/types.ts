@@ -58,6 +58,8 @@ export interface CheckDefinition {
   readonly budgetMs: number;
   /** Required checks fail the run (and page on-call) when they fail. */
   readonly required: boolean;
+  /** Pages on-call but stays off the public status page: it says nothing about the service Customers use. */
+  readonly internal?: boolean;
   readonly runbook: string;
   probe(context: CheckContext): Promise<ProbeOutcome>;
 }

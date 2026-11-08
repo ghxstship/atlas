@@ -440,6 +440,12 @@ arrays:
   - column: app.work_detail_shares.categories
     kind: reviewed
     note: The set of work detail categories a share grants, read whole (migration 1340).
+  - column: private.legal_queue_health.failing_paths
+    kind: reviewed
+    note: The named parts of the last sweep that failed, read whole by the heartbeat and written whole by each sweep; no row refers to one (ADR 0167, migration 6862).
+  - column: private.legal_queue_rules.alert_leads
+    kind: reviewed
+    note: How long before a clock ends each alert goes out; read whole by the sweep, and no row refers to one lead (ADR 0167, migration 6860).
   - column: private.live_view_fields.source_columns
     kind: reviewed
     note: The one to four columns a live link field reads, each checked against the column classifications; never joined on (migration 3780).
@@ -2510,6 +2516,9 @@ tenant_exceptions:
   - table: app.feedback_submissions
     kind: person-owned
     note: Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).
+  - table: app.legal_queue_items
+    kind: platform
+    note: Legal and security work of the platform itself, most of it with no tenant; tenant_org_id is optional and only says which tenant a fed item concerns (ADR 0167, migration 6860).
   - table: app.organizations
     kind: identity
     note: The tenant itself (Section 4.8.1).

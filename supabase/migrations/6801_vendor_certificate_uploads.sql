@@ -1,4 +1,4 @@
--- 6071_vendor_certificate_uploads.sql
+-- 6801_vendor_certificate_uploads.sql
 -- Launch flag (owner, 2026-11-06, RRR-247): a vendor's upload became an onboarding item and nothing else, so the vendor
 -- kept seeing "No insurance certificate on file" and the people who record certificates had no way to see it.
 -- app.vendor_certificate_uploads lists, for holders of vendors.coi.write, files a vendor engagement's party uploaded that

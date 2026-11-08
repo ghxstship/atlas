@@ -693,6 +693,80 @@ var templates = {
       };
     },
   },
+  legal_clock_alert: {
+    transactional: true,
+    compose: ({ audience, overdue, dueSoon, items, queueUrl }, ctx) => {
+      if (items.length === 0) throw new Error("A legal clock alert needs at least one item");
+      const subject = ctx.t("legal_clock_alert.subject", {
+        overdue,
+        dueSoon,
+      });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          ...(audience === "operator" && queueUrl
+            ? {
+                action: {
+                  label: ctx.t("legal_clock_alert.open"),
+                  url: queueUrl,
+                },
+              }
+            : {}),
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t(`legal_clock_alert.intro.${audience}`),
+            }),
+            items.map((item) =>
+              /* @__PURE__ */ jsx(
+                Paragraph,
+                {
+                  children: ctx.t(
+                    item.matter ? "legal_clock_alert.itemMatter" : "legal_clock_alert.item",
+                    {
+                      reference: item.reference,
+                      ...(item.matter
+                        ? { matter: ctx.t(`legal_clock_alert.matters.${item.matter}`) }
+                        : {}),
+                      clock: item.clock,
+                      overdue: item.overdue ? "yes" : "no",
+                      at: item.at,
+                    },
+                  ),
+                },
+                `${item.reference} ${item.clock}`,
+              ),
+            ),
+          ],
+        }),
+      };
+    },
+  },
+  moderation_notice: {
+    transactional: true,
+    compose: ({ kind, args }, ctx) => {
+      const subject = ctx.t(kindKey(kind, "subject"), args);
+      return {
+        subject,
+        element: /* @__PURE__ */ jsx(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: subject,
+          transactional: true,
+          children: /* @__PURE__ */ jsx(Paragraph, {
+            children: ctx.t(kindKey(kind, "body"), args),
+          }),
+        }),
+      };
+    },
+  },
   approval_link_code: {
     transactional: true,
     compose: ({ code, orgName, expiresInMinutes }, ctx) => {

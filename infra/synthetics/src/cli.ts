@@ -12,7 +12,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { CHECKS } from "./checks.ts";
-import { failingRequired, formatAlerts, parseHistory, recordRun, runChecks } from "./run.ts";
+import {
+  failingRequired,
+  formatAlerts,
+  parseHistory,
+  publicResults,
+  recordRun,
+  runChecks,
+} from "./run.ts";
 
 function argument(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -30,7 +37,7 @@ for (const result of results) {
 
 const history = recordRun(
   parseHistory(existsSync(historyPath) ? readFileSync(historyPath, "utf8") : null),
-  results,
+  publicResults(CHECKS, results),
   new Date(),
 );
 mkdirSync(dirname(historyPath), { recursive: true });

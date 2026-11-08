@@ -360,13 +360,13 @@
     "listing_report": {
       "decided": {
         "subject": "We reviewed the listing {title} you reported",
-        "body": "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months."
+        "body": "{action, select, Removed {We removed the listing. {statement}} Restricted {We restricted the listing. {statement}} Restored {We restored the listing. {statement} You can appeal this decision within six months by writing to abuse@ghxstship.tech.} other {We took no action on the listing. {statement} You can appeal this decision within six months by writing to abuse@ghxstship.tech.}}"
       }
     },
     "moderation_appeal": {
       "decided": {
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
-        "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
+        "body": "{outcome, select, Reversed {We looked at your appeal afresh and reversed the decision.} other {We looked at your appeal afresh and kept the decision.}} {reviewer, select, same {The person who made the first decision did this review.} outside {{reviewerName}, an outside reviewer, did this review.} other {Someone who did not make the first decision did this review.}} {statement}"
       }
     },
     "rating_dispute": {
@@ -638,6 +638,33 @@
     "poolSubject": "{inviterName} invites you to join the {orgName} crew list",
     "poolRole": "Role: {jobTitle}",
     "poolHow": "Sign in to Gateway with this address and accept on Home by {expiresAt, date, long}. Not expecting this? Ignore it."
+  },
+  "legal_clock_alert": {
+    "subject": "{overdue, plural, =0 {XOS legal queue: {dueSoon, plural, one {# clock is} other {# clocks are}} coming due} one {XOS legal queue: # clock is overdue} other {XOS legal queue: # clocks are overdue}}",
+    "open": "Open the legal queue",
+    "intro": {
+      "operator": "These clocks need you. Open the queue to act on them, and log what you did.",
+      "backup": "You are a backup contact for the legal queue of GHXSTSHIP Industries LLC. These clocks are overdue. Please make sure the owner has seen this.",
+      "reviewer": "These appeals are yours to re-review as outside reviewer for GHXSTSHIP Industries LLC. GHXSTSHIP sends you each file separately."
+    },
+    "item": "{reference}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "itemMatter": "{reference}, {matter}: {clock, select, Due {due} other {first response due}} {at, date, long} at {at, time, short}, New York time{overdue, select, yes {. Overdue.} other {.}}",
+    "matters": {
+      "Data Subject Request": "data subject request",
+      "Privacy Complaint": "privacy complaint",
+      "DMCA Notice": "DMCA notice",
+      "DMCA Counter-Notice": "DMCA counter-notice",
+      "Repeat Infringer Review": "repeat infringer review",
+      "Abuse Report": "abuse report",
+      "Moderation Appeal": "moderation appeal",
+      "Security Report": "security report",
+      "Personal Data Breach": "personal data breach",
+      "Accessibility Complaint": "accessibility complaint",
+      "Government Data Request": "government data request",
+      "Other Promise": "other promise",
+      "Undelivered Notice": "undelivered notice",
+      "Queue Failure": "queue failure"
+    }
   },
   "guest_message": {
     "invitationSubject": "{orgName} invites you to {projectName}",

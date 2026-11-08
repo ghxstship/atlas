@@ -1,4 +1,4 @@
--- 6140_stripe_cancellations.sql
+-- 6810_stripe_cancellations.sql
 -- Legal billing issue 1 (RRR-248, audit finding M1, ADR 0161). Canceling or deleting an organization in XOS changed only the
 -- database, so Stripe kept charging. XOS now owns the stop: every way an org ends queues the cancel of its Stripe
 -- subscriptions in the same transaction, and the org cannot finish deletion until Stripe has accepted it.

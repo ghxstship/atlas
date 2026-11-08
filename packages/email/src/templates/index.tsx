@@ -128,6 +128,33 @@ export interface TemplateProps {
     readonly subject?: string;
     readonly body?: string;
   };
+  /**
+   * The legal queue's digest (ADR 0167, migration 6862): the clocks an hourly sweep found coming due or overdue. A backup
+   * contact sees references and dates and never the matter, because a government request can come with an order forbidding
+   * disclosure. Only an operator gets a link, since only an operator can sign in to the console.
+   */
+  readonly legal_clock_alert: {
+    readonly audience: "operator" | "backup" | "reviewer";
+    readonly overdue: number;
+    readonly dueSoon: number;
+    readonly items: readonly {
+      readonly reference: string;
+      readonly matter?: string;
+      readonly clock: "First Response" | "Due";
+      readonly at: Date;
+      readonly overdue: boolean;
+    }[];
+    readonly queueUrl?: string;
+  };
+  /**
+   * The outcome of a moderation decision or appeal for someone the notification queue cannot reach, such as a reporter
+   * with no tie to the org, or a statement of reasons to a member with every channel off (ADR 0167, migration 6863). The
+   * words are the same notice the queue would carry.
+   */
+  readonly moderation_notice: {
+    readonly kind: "listing.moderated" | "listing_report.decided" | "moderation_appeal.decided";
+    readonly args: MessageArgs;
+  };
 }
 
 export type TemplateCode = keyof TemplateProps;
@@ -507,6 +534,65 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             <Paragraph>{ctx.t("subprocessor_notice.intro", { effectiveOn })}</Paragraph>
             <Paragraph>{summary}</Paragraph>
             <Paragraph>{ctx.t("subprocessor_notice.objection")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  legal_clock_alert: {
+    transactional: true,
+    compose: ({ audience, overdue, dueSoon, items, queueUrl }, ctx) => {
+      if (items.length === 0) throw new Error("A legal clock alert needs at least one item");
+      const subject = ctx.t("legal_clock_alert.subject", { overdue, dueSoon });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={subject}
+            transactional
+            {...(audience === "operator" && queueUrl
+              ? { action: { label: ctx.t("legal_clock_alert.open"), url: queueUrl } }
+              : {})}
+          >
+            <Paragraph>{ctx.t(`legal_clock_alert.intro.${audience}`)}</Paragraph>
+            {items.map((item) => (
+              <Paragraph key={`${item.reference} ${item.clock}`}>
+                {ctx.t(item.matter ? "legal_clock_alert.itemMatter" : "legal_clock_alert.item", {
+                  reference: item.reference,
+                  ...(item.matter
+                    ? { matter: ctx.t(`legal_clock_alert.matters.${item.matter}`) }
+                    : {}),
+                  clock: item.clock,
+                  overdue: item.overdue ? "yes" : "no",
+                  at: item.at,
+                })}
+              </Paragraph>
+            ))}
+          </Layout>
+        ),
+      };
+    },
+  },
+  moderation_notice: {
+    transactional: true,
+    compose: ({ kind, args }, ctx) => {
+      const subject = ctx.t(kindKey(kind, "subject"), args);
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={subject}
+            transactional
+          >
+            <Paragraph>{ctx.t(kindKey(kind, "body"), args)}</Paragraph>
           </Layout>
         ),
       };

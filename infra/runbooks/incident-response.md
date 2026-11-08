@@ -2,6 +2,10 @@
 
 This is the operational runbook for the Incident Response Policy (`legal/policies/incident-response.md`, owner A21). The policy defines severities, roles and notification duties. This runbook says what to do, minute by minute. Every synthetic check alert links to a section below.
 
+## With one person on the team
+
+Every role below can be one person, and today it is. Do not wait for someone to hand over to: you are the Incident Commander, the Communications Lead and the Privacy Officer, so do each step yourself in the order given. A SEV1 or SEV2 "immediately, 24x7" start means as soon as an alert reaches you. Add every incident with personal data to the Legal Queue (`/legal-queue`, Personal data breach) so the 48-hour and 72-hour clocks alert you. If an outside firm is ever named for incidents, call it at step 5.
+
 ## First 15 minutes
 
 1. **Acknowledge** the alert in the on-call channel: "I have it." You are the Incident Commander (IC) until you hand over.
@@ -90,6 +94,16 @@ Check: `notifications.function`.
 1. Supabase, Edge Functions, `notification-dispatch`: invocations and errors. The function answers 401 without the service key, which is what the check expects.
 2. Check the scheduled job that calls it (`cron.job_run_details` for the dispatch job) and the provider status (Resend).
 3. Deliveries are rows in `app.notification_deliveries`. Undelivered rows are retried, so nothing is lost while the function is down.
+
+### Legal queue heartbeat failing
+
+Check: `legal_queue.heartbeat`. It stays off the public status page, because it says nothing about the service Customers use, but it pages you, because a stopped sweep means no legal clock alerts go out. Treat it as SEV3, and open `/legal-queue` by hand until it is clear. The check's detail says which part stopped:
+
+- `sweep_stale`: the hourly sweep has not finished in 2 hours. Look at `cron.job_run_details` for `xos_sweep_legal_queue`, then run `select private.sweep_legal_queue();` once in the SQL editor.
+- `feed_failing`: an automatic feed is failing, most often after a migration changed its table. Alerts on everything else still go out. The failure is also an item in the queue, with the error, and closes itself once the feed works.
+- `alert_path_failing`: part of the last sweep failed, and an alert it could not send tries again next hour. `select failing_paths from private.legal_queue_health;` names which: `operator`, `backup`, `reviewer`, `on_call` or `purge`. Most often a later migration changed `platform_emails_template` or the outbox and dropped `legal_clock_alert`. Run `select private.sweep_legal_queue();` once it is fixed, and the check clears. Until then read the queue by hand.
+- `alert_email_stuck_or_failed`: an alert or moderation-result email has waited over an hour, or failed in the last 48 hours. Check the `subprocessor-notices` worker, the provider, and `XOS_EMAIL_ALLOWLIST` or `XOS_EMAIL_DELIVER_TO_ANY`. A failed result email is also a queue item: tell the person another way.
+- `no_alert_recipient`: nobody holds the Administrator role, so alerts reach no one. Grant it with `private.grant_platform_operator`.
 
 ### Security incident or suspected breach
 

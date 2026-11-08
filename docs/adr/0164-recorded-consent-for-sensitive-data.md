@@ -5,7 +5,7 @@
 - Decider: Owner instruction of 2026-11-06 to take the most future-proof, legally defensible option. These calls were made by AI; no attorney has reviewed them.
 - Extends: ADR 0105 (restricted allergies), ADR 0102 (profile facts and project facts)
 - Supersedes: the part of owner decision 4 (ADR 0100) that let a company read a rostered person's dietary and accessibility needs
-- Migrations: `6160_sensitive_data_consent.sql`, `6161_sensitive_data_restricted_reads.sql`, `6162_guest_needs_and_attestation.sql`, `6163_sensitive_data_backlog_and_report.sql`, `6164_notification_kind_seed.sql`
+- Migrations: `6850_sensitive_data_consent.sql`, `6851_sensitive_data_restricted_reads.sql`, `6852_guest_needs_and_attestation.sql`, `6853_sensitive_data_backlog_and_report.sql`, `6164_notification_kind_seed.sql`
 
 ## Context
 
