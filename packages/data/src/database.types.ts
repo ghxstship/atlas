@@ -30172,6 +30172,7 @@ export type Database = {
           first_response_due_at: string | null;
           id: string;
           item_state: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id: string | null;
           outside_reviewer_id: string | null;
           re_review_same_person: boolean | null;
           received_at: string;
@@ -30201,6 +30202,7 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id?: string | null;
           outside_reviewer_id?: string | null;
           re_review_same_person?: boolean | null;
           received_at: string;
@@ -30229,6 +30231,7 @@ export type Database = {
           first_response_due_at?: string | null;
           id?: string;
           item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id?: string | null;
           outside_reviewer_id?: string | null;
           re_review_same_person?: boolean | null;
           received_at?: string;
@@ -30249,6 +30252,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_legal_hold_id_fkey";
+            columns: ["legal_hold_id"];
+            isOneToOne: false;
+            referencedRelation: "legal_holds";
             referencedColumns: ["id"];
           },
           {
@@ -72005,6 +72015,7 @@ export type Database = {
         Args: {
           p_details?: string;
           p_due_local?: string;
+          p_org_slug?: string;
           p_received_local: string;
           p_related_reference?: string;
           p_requester_contact?: string;
@@ -77016,7 +77027,9 @@ export type Database = {
         | "Source Changed"
         | "Alert Sent"
         | "Re-Review"
-        | "Person Told";
+        | "Person Told"
+        | "Hold Placed"
+        | "Hold Released";
       legal_queue_matter:
         | "Data Subject Request"
         | "Privacy Complaint"
@@ -83739,6 +83752,8 @@ export const Constants = {
         "Alert Sent",
         "Re-Review",
         "Person Told",
+        "Hold Placed",
+        "Hold Released",
       ],
       legal_queue_matter: [
         "Data Subject Request",

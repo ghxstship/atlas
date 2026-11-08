@@ -588,6 +588,8 @@ export const legalQueueEventKind = [
   "Alert Sent",
   "Re-Review",
   "Person Told",
+  "Hold Placed",
+  "Hold Released",
 ] as const;
 /** app.legal_queue_matter */
 export const legalQueueMatter = [
