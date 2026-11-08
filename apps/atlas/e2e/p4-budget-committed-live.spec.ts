@@ -188,7 +188,11 @@ test("two people on one budget see each other, and each other's edits live", asy
     .dblclick();
   await page.keyboard.type(" and a gate");
   await expect(owner.getByText("Demo Producer is editing line 1")).toBeVisible();
-  await owner.getByRole("button", { name: "Delete lines" }).click();
+  await owner
+    .getByRole("toolbar", { name: "Budget actions" })
+    .getByRole("button", { name: "More" })
+    .click();
+  await owner.getByRole("menuitem", { name: "Delete lines" }).click();
   const remove = owner.getByRole("dialog", { name: "Delete lines" });
   await remove.getByRole("checkbox", { name: new RegExp(lineName) }).check();
   await remove.getByRole("button", { name: "Delete 1 line" }).click();

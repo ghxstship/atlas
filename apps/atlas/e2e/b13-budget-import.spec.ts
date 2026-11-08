@@ -18,7 +18,11 @@ test("budget lines import from a spreadsheet with a preview", async ({ page }) =
   try {
     await signInAs(page, "owner@example.com", DEMO_ORG);
     await page.goto(`/${DEMO_ORG}/finance/budgets?budget=${budgetId}`);
-    await page.getByRole("link", { name: "Import lines", exact: true }).click();
+    await page
+      .getByRole("toolbar", { name: "Budget actions" })
+      .getByRole("button", { name: "More" })
+      .click();
+    await page.getByRole("menuitem", { name: "Import lines", exact: true }).click();
     await page.waitForURL(new RegExp(`target=budget_lines&budget=${budgetId}`));
     await expect(page.getByLabel("Budget", { exact: true })).toHaveValue(budgetId);
     const csv = [

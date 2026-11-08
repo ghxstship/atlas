@@ -47,7 +47,9 @@ test("a need is added, reads Needs Ordered, and a pasted list previews before it
 
   await open(page, `/${ORG}/p/${PROJECT_KEY}/procurement?section=needs`);
   await expect(async () => {
-    await page.getByRole("button", { name: "Paste list", exact: true }).click();
+    // Paste list sits in the header's More menu with Import.
+    await page.getByRole("main").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Paste list", exact: true }).click();
     await expect(page.getByLabel("Equipment list", { exact: true })).toBeVisible({
       timeout: 2_000,
     });

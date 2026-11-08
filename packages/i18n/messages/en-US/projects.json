@@ -763,6 +763,7 @@
     },
     "requests": {
       "action": "Intake requests",
+      "more": "More",
       "title": "Intake requests",
       "description": "What vendors and contractors sent through this project's intake links.",
       "close": "Close",

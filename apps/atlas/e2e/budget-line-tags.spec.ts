@@ -93,7 +93,13 @@ test("budget lines are tagged, filtered by tag and kept in a saved view", async 
       ["2 · Crew overtime", "Overtime"],
     ] as const) {
       const drawer = page.getByRole("dialog", { name: "Line fields" });
-      await openWith(page, page.getByRole("button", { name: "Line fields" }), drawer);
+      // Line fields sits in the toolbar's More menu.
+      const more = page
+        .getByRole("toolbar", { name: "Budget actions" })
+        .getByRole("button", { name: "More" });
+      await openWith(page, more, page.getByRole("menuitem", { name: "Line fields" }));
+      await page.getByRole("menuitem", { name: "Line fields" }).click();
+      await expect(drawer).toBeVisible();
       await drawer.getByLabel("Line").selectOption({ label: line });
       const fields = drawer.getByRole("region", { name: "Custom fields" });
       await fields.getByRole("button", { name: "Edit fields" }).click();

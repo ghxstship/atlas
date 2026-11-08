@@ -108,7 +108,12 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await newBudget(page, `Journey 3 ${id}`);
     await expectAccessibleInBothThemes(page);
 
-    await page.getByRole("button", { name: "Add from catalog" }).click();
+    // Add from catalog sits in the toolbar's More menu (gate 27: five actions at most).
+    await page
+      .getByRole("toolbar", { name: "Budget actions" })
+      .getByRole("button", { name: "More" })
+      .click();
+    await page.getByRole("menuitem", { name: "Add from catalog" }).click();
     const catalog = page.getByRole("dialog", { name: "Add from catalog" });
     await catalog.getByLabel("Search the catalog").fill("4000.01.01");
     await catalog.getByRole("button", { name: "Search" }).click();

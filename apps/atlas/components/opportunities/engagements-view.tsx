@@ -145,7 +145,8 @@ export async function EngagementsView({
           actions={
             intake || projects.length > 0 || (canGenerate && !generating) ? (
               <>
-                {canGenerate && !generating ? (
+                {/* On the project tab Generate agreements joins Intake requests in one More menu (gate 27). */}
+                {canGenerate && !generating && !intake ? (
                   <ButtonLink href={page.href({ generate: "1" })}>
                     {t("agreementBatches.generate")}
                   </ButtonLink>
@@ -154,6 +155,16 @@ export async function EngagementsView({
                   <IntakeRequestsAction
                     refs={intake}
                     canCreate={ctx.capabilities.has("opportunities.engagement.write")}
+                    also={
+                      canGenerate && !generating
+                        ? [
+                            {
+                              label: t("agreementBatches.generate"),
+                              href: page.href({ generate: "1" }),
+                            },
+                          ]
+                        : []
+                    }
                   />
                 ) : null}
                 {projects.length > 0 ? (

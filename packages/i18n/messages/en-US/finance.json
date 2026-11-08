@@ -558,6 +558,7 @@
     "pastePreview": "{count, plural, one {# line ready} other {# lines ready}}, {unpriced} unpriced, {problems, plural, =0 {no problems} one {# row to fix} other {# rows to fix}}.",
     "pasteProblem": "Row {row}: check the {field}.",
     "pasteRows": "Paste rows",
+    "more": "More",
     "pasteSentence": "Copy rows from Excel or another spreadsheet and paste them here. They are added as one batch you can undo.",
     "pasted": "{count, plural, one {# line pasted.} other {# lines pasted.}}",
     "recordRate": "Record a rate in Cost centers",

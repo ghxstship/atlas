@@ -258,7 +258,13 @@ export async function MusterSection({
                   ))}
                 </ul>
               ) : (
-                <div className="overflow-x-auto">
+                // A phone scrolls the eight columns sideways, so the region takes focus for the arrow keys.
+                <div
+                  role="region"
+                  aria-labelledby={`muster-${g.zoneId ?? "doors"}`}
+                  tabIndex={0}
+                  className="overflow-x-auto"
+                >
                   <table className="w-full border-collapse text-left text-text-13">
                     <caption className="sr-only">{zoneLabel(g.zoneId)}</caption>
                     <thead className="[display:table-header-group]">

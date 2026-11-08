@@ -258,7 +258,9 @@ test("Outside access lists a link, regenerates with the code still showing, and 
   // The Engagements toolbar: a new link's code stays in its dialog, not in the toolbar row.
   await page.goto(`/${slug}/p/SHW/engagements`);
   await expect(async () => {
-    await page.getByRole("button", { name: "Intake requests", exact: true }).click();
+    // Intake requests sits in the header's More menu with Generate agreements.
+    await page.getByRole("main").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Intake requests", exact: true }).click();
     await page
       .getByRole("button", { name: "New intake link", exact: true })
       .click({ timeout: 2_000 });

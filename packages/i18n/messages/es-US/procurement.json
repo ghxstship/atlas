@@ -702,6 +702,7 @@
       "closed": "Confirmado en la necesidad."
     },
     "paste": {
+      "more": "Más",
       "open": "Pegar lista",
       "title": "Pegar una lista de equipo",
       "label": "Lista de equipo",

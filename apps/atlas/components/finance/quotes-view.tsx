@@ -42,6 +42,8 @@ export async function QuotesView({ page }: { page: FinancePage }) {
       ? t("finance.quotes.emptyProject", { project: page.project.key })
       : t("finance.quotes.empty"),
     actionLabel: t("finance.quotes.create"),
+    // The header holds New quote, the page's one primary action (gate 27).
+    secondary: true,
     noMatches: t("finance.common.noMatches"),
     clearLabel: t("finance.common.clearFilters"),
   };

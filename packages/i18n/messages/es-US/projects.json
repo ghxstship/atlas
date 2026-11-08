@@ -763,6 +763,7 @@
     },
     "requests": {
       "action": "Solicitudes de alta",
+      "more": "Más",
       "title": "Solicitudes de alta",
       "description": "Lo que enviaron proveedores y contratistas por los enlaces de alta de este proyecto.",
       "close": "Cerrar",

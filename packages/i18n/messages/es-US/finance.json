@@ -558,6 +558,7 @@
     "pastePreview": "{count, plural, one {# línea lista} other {# líneas listas}}, {unpriced} sin precio, {problems, plural, =0 {sin problemas} one {# fila por corregir} other {# filas por corregir}}.",
     "pasteProblem": "Fila {row}: revise {field}.",
     "pasteRows": "Pegar filas",
+    "more": "Más",
     "pasteSentence": "Copie filas de Excel u otra hoja de cálculo y péguelas aquí. Se agregan como un lote que puede deshacer.",
     "pasted": "{count, plural, one {# línea pegada.} other {# líneas pegadas.}}",
     "recordRate": "Registrar un tipo en Centros de costo",

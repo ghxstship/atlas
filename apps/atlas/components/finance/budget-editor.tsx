@@ -4,8 +4,6 @@ import dynamic from "next/dynamic";
 import type { BudgetLine, BudgetLineInput } from "@xos/data/finance";
 import { accountForUrid, clientUnitPrice, mergeSavedLine, xyzFor } from "@xos/data/finance";
 import { Button, SpreadsheetGrid, ToastRegion, UndoToast, type GridColumn } from "@xos/ui";
-import type { Route } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
@@ -25,6 +23,7 @@ import {
   typedLine,
 } from "@/lib/finance/live-lines";
 import { BudgetPresence } from "./budget-presence";
+import { MoreActions } from "@/components/shell/more-actions";
 import { propertyEdit, softDelete, versionChain } from "@/components/undo/entries";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 // Drawer and dialog bodies load when opened; the toolbar's buttons stay in this chunk.
@@ -616,48 +615,14 @@ export function BudgetEditor(props: Props) {
   return (
     <div className="flex flex-col gap-12">
       <div role="toolbar" aria-label={t("budgets.toolbar")} className="flex flex-wrap gap-8">
+        {/* Four actions and More keep the toolbar within five (gate 27); the rest sit in More. */}
         {props.canWrite ? (
           <>
             <Button icon="Plus" onClick={() => setSheet("add")}>
               {t("budgets.addLine")}
             </Button>
-            <Button icon="Package" onClick={() => setSheet("catalog")}>
-              {t("budgets.addFromCatalog")}
-            </Button>
             <Button icon="ClipboardPaste" onClick={() => setSheet("paste")}>
               {t("budgets.pasteRows")}
-            </Button>
-            {props.importHref ? (
-              <Link
-                href={props.importHref as Route}
-                className="inline-flex h-control-md items-center rounded-control border border-border-subtle px-12 text-text-13 text-text-primary hover:bg-bg-hover"
-              >
-                {t("budgets.importLines")}
-              </Link>
-            ) : null}
-            <Button icon="Trash2" onClick={() => setSheet("delete")} disabled={lines.length === 0}>
-              {t("budgets.deleteLines")}
-            </Button>
-            {allLines.some((l) => l.lineType === "Contingency") ? (
-              <Button icon="ArrowRightLeft" onClick={() => setSheet("draw")}>
-                {t("budgets.drawContingency")}
-              </Button>
-            ) : null}
-            {props.lineFields ? (
-              <Button
-                icon="SlidersHorizontal"
-                onClick={() => setSheet("fields")}
-                disabled={allLines.length === 0}
-              >
-                {t("budgets.lineFields")}
-              </Button>
-            ) : null}
-            <Button
-              icon="ListChecks"
-              onClick={() => setSheet("quoteLines")}
-              disabled={allLines.length === 0}
-            >
-              {t("budgets.quoteLines")}
             </Button>
           </>
         ) : null}
@@ -671,6 +636,35 @@ export function BudgetEditor(props: Props) {
         >
           {t("budgets.transactions.open")}
         </Button>
+        {props.canWrite ? (
+          <MoreActions
+            label={t("budgets.more")}
+            items={[
+              { label: t("budgets.addFromCatalog"), onSelect: () => setSheet("catalog") },
+              props.importHref ? { label: t("budgets.importLines"), href: props.importHref } : null,
+              {
+                label: t("budgets.deleteLines"),
+                onSelect: () => setSheet("delete"),
+                disabled: lines.length === 0,
+              },
+              allLines.some((l) => l.lineType === "Contingency")
+                ? { label: t("budgets.drawContingency"), onSelect: () => setSheet("draw") }
+                : null,
+              props.lineFields
+                ? {
+                    label: t("budgets.lineFields"),
+                    onSelect: () => setSheet("fields"),
+                    disabled: allLines.length === 0,
+                  }
+                : null,
+              {
+                label: t("budgets.quoteLines"),
+                onSelect: () => setSheet("quoteLines"),
+                disabled: allLines.length === 0,
+              },
+            ]}
+          />
+        ) : null}
       </div>
       {props.me ? (
         <BudgetPresence budgetId={props.budgetId} me={props.me} editingLine={editingLine} />

@@ -282,16 +282,21 @@ export async function NeedsSection({
       actions={
         canWrite ? (
           <>
+            {/* Paste list and Import share one More menu: the header keeps to five actions (gate 27). */}
             {projectId ? (
-              <MaterialQuickAddButton org={ctx.org.slug} target={{ kind: "needs", projectId }} />
+              <MaterialQuickAddButton
+                org={ctx.org.slug}
+                target={{ kind: "needs", projectId }}
+                importLink={{ label: t("needs.import"), href: importHref }}
+              />
             ) : (
               <MaterialQuickAddButton
                 org={ctx.org.slug}
                 target={{ kind: "needs", projectId: "" }}
                 projects={projectOptions}
+                importLink={{ label: t("needs.import"), href: importHref }}
               />
             )}
-            <KitLink href={importHref}>{t("needs.import")}</KitLink>
             <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
               {t("needs.create")}
             </KitLink>

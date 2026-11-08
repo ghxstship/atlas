@@ -93,7 +93,9 @@ test("an agreement batch: template, preview, create, send, and the masked reader
   await expect(page.getByText("Uses the rate").first()).toBeVisible();
 
   await page.goto(`/${DEMO_ORG}/p/NWS/engagements`);
-  await page.getByRole("link", { name: "Generate agreements" }).click();
+  // On the project tab Generate agreements sits in the header's More menu with Intake requests.
+  await page.getByRole("main").getByRole("button", { name: "More", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Generate agreements" }).click();
   await page.waitForURL(/generate=1/);
   const generate = page.getByRole("form", { name: "Generate agreements" });
   await generate.getByLabel("Template").selectOption({ label: name });
