@@ -156,7 +156,9 @@ test("a vendor goes from the code to an approved request and the intake's invoic
     const atlas = await atlasAs(browser, "producer@example.com");
     await atlas.page.goto(`/${ORG}/p/NWS/engagements`);
     await expect(async () => {
-      await atlas.page.getByRole("button", { name: "Intake requests", exact: true }).click();
+      // Intake requests sits in the header's More menu with Generate agreements (gate 27).
+      await atlas.page.getByRole("main").getByRole("button", { name: "More", exact: true }).click();
+      await atlas.page.getByRole("menuitem", { name: "Intake requests", exact: true }).click();
       await expect(atlas.page.getByRole("dialog")).toBeVisible({ timeout: 2_000 });
     }).toPass();
     const dialog = atlas.page.getByRole("dialog");

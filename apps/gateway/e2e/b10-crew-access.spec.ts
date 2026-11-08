@@ -117,8 +117,13 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
     expect(state?.shift_state).toBe("Accepted");
   }).toPass();
 
-  // Atlas sees it.
-  await atlas.goto(`/${ORG}/p/NWS/crew?view=list`);
+  // Atlas sees it, in the week that holds the shift: two days out can be next week.
+  const [day] = await sql<{ day: string }>(
+    `select to_char((s.starts_at at time zone p.time_zone)::date, 'YYYY-MM-DD') as day
+     from app.shifts s join app.projects p on p.id = s.project_id where s.id = $1`,
+    [shift.id],
+  );
+  await atlas.goto(`/${ORG}/p/NWS/crew?view=list&week=${day?.day}`);
   await expect(
     atlas.getByText("Accepted", { exact: true }).locator("visible=true").first(),
   ).toBeVisible();
