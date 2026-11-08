@@ -14,4 +14,4 @@ An organization sees a category only while you share it with that engagement. Yo
 
 Your skills, certifications, rates and availability are in [Profile settings](help:settings-profile).
 
-Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them.
+Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them: whoever entered them cannot enter them for you again, by your account or email, anywhere in that organization, until you agree yourself. If a guest list entry is about someone else, choose This is not me: your name and email come off it, and the guest's needs stay with whoever keeps the list.

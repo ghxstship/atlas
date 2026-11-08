@@ -18,4 +18,4 @@ Work details other than the work phone need a connection and never stay on this 
 
 Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway. Your [profile](help:profile) shows your contacts.
 
-Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here so you can remove them.
+Dietary, allergy and accessibility details are optional. Before you add any, you read what we collect, why, who sees it and how to withdraw, and agree. Withdraw from the same place at any time: we stop using the details at once and delete them. If someone else entered details for you, they show here. Remove them, and whoever entered them cannot enter them for you again, by your account or email, in that organization until you agree. If a guest list entry is someone else, choose This is not me.

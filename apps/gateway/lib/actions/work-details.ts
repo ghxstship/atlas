@@ -28,6 +28,7 @@ import {
   type Parsed,
 } from "@xos/data/work-details-forms";
 import {
+  disownSensitiveEntry,
   giveSensitiveConsent,
   removeSensitiveEntry,
   SENSITIVE_CATEGORIES,
@@ -139,6 +140,14 @@ export async function removeSensitiveEntryAction(_: State, form: FormData): Prom
   if (!id) return { error: "invalid" };
   const { db } = await person();
   return done(await removeSensitiveEntry(db, id));
+}
+
+/** The person says a guest list entry their email matched is about someone else; the guest's needs stay with the keeper. */
+export async function disownSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await person();
+  return done(await disownSensitiveEntry(db, id));
 }
 
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {

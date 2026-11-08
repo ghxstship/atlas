@@ -29,6 +29,7 @@ import {
   type Parsed,
 } from "@xos/data/work-details-forms";
 import {
+  disownSensitiveEntry,
   giveSensitiveConsent,
   listMySensitiveConsents,
   listMySensitiveStates,
@@ -498,7 +499,10 @@ interface Loaded {
   readonly entered: readonly SensitiveEntryAboutMe[];
 }
 
-/** What someone else entered about the person under an attestation; the person removes it here (ADR 0164). */
+/**
+ * What someone else entered about the person under an attestation; the person removes it here, or says a guest list entry
+ * is about someone else (ADR 0164).
+ */
 function EnteredForMeCard({
   db,
   entries,
@@ -525,6 +529,17 @@ function EnteredForMeCard({
             icon="user"
             title={category}
             subtitle={e.givenByName ?? ""}
+            {...(e.guestName
+              ? {
+                  // A guest list entry an email matched may be about someone else: saying so keeps the guest's needs.
+                  swipeStart: {
+                    label: t(`${W}.consent.about.disownNamed`, { guest: e.guestName }),
+                    icon: "user",
+                    tone: "neutral",
+                    onAction: () => void removal.run(() => disownSensitiveEntry(db, e.consentId)),
+                  },
+                }
+              : {})}
             swipeEnd={{
               label: t(`${W}.consent.about.removeNamed`, { category }),
               icon: "trash-2",

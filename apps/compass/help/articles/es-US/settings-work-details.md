@@ -18,4 +18,4 @@ Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca
 
 Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway. Tu [perfil](help:profile) muestra tus contactos.
 
-Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí para que puedas eliminarlos.
+Los datos de dieta, alergias y accesibilidad son opcionales. Antes de añadir alguno, lees qué recopilamos, por qué, quién lo ve y cómo retirar el consentimiento, y aceptas. Retíralo desde el mismo lugar en cualquier momento: dejamos de usar los datos de inmediato y los eliminamos. Si otra persona introdujo datos por ti, aparecen aquí. Elimínalos, y quien los introdujo no podrá volver a introducirlos por ti, con tu cuenta o tu correo, en esa organización hasta que lo aceptes. Si una entrada de la lista de invitados es de otra persona, elige No soy yo.

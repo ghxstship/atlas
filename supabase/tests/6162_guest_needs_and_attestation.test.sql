@@ -177,9 +177,15 @@ select is(app.set_guest_care_needs(pg_temp.id('guest_r'), '{Halal}', 'Sesame', n
   pg_temp.id('guest_r'), 'a blank save on the entry she removed gets the same answer');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_r')), 0, 'and does not put it back');
+-- Whoever entered it does not enter it for her again in that organization, as Work Details tells her.
 select pg_temp.as_user('carol');
 with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Tam At Another Show') returning id)
   insert into world select 'guest_t2', id from x;
+select is(app.set_guest_care_needs(pg_temp.id('guest_t2'), '{Vegan}', 'Peanuts, severe', null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas'),
+  pg_temp.id('guest_t2'), 'whoever entered what she removed gets the same answer on another entry of that organization');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_t2')), 0, 'and does not enter it for her there again');
+select pg_temp.as_user('alice');
 select app.set_guest_care_needs(pg_temp.id('guest_t2'), '{Vegan}', 'Peanuts, severe', null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
 select pg_temp.as_platform();
 select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_t2')), 'Peanuts, severe',
@@ -204,6 +210,91 @@ select is((select count(*)::int from app.sensitive_consent_report(pg_temp.id('or
   'the report lists a guest once, however many people an email named, so it does not show who had an account');
 select app.set_guest_care_needs(pg_temp.id('guest_r'), '{Kosher}', null, null, '{}', null, 'tam@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
 select pg_temp.as_platform();
+
+-- An entry the person removed stays theirs while it names nobody else ----------------------------------------------------
+select pg_temp.new_user('uma', 'uma@freelance.test', 'Uma Reyes');
+select pg_temp.as_user('carol');
+with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Uma Reyes') returning id)
+  insert into world select 'guest_u', id from x;
+select app.set_guest_care_needs(pg_temp.id('guest_u'), '{Vegan}', 'Sesame', null, '{}', null, 'uma@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_user('uma');
+select app.remove_sensitive_entry((select consent_id from app.sensitive_entries_about_me()));
+select pg_temp.as_user('alice');
+select is(app.set_guest_care_needs(pg_temp.id('guest_u'), '{Halal}', 'Sesame', null, '{}', null, null, true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas', null, true),
+  pg_temp.id('guest_u'), 'taking the email off an entry the person removed gets the same answer');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_u')), 0, 'and does not get round her removal');
+select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('uma') and action = 'sensitive_consent.attestation_not_saved'), 1,
+  'her access log shows it');
+select pg_temp.as_user('alice');
+select app.set_guest_care_needs(pg_temp.id('guest_u'), '{Halal}', 'Sesame', null, '{}', null, 'u.reyes@elsewhere.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_u')), 'Sesame', 'another address says the guest is someone else, and saves');
+
+-- A wrong match: the person an email named says the guest is someone else ------------------------------------------------
+select pg_temp.new_user('wes', 'wes@freelance.test', 'Wes Arden');
+select pg_temp.join_org('alice', 'org_a', 'wes', 'member');
+select pg_temp.as_user('carol');
+with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Wesley Arden Jr') returning id)
+  insert into world select 'guest_w', id from x;
+select app.set_guest_care_needs(pg_temp.id('guest_w'), '{Vegan}', 'Shellfish', null, '{Seating}', null, 'wes@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select throws_like($$select app.disown_sensitive_entry((select c.id from app.sensitive_data_consents c where c.guest_list_entry_id = pg_temp.id('guest_w') limit 1))$$,
+  'sensitive_entry_not_yours:%', 'whoever entered it does not say it is someone else');
+select pg_temp.as_platform();
+select is(pg_temp.told('wes'), 2, 'the person the email matched is told');
+select pg_temp.as_user('wes');
+select is((select count(*)::int from app.sensitive_entries_about_me()), 2, 'and sees the entry');
+select lives_ok($$select app.disown_sensitive_entry((select consent_id from app.sensitive_entries_about_me() where category = 'Dietary and Allergies'))$$,
+  'and says the guest is someone else');
+select is((select count(*)::int from app.sensitive_entries_about_me()), 0, 'the entry no longer shows to him, in either category');
+select pg_temp.as_platform();
+select ok((select guest_email is null and guest_person_id is null from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')),
+  'his email and name come off the entry');
+select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')), 'Shellfish', 'the guest''s needs stay');
+select is((select count(*)::int from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_w') and withdrawn_at is null), 2,
+  'and so does the keeper''s attestation for the guest');
+select is((select count(*)::int from app.sensitive_data_consents where guest_list_entry_id = pg_temp.id('guest_w') and person_id = pg_temp.id('wes')), 0,
+  'which no longer names him');
+select is((select count(*)::int from app.sensitive_field_records where guest_list_entry_id = pg_temp.id('guest_w') and person_id = pg_temp.id('wes')), 0,
+  'nor do the field records');
+select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('wes') and action = 'sensitive_consent.entry_unlinked'), 1,
+  'his access log says the entry no longer names him');
+select is((select count(*)::int from app.audit_events where org_id = pg_temp.id('org_a') and action = 'guest_needs.email_removed'
+    and subject_id = pg_temp.id('guest_w')), 1, 'and the org''s audit log that the email came off, as for a removal');
+select pg_temp.as_user('carol');
+select is((select has_email from app.guest_care_needs_states(pg_temp.id('prj_a')) where guest_list_entry_id = pg_temp.id('guest_w')), false,
+  'the keeper sees that no email is on file');
+select app.set_guest_care_needs(pg_temp.id('guest_w'), '{Vegan}', 'Shellfish, severe', null, '{Seating}', null, null, true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')), 'Shellfish, severe',
+  'a later save with the email blank saves the guest''s needs, not his removal rules');
+select pg_temp.as_user('carol');
+select app.set_guest_care_needs(pg_temp.id('guest_w'), '{Vegan}', 'Shellfish, severe, carries an EpiPen', null, '{Seating}', null, 'wes@freelance.test',
+  true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')), 'Shellfish, severe, carries an EpiPen',
+  'typing his email again still saves');
+select ok((select guest_email is null and guest_person_id is null from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')),
+  'and does not name him or keep his email on that entry');
+select is(pg_temp.told('wes'), 2, 'nor tell him again');
+select private.run_sensitive_data_job();
+select is((select guest_person_id from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')), null, 'the daily job does not link him back');
+-- His own rules still stand: withdrawing reaches what is about him, not the guest he said is someone else.
+select pg_temp.as_user('wes');
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
+select app.withdraw_sensitive_consent('Dietary and Allergies');
+select pg_temp.as_platform();
+select is((select allergies from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w')), 'Shellfish, severe, carries an EpiPen',
+  'his withdrawal does not delete the other guest''s needs');
+select pg_temp.as_user('carol');
+with x as (insert into app.guest_list_entries (project_id, guest_name) values (pg_temp.id('prj_a'), 'Wes Arden') returning id)
+  insert into world select 'guest_w2', id from x;
+select app.set_guest_care_needs(pg_temp.id('guest_w2'), '{Vegan}', null, null, '{}', null, 'wes@freelance.test', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.guest_care_needs where guest_list_entry_id = pg_temp.id('guest_w2')), 0,
+  'and on an entry that is about him, his withdrawal still means nobody attests him back in');
+select ok(has_function_privilege('authenticated', 'app.disown_sensitive_entry(uuid)', 'EXECUTE')
+  and not has_function_privilege('anon', 'app.disown_sensitive_entry(uuid)', 'EXECUTE'), 'saying it is someone else needs a sign-in');
 
 -- A category read stands on its own attestation ---------------------------------------------------------------------------
 insert into app.legal_holds (org_id, table_name, matter) values (pg_temp.id('org_a'), 'app.guest_care_needs', 'Guest dispute 2026-22.');

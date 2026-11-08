@@ -44,6 +44,7 @@ export const SENSITIVE_CONSENT_RULES = [
   "sensitive_attestation_required",
   "sensitive_person_only",
   "sensitive_entry_not_yours",
+  "sensitive_entry_not_guest",
   "sensitive_consent_category",
   "guest_needs_declined",
 ] as const;
@@ -224,6 +225,18 @@ export async function removeSensitiveEntry(
   consentId: string,
 ): Promise<Result<null>> {
   const { error } = await db.rpc("remove_sensitive_entry", { p_consent_id: consentId });
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * The person a guest list entry names by their email says the guest is someone else: their name and email come off it, the
+ * guest's needs stay with whoever keeps the list, and the entry never names them again. Only for a guest list entry.
+ */
+export async function disownSensitiveEntry(
+  db: XosClient,
+  consentId: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("disown_sensitive_entry", { p_consent_id: consentId });
   return error ? fail(toDataError(error)) : ok(null);
 }
 

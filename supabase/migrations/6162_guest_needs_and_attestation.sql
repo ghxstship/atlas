@@ -13,9 +13,14 @@
 --     notice, see it under their Work Details and remove it. An account opened later with that email is linked and told by
 --     the daily job, or sooner when the person acts. Changing the email, or another keeper entering values, closes the
 --     attestation and opens a new one with who gave it. A save with the email left blank keeps who the entry is about, because
---     the email on file never comes back to the form: only an explicit p_clear_guest_email removes it.
+--     the email on file never comes back to the form: only an explicit p_clear_guest_email removes it. A person an email
+--     matched who says the guest is someone else (app.disown_sensitive_entry) comes off the entry, with their email, and is
+--     never named on it again; the guest's needs and the keeper's attestation stay, and nothing about that person blocks a later
+--     save there.
 --   * A person who withdrew a category cannot be attested back into it, and nor can a person who removed that attestation be
---     entered again on that guest's entry or by that company, until they give their own consent. A keeper who types their
+--     entered again on that guest's entry, by that company, or by whoever entered it anywhere in that organization, until they
+--     give their own consent. The entry they removed stays theirs with no email or the email taken off; only another address
+--     says the guest is someone else. A keeper who types their
 --     email cannot tell: that category is simply not saved, and the call answers the same. A keeper who also holds medical
 --     access can see the values are absent when reading the list back; only saving the data of someone who withdrew would
 --     hide that. The person's access log shows it, and no org's audit reader reads that log's sensitive_consent or guest_needs
@@ -170,6 +175,41 @@ $$;
 comment on function private.verified_email_of(uuid) is 'The person''s confirmed sign-in email, lower case, or NULL.';
 revoke all on function private.verified_email_of(uuid) from public, anon, authenticated;
 
+-- A person an email matched who says the guest is someone else ------------------------------------------------------
+
+create table private.guest_needs_disowned (
+  guest_list_entry_id uuid not null references app.guest_list_entries (id) on delete cascade,
+  person_id uuid not null references app.people (id) on delete cascade,
+  disowned_at timestamptz not null default now(),
+  primary key (guest_list_entry_id, person_id)
+);
+
+create index guest_needs_disowned_person_id_idx on private.guest_needs_disowned (person_id);
+
+call private.describe('private.guest_needs_disowned', 'A person whose verified email a keeper gave for a guest, and who said the guest is someone else (app.disown_sensitive_entry). Their name and email come off that entry, and that entry never names them again, so their word cannot leave the guest''s needs tied to the wrong person. Gone with the guest list entry or the person.', array[
+  'guest_list_entry_id', 'Guest list entry the person said is not them.',
+  'person_id', 'Person who said so.',
+  'disowned_at', 'When they said so.'
+]);
+
+alter table private.guest_needs_disowned enable row level security;
+revoke all on private.guest_needs_disowned from public, anon, authenticated;
+grant all on private.guest_needs_disowned to service_role;
+
+create or replace function private.guest_entry_disowned(p_entry_id uuid, p_person_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_person_id is not null and exists (select 1 from private.guest_needs_disowned d
+                                             where d.guest_list_entry_id = p_entry_id and d.person_id = p_person_id);
+$$;
+
+comment on function private.guest_entry_disowned(uuid, uuid) is 'True when the person said this guest list entry is about someone else: it never names them again.';
+revoke all on function private.guest_entry_disowned(uuid, uuid) from public, anon, authenticated;
+
 create or replace function private.link_guest_needs_to_person(p_person_id uuid)
 returns integer
 language plpgsql
@@ -188,19 +228,20 @@ begin
   update app.sensitive_data_consents c set person_id = p_person_id
   from app.guest_care_needs n
   where n.guest_list_entry_id = c.guest_list_entry_id and n.guest_person_id is null and n.guest_email = v_email
-    and c.person_id is null and c.withdrawn_at is null;
+    and c.person_id is null and c.withdrawn_at is null and not private.guest_entry_disowned(n.guest_list_entry_id, p_person_id);
   perform private.end_trusted_operation('sensitive_guest_link');
   update app.sensitive_field_records r set person_id = p_person_id
   from app.guest_care_needs n
-  where n.guest_list_entry_id = r.guest_list_entry_id and n.guest_person_id is null and n.guest_email = v_email and r.person_id is null;
+  where n.guest_list_entry_id = r.guest_list_entry_id and n.guest_person_id is null and n.guest_email = v_email and r.person_id is null
+    and not private.guest_entry_disowned(n.guest_list_entry_id, p_person_id);
   update app.guest_care_needs n set guest_person_id = p_person_id
-  where n.guest_person_id is null and n.guest_email = v_email;
+  where n.guest_person_id is null and n.guest_email = v_email and not private.guest_entry_disowned(n.guest_list_entry_id, p_person_id);
   get diagnostics v_count = row_count;
   return v_count;
 end;
 $$;
 
-comment on function private.link_guest_needs_to_person(uuid) is 'Names the person on guest needs that hold their verified email and no person yet: an account opened, or an address confirmed, after the entry. Withdrawing, removing an entry, deleting the account and the daily job all start here. Returns how many entries it linked.';
+comment on function private.link_guest_needs_to_person(uuid) is 'Names the person on guest needs that hold their verified email and no person yet: an account opened, or an address confirmed, after the entry, never an entry they said is someone else. Withdrawing, removing an entry, deleting the account and the daily job all start here. Returns how many entries it linked.';
 revoke all on function private.link_guest_needs_to_person(uuid) from public, anon, authenticated;
 
 create or replace function private.person_withdrew_sensitive(p_person_id uuid, p_category app.sensitive_data_category)
@@ -219,7 +260,8 @@ $$;
 comment on function private.person_withdrew_sensitive(uuid, app.sensitive_data_category) is 'True when the person themselves withdrew their own consent to a category and has not consented again, so nobody else can attest them back into it anywhere. Removing one attestation is narrower: see private.person_removed_attestation.';
 revoke all on function private.person_withdrew_sensitive(uuid, app.sensitive_data_category) from public, anon, authenticated;
 
-create or replace function private.person_removed_attestation(p_person_id uuid, p_category app.sensitive_data_category, p_entry_id uuid, p_org_id uuid)
+create or replace function private.person_removed_attestation(p_person_id uuid, p_category app.sensitive_data_category, p_entry_id uuid,
+  p_org_id uuid, p_given_by uuid)
 returns boolean
 language sql
 stable
@@ -230,15 +272,36 @@ as $$
     select 1 from app.sensitive_data_consents c
     where c.person_id = p_person_id and c.category = p_category and c.basis = 'Attested Authority'
       and c.withdrawn_by = p_person_id
-      and case when p_entry_id is not null then c.guest_list_entry_id = p_entry_id
-               else c.guest_list_entry_id is null and c.org_id = p_org_id end
+      and (case when p_entry_id is not null then c.guest_list_entry_id = p_entry_id
+                else c.guest_list_entry_id is null and c.org_id = p_org_id end
+           or (c.given_by = p_given_by and c.org_id = p_org_id))
       and not exists (select 1 from app.sensitive_data_consents o
                       where o.person_id = p_person_id and o.category = p_category and o.basis = 'Own Consent'
                         and o.withdrawn_at is null and o.given_at >= c.withdrawn_at));
 $$;
 
-comment on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid) is 'True when the person removed an attestation about them on this guest list entry, or from this company, and has not given their own consent since: it is not entered for them there again. It reaches only that entry or that company, so one removal does not block another org''s keeper.';
-revoke all on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid) from public, anon, authenticated;
+comment on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid, uuid) is 'True when the person removed an attestation about them on this guest list entry, or from this company, or one this attester gave in this organization, and has not given their own consent since: it is not entered for them there again. Whoever entered it does not enter it for them again in that organization; anyone else in another entry, and every other organization, is not blocked by it.';
+revoke all on function private.person_removed_attestation(uuid, app.sensitive_data_category, uuid, uuid, uuid) from public, anon, authenticated;
+
+create or replace function private.guest_entry_removed_by(p_entry_id uuid, p_category app.sensitive_data_category)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.person_id from app.sensitive_data_consents c
+  where c.guest_list_entry_id = p_entry_id and c.category = p_category and c.basis = 'Attested Authority'
+    and c.person_id is not null and c.withdrawn_by = c.person_id
+    and not exists (select 1 from app.sensitive_data_consents o
+                    where o.person_id = c.person_id and o.category = p_category and o.basis = 'Own Consent'
+                      and o.withdrawn_at is null and o.given_at >= c.withdrawn_at)
+  order by c.withdrawn_at desc, c.id desc
+  limit 1;
+$$;
+
+comment on function private.guest_entry_removed_by(uuid, app.sensitive_data_category) is 'The person who removed this guest list entry''s attestation in a category, saying it is about them, and has not given their own consent since; NULL otherwise. With no email, or the email taken off, the entry is still theirs: only another address says the guest is someone else.';
+revoke all on function private.guest_entry_removed_by(uuid, app.sensitive_data_category) from public, anon, authenticated;
 
 create or replace function private.can_keep_guest_needs(p_entry app.guest_list_entries)
 returns boolean
@@ -353,6 +416,8 @@ declare
   v_keep_access boolean;
   v_held boolean;
   v_person uuid;
+  v_blocker_diet uuid;
+  v_blocker_access uuid;
   v_category app.sensitive_data_category;
   v_asked boolean;
   v_keep boolean;
@@ -387,8 +452,9 @@ begin
     perform private.assert_sensitive_notice('Accessibility', p_accessibility_notice_version, p_locale);
   end if;
 
-  -- Who the entry is about. The email on file never comes back to the form, so a blank one keeps it, and an entry the person
-  -- removed themselves still knows them; only an explicit clear, or another address, says this is someone else.
+  -- Who the entry is about. The email on file never comes back to the form, so a blank one keeps it. Taking the email off
+  -- names nobody, and another address names whoever holds it. A person who said the guest is someone else is never named on
+  -- this entry again, nor is their email kept on it, so a later save is not tied to them: it saves as one with no email.
   select * into v_existing from app.guest_care_needs n where n.guest_list_entry_id = v_entry.id for update;
   if v_typed is not null then
     v_email := v_typed;
@@ -403,15 +469,27 @@ begin
     select c.person_id into v_person from app.sensitive_data_consents c
     where c.guest_list_entry_id = v_entry.id order by c.given_at desc, c.id desc limit 1;
   end if;
+  if private.guest_entry_disowned(v_entry.id, v_person) then
+    v_email := null;
+    v_person := null;
+  end if;
 
-  -- A person who withdrew, or who removed this entry, is not attested back in, and the caller cannot tell: a refusal here would
-  -- answer whether an address has an account, and whether its owner withdrew. Their category is not saved; the answer, the
-  -- attestation and the audit entry are the same; their access log shows it. Someone entering their own needs is not attested
+  -- A person who withdrew, or who removed this entry or what this attester entered for them in this organization, is not
+  -- attested back in, and the caller cannot tell: a refusal here would answer whether an address has an account, and whether
+  -- its owner withdrew. Their category is not saved; the answer, the attestation and the audit entry are the same; their access
+  -- log shows it. An entry the person removed, saying it is about them, stays theirs while it names nobody else, with no email or
+  -- the email taken off; only another address says the guest is someone else. Someone entering their own needs is not attested
   -- back into anything.
+  if v_email is null and v_person is null then
+    v_blocker_diet := private.guest_entry_removed_by(v_entry.id, 'Dietary and Allergies');
+    v_blocker_access := private.guest_entry_removed_by(v_entry.id, 'Accessibility');
+  end if;
   v_keep_diet := v_asked_diet and (v_person is not distinct from v_me or not (private.person_withdrew_sensitive(v_person, 'Dietary and Allergies')
-    or private.person_removed_attestation(v_person, 'Dietary and Allergies', v_entry.id, null)));
+    or private.person_removed_attestation(v_person, 'Dietary and Allergies', v_entry.id, v_entry.org_id, v_me)))
+    and (v_blocker_diet is null or v_blocker_diet = v_me);
   v_keep_access := v_asked_access and (v_person is not distinct from v_me or not (private.person_withdrew_sensitive(v_person, 'Accessibility')
-    or private.person_removed_attestation(v_person, 'Accessibility', v_entry.id, null)));
+    or private.person_removed_attestation(v_person, 'Accessibility', v_entry.id, v_entry.org_id, v_me)))
+    and (v_blocker_access is null or v_blocker_access = v_me);
   if not v_keep_diet then
     v_diet := '{}';
     v_allergies := null;
@@ -483,7 +561,8 @@ begin
       end if;
     end if;
     if not v_keep then
-      perform private.log_work_detail_event(v_person, 'sensitive_consent.attestation_not_saved', v_entry.org_id, null, '{}', '{}', null);
+      perform private.log_work_detail_event(coalesce(v_person, case when v_category = 'Dietary and Allergies' then v_blocker_diet else v_blocker_access end),
+        'sensitive_consent.attestation_not_saved', v_entry.org_id, null, '{}', '{}', null);
     elsif v_category = 'Dietary and Allergies' then
       perform private.record_sensitive_field('guest_dietary_needs', cardinality(v_diet) > 0, v_consent, v_person, null, v_entry.id);
       perform private.record_sensitive_field('guest_allergies', v_allergies is not null, v_consent, v_person, null, v_entry.id);
@@ -497,7 +576,7 @@ begin
 end;
 $$;
 
-comment on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) is 'Whoever keeps a guest''s entry sets the guest''s dietary and accessibility needs, each optional, as a full replacement, confirming they have the guest''s authority and that the guest has had notice (sensitive_attestation_required), with the version of the wording shown for each category and the language (sensitive_notice_version, sensitive_notice_locale). Refuses guest_needs_declined for a declined guest. Attested per category and audited, never with values; another keeper or another matched person is a new attestation. Nothing given clears the row. An email matching a verified sign-in names that person, who is told and can remove it. A blank email keeps the one on file, and p_clear_guest_email removes it. A person who withdrew that category, or who removed this entry, is not attested back in until they give their own consent: the category is not saved, the answer is the same, and their access log shows it. Returns the guest list entry id, or NULL when cleared.';
+comment on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) is 'Whoever keeps a guest''s entry sets the guest''s dietary and accessibility needs, each optional, as a full replacement, confirming they have the guest''s authority and that the guest has had notice (sensitive_attestation_required), with the version of the wording shown for each category and the language (sensitive_notice_version, sensitive_notice_locale). Refuses guest_needs_declined for a declined guest. Attested per category and audited, never with values; another keeper or another matched person is a new attestation. Nothing given clears the row. An email matching a verified sign-in names that person, who is told and can remove it. A blank email keeps the one on file, and p_clear_guest_email removes it; a person who said the entry is someone else is never named on it again. A person who withdrew that category, who removed this entry, or who removed what this keeper entered for them in this organization, is not attested back in until they give their own consent: the category is not saved, the answer is the same, and their access log shows it. An entry they removed stays theirs while it names nobody else. Returns the guest list entry id, or NULL when cleared.';
 revoke all on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) from public, anon;
 grant execute on function app.set_guest_care_needs(uuid, app.dietary_need[], text, text, app.accessibility_need[], text, text, boolean, boolean, text, text, text, app.sensitive_consent_surface, inet, boolean) to authenticated, service_role;
 
@@ -824,7 +903,7 @@ begin
   join app.counterparties c on c.id = e.counterparty_id
   where r.id = p_roster_entry_id;
   if private.person_withdrew_sensitive(v_person, 'Dietary and Allergies')
-     or private.person_removed_attestation(v_person, 'Dietary and Allergies', null, v_account) then
+     or private.person_removed_attestation(v_person, 'Dietary and Allergies', null, v_account, v_me) then
     -- The company knows this person, so there is no account to reveal. It need not know they withdrew.
     perform private.refuse('sensitive_person_only', 'Only this person can enter this.');
   end if;
@@ -1375,10 +1454,11 @@ as $$
   where c.basis = 'Attested Authority' and c.withdrawn_at is null and c.account_id is null and c.values_saved
     and (c.person_id = private.current_person_id()
       or (n.guest_email is not null and n.guest_email = private.verified_email_of(private.current_person_id())))
+    and not (c.guest_list_entry_id is not null and private.guest_entry_disowned(c.guest_list_entry_id, private.current_person_id()))
   order by c.given_at desc;
 $$;
 
-comment on function app.sensitive_entries_about_me() is 'What others attested and entered about the signed-in person: on a roster entry, or on a guest list under their person or their verified sign-in email, with who, when and, for a guest list entry, the values. An attestation nothing was saved under is not here: there is nothing to remove, and their access log shows the attempt.';
+comment on function app.sensitive_entries_about_me() is 'What others attested and entered about the signed-in person: on a roster entry, or on a guest list under their person or their verified sign-in email, with who, when and, for a guest list entry, the values. An attestation nothing was saved under is not here: there is nothing to remove, and their access log shows the attempt. Nor is a guest list entry they said is someone else.';
 revoke all on function app.sensitive_entries_about_me() from public, anon;
 grant execute on function app.sensitive_entries_about_me() to authenticated, service_role;
 
@@ -1422,6 +1502,49 @@ begin
 end;
 $$;
 
-comment on function app.remove_sensitive_entry(uuid) is 'The person an attestation is about, or whoever gave it, removes it in one call: the attestation is withdrawn and the values it covers are deleted. When the person removes it, it is not entered for them again on that guest''s entry or by that company until they give their own consent (private.person_removed_attestation). Refuses sensitive_entry_not_yours.';
+comment on function app.remove_sensitive_entry(uuid) is 'The person an attestation is about, or whoever gave it, removes it in one call: the attestation is withdrawn and the values it covers are deleted. When the person removes it, saying it is about them, it is not entered for them again on that guest''s entry, by that company, or by whoever entered it in that organization, until they give their own consent (private.person_removed_attestation). A guest list entry that is about someone else is app.disown_sensitive_entry instead. Refuses sensitive_entry_not_yours.';
 revoke all on function app.remove_sensitive_entry(uuid) from public, anon;
 grant execute on function app.remove_sensitive_entry(uuid) to authenticated, service_role;
+
+create or replace function app.disown_sensitive_entry(p_consent_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := private.require_person();
+  v_consent app.sensitive_data_consents;
+begin
+  -- An entry that only names the person's verified email so far is theirs to answer for now.
+  perform private.link_guest_needs_to_person(v_me);
+  select * into v_consent from app.sensitive_data_consents c
+  where c.id = p_consent_id and c.basis = 'Attested Authority' and c.withdrawn_at is null and c.account_id is null;
+  if v_consent.id is null or v_consent.person_id is distinct from v_me then
+    perform private.refuse('sensitive_entry_not_yours', 'Only the person an entry names says it is about someone else.');
+  end if;
+  if v_consent.guest_list_entry_id is null then
+    perform private.refuse('sensitive_entry_not_guest', 'A company rosters this person by name, so the entry is theirs: remove it instead.');
+  end if;
+  -- The guest's needs, and the keeper's attestation for the guest, stay: the keeper's word was about the guest, and only the
+  -- email tied it to this person. What comes off is this person: their name on the attestations and field records, and their
+  -- email on the entry. The entry never names them again, so a later save does not quietly fall under their removal rules.
+  insert into private.guest_needs_disowned (guest_list_entry_id, person_id) values (v_consent.guest_list_entry_id, v_me)
+  on conflict (guest_list_entry_id, person_id) do nothing;
+  perform private.begin_trusted_operation('sensitive_guest_disown');
+  update app.sensitive_data_consents c set person_id = null
+  where c.guest_list_entry_id = v_consent.guest_list_entry_id and c.person_id = v_me;
+  perform private.end_trusted_operation('sensitive_guest_disown');
+  update app.sensitive_field_records r set person_id = null
+  where r.guest_list_entry_id = v_consent.guest_list_entry_id and r.person_id = v_me;
+  update app.guest_care_needs n set guest_email = null, guest_person_id = null
+  where n.guest_list_entry_id = v_consent.guest_list_entry_id;
+  perform private.log_work_detail_event(v_me, 'sensitive_consent.entry_unlinked', v_consent.org_id, null, '{}', '{}', null);
+  perform private.write_audit_event(v_consent.org_id, 'guest_needs.email_removed', 'app.guest_list_entries', v_consent.guest_list_entry_id, '{}'::jsonb);
+end;
+$$;
+
+comment on function app.disown_sensitive_entry(uuid) is 'The person a guest list entry names by their verified email says the guest is someone else. Their name comes off its attestations and field records, their email off the entry, and the entry never names them again (private.guest_needs_disowned); the guest''s needs and the keeper''s attestation stay for whoever keeps the list, who sees that no email is on file. Nothing about the person blocks a later save on that entry. Refuses sensitive_entry_not_yours, and sensitive_entry_not_guest for a company''s attestation, which names the person it rosters.';
+revoke all on function app.disown_sensitive_entry(uuid) from public, anon;
+grant execute on function app.disown_sensitive_entry(uuid) to authenticated, service_role;

@@ -125,7 +125,7 @@ call private.describe('app.sensitive_data_consents', 'Consent to hold one catego
   'id', 'Primary key, UUID v7.',
   'category', 'Category consented to.',
   'basis', 'Own Consent, or Attested Authority when someone else entered it.',
-  'person_id', 'Person the data is about; NULL for a company, or for a guest with no account.',
+  'person_id', 'Person the data is about; NULL for a company, for a guest with no account, or once the person an email matched said the guest is someone else.',
   'account_id', 'External account (company) whose supplier diversity status it covers; NULL otherwise.',
   'guest_list_entry_id', 'Guest list entry the attestation covers; NULL otherwise.',
   'org_id', 'Org whose member attested; NULL for a person''s own consent.',
@@ -183,7 +183,8 @@ begin
   end if;
   if (to_jsonb(new) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'person_id', 'updated_at']) <> (to_jsonb(old) - array['withdrawn_at', 'withdrawn_by', 'guest_list_entry_id', 'person_id', 'updated_at'])
      or (new.person_id is distinct from old.person_id
-         and not (old.person_id is null and old.guest_list_entry_id is not null and private.in_trusted_operation('sensitive_guest_link'))) then
+         and not (old.person_id is null and old.guest_list_entry_id is not null and private.in_trusted_operation('sensitive_guest_link'))
+         and not (new.person_id is null and old.guest_list_entry_id is not null and private.in_trusted_operation('sensitive_guest_disown'))) then
     perform private.refuse('consent_immutable', 'A consent record is evidence; only its withdrawal is recorded.');
   end if;
   if old.withdrawn_at is not null and new.withdrawn_at is distinct from old.withdrawn_at then
@@ -197,7 +198,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_sensitive_data_consent() is 'Sensitive data consents: the capture time comes from the database and the IP address from the platform server or the request; nothing changes afterwards but a one-time withdrawal stamped with the database time, and naming the person on a guest''s attestation once a verified sign-in matches its email (private.link_guest_needs_to_person).';
+comment on function private.guard_sensitive_data_consent() is 'Sensitive data consents: the capture time comes from the database and the IP address from the platform server or the request; nothing changes afterwards but a one-time withdrawal stamped with the database time, naming the person on a guest''s attestation once a verified sign-in matches its email (private.link_guest_needs_to_person), and taking that name off at the person''s word that the guest is someone else (app.disown_sensitive_entry).';
 revoke all on function private.guard_sensitive_data_consent() from public, anon, authenticated;
 
 create trigger t40_guard_sensitive_data_consent before insert or update on app.sensitive_data_consents
@@ -937,11 +938,13 @@ begin
   update app.guest_care_needs n set guest_person_id = null where n.guest_person_id = new.id;
   update app.sensitive_data_consents c set withdrawn_at = now(), withdrawn_by = new.id
   where c.withdrawn_at is null and (c.person_id = new.id or (c.given_by = new.id and c.basis = 'Own Consent'));
+  -- With the account gone their email names nobody, so the entries they said were someone else need not remember them (6162).
+  delete from private.guest_needs_disowned d where d.person_id = new.id;
   return null;
 end;
 $$;
 
-comment on function private.erase_sensitive_consents() is 'After a person is deleted (account deletion, 1112): withdraws every grant about them and deletes what a guest list holds about them under their person or verified email. The grants stay as evidence. The person''s own values and meal preferences are deleted by the erasures of 1340, 1464 and 4655, and the field records follow. An org''s legal hold on guest needs keeps those values hidden until it ends, no longer linked to the person.';
+comment on function private.erase_sensitive_consents() is 'After a person is deleted (account deletion, 1112): withdraws every grant about them and deletes what a guest list holds about them under their person or verified email, and which guest entries they said were someone else. The grants stay as evidence. The person''s own values and meal preferences are deleted by the erasures of 1340, 1464 and 4655, and the field records follow. An org''s legal hold on guest needs keeps those values hidden until it ends, no longer linked to the person.';
 revoke all on function private.erase_sensitive_consents() from public, anon, authenticated;
 
 create trigger t63_erase_sensitive_consents after update of deleted_at on app.people

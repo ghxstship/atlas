@@ -108,6 +108,7 @@ function setup() {
         (consents[1] as Record<string, unknown>)["withdrawn_at"] = "2026-11-07T10:00:00Z";
         return null;
       },
+      disown_sensitive_entry: () => null,
     },
   );
   return { db, http: requests(contractApp({ handlers: [identity, advancing], db })) };
@@ -164,6 +165,19 @@ describe("Identity: consent for sensitive data (ADR 0164)", () => {
     const { db, http } = setup();
     await success(http.post(`/sensitive-consents/${ATTESTED}/withdraw`, {}));
     expect(db.calls.map((c) => c.name)).toEqual(["remove_sensitive_entry"]);
+  });
+
+  it("says a guest list entry is about someone else through its own RPC, and the attestation stands", async () => {
+    const { db, http } = setup();
+    const response = await success(http.post(`/sensitive-consents/${ATTESTED}/disown`, {}));
+    const kept = (await expectContract(response, "sensitiveConsents.disown")) as Record<
+      string,
+      unknown
+    >;
+    expect(db.calls.map((c) => c.name)).toEqual(["disown_sensitive_entry"]);
+    expect(db.calls[0]).toMatchObject({ args: { p_consent_id: ATTESTED } });
+    expect(kept).toMatchObject({ id: ATTESTED, withdrawn_at: null });
+    expect(kept).not.toHaveProperty("person_id");
   });
 
   it("reports consent state per field, never a value", async () => {

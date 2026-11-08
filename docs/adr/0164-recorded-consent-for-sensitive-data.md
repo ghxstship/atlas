@@ -66,9 +66,18 @@ the daily job, or sooner when the person acts, and they are told. The email on f
 keeps the list may not read it, so a save with the field empty keeps it and keeps the person it names. The form says an email is on
 file. Taking it off is an explicit tick, or typing another address, and whoever it stops naming finds that in their access log.
 
+An email can match the wrong person. That person says the guest is someone else (`app.disown_sensitive_entry`, This is not me in
+Work Details) rather than removing it: their name comes off the attestations and field records and their email off the entry, which
+never names them again (`private.guest_needs_disowned`), and the guest's needs and the keeper's attestation stay, because the keeper's
+word was about the guest. The keeper sees that no email is on file, and the org's audit log shows the email came off, naming who acted
+as it does for a removal. A removal says the entry is about the person, so without this a wrong match removed would bind the entry
+to them, and every later save would quietly fall under their rules and drop the guest's needs.
+
 A person who withdrew a category cannot be attested back into it anywhere. A person who removed one attestation cannot be entered again
-on that guest's entry, or by that company, and another keeper's entry elsewhere still saves. Either lifts when they give their own
-consent. The Work Details list says so where they remove it. Refusing the email would answer whether an address has an account, and that its
+on that guest's entry, by that company, or by whoever entered it anywhere in that organization, and another keeper's entry elsewhere
+still saves. The entry they removed stays theirs while it names nobody else: a blank email or the email taken off does not get round
+it, and only another address says the guest is someone else. Either lifts when they give their own consent, and they can always
+enter their own. The Work Details list says so where they remove it. Refusing the email would answer whether an address has an account, and that its
 owner withdrew, which is itself sensitive. So that category is simply not saved, and the answer, the attestation and the audit entry
 are the same as for any address. The attestation names the person and records that nothing was saved (`values_saved`). A keeper does
 not read any of that: `person_id`, `withdrawn_by`, `values_saved` and `captured_ip` are not selectable on

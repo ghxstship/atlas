@@ -26,7 +26,8 @@ function enteredValues(t: Translate, details: SensitiveEntryAboutMe["details"]):
 
 /**
  * What someone else entered about the person under an attestation (ADR 0164): who, when and, for a guest list entry,
- * the values. The person removes any of it in one step. Shown only once there is something to show.
+ * the values. The person removes any of it in one step, or says a guest list entry is about someone else. Shown only once
+ * there is something to show.
  */
 export function EnteredForMeSection({
   t,
@@ -77,12 +78,24 @@ export function EnteredForMeSection({
                 ) : null}
                 {enteredValues(t, e.details) ? <span>{enteredValues(t, e.details)}</span> : null}
               </span>
-              <RemoveEntryForm
-                hidden={hidden}
-                consentId={e.consentId}
-                label={t(`${P}.removeNamed`, { category })}
-                failed={t(`${P}.removeFailed`)}
-              />
+              <span className="flex flex-wrap items-start gap-4">
+                {e.guestName ? (
+                  <RemoveEntryForm
+                    hidden={hidden}
+                    consentId={e.consentId}
+                    label={t(`${P}.disown`)}
+                    accessibleLabel={t(`${P}.disownNamed`, { guest: e.guestName })}
+                    failed={t(`${P}.removeFailed`)}
+                    disown
+                  />
+                ) : null}
+                <RemoveEntryForm
+                  hidden={hidden}
+                  consentId={e.consentId}
+                  label={t(`${P}.removeNamed`, { category })}
+                  failed={t(`${P}.removeFailed`)}
+                />
+              </span>
             </li>
           );
         })}

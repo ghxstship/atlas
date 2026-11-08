@@ -262,6 +262,7 @@
     "guest_needs_declined": "This guest was declined, so nothing more is entered for them.",
     "travel_note_sensitive": "Leave dietary and access needs out of the travel notes. Add a meal preference, or use Work Details, which record consent.",
     "sensitive_entry_not_yours": "Only the person this is about, or whoever entered it, can remove it.",
+    "sensitive_entry_not_guest": "Your company entered this for you by name, so it is about you. Remove it instead.",
     "sensitive_consent_category": "A company holds only supplier diversity status.",
     "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent."
   },
@@ -511,12 +512,14 @@
     },
     "about": {
       "title": "Entered for you by someone else",
-      "description": "Someone said they had your authority to enter these. Remove anything you did not agree to. Whoever entered it cannot enter it for you there again unless you agree to it yourself.",
+      "description": "Someone said they had your authority to enter these. Remove anything you did not agree to: whoever entered it cannot enter it for you again, by your account or email, anywhere in that organization, and nobody can on that guest list entry, until you agree to it yourself. If a guest list entry is about someone else, choose This is not me instead: your name and email come off it, and the guest's needs stay with whoever keeps the list.",
       "none": "Nobody has entered anything for you.",
       "by": "{name} on {date}",
       "byOrg": "{name}, {org}, on {date}",
       "guest": "Guest list: {guest}",
       "removeNamed": "Remove {category}",
+      "disown": "This is not me",
+      "disownNamed": "This is not me: {guest}",
       "removeFailed": "That did not go through, so it is still on file. Try again."
     },
     "categories": {

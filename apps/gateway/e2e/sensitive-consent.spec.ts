@@ -6,15 +6,27 @@ const expect = baseExpect.configure({ timeout: 20_000 });
 
 /**
  * Consent for sensitive data in Gateway (ADR 0164): the accessibility fields stay off Settings, Work Details until the person
- * agrees, and withdrawing clears them; someone else's attestation about the person shows there, and they remove it; a supplier
+ * agrees, and withdrawing clears them; someone else's attestation about the person shows there, and they remove it, or say a
+ * guest list entry an email matched is someone else; a supplier
  * diversity certification needs its own step, and withdrawing removes it and its shares; the company never reads the values.
  */
 
-test("Work Details: agree, save, withdraw, and remove what someone else entered", async ({
+test("Work Details: agree, save, withdraw, remove what someone else entered, and say a guest is someone else", async ({
   page,
 }) => {
   test.setTimeout(180_000);
   const guest = `Consent Guest ${uniqueId()}`;
+  const other = `Someone Else ${uniqueId()}`;
+  // A removal stops whoever entered it entering it for the crew member again in that organization. An earlier run's removal
+  // is this journey's own fixture, so it goes, and the producer can list the crew member again.
+  const journeyEntries =
+    "select id from app.guest_list_entries where guest_name like 'Consent Guest %' or guest_name like 'Someone Else %'";
+  await sql(
+    `delete from app.sensitive_field_records where guest_list_entry_id in (${journeyEntries})`,
+  );
+  await sql(
+    `delete from app.sensitive_data_consents where guest_list_entry_id in (${journeyEntries})`,
+  );
   await sql("select app.withdraw_sensitive_consent('Accessibility')", [], DEMO.crew);
   try {
     await signIn(page, "crew@example.com", "/settings/work-details");
@@ -46,32 +58,51 @@ test("Work Details: agree, save, withdraw, and remove what someone else entered"
     );
     expect(row?.notes ?? null).toBeNull();
 
-    // A producer lists the crew member's needs as a guest, with their email; the person sees it and removes it.
-    const [entry] = await sql<{ id: string }>(
-      `insert into app.guest_list_entries (project_id, guest_name, entry_state)
-       select p.id, $1, 'Requested' from app.projects p where p.org_id = $2 and p.deleted_at is null
-       order by p.created_at limit 1 returning id`,
-      [guest, DEMO.org],
-    );
-    await sql(
-      `select app.set_guest_care_needs($1, '{Vegan}', null, null, '{}', null, 'crew@example.com', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas')`,
-      [entry?.id],
-      DEMO.owner,
-    );
+    // A producer lists a guest with the crew member's email by mistake; the crew member says the guest is someone else, and
+    // the guest's needs stay with the list.
+    const listGuest = async (name: string, allergies: string | null) => {
+      const [entry] = await sql<{ id: string }>(
+        `insert into app.guest_list_entries (project_id, guest_name, entry_state)
+         select p.id, $1, 'Requested' from app.projects p where p.org_id = $2 and p.deleted_at is null
+         order by p.created_at limit 1 returning id`,
+        [name, DEMO.org],
+      );
+      await sql(
+        `select app.set_guest_care_needs($1, '{Vegan}', $2, null, '{}', null, 'crew@example.com', true, true, '2026-11-06', '2026-11-06', 'en-US', 'Atlas')`,
+        [entry?.id, allergies],
+        DEMO.owner,
+      );
+      return entry?.id;
+    };
+    const wrong = await listGuest(other, "Shellfish");
     await page.reload();
     const about = page.getByRole("region", { name: "Entered for you by someone else" });
+    await expect(about).toContainText(other);
+    await about.getByRole("button", { name: `This is not me: ${other}` }).click();
+    await expect(about).toHaveCount(0);
+    await expectAccessible(page);
+    const [kept] = await sql<{ allergies: string | null; email: string | null }>(
+      "select allergies, guest_email as email from app.guest_care_needs where guest_list_entry_id = $1",
+      [wrong],
+    );
+    expect(kept).toEqual({ allergies: "Shellfish", email: null });
+
+    // A producer lists the crew member's needs as a guest, with their email; the person sees it and removes it.
+    const entry = await listGuest(guest, null);
+    await page.reload();
     await expect(about).toContainText(guest);
     await about.getByRole("button", { name: "Remove Dietary and allergies" }).click();
     await expect(about).toHaveCount(0);
     await expectAccessible(page);
     const [left] = await sql<{ n: number }>(
       "select count(*)::int as n from app.guest_care_needs where guest_list_entry_id = $1",
-      [entry?.id],
+      [entry],
     );
     expect(left?.n).toBe(0);
   } finally {
-    await sql("update app.guest_list_entries set deleted_at = now() where guest_name = $1", [
+    await sql("update app.guest_list_entries set deleted_at = now() where guest_name in ($1, $2)", [
       guest,
+      other,
     ]);
   }
 });

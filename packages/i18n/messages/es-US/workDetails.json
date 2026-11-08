@@ -262,6 +262,7 @@
     "guest_needs_declined": "Este invitado fue rechazado, así que ya no se introduce nada más para él.",
     "travel_note_sensitive": "No incluyas necesidades de dieta ni de acceso en las notas de viaje. Añade una preferencia de comida o usa Datos de trabajo, que registran el consentimiento.",
     "sensitive_entry_not_yours": "Solo la persona a la que se refiere, o quien lo introdujo, puede eliminarlo.",
+    "sensitive_entry_not_guest": "Tu empresa introdujo esto para ti por tu nombre, así que se refiere a ti. Elimínalo en su lugar.",
     "sensitive_consent_category": "Una empresa solo guarda su estado de diversidad de proveedores.",
     "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento."
   },
@@ -511,12 +512,14 @@
     },
     "about": {
       "title": "Introducido por otra persona",
-      "description": "Alguien dijo tener tu autorización para introducir esto. Elimina lo que no hayas aceptado. Quien lo introdujo no podrá volver a introducirlo por ti allí, salvo que lo aceptes tú.",
+      "description": "Alguien dijo tener tu autorización para introducir esto. Elimina lo que no hayas aceptado: quien lo introdujo no podrá volver a introducirlo por ti, con tu cuenta o tu correo, en ninguna parte de esa organización, y nadie podrá hacerlo en esa entrada de la lista de invitados, hasta que lo aceptes tú. Si una entrada de la lista de invitados es de otra persona, elige No soy yo: tu nombre y tu correo se quitan de ella, y las necesidades del invitado siguen con quien lleva la lista.",
       "none": "Nadie ha introducido nada por ti.",
       "by": "{name} el {date}",
       "byOrg": "{name}, {org}, el {date}",
       "guest": "Lista de invitados: {guest}",
       "removeNamed": "Eliminar {category}",
+      "disown": "No soy yo",
+      "disownNamed": "No soy yo: {guest}",
       "removeFailed": "No se pudo completar, así que sigue guardado. Vuelve a intentarlo."
     },
     "categories": {

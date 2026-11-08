@@ -161,6 +161,9 @@ select pg_temp.as_user('victor');
 select lives_ok(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),
   'until she gives her own consent');
 select pg_temp.as_user('mo');
+select throws_like($$select app.disown_sensitive_entry((select consent_id from app.sensitive_entries_about_me()))$$,
+  'sensitive_entry_not_guest:%', 'a company names the person it rosters, so she removes its entry rather than say it is someone else');
+select pg_temp.as_user('mo');
 select app.withdraw_sensitive_consent('Dietary and Allergies');
 select pg_temp.as_user('victor');
 select throws_like(format($$select app.attest_roster_meal_preference(%L, '2026-11-06', 'en-US', 'Gateway', true, true)$$, pg_temp.id('e_mo')),

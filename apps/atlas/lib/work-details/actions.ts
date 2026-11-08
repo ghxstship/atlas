@@ -29,6 +29,7 @@ import {
 } from "@xos/data/work-details-forms";
 import type { WorkDetailsPatch } from "@xos/data/work-details";
 import {
+  disownSensitiveEntry,
   giveSensitiveConsent,
   removeSensitiveEntry,
   SENSITIVE_CATEGORIES,
@@ -132,6 +133,14 @@ export async function removeSensitiveEntryAction(_: State, form: FormData): Prom
   if (!id) return { error: "invalid" };
   const { db } = await viewerPerson();
   return done(form, await removeSensitiveEntry(db, id));
+}
+
+/** The viewer says a guest list entry their email matched is about someone else; the guest's needs stay with the keeper. */
+export async function disownSensitiveEntryAction(_: State, form: FormData): Promise<State> {
+  const id = parseId(form, "consentId");
+  if (!id) return { error: "invalid" };
+  const { db } = await viewerPerson();
+  return done(form, await disownSensitiveEntry(db, id));
 }
 
 // Work details ------------------------------------------------------------------------------------------

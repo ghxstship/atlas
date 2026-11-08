@@ -7,6 +7,7 @@ import type { XosClient } from "../src/client.ts";
 import { looksSensitive, SENSITIVE_WORDS } from "../src/import-parse.ts";
 import {
   canonicalNotice,
+  disownSensitiveEntry,
   giveSensitiveConsent,
   listGuestNeedsStates,
   listMySensitiveStates,
@@ -227,6 +228,33 @@ describe("recording consent", () => {
       ok: true,
       data: { erased: true },
     });
+  });
+
+  it("says a guest list entry is someone else by its attestation, and names the refusal", async () => {
+    const { db, rpc } = rpcClient(null);
+    expect(await disownSensitiveEntry(db, "consent-id")).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("disown_sensitive_entry", { p_consent_id: "consent-id" });
+    const refused = await disownSensitiveEntry(
+      rpcClient(null, {
+        code: "XR001",
+        message: "sensitive_entry_not_guest: Refused.",
+        hint: "sensitive_entry_not_guest",
+      }).db,
+      "consent-id",
+    );
+    expect(refused.ok).toBe(false);
+    expect(JSON.stringify(refused)).toContain("sensitive_entry_not_guest");
+  });
+
+  it("explains each refusal of the entries list in both languages", () => {
+    for (const catalog of [enUS, esUS]) {
+      const errors = catalog.errors as Record<string, string>;
+      for (const rule of ["sensitive_entry_not_yours", "sensitive_entry_not_guest"]) {
+        expect(errors[rule]?.length).toBeGreaterThan(10);
+      }
+      expect(catalog.consent.about.disown.length).toBeGreaterThan(3);
+      expect(catalog.consent.about.disownNamed).toContain("{guest}");
+    }
   });
 
   it("finds the standing grant of a category", () => {

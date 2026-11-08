@@ -313,6 +313,13 @@ export const workDetailHandlers = {
     }
     return ok((await sensitiveConsents.read(context, params.id)) as never);
   },
+  "sensitiveConsents.disown": async ({ params }, context) => {
+    requirePerson(context);
+    // Read first: once the entry no longer names the caller, the row is no longer theirs to read.
+    const grant = await sensitiveConsents.read(context, params.id);
+    await run(rpc(context.db, "disown_sensitive_entry", { p_consent_id: params.id }));
+    return ok(grant as never);
+  },
   "sensitiveConsents.report": async (_, context) => {
     const rows = await run<Row[]>(
       rpc(context.db, "sensitive_consent_report", { p_org_id: requireOrg(context).id }),

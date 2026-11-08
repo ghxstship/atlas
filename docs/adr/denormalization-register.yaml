@@ -1839,6 +1839,10 @@ restated:
     parent: app.share_links.expires_at
     kind: own
     note: When the ticket stops working, two minutes after it was issued.
+  - column: private.guest_needs_disowned.person_id
+    parent: app.guest_list_entries.person_id
+    kind: own
+    note: The person an email matched who said the guest is someone else; the entry's person_id names whose list the guest is on (ADR 0164).
   - column: private.live_link_grants.expires_at
     parent: app.live_links.expires_at
     kind: own

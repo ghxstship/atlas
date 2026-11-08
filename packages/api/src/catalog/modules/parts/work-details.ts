@@ -621,6 +621,11 @@ export const workDetailResources: readonly ResourceSpec[] = [
         description:
           "Stops use at once and clears the values the grant covers, through `app.withdraw_sensitive_consent` for the caller's own or a company's, and `app.remove_sensitive_entry` for an attestation about them or given by them. Under a legal hold the values stay hidden until it ends. Refuses 422 sensitive_entry_not_yours.",
       }),
+      itemAction("disown", {
+        summary: "Say a guest list entry is about someone else",
+        description:
+          "For the person a guest's needs name by their verified email, through `app.disown_sensitive_entry`: their name and email come off the entry, which never names them again, and the guest's needs and the keeper's attestation stay. Returns the attestation, which still stands. Refuses 422 sensitive_entry_not_yours, and sensitive_entry_not_guest for a company's attestation, which names the person it rosters.",
+      }),
       collectionQuery("report", {
         summary: "Consent state per sensitive field",
         description:
