@@ -139,9 +139,11 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
   await worker.reload();
   await expect(worker.getByRole("button", { name: "Forget this code" })).toBeVisible();
   await worker.getByRole("button", { name: "Forget this code" }).click();
-  await expect(worker.getByRole("form", { name: "Open your shifts" })).toBeVisible();
-  await worker.getByLabel("Access code").fill(code);
-  await worker.getByRole("button", { name: "Open" }).click();
+  // Scoped to the form, as the first open is: on next dev "Open Next.js Dev Tools" also matches "Open".
+  const again = worker.getByRole("form", { name: "Open your shifts" });
+  await expect(again).toBeVisible();
+  await again.getByLabel("Access code").fill(code);
+  await again.getByRole("button", { name: "Open", exact: true }).click();
   await expect(worker.getByRole("button", { name: "Forget this code" })).toBeVisible();
 
   // Revoking closes the page.
