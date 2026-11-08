@@ -12,20 +12,31 @@
 --     external account or a crew roster keep their row and dates, with the address replaced by one at erased.invalid
 --     (RFC 2606), so no org can match the nameless person back to an address.
 --   * private.wage_record_names: the rule for names on wage records. Payroll records must name the worker (29 CFR
---     516.2(a)(1) under the FLSA, and 29 CFR 5.5(a)(3)(i) for the certified payroll of a covered contract), and the
---     retention schedule keeps payroll, timesheets and pay records 7 years in the United States, the only launch
---     market. So for each org whose time entries or payroll lines are the person's, the deletion copies the names off
---     the person into this private table first, kept until 7 years after the latest of those records. It is never
---     granted to a signed-in caller and is read only where a wage record must print a name: app.certified_payroll
---     (from 6060) falls back to it for a deleted worker. Every other read, the time entries, payroll lines and
---     engagements themselves included, shows a person with no name. A person with no wage records leaves nothing
---     here.
+--     516.2(a)(1) under the FLSA, and 29 CFR 5.5(a)(3)(i) for the certified payroll of a covered contract). The FLSA
+--     requires payroll records to be kept 3 years (29 CFR 516.5), and the retention schedule keeps payroll, timesheets
+--     and pay records 7 years by default in the United States, the only launch market. So the deletion copies the names off the person
+--     into this private table first, one row per org:
+--       - an org with the person's time entries or payroll lines keeps them until 7 years after the latest of those
+--         records, and every later one extends that: a trigger on app.time_entries and app.payroll_lines moves
+--         retain_until when a record for a deleted person is written after the deletion, such as the final payroll run of
+--         the last pay period;
+--       - an org that could still pay the person but has no record of theirs yet (a membership current or ended in the
+--         last 90 days, or an engagement kept for settlement and pay, Closing or Complete) keeps them 90 days, longer
+--         than the last monthly pay period and its payroll run take. A record written in that time keeps them 7 years
+--         after it; otherwise they are purged then, and a record the org first writes later carries no name.
+--     A person with no name, or no such org, leaves nothing here. The table is never granted to a signed-in caller and
+--     is read only where a wage record must print a name: app.certified_payroll (from 6060) falls back to it for a
+--     deleted worker. Every other read, the time entries, payroll lines and engagements themselves included, shows a
+--     person with no name.
 --   * private.purge_wage_record_names, nightly at 03:19 UTC, deletes the names whose period has ended, unless an
---     active legal hold in that org covers the wage records, in which case they wait for its release.
---   * private.account_deletion_tables (from 1670) adds the four tables the deletion now also writes, so a legal hold
---     over any of them blocks it as before. The other kept records are unchanged: tax forms keep the legal name and
---     address the form carries, signed agreements the signed name and OSHA cases the employee's details, each for its
---     own retention period in the schedule, and each org's register keeps the completed erasure request.
+--     active legal hold in that org covers any of the wage record tables (private.wage_record_tables), in which case
+--     they wait for its release.
+--   * private.account_deletion_tables (from 1670) adds the four tables the deletion now also writes, and
+--     private.account_deletion_blockers (from 1112) looks for holds in every org whose rows of them it rewrites, so a
+--     legal hold over any of them blocks it as before. private.account_deletion_kept (from 1112) counts time and pay
+--     records as the names rule does. The other kept records are unchanged: tax forms keep the legal name and address
+--     the form carries, signed agreements the signed name and OSHA cases the employee's details, each for its own
+--     retention period in the schedule, and each org's register keeps the completed erasure request.
 
 -- 1. Names kept for wage records ---------------------------------------------------------------------------------------
 
@@ -35,6 +46,7 @@ create table private.wage_record_names (
   full_name text,
   given_name text,
   family_name text,
+  last_wage_record_on date,
   retain_until date not null,
   recorded_at timestamptz not null default now(),
   primary key (org_id, person_id),
@@ -45,17 +57,32 @@ create index wage_record_names_person_idx on private.wage_record_names (person_i
 create index wage_record_names_retain_until_idx on private.wage_record_names (retain_until);
 
 comment on table private.wage_record_names is 'Names a deleted person''s wage records keep in one org (6190): payroll records must name the worker (29 CFR 516.2(a)(1); 29 CFR 5.5(a)(3)(i) for certified payroll), so account deletion copies the names here before it clears them from app.people. Read only by wage record outputs such as app.certified_payroll; never granted to a signed-in caller. Purged when retain_until passes, unless a legal hold covers the wage records.';
-comment on column private.wage_record_names.org_id is 'Org whose time entries or payroll lines are the person''s.';
+comment on column private.wage_record_names.org_id is 'Org whose time entries or payroll lines are the person''s, or that could still pay them.';
 comment on column private.wage_record_names.person_id is 'The deleted person; app.people keeps no name for them.';
 comment on column private.wage_record_names.full_name is 'Full name the person had given, as it was when they deleted their account.';
 comment on column private.wage_record_names.given_name is 'Optional given name the person had, as it was when they deleted their account.';
 comment on column private.wage_record_names.family_name is 'Optional family name the person had, as it was when they deleted their account.';
-comment on column private.wage_record_names.retain_until is 'Last day the names are kept: 7 years after the latest of the person''s time entries and payroll lines in the org (retention schedule, payroll, timesheets and pay records, United States default).';
+comment on column private.wage_record_names.last_wage_record_on is 'Date of the latest of the person''s time entries (clock-in, UTC) and payroll lines (end of the pay period) in the org, including those written after the deletion; null while the org has none.';
+comment on column private.wage_record_names.retain_until is 'Last day the names are kept: 7 years after last_wage_record_on (retention schedule, payroll, timesheets and pay records, United States default), or 90 days after the deletion while the org has no wage record of the person.';
 comment on column private.wage_record_names.recorded_at is 'When the account deletion copied the names.';
 
 alter table private.wage_record_names enable row level security;
 revoke all on private.wage_record_names from public, anon, authenticated;
 grant select on private.wage_record_names to service_role;
+
+create or replace function private.wage_record_tables()
+returns text[]
+language sql
+immutable
+set search_path = ''
+as $$
+  select array[
+    'app.people', 'app.memberships', 'app.engagements', 'app.time_entries', 'app.timesheets', 'app.pay_periods',
+    'app.payroll_runs', 'app.payroll_lines', 'app.certified_payroll_submissions']::text[];
+$$;
+
+comment on function private.wage_record_tables() is 'The tables that hold a worker''s wage records or name them (6190). An active legal hold in an org over one of them, or over every table, keeps the names in private.wage_record_names past their period.';
+revoke all on function private.wage_record_tables() from public, anon, authenticated;
 
 create or replace function private.retain_wage_record_names(p_person_id uuid)
 returns integer
@@ -67,10 +94,7 @@ as $$
 declare
   v_count integer;
 begin
-  insert into private.wage_record_names (org_id, person_id, full_name, given_name, family_name, retain_until)
-  select w.org_id, pe.id, pe.full_name, pe.given_name, pe.family_name, (max(w.worked_on) + interval '7 years')::date
-  from app.people pe
-  join (
+  with records as (
     select t.org_id, (t.clock_in at time zone 'UTC')::date as worked_on
     from app.time_entries t
     where t.deleted_at is null
@@ -82,19 +106,79 @@ begin
     join app.payroll_runs r on r.id = l.payroll_run_id
     join app.pay_periods pp on pp.id = r.pay_period_id
     where l.deleted_at is null and l.membership_id in (select m.id from app.memberships m where m.person_id = p_person_id)
-  ) w on true
+  ), latest as (
+    select r.org_id, max(r.worked_on) as last_on from records r group by r.org_id
+  ), payable as (
+    -- Orgs that could still write a wage record: a membership current or ended in the last 90 days, or an engagement
+    -- kept for settlement and pay.
+    select m.org_id from app.memberships m
+    where m.person_id = p_person_id and m.deleted_at is null and (m.valid_to is null or m.valid_to > now() - interval '90 days')
+    union
+    select e.org_id from app.engagements e
+    where e.person_id = p_person_id and e.deleted_at is null and e.engagement_state in ('Closing', 'Complete')
+  ), orgs as (
+    select l.org_id, l.last_on from latest l
+    union all
+    select p.org_id, null::date from payable p where p.org_id not in (select l.org_id from latest l)
+  )
+  insert into private.wage_record_names (org_id, person_id, full_name, given_name, family_name, last_wage_record_on, retain_until)
+  select o.org_id, pe.id, pe.full_name, pe.given_name, pe.family_name, o.last_on,
+    coalesce((o.last_on + interval '7 years')::date, current_date + 90)
+  from orgs o
+  cross join app.people pe
   where pe.id = p_person_id and coalesce(pe.full_name, pe.given_name, pe.family_name) is not null
-  group by w.org_id, pe.id, pe.full_name, pe.given_name, pe.family_name
   on conflict (org_id, person_id) do update
     set full_name = excluded.full_name, given_name = excluded.given_name, family_name = excluded.family_name,
+        last_wage_record_on = greatest(private.wage_record_names.last_wage_record_on, excluded.last_wage_record_on),
         retain_until = greatest(private.wage_record_names.retain_until, excluded.retain_until), recorded_at = now();
   get diagnostics v_count = row_count;
   return v_count;
 end;
 $$;
 
-comment on function private.retain_wage_record_names(uuid) is 'Copies a person''s names into private.wage_record_names for every org whose time entries or payroll lines are theirs, kept 7 years after the latest of them (6190). Account deletion calls it before it clears the names. Returns the number of orgs.';
+comment on function private.retain_wage_record_names(uuid) is 'Copies a person''s names into private.wage_record_names (6190): for every org with their time entries or payroll lines, kept 7 years after the latest of them, and for every org that could still pay them (a membership current or ended in the last 90 days, or a Closing or Complete engagement) with none yet, kept 90 days. Account deletion calls it before it clears the names. Returns the number of orgs.';
 revoke all on function private.retain_wage_record_names(uuid) from public, anon, authenticated;
+
+create or replace function private.extend_wage_record_names()
+returns trigger
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_person uuid;
+  v_on date;
+begin
+  if new.deleted_at is not null then
+    return null;
+  end if;
+  -- app.time_entries is partitioned, so the trigger fires on a partition; payroll lines are one table.
+  if tg_table_name <> 'payroll_lines' then
+    v_person := coalesce((select m.person_id from app.memberships m where m.id = new.membership_id),
+                         (select e.person_id from app.engagements e where e.id = new.engagement_id));
+    v_on := (new.clock_in at time zone 'UTC')::date;
+  else
+    v_person := (select m.person_id from app.memberships m where m.id = new.membership_id);
+    v_on := (select pp.ends_on from app.payroll_runs r join app.pay_periods pp on pp.id = r.pay_period_id
+             where r.id = new.payroll_run_id);
+  end if;
+  -- Only a deleted person has a row, so for everyone else this updates nothing.
+  update private.wage_record_names w
+    set last_wage_record_on = greatest(w.last_wage_record_on, v_on),
+        retain_until = greatest(w.retain_until, (v_on + interval '7 years')::date)
+    where w.org_id = new.org_id and w.person_id = v_person and v_on is not null;
+  return null;
+end;
+$$;
+
+comment on function private.extend_wage_record_names() is 'After a time entry or payroll line is written (6190): when its person deleted their account and the org keeps their names in private.wage_record_names, keeps them until 7 years after the record (the clock-in date, or the end of the line''s pay period) if that is later, so records written after the deletion, such as the final payroll run, are covered too.';
+revoke all on function private.extend_wage_record_names() from public, anon, authenticated;
+
+create trigger t95_extend_wage_record_names after insert or update of clock_in, deleted_at, membership_id, engagement_id
+  on app.time_entries for each row execute function private.extend_wage_record_names();
+create trigger t95_extend_wage_record_names after insert or update of deleted_at, payroll_run_id, membership_id
+  on app.payroll_lines for each row execute function private.extend_wage_record_names();
 
 create or replace function private.purge_wage_record_names()
 returns integer
@@ -109,15 +193,14 @@ begin
   delete from private.wage_record_names w
   where w.retain_until < current_date
     and not exists (
-      select 1 from app.legal_holds h
-      where h.org_id = w.org_id and h.released_at is null and h.deleted_at is null
-        and (h.table_name is null or h.table_name in ('app.people', 'app.time_entries', 'app.payroll_lines')));
+      select 1 from unnest(private.wage_record_tables()) t (table_name)
+      where w.org_id in (select private.held_org_ids(t.table_name)));
   get diagnostics v_count = row_count;
   return v_count;
 end;
 $$;
 
-comment on function private.purge_wage_record_names() is 'Nightly (6190): deletes the wage record names whose retention period has ended, except in an org with an active legal hold over people, time entries or payroll lines, where they wait for its release. Returns the number deleted.';
+comment on function private.purge_wage_record_names() is 'Nightly (6190): deletes the wage record names whose retention period has ended, except in an org with an active legal hold over any wage record table (private.wage_record_tables) or every table, where they wait for its release. Returns the number deleted.';
 revoke all on function private.purge_wage_record_names() from public, anon, authenticated;
 
 select cron.schedule('xos_purge_wage_record_names', '19 3 * * *', 'select private.purge_wage_record_names()');
@@ -150,6 +233,25 @@ $$;
 comment on function private.erase_account_contacts(uuid) is 'Erases the contact fields an account leaves outside the person (6190): its SCIM identities are soft-deleted, made inactive and given placeholder user names and ids, and the invitations it accepted or claimed (org, external account and crew roster) get an address at erased.invalid. Called by app.delete_my_account once the person is deleted.';
 revoke all on function private.erase_account_contacts(uuid) from public, anon, authenticated;
 
+create or replace function private.account_contact_org_ids(p_person_id uuid)
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select i.org_id from app.scim_identities i where i.person_id = p_person_id
+  union
+  select i.org_id from app.invites i where i.accepted_person_id = p_person_id
+  union
+  select i.org_id from app.account_invitations i where i.accepted_person_id = p_person_id
+  union
+  select i.org_id from app.roster_invitations i where i.claimed_person_id = p_person_id;
+$$;
+
+comment on function private.account_contact_org_ids(uuid) is 'Orgs whose SCIM identities or accepted invitations private.erase_account_contacts rewrites for a person (6190), so the deletion''s legal hold check covers them even where the person''s membership is gone.';
+revoke all on function private.account_contact_org_ids(uuid) from public, anon, authenticated;
+
 -- 3. Account deletion (from 1670) ---------------------------------------------------------------------------------------
 
 create or replace function private.account_deletion_tables()
@@ -171,6 +273,92 @@ $$;
 
 comment on function private.account_deletion_tables() is 'The app tables an account deletion writes to (SIM-004), with the person''s own push devices and the tickets of every device it removes (A101), and the SCIM identities and accepted invitations whose addresses it erases (6190). An active legal hold naming one of them, or naming no table, blocks the deletion.';
 revoke all on function private.account_deletion_tables() from public, anon, authenticated;
+
+-- Restated from 1112, its latest definition, with only the legal hold check changed: it covers the orgs whose SCIM
+-- identities and invitations the deletion rewrites as well as the person's related orgs.
+create or replace function private.account_deletion_blockers(p_person_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(b order by b ->> 'code', b ->> 'org_name'), '[]'::jsonb) from (
+    select jsonb_build_object('code', 'account_delete_legal_hold', 'org_id', o.id, 'org_name', o.name, 'matter', h.matter) as b
+    from app.legal_holds h
+    join app.organizations o on o.id = h.org_id
+    where h.released_at is null and h.deleted_at is null
+      and h.org_id in (select private.person_related_org_ids(p_person_id)
+                       union select private.account_contact_org_ids(p_person_id))
+      and (h.table_name is null or h.table_name = any (private.account_deletion_tables()))
+    union all
+    select distinct jsonb_build_object('code', 'account_delete_on_shift', 'org_id', o.id, 'org_name', o.name)
+    from app.time_entries t
+    join app.organizations o on o.id = t.org_id
+    where t.clock_out is null and t.deleted_at is null
+      and (t.membership_id in (select m.id from app.memberships m where m.person_id = p_person_id)
+           or t.engagement_id in (select e.id from app.engagements e where e.person_id = p_person_id))
+    union all
+    select jsonb_build_object('code', 'account_delete_sole_owner', 'org_id', o.id, 'org_name', o.name)
+    from app.memberships m
+    join app.organizations o on o.id = m.org_id
+    where m.person_id = p_person_id and m.deleted_at is null and m.valid_from <= now() and m.valid_to is null
+      and private.holds_owner_role(m.id)
+      and not exists (
+        select 1 from app.memberships m2
+        where m2.org_id = m.org_id and m2.id <> m.id and m2.deleted_at is null and m2.valid_from <= now() and m2.valid_to is null
+          and private.holds_owner_role(m2.id))
+    union all
+    select jsonb_build_object('code', 'account_delete_sole_owner', 'org_id', o.id, 'org_name', o.name)
+    from app.account_memberships a
+    join app.organizations o on o.id = a.org_id
+    where a.person_id = p_person_id and a.deleted_at is null and a.valid_to is null
+      and exists (select 1 from app.account_membership_roles r
+                  where r.account_membership_id = a.id and r.account_role = 'Account Owner' and r.deleted_at is null)
+      and not exists (
+        select 1 from app.account_membership_roles r join app.account_memberships a2 on a2.id = r.account_membership_id
+        where r.org_id = a.org_id and a2.id <> a.id and r.account_role = 'Account Owner' and r.deleted_at is null
+          and a2.deleted_at is null and a2.valid_to is null)
+  ) x;
+$$;
+
+comment on function private.account_deletion_blockers(uuid) is 'Why a person''s account cannot be deleted yet (SIM-004): an active legal hold over the records the deletion changes, in any org it changes them in (6190), an open time entry, or being the only Owner or Account Owner. Each entry names the code and the org.';
+revoke all on function private.account_deletion_blockers(uuid) from public, anon, authenticated;
+
+-- Restated from 1112, its latest definition, with only time and pay changed: it counts time entries on every engagement
+-- of the person, soft-deleted or not, as private.retain_wage_record_names does.
+create or replace function private.account_deletion_kept(p_person_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with mine as (select m.id from app.memberships m where m.person_id = p_person_id),
+  worked as (select e.id from app.engagements e where e.person_id = p_person_id),
+  engaged as (select e.id from app.engagements e where e.person_id = p_person_id and e.deleted_at is null)
+  select jsonb_agg(k.item order by k.ord) from (
+    select 1 as ord, jsonb_build_object('category', 'time_and_pay', 'retention', '7 years') as item
+    where exists (select 1 from app.time_entries t where t.deleted_at is null
+                    and (t.membership_id in (select id from mine) or t.engagement_id in (select id from worked)))
+       or exists (select 1 from app.payroll_lines l where l.deleted_at is null and l.membership_id in (select id from mine))
+    union all
+    select 2, jsonb_build_object('category', 'tax_forms', 'retention', '7 years')
+    where exists (select 1 from app.tax_forms f where f.person_id = p_person_id and f.deleted_at is null)
+    union all
+    select 3, jsonb_build_object('category', 'engagements', 'retention', '7 years')
+    where exists (select 1 from engaged)
+    union all
+    select 4, jsonb_build_object('category', 'org_records', 'retention', 'org')
+    union all
+    select 5, jsonb_build_object('category', 'audit_trail', 'retention', '7 years')
+    union all
+    select 6, jsonb_build_object('category', 'erasure_request', 'retention', '7 years')
+  ) k;
+$$;
+
+comment on function private.account_deletion_kept(uuid) is 'What an account deletion keeps, and for how long (SIM-004): time and pay records (time entries on any of the person''s memberships or engagements, and payroll lines, as private.retain_wage_record_names counts them, 6190), tax forms and engagement records under payroll retention, the org''s own records without the person''s name, the audit trail and the erasure request.';
+revoke all on function private.account_deletion_kept(uuid) from public, anon, authenticated;
 
 create or replace function app.delete_my_account(p_confirm_email text)
 returns jsonb

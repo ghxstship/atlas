@@ -27,8 +27,8 @@ select triggers_are('app', 'time_entries', array[
   't36_apply_web_clock_rules', 't38_guard_engaged_worker', 't39_time_entry_engagement_project', 't39_time_entry_roster_entry_project',
   't40_guard_time_entry',
   't42_refuse_time_entry_delete', 't85_audit_time_entry', 't85_audit_trail', 't86_void_timesheet_approvals',
-  't90_emit_clocked_in', 't90_emit_clocked_out', 't90_stamp_audit_columns'],
-  'every trigger, the web clock rules of 1321 included, and the id guard');
+  't90_emit_clocked_in', 't90_emit_clocked_out', 't90_stamp_audit_columns', 't95_extend_wage_record_names'],
+  'every trigger, the web clock rules of 1321 included, the id guard and the wage record names of 6190');
 select indexes_are('app', 'time_entries', array[
   'time_entries_pkey', 'time_entries_clock_in_idx', 'time_entries_created_by_idx', 'time_entries_engagement_id_idx',
   'time_entries_kiosk_device_id_idx', 'time_entries_membership_id_idx', 'time_entries_needs_review_idx', 'time_entries_open_idx',
