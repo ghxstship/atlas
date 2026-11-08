@@ -52,6 +52,9 @@ const config: NextConfig = {
   // Attachments upload through server actions; the bucket allows 50 MiB (migration 0590), above Next's 1 MB default.
   experimental: {
     serverActions: { bodySizeLimit: "50mb" },
+    // Vercel's 8 GB build container ran out of memory on 2026-11-08 with one static worker per CPU;
+    // two workers and a 6 GB heap (package.json) keep the build inside it. Local builds keep the default.
+    ...(process.env["VERCEL"] ? { cpus: 2 } : {}),
     // Turbopack merges chunks below this raw size (default 50,000). At 200,000 a signed-in page
     // loads 13 chunks instead of 19 and 3 KB less gzip, since each chunk carries its own wrapper and
     // compresses alone; the cost is shared code merged into page chunks, fetched again on
