@@ -26,7 +26,8 @@ export interface GatewayLegalDocument {
  * The documents Gateway publishes: those it links at account creation, in the order the sign-up
  * form names them, the Cookie Policy the cookie banner links (Section 14.3, A82), the Terms of
  * Service, the one agreement a person on Gateway can be sent to that the Worker Terms do not replace,
- * and the Legal Contact page a person is sent to when their account cannot be closed yet (ADR 0156).
+ * the Consumer Health Data Privacy Policy, which the front door links as Atlas's homepage does, and the Legal Contact
+ * page a person is sent to when their account cannot be closed yet (ADR 0156).
  * Only the first is accepted here; the Terms of Service are accepted by an org's owner on Atlas.
  */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
@@ -34,6 +35,12 @@ export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0-draft", accept: false },
   { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0-draft", accept: false },
   { slug: "terms-of-service", title: "Terms of Service", version: "1.0.0-draft", accept: false },
+  {
+    slug: "consumer-health-data-privacy-policy",
+    title: "Consumer Health Data Privacy Policy",
+    version: "1.0.0-draft",
+    accept: false,
+  },
   { slug: "contact", title: "Legal Contact", version: "1.0.0-draft", accept: false },
 ];
 
