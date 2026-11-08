@@ -58,6 +58,12 @@ function sessionFor(browser: Browser, baseURL: string, person: Person) {
       await page.locator("#signin-password").fill(DEMO_PASSWORD);
       await page.getByRole("button", { name: "Sign in with password" }).click();
       await page.waitForURL((url) => url.pathname === "/home", { timeout: 60_000 });
+      // A person checked at an account standing acts for that account (the xos-acting cookie).
+      if ("account" in person) {
+        await context.addCookies([
+          { name: "xos-acting", value: person.account, url: new URL(page.url()).origin },
+        ]);
+      }
       const state = await context.storageState();
       await context.close();
       return state;
