@@ -518,6 +518,60 @@ test("one operator decides an appeal of their own decision by a documented re-re
   await expectAccessibleInBothThemes(page);
 });
 
+test("a return of omitted data names the org by slug and holds its deletion until the item closes", async ({
+  page,
+}) => {
+  const email = await newOperator("Administrator", "Olga Hold");
+  await signInOperator(page, email, "/legal-queue");
+  const title = `Payroll records ${uniqueId()}`;
+  const form = page.getByTestId("legal-queue-add");
+  await form
+    .getByLabel("What is it", { exact: true })
+    .selectOption({ label: "Return of data the export omits" });
+  await form.getByLabel("Short description", { exact: true }).fill(title);
+  await form
+    .getByLabel("When it arrived", { exact: true })
+    .fill(localValue(Date.now() - 3_600_000));
+  // A slug no org has is refused, and what was typed stays.
+  await form.getByLabel("Organization slug", { exact: true }).fill("no-such-org");
+  await form.getByRole("button", { name: "Add to the queue" }).click();
+  await expect(
+    form.getByText(
+      "Name the organization by its slug, as the Tenants page shows it. If its data is already deleted, add the request as another written promise and tell the person nothing is left to return.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(form.getByLabel("Short description", { exact: true })).toHaveValue(title);
+  await form.getByLabel("Organization slug", { exact: true }).fill(DEMO.orgSlug);
+  await form.getByRole("button", { name: "Add to the queue" }).click();
+  await expect(form.getByText("Added to the queue.", { exact: true })).toBeVisible();
+
+  const holds = () =>
+    sql<{ active: boolean }>(
+      `select h.released_at is null as active from app.legal_queue_items i
+         join app.legal_holds h on h.id = i.legal_hold_id where i.title = $1`,
+      [title],
+    );
+  expect(await holds()).toEqual([{ active: true }]);
+
+  await page
+    .getByTestId("legal-queue")
+    .getByRole("row")
+    .filter({ hasText: title })
+    .getByRole("link")
+    .first()
+    .click();
+  await expect(page.getByTestId("legal-log")).toContainText(
+    "Legal hold placed on the organization",
+  );
+  const move = page.getByTestId("legal-move");
+  await move.getByLabel("New state", { exact: true }).selectOption("Withdrawn");
+  await move.getByLabel("What happened", { exact: true }).fill("The Owner withdrew the request.");
+  await move.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("legal-log")).toContainText("Legal hold released");
+  expect(await holds()).toEqual([{ active: false }]);
+});
+
 test("the outside heartbeat answers through the real API: booleans to a signed-in user, nothing to anon", async ({
   request,
 }) => {
