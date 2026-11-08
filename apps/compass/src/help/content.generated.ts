@@ -2826,7 +2826,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.",
+                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A report they leave undecided after 24 hours goes to the GHXSTSHIP Trust and Safety team. A block hides their messages in every conversation. A message with a slur is not sent, and Compass keeps what you wrote so you can change it. Reporting and blocking need a connection.",
               },
             ],
           },
@@ -2972,7 +2972,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. Nobody is told who reported. See ",
+                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. A report they leave undecided after 24 hours goes to the GHXSTSHIP Trust and Safety team. Nobody is told who reported. A post with a slur is refused before anyone sees it. See ",
               },
               { t: "link", v: "Blocked people", href: "help:blocked-people" },
               { t: "text", v: "." },
@@ -6236,7 +6236,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Un bloqueo oculta sus mensajes en todas las conversaciones. Denunciar y bloquear necesitan conexión.",
+                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Una denuncia que no deciden en 24 horas pasa al equipo de Confianza y Seguridad de GHXSTSHIP. Un bloqueo oculta sus mensajes en todas las conversaciones. Un mensaje con un insulto discriminatorio no se envía, y Compass conserva lo que escribiste para que lo cambies. Denunciar y bloquear necesitan conexión.",
               },
             ],
           },
@@ -6389,7 +6389,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. No se avisa a nadie de quién denunció. Consulta ",
+                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. Una denuncia que no deciden en 24 horas pasa al equipo de Confianza y Seguridad de GHXSTSHIP. No se avisa a nadie de quién denunció. Una publicación con un insulto discriminatorio se rechaza antes de que nadie la vea. Consulta ",
               },
               { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
               { t: "text", v: "." },

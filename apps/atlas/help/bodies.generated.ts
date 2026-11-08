@@ -2940,7 +2940,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Reported Content" },
             {
               t: "text",
-              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them. A report still undecided after 24 hours also goes to the GHXSTSHIP Trust and Safety team, which may decide it; its decision shows as GHXSTSHIP's, and the item leaves their list once you decide it. Posts, comments and messages with a slur are refused before anyone sees them.",
             },
           ],
         ],
@@ -5905,7 +5905,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Contenido denunciado" },
             {
               t: "text",
-              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador. Una denuncia sin decidir después de 24 horas pasa también al equipo de Confianza y Seguridad de GHXSTSHIP, que puede decidirla; su decisión aparece como de GHXSTSHIP, y el elemento sale de su lista en cuanto usted lo decide. Las publicaciones, los comentarios y los mensajes con un insulto discriminatorio se rechazan antes de que nadie los vea.",
             },
           ],
         ],

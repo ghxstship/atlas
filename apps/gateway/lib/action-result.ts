@@ -166,6 +166,8 @@ export const KNOWN_REFUSALS = [
   // P8: an availability poll takes answers until it closes, for its own days only (migration 6123).
   "availability_poll_closed",
   "availability_poll_answer",
+  // 6195: a message, thread subject, rating or reply with a slur is refused, and the form keeps the text.
+  "content_objectionable",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */
