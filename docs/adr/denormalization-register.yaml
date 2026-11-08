@@ -2297,6 +2297,18 @@ restated:
     parent: app.vendor_intake_links.expires_at
     kind: own
     note: When the grant stops working, the link's expiry or 24 hours after the open, whichever comes first.
+  - column: private.wage_record_names.family_name
+    parent: app.people.family_name
+    kind: fact
+    note: The family name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.full_name
+    parent: app.people.full_name
+    kind: fact
+    note: The full name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
+  - column: private.wage_record_names.given_name
+    parent: app.people.given_name
+    kind: fact
+    note: The given name a deleted person's wage records keep after account deletion clears the person's (migration 6880).
   - column: xpms.bridge_element_metric.item
     parent: xpms.elements.item
     kind: own
