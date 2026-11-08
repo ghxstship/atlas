@@ -21,15 +21,16 @@
     },
     "google": {
       "title": "Signing in with Google",
-      "body": "If you sign in with Google, XOS receives your name, email address and Google account identifier, and uses them to create your account and sign you in. The <privacy>Privacy Policy</privacy> explains how we handle them."
+      "body": "If you sign in with Google, XOS receives the basic profile Google shares with the apps you sign in to, and uses it to create your account and sign you in. The <privacy>Privacy Policy</privacy> says what that includes and how we handle it."
     },
-    "availability": "XOS is offered in the United States to people 18 and older."
+    "availability": "XOS is not directed to children. The Terms of Service say who may hold an account."
   },
   "legalLinks": {
     "label": "Legal",
     "privacy": "Privacy Policy",
     "healthData": "Consumer Health Data Privacy Policy",
     "terms": "Terms of Service",
+    "workerTerms": "Worker Terms",
     "cookies": "Cookie settings",
     "contact": "Contact"
   },

@@ -5,9 +5,11 @@ import { LegalLinks } from "@/components/privacy/legal-links";
 
 /**
  * The public homepage a signed-out visitor sees at the site root (RRR-248): what XOS is, the way in,
- * what a Google sign-in shares, and the legal links in the footer, the Privacy Policy and the Consumer
- * Health Data Privacy Policy among them. Google's OAuth review reads the same page for the app's
- * description and its Privacy Policy link. A server component of plain links: it adds no script.
+ * what a Google sign-in shares, and the legal links in the footer, each published document among the
+ * Privacy Policy, the Consumer Health Data Privacy Policy and the rest (lib/legal-links.ts). Google's
+ * OAuth review reads the same page for the app's description and its Privacy Policy link. The copy
+ * states no term of its own: who may hold an account is left to the Terms of Service, and what Google
+ * shares to the Privacy Policy. A server component of plain links: it adds no script.
  */
 export async function PublicHome() {
   const [t, tAuth, tShell, tCompass] = await Promise.all([
