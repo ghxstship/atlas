@@ -1,4 +1,4 @@
--- 6197_content_filter_typed_text.sql
+-- 6892_content_filter_typed_text.sql
 -- The objectionable language filter (6195) checks the text a person typed, where they type it, and never text the
 -- system adds to their write or relays from someone else. Before this, a direct message to someone out of office
 -- wrote their automatic reply in the same transaction, so a reply holding a listed term (saved before 6195, or
@@ -89,7 +89,7 @@ begin
   end loop;
 
   -- Out of office: the other person in a direct conversation answers once with their automatic reply. A reply that
-  -- holds a term the filter refuses is not relayed (6197), so it never stops the sender's own message.
+  -- holds a term the filter refuses is not relayed (6892), so it never stops the sender's own message.
   if v_conversation.conversation_kind = 'Direct' then
     for v_away in
       select cm.membership_id, m.person_id,
@@ -117,4 +117,4 @@ begin
 end;
 $$;
 
-comment on function app.send_chat_message(uuid, text, app.chat_message_kind, text) is 'Sends a message to a conversation the signed-in member takes part in and notifies the other members who have not muted it. In a direct conversation with someone out of office who wrote an automatic reply, that reply follows once for their time away (1325), and its notification names the person away (1393); a reply that holds a term the objectionable language filter refuses is not sent, and never stops the message (6197). A photo, file or voice note is attached to the returned message id afterwards. Returns the message id.';
+comment on function app.send_chat_message(uuid, text, app.chat_message_kind, text) is 'Sends a message to a conversation the signed-in member takes part in and notifies the other members who have not muted it. In a direct conversation with someone out of office who wrote an automatic reply, that reply follows once for their time away (1325), and its notification names the person away (1393); a reply that holds a term the objectionable language filter refuses is not sent, and never stops the message (6892). A photo, file or voice note is attached to the returned message id afterwards. Returns the message id.';

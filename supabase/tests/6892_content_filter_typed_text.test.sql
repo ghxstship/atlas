@@ -1,4 +1,4 @@
--- pgTAP: migration 6197, the objectionable language filter checks only what a person typed. A person's clean message
+-- pgTAP: migration 6892, the objectionable language filter checks only what a person typed. A person's clean message
 -- is never refused for text the system adds to it or relays from someone else: an automatic out-of-office reply is
 -- filtered where its author types it, as a setting, and one that holds a listed term (saved before the filter, or
 -- holding a term added since) is not relayed, while the message it answers is sent as written. An edit to an automatic

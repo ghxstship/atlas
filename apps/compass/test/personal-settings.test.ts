@@ -274,7 +274,7 @@ describe("a typed value", () => {
     });
   });
 
-  it("is refused with a slur in the automatic reply other people read, as migration 6197 refuses it", () => {
+  it("is refused with a slur in the automatic reply other people read, as migration 6892 refuses it", () => {
     const reply = def("me.out_of_office.auto_reply");
     expect(checkSettingValue(reply, "Away. Ask the w3tbacks on the dock.")).toEqual({
       ok: false,
