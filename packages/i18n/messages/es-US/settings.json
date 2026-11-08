@@ -45,6 +45,7 @@
     "setting_scope_org": "Ese espacio de trabajo, equipo o proyecto pertenece a otra organización. Recarga la página.",
     "setting_not_lockable": "Este ajuste no se puede bloquear. Guárdalo sin el bloqueo.",
     "setting_unknown": "Este ajuste ya no existe. Recarga la página.",
+    "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
     "not_member": "Ya no perteneces a esta organización. Cambia a otra.",
     "plan_feature_required": "Tu plan no incluye esto. Compara planes en Facturación y plan.",
     "favorites_limit": "Favoritos admite 50 elementos. Quita uno y vuelve a fijar esta página.",

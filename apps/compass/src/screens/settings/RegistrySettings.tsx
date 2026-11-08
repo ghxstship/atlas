@@ -47,13 +47,14 @@ import { LabeledChoice, OfflineNotice, WriteNotice } from "./parts";
 /** app.resolve_settings needs an org; the nil uuid answers with the person's own values and the defaults. */
 const NO_ORG = "00000000-0000-0000-0000-000000000000";
 
-/** Refusals of the 0850 guard with their own sentence under `settings.errors`. */
+/** Refusals of the 0850 guard and the content filter (6197) with their own sentence under `settings.errors`. */
 const SETTING_RULES: ReadonlySet<string> = new Set([
   "setting_locked",
   "setting_choice",
   "setting_too_long",
   "setting_value_type",
   "setting_unknown",
+  "content_objectionable",
 ]);
 
 const ruleKey = (rule: string) => (SETTING_RULES.has(rule) ? `settings.errors.${rule}` : undefined);

@@ -9,6 +9,7 @@
  * 0850 checks each value again and refuses a locked one (setting_locked).
  */
 import { isTimeZone } from "@xos/data/calendar";
+import { holdsObjectionableLanguage } from "@xos/data/content-filter";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { MutationInput, Row } from "@xos/sync";
 import { Constants, type Database } from "@xos/data/database.types";
@@ -145,9 +146,25 @@ export function deviceNoteKey(setting: PersonalSetting): string | null {
   return null;
 }
 
-/** What is wrong with a typed value: a refusal rule of the 0850 guard, or a date or zone the phone cannot read. */
+/**
+ * What is wrong with a typed value: a refusal rule of the 0850 guard, a slur in text other people read (6197), or a
+ * date or zone the phone cannot read.
+ */
 export type SettingProblem =
-  "setting_choice" | "setting_too_long" | "setting_value_type" | "date" | "zone" | "phone";
+  | "setting_choice"
+  | "setting_too_long"
+  | "setting_value_type"
+  | "content_objectionable"
+  | "date"
+  | "zone"
+  | "phone";
+
+/**
+ * Personal settings other people read: the automatic reply goes to whoever messages the person while they are away.
+ * Migration 6197 refuses a slur in it where the person types it (content_objectionable), so Compass checks the same
+ * list before it queues, and the person reads why at once.
+ */
+export const READ_BY_OTHERS: ReadonlySet<string> = new Set(["me.out_of_office.auto_reply"]);
 
 export type ValueCheck =
   | { readonly ok: true; readonly value: Exclude<SettingValue, null> | null }
@@ -169,7 +186,7 @@ export function isIsoDate(value: string): boolean {
 
 /**
  * Checks a value before it queues, as the 0850 guard will: a registered choice, a boolean for a switch, text no
- * longer than the registry allows, a real date, a known zone. Blank text is null, which clears the person's value.
+ * longer than the registry allows and, in a reply other people read, without a slur (6197), a real date, a known zone. Blank text is null, which clears the person's value.
  * A phone is read into E.164 with `toPhone` (toE164 in the person's region, A139), as the 3321 check requires.
  */
 export function checkSettingValue(
@@ -200,6 +217,8 @@ export function checkSettingValue(
   if (value === "") return { ok: true, value: null };
   if (def.maxLength !== null && value.length > def.maxLength)
     return { ok: false, problem: "setting_too_long" };
+  if (READ_BY_OTHERS.has(def.key) && holdsObjectionableLanguage(value))
+    return { ok: false, problem: "content_objectionable" };
   if (def.input === "time_zone" && !isTimeZone(value)) return { ok: false, problem: "zone" };
   if (def.input === "date" && !isIsoDate(value)) return { ok: false, problem: "date" };
   if (def.input === "phone") {

@@ -2033,7 +2033,10 @@ export const COMPASS_HELP: HelpContent = {
               ],
               [
                 { t: "strong", v: "Automatic reply" },
-                { t: "text", v: ": sent once to each person who messages you while you are away." },
+                {
+                  t: "text",
+                  v: ": sent once to each person who messages you while you are away. A reply with a slur is not saved, and Compass keeps what you wrote so you can change it.",
+                },
               ],
             ],
           },
@@ -5429,7 +5432,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Respuesta automática" },
                 {
                   t: "text",
-                  v: ": se envía una vez a cada persona que te escriba mientras no estás.",
+                  v: ": se envía una vez a cada persona que te escriba mientras no estás. Una respuesta con un insulto discriminatorio no se guarda, y Compass conserva lo que escribiste para que lo cambies.",
                 },
               ],
             ],
