@@ -198,7 +198,9 @@
       "quote_not_sent": "Esta versión de la cotización ya no espera una firma.",
       "quote_client_engagement": "La contratación del cliente de esta cotización está cerrada, así que ya no se puede aceptar.",
       "document_text_sign_with_hash": "Lee este documento en Gateway y fírmalo allí con tu nombre escrito.",
-      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró."
+      "registration_not_withdrawable": "Este registro ya se rechazó o se retiró.",
+      "intake_account_country": "Elige el país donde está establecida la empresa.",
+      "territory_not_offered": "XOS no se ofrece en el país de tu empresa, así que no creamos esta cuenta de empresa. Si la organización que te envió este enlace trabaja contigo, no la necesitas: pídele que te configure."
     }
   },
   "common": {

@@ -28,6 +28,8 @@
     "account": "Cuenta de empresa",
     "newAccount": "O crea una cuenta de empresa",
     "newAccountHelp": "El nombre de tu empresa. Serás su Propietario de cuenta.",
+    "newAccountCountry": "País de la empresa",
+    "newAccountCountryChoose": "Elige un país",
     "newAccountName": "Cuenta nueva",
     "next": "Siguiente",
     "back": "Atrás",

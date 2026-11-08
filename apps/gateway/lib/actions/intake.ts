@@ -14,6 +14,7 @@ import {
 } from "@xos/data/vendor-intake";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
+import { isCountryCode } from "@xos/i18n/formats";
 import { z } from "zod";
 import { outcomeFor, type ActionResult } from "@/lib/action-result";
 import { INTAKE_GRANT_COOKIE, visitorAddress } from "@/lib/outside/public";
@@ -70,7 +71,7 @@ export async function intakeOnFileAction(
 
 export async function intakeCreateAccountAction(
   rawToken: string,
-  input: { readonly name: string },
+  input: { readonly name: string; readonly countryCode: string },
 ): Promise<IntakeResult<string>> {
   const link = await linkContext(rawToken);
   if (!link) return { ok: false, outcome: "notFound" };
@@ -82,7 +83,15 @@ export async function intakeCreateAccountAction(
     .toLowerCase()
     .slice(0, 48);
   if (name.length === 0 || slug.length < 3) return { ok: false, outcome: "invalid" };
-  const created = await createExternalAccount(link.ctx.db, { name, slug });
+  // A company states its country, and XOS creates none outside the offered territories (ADR 0160).
+  if (!isCountryCode(input.countryCode)) {
+    return { ok: false, outcome: "refusals.intake_account_country" };
+  }
+  const created = await createExternalAccount(link.ctx.db, {
+    name,
+    slug,
+    countryCode: input.countryCode,
+  });
   if (!created.ok) return { ok: false, outcome: outcomeFor(created.error) };
   return { ok: true, data: created.data.accountId };
 }

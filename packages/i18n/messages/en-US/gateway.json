@@ -198,7 +198,9 @@
       "quote_not_sent": "This quote version is no longer waiting for a signature.",
       "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
       "document_text_sign_with_hash": "Read this document in Gateway and sign it there with your typed name.",
-      "registration_not_withdrawable": "This registration was already declined or withdrawn."
+      "registration_not_withdrawable": "This registration was already declined or withdrawn.",
+      "intake_account_country": "Choose the country where the company is established.",
+      "territory_not_offered": "XOS is not offered in your company's country, so we did not create this company account. If the organization that sent this link works with you, you do not need one: ask it to set you up."
     }
   },
   "common": {

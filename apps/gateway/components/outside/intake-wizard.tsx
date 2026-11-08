@@ -3,6 +3,7 @@
 import type { Database } from "@xos/data/database.types";
 import type { PublicIntake, IntakeInvoiceDraft } from "@xos/data/vendor-intake";
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import { countryOptions } from "@xos/i18n/formats";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
@@ -78,6 +79,9 @@ export function IntakeWizard({
   addressCopy: TaxAddressCopy;
 }) {
   const t = useTranslations(COPY) as unknown as Translate;
+  const locale = useLocale();
+  // A new company account states its country (ADR 0160); the database refuses one outside the offered territories.
+  const countries = useMemo(() => [...countryOptions(locale)], [locale]);
   const steps = useMemo(() => intakeSteps(link), [link]);
   const [index, setIndex] = useState(0);
   const step: IntakeStep = steps[index] ?? "review";
@@ -107,7 +111,8 @@ export function IntakeWizard({
       const name = String(data.get("newAccount") ?? "").trim();
       const picked = String(data.get("accountId") ?? "");
       if (name !== "") {
-        const made = await intakeCreateAccountAction(token, { name });
+        const countryCode = String(data.get("newAccountCountry") ?? "");
+        const made = await intakeCreateAccountAction(token, { name, countryCode });
         if (made.ok) setMadeAccounts((list) => [...list, { id: made.data, name }]);
         return made;
       }
@@ -230,6 +235,13 @@ export function IntakeWizard({
             maxLength={120}
             required={accountChoices.length === 0}
             width="100%"
+          />
+          <Select
+            id="intake-new-account-country"
+            name="newAccountCountry"
+            label={t("newAccountCountry")}
+            placeholder={t("newAccountCountryChoose")}
+            options={countries}
           />
           {nav({ label: t("next"), pending: companyPending })}
         </form>
