@@ -151,6 +151,8 @@ select pg_temp.as_platform();
 -- Crew readiness ---------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('mo');
 select app.share_work_details(pg_temp.id('eng_vendor_a'), array['Dietary Needs', 'Passport']::app.work_detail_category[]);
+-- Readiness names dietary needs and allergies only while the person's own consent stands (ADR 0164, 6854).
+select app.give_sensitive_consent('Dietary and Allergies', '2026-11-06', 'en-US', 'Gateway');
 select pg_temp.as_platform();
 
 select is(pg_temp.ready('reader', 'e_mo', 'Acceptance'), 'Accepted', 'the person''s answer shows to a packet reader');
@@ -171,6 +173,11 @@ select is(pg_temp.ready('hopsr', 'e_mo', 'Allergies'), 'Hidden', 'hospitality al
 
 select is(pg_temp.ready('medic', 'e_mo', 'Allergies'), 'Shared', 'a medical reader sees that the person shares the category allergies live in');
 select is(pg_temp.ready('medic', 'e_kai', 'Allergies'), 'Not Shared', 'or does not');
+select pg_temp.as_user('mo');
+select app.withdraw_sensitive_consent('Dietary and Allergies');
+select pg_temp.as_platform();
+select is(pg_temp.ready('medic', 'e_mo', 'Allergies'), 'Not Shared', 'a withdrawn consent reads Not Shared, shared or not (6854)');
+select is(pg_temp.ready('hopsr', 'e_mo', 'Dietary Needs'), 'Not Shared', 'and so do dietary needs');
 select pg_temp.as_user('medic');
 select ok((select bool_and(r.cell_state in ('Shared', 'Not Shared')) from app.roster_readiness(pg_temp.id('prj_a')) r where r.category = 'Allergies'),
   'allergies only ever read Shared or Not Shared');

@@ -1080,6 +1080,10 @@ restated:
     parent: app.projects.archived_at
     kind: own
     note: When the group was archived.
+  - column: app.guest_care_needs.guest_email
+    parent: app.guest_list_entries.guest_email
+    kind: own
+    note: The address the guest's needs are matched to, so they can see and remove them; Restricted, unlike the entry's own email for invitations and passes (B8, 6255), which it never follows (ADR 0164, merge train 11).
   - column: app.guest_care_needs.project_id
     parent: app.guest_list_entries.project_id
     kind: registered

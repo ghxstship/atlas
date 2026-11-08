@@ -82,6 +82,10 @@ select ok(app.subscribe_external_account((select id from k where key = 'acct')) 
 select is((select country_code from app.organizations where slug = 'vogel-rigging'), 'US', 'and the record is unchanged');
 
 -- A partner's client ------------------------------------------------------------------------------------------------------
+-- A platform operator has allowed org_a to create clients (6870), so the country is what decides here.
+select pg_temp.as_platform();
+insert into private.partner_client_grants (org_id, reason, granted_by)
+values (pg_temp.id('org_a'), 'Test: signed partner agreement.', pg_temp.id('alice'));
 select pg_temp.as_user('alice');
 select throws_ok(format($$select * from app.create_client_organization(%L, 'Klient', 'klient-de', 'owner@example.de', 'access', 'DE')$$, pg_temp.id('org_a')), 'XR001',
   'territory_not_offered: XOS is not offered to organizations in this country.', 'a partner cannot start a client outside an offered territory');

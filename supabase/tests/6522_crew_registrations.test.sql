@@ -84,6 +84,9 @@ select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]', false)$$),
 insert into world select 'reg_rae_16', pg_temp.submit('volunteers', '[]', true);
 select ok(pg_temp.id('reg_rae_16') is not null, 'and takes the confirmation');
 
+-- Every fixture account answers 18 as sign-up does (6840): take liam's answer back to stand for one that never did.
+select pg_temp.as_platform();
+delete from private.age_confirmations where person_id = pg_temp.id('liam');
 select pg_temp.as_user('liam');
 select is(pg_temp.refusal($$select pg_temp.submit('volunteers', '[]')$$), 'registration_age_unconfirmed', 'someone who never confirmed their age is refused');
 select pg_temp.confirm_age('liam');

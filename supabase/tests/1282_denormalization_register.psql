@@ -234,6 +234,7 @@ insert into register_restated values
   ('app.gate_queue.vehicle_identifier', 'app.dock_slots.vehicle_identifier', 'own'),
   ('app.geofences.venue_id', 'app.zones.venue_id', 'own'),
   ('app.groups.archived_at', 'app.projects.archived_at', 'own'),
+  ('app.guest_care_needs.guest_email', 'app.guest_list_entries.guest_email', 'own'),
   ('app.guest_care_needs.project_id', 'app.guest_list_entries.project_id', 'registered'),
   ('app.guest_list_entries.counterparty_id', 'app.engagements.counterparty_id', 'own'),
   ('app.guest_list_entries.person_id', 'app.engagements.person_id', 'own'),

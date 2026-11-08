@@ -1,4 +1,5 @@
 -- 6892_content_filter_typed_text.sql
+-- Merge train 11: app.send_chat_message keeps 6242's rule that a show channel never tells a Client what was said.
 -- The objectionable language filter (6195) checks the text a person typed, where they type it, and never text the
 -- system adds to their write or relays from someone else. Before this, a direct message to someone out of office
 -- wrote their automatic reply in the same transaction, so a reply holding a listed term (saved before 6195, or
@@ -61,6 +62,7 @@ declare
   v_recipient record;
   v_away record;
   v_reply uuid;
+  v_show_project uuid;
 begin
   perform private.require_person();
   select * into v_conversation from app.conversations c where c.id = p_conversation_id and c.deleted_at is null;
@@ -72,6 +74,7 @@ begin
      and (select g.archived_at from app.groups g where g.id = v_conversation.group_id) is not null then
     perform private.refuse('group_archived', 'This group is archived and takes no new messages.');
   end if;
+  select g.project_id into v_show_project from app.groups g where g.id = v_conversation.group_id and g.show_channel;
   insert into app.chat_messages (conversation_id, author_membership_id, message_kind, body, language)
   values (p_conversation_id, v_mine, p_message_kind, nullif(btrim(p_body), ''), nullif(btrim(p_language), ''))
   returning id into v_id;
@@ -84,6 +87,10 @@ begin
     select m.person_id from app.conversation_members cm join app.memberships m on m.id = cm.membership_id
     where cm.conversation_id = p_conversation_id and cm.deleted_at is null and not cm.muted and cm.membership_id <> v_mine
   loop
+    -- A show channel never tells a Client what was said (6242).
+    if v_show_project is not null and private.person_engaged_as(v_recipient.person_id, v_show_project, 'Client') then
+      continue;
+    end if;
     perform private.notify(v_conversation.org_id, v_recipient.person_id, 'message.received', 'app.chat_messages', v_id, null,
       jsonb_build_object('conversation_id', p_conversation_id, 'kind', p_message_kind));
   end loop;
