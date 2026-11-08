@@ -183,6 +183,7 @@
       "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
       "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
       "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
       "guest_note_sensitive": "No incluyas necesidades de dieta ni de acceso en la nota. Usa el paso de necesidades del invitado, que registra el consentimiento.",
       "sensitive_consent_required": "Acepta el texto antes de guardar esto. Nada más del formulario lo necesita.",
       "sensitive_attestation_required": "Confirma ambas declaraciones para continuar.",

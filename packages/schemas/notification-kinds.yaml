@@ -576,11 +576,17 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1630_content_reports.sql#app.decide_content_report
         test: supabase/tests/1630_content_reports.test.sql
+      # 6891: GHXSTSHIP decides a report the org left undecided past its due time, from the operator console.
+      - emitter: supabase/migrations/6891_content_report_platform_escalation.sql#app.console_decide_content_escalation
+        test: supabase/tests/6891_content_report_platform_escalation.test.sql
   - kind: content.removed
     category: account
     emitted_by:
       - emitter: supabase/migrations/1630_content_reports.sql#app.decide_content_report
         test: supabase/tests/1630_content_reports.test.sql
+      # 6891: GHXSTSHIP decides a report the org left undecided past its due time, from the operator console.
+      - emitter: supabase/migrations/6891_content_report_platform_escalation.sql#app.console_decide_content_escalation
+        test: supabase/tests/6891_content_report_platform_escalation.test.sql
   # Reports and imports (0520). A delivered report reaches the Inbox and a push only (ADR 0033 decision 77): the
   # report.deliver worker's own email (1127, packages/data report-deliveries.ts) stays the only email.
   - kind: report.delivered

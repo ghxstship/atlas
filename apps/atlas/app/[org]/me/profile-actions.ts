@@ -46,6 +46,8 @@ const KNOWN = new Set([
   "auto_join_unavailable",
   // The org's blocklist (B16, 6050) refuses the join with a generic sentence.
   "member_blocked",
+  // 6890: a handle, name, pronouns, headline or bio with a slur.
+  "content_objectionable",
 ]);
 
 function errorKey(error: Parameters<typeof settingErrorKey>[0]): string {

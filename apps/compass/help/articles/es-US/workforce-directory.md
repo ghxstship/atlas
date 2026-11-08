@@ -9,3 +9,5 @@ order: 1
 Busca entre las personas que puedes ver. Muestra a todos, o solo a quienes están en sitio ahora.
 
 A cada persona puedes llamarla o escribirle con un toque, y muestra sus reconocimientos.
+
+Para dejar de ver a alguien, bloquéalo desde su tarjeta. Un bloqueo oculta sus publicaciones, comentarios, reconocimientos y mensajes, y no se le avisa. Consulta [Personas bloqueadas](help:blocked-people).

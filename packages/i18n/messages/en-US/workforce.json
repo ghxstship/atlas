@@ -928,6 +928,7 @@
     "lost_item_claim_settled": "This claim is already settled.",
     "lost_item_rejection_note": "Say why the claim is rejected.",
     "content_report_own": "You cannot report your own post, comment or message.",
+    "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
     "content_report_removed": "This was already removed.",
     "block_self": "You cannot block yourself.",
     "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",

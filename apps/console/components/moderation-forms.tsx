@@ -6,13 +6,17 @@ import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
 import {
   decideAppealAction,
+  decideEscalationAction,
   decideListingAction,
   decideRatingDisputeAction,
 } from "@/lib/actions/operations";
 import type { Database } from "@xos/data/database.types";
 import * as enums from "@xos/data/enums";
 
-type Action = Database["app"]["Enums"]["moderation_action_kind"];
+/** A listing's decision, or a post's, comment's or message's (6891), whose actions are a subset. */
+type Action =
+  | Database["app"]["Enums"]["moderation_action_kind"]
+  | Database["app"]["Enums"]["content_moderation_action"];
 type Ground = Database["app"]["Enums"]["moderation_ground"];
 
 const VIOLATIONS: readonly Ground[] = ["Terms Violation", "Illegal Content"];
@@ -30,10 +34,13 @@ function StatementFields({
   idPrefix,
   actions,
   withStatement,
+  statementHelp = "moderation.statementHelp",
 }: {
   idPrefix: string;
   actions: readonly Action[];
   withStatement: boolean;
+  /** The catalog key of the statement's help: who receives it and what it says. */
+  statementHelp?: "moderation.statementHelp" | "reportedContent.statementHelp";
 }) {
   const t = useTranslations("console");
   const [action, setAction] = useState<Action>(actions[0] ?? "Removed");
@@ -79,7 +86,7 @@ function StatementFields({
           id={`${idPrefix}-statement`}
           name="statement"
           label={t("moderation.statement")}
-          help={t("moderation.statementHelp")}
+          help={t(statementHelp)}
           maxLength={4000}
           rows={4}
           required
@@ -111,6 +118,28 @@ export function DecideListingForm({
       testId="decide-listing"
     >
       <StatementFields idPrefix="decide" actions={actions} withStatement />
+    </ActionForm>
+  );
+}
+
+/** GHXSTSHIP decides a post, comment or message an org left undecided (6891): remove it or take no action. */
+export function DecideEscalationForm({ subjectId }: { subjectId: string }) {
+  const t = useTranslations("console");
+  return (
+    <ActionForm
+      action={decideEscalationAction}
+      hidden={{ subjectId }}
+      submitLabel={t("moderation.decide")}
+      successLabel={t("moderation.decided")}
+      label={t("reportedContent.decideTitle")}
+      testId="decide-escalation"
+    >
+      <StatementFields
+        idPrefix="escalation"
+        actions={enums.contentModerationAction}
+        withStatement
+        statementHelp="reportedContent.statementHelp"
+      />
     </ActionForm>
   );
 }

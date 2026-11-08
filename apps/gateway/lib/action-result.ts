@@ -228,6 +228,8 @@ export const KNOWN_REFUSALS = [
   "sensitive_person_only",
   "travel_note_sensitive",
   "sensitive_notice_version",
+  // 6890: a message, thread subject, rating or reply with a slur is refused, and the form keeps the text.
+  "content_objectionable",
 ] as const;
 
 /** The outcome key of a refusal rule: its own copy when it has some, else the generic refusal. */

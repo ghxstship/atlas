@@ -39,6 +39,10 @@ describe("the content safety sheet's rules", () => {
     expect(firstStep(unknownAuthor)).toBe("report");
   });
 
+  it("opens on the block's confirmation for a person's card in the Directory", () => {
+    expect(firstStep(post, true)).toBe("confirm-block");
+  });
+
   it("names every reason the database takes, each with its own key and test id", () => {
     expect(Object.keys(REASON_KEYS)).toEqual([...CONTENT_REPORT_REASONS]);
     expect(new Set(Object.values(REASON_TEST_IDS)).size).toBe(CONTENT_REPORT_REASONS.length);

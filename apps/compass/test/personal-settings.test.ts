@@ -274,6 +274,23 @@ describe("a typed value", () => {
     });
   });
 
+  it("is refused with a slur in the automatic reply other people read, as migration 6197 refuses it", () => {
+    const reply = def("me.out_of_office.auto_reply");
+    expect(checkSettingValue(reply, "Away. Ask the w3tbacks on the dock.")).toEqual({
+      ok: false,
+      problem: "content_objectionable",
+    });
+    expect(checkSettingValue(reply, " Away at the Scunthorpe show until Monday. ")).toEqual({
+      ok: true,
+      value: "Away at the Scunthorpe show until Monday.",
+    });
+    // Only text other people read is filtered: a date, a zone or a phone is the person's own.
+    expect(checkSettingValue(def("me.out_of_office.ends_on"), "2026-12-24")).toEqual({
+      ok: true,
+      value: "2026-12-24",
+    });
+  });
+
   it("is a phone read into E.164 in the person's region, refusing anything else (A139)", () => {
     const phone = def("workforce.work_phone");
     const inUs = (input: string) => toE164(input, "US");

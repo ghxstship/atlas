@@ -3,6 +3,13 @@ import type { Result } from "./result.ts";
 import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 import type { Database } from "./database.types.ts";
 import * as enums from "./enums.generated.ts";
+import type {
+  ContentDecision,
+  ContentModerationAction,
+  ContentModerationGround,
+  ContentReportReason,
+  ContentSubjectKind,
+} from "./content-safety.ts";
 
 /**
  * The operator console (A90, migrations 1470 to 1474; Section 4.10, Section 6, Section 8). Every call runs as the
@@ -1052,6 +1059,172 @@ export async function decideAppeal(
       p_rule_reference: n?.ruleReference ?? null,
       p_facts: n?.facts ?? null,
       p_outside_reviewer_decided: input.outsideReviewerDecided ?? false,
+    },
+    str,
+  );
+}
+
+// Reported content the org left undecided (6891) ------------------------------------------------------------------------
+
+export interface EscalationRow {
+  readonly orgId: string;
+  readonly orgName: string;
+  readonly kind: ContentSubjectKind;
+  readonly id: string;
+  readonly removed: boolean;
+  readonly openReports: number;
+  readonly totalReports: number;
+  readonly reasons: readonly ContentReportReason[];
+  readonly firstReportedAt: string;
+  /** When the first report on it reached the console, past its due time. */
+  readonly escalatedAt: string;
+  readonly lastAction: ContentModerationAction | null;
+  readonly lastDecidedAt: string | null;
+  /** Whether GHXSTSHIP made the newest decision; false when the org did or nobody has. */
+  readonly decidedByPlatform: boolean;
+}
+
+/**
+ * Posts, comments and messages whose reports an org left undecided past their 24 hours, the longest escalated first,
+ * without their text; or, with `open` false, the escalated items decided since, by the org or by GHXSTSHIP.
+ */
+export async function getContentEscalations(
+  db: XosClient,
+  open = true,
+): Promise<Result<EscalationRow[]>> {
+  return rpc(db, "console_content_escalations", { p_open: open }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        orgId: str(r["org_id"]),
+        orgName: str(r["org_name"]),
+        kind: str(r["subject_kind"]) as ContentSubjectKind,
+        id: str(r["subject_id"]),
+        removed: bool(r["removed"]),
+        openReports: num(r["open_reports"]),
+        totalReports: num(r["total_reports"]),
+        reasons: arr(r["reasons"]).map((x) => str(x) as ContentReportReason),
+        firstReportedAt: str(r["first_reported_at"]),
+        escalatedAt: str(r["escalated_at"]),
+        lastAction: strOrNull(r["last_action"]) as ContentModerationAction | null,
+        lastDecidedAt: strOrNull(r["last_decided_at"]),
+        decidedByPlatform: bool(r["decided_by_platform"]),
+      };
+    }),
+  );
+}
+
+export interface EscalationDetail {
+  readonly subject: {
+    readonly kind: ContentSubjectKind;
+    readonly id: string;
+    readonly context: string | null;
+    readonly orgId: string;
+    readonly orgName: string;
+    readonly authorName: string | null;
+    /** The current text; null once removed. */
+    readonly body: string | null;
+    readonly removed: boolean;
+  };
+  /** Every report on the item, without who reported. */
+  readonly reports: readonly {
+    readonly id: string;
+    readonly reason: ContentReportReason;
+    readonly details: string | null;
+    readonly excerpt: string;
+    readonly reportedAt: string;
+    readonly escalatedAt: string | null;
+    readonly open: boolean;
+  }[];
+  /** Every decision on it, the org's or GHXSTSHIP's, without who decided. */
+  readonly decisions: readonly {
+    readonly id: string;
+    readonly action: ContentModerationAction;
+    readonly ground: ContentModerationGround;
+    readonly ruleReference: string;
+    readonly facts: string;
+    readonly statement: string;
+    readonly decidedAt: string;
+    readonly byPlatform: boolean;
+  }[];
+}
+
+/** Parses app.console_content_escalation_detail's document. */
+export function parseEscalationDetail(raw: unknown): EscalationDetail {
+  const d = obj(raw);
+  const s = obj(d["subject"]);
+  return {
+    subject: {
+      kind: str(s["kind"]) as ContentSubjectKind,
+      id: str(s["id"]),
+      context: strOrNull(s["context"]),
+      orgId: str(s["org_id"]),
+      orgName: str(s["org_name"]),
+      authorName: strOrNull(s["author_name"]),
+      body: strOrNull(s["body"]),
+      removed: bool(s["removed"]),
+    },
+    reports: arr(d["reports"]).map((x) => {
+      const r = obj(x);
+      return {
+        id: str(r["id"]),
+        reason: str(r["reason"]) as ContentReportReason,
+        details: strOrNull(r["details"]),
+        excerpt: str(r["content_excerpt"]),
+        reportedAt: str(r["reported_at"]),
+        escalatedAt: strOrNull(r["escalated_at"]),
+        open: bool(r["open"]),
+      };
+    }),
+    decisions: arr(d["decisions"]).map((x) => {
+      const r = obj(x);
+      return {
+        id: str(r["id"]),
+        action: str(r["action"]) as ContentModerationAction,
+        ground: str(r["ground"]) as ContentModerationGround,
+        ruleReference: str(r["rule_reference"]),
+        facts: str(r["facts"]),
+        statement: str(r["statement"]),
+        decidedAt: str(r["decided_at"]),
+        byPlatform: bool(r["by_platform"]),
+      };
+    }),
+  };
+}
+
+/** One escalated item, by id; each read is logged in the console ledger. Any item never escalated is refused. */
+export async function getEscalationDetail(
+  db: XosClient,
+  subjectId: string,
+): Promise<Result<EscalationDetail>> {
+  return rpc(
+    db,
+    "console_content_escalation_detail",
+    { p_subject_id: subjectId },
+    parseEscalationDetail,
+  );
+}
+
+/**
+ * GHXSTSHIP decides an escalated item with a statement of reasons in parts, as an org moderator would: Removed hides
+ * the post or deletes the comment or message. The reporters and the author hear it from GHXSTSHIP. Returns the
+ * decision id.
+ */
+export async function decideEscalation(
+  db: XosClient,
+  subjectId: string,
+  decision: ContentDecision,
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "console_decide_content_escalation",
+    {
+      p_subject_id: subjectId,
+      p_action: decision.action,
+      p_ground: decision.ground,
+      p_rule_reference: decision.ruleReference,
+      p_facts: decision.facts,
+      p_statement: decision.statement,
     },
     str,
   );

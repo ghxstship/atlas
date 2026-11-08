@@ -390,13 +390,13 @@
       },
       "decided": {
         "subject": "{action, select, Removed {{subject, select, comment {Se eliminó el comentario que denunciaste} message {Se eliminó el mensaje que denunciaste} other {Se eliminó la publicación que denunciaste}}} other {Se revisó tu denuncia}}",
-        "body": "Los moderadores de tu organización revisaron {subject, select, comment {el comentario} message {el mensaje} other {la publicación}} que denunciaste. {statement}"
+        "body": "{actorName} revisó {subject, select, comment {el comentario} message {el mensaje} other {la publicación}} que denunciaste. {statement}"
       }
     },
     "content": {
       "removed": {
         "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
-        "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
+        "body": "{actorName} eliminó tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
       }
     },
     "agent": {

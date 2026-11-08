@@ -17864,6 +17864,7 @@ export type Database = {
           created_by: string | null;
           decided_at: string;
           decided_by: string;
+          decided_by_platform: boolean;
           deleted_at: string | null;
           facts: string;
           feed_post_id: string | null;
@@ -17886,6 +17887,7 @@ export type Database = {
           created_by?: string | null;
           decided_at?: string;
           decided_by: string;
+          decided_by_platform?: boolean;
           deleted_at?: string | null;
           facts: string;
           feed_post_id?: string | null;
@@ -17907,6 +17909,7 @@ export type Database = {
           created_by?: string | null;
           decided_at?: string;
           decided_by?: string;
+          decided_by_platform?: boolean;
           deleted_at?: string | null;
           facts?: string;
           feed_post_id?: string | null;
@@ -17973,6 +17976,7 @@ export type Database = {
           feed_post_id: string | null;
           id: string;
           org_id: string;
+          platform_escalated_at: string | null;
           reason: Database["app"]["Enums"]["content_report_reason"];
           reported_at: string;
           reporter_person_id: string;
@@ -17996,6 +18000,7 @@ export type Database = {
           feed_post_id?: string | null;
           id?: string;
           org_id: string;
+          platform_escalated_at?: string | null;
           reason: Database["app"]["Enums"]["content_report_reason"];
           reported_at?: string;
           reporter_person_id: string;
@@ -18018,6 +18023,7 @@ export type Database = {
           feed_post_id?: string | null;
           id?: string;
           org_id?: string;
+          platform_escalated_at?: string | null;
           reason?: Database["app"]["Enums"]["content_report_reason"];
           reported_at?: string;
           reporter_person_id?: string;
@@ -85810,6 +85816,25 @@ export type Database = {
         Args: { p_override_id: string; p_reason: string };
         Returns: string;
       };
+      console_content_escalation_detail: { Args: { p_subject_id: string }; Returns: Json };
+      console_content_escalations: {
+        Args: { p_open?: boolean };
+        Returns: {
+          decided_by_platform: boolean;
+          escalated_at: string;
+          first_reported_at: string;
+          last_action: Database["app"]["Enums"]["content_moderation_action"];
+          last_decided_at: string;
+          open_reports: number;
+          org_id: string;
+          org_name: string;
+          reasons: Database["app"]["Enums"]["content_report_reason"][];
+          removed: boolean;
+          subject_id: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          total_reports: number;
+        }[];
+      };
       console_decide_appeal: {
         Args: {
           p_action?: Database["app"]["Enums"]["moderation_action_kind"];
@@ -85819,6 +85844,17 @@ export type Database = {
           p_outcome: Database["app"]["Enums"]["moderation_appeal_state"];
           p_rule_reference?: string;
           p_statement: string;
+        };
+        Returns: string;
+      };
+      console_decide_content_escalation: {
+        Args: {
+          p_action: Database["app"]["Enums"]["content_moderation_action"];
+          p_facts: string;
+          p_ground: Database["app"]["Enums"]["moderation_ground"];
+          p_rule_reference: string;
+          p_statement: string;
+          p_subject_id: string;
         };
         Returns: string;
       };

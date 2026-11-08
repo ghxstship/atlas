@@ -928,6 +928,7 @@
     "lost_item_claim_settled": "Este reclamo ya se resolvió.",
     "lost_item_rejection_note": "Indica por qué se rechaza el reclamo.",
     "content_report_own": "No puedes denunciar tu propia publicación, comentario o mensaje.",
+    "content_objectionable": "Esto contiene lenguaje que no se permite aquí. Cambia la redacción e inténtalo de nuevo.",
     "content_report_removed": "Esto ya se eliminó.",
     "block_self": "No puedes bloquearte a ti mismo.",
     "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",

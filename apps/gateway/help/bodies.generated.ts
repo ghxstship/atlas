@@ -3747,7 +3747,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Automatic reply" },
-            { t: "text", v: ": sent once to each person who messages you while you are away." },
+            {
+              t: "text",
+              v: ": sent once to each person who messages you while you are away. A reply with a slur is not saved.",
+            },
           ],
         ],
       },
@@ -8072,7 +8075,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Respuesta automática" },
             {
               t: "text",
-              v: ": se envía una vez a cada persona que te escribe mientras estás fuera.",
+              v: ": se envía una vez a cada persona que te escribe mientras estás fuera. Una respuesta con un insulto discriminatorio no se guarda.",
             },
           ],
         ],

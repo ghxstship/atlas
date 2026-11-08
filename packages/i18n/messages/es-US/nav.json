@@ -575,6 +575,8 @@
     "supportSession": "Sesión de soporte",
     "moderation": "Moderación",
     "listing": "Anuncio denunciado",
+    "reportedContent": "Contenido denunciado",
+    "reportedItem": "Elemento denunciado",
     "legalQueue": "Cola legal",
     "legalQueueItem": "Elemento de la cola legal",
     "banners": "Avisos del sistema",

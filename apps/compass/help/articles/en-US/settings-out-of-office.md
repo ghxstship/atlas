@@ -10,6 +10,6 @@ Settings, Out of Office tells people you are away. While you are, your approvals
 
 - **Out of office**: turn it on while you are away.
 - **Away from** and **Back on**: write each as year-month-day, such as 2026-12-21, and tap **Save**. Back on comes on or after Away from.
-- **Automatic reply**: sent once to each person who messages you while you are away.
+- **Automatic reply**: sent once to each person who messages you while you are away. A reply with a slur is not saved, and Compass keeps what you wrote so you can change it.
 
 Once you have opened Out of Office online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them.

@@ -13,6 +13,7 @@ import {
   decodeBase64,
   encodeBase64,
   formMediaPath,
+  holdsObjectionableText,
   workforceWrite,
 } from "../src/workforce/writes";
 
@@ -190,5 +191,23 @@ describe("journey 66: claiming open shifts", () => {
       policy: "cas",
       optimistic: { membership_id: "me", shift_state: "Accepted" },
     });
+  });
+});
+
+describe("objectionable language before a write is queued (migration 6890)", () => {
+  it("finds a slur in a chat message or a shout-out, folded as the database folds it", () => {
+    expect(holdsObjectionableText("send_chat_message", { p_body: "Shut up, b3an3r." })).toBe(true);
+    expect(holdsObjectionableText("recognize", { p_message: "Thanks, you sudaca." })).toBe(true);
+  });
+
+  it("lets other text and other writes through", () => {
+    expect(holdsObjectionableText("send_chat_message", { p_body: "Add spice to the order." })).toBe(
+      false,
+    );
+    expect(holdsObjectionableText("send_chat_message", { p_body: 42 })).toBe(false);
+    expect(holdsObjectionableText("recognize", {})).toBe(false);
+    expect(holdsObjectionableText("log_lost_item", { p_description: "Shut up, beaner." })).toBe(
+      false,
+    );
   });
 });

@@ -10,4 +10,4 @@ Chat lists your conversations with their unread count. Open one to read and writ
 
 Start a conversation from the [Directory](help:workforce-directory). Messages you write offline send when you reconnect.
 
-Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.
+Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A report they leave undecided after 24 hours goes to the GHXSTSHIP Trust and Safety team. A block hides their messages in every conversation. A message with a slur is not sent, and Compass keeps what you wrote so you can change it. Reporting and blocking need a connection.

@@ -183,6 +183,7 @@
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
       "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "content_objectionable": "This contains language that is not allowed here. Change the wording and try again.",
       "guest_note_sensitive": "Leave dietary and access needs out of the note. Use the guest's needs step, which records consent.",
       "sensitive_consent_required": "Agree to the wording before saving this. Nothing else on the form needs it.",
       "sensitive_attestation_required": "Confirm both statements to continue.",
