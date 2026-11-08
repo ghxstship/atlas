@@ -241,7 +241,7 @@ test("an appeal that arrives by email gets a computed clock, and closes only wit
   await signInOperator(page, email, "/legal-queue");
   const title = `Suspension appeal ${uniqueId()}`;
   await addItem(page, {
-    rule: "Appeal of a restriction, by email",
+    rule: "Appeal of a moderation decision, by email",
     title,
     receivedMs: Date.now() - 3_600_000,
     contact: "appellant@example.test",
