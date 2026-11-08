@@ -29717,8 +29717,7 @@
               "Lien Waiver",
               "Settlement",
               "Proof of Performance",
-              "Content Consent",
-              "Quote"
+              "Content Consent"
             ],
             "description": "Kind of document.",
             "example": "Offer"
@@ -29781,8 +29780,7 @@
               "Lien Waiver",
               "Settlement",
               "Proof of Performance",
-              "Content Consent",
-              "Quote"
+              "Content Consent"
             ],
             "description": "Kind of document.",
             "example": "Offer"
@@ -65710,7 +65708,7 @@
           "classification": { "$ref": "#/components/schemas/Classification" },
           "access_code_required": {
             "type": "boolean",
-            "description": "Always true: every link asks for a 6-digit access code.",
+            "description": "Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.",
             "example": false
           },
           "recipient_email": {
@@ -65825,6 +65823,11 @@
             "format": "uuid",
             "description": "Identifier of the file the link shares.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "access_code_required": {
+            "type": "boolean",
+            "description": "Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.",
+            "example": false
           },
           "recipient_email": {
             "type": ["string", "null"],
@@ -172006,6 +172009,7 @@
             "application/json": {
               "example": {
                 "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "access_code_required": false,
                 "recipient_email": "alex.rivera@northwindlive.example",
                 "note": "Stage plot for the venue",
                 "expires_at": "2026-10-08T14:30:00Z"

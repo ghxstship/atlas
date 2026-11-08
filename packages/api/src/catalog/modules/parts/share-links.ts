@@ -20,7 +20,6 @@ const ShareLink = editDefinition(
     description:
       "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links.",
     serverSet: [
-      "access_code_required",
       "attachment_version_id",
       "classification",
       "failed_attempts",
@@ -29,7 +28,7 @@ const ShareLink = editDefinition(
       "revoked_at",
       "revoked_by",
     ],
-    immutable: ["attachment_id", "recipient_email", "note", "expires_at"],
+    immutable: ["attachment_id", "access_code_required", "recipient_email", "note", "expires_at"],
     fields: {
       attachment_id: fields.ref("file the link shares"),
       attachment_version_id: orNull(
@@ -37,7 +36,7 @@ const ShareLink = editDefinition(
       ),
       classification: Classification,
       access_code_required: fields.bool(
-        "Always true: every link asks for a 6-digit access code.",
+        "Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.",
         false,
       ),
       recipient_email: orNull(
@@ -56,8 +55,9 @@ const ShareLink = editDefinition(
       revoked_by: orNull(fields.ref("person who revoked the link")),
     },
   }),
-  // An anonymous open counts on the row, so the last updater can be nobody.
-  { nullable: ["created_by", "updated_by"] },
+  // An anonymous open counts on the row, so the last updater can be nobody. v1 is additive only: create
+  // still accepts `access_code_required` (ignored, every link has a code), as it did before ADR 0142.
+  { nullable: ["created_by", "updated_by"], optionalOnCreate: ["access_code_required"] },
 );
 
 const ShareLinkToken = z

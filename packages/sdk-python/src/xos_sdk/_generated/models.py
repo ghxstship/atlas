@@ -13061,7 +13061,7 @@ class EngagementDocument(TypedDict):
     #: Engagement-Document lifecycle state. A Title Case value from the lifecycle's database enum.
     engagement_document_state: str
     #: Kind of document.
-    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent", "Quote"]
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
     #: Last day the document is valid, for documents that expire.
     expires_on: Optional[str]
 
@@ -13072,7 +13072,7 @@ class _EngagementDocumentCreateRequired(TypedDict):
     #: Document title.
     title: str
     #: Kind of document.
-    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent", "Quote"]
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
 
 
 class EngagementDocumentCreate(_EngagementDocumentCreateRequired, total=False):
@@ -26435,7 +26435,7 @@ class ShareLink(TypedDict):
     #: Clean version the link opens, set from the file's current version.
     attachment_version_id: Optional[str]
     classification: Classification
-    #: Always true: every link asks for a 6-digit access code.
+    #: Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.
     access_code_required: bool
     #: Who the link is for, lowercased. Required for a Confidential file.
     recipient_email: Optional[str]
@@ -26477,6 +26477,8 @@ class _ShareLinkCreateRequired(TypedDict):
 class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
     """Fields accepted when creating a ShareLink."""
 
+    #: Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.
+    access_code_required: bool
     #: Who the link is for, lowercased. Required for a Confidential file.
     recipient_email: Optional[str]
     #: What the link is for.

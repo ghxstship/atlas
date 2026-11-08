@@ -3795,8 +3795,7 @@ export interface Components {
       | "Lien Waiver"
       | "Settlement"
       | "Proof of Performance"
-      | "Content Consent"
-      | "Quote";
+      | "Content Consent";
     expires_on: string | null;
   };
   EngagementDocumentCreate: {
@@ -3814,8 +3813,7 @@ export interface Components {
       | "Lien Waiver"
       | "Settlement"
       | "Proof of Performance"
-      | "Content Consent"
-      | "Quote";
+      | "Content Consent";
     expires_on?: string | null;
   };
   EngagementDocumentPage: {
@@ -9194,6 +9192,7 @@ export interface Components {
   };
   ShareLinkCreate: {
     attachment_id: string;
+    access_code_required?: boolean;
     recipient_email?: string | null;
     note?: string | null;
     expires_at?: string | null;

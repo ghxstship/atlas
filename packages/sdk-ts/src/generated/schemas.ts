@@ -22094,8 +22094,7 @@ export interface EngagementDocument {
     | "Lien Waiver"
     | "Settlement"
     | "Proof of Performance"
-    | "Content Consent"
-    | "Quote";
+    | "Content Consent";
   /**
    * Last day the document is valid, for documents that expire.
    * Format: `date`.
@@ -22136,8 +22135,7 @@ export interface EngagementDocumentCreate {
     | "Lien Waiver"
     | "Settlement"
     | "Proof of Performance"
-    | "Content Consent"
-    | "Quote";
+    | "Content Consent";
   /**
    * Last day the document is valid, for documents that expire.
    * Format: `date`.
@@ -48700,7 +48698,7 @@ export interface ShareLink {
   readonly attachment_version_id: string | null;
   readonly classification: Classification;
   /**
-   * Always true: every link asks for a 6-digit access code.
+   * Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.
    */
   readonly access_code_required: boolean;
   /**
@@ -48781,6 +48779,10 @@ export interface ShareLinkCreate {
    * Format: `uuid`.
    */
   readonly attachment_id: string;
+  /**
+   * Always true: every link asks for a 6-digit access code (ADR 0142). Still accepted on create, where any value is ignored, so v1 callers that send it keep working.
+   */
+  readonly access_code_required?: boolean;
   /**
    * Who the link is for, lowercased. Required for a Confidential file.
    * Format: `email`.
