@@ -7,6 +7,32 @@
     "name": "Gateway",
     "tagline": "Encuentra trabajo, completa tu incorporación, entrega y recibe tu pago."
   },
+  "landing": {
+    "brand": "XOS",
+    "title": "Gestiona cada producción en vivo en un solo lugar",
+    "lead": "XOS es el software de producción de GHXSTSHIP Industries LLC para los equipos que realizan eventos y experiencias en vivo, y para el personal, los proveedores y los artistas que contratan. Una sola cuenta abre las tres aplicaciones.",
+    "signIn": "Iniciar sesión",
+    "apps": {
+      "title": "Tres aplicaciones, una cuenta",
+      "atlas": "Para equipos de producción",
+      "gateway": "Para personal, proveedores, artistas, clientes y patrocinadores",
+      "compass": "Para el trabajo en campo, en iOS y Android",
+      "compassTagline": "Operaciones en campo que siguen funcionando sin señal."
+    },
+    "google": {
+      "title": "Inicio de sesión con Google",
+      "body": "Si inicias sesión con Google, XOS recibe tu nombre, tu dirección de correo electrónico y el identificador de tu cuenta de Google, y los usa para crear tu cuenta e iniciar tu sesión. La <privacy>Política de privacidad</privacy> explica cómo los tratamos."
+    },
+    "availability": "XOS se ofrece en los Estados Unidos a personas de 18 años o más."
+  },
+  "legalLinks": {
+    "label": "Legal",
+    "privacy": "Política de privacidad",
+    "healthData": "Política de privacidad de datos de salud del consumidor",
+    "terms": "Términos del Servicio",
+    "cookies": "Configuración de cookies",
+    "contact": "Contacto"
+  },
   "pages": {
     "home": {
       "today": {

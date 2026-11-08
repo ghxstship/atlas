@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { SignInForm } from "@/components/auth/forms";
 import { ProviderButtons } from "@/components/auth/providers";
 import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in";
+import { LegalLinks } from "@/components/privacy/legal-links";
 import { InlineAlert } from "@/components/ui";
 import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
@@ -15,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * Sign in: OAuth providers, then one Email field with the sign-in link as the primary action and a
- * password on request (Section 11.10, rule 12). `?method=password` opens on the password.
+ * password on request (Section 11.10, rule 12). `?method=password` opens on the password. The public
+ * legal links close the card.
  */
 export default async function SignInPage({ searchParams }: PageProps<"/auth/sign-in">) {
   const query = await searchParams;
@@ -43,6 +45,9 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
           {t("signIn.toSignUp")}
         </Link>
       </p>
+      <footer className="border-t border-border-subtle pt-12">
+        <LegalLinks />
+      </footer>
     </div>
   );
 }
