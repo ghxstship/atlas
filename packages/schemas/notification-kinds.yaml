@@ -86,6 +86,9 @@ email_templates:
   - code: approval_link_code
     transactional: true
     description: The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).
+  - code: billing_notice
+    transactional: true
+    description: A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).
 
 categories:
   - code: mentions
@@ -336,29 +339,36 @@ kinds:
       - emitter: supabase/migrations/6051_subscription_pauses.sql#app.sync_subscription_from_stripe
         test: supabase/tests/6051_subscription_pauses.test.sql
   # Legal billing issue 1 (6140, 6141, ADR 0161): the auto-renewal notices, and the truth about a cancel. All go to the
-  # billing owners, as dunning does, in the account category, which nobody can turn off.
+  # billing owners, as dunning does, in the account category. The law and the agreed renewal terms promise them, so the
+  # email goes whatever the person's or the org's settings say (private.notify_billing_contacts), and its template is
+  # transactional, so an unsubscribe does not stop it either.
   - kind: billing.purchase_confirmed
     category: account
+    email_template: billing_notice
     emitted_by:
       - emitter: supabase/migrations/6141_renewal_consent.sql#private.confirm_purchase_terms
         test: supabase/tests/6141_renewal_consent.test.sql
   - kind: billing.renewal_reminder
     category: account
+    email_template: billing_notice
     emitted_by:
       - emitter: supabase/migrations/6141_renewal_consent.sql#private.run_billing_renewal_reminders
         test: supabase/tests/6141_renewal_consent.test.sql
   - kind: billing.cancellation_confirmed
     category: account
+    email_template: billing_notice
     emitted_by:
       - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.accept_stripe_cancellation
         test: supabase/tests/6140_stripe_cancellations.test.sql
   - kind: billing.plan_ending
     category: account
+    email_template: billing_notice
     emitted_by:
       - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.accept_stripe_cancellation
         test: supabase/tests/6140_stripe_cancellations.test.sql
   - kind: billing.cancellation_delayed
     category: account
+    email_template: billing_notice
     emitted_by:
       - emitter: supabase/migrations/6140_stripe_cancellations.sql#private.mark_stripe_cancellation_delayed
         test: supabase/tests/6140_stripe_cancellations.test.sql

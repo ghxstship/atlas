@@ -7,6 +7,7 @@ import type { TemplateCode } from "./index.tsx";
  */
 export const TEMPLATE_CODES = [
   "notification",
+  "billing_notice",
   "digest",
   "invite",
   "report_delivery",

@@ -393,7 +393,7 @@ var NOTIFICATION_KINDS = [
   {
     kind: "billing.purchase_confirmed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -405,7 +405,7 @@ var NOTIFICATION_KINDS = [
   {
     kind: "billing.renewal_reminder",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -417,7 +417,7 @@ var NOTIFICATION_KINDS = [
   {
     kind: "billing.cancellation_confirmed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -429,7 +429,7 @@ var NOTIFICATION_KINDS = [
   {
     kind: "billing.plan_ending",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -441,7 +441,7 @@ var NOTIFICATION_KINDS = [
   {
     kind: "billing.cancellation_delayed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],

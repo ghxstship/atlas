@@ -34,6 +34,11 @@ export interface KindItem {
 
 export interface TemplateProps {
   readonly notification: KindItem;
+  /**
+   * A notice the billing terms promise (ADR 0161): the purchase confirmation, the renewal reminder, a cancel confirmed or
+   * not yet. Rendered as a notification, but transactional, so no setting or unsubscribe link stops it.
+   */
+  readonly billing_notice: KindItem;
   readonly digest: { readonly frequency: "daily" | "weekly"; readonly items: readonly KindItem[] };
   readonly invite: {
     readonly inviterName: string;
@@ -184,31 +189,32 @@ function Greeting({ ctx }: { readonly ctx: TemplateContext }) {
   return <Paragraph>{ctx.t("common.greeting", { name: ctx.recipientName })}</Paragraph>;
 }
 
+/** A kind's email. A transactional one (billing_notice) has no unsubscribe link or one-tap actions. */
+function composeKind(item: KindItem, ctx: TemplateContext, transactional: boolean) {
+  const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
+  return {
+    subject,
+    element: (
+      <Layout
+        locale={ctx.locale}
+        t={ctx.t}
+        sender={ctx.sender}
+        preview={subject}
+        heading={ctx.t("notification.heading", { subject })}
+        transactional={transactional}
+        action={{ label: ctx.t("common.open"), url: item.url }}
+      >
+        <Greeting ctx={ctx} />
+        <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
+        {transactional ? null : <ActionLinks actions={item.actions ?? []} t={ctx.t} />}
+      </Layout>
+    ),
+  };
+}
+
 export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C]> } = {
-  notification: {
-    transactional: false,
-    compose: (item, ctx) => {
-      const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
-      return {
-        subject,
-        element: (
-          <Layout
-            locale={ctx.locale}
-            t={ctx.t}
-            sender={ctx.sender}
-            preview={subject}
-            heading={ctx.t("notification.heading", { subject })}
-            transactional={false}
-            action={{ label: ctx.t("common.open"), url: item.url }}
-          >
-            <Greeting ctx={ctx} />
-            <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
-            <ActionLinks actions={item.actions ?? []} t={ctx.t} />
-          </Layout>
-        ),
-      };
-    },
-  },
+  notification: { transactional: false, compose: (item, ctx) => composeKind(item, ctx, false) },
+  billing_notice: { transactional: true, compose: (item, ctx) => composeKind(item, ctx, true) },
   digest: {
     transactional: false,
     compose: ({ frequency, items }, ctx) => {

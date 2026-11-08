@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 11 email templates, 15 categories, 78 kinds (304 kind and channel rows),
+-- 12 email templates, 15 categories, 78 kinds (304 kind and channel rows),
 -- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (6144_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
@@ -32,7 +32,8 @@ insert into private.email_templates (code, description, transactional) values
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
   ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
   ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true),
-  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true)
+  ('approval_link_code', 'The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).', true),
+  ('billing_notice', 'A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).', true)
 on conflict (code) do update set description = excluded.description, transactional = excluded.transactional;
 
 -- Categories (orders move aside first, so a reordering never collides) -------
@@ -174,23 +175,23 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('billing.resumed', 'SMS'::app.notification_channel, 'account', null),
   ('billing.resumed', 'Push'::app.notification_channel, 'account', null),
   ('billing.purchase_confirmed', 'In App'::app.notification_channel, 'account', null),
-  ('billing.purchase_confirmed', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.purchase_confirmed', 'Email'::app.notification_channel, 'account', 'billing_notice'),
   ('billing.purchase_confirmed', 'SMS'::app.notification_channel, 'account', null),
   ('billing.purchase_confirmed', 'Push'::app.notification_channel, 'account', null),
   ('billing.renewal_reminder', 'In App'::app.notification_channel, 'account', null),
-  ('billing.renewal_reminder', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.renewal_reminder', 'Email'::app.notification_channel, 'account', 'billing_notice'),
   ('billing.renewal_reminder', 'SMS'::app.notification_channel, 'account', null),
   ('billing.renewal_reminder', 'Push'::app.notification_channel, 'account', null),
   ('billing.cancellation_confirmed', 'In App'::app.notification_channel, 'account', null),
-  ('billing.cancellation_confirmed', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.cancellation_confirmed', 'Email'::app.notification_channel, 'account', 'billing_notice'),
   ('billing.cancellation_confirmed', 'SMS'::app.notification_channel, 'account', null),
   ('billing.cancellation_confirmed', 'Push'::app.notification_channel, 'account', null),
   ('billing.plan_ending', 'In App'::app.notification_channel, 'account', null),
-  ('billing.plan_ending', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.plan_ending', 'Email'::app.notification_channel, 'account', 'billing_notice'),
   ('billing.plan_ending', 'SMS'::app.notification_channel, 'account', null),
   ('billing.plan_ending', 'Push'::app.notification_channel, 'account', null),
   ('billing.cancellation_delayed', 'In App'::app.notification_channel, 'account', null),
-  ('billing.cancellation_delayed', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.cancellation_delayed', 'Email'::app.notification_channel, 'account', 'billing_notice'),
   ('billing.cancellation_delayed', 'SMS'::app.notification_channel, 'account', null),
   ('billing.cancellation_delayed', 'Push'::app.notification_channel, 'account', null),
   ('organization.deletion_requested', 'In App'::app.notification_channel, 'account', null),

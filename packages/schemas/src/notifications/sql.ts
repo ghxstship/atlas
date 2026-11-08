@@ -24,7 +24,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * reaches only the Inbox and a push (ADR 0155), and carries 5869's; train 7 adds B5's accommodation_block.release_due
  * and transfer.assigned (5947) to it. 6144 adds the auto-renewal notices and the truth about a Stripe cancel
  * (billing.purchase_confirmed, billing.renewal_reminder, billing.cancellation_confirmed, billing.plan_ending and
- * billing.cancellation_delayed; 6140, 6141, ADR 0161) and carries 6059's.
+ * billing.cancellation_delayed; 6140, 6141, ADR 0161), with the transactional billing_notice email no setting or
+ * unsubscribe stops, and carries 6059's.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/6144_notification_kind_seed.sql";

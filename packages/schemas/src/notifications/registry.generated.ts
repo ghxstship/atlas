@@ -168,6 +168,12 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     description:
       "The 6-digit access code of a signed-out approval link, valid 10 minutes, and the org that asks (P9).",
   },
+  {
+    code: "billing_notice",
+    transactional: true,
+    description:
+      "A notice the billing terms promise, such as a renewal reminder or a cancel confirmation, which no setting or unsubscribe stops (ADR 0161).",
+  },
 ];
 
 /** The templates index: every notification kind. */
@@ -539,7 +545,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   {
     kind: "billing.purchase_confirmed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -551,7 +557,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   {
     kind: "billing.renewal_reminder",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -563,7 +569,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   {
     kind: "billing.cancellation_confirmed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -575,7 +581,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   {
     kind: "billing.plan_ending",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -587,7 +593,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
   {
     kind: "billing.cancellation_delayed",
     category: "account",
-    emailTemplate: "notification",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],

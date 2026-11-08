@@ -318,37 +318,43 @@ function Greeting({ ctx }) {
     children: ctx.t("common.greeting", { name: ctx.recipientName }),
   });
 }
-var templates = {
-  notification: {
-    transactional: false,
-    compose: (item, ctx) => {
-      const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
-      return {
-        subject,
-        element: /* @__PURE__ */ jsxs(Layout, {
-          locale: ctx.locale,
-          t: ctx.t,
-          sender: ctx.sender,
-          preview: subject,
-          heading: ctx.t("notification.heading", { subject }),
-          transactional: false,
-          action: {
-            label: ctx.t("common.open"),
-            url: item.url,
-          },
-          children: [
-            /* @__PURE__ */ jsx(Greeting, { ctx }),
-            /* @__PURE__ */ jsx(Paragraph, {
-              children: ctx.t(kindKey(item.kind, "body"), item.args),
-            }),
-            /* @__PURE__ */ jsx(ActionLinks, {
+/** A kind's email. A transactional one (billing_notice) has no unsubscribe link or one-tap actions. */
+function composeKind(item, ctx, transactional) {
+  const subject = ctx.t(kindKey(item.kind, "subject"), item.args);
+  return {
+    subject,
+    element: /* @__PURE__ */ jsxs(Layout, {
+      locale: ctx.locale,
+      t: ctx.t,
+      sender: ctx.sender,
+      preview: subject,
+      heading: ctx.t("notification.heading", { subject }),
+      transactional,
+      action: {
+        label: ctx.t("common.open"),
+        url: item.url,
+      },
+      children: [
+        /* @__PURE__ */ jsx(Greeting, { ctx }),
+        /* @__PURE__ */ jsx(Paragraph, { children: ctx.t(kindKey(item.kind, "body"), item.args) }),
+        transactional
+          ? null
+          : /* @__PURE__ */ jsx(ActionLinks, {
               actions: item.actions ?? [],
               t: ctx.t,
             }),
-          ],
-        }),
-      };
-    },
+      ],
+    }),
+  };
+}
+var templates = {
+  notification: {
+    transactional: false,
+    compose: (item, ctx) => composeKind(item, ctx, false),
+  },
+  billing_notice: {
+    transactional: true,
+    compose: (item, ctx) => composeKind(item, ctx, true),
   },
   digest: {
     transactional: false,

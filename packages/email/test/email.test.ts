@@ -38,6 +38,11 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     args: { actorName: "Bob Okafor", title: "Rigging rental" },
     url: "https://atlas.xos.test/r/1",
   },
+  billing_notice: {
+    kind: "billing.renewal_reminder",
+    args: { plan: "Team", price: "1,490.00 USD", renewsOn: Date.UTC(2027, 10, 6, 12) },
+    url: "https://atlas.xos.test/settings/billing",
+  },
   digest: {
     frequency: "weekly",
     items: [
