@@ -115,7 +115,7 @@ async function upload(page: Page, name: string, mimeType: string, buffer: Buffer
 }
 
 test.describe("share links", () => {
-  test("an Internal link opens without an account; a Confidential image downloads watermarked", async ({
+  test("an Internal link opens with its code and no account; a Confidential image downloads watermarked", async ({
     page,
     browser,
   }) => {
@@ -167,8 +167,10 @@ test.describe("share links", () => {
     await imagePanel.getByLabel("Classification").selectOption("Confidential");
     await imagePanel.getByRole("button", { name: "Save classification" }).click();
     await slow(imagePanel.getByText("Classification saved.")).toBeVisible();
+    // Since the owner's ruling of 2026-11-06 (ADR 0142, 6281) every class of file takes a code, so the
+    // panel says so for all of them rather than for Confidential alone.
     await slow(
-      imagePanel.getByText("Confidential files always ask for an access code."),
+      imagePanel.getByText("Every link gets a 6-digit access code, shown once."),
     ).toBeVisible();
     await imagePanel.getByRole("button", { name: "Create link" }).click();
     await slow(
