@@ -33,12 +33,6 @@ export type RenewalWording = (input: {
   readonly now?: Date;
 }) => RenewalTerms | null;
 
-/**
- * The currency Billing and Plan quotes and Checkout charges. Both read this, and Checkout is told to use it, so what an Owner
- * agrees to and what Stripe charges cannot differ.
- */
-export const CHECKOUT_CURRENCY = "USD";
-
 /** The wording function in the person's language. Null for a plan sold by quote or free. */
 export async function renewalWording(): Promise<RenewalWording> {
   const [t, format] = await Promise.all([

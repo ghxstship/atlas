@@ -2,7 +2,14 @@
 
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, type ReactNode } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { IDLE, type ActionState } from "@/lib/action-state";
 
 /**
@@ -48,6 +55,14 @@ export function ActionForm({
     <form
       ref={form}
       action={formAction}
+      onSubmit={(event: FormEvent<HTMLFormElement>) => {
+        // Through onSubmit, React leaves what was typed in place when the database refuses it; `action` stays so the
+        // form still posts before hydration. A success clears it above.
+        event.preventDefault();
+        const submitter = (event.nativeEvent as SubmitEvent).submitter;
+        const data = new FormData(event.currentTarget, submitter);
+        startTransition(() => formAction(data));
+      }}
       className="flex flex-col gap-12"
       aria-label={label}
       data-testid={testId}

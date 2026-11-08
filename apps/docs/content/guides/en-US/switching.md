@@ -5,7 +5,7 @@ section: operate
 order: 14
 ---
 
-You can move your organization from XOS to another provider, or to your own deployment of XOS, at any time. Section 11.3 of the Terms of Service sets out what GHXSTSHIP does when you switch, as the EU Data Act requires: export all exportable data and metadata in the structured formats documented here, give 30 days of transition support on request, and, from 12 January 2027, charge no switching fees. This guide is the process; the Terms are the binding text.
+You can move your organization from XOS to another provider, or to your own deployment of XOS, at any time. Section 11.3 of the Terms of Service sets out what GHXSTSHIP does when you switch: export all exportable data and metadata in the structured formats documented here, give 30 days of transition support on request, and, from 12 January 2027, charge no switching fees. This guide is the process; the Terms are the binding text.
 
 ## What you get
 

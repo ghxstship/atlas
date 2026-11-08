@@ -258,6 +258,8 @@ describe("billing once the key is set", () => {
       planCode: "core",
       interval: "Monthly",
       livemode: false,
+      // The answer cannot be read on this fake database: a closed territory never decides a currency (ADR 0160).
+      currency: "USD",
       customerEmail: "owner@northwind.test",
       successUrl: "https://atlas.test/northwind-live/settings/billing-and-plan?checkout=done",
       cancelUrl: "https://atlas.test/northwind-live/settings/billing-and-plan?checkout=canceled",

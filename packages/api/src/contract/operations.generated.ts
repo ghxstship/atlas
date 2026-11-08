@@ -2875,9 +2875,10 @@ export interface Components {
     slug: string;
     owner_email: string;
     plan_code?: string;
+    country_code?: string;
   };
   CreateClientOrganizationResult: { org_id: string; invite_id: string; invite_token: string };
-  CreateOrganizationRequest: { name: string; slug: string };
+  CreateOrganizationRequest: { name: string; slug: string; country_code?: string };
   Credential: {
     id: string;
     org_id: string;

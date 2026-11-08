@@ -4,6 +4,7 @@ import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import { getLocale } from "next-intl/server";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { InlineAlert } from "@/components/ui";
+import { currentOffering } from "@/lib/offering";
 import { choiceLabelKey, formText, pageSettings } from "@/lib/settings/registry";
 import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
@@ -52,9 +53,15 @@ function options(
   def: SettingDefinition,
   refs: Map<string, { value: string; label: string }[]>,
   t: Translate,
+  offeredLocales: readonly string[],
 ) {
   if (def.type === "choice") {
-    return def.choices.map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }));
+    // The registry keeps every language; only those of open territories are choices (ADR 0160).
+    const choices =
+      def.key === "locale.language"
+        ? def.choices.filter((c) => offeredLocales.includes(c))
+        : def.choices;
+    return choices.map((c) => ({ value: c, label: t(choiceLabelKey(def.key, c)) }));
   }
   return refs.get(def.key) ?? [];
 }
@@ -80,12 +87,13 @@ export async function RegistrySection({
 }) {
   const defs = pageSettings(node, group);
   if (defs.length === 0) return null;
-  const [t, resolved, stored, refs, locale] = await Promise.all([
+  const [t, resolved, stored, refs, locale, offering] = await Promise.all([
     getTranslate(),
     resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
     listSettingValues(ctx.viewer.db, ctx.org.id),
     referenceOptions(ctx, defs),
     getLocale(),
+    currentOffering(),
   ]);
   const region = regionFromLocale(locale);
   if (!resolved.ok || !stored.ok) {
@@ -102,7 +110,7 @@ export async function RegistrySection({
       def,
       label: t(def.label),
       help: def.help ? t(def.help) : null,
-      options: options(def, refs, t),
+      options: options(def, refs, t, offering.locales),
     };
     if (group === "org") {
       return {

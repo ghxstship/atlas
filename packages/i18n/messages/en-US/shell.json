@@ -952,6 +952,8 @@
       "password": "Password",
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
       "orgName": "Organization name",
+      "orgCountry": "Country where your organization is established",
+      "orgCountryChoose": "Choose a country",
       "orgSlug": "Web address",
       "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
       "age": "I am 16 or older."
@@ -986,6 +988,7 @@
     "organization": {
       "title": "Create your organization",
       "lead": "You will be its Owner. You can invite your team next.",
+      "availability": "XOS is offered to organizations in {territories}. If an organization invited you, open your invitation.",
       "accept": "I accept the <termsLink>{terms}</termsLink> and the <dpaLink>{dpa}</dpaLink> on behalf of this organization.",
       "submit": "Create organization"
     },
@@ -1035,6 +1038,8 @@
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Atlas.",
       "orgName": "Enter your organization's name.",
+      "orgCountry": "Choose the country where your organization is established.",
+      "territory_not_offered": "XOS is not offered in your organization's country ({country}), so we did not create this organization. XOS is offered to organizations in {territories}. If an organization invited you to work with it, you do not need to create one: open your invitation. If your organization has a signed contract with GHXSTSHIP, ask your contact there to set it up.",
       "orgSlug": "Use 2 to 48 lowercase letters, numbers and single hyphens.",
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
@@ -1245,6 +1250,7 @@
       },
       "foundingOffer": "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
       "pricesInUsd": "Prices in US dollars before tax.",
+      "pricesInOtherCurrencies": "Organizations in the other territories XOS is offered in pay in {currencies} at checkout.",
       "checkoutTerms": "It renews automatically until you end it. We are emailing you the terms, and you can end the plan on this page at any time.",
       "renewal": {
         "title": "Review the {plan} plan",

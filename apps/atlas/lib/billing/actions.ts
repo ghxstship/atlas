@@ -26,7 +26,7 @@ import {
   checkoutAccountStore,
   pauseAccountStore,
 } from "@/lib/billing/stripe";
-import { CHECKOUT_CURRENCY, renewalWording } from "@/lib/billing/renewal-terms";
+import { renewalWording } from "@/lib/billing/renewal-terms";
 import { askStripeToStopNow } from "@/lib/billing/stop-stripe";
 import { env } from "@/lib/env";
 import { contextFor } from "@/lib/platform/action-context";
@@ -34,6 +34,7 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { observability } from "@/lib/observability";
+import { orgCheckoutCurrency } from "@xos/data/billing";
 import * as enums from "@xos/data/enums";
 
 /**
@@ -98,8 +99,9 @@ export async function startCheckoutAction(
   const billing = atlasBillingEnv();
   if (!billingConfigured(billing)) return refused("billing_not_open");
   try {
-    const [stripe, word, zone, locale] = await Promise.all([
+    const [stripe, currency, word, zone, locale] = await Promise.all([
       createStripeClient(billing),
+      orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
       renewalWording(),
       getOrgTimeZone(ctx),
       getLocale(),
@@ -113,6 +115,7 @@ export async function startCheckoutAction(
         planCode: parsed.data.plan,
         interval: parsed.data.interval,
         livemode: billingLivemode(billing),
+        currency,
         ...(ctx.viewer.email === null ? {} : { customerEmail: ctx.viewer.email }),
         successUrl: billingPage(ctx.org.slug, "done"),
         cancelUrl: billingPage(ctx.org.slug, "canceled"),
@@ -120,7 +123,7 @@ export async function startCheckoutAction(
           const terms = word({
             planCode: parsed.data.plan,
             interval: parsed.data.interval,
-            currency: CHECKOUT_CURRENCY,
+            currency,
             trialEndsAt,
             zone,
           });

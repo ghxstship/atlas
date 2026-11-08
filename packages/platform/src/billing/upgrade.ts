@@ -110,6 +110,11 @@ export interface PlanCheckoutRequest {
    * date is the one Checkout will use. Throwing refuses before Stripe hears anything.
    */
   readonly consent: (account: { readonly trialEndsAt: string | null }) => RenewalConsent;
+  /**
+   * The currency to charge in (app.org_checkout_currency, ADR 0160); USD when not given. The consent is worded in the
+   * same currency, and the session charges the consent's.
+   */
+  readonly currency?: string;
   /** The current time, for tests. */
   readonly now?: Date;
 }

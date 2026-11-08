@@ -4,6 +4,8 @@ Everything the App Store and Google Play need for Compass, prepared by A68 (RRR-
 
 Nothing here was sent to Apple, Google or Expo: no account was used and no `eas build` or `eas submit` ran.
 
+**Availability.** XOS launches in the United States only (ADR 0160), so the owner sets App Store Connect and Google Play availability to the United States. Store territory is a targeting decision the AI legal audit names (no attorney has reviewed it); nothing in this kit sets it.
+
 ## What is where
 
 | File                                        | For                                                                                                                                          |

@@ -2,6 +2,8 @@
 
 import { Constants } from "@xos/data/database.types";
 import type { Database } from "@xos/data/database.types";
+import { isCountryCode } from "@xos/i18n/formats";
+import { notOfferedValues } from "@/lib/territory";
 import {
   addAvailabilityBlock,
   APP_ENUMS,
@@ -315,8 +317,17 @@ export async function createAccountAction(
   ) {
     return { fieldError: "account" };
   }
-  const result = await createExternalAccount(ctx.db, { name, slug });
-  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+  const countryCode = text(form, "countryCode");
+  if (!isCountryCode(countryCode)) return { fieldError: "accountCountry" };
+  const result = await createExternalAccount(ctx.db, { name, slug, countryCode });
+  if (result.ok) return { done: true };
+  if (result.error.kind === "refusal" && result.error.rule === "territory_not_offered") {
+    return {
+      fieldError: "territory_not_offered",
+      fieldValues: await notOfferedValues(countryCode),
+    };
+  }
+  return { outcome: outcomeFor(result.error) };
 }
 
 export async function leaveAccountAction(membershipId: string): Promise<ActionResult> {

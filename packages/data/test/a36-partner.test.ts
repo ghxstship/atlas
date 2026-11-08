@@ -91,6 +91,7 @@ describe("partner console repository", () => {
       slug: "tide",
       ownerEmail: "o@example.com",
       planCode: "core",
+      countryCode: "US",
     };
     expect(await createClientOrg(db, input)).toEqual({
       ok: true,

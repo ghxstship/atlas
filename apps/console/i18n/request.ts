@@ -10,6 +10,7 @@ import { pseudoCatalog } from "@xos/i18n/pseudo";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { cache } from "react";
+import { currentOffering } from "@/lib/offering";
 import { LOCALE_COOKIE, formattingLocale, negotiateLocale, type ConsoleLocale } from "./negotiate";
 import { precompileMessages } from "./precompile";
 
@@ -62,11 +63,16 @@ export function uiMessages(locale: ConsoleLocale): Record<string, string> | unde
  * document language and direction; read once per request.
  */
 export const negotiatedLocale = cache(async (): Promise<ConsoleLocale> => {
-  const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const [cookieStore, headerStore, offering] = await Promise.all([
+    cookies(),
+    headers(),
+    currentOffering(),
+  ]);
   return negotiateLocale({
     cookie: cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage: headerStore.get("accept-language"),
     production: process.env.NODE_ENV === "production",
+    offered: offering.locales,
   });
 });
 

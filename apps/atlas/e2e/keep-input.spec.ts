@@ -33,6 +33,9 @@ test("input kept after refusal: a taken web address keeps the organization name"
   const slug = page.getByLabel("Web address");
   await name.fill(`Keep Input ${id}`);
   await slug.fill("demo-productions");
+  await page
+    .getByLabel("Country where your organization is established", { exact: true })
+    .selectOption("US");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await expect(page.getByText(/already|taken|in use/i).first()).toBeVisible();

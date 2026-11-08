@@ -21,6 +21,11 @@ export interface TargetLocale {
   readonly partial?: boolean;
   /** The surface ids this locale is translated on; every surface when absent. */
   readonly surfaces?: readonly string[];
+  /**
+   * The locale belongs to a territory XOS is not offered in (ADR 0160). A run with no locales named skips it, so no
+   * catalog is written for it; naming it translates it, for the day its territory opens.
+   */
+  readonly closed?: boolean;
 }
 
 export type SurfaceKind = "catalog" | "markdown" | "text";

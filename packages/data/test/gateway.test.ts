@@ -534,11 +534,15 @@ describe("accounts", () => {
       "rpc:add_account_member": [okResponse("m1"), errorResponse("42501", "no")],
       "rpc:end_account_membership": [okResponse(null), errorResponse("42501", "no")],
     });
-    expect(await createExternalAccount(db, { name: "Bright", slug: "bright" })).toEqual({
+    expect(
+      await createExternalAccount(db, { name: "Bright", slug: "bright", countryCode: "US" }),
+    ).toEqual({
       ok: true,
       data: { accountId: "a1" },
     });
-    expect((await createExternalAccount(db, { name: "Bright", slug: "bright" })).ok).toBe(false);
+    expect(
+      (await createExternalAccount(db, { name: "Bright", slug: "bright", countryCode: "US" })).ok,
+    ).toBe(false);
     expect(
       await addAccountMember(db, { accountId: "a1", personId: "p2", role: "Account Member" }),
     ).toEqual({ ok: true, data: { membershipId: "m1" } });

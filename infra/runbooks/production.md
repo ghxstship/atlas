@@ -572,6 +572,16 @@ When an alert arrives, read it in the console's Tenants page. `charged_after_can
 
 Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
 
+## Where XOS is offered (OWNER and platform team)
+
+XOS launches in the United States only (ADR 0160). `private.territories` is the one source of truth, and an Administrator opens or closes a territory on the console's Territories page, with a reason, with no deploy. Signup follows at once. Prices and languages usually follow within a minute, and at most about 11 minutes, because each server keeps its last good read. Before opening a territory, do what the table in ADR 0160 lists for it. Only after a territory opens, run `pnpm --filter @xos/i18n translate --locale <code>` if its language should read translated: email reads a saved language with no territory check, so a catalog written earlier would reach anyone who saved it. Rerun nothing in Stripe: every price already carries its currency.
+
+Before launch, once the live catalogue exists, run one test-mode Checkout from the Billing page and confirm it opens in USD with no currency switcher: `currency` and `adaptive_pricing` on the session were only tested against fakes, and if Stripe refused the combination every plan checkout would fail.
+
+The owner keeps the app stores in step: App Store Connect and Google Play availability set to the United States only. A worker abroad whose store account is in another country cannot download Compass from a United States listing and uses Gateway on the web, or the app already on their phone.
+
+The console's list of organizations outside the offered territories is the review to do before launch, after any close and from time to time after that. It includes Gateway company accounts, anyone from before the question, and anyone who called the API or the database without stating a country. A vendor company abroad that a US customer has engaged under a signed contract can be let in with an exception naming that contract; it cannot start a company account by itself.
+
 ## Machine translation (OWNER, Google Cloud Translation)
 
 Google Cloud Translation reviews es-US and produces every other translation (ADR 0037). The owner sets it up once and runs it. Authentication is Application Default Credentials: a gcloud login on the owner's machine, and Workload Identity Federation in GitHub Actions. No service account key, API key or other secret is created or stored anywhere.

@@ -63,7 +63,7 @@ The gate can delay a deletion for as long as Stripe will not accept. That tensio
 4. `private.billing_renewal_consents` keeps the statement word for word, its text version (`RENEWAL_TERMS_VERSION`; a test pins the wording to it), language, price, term, date, person, email and session. It cannot be changed. It outlives the org and the person's account deletion, and is kept 7 years and also while the plan runs and for a year after it ends, since California asks for 3 years or 1 year after the contract ends, whichever is longer, and a plan can renew past 7 years. Account deletion lists it among what is kept (6813).
 5. A live Checkout cannot be recorded without a consent (`renewal_consent_required`). Test mode is exempt, because that backstop needs no fixture and Atlas itself refuses without one.
 
-6. Checkout is told the currency (`currency`, with adaptive pricing off), so Stripe cannot show one the statement did not quote. The statement, the consent, the database's price check and the session all carry that one currency, today USD through `CHECKOUT_CURRENCY`.
+6. Checkout is told the currency (`currency`, with adaptive pricing off), so Stripe cannot show one the statement did not quote. The statement, the consent, the database's price check and the session all carry that one currency, the org's checkout currency, which Billing and Plan and the Checkout action both read from `app.org_checkout_currency` (ADR 0160), today USD.
 
 ### D7. Notices
 

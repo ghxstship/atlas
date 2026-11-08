@@ -1,3 +1,4 @@
+import pg from "pg";
 import { expect, test, type Page } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./a16-support";
 
@@ -68,10 +69,33 @@ async function clearPreference(page: Page, label: string) {
   await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 }
 
+/** Opens or closes the territories that hold the Beta locales, as an operator does in the console (ADR 0160). */
+async function setBetaTerritories(offered: boolean): Promise<void> {
+  const client = new pg.Client({
+    connectionString:
+      process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres",
+  });
+  await client.connect();
+  try {
+    await client.query(
+      "update private.territories set offered = $1 where code in ('EEA', 'BR', 'JP')",
+      [offered],
+    );
+  } finally {
+    await client.end();
+  }
+}
+
 test("a Beta locale from the picker reads en-US where it has no translation, never a raw key", async ({
   page,
 }) => {
+  test.skip(
+    process.env["E2E_PRODUCTION_BUILD"] === "1" && process.env["E2E_OFFERING_FRESH"] !== "1",
+    "A production server keeps the offering unless E2E_OFFERING_FRESH=1, as CI sets; this needs the change at once.",
+  );
   await signIn(page, "producer@example.com");
+  // Closed by default, which e2e/legal-territory.spec.ts walks; opening their territories takes no code.
+  await setBetaTerritories(true);
   try {
     await page.goto(`/${ORG}/home`);
     await page.getByRole("button", { name: "Account" }).first().click();
@@ -103,6 +127,7 @@ test("a Beta locale from the picker reads en-US where it has no translation, nev
     await page.goto(`/${ORG}/home`);
     await chooseLanguage(page, "English (US)");
     await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
+    await setBetaTerritories(false);
   }
 });
 

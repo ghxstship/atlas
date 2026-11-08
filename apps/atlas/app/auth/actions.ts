@@ -10,6 +10,7 @@ import {
 import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
 import { acceptInviteLink } from "@xos/data/profiles";
 import { recordLegalAcceptances } from "@xos/data/settings";
+import { isCountryCode } from "@xos/i18n/formats";
 import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -19,6 +20,7 @@ import { authErrorKey } from "@/lib/auth/errors";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { enabledProviders, isOAuthProvider, providerQueryParams } from "@/lib/auth/providers";
+import { notOfferedValues } from "@/lib/auth/territory";
 import { safeNext, signInErrorPath, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -33,6 +35,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export interface FormState {
   /** A `shell.auth.errors.*` key for a form-level error. */
   readonly error?: string;
+  /** Values for a form-level error's sentence. */
+  readonly errorValues?: Readonly<Record<string, string>>;
   /** Field name to `shell.auth.errors.*` key. */
   readonly fieldErrors?: Readonly<Record<string, string>>;
   /** Submitted values, echoed back so inputs keep them after a failed submit. */
@@ -235,12 +239,14 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
   const values = {
     orgName: text(form, "orgName"),
     orgSlug: text(form, "orgSlug").toLowerCase(),
+    orgCountry: text(form, "orgCountry"),
     ageConfirmed: text(form, "ageConfirmed"),
   };
   const parsed = z
     .object({
       orgName: z.string().min(1).max(200),
       orgSlug: z.string().refine(isOrgSlug),
+      orgCountry: z.string().refine(isCountryCode),
       accept: z.literal("on"),
     })
     .safeParse({ ...values, accept: form.get("accept") });
@@ -254,9 +260,18 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
   const created = await createOrganization(db, {
     name: parsed.data.orgName,
     slug: parsed.data.orgSlug,
+    countryCode: parsed.data.orgCountry,
   });
   if (!created.ok) {
     const error = created.error;
+    // Nothing was created. The person reads why, and what still works for them (ADR 0160).
+    if (error.kind === "refusal" && error.rule === "territory_not_offered") {
+      return {
+        error: "territory_not_offered",
+        errorValues: await notOfferedValues(parsed.data.orgCountry),
+        values,
+      };
+    }
     if (
       error.kind === "refusal" &&
       (error.rule === "slug_taken" || error.rule === "slug_reserved")

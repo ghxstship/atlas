@@ -44,7 +44,8 @@ export function MultiSelect({
             data-combobox={fieldId}
             className={cx(
               controlClass,
-              "relative flex flex-wrap items-center gap-4 h-auto! min-h-control-md py-2 ps-4 pe-24",
+              // The field grows with its chips, and rows of chips stay far enough apart for their remove buttons to meet WCAG 2.5.8.
+              "relative flex flex-wrap items-center gap-x-4 gap-y-12 h-auto! min-h-control-md py-2 ps-4 pe-24",
             )}
           >
             {chosen.map((o) => (

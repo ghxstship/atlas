@@ -7,6 +7,7 @@ import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
 import { PATH_HEADER } from "@/lib/auth/assurance";
+import { currentOffering } from "@/lib/offering";
 import { getAiFeatures } from "@/lib/aurora/features";
 import { observability } from "@/lib/observability";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
@@ -128,10 +129,11 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
   });
   // The person's display preferences in this org and workspace (Section 4.5.6, A65-001).
   const settings = await getShellSettings(ctx.viewer.db, ctx.org.id, workspaces.active?.id ?? null);
-  // An org that locks its language (locale.language) leaves no language to choose.
+  // An org that locks its language (locale.language) leaves no language to choose; only offered ones are choices.
+  const offering = await currentOffering();
   const locales =
-    lockedLocale(settings.language) === null
-      ? selectableLocales(process.env.NODE_ENV === "production")
+    lockedLocale(settings.language, offering.locales) === null
+      ? selectableLocales(process.env.NODE_ENV === "production", offering.locales)
       : [];
   // The page this render is for (the path the proxy forwards; none on a prefetch): its breadcrumbs
   // and node, so the client sitemap loads only once the person can navigate (ADR 0027).

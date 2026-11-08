@@ -166,8 +166,11 @@ describe("locale", () => {
       "es-US",
     );
     expect(negotiateLocale({ cookie: "en-XA", acceptLanguage: "fr", production })).toBe("en-US");
-    // Beta locales come from the person's choice only (ADR 0053).
-    expect(negotiateLocale({ cookie: "fr-FR", production })).toBe("fr-FR");
+    // Beta locales come from the person's choice only (ADR 0053), and only while their territory is open (ADR 0160).
+    expect(negotiateLocale({ cookie: "fr-FR", production, offered: ["en-US", "fr-FR"] })).toBe(
+      "fr-FR",
+    );
+    expect(negotiateLocale({ cookie: "fr-FR", production })).toBe("en-US");
     expect(negotiateLocale({ acceptLanguage: "fr-FR,fr;q=0.9", production })).toBe("en-US");
     expect(parseAcceptLanguage("en;q=0.1, es")).toEqual(["es", "en"]);
   });

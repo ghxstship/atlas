@@ -1,5 +1,11 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
-import { getBillingAccount, getStripeCancellations, type BillingAccount } from "@xos/data/billing";
+import {
+  getBillingAccount,
+  getStripeCancellations,
+  orgCheckoutCurrency,
+  type BillingAccount,
+} from "@xos/data/billing";
+import { planFeatureOffered } from "@xos/i18n/offering";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -14,8 +20,9 @@ import {
 import { StripeCancellationNotice } from "@/components/settings/stripe-cancellation-notice";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
-import { CHECKOUT_CURRENCY, renewalWording } from "@/lib/billing/renewal-terms";
+import { renewalWording } from "@/lib/billing/renewal-terms";
 import { billingStatus } from "@/lib/billing/stripe";
+import { currentOffering } from "@/lib/offering";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -43,7 +50,7 @@ export default async function BillingSettingsPage({
   const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const search = await searchParams;
   const billing = billingStatus();
-  const [subscription, seats, account, t, tp, translate, format, word, zone, cancellations] =
+  const [subscription, seats, account, t, tp, translate, format, word, zone, cancellations, currency] =
     await Promise.all([
       getSubscription(ctx.viewer.db, ctx.org.id),
       getSeatUsage(ctx.viewer.db, ctx.org.id),
@@ -55,6 +62,8 @@ export default async function BillingSettingsPage({
       renewalWording(),
       getOrgTimeZone(ctx),
       getStripeCancellations(ctx.viewer.db, ctx.org.id),
+      // The currency Checkout charges in (ADR 0160), so the terms shown are the terms the action words again.
+      orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
     ]);
   if (!subscription.ok) {
     throw new Error(`Cannot read the subscription: ${JSON.stringify(subscription.error)}`);
@@ -83,7 +92,7 @@ export default async function BillingSettingsPage({
       ? word({
           planCode: reviewCode,
           interval: term,
-          currency: CHECKOUT_CURRENCY,
+          currency,
           trialEndsAt: subscription.data.trialEndsAt,
           zone,
         })
@@ -97,6 +106,9 @@ export default async function BillingSettingsPage({
       maximumFractionDigits: minor % 100 === 0 ? 0 : 2,
     });
   const full = usage.limit !== null && usage.used >= usage.limit;
+  // Only the currencies of open territories are mentioned (ADR 0160).
+  const offering = await currentOffering();
+  const otherCurrencies = offering.currencies.filter((c) => c !== "USD");
   const pack = ADDONS.find((a) => a.limit === "aurora_requests_per_month");
   const founding = OFFERS.find((o) => o.code === "founding_customer");
   return (
@@ -292,9 +304,11 @@ export default async function BillingSettingsPage({
                       </span>
                     ) : null}
                     <ul className="m-0 ps-16">
-                      {plan.adds.map((f) => (
-                        <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
-                      ))}
+                      {plan.adds
+                        .filter((f) => planFeatureOffered(f, offering))
+                        .map((f) => (
+                          <li key={f}>{translate(`shell.plans.features.${f}`)}</li>
+                        ))}
                     </ul>
                   </div>
                 ) : null}
@@ -353,7 +367,13 @@ export default async function BillingSettingsPage({
           </div>
         </Card>
       ) : null}
-      <p className="m-0 text-text-12 text-text-secondary">{t("pricesInUsd")}</p>
+      <p className="m-0 text-text-12 text-text-secondary">
+        {otherCurrencies.length === 0
+          ? t("pricesInUsd")
+          : `${t("pricesInUsd")} ${t("pricesInOtherCurrencies", {
+              currencies: otherCurrencies.join(", "),
+            })}`}
+      </p>
       {founding ? (
         <p className="m-0 text-text-12 text-text-secondary">
           {t("foundingOffer", {

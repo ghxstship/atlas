@@ -5,6 +5,7 @@ import { GATEWAY_LENS_SCOPE, ROLE_LENS_COOKIE, roleLensCookie } from "@xos/data/
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
+import { currentOffering } from "@/lib/offering";
 import { env } from "@/lib/env";
 import { preferenceOptions } from "@/lib/privacy/consent";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -39,7 +40,8 @@ async function setPreferenceCookie(name: string, value: string): Promise<void> {
 }
 
 export async function setLocale(locale: string): Promise<void> {
-  const allowed = selectableLocales(process.env.NODE_ENV === "production") as string[];
+  const { locales } = await currentOffering();
+  const allowed = selectableLocales(process.env.NODE_ENV === "production", locales) as string[];
   await setPreferenceCookie(LOCALE_COOKIE, z.enum(allowed as [string, ...string[]]).parse(locale));
 }
 

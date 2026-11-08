@@ -570,6 +570,7 @@
     "tenant": "Tenant",
     "metrics": "Metrics",
     "flags": "Feature Flags",
+    "territories": "Territories",
     "support": "Support Sessions",
     "supportSession": "Support Session",
     "moderation": "Moderation",

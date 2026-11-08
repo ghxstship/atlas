@@ -13,6 +13,7 @@ export const sitemap: Sitemap = {
       "tenants",
       "metrics",
       "flags",
+      "territories",
       "support",
       "moderation",
       "banners",
@@ -50,6 +51,13 @@ export const sitemap: Sitemap = {
           kind: "page",
           label: "nav.console.flags",
           route: "/flags",
+          list: { views: ["table"], default: "table" },
+        },
+        {
+          id: "territories",
+          kind: "page",
+          label: "nav.console.territories",
+          route: "/territories",
           list: { views: ["table"], default: "table" },
         },
         {
