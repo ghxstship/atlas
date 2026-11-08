@@ -1,4 +1,4 @@
--- 6822_crew_ratings_rating_rule.sql
+-- 6822_crew_ratings_person_rule.sql
 -- RRR-248, ADR 0158 (merge train 11). B9's crew_ratings report source (6517) read every Organization rating on the
 -- engagements its reader reads. A rating of a person stays with the org that gave it (6820): a partner on a shared project
 -- must not read it, and a rating removed by an upheld dispute leaves every product read. app.crew_ratings now applies the
