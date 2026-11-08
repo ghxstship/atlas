@@ -123,13 +123,17 @@ test("a crew access link: issue, open with a code, accept, forget, revoke", asyn
      from app.shifts s join app.projects p on p.id = s.project_id where s.id = $1`,
     [shift.id],
   );
-  // The list is rendered on the server, so a page loaded before the accept commits is reloaded rather than waited on.
-  await expect(async () => {
-    await atlas.goto(`/${ORG}/p/NWS/crew?view=list&week=${day?.day}`);
-    await expect(
-      atlas.getByText("Accepted", { exact: true }).locator("visible=true").first(),
-    ).toBeVisible({ timeout: 5_000 });
-  }).toPass({ timeout: 30_000 });
+  // The accept has committed (above), so one load of the server-rendered list shows it. The row is this shift's own:
+  // its state sits beside the Told tag in one line ("Told Accepted"), and another accepted shift that week must not
+  // stand in for it.
+  await atlas.goto(`/${ORG}/p/NWS/crew?view=list&week=${day?.day}`);
+  const listed = atlas
+    .getByRole("list", { name: "Shifts" })
+    .getByRole("listitem")
+    .filter({ has: atlas.locator(`a[href*="peek=${shift.id}"]`) });
+  await expect(listed).toHaveCount(1);
+  await expect(listed).toContainText("Accepted");
+  await expect(listed).not.toContainText("Published");
 
   // A reload needs no code; forgetting asks again.
   await worker.reload();
