@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(36);
+select plan(39);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -132,6 +132,21 @@ insert into k select 'r3', app.report_content('Chat Message', (select id from k 
 select pg_temp.as_platform();
 update app.content_reports set due_at = now() - interval '1 minute' where id = (select id from k where key = 'r3');
 select is(private.escalate_content_reports_to_platform(), 1, 'a second overdue item goes to GHXSTSHIP');
+with r as (
+  insert into app.content_reports (org_id, subject_kind, chat_message_id, author_person_id, reporter_person_id, reason,
+    content_excerpt, reported_at, due_at)
+  select org_id, subject_kind, chat_message_id, author_person_id, pg_temp.id('carol'), 'Harassment', content_excerpt,
+    now() - interval '25 hours', now() - interval '1 minute'
+  from app.content_reports where id = (select id from k where key = 'r3')
+  returning id)
+insert into k select 'r4', r.id from r;
+select is(private.escalate_content_reports_to_platform(), 0,
+  'a later overdue report on an item already in the console joins it');
+select ok((select platform_escalated_at is not null from app.content_reports where id = (select id from k where key = 'r4')),
+  'marked as escalated');
+select is((select count(*)::int from app.audit_events where org_id = pg_temp.id('org_a') and action = 'content_report.escalated'
+           and diff ->> 'subject_id' = (select id from k where key = 'msg2')::text), 1,
+  'without a second escalation in the org''s audit ledger');
 select pg_temp.as_user('bob');
 select app.decide_content_report(pg_temp.id('org_a'), 'Chat Message', (select id from k where key = 'msg2'),
   'Removed', 'Terms Violation', 'Acceptable Use Policy 1', 'Harassment.', 'We removed the message.');

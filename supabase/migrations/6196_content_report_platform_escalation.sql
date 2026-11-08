@@ -5,7 +5,9 @@
 -- to GHXSTSHIP's Trust and Safety team in the operator console, so the platform can act when the org does not:
 --   * app.content_reports.platform_escalated_at: when the report reached the console. The hourly job
 --     (xos_escalate_content_reports_to_platform) stamps each open report past its due time once, and writes one row
---     per item to the org's audit ledger (content_report.escalated), so the org can see what GHXSTSHIP was given.
+--     to the org's audit ledger (content_report.escalated) when an item reaches the console, so the org can see what
+--     GHXSTSHIP was given. A later report on an item already in the console joins it without another row; an item
+--     whose reports were all decided and that is reported again goes again, with a new row.
 --   * app.console_content_escalations lists those items without their text; app.console_content_escalation_detail
 --     opens one, with the item and the reports as the moderators read them but without who reported, and logs the
 --     view in the console ledger (content_report.viewed); app.console_decide_content_escalation decides it with the
@@ -40,6 +42,7 @@ as $$
 declare
   v_item record;
   v_count integer := 0;
+  v_in_console boolean;
 begin
   for v_item in
     select r.org_id, r.subject_kind, coalesce(r.feed_post_id, r.comment_id, r.chat_message_id) as subject_id,
@@ -49,20 +52,27 @@ begin
       and r.due_at <= now()
     group by r.org_id, r.subject_kind, coalesce(r.feed_post_id, r.comment_id, r.chat_message_id)
   loop
+    select exists (select 1 from app.content_reports r
+                   where r.org_id = v_item.org_id and r.deleted_at is null and r.content_moderation_decision_id is null
+                     and r.platform_escalated_at is not null
+                     and coalesce(r.feed_post_id, r.comment_id, r.chat_message_id) = v_item.subject_id)
+    into v_in_console;
     update app.content_reports set platform_escalated_at = now()
     where org_id = v_item.org_id and deleted_at is null and content_moderation_decision_id is null
       and platform_escalated_at is null and due_at <= now()
       and coalesce(feed_post_id, comment_id, chat_message_id) = v_item.subject_id;
-    perform private.write_audit_event(v_item.org_id, 'content_report.escalated', 'app.content_reports', v_item.report_id,
-      jsonb_build_object('subject_kind', v_item.subject_kind, 'subject_id', v_item.subject_id,
-        'open_reports', v_item.open_reports, 'due_at', v_item.due_at, 'escalated_to', 'GHXSTSHIP Trust and Safety'));
-    v_count := v_count + 1;
+    if not v_in_console then
+      perform private.write_audit_event(v_item.org_id, 'content_report.escalated', 'app.content_reports', v_item.report_id,
+        jsonb_build_object('subject_kind', v_item.subject_kind, 'subject_id', v_item.subject_id,
+          'open_reports', v_item.open_reports, 'due_at', v_item.due_at, 'escalated_to', 'GHXSTSHIP Trust and Safety'));
+      v_count := v_count + 1;
+    end if;
   end loop;
   return v_count;
 end;
 $$;
 
-comment on function private.escalate_content_reports_to_platform() is 'Hourly (xos_escalate_content_reports_to_platform): sends each item with reports still undecided past their due time to GHXSTSHIP''s Trust and Safety team in the operator console, once, stamping platform_escalated_at and writing content_report.escalated to the org''s audit ledger. Returns how many items were escalated.';
+comment on function private.escalate_content_reports_to_platform() is 'Hourly (xos_escalate_content_reports_to_platform): sends each item with reports still undecided past their due time to GHXSTSHIP''s Trust and Safety team in the operator console, stamping platform_escalated_at; an item that reaches the console writes content_report.escalated to the org''s audit ledger, and a later report on an item still in the console joins it without another row. Returns how many items reached the console.';
 revoke all on function private.escalate_content_reports_to_platform() from public, anon, authenticated;
 
 select cron.schedule('xos_escalate_content_reports_to_platform', '52 * * * *',
