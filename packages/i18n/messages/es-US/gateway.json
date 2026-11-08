@@ -2252,7 +2252,7 @@
       "crew_access_shift_state": "Ese turno ya no se puede aceptar. Recarga la página para ver su estado.",
       "registration_page_closed": "Esta página de registro no está abierta.",
       "registration_rate_limited": "Demasiados registros en la última hora. Inténtalo más tarde.",
-      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tener 16 años o más, hazlo primero en tu cuenta.",
+      "registration_age_unconfirmed": "Confirma la edad mínima para registrarte. Si aún no confirmaste tu edad, hazlo primero en tu cuenta.",
       "registration_answer_required": "Responde todas las preguntas obligatorias.",
       "registration_answer_unknown": "Esta página cambió. Recárgala y responde de nuevo.",
       "registration_answer_length": "Limita cada respuesta a 4,000 caracteres.",

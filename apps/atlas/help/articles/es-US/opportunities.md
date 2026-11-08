@@ -43,7 +43,7 @@ La calificación de una persona queda entre su organización y esa persona: ning
 
 Una página de registro es tu página pública para el equipo y los voluntarios. Llena uno de tus grupos de talento y nunca lo nombra. Escribe el título y la introducción, elige el grupo y la edad mínima, agrega preguntas o aplica una plantilla de preguntas, y publica. Pregunta sobre el trabajo, nunca sobre un atributo protegido. Copia el enlace de la página para compartirlo, o invita a las personas que ya están en el grupo.
 
-Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Una organización que requiere adultos pone la edad mínima en 18.
+Las personas se registran desde su propia cuenta de Gateway, y tú las apruebas o rechazas en la cola. Aprobar las hace miembros del grupo. Toda persona que se registra tiene 18 años o más, como toda cuenta de XOS; pon una edad mínima mayor cuando el trabajo la necesite.
 
 ## Invitar personas a un grupo
 

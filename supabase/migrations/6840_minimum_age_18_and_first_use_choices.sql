@@ -268,6 +268,8 @@ begin
   delete from app.person_work_details where person_id = p_person_id;
   delete from app.person_emergency_contacts where person_id = p_person_id;
   delete from app.person_loyalty_programs where person_id = p_person_id;
+  -- Their choice to show their ratings on their profile (ADR 0158, 6820): a closed account shows nothing.
+  delete from app.rating_sharing_consents where person_id = p_person_id;
   -- These logs are append-only, and these rows no longer serve anyone. A cookie choice or a browser's opt-out signal proves
   -- a choice a closed account no longer needs, on any org's page. An org's own acceptances, with org_id set, stay as that
   -- org's evidence.
@@ -280,7 +282,7 @@ begin
 end;
 $$;
 
-comment on function private.erase_age_refused_records(uuid) is 'Removes what XOS itself holds about a person who answered under 18: AI choices, age answers, any hold, personal legal acceptances with their sign-in id and address, cookie choices and opt-out signals made while signed in, what they sent the platform team (support requests, feedback) and their personal settings and work details. Acceptances on an org''s behalf stay as that org''s evidence. Storage objects are removed by the caller first (refuseMinimumAge, @xos/data/account-deletion), since SQL cannot.';
+comment on function private.erase_age_refused_records(uuid) is 'Removes what XOS itself holds about a person who answered under 18: AI choices, age answers, any hold, personal legal acceptances with their sign-in id and address, cookie choices and opt-out signals made while signed in, what they sent the platform team (support requests, feedback) and their personal settings, work details and rating sharing choice (6820). Acceptances on an org''s behalf stay as that org''s evidence. Storage objects are removed by the caller first (refuseMinimumAge, @xos/data/account-deletion), since SQL cannot.';
 revoke all on function private.erase_age_refused_records(uuid) from public, anon, authenticated;
 
 create or replace function app.refuse_minimum_age(p_surface text)

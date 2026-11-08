@@ -43,7 +43,7 @@ A rating of a person stays with your organization and that person: no other orga
 
 A registration page is your public page for crew and volunteers. It fills one of your Talent pools and never names it. Write the title and introduction, choose the pool and the minimum age, add questions or apply a question template, then publish. Ask about the work, never about a protected attribute. Copy the page's link to share it, or invite the people already in the pool.
 
-People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. An org that needs adults sets the minimum age to 18.
+People register from their own Gateway account, and you approve or decline them in the queue. Approving makes them a member of the pool. Every registrant is 18 or older, as every XOS account is; set a higher minimum age when the work needs one.
 
 ## Inviting people into a pool
 

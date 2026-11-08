@@ -615,7 +615,8 @@ as $$
     'app.opportunity_alerts', 'app.saved_opportunities', 'app.favorites', 'app.personal_setting_values',
     'app.inbox_snoozes', 'app.record_watchers', 'app.thread_subscriptions', 'app.thread_reads',
     'app.comment_reactions', 'app.push_subscriptions', 'app.person_push_devices', 'app.push_tickets', 'app.oauth_grants',
-    'app.memberships', 'app.account_memberships', 'app.engagements', 'app.dsar_requests',
+    'app.memberships', 'app.account_memberships', 'app.engagements', 'app.dsar_requests', 'app.crew_registrations',
+    'app.crew_registration_answers', 'app.crew_access_links', 'app.talent_pool_invitations', 'app.pool_member_rates',
     'app.rating_sharing_consents']::text[];
 $$;
 
@@ -646,14 +647,18 @@ as $$
     union all
     select 4, jsonb_build_object('category', 'org_records', 'retention', 'org')
     union all
-    select 5, jsonb_build_object('category', 'audit_trail', 'retention', '7 years')
+    -- The renewal terms they agreed to for an org's paid plan, with their sign-in email and initials (6811).
+    select 5, jsonb_build_object('category', 'billing_consent', 'retention', '7 years')
+    where exists (select 1 from private.billing_renewal_consents c where c.consented_by = p_person_id)
     union all
-    select 6, jsonb_build_object('category', 'erasure_request', 'retention', '7 years')
+    select 6, jsonb_build_object('category', 'audit_trail', 'retention', '7 years')
     union all
-    select 7, jsonb_build_object('category', 'rating_sharing', 'retention', '7 years')
+    select 7, jsonb_build_object('category', 'erasure_request', 'retention', '7 years')
+    union all
+    select 8, jsonb_build_object('category', 'rating_sharing', 'retention', '7 years')
     where exists (select 1 from app.rating_sharing_consents r where r.person_id = p_person_id)
     union all
-    select 8, jsonb_build_object('category', 'rating_disputes', 'retention', 'rating')
+    select 9, jsonb_build_object('category', 'rating_disputes', 'retention', 'rating')
     where exists (select 1 from app.rating_disputes d where d.disputant_person_id = p_person_id and d.deleted_at is null)
   ) k;
 $$;
