@@ -718,6 +718,8 @@
     "active_on_deleted_org": "Live subscription on a deleted org",
     "active_after_cancel": "Live subscription after a cancel",
     "charged_after_cancel": "Charged after a cancel",
-    "deletion_blocked": "Deletion waiting on Stripe"
+    "deletion_blocked": "Deletion waiting on Stripe",
+    "cancel_missing": "Stripe did not know a live subscription",
+    "notice_undelivered": "Billing notice not emailed"
   }
 }

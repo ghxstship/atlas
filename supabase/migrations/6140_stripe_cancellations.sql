@@ -196,16 +196,17 @@ create table private.billing_alerts (
   occurrences integer not null default 1,
   sent_at timestamptz,
   resolved_at timestamptz,
-  constraint billing_alerts_kind check (alert_kind in ('cancel_delayed', 'active_on_deleted_org', 'active_after_cancel', 'charged_after_cancel', 'deletion_blocked')),
+  constraint billing_alerts_kind check (alert_kind in ('cancel_delayed', 'active_on_deleted_org', 'active_after_cancel', 'charged_after_cancel', 'deletion_blocked',
+    'cancel_missing', 'notice_undelivered')),
   constraint billing_alerts_detail_length check (char_length(detail) between 1 and 2000)
 );
 
 create unique index billing_alerts_open_key on private.billing_alerts (dedupe_key) where resolved_at is null;
 create index billing_alerts_unsent_idx on private.billing_alerts (raised_at) where sent_at is null and resolved_at is null;
 
-call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0161): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe. Open alerts are unique by dedupe_key, and a repeat counts up. A delay and a waiting deletion clear when Stripe accepts; the others ask a person to check for or refund a charge, and stay open until an operator closes them. Survives the tenant purge.', array[
+call private.describe('private.billing_alerts', 'What the platform owner must look at about Stripe billing (ADR 0161): a cancel Stripe has not accepted, a subscription Stripe calls live on a deleted or canceled org, a charge after a cancel, a deletion waiting on Stripe, a live cancel Stripe answered as unknown, a billing notice nobody could be emailed. Open alerts are unique by dedupe_key, and a repeat counts up. A delay and a waiting deletion clear when Stripe accepts; the others ask a person to check for or refund a charge, and stay open until an operator closes them. Survives the tenant purge.', array[
   'id', 'Alert id.',
-  'alert_kind', 'cancel_delayed, active_on_deleted_org, active_after_cancel, charged_after_cancel or deletion_blocked.',
+  'alert_kind', 'cancel_delayed, active_on_deleted_org, active_after_cancel, charged_after_cancel, deletion_blocked, cancel_missing or notice_undelivered.',
   'dedupe_key', 'What makes it the same alert: its kind and its subscription, org or invoice.',
   'subject_org_id', 'Id the org had or has. No foreign key.',
   'stripe_subscription_id', 'Stripe subscription it concerns, when one does.',
@@ -245,7 +246,7 @@ comment on function private.raise_billing_alert(text, text, uuid, text, text) is
 revoke all on function private.raise_billing_alert(text, text, uuid, text, text) from public, anon, authenticated;
 
 create or replace function private.notify_billing_contacts(p_org_id uuid, p_kind text, p_subject_table text, p_subject_id uuid, p_args jsonb)
-returns void
+returns integer
 language plpgsql
 volatile
 security definer
@@ -253,6 +254,8 @@ set search_path = ''
 as $$
 declare
   v_person uuid;
+  v_id uuid;
+  v_emails integer := 0;
 begin
   -- Billing owners as private.run_dunning (0560) chooses them. Nobody to tell once the org is gone.
   for v_person in
@@ -260,12 +263,32 @@ begin
     where m.org_id = p_org_id and m.deleted_at is null and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
       and private.person_capability_reach(m.person_id, p_org_id, 'org.billing.read', false) = 'organization'
   loop
-    perform private.notify(p_org_id, v_person, p_kind, p_subject_table, p_subject_id, null, coalesce(p_args, '{}'::jsonb));
+    v_id := private.notify(p_org_id, v_person, p_kind, p_subject_table, p_subject_id, null, coalesce(p_args, '{}'::jsonb));
+    continue when v_id is null;
+    -- The law and the renewal terms the Owner agreed to promise this email, so it goes whatever the person's or the org's
+    -- notification settings say; private.notify leaves it out when Email is off for the account category. Its template is
+    -- transactional (billing_notice), so an unsubscribe does not stop it either. The category is urgent: no digest.
+    if not exists (select 1 from app.notification_deliveries d where d.notification_id = v_id and d.channel = 'Email') then
+      insert into app.notification_deliveries (notification_id, notification_created_at, channel, message_status, deliver_after)
+      select n.id, n.created_at, 'Email', 'Queued', now() from app.notifications n where n.id = v_id;
+    end if;
+    -- Only someone with a verified address can be emailed; the dispatcher fails a delivery with none.
+    continue when private.recipient_address(v_person, 'Email') is null;
+    v_emails := v_emails + 1;
   end loop;
+  -- Nobody who manages billing to email on an org that still exists: a person must tell the Owner another way. A purged org
+  -- has nobody to tell, and its live subscription already raised its own alert.
+  if v_emails = 0 and exists (select 1 from app.organizations o where o.id = p_org_id and o.deleted_at is null) then
+    perform private.raise_billing_alert('notice_undelivered', 'notice_undelivered:' || p_kind || ':' || coalesce(p_subject_id, p_org_id)::text,
+      p_org_id, null,
+      format('No billing owner of org %s (%s) could be emailed %s about %s %s. Tell the Owner yourself, then close this alert.',
+        p_org_id, (select o.name from app.organizations o where o.id = p_org_id), p_kind, p_subject_table, p_subject_id));
+  end if;
+  return v_emails;
 end;
 $$;
 
-comment on function private.notify_billing_contacts(uuid, text, text, uuid, jsonb) is 'Notifies every billing owner of the org about a billing record, such as a Stripe cancel.';
+comment on function private.notify_billing_contacts(uuid, text, text, uuid, jsonb) is 'Notifies every billing owner of the org about a billing record, such as a Stripe cancel or a renewal, with an Email delivery whatever their notification settings say (ADR 0161). Returns how many were emailed, and raises a notice_undelivered alert when that is none on an org that still exists.';
 revoke all on function private.notify_billing_contacts(uuid, text, text, uuid, jsonb) from public, anon, authenticated;
 
 create or replace function private.billing_amount_text(p_minor bigint, p_currency text)
@@ -430,6 +453,13 @@ begin
     update private.billing_alerts a set resolved_at = now()
     where a.resolved_at is null and a.subject_org_id = v_row.subject_org_id and a.alert_kind = 'deletion_blocked';
   end if;
+  -- Stripe answers resource_missing for a subscription it no longer has, and also for a live one reached with another
+  -- account's key. Only a person can tell which, so a live cancel settled that way stays open as an alert.
+  if v_row.livemode and p_status = 'missing' then
+    perform private.raise_billing_alert('cancel_missing', 'cancel_missing:' || v_row.stripe_subscription_id, v_row.subject_org_id, v_row.stripe_subscription_id,
+      format('Stripe said it has no subscription %s (customer %s) when asked to cancel it. Check in the Stripe Dashboard, under the account the live key belongs to, that it is not still charging, then close this alert.',
+        v_row.stripe_subscription_id, coalesce(v_row.stripe_customer_id, 'unknown')));
+  end if;
   -- Nobody canceled a subscription that ended in Stripe on its own, so nobody is told they did.
   if v_row.confirmation_notified_at is not null or v_row.source = 'Ended In Stripe' then
     return;
@@ -446,7 +476,7 @@ begin
 end;
 $$;
 
-comment on function private.accept_stripe_cancellation(uuid, text, text) is 'Records that Stripe accepted a queued cancel: the attempt, the cancel_delayed and deletion_blocked alerts it clears, and once, the confirmation to the billing owners (billing.cancellation_confirmed for an immediate cancel, billing.plan_ending for one at period end; none for a subscription that ended in Stripe on its own). Leaves an alert about a live subscription or a charge open for an operator. Does nothing for a cancel that is not queued.';
+comment on function private.accept_stripe_cancellation(uuid, text, text) is 'Records that Stripe accepted a queued cancel: the attempt, the cancel_delayed and deletion_blocked alerts it clears, a cancel_missing alert when a live cancel settled because Stripe had no such subscription, and once, the confirmation to the billing owners (billing.cancellation_confirmed for an immediate cancel, billing.plan_ending for one at period end; none for a subscription that ended in Stripe on its own). Leaves an alert about a live subscription or a charge open for an operator. Does nothing for a cancel that is not queued.';
 revoke all on function private.accept_stripe_cancellation(uuid, text, text) from public, anon, authenticated;
 
 -- Every way an org ends queues the cancel ----------------------------------------------------------------------------
@@ -611,6 +641,8 @@ begin
     left join app.stripe_subscription_links l on l.stripe_subscription_id = c.stripe_subscription_id
     where c.subject_org_id = p_org_id and c.cancellation_state in ('Queued', 'Accepted')
       and case
+        -- A canceled or deleting org has no plan to keep: the end of a plan at period end would read as a plan still running.
+        when c.cancel_mode = 'At Period End' and private.org_read_only_reason(p_org_id) in ('canceled', 'deletion') then false
         when c.cancellation_state = 'Queued' then true
         when c.cancel_mode = 'At Period End' then l.stripe_ended_at is null
         else private.org_read_only_reason(p_org_id) in ('canceled', 'deletion')
@@ -619,7 +651,7 @@ begin
 end;
 $$;
 
-comment on function app.stripe_cancellation_status(uuid) is 'Where the org''s Stripe cancels stand, for Billing and Plan and the Danger zone (org.billing.read or org.organization.delete, 42501 otherwise): newest first: every cancel still queued, a plan ending at period end until it ends, and an immediate cancel Stripe accepted while the org is canceled or waiting to be deleted, so an org that came back and bought a plan again reads as paying. Only the service role moves a cancel, so these rows are what Stripe has actually said.';
+comment on function app.stripe_cancellation_status(uuid) is 'Where the org''s Stripe cancels stand, for Billing and Plan and the Danger zone (org.billing.read or org.organization.delete, 42501 otherwise): newest first: every cancel still queued, a plan ending at period end until it ends (neither for an end at period end once the org is canceled or waiting to be deleted), and an immediate cancel Stripe accepted while the org is canceled or waiting to be deleted, so an org that came back and bought a plan again reads as paying. Only the service role moves a cancel, so these rows are what Stripe has actually said.';
 revoke all on function app.stripe_cancellation_status(uuid) from public, anon;
 grant execute on function app.stripe_cancellation_status(uuid) to authenticated, service_role;
 
@@ -976,6 +1008,8 @@ begin
     -- A cancel at period end counts once it was asked for, not once Stripe accepted it: from that moment the customer has been
     -- told they will not be charged again, and a renewal paid while Stripe was unreachable is exactly the charge to refund.
     and (c.cancel_mode = 'Immediately' or coalesce(p_billing_reason, '') = 'subscription_cycle')
+    -- Nobody asked to stop a subscription that ended in Stripe on its own; an overdue invoice paid later was owed.
+    and c.source <> 'Ended In Stripe'
   order by c.cancel_mode, c.created_at desc limit 1;
   if v_row.id is null then
     return false;
@@ -987,7 +1021,7 @@ begin
 end;
 $$;
 
-comment on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) is 'Stripe webhook API (service role): a paid invoice on a subscription XOS was asked to stop raises a charged_after_cancel alert, so the owner refunds it. An immediate cancel counts any charge after the request; a cancel at period end counts a renewal paid after the request, whether Stripe has accepted it yet or not. Returns whether it raised one.';
+comment on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) is 'Stripe webhook API (service role): a paid invoice on a subscription XOS was asked to stop raises a charged_after_cancel alert, so the owner refunds it. An immediate cancel counts any charge after the request; a cancel at period end counts a renewal paid after the request, whether Stripe has accepted it yet or not. A subscription that ended in Stripe on its own raises none. Returns whether it raised one.';
 revoke all on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) from public, anon, authenticated;
 grant execute on function app.note_stripe_charge(text, text, bigint, text, text, timestamptz) to service_role;
 

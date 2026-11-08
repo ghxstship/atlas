@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(100);
+select plan(108);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -136,6 +136,8 @@ select results_eq($$select cancellation_state::text, source::text, requested_by 
 select pg_temp.as_user('alice');
 select is((select count(*)::integer from app.stripe_cancellation_status(pg_temp.id('org_a')) where cancel_mode = 'Immediately' and cancellation_state = 'Queued'), 1,
   'and the Owner can see it is not accepted yet');
+select is((select count(*)::integer from app.stripe_cancellation_status(pg_temp.id('org_a')) where cancel_mode = 'At Period End'), 0,
+  'and the plan End plan let run to its period end no longer reads as running, on an org that is canceled');
 
 -- A webhook on an org that is ending never brings the subscription back ------------------------------------------------------
 select pg_temp.as_service();
@@ -228,6 +230,8 @@ select pg_temp.as_service();
 select ok(app.note_stripe_charge('sub_H4rb', 'in_Late1', 149000, 'usd', 'subscription_cycle', now() + interval '1 minute'), 'a charge after the cancel raises an alert');
 select ok(not app.note_stripe_charge('sub_H4rb', 'in_Zero', 0, 'usd', 'subscription_cycle', now() + interval '1 minute'), 'nothing charged, nothing raised');
 select ok(not app.note_stripe_charge('sub_Oth3r', 'in_Oth3r', 100, 'usd', 'subscription_cycle', now()), 'nor for a subscription nobody asked to stop');
+select ok(not app.note_stripe_charge('sub_Unasked', 'in_Owed', 149000, 'usd', 'manual', now() + interval '1 minute'),
+  'nor for an overdue invoice paid on a subscription that ended in Stripe on its own');
 select pg_temp.as_platform();
 select ok((select detail like '%1,490.00 USD%in_Late1%' from private.billing_alerts where dedupe_key = 'charged_after_cancel:in_Late1'), 'naming the amount and invoice to refund');
 
@@ -283,6 +287,33 @@ select is((select count(*)::integer from app.subscriptions where org_id = pg_tem
 select is((select count(*)::integer from app.stripe_subscription_links where stripe_subscription_id = 'sub_Race'), 0, 'and no link is made');
 select is(pg_temp.cancel_state('sub_Race', 'Immediately'), 'Queued', 'its cancel is queued');
 select ok(exists (select 1 from private.billing_alerts where alert_kind = 'active_after_cancel' and stripe_subscription_id = 'sub_Race' and resolved_at is null), 'with an alert');
+
+-- Stripe has no such subscription ---------------------------------------------------------------------------------------------
+select ok(not exists (select 1 from private.billing_alerts where alert_kind = 'cancel_missing'), 'a test mode cancel Stripe did not know raises nothing');
+select pg_temp.as_platform();
+select private.queue_stripe_cancellation(pg_temp.id('org_c'), 'sub_L1veGone', 'cus_T1d3', true, 'Immediately', 'Reconciliation', null);
+select pg_temp.as_service();
+select is(app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', true, 10) where stripe_subscription_id = 'sub_L1veGone'), true, 'missing')::text,
+  'Accepted', 'a live cancel Stripe answers as unknown settles');
+select pg_temp.as_platform();
+select ok(exists (select 1 from private.billing_alerts where alert_kind = 'cancel_missing' and stripe_subscription_id = 'sub_L1veGone' and resolved_at is null),
+  'but a person checks the Dashboard, since another account''s key gets the same answer');
+
+-- Recovering a deleted org leaves the paid plan ended --------------------------------------------------------------------------
+select pg_temp.as_service();
+select app.sync_subscription_from_stripe(pg_temp.id('org_n'), 'cus_N1na', 'sub_N1naR', 'team', 'Monthly', 'active', now() + interval '20 days', false);
+select pg_temp.as_user_stepped_up('nina');
+insert into world values ('del_n', app.request_org_deletion(pg_temp.id('org_n'), 'Nina Lighting', 'Trying it out.'));
+select pg_temp.as_service();
+select app.finish_stripe_cancellation((select cancellation_id from app.claim_stripe_cancellations('worker-1', false, 10) where stripe_subscription_id = 'sub_N1naR'), true, 'canceled');
+select pg_temp.as_user('nina');
+select is(app.recover_org_deletion(pg_temp.id('org_n')), pg_temp.id('del_n'), 'the Owner recovers the org');
+select pg_temp.as_service();
+select isnt(app.reconcile_stripe_subscription(pg_temp.id('org_n'), 'cus_N1na', 'sub_N1naR', 'canceled', false, now() + interval '1 minute'), 'queued',
+  'Stripe''s late deleted event is no problem');
+select pg_temp.as_platform();
+select results_eq($$select plan_code from app.subscriptions where org_id = pg_temp.id('org_n') and subscription_state <> 'canceled' and deleted_at is null$$,
+  $$values ('access'::text)$$, 'and the org is back on Access, not the paid plan');
 
 select * from finish();
 rollback;

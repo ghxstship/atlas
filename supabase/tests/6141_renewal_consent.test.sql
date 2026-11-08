@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(41);
+select plan(51);
 
 create function pg_temp.as_service() returns void
 language plpgsql as $$
@@ -106,6 +106,14 @@ select is((select (message_args ->> 'nextChargeOn')::bigint from app.notificatio
   'and once its subscription has synced, the date Stripe gave');
 
 -- Before an annual renewal -------------------------------------------------------------------------------------------------
+-- The billing owner of org_b turns Account email off, and org_c's default turns it off: the reminder is emailed anyway.
+select pg_temp.as_user('xavier');
+select app.set_my_notification_preferences(pg_temp.id('org_b'), '[{"category": "account", "channel": "Email", "enabled": false}]'::jsonb);
+select pg_temp.as_user('cora');
+select app.set_org_notification_defaults(pg_temp.id('org_c'), '[{"category": "account", "channel": "Email", "enabled": false}]'::jsonb, '[]'::jsonb);
+select pg_temp.as_platform();
+select ok(not private.channel_enabled(pg_temp.id('xavier@org_b'), 'account', 'Email') and not private.channel_enabled(pg_temp.id('cora@org_c'), 'account', 'Email'),
+  'Account email is off for a member and by an org default');
 select pg_temp.as_service();
 select app.sync_subscription_from_stripe(pg_temp.id('org_b'), 'cus_H4rb', 'sub_H4rb', 'team', 'Annual', 'active', now() + interval '200 days', false);
 select app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rth', 'sub_N0rth', 'team', 'Monthly', 'active', now() + interval '200 days', false);
@@ -123,6 +131,20 @@ select is((select message_args ->> 'price' from app.notifications where kind = '
 select is((select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_a')), 0, 'never a monthly plan');
 select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0, 'and once per term');
 select ok(exists (select 1 from private.billing_renewal_reminders where stripe_subscription_id = 'sub_H4rb' and amount_text = '1,490.00 USD'), 'with proof of notice');
+select results_eq($$select count(*)::integer, count(distinct n.id)::integer, count(*) filter (where d.message_status = 'Queued')::integer
+                    from app.notifications n
+                    left join app.notification_deliveries d on d.notification_id = n.id and d.notification_created_at = n.created_at and d.channel = 'Email'
+                    where n.kind = 'billing.renewal_reminder' and n.org_id in (pg_temp.id('org_b'), pg_temp.id('org_c'))$$,
+  $$select (select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id in (pg_temp.id('org_b'), pg_temp.id('org_c'))),
+           (select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id in (pg_temp.id('org_b'), pg_temp.id('org_c'))),
+           (select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id in (pg_temp.id('org_b'), pg_temp.id('org_c')))$$,
+  'each reminder has exactly one queued Email delivery, whatever the settings say');
+select ok((select r.emails_queued from private.billing_renewal_reminders r where r.stripe_subscription_id = 'sub_H4rb')
+  = (select count(*)::integer from app.notifications where kind = 'billing.renewal_reminder' and org_id = pg_temp.id('org_b'))
+  and (select r.emails_queued from private.billing_renewal_reminders r where r.stripe_subscription_id = 'sub_H4rb') >= 1,
+  'and the proof of notice counts who was emailed');
+select is((select email_template_code from private.notification_templates where kind = 'billing.renewal_reminder' and channel = 'Email'), 'billing_notice', 'through a template an unsubscribe does not stop');
+select ok((select transactional from private.email_templates where code = 'billing_notice'), 'because it is transactional');
 -- Neither Stripe nor the price book gives an amount: the message words that case instead of quoting a blank.
 delete from private.billing_renewal_reminders where stripe_subscription_id = 'sub_Eur0';
 select pg_temp.as_service();
@@ -153,6 +175,22 @@ select is(private.run_billing_renewal_reminders(now() + interval '175 days'), 0,
 select is(private.run_billing_evidence_retention(now() + interval '6 years'), 0, 'evidence is kept for 7 years');
 select ok(private.run_billing_evidence_retention(now() + interval '7 years 1 day') >= 1, 'and swept after');
 select is((select count(*)::integer from private.billing_renewal_consents where id = pg_temp.id('consent_n')), 0, 'consents included');
+select is((select count(*)::integer from private.billing_renewal_consents where subject_org_id = pg_temp.id('org_s')), 1, 'but a consent whose plan still renews is kept past 7 years');
+update app.stripe_subscription_links set stripe_ended_at = now() + interval '6 years 6 months' where stripe_subscription_id = 'sub_N1na';
+select private.run_billing_evidence_retention(now() + interval '7 years 1 day');
+select is((select count(*)::integer from private.billing_renewal_consents where subject_org_id = pg_temp.id('org_s')), 1, 'and for a year after that plan ends');
+select private.run_billing_evidence_retention(now() + interval '7 years 7 months');
+select is((select count(*)::integer from private.billing_renewal_consents where subject_org_id = pg_temp.id('org_s')), 0, 'then swept');
+
+-- Nobody to email --------------------------------------------------------------------------------------------------------
+-- The sole-Owner guard keeps this from happening through the product, so the fixture steps past the membership triggers.
+set local session_replication_role = replica;
+update app.memberships set valid_to = now() - interval '1 minute', valid_from = least(valid_from, now() - interval '2 minutes') where org_id = pg_temp.id('org_t');
+set local session_replication_role = origin;
+select is(private.notify_billing_contacts(pg_temp.id('org_t'), 'billing.renewal_reminder', 'private.billing_renewal_reminders', pg_temp.id('consent_trial'), '{}'::jsonb), 0,
+  'an org with no billing owner to email emails nobody');
+select ok(exists (select 1 from private.billing_alerts where alert_kind = 'notice_undelivered' and subject_org_id = pg_temp.id('org_t') and resolved_at is null),
+  'and raises an alert for a person to tell the Owner');
 
 select * from finish();
 rollback;

@@ -718,6 +718,8 @@
     "active_on_deleted_org": "Suscripción activa en una organización eliminada",
     "active_after_cancel": "Suscripción activa después de una cancelación",
     "charged_after_cancel": "Cargo después de una cancelación",
-    "deletion_blocked": "Eliminación en espera de Stripe"
+    "deletion_blocked": "Eliminación en espera de Stripe",
+    "cancel_missing": "Stripe no reconoció una suscripción activa",
+    "notice_undelivered": "Aviso de facturación no enviado por correo"
   }
 }

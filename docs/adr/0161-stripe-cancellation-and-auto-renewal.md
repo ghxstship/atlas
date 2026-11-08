@@ -4,7 +4,7 @@
 - Date: 2026-11-06
 - Decider: The owner told the build to take the most future-proof, legally defensible option. These calls were made by AI, and no attorney has reviewed them.
 - Addresses: audit finding M1 (canceling or deleting an org never stopped Stripe), legal issue 1 (RRR-248)
-- Migrations: 6140, 6141 and the notification seed 6144 (range 6140 to 6144)
+- Migrations: 6140, 6141, 6143 and the notification seed 6144 (range 6140 to 6144)
 - Amends: ADR 0033 decision 59 (Checkout), ADR 0155 D4 (a canceled org ends its pause)
 
 ## Context
@@ -45,9 +45,9 @@ The customer copy says what is known. Atlas's own call can fail or time out with
 - live on an org being canceled or deleted, or more than 10 minutes after its cancel was accepted: queues the cancel and raises `active_after_cancel`, and never creates a subscription again
 - an event older than the acceptance: stale, since Stripe does not order its events
 
-`app.record_stripe_event` now stores an event naming a purged org with no org, rather than failing a foreign key for days. A paid invoice on a subscription XOS was asked to stop raises `charged_after_cancel`, for the owner to refund by hand.
+`app.record_stripe_event` now stores an event naming a purged org with no org, rather than failing a foreign key for days. A paid invoice on a subscription XOS was asked to stop raises `charged_after_cancel`, for the owner to refund by hand. A subscription that ended in Stripe on its own was not asked to stop, so an overdue invoice paid on it later raises nothing.
 
-The three alerts that ask a person to look for or refund a charge (`active_on_deleted_org`, `active_after_cancel`, `charged_after_cancel`) stay open until an operator closes them with what was done, however quickly Stripe accepts the cancel. Stripe accepting ends the risk of the next charge, not of one already made. Only `cancel_delayed` and `deletion_blocked` clear themselves.
+The three alerts that ask a person to look for or refund a charge (`active_on_deleted_org`, `active_after_cancel`, `charged_after_cancel`) stay open until an operator closes them with what was done, however quickly Stripe accepts the cancel. Stripe accepting ends the risk of the next charge, not of one already made. Only `cancel_delayed` and `deletion_blocked` clear themselves. A live cancel settled because Stripe answered `resource_missing` raises `cancel_missing`, since Stripe answers the same for a live subscription reached with another account's key; it stays open until someone checks the Dashboard.
 
 ### D5. The deletion gate
 
@@ -60,14 +60,14 @@ The gate can delay a deletion for as long as Stripe will not accept. That tensio
 1. Choosing a plan shows a review step on Billing and Plan: price, renewal term, first charge date and how to cancel, with an unticked box. It comes before Stripe sees anything, so the terms precede billing information. Stripe's page repeats the same text above its pay button (`custom_text.submit`).
 2. The statement is worded from the catalog in the Owner's language. The form carries its hash and the action recomputes it, so what is recorded is what was on the screen, or the action refuses `renewal_terms_changed`.
 3. An annual plan also asks for initials, for Wisconsin 134.49. A checkbox would probably be enough under E-SIGN, but initials cost one field and remove the question.
-4. `private.billing_renewal_consents` keeps the statement word for word, its text version (`RENEWAL_TERMS_VERSION`; a test pins the wording to it), language, price, term, date, person, email and session. It cannot be changed, and it outlives the org for 7 years, which covers California's 3 years or 1 year after the contract ends.
+4. `private.billing_renewal_consents` keeps the statement word for word, its text version (`RENEWAL_TERMS_VERSION`; a test pins the wording to it), language, price, term, date, person, email and session. It cannot be changed. It outlives the org and the person's account deletion, and is kept 7 years and also while the plan runs and for a year after it ends, since California asks for 3 years or 1 year after the contract ends, whichever is longer, and a plan can renew past 7 years. Account deletion lists it among what is kept (6143).
 5. A live Checkout cannot be recorded without a consent (`renewal_consent_required`). Test mode is exempt, because that backstop needs no fixture and Atlas itself refuses without one.
 
 6. Checkout is told the currency (`currency`, with adaptive pricing off), so Stripe cannot show one the statement did not quote. The statement, the consent, the database's price check and the session all carry that one currency, today USD through `CHECKOUT_CURRENCY`.
 
 ### D7. Notices
 
-`billing.purchase_confirmed` repeats the terms when Checkout completes, with the next charge date: what Stripe has said if the subscription has synced, else the end of a carried trial, else one term after the charge just made. Renewal notices quote what Stripe charges in the subscription's own currency: a multi-currency price states only its default currency on a subscription, so the amount comes from the price's currency option when the event expanded it, else the price book that built the price. `billing.renewal_reminder` goes 30 days before an annual renewal, inside California's 15 to 45 days, New York's 15 to 30 and Wisconsin's 15 to 60. A first term under 30 days old is skipped, since its confirmation just gave the same terms. `billing.cancellation_confirmed` and `billing.plan_ending` confirm a cancel, a portal cancel included. All are in the `account` category, which nobody can turn off.
+`billing.purchase_confirmed` repeats the terms when Checkout completes, with the next charge date: what Stripe has said if the subscription has synced, else the end of a carried trial, else one term after the charge just made. Renewal notices quote what Stripe charges in the subscription's own currency: a multi-currency price states only its default currency on a subscription, so the amount comes from the price's currency option when the event expanded it, else the price book that built the price. `billing.renewal_reminder` goes 30 days before an annual renewal, inside California's 15 to 45 days, New York's 15 to 30 and Wisconsin's 15 to 60. A first term under 30 days old is skipped, since its confirmation just gave the same terms. `billing.cancellation_confirmed` and `billing.plan_ending` confirm a cancel, a portal cancel included. All are in the `account` category. The law and the agreed terms promise them, so `private.notify_billing_contacts` queues the email whatever the person's or the org's settings say, and their `billing_notice` template is transactional, so an unsubscribe link does not stop them either. A hard bounce, a complaint, a manual block or a missing address still does. The reminder's proof row records how many were emailed, and none raises `notice_undelivered`.
 
 ## Consequences
 

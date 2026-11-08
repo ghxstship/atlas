@@ -47,11 +47,11 @@ create index billing_renewal_consents_org_idx on private.billing_renewal_consent
 create index billing_renewal_consents_consented_by_idx on private.billing_renewal_consents (consented_by);
 create unique index billing_renewal_consents_session_key on private.billing_renewal_consents (stripe_checkout_session_id) where stripe_checkout_session_id is not null;
 
-call private.describe('private.billing_renewal_consents', 'Proof that an Owner saw and accepted the renewal terms of a paid plan before paying (ADR 0161). Kept 7 years and past the org''s own deletion, since the evidence is needed for a later dispute. No foreign key to the org.', array[
+call private.describe('private.billing_renewal_consents', 'Proof that an Owner saw and accepted the renewal terms of a paid plan before paying (ADR 0161). Kept 7 years, and at least a year after the plan ends, past the org''s own deletion and the person''s account deletion, since the evidence is needed for a later dispute. No foreign key to the org.', array[
   'id', 'Consent id.',
   'subject_org_id', 'Id the org had or has.',
   'org_name', 'Name of the org at consent.',
-  'consented_by', 'Person who agreed, or null once their account is deleted.',
+  'consented_by', 'Person who agreed. Deleting their account keeps their person row, so the id stays; it is null only if that row is ever removed.',
   'consented_by_email', 'Their sign-in address at consent, kept as evidence after the account goes.',
   'plan_code', 'Plan bought.',
   'billing_interval', 'Renewal term: Monthly or Annual.',
@@ -92,7 +92,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_billing_renewal_consent() is 'Keeps a renewal consent as it was written: only its Checkout session and confirmation time can be set, and a deleted account clears the person''s id. Only private.run_billing_evidence_retention deletes it, after 7 years.';
+comment on function private.guard_billing_renewal_consent() is 'Keeps a renewal consent as it was written: only its Checkout session and confirmation time can be set, and the person''s id can clear if their person row is ever removed. Only private.run_billing_evidence_retention deletes it, after 7 years and a year after the plan ends.';
 revoke all on function private.guard_billing_renewal_consent() from public, anon, authenticated;
 
 create trigger t10_guard_consent before update or delete on private.billing_renewal_consents
@@ -104,7 +104,9 @@ create table private.billing_renewal_reminders (
   stripe_subscription_id text not null,
   period_end timestamptz not null,
   amount_text text,
+  emails_queued integer not null default 0,
   sent_at timestamptz not null default now(),
+  constraint billing_renewal_reminders_emails_queued check (emails_queued >= 0),
   constraint billing_renewal_reminders_subscription_format check (stripe_subscription_id ~ '^sub_[A-Za-z0-9]+$')
 );
 
@@ -117,6 +119,7 @@ call private.describe('private.billing_renewal_reminders', 'Each reminder sent b
   'stripe_subscription_id', 'Stripe subscription that renews.',
   'period_end', 'When the current term ends and the next charge falls.',
   'amount_text', 'The amount the reminder quoted.',
+  'emails_queued', 'How many billing owners it was emailed to. None raises a notice_undelivered alert, since no notice went out.',
   'sent_at', 'When it was queued to the billing owners.'
 ]);
 
@@ -309,18 +312,20 @@ begin
     insert into private.billing_renewal_reminders (subject_org_id, stripe_subscription_id, period_end, amount_text)
     values (v_due.org_id, v_due.stripe_subscription_id, v_due.current_period_end, v_amount)
     returning id into v_id;
-    perform private.notify_billing_contacts(v_due.org_id, 'billing.renewal_reminder', 'private.billing_renewal_reminders', v_id, jsonb_build_object(
+    update private.billing_renewal_reminders r
+    set emails_queued = private.notify_billing_contacts(v_due.org_id, 'billing.renewal_reminder', 'private.billing_renewal_reminders', v_id, jsonb_build_object(
       'plan', initcap(v_due.plan_code),
       -- No amount from Stripe or the price book: the message then points to the billing portal. It never reads as a blank.
       'price', coalesce(v_amount, 'none'),
-      'renewsOn', private.org_day_mark(v_due.org_id, private.org_date(v_due.org_id, v_due.current_period_end))));
+      'renewsOn', private.org_day_mark(v_due.org_id, private.org_date(v_due.org_id, v_due.current_period_end))))
+    where r.id = v_id;
     v_count := v_count + 1;
   end loop;
   return v_count;
 end;
 $$;
 
-comment on function private.run_billing_renewal_reminders(timestamptz) is 'Daily: reminds the billing owners of each annual plan 30 days before it renews (billing.renewal_reminder), once per subscription and term, with the amount, the date and how to cancel. Skips a plan already ending or whose cancel is queued or accepted, and the first term of a subscription less than 30 days old, whose purchase confirmation just gave the same terms. Returns how many.';
+comment on function private.run_billing_renewal_reminders(timestamptz) is 'Daily: reminds the billing owners of each annual plan 30 days before it renews (billing.renewal_reminder), once per subscription and term, with the amount, the date and how to cancel, by email whatever their settings say; the proof row records how many were emailed, and none raises a notice_undelivered alert. Skips a plan already ending or whose cancel is queued or accepted, and the first term of a subscription less than 30 days old, whose purchase confirmation just gave the same terms. Returns how many.';
 revoke all on function private.run_billing_renewal_reminders(timestamptz) from public, anon, authenticated;
 
 select cron.schedule('xos_daily_billing_renewal_reminders', '20 14 * * *', 'select private.run_billing_renewal_reminders()');
@@ -328,7 +333,8 @@ select cron.schedule('xos_daily_billing_renewal_reminders', '20 14 * * *', 'sele
 -- Retention ----------------------------------------------------------------------------------------------------------
 
 -- private.retention_policies covers app tables, so this evidence has its own sweep. Seven years matches the other billing
--- evidence (0560, 1640) and covers California's proof of consent, 3 years or 1 year after the contract ends.
+-- evidence (0560, 1640). A consent is also kept while the org's plan runs and for a year after it ends, since California
+-- asks for proof of consent 3 years or 1 year after the contract ends, whichever is longer, and a plan can renew past 7 years.
 create or replace function private.run_billing_evidence_retention(p_now timestamptz default now())
 returns integer
 language plpgsql
@@ -348,7 +354,16 @@ begin
   get diagnostics v_rows = row_count;
   v_total := v_total + v_rows;
   perform set_config('xos.billing_evidence_sweep', 'on', true);
-  delete from private.billing_renewal_consents c where c.created_at < v_cutoff;
+  delete from private.billing_renewal_consents c
+  where c.created_at < v_cutoff
+    -- A plan still running, or that ended within the year, keeps its consent (CA22).
+    and not exists (select 1 from app.stripe_subscription_links l
+                    where l.org_id = c.subject_org_id and l.livemode = c.livemode and l.deleted_at is null
+                      and (l.stripe_ended_at is null or l.stripe_ended_at > p_now - interval '1 year'))
+    -- A purged org has no links left: its cancel on record says when the plan ended.
+    and not exists (select 1 from private.stripe_cancellations s
+                    where s.subject_org_id = c.subject_org_id and s.livemode = c.livemode
+                      and (s.cancellation_state = 'Queued' or s.accepted_at > p_now - interval '1 year'));
   get diagnostics v_rows = row_count;
   v_total := v_total + v_rows;
   perform set_config('xos.billing_evidence_sweep', 'off', true);
@@ -358,7 +373,7 @@ begin
 end;
 $$;
 
-comment on function private.run_billing_evidence_retention(timestamptz) is 'Weekly: deletes billing evidence older than 7 years (Stripe cancels settled by then, resolved alerts, renewal consents and reminders). Returns the rows deleted.';
+comment on function private.run_billing_evidence_retention(timestamptz) is 'Weekly: deletes billing evidence older than 7 years (Stripe cancels settled by then, resolved alerts, renewal consents and reminders). A renewal consent is kept longer while the org''s plan of the same mode runs, and for a year after it ends. Returns the rows deleted.';
 revoke all on function private.run_billing_evidence_retention(timestamptz) from public, anon, authenticated;
 
 select cron.schedule('xos_weekly_billing_evidence_retention', '40 3 * * 0', 'select private.run_billing_evidence_retention()');
