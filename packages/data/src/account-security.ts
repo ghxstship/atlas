@@ -83,6 +83,7 @@ export async function pruneRecoveryCodes(db: XosClient): Promise<Result<boolean>
 
 // Sessions and devices ---------------------------------------------------------------------------------------------------
 
+// eslint-disable-next-line xos/no-restated-enums -- the session_devices_surface check of 1561, not an enum; app.sensitive_consent_surface (6850) happens to hold the same values
 export type SessionSurface = "Atlas" | "Gateway" | "Compass" | "API";
 
 export interface SignedInSession {

@@ -18,7 +18,10 @@ export default defineConfig({
     alias: [
       { find: /^react$/, replacement: `${packageDir("react")}/index.js` },
       { find: /^react\/jsx-runtime$/, replacement: `${packageDir("react")}/jsx-runtime.js` },
-      { find: /^react\/jsx-dev-runtime$/, replacement: `${packageDir("react")}/jsx-dev-runtime.js` },
+      {
+        find: /^react\/jsx-dev-runtime$/,
+        replacement: `${packageDir("react")}/jsx-dev-runtime.js`,
+      },
       { find: /^react-dom$/, replacement: `${packageDir("react-dom")}/index.js` },
       { find: /^react-dom\/client$/, replacement: `${packageDir("react-dom")}/client.js` },
       { find: /^react-dom\/test-utils$/, replacement: `${packageDir("react-dom")}/test-utils.js` },

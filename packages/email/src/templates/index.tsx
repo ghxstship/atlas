@@ -264,7 +264,9 @@ function composeKind(item: KindItem, ctx: TemplateContext, transactional: boolea
       >
         <Greeting ctx={ctx} />
         <Paragraph>{ctx.t(kindKey(item.kind, "body"), item.args)}</Paragraph>
-        {transactional ? null : <ActionLinks actions={item.actions ?? []} kind={item.kind} t={ctx.t} />}
+        {transactional ? null : (
+          <ActionLinks actions={item.actions ?? []} kind={item.kind} t={ctx.t} />
+        )}
       </Layout>
     ),
   };

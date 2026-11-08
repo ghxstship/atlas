@@ -50,21 +50,32 @@ export default async function BillingSettingsPage({
   const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const search = await searchParams;
   const billing = billingStatus();
-  const [subscription, seats, account, t, tp, translate, format, word, zone, cancellations, currency] =
-    await Promise.all([
-      getSubscription(ctx.viewer.db, ctx.org.id),
-      getSeatUsage(ctx.viewer.db, ctx.org.id),
-      billing.open ? getBillingAccount(ctx.viewer.db, ctx.org.id, billing.livemode) : null,
-      getTranslations("shell.settings.billing"),
-      getTranslations("shell.plans"),
-      getTranslate(),
-      getFormatter(),
-      renewalWording(),
-      getOrgTimeZone(ctx),
-      getStripeCancellations(ctx.viewer.db, ctx.org.id),
-      // The currency Checkout charges in (ADR 0160), so the terms shown are the terms the action words again.
-      orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
-    ]);
+  const [
+    subscription,
+    seats,
+    account,
+    t,
+    tp,
+    translate,
+    format,
+    word,
+    zone,
+    cancellations,
+    currency,
+  ] = await Promise.all([
+    getSubscription(ctx.viewer.db, ctx.org.id),
+    getSeatUsage(ctx.viewer.db, ctx.org.id),
+    billing.open ? getBillingAccount(ctx.viewer.db, ctx.org.id, billing.livemode) : null,
+    getTranslations("shell.settings.billing"),
+    getTranslations("shell.plans"),
+    getTranslate(),
+    getFormatter(),
+    renewalWording(),
+    getOrgTimeZone(ctx),
+    getStripeCancellations(ctx.viewer.db, ctx.org.id),
+    // The currency Checkout charges in (ADR 0160), so the terms shown are the terms the action words again.
+    orgCheckoutCurrency(ctx.viewer.db, ctx.org.id),
+  ]);
   if (!subscription.ok) {
     throw new Error(`Cannot read the subscription: ${JSON.stringify(subscription.error)}`);
   }

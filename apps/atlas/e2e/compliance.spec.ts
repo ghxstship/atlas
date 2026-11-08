@@ -129,7 +129,9 @@ test.describe("18 or older", () => {
 });
 
 test.describe("18 or older, for an account with no answer", () => {
-  test("one answer never closes the account: it says what closing means and asks", async ({ browser }) => {
+  test("one answer never closes the account: it says what closing means and asks", async ({
+    browser,
+  }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const id = uniqueId();
@@ -190,7 +192,9 @@ test.describe("18 or older, for an account with no answer", () => {
       expect(uploaded.error).toBeNull();
     }
 
-    await page.getByRole("button", { name: "I am under 18. Close my account", exact: true }).click();
+    await page
+      .getByRole("button", { name: "I am under 18. Close my account", exact: true })
+      .click();
     await page.waitForURL((url) => url.pathname === "/auth/age-refused");
     await expect(page.getByText(/XOS also keeps a monthly count/)).toBeVisible();
 

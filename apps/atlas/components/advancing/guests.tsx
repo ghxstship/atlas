@@ -67,20 +67,21 @@ export async function GuestList({
   const t = await getTranslate();
   const format = await getFormatter();
   const stateFilter = GUEST_STATES.find((s) => s === search["filter"]);
-  const [guests, scopes, categories, people, sends, locale, needsStates, canReadNeeds] = await Promise.all([
-    listGuests(ctx.viewer.db, {
-      orgId: ctx.org.id,
-      projectId: project.id,
-      ...(stateFilter ? { state: stateFilter } : {}),
-    }),
-    listProjectScopes(ctx.viewer.db, project.id),
-    listCredentialCategories(ctx.viewer.db, { orgId: ctx.org.id, projectId: project.id }),
-    can.rider ? projectPeople(ctx, project.id) : Promise.resolve([]),
-    listGuestEmailSends(ctx.viewer.db, project.id),
-    getLocale(),
-    listGuestNeedsStates(ctx.viewer.db, project.id),
-    canReadGuestNeeds(ctx.viewer.db, project.id),
-  ]);
+  const [guests, scopes, categories, people, sends, locale, needsStates, canReadNeeds] =
+    await Promise.all([
+      listGuests(ctx.viewer.db, {
+        orgId: ctx.org.id,
+        projectId: project.id,
+        ...(stateFilter ? { state: stateFilter } : {}),
+      }),
+      listProjectScopes(ctx.viewer.db, project.id),
+      listCredentialCategories(ctx.viewer.db, { orgId: ctx.org.id, projectId: project.id }),
+      can.rider ? projectPeople(ctx, project.id) : Promise.resolve([]),
+      listGuestEmailSends(ctx.viewer.db, project.id),
+      getLocale(),
+      listGuestNeedsStates(ctx.viewer.db, project.id),
+      canReadGuestNeeds(ctx.viewer.db, project.id),
+    ]);
   if (!guests.ok) throw new Error(`Cannot list guests: ${JSON.stringify(guests.error)}`);
   if (!scopes.ok) throw new Error(`Cannot list scopes: ${JSON.stringify(scopes.error)}`);
   const needsOf = (guestId: string) =>

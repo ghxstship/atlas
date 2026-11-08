@@ -187,7 +187,9 @@ test("an account with no answer is asked before any page, and one answer never c
     ["support-screenshots", `${person?.person}/shot.png`],
   ] as const;
   for (const [bucket, path] of files) {
-    const uploaded = await admin.storage.from(bucket).upload(path, png, { contentType: "image/png" });
+    const uploaded = await admin.storage
+      .from(bucket)
+      .upload(path, png, { contentType: "image/png" });
     expect(uploaded.error).toBeNull();
   }
 

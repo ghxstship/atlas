@@ -11,6 +11,7 @@ export const sitemap: Sitemap = {
     sessionId: { type: "uuid" },
     opportunityId: { type: "uuid" },
     itemId: { type: "uuid" },
+    subjectId: { type: "uuid" },
   },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
   chrome: {
@@ -22,6 +23,7 @@ export const sitemap: Sitemap = {
       "support",
       "moderation",
       "legal-queue",
+      "reported-content",
       "banners",
       "funnels",
       "team",
@@ -126,6 +128,22 @@ export const sitemap: Sitemap = {
               kind: "record",
               label: "nav.console.legalQueueItem",
               route: "/legal-queue/{itemId}",
+            },
+          ],
+        },
+        {
+          id: "reported-content",
+          kind: "page",
+          label: "nav.console.reportedContent",
+          route: "/reported-content",
+          visibility: { administrator: "full", support: "hidden", "trust-and-safety": "full" },
+          list: { views: ["table"], default: "table" },
+          children: [
+            {
+              id: "reported-content.item",
+              kind: "record",
+              label: "nav.console.reportedItem",
+              route: "/reported-content/{subjectId}",
             },
           ],
         },

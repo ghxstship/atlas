@@ -11,8 +11,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-in": "Auth template: magic link, OAuth and password sign-in.",
   "/auth/sign-up": "Auth template: account creation.",
   "/auth/check-email": "Auth template: magic link and confirmation sent.",
-  "/auth/age":
-    "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
+  "/auth/age": "Auth template: the age question for anyone who has not answered at 18 (ADR 0156).",
   "/auth/age-refused":
     "Auth template: what someone who answered under 18 is told, with no account left (ADR 0156).",
   "/auth/callback": "Route handler: OAuth and PKCE code exchange.",

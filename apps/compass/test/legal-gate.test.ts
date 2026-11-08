@@ -308,8 +308,7 @@ describe("the Maestro fixtures", () => {
       const walksThem = flows
         .filter((flow) => flow.includes(`scripts/${script}`))
         .every(
-          (flow) =>
-            flow.includes("first-sign-in-answers") || flow.includes("legal-gate-age-under"),
+          (flow) => flow.includes("first-sign-in-answers") || flow.includes("legal-gate-age-under"),
         );
       const answersThem =
         body.includes('age_confirmed: "18"') && body.includes('"record_legal_acceptances"');

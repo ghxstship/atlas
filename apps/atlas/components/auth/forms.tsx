@@ -13,7 +13,7 @@ import {
   signUpWithEmail,
   type FormState,
 } from "@/app/auth/actions";
-import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
+import { Button, InlineAlert, Input } from "@xos/ui";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */

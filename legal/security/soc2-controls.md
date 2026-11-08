@@ -99,7 +99,7 @@ A single evidence store that collects these sources is deferred past 4.0 (ADR 00
 | P6.6      | Breach notification to affected parties               | CTL-53 Customer notice within 48 hours; regulator and individual notice per regime                         | Notice log                                                       | A21      | Drafted          |
 | P6.7      | Accounting of disclosures to data subjects            | CTL-54 DSAR access output includes disclosures and recipients                                              | DSAR output samples                                              | A18      | Planned (Wave 2) |
 | P7.1      | Data quality                                          | CTL-55 Provenance and assertion ranks on records; correction workflow                                      | Provenance columns, pgTAP                                        | A03      | Planned (Wave 2) |
-| P8.1      | Inquiries, complaints and disputes                    | CTL-56 Privacy requests to support@ghxstship.pro, appeal process, regulator referral                                                 | Ticket records                                                   | A21, A31 | Planned (Wave 3) |
+| P8.1      | Inquiries, complaints and disputes                    | CTL-56 Privacy requests to support@ghxstship.pro, appeal process, regulator referral                       | Ticket records                                                   | A21, A31 | Planned (Wave 3) |
 
 ## Summary
 

@@ -222,7 +222,12 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   }
 
   // Anyone who has not answered at 18 answers before any signed-in page (ADR 0156).
-  if (user && request.method === "GET" && !request.headers.has("next-action") && asksAgeFirst(path)) {
+  if (
+    user &&
+    request.method === "GET" &&
+    !request.headers.has("next-action") &&
+    asksAgeFirst(path)
+  ) {
     const route = findRoute(sitemap, path);
     const needsSession = route && (getNode(sitemap, route.id).node.auth ?? "session") === "session";
     if (needsSession && (await owesAgeAnswer(db))) {
