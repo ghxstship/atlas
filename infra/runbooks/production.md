@@ -966,7 +966,7 @@ stored as `/share/[token]`.
 
 **Weekly**
 
-- [ ] `backup-weekly.yml` succeeded and its artifact exists.
+- [ ] `backup-weekly.yml` succeeded, its summary names the object it stored, and the run has no artifact (`backup-and-restore.md`, Weekly logical backup).
 - [ ] Run `infra/drills/release-drill.sh` on a fresh local stack; record the result in `backup-and-restore.md`.
 - [ ] Review Supabase advisors and `pnpm --filter @xos/config licenses:check`; dependency updates from Renovate are merged or triaged.
 - [ ] Error budget: the 30-day uptime on the status page is above 99.9 percent.

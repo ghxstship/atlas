@@ -10,12 +10,12 @@ Section 14.3 adds that EU-region tenants keep their backups in the EU, and Secti
 
 ## What protects the data
 
-| Layer                  | Where                                                  | Recovery point           | Status                                                                                                                              |
-| ---------------------- | ------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Point-in-time recovery | Supabase PITR add-on on the production project         | Seconds, for 7 days      | Paid add-on, so it is a blocked item: the owner must approve the spend                                                              |
-| Daily physical backups | Supabase, included in the Pro plan                     | 24 hours, kept 7 days    | On by default for Pro projects; confirm in Dashboard, Database, Backups                                                             |
-| Weekly logical backup  | GitHub Actions `backup-weekly` job, encrypted artifact | 7 days                   | `.github/workflows/backup-weekly.yml`; no run has completed: it needs the owner's public key and secret (`security-owner-steps.md`) |
-| Restore drill          | `infra/drills/restore-drill.sh` on a local copy        | Proves a backup restores | Runs locally and in CI                                                                                                              |
+| Layer                  | Where                                                         | Recovery point           | Status                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Point-in-time recovery | Supabase PITR add-on on the production project                | Seconds, for 7 days      | Paid add-on, so it is a blocked item: the owner must approve the spend                                                                        |
+| Daily physical backups | Supabase, included in the Pro plan                            | 24 hours, kept 7 days    | On by default for Pro projects; confirm in Dashboard, Database, Backups                                                                       |
+| Weekly logical backup  | `backup-weekly` job, encrypted, in the owner's private bucket | 7 days                   | `.github/workflows/backup-weekly.yml`; no run has completed: it needs the owner's key, bucket and secrets (`security-owner-steps.md`, step 1) |
+| Restore drill          | `infra/drills/restore-drill.sh` on a local copy               | Proves a backup restores | Runs locally and in CI                                                                                                                        |
 
 Daily backups alone give a 24 hour RPO. The 1 hour RPO holds only once PITR is on, and that is the reason the PITR spend is raised as a decision rather than assumed.
 
@@ -29,11 +29,12 @@ Daily backups alone give a 24 hour RPO. The 1 hour RPO holds only once PITR is o
 | `production` | `xos_backup`, the read-only login of migration 1650 (ADR 0033, decision 47) | `PRODUCTION_BACKUP_DB_URL`, a secret of the `production-backup` environment | `--reader`: pg_dumpall, pg_dump and psql from the Postgres image the pinned CLI uses; adds `platform.sql`, `cron.sql` and `migrations.txt` |
 
 1. Each job dumps roles, schema and data into separate files. The connection string is a GitHub Actions secret, so the job never prints it. Both secrets are Session pooler strings (port 5432): GitHub's hosted runners have no IPv6, and a project's direct host is IPv6 unless it has the IPv4 add-on.
-2. The files are encrypted with `gpg --encrypt --recipient` to the owner's public backup key, which is committed at `infra/backup/backup-public-key.asc` once the owner provides it. The private key never touches CI.
-3. The encrypted archive is uploaded as a workflow artifact kept 35 days, `xos-staging-backup` or `xos-production-backup`. The repository is public, so only the encrypted file is ever uploaded. The SHA-256 of the encrypted file is written to the job summary.
-4. The `production` job fails until the key is committed and its secret is set, so a missing backup is never silent, and one failed run names every missing piece. The `staging` job skips with a notice until `STAGING_DB_URL` exists, because staging holds no customer data and a red run every week would hide a real failure; with the secret set, it fails like production. A failed run posts to `XOS_ALERT_WEBHOOK_URL`. GitHub also emails a failed scheduled run to one person only: whoever last changed the workflow's `cron` line, or last re-enabled the workflow, and only while their notification settings send Actions email. It does not email the repository admins. Until the webhook is set, the owner pushes any change to the schedule, or re-enables the workflow after someone else's change, and checks the run status each week (`production.md`, Monitoring and alerting).
-5. Database network restrictions on production stay off for now, because GitHub runners connect from changing addresses (ADR 0033, decision 47; `promote-to-production.md`, step 11).
-6. EU-region projects would run the same job with their own secret, their archives going to EU storage through a bucket the owner chooses. EU data residency is deferred until the first EU Enterprise contract (ADR 0033, decision 53), so that storage decision waits for it.
+2. The files are encrypted with `gpg --encrypt --recipient` to the owner's public backup key, which is committed at `infra/backup/backup-public-key.asc` once the owner provides it. The secret `BACKUP_ENCRYPTION_RECIPIENT` holds that key's fingerprint, and the script encrypts only to it, and only if the committed file holds it, so a changed key file cannot send the backup to a key the owner does not hold. The private key never touches CI.
+3. `infra/ci/backup-store.sh` uploads the encrypted archive to the owner's private S3-compatible bucket as `<environment>/xos-<environment>-<UTC stamp>.tar.gz.gpg`, with its SHA-256 stored on the object and a Content-MD5 the storage checks. The bucket is versioned and locked, and its lifecycle rule removes each archive after about 5 weeks (`security-owner-steps.md`, step 1). Then the job deletes the runner's copy. **No backup, encrypted or not, is ever stored on GitHub**: no artifact, cache, release asset or commit, because the repository is public and anyone signed in to GitHub can download a public repository's artifacts. A test in `infra/security/test/repo-controls.test.ts` fails if the workflow gains one.
+4. The bucket is named only by secrets of the `production-backup` environment, which only `main` may use: `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, and `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY` for a key that can only write to that bucket. Both jobs run in that environment. The key pair reaches curl through a file descriptor, never its command line, and no message prints a secret's value, only its name. The job summary, which is public with the repository, lists the object key, the files, the size and the SHA-256, and names neither the bucket nor the key.
+5. The `production` job fails until the key is committed and every secret is set, so a missing backup is never silent, and one failed run names every missing piece. The `staging` job skips with a notice until `STAGING_DB_URL` exists, because staging holds no customer data and a red run every week would hide a real failure; with the secret set, it fails like production. A failed run posts to `XOS_ALERT_WEBHOOK_URL`. GitHub also emails a failed scheduled run to one person only: whoever last changed the workflow's `cron` line, or last re-enabled the workflow, and only while their notification settings send Actions email. It does not email the repository admins. Until the webhook is set, the owner pushes any change to the schedule, or re-enables the workflow after someone else's change, and checks the run status each week (`production.md`, Monitoring and alerting).
+6. Database network restrictions on production stay off for now, because GitHub runners connect from changing addresses (ADR 0033, decision 47; `promote-to-production.md`, step 11).
+7. EU-region projects would run the same job with their own secret, their archives going to an EU bucket of the same kind. EU data residency is deferred until the first EU Enterprise contract (ADR 0033, decision 53), so that storage decision waits for it.
 
 ### What the production login reads
 
@@ -64,6 +65,8 @@ Tested on 2026-10-24 against a local stack with every migration to 1671 and the 
 
 Tested again on 2026-11-06 for RRR-248, on a local stack with every migration and the seeds, a throwaway key and a throwaway password: `backup-weekly.sh production <dir> --reader` wrote all six files and encrypted them (2.3 MB, 38 seconds). The archive decrypted with the throwaway private key and restored in the order below into a fresh stack with no migrations. All 914 row counts and object counts compared matched (the tables of `app`, `private`, `xpms` and `storage`, the accounts and identities, the worker schedules, the storage policies, the triggers on `auth` and the application functions), and so did 24 of the 25 key-table checksums. The twenty-fifth, the migration history, matched once `supabase migration repair` had recorded the 562 versions in `migrations.txt`. `app.store_search_embedding` stayed closed to PUBLIC, and the foundation and 1650 suites passed on the copy (60 assertions). The staging path, `supabase db dump`, wrote its three files against the same stack. A key that cannot encrypt, a file that is not a key and an empty secret each stopped the run with a message naming the piece; a key within 60 days of expiry warned. None of this has run against a hosted project, through the Session pooler or on a GitHub runner: the first real run is the owner's (`security-owner-steps.md`).
 
+Tested on 2026-11-08 for RRR-248, the private bucket path, on a local stack with every migration to 6060 and the seeds, a throwaway key and the stack's own S3 endpoint standing in for the bucket. `backup-weekly.sh production <dir> --reader` dumped, encrypted to the pinned fingerprint, uploaded `production/xos-production-<stamp>.tar.gz.gpg` (2.3 MB) and removed the runner's copy; neither the log nor the summary held the password, the bucket or the key pair. In the Ubuntu 24.04 image the runner uses (curl 8.5, OpenSSL 3), `archive-fetch.sh` found the newest archive, matched both SHA-256 values, decrypted and unpacked the six files, and refused a wrong `--sha256`. `archive-restore.sh` restored them into a fresh stack with no migrations in 19 seconds: latest migration 6060, 906 application tables, 54,052 rows, and `app.store_search_embedding` closed to PUBLIC. A wrong secret key stopped the store with the storage's `SignatureDoesNotMatch`, and missing settings and a plain `http://` endpoint were each named. Nothing ran against hosted storage.
+
 ### Set up the production backup login (OWNER)
 
 Do this once migrations 1650 to 1659 are on production, and again to rotate the password.
@@ -73,9 +76,40 @@ Do this once migrations 1650 to 1659 are on production, and again to rotate the 
 3. Build the connection string from Dashboard, Connect, **Session pooler** (port 5432), with the user changed from `postgres.<project ref>` to `xos_backup.<project ref>`. GitHub's hosted runners have no IPv6, and the direct host `db.<project ref>.supabase.co` is IPv6 unless the project has the IPv4 add-on. Check it from a terminal: `psql "<connection string>" -c 'select current_user'` prints `xos_backup`. If the pooler refuses the login, use the direct connection string with the IPv4 add-on instead.
 4. In GitHub, Settings, Environments, open `production-backup`, which exists with no branch rule as of 2026-11-06. Under Deployment branches and tags, allow `main` only. Add the secret `PRODUCTION_BACKUP_DB_URL` there, not as a repository secret, so no other branch or workflow can read it (`security-owner-steps.md` has the commands).
 5. Commit the public backup key as `infra/backup/backup-public-key.asc` if it is not there yet.
-6. Run Weekly backup from the Actions tab. Check that the `production` job's summary lists `roles.sql schema.sql data.sql platform.sql cron.sql migrations.txt`, and download the artifact once to confirm it decrypts with your private key.
+6. Create the bucket and set its secrets (`security-owner-steps.md`, step 1), then run Weekly backup from the Actions tab. Check that the `production` job's summary lists `roles.sql schema.sql data.sql platform.sql cron.sql migrations.txt`, and fetch the archive once with your restore key to confirm it decrypts with your private key (Restoring from the bucket).
 
 To rotate, repeat steps 1 to 4 and delete the old password from your password manager. To revoke the login at once, run `alter role xos_backup nologin;` as `postgres`.
+
+## Restoring from the bucket
+
+The weekly archives are read with the owner's **restore key**, which can list and read the bucket and nothing else. It lives in the owner's password manager, never in GitHub, so the key CI writes with cannot read an archive back. Fetch on an encrypted disk:
+
+```sh
+# The same five settings as CI, with the restore key's pair. read -rs keeps the values off the screen and out of history.
+export BACKUP_S3_ENDPOINT=https://s3.<region>.amazonaws.com BACKUP_S3_REGION=<region> BACKUP_S3_BUCKET=<bucket>
+read -rs BACKUP_S3_ACCESS_KEY_ID && export BACKUP_S3_ACCESS_KEY_ID
+read -rs BACKUP_S3_SECRET_ACCESS_KEY && export BACKUP_S3_SECRET_ACCESS_KEY
+infra/drills/archive-fetch.sh --environment production --out ~/xos-restore --sha256 <the run summary's sha256>
+# dir=~/xos-restore/xos-production-<stamp>
+```
+
+`archive-fetch.sh` downloads the newest archive under `production/` (or the one `--key production/<name>` names), checks its SHA-256 against the one stored at upload and, with `--sha256`, against the run summary's, decrypts it with the private key in your keyring (gpg asks for its passphrase) straight into tar, so no unencrypted archive is written, and checks that every file is there. The folder is readable by you only. It connects to no database.
+
+Then, either:
+
+- **Drill it** into a fresh local stack started with no migrations (`supabase start` on a copy of `supabase/` with an empty `migrations` folder, seeding off and PostgREST excluded, since it waits for schemas that are not there yet):
+
+  ```sh
+  infra/drills/archive-restore.sh --dir ~/xos-restore/xos-production-<stamp> --target supabase_db_xos4-<name>
+  ```
+
+  It refuses a remote Docker daemon, a container that is not a local XOS stack and a stack that already holds XOS's schemas, restores the files in the order Restoring production gives, records `migrations.txt`, and checks the latest migration, the application tables and `app.store_search_embedding`. It prints the restore time against the 4 hour RTO. Run it each quarter, as the policy's restore drill, once the bucket holds an archive.
+
+- **Restore production** from it, in a new hosted project (Restoring production, step 2).
+
+Delete `~/xos-restore` when you are done: the files are production personal data. Unset the two key variables, or close the terminal.
+
+If the bucket itself is lost or locked out, Supabase's daily backups and PITR are unaffected, and the next Monday's run writes a new archive once the secrets point at a working bucket.
 
 ## Restore drill (local, every week and before each release)
 
@@ -139,7 +173,7 @@ Follow the incident runbook first (`incident-response.md`): declare a SEV1, name
 1. **Choose the recovery point.** For accidental writes, pick the last good moment from `app.audit_events` (who changed what, when). For corruption or loss, pick the latest PITR point.
 2. **Restore to a new project, never over the live one.**
    - PITR: Supabase Dashboard, Database, Backups, Point in time, restore to a new project. Daily backup: Restore to new project.
-   - From a weekly archive: decrypt it offline with the owner's private key. Then, against the new project's Session pooler string as `postgres`, run `psql -v ON_ERROR_STOP=1 -f` on `roles.sql`, `schema.sql` and `data.sql`, in that order, and for a production archive on `platform.sql` and then `cron.sql`, which schedules the workers again. `ON_ERROR_STOP` makes a failed statement stop the restore rather than scroll past.
+   - From a weekly archive: fetch and decrypt it with `infra/drills/archive-fetch.sh` (Restoring from the bucket). Then, against the new project's Session pooler string as `postgres`, run `psql -v ON_ERROR_STOP=1 -f` on `roles.sql`, `schema.sql` and `data.sql`, in that order, and for a production archive on `platform.sql` and then `cron.sql`, which schedules the workers again. `ON_ERROR_STOP` makes a failed statement stop the restore rather than scroll past.
    - Then record the migration history, which no dump holds. From a checkout of `main` (migrations are only ever added), run `supabase migration repair --db-url "<new project>" --status applied $(cat migrations.txt)` for a production archive. A staging archive, the CLI's dump, has neither `migrations.txt` nor `platform.sql`: pass the versions of the release staging ran, and expect to recreate the storage policies and auth triggers by hand. It also has the two lines the production script corrects (What the production login reads): delete any `GRANT ... ON PARAMETER` line from its `roles.sql` before running it, and run `revoke all on function app.store_search_embedding from public;` after `schema.sql`. Staging is usually quicker to rebuild from its migrations. Without this step the migration check below fails, and the next `supabase db push` would try every migration again.
    - Then create Vault's secrets again (What the production login reads): as `postgres`, `select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), '<name>', '<description>');` for each of the four keys and `xos_inbound_reply_secret`, with the descriptions their migrations give (0363, 0730, 1200, 1340 and 0550), and `xos_worker_key` and `xos_functions_url` as `production.md` sets them. Tell the orgs that hold integrations or webhook endpoints to connect or create them again.
    - Users sign in again; passkeys and OAuth clients come back only from a Supabase backup (What the production login reads). The archive lists stored files but holds none: the files stay in the old project's Storage until they are copied across.
@@ -161,4 +195,6 @@ Vault secrets (`vault.secrets`) are encrypted with the project's own key, which 
 | Supabase, production project, Add-ons          | Point in Time Recovery, 7 days: only after the owner approves the cost                                                     |
 | GitHub, repository secrets                     | `STAGING_DB_URL` (the staging Session pooler string as `postgres`, read by the backup job only)                            |
 | GitHub, environment `production-backup`        | `PRODUCTION_BACKUP_DB_URL`, the read-only backup login's session pooler string (Set up the production backup login, OWNER) |
+| GitHub, environment `production-backup`        | `BACKUP_ENCRYPTION_RECIPIENT` and the bucket's five `BACKUP_S3_*` secrets (`security-owner-steps.md`, step 1)              |
+| Object storage                                 | The private bucket: versioned, locked, aged out after about 5 weeks, with a write-only CI key and a read-only restore key  |
 | Repository                                     | Commit the owner's public key as `infra/backup/backup-public-key.asc`                                                      |

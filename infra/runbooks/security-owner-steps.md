@@ -11,6 +11,7 @@ State read from the GitHub API on 2026-11-06, read-only:
 | Weekly backup                     | Failed on its only two runs, 2026-10-26 and 2026-11-02 (below)                |
 | Actions secrets in the repository | `SUPABASE_ACCESS_TOKEN` only                                                  |
 | `production-backup` environment   | Exists, with no secret and **no branch rule**                                 |
+| Backup storage                    | No bucket yet; since 2026-11-08 the workflow stores no backup on GitHub       |
 | Branch protection on `main`       | None, and no ruleset                                                          |
 | Private vulnerability reporting   | Off                                                                           |
 | Secret scanning, push protection  | Off                                                                           |
@@ -29,7 +30,7 @@ Step 1 next, the one with a legal statement waiting on it.
 | ---- | --------------------------------------------------------- | -------------------------------------------------------------- |
 | 0    | Mail for `ghxstship.tech`, and one test message           | **Deploying this branch**; every address in `legal/contact.md` |
 |      | Merge this branch into `main`, then check Vercel at once  | The runs in steps 1 and 2; steps 3 and 7                       |
-| 1    | Secret values for the backup                              | "The weekly backup has run", once one succeeds                 |
+| 1    | Secret values for the backup, and its private bucket      | "The weekly backup has run", once one succeeds                 |
 | 2    | The alert channel and the status page token               | Alerts reaching a person; the status page                      |
 | 3    | Branch protection on `main`                               | "Changes reach main only through pull requests"                |
 | 4    | Commit signing, after one release under step 3            | "Commits on main are signed"                                   |
@@ -79,6 +80,8 @@ Only after the test message in item 5 above has arrived at every address should 
 
 Nothing in the repository's dump logic caused these failures. The `--reader` dump was run against a local stack with a throwaway key on 2026-11-06 (`backup-and-restore.md`).
 
+Since 2026-11-08 the archive goes to a private bucket you create in items 7 to 9, never to GitHub. Do items 1 to 9 in one terminal: later items reuse `FPR`, `REGION` and `BUCKET`.
+
 1. **Create the backup key on your own machine, not in CI.** Install GnuPG if you need it (`brew install gnupg`).
 
    ```sh
@@ -99,7 +102,7 @@ Nothing in the repository's dump logic caused these failures. The `--reader` dum
 
 4. **Give the production login a password.** Follow `backup-and-restore.md`, Set up the production backup login, steps 1 to 3. Use letters and digits only, so the connection string needs no escaping.
 
-5. **Restrict the environment to `main`.** It has no branch rule today, so any branch could read the secret you are about to add. In [Settings, Environments, production-backup](https://github.com/ghxstship/atlas/settings/environments), under Deployment branches and tags, choose Selected branches and tags and add `main`. Or:
+5. **Restrict the environment to `main`.** It has no branch rule today, so any branch could read the secrets you are about to add. In [Settings, Environments, production-backup](https://github.com/ghxstship/atlas/settings/environments), under Deployment branches and tags, choose Selected branches and tags and add `main`. Or:
 
    ```sh
    gh api --method PUT repos/ghxstship/atlas/environments/production-backup \
@@ -108,28 +111,108 @@ Nothing in the repository's dump logic caused these failures. The `--reader` dum
      -f name=main -f type=branch
    ```
 
-6. **Add the secret.** With no `--body`, `gh` asks for the value without echoing it:
+6. **Add the connection string and the key's fingerprint.** With no `--body`, `gh` asks for a value without echoing it; piped, it reads standard input:
 
    ```sh
    gh secret set PRODUCTION_BACKUP_DB_URL --env production-backup --repo ghxstship/atlas
+   printf %s "$FPR" | gh secret set BACKUP_ENCRYPTION_RECIPIENT --env production-backup --repo ghxstship/atlas
    ```
 
-7. **Staging is optional.** Its job skips with a notice until `STAGING_DB_URL` exists, because staging holds no customer data. If you want it, run `gh secret set STAGING_DB_URL --repo ghxstship/atlas` with the staging branch's Session pooler string. That string logs in as `postgres`, which is more than a backup needs, so skipping it is the smaller risk.
+   The job encrypts only to that fingerprint, and only if `infra/backup/backup-public-key.asc` holds it.
 
-8. **Run it once and read it back:**
+7. **Create the private bucket.** No backup is ever stored on GitHub: the repository is public, and anyone signed in to GitHub can download its workflow artifacts. The archives go to a bucket only you control. These steps use AWS S3, with the AWS CLI signed in as an administrator of the company's AWS account, not its root user. Another S3-compatible store works only if it offers everything below; Cloudflare R2 has bucket locks but no versioning, so it does not meet this step as written.
 
    ```sh
-   gh workflow run backup-weekly.yml --repo ghxstship/atlas --ref main
-   # Give GitHub a few seconds to list the new run, then:
-   RUN=$(gh run list --repo ghxstship/atlas --workflow backup-weekly.yml --limit 1 --json databaseId -q '.[0].databaseId')
-   gh run watch --repo ghxstship/atlas "$RUN"
-   gh run download "$RUN" --repo ghxstship/atlas --name xos-production-backup --dir /tmp/xos-backup-check
-   gpg --decrypt /tmp/xos-backup-check/*.gpg | tar -tzf -
+   REGION=us-east-2                              # a US region; for us-east-1 leave out --create-bucket-configuration
+   BUCKET="xos-backups-$(openssl rand -hex 4)"  # a name nobody can guess
+   aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" \
+     --create-bucket-configuration LocationConstraint="$REGION" --object-lock-enabled-for-bucket
+   aws s3api put-bucket-versioning --bucket "$BUCKET" --versioning-configuration Status=Enabled
+   aws s3api put-public-access-block --bucket "$BUCKET" --public-access-block-configuration \
+     BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+   # No one, the root user included, can delete or overwrite an archive for 30 days.
+   aws s3api put-object-lock-configuration --bucket "$BUCKET" --object-lock-configuration \
+     '{"ObjectLockEnabled":"Enabled","Rule":{"DefaultRetention":{"Mode":"COMPLIANCE","Days":30}}}'
+   # Each archive is gone after about 5 weeks, the Business Continuity Policy's schedule.
+   aws s3api put-bucket-lifecycle-configuration --bucket "$BUCKET" --lifecycle-configuration \
+     '{"Rules":[{"ID":"age-out","Status":"Enabled","Filter":{"Prefix":""},"Expiration":{"Days":33},"NoncurrentVersionExpiration":{"NoncurrentDays":1},"AbortIncompleteMultipartUpload":{"DaysAfterInitiation":1}}]}'
+   aws s3api put-bucket-policy --bucket "$BUCKET" --policy \
+     '{"Version":"2012-10-17","Statement":[{"Sid":"TlsOnly","Effect":"Deny","Principal":"*","Action":"s3:*","Resource":["arn:aws:s3:::'"$BUCKET"'","arn:aws:s3:::'"$BUCKET"'/*"],"Condition":{"Bool":{"aws:SecureTransport":"false"}}}]}'
    ```
 
-   The list must show `roles.sql schema.sql data.sql platform.sql cron.sql migrations.txt`. Delete the check folder afterwards: `data.sql` is production personal data once decrypted. Then record the date, because the Security Overview's "has not yet completed a run" can change only after this.
+   New buckets encrypt every object at rest (SSE-S3) and disable ACLs by default; leave both as they are. Compliance mode cannot be shortened or removed once an object has it, so a test upload also stays 30 days. Keep `REGION` and `BUCKET` in your password manager with the keys below.
 
-**Exposure to accept knowingly.** On a public repository anyone signed in to GitHub can download a workflow artifact and read the run's summary. The archive is encrypted to your key and the connection string is masked, so what is public is the file's size, name and hash, and how often it runs. The artifacts expire after 35 days, the repository's maximum being 90. A person's deletion does not reach an archive already made, which ages out on that schedule.
+8. **Create two keys limited to that bucket.** CI's key can only add archives: it cannot list, read, delete or overwrite one. The restore key can only list and read, and stays with you.
+
+   ```sh
+   aws iam create-user --user-name xos-backup-ci
+   aws iam put-user-policy --user-name xos-backup-ci --policy-name xos-backup-put --policy-document \
+     '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:PutObject","Resource":["arn:aws:s3:::'"$BUCKET"'/production/*","arn:aws:s3:::'"$BUCKET"'/staging/*"]}]}'
+   aws iam create-user --user-name xos-backup-restore
+   aws iam put-user-policy --user-name xos-backup-restore --policy-name xos-backup-read --policy-document \
+     '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::'"$BUCKET"'"},{"Effect":"Allow","Action":"s3:GetObject","Resource":"arn:aws:s3:::'"$BUCKET"'/*"}]}'
+   ```
+
+   CI's key goes straight into GitHub, never onto the screen:
+
+   ```sh
+   aws iam create-access-key --user-name xos-backup-ci \
+     --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text | {
+     read -r ID SECRET
+     printf %s "$ID" | gh secret set BACKUP_S3_ACCESS_KEY_ID --env production-backup --repo ghxstship/atlas
+     printf %s "$SECRET" | gh secret set BACKUP_S3_SECRET_ACCESS_KEY --env production-backup --repo ghxstship/atlas
+   }
+   ```
+
+   Then run `aws iam create-access-key --user-name xos-backup-restore`, copy its `AccessKeyId` and `SecretAccessKey` into your password manager, and clear the terminal. That key never goes into GitHub.
+
+9. **Name the bucket in GitHub:**
+
+   ```sh
+   printf %s "https://s3.$REGION.amazonaws.com" | gh secret set BACKUP_S3_ENDPOINT --env production-backup --repo ghxstship/atlas
+   printf %s "$REGION" | gh secret set BACKUP_S3_REGION --env production-backup --repo ghxstship/atlas
+   printf %s "$BUCKET" | gh secret set BACKUP_S3_BUCKET --env production-backup --repo ghxstship/atlas
+   gh secret list --env production-backup --repo ghxstship/atlas
+   ```
+
+   The list must show `PRODUCTION_BACKUP_DB_URL`, `BACKUP_ENCRYPTION_RECIPIENT` and the five `BACKUP_S3_*` names. Until all seven exist, the production job stops before it dumps and names each missing one.
+
+10. **Staging is optional.** Its job skips with a notice until `STAGING_DB_URL` exists, because staging holds no customer data. If you want it, run `gh secret set STAGING_DB_URL --repo ghxstship/atlas` with the staging branch's Session pooler string; its archives go to `staging/` in the same bucket. That string logs in as `postgres`, which is more than a backup needs, so skipping it is the smaller risk.
+
+11. **Run it once and read it back:**
+
+    ```sh
+    gh workflow run backup-weekly.yml --repo ghxstship/atlas --ref main
+    # Give GitHub a few seconds to list the new run, then:
+    RUN=$(gh run list --repo ghxstship/atlas --workflow backup-weekly.yml --limit 1 --json databaseId -q '.[0].databaseId')
+    gh run watch --repo ghxstship/atlas "$RUN"
+    gh api "repos/ghxstship/atlas/actions/runs/$RUN/artifacts" --jq '.total_count'   # must print 0
+    ```
+
+    The `production` job's summary gives the object (`stored as`) and its `sha256`. Check that the lock holds it, then fetch it with the restore key as `backup-and-restore.md`, Restoring from the bucket, describes:
+
+    ```sh
+    aws s3api head-object --bucket "$BUCKET" --key "<stored as>" --query '[ObjectLockMode,ObjectLockRetainUntilDate]'
+    # COMPLIANCE, and a date 30 days ahead
+    infra/drills/archive-fetch.sh --environment production --out ~/xos-backup-check --sha256 "<sha256>"
+    rm -rf ~/xos-backup-check
+    ```
+
+    `archive-fetch.sh` must end with `ok: decrypted and unpacked roles.sql schema.sql data.sql platform.sql cron.sql migrations.txt`. Delete the folder as shown: `data.sql` is production personal data once decrypted. Then record the date, because the Security Overview's "has not yet completed a run" can change only after this.
+
+    To confirm CI's key is as narrow as intended, run this read-only check. It must show `allowed` for `s3:PutObject` and `implicitDeny` for the other two:
+
+    ```sh
+    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+    aws iam simulate-principal-policy --policy-source-arn "arn:aws:iam::$ACCOUNT:user/xos-backup-ci" \
+      --action-names s3:PutObject s3:GetObject s3:DeleteObject \
+      --resource-arns "arn:aws:s3:::$BUCKET/production/check" \
+      --query 'EvaluationResults[].[EvalActionName,EvalDecision]' --output text
+    ```
+
+**What stays public.** On a public repository anyone signed in to GitHub can read a run's log and summary. They hold the object's name, size and SHA-256 and how often the job runs. The bucket, its address and both keys are secrets, and no archive was ever stored on GitHub: on 2026-11-08 the repository held no artifact named `xos-production-backup` or `xos-staging-backup`, because both earlier runs failed before one existed. A person's deletion does not reach an archive already made. It ages out with the lifecycle rule, within about 5 weeks, which the lock cannot extend.
+
+**To rotate CI's key**, create a new one with the command in item 8, which replaces both secrets, then `aws iam list-access-keys --user-name xos-backup-ci` and `aws iam delete-access-key --user-name xos-backup-ci --access-key-id <the old id>`. Rotate it at once if a workflow run ever printed a value. **If the restore key is lost**, create a new one the same way; the archives are untouched.
 
 ## 2. The alert channel and the status page token
 
