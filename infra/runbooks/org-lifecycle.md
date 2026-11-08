@@ -77,7 +77,7 @@ org's time zone, and its PDF and email date the deletion on that calendar.
 - Due: day 90 of a cancellation, or the end of a deletion request's 7-day recovery window. The hourly job writes a
   row in `app.deletion_certificates` (kept after the org is gone, read only by the former Owner).
 - Legal hold: a held org is marked `held_at` and waits; the purge refuses it too. Releasing the hold lets it go on.
-- A request for the data the export omits (Terms 11.2, DPA 10.2) holds the deletion too: the owner adds it to the console's legal queue as "Return of data the export omits", naming the org's slug, and that places a hold over every table of the org. Closing the item, once the data is returned, releases it. A Customer's own release of that hold also lets the deletion go on.
+- A request for the data the export omits (Terms 11.2, DPA 10.2) holds the deletion too: the owner adds it to the console's legal queue as "Return of data the export omits", naming the org's slug, and that places a hold over every table of the org. Closing the item, once the data is returned, releases it. Nobody in the org can release that hold while the item is open; if the Customer withdraws the request, withdraw the item with their words as the reason.
 - Storage: the worker lists the org's objects (`app.deletion_storage_objects`) and deletes them through the
   Storage API in batches of 100 per bucket, then records the storage as clear.
 - Purge: the next hourly run deletes every row of the org and its Vault credentials, and records the counts.

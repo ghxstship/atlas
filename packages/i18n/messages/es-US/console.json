@@ -132,6 +132,8 @@
     "legal_queue_subject": "Ninguna cuenta usa ese correo. Déjalo vacío si no hay una cuenta detrás del contenido.",
     "legal_queue_related": "Indica la referencia del aviso DMCA al que responde.",
     "legal_queue_org": "Indica la organización por su identificador, como aparece en la página de Organizaciones. Si sus datos ya se eliminaron, agrega la solicitud como otra promesa escrita y dile a la persona que no queda nada que devolver.",
+    "legal_hold_queue": "Esta retención pertenece a una devolución de datos omitidos que sigue abierta. Cierra ese elemento para levantarla.",
+    "org_read_only": "Esta organización es de solo lectura, así que el cambio no se guardó.",
     "legal_queue_note": "Di qué se hizo, en hasta 4,000 caracteres.",
     "legal_queue_first_response": "Este elemento no tiene una primera respuesta pendiente.",
     "legal_queue_fed": "Este elemento sigue a su origen. Actúa sobre el origen y este lo seguirá.",

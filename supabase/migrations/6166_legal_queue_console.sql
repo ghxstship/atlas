@@ -307,10 +307,44 @@ grant execute on function app.console_legal_queue_item(uuid) to authenticated;
 -- The work -------------------------------------------------------------------------------------------------------------
 
 -- A return of omitted data places its hold while the org waits to be deleted, which is when the org is read-only and the
--- hold matters most, and releases it once the return is done. The hold only keeps data, so writing it then takes nothing.
+-- hold matters most, and releases it once the return is done. So the queue may write a hold on a read-only org, and nobody
+-- else may: the general read-only guard gives way to one that keeps its rule for a member and lets the queue's own RPC
+-- through, and a hold the queue placed is released only by closing its item, so a member cannot let the purge take the data
+-- GHXSTSHIP is still returning.
 insert into private.read_only_exempt_tables (table_name, rationale) values
-  ('app.legal_holds', 'A hold is placed and released while the org waits to be deleted, which is when it holds the deletion.');
+  ('app.legal_holds', 'Guarded by private.guard_queue_legal_hold instead: the legal queue places and releases a hold while the org waits to be deleted.');
 drop trigger if exists t15_refuse_read_only_org on app.legal_holds;
+
+create function private.guard_queue_legal_hold()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_row app.legal_holds := case when tg_op = 'DELETE' then old else new end;
+  v_reason text;
+begin
+  if private.current_person_id() is null or pg_catalog.current_setting('xos.legal_queue_hold', true) = 'on' then
+    return v_row;
+  end if;
+  perform private.refuse_agent_write();
+  if tg_op <> 'INSERT' and exists (
+    select 1 from app.legal_queue_items i where i.legal_hold_id = old.id and i.closed_at is null) then
+    perform private.refuse('legal_hold_queue', 'GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to legal@ghxstship.tech.');
+  end if;
+  v_reason := private.org_read_only_reason(v_row.org_id);
+  if v_reason is not null then
+    perform private.refuse('org_read_only', private.read_only_refusal(v_reason));
+  end if;
+  return v_row;
+end;
+$$;
+comment on function private.guard_queue_legal_hold() is 'Stands in for the read-only guard on app.legal_holds (ADR 0167). A person''s write is refused while the org is read-only, as before, except inside the legal queue''s own RPC, which sets xos.legal_queue_hold for the one statement. A hold an open legal queue item placed is released only by closing that item. Workers and the purge (no person) still write.';
+revoke all on function private.guard_queue_legal_hold() from public, anon, authenticated;
+
+create trigger t15_guard_queue_legal_hold before insert or update or delete on app.legal_holds
+  for each row execute function private.guard_queue_legal_hold();
 
 create function app.console_add_legal_queue_item(
   p_rule_code text,
@@ -384,10 +418,12 @@ begin
   -- Terms 11.2 and 11.4, DPA 10.2: the request holds the deletion until the return is done. The org's own legal hold is
   -- what the deletion job, the storage cleanup, the purge and the retention purge already honour, so the item places one.
   if v_rule.holds_org_data then
+    perform pg_catalog.set_config('xos.legal_queue_hold', 'on', true);
     insert into app.legal_holds (org_id, table_name, matter, created_by)
     values (v_org.id, null, format('Return of data the export omits, GHXSTSHIP reference %s',
       (select i.reference from app.legal_queue_items i where i.id = v_id)), v_operator)
     returning id into v_hold;
+    perform pg_catalog.set_config('xos.legal_queue_hold', '', true);
     update app.legal_queue_items set legal_hold_id = v_hold where id = v_id;
     insert into private.legal_queue_events (legal_queue_item_id, event_kind, actor_person_id)
     values (v_id, 'Hold Placed', v_operator);
@@ -564,14 +600,16 @@ begin
     perform private.queue_repeat_infringer_review(
       (select n.subject_person_id from app.legal_queue_items n where n.id = v_item.related_item_id), v_operator);
   end if;
-  -- The return is done, refused or withdrawn: the deletion it held may go ahead. A hold the Customer released stays released.
+  -- The return is done, refused or withdrawn: the deletion it held may go ahead. Only this releases it, and only once.
   if v_closing and v_item.legal_hold_id is not null then
+    perform pg_catalog.set_config('xos.legal_queue_hold', 'on', true);
     update app.legal_holds h set released_at = now(), updated_at = now(), updated_by = v_operator
     where h.id = v_item.legal_hold_id and h.released_at is null;
     if found then
       insert into private.legal_queue_events (legal_queue_item_id, event_kind, actor_person_id)
       values (v_item.id, 'Hold Released', v_operator);
     end if;
+    perform pg_catalog.set_config('xos.legal_queue_hold', '', true);
   end if;
   if p_next = 'Completed' and v_item.rule_code = 'undelivered_notice' then
     -- The operator reached the person another way, and the reason says how. The appeal's record now says they were told.

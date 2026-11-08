@@ -132,6 +132,8 @@
     "legal_queue_subject": "No account uses that email. Leave it empty if the content has no account behind it.",
     "legal_queue_related": "Name the reference of the DMCA notice this answers.",
     "legal_queue_org": "Name the organization by its slug, as the Tenants page shows it. If its data is already deleted, add the request as another written promise and tell the person nothing is left to return.",
+    "legal_hold_queue": "This hold belongs to an open return of omitted data. Close that item to release it.",
+    "org_read_only": "This organization is read-only, so the change was not saved.",
     "legal_queue_note": "Say what was done, in up to 4,000 characters.",
     "legal_queue_first_response": "This item has no first response waiting.",
     "legal_queue_fed": "This item follows its source. Act on the source, and it follows.",

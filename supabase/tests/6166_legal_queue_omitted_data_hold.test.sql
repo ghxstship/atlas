@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(23);
+select plan(25);
 
 select pg_temp.new_user('olga', 'olga@platform.test', 'Olga Brandt');
 select pg_temp.as_platform();
@@ -58,6 +58,17 @@ select is((pg_temp.hold()).table_name, null, 'over every table of the org');
 select is((pg_temp.hold()).released_at, null, 'that stands');
 select is(pg_temp.events('Hold Placed'), 1, 'the item''s log says so');
 select is((select count(*)::int from app.legal_holds where org_id = pg_temp.id('org_b')), 1, 'only the one hold');
+
+-- The queue's hold is the queue's: the Owner cannot release it while the return is open, and the org is still read-only
+-- to every other hold write.
+select pg_temp.as_user('xavier');
+select throws_ok(format($$update app.legal_holds set released_at = now() where id = %L$$, (pg_temp.hold()).id),
+  'XR001', 'legal_hold_queue: GHXSTSHIP placed this hold while it returns data your export left out. It is released when the return is done. To withdraw the request, write to legal@ghxstship.tech.',
+  'the Owner cannot release the hold the queue placed');
+select throws_ok(format($$insert into app.legal_holds (org_id, matter) values (%L, 'Our own hold')$$, pg_temp.id('org_b')),
+  'XR001', 'org_read_only: This organization is waiting to be deleted and is read-only. The Owner can recover it in Settings, Danger zone, during the 7 days.',
+  'nor place another while the org is read-only');
+select pg_temp.as_platform();
 
 -- The deletion job writes the certificate and holds it; the purge waits.
 select private.schedule_deletions(now());
