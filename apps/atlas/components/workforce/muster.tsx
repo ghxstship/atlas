@@ -258,9 +258,11 @@ export async function MusterSection({
                   ))}
                 </ul>
               ) : (
-                // A phone scrolls the eight columns sideways, so the region takes focus for the arrow keys.
+                // A phone scrolls the eight columns sideways, so the table takes focus for the arrow keys.
+                // It is a group named by the zone heading: the section is already the zone's region, and a
+                // second region of the same name would list every zone twice among the landmarks.
                 <div
-                  role="region"
+                  role="group"
                   aria-labelledby={`muster-${g.zoneId ?? "doors"}`}
                   tabIndex={0}
                   className="overflow-x-auto"
