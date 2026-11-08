@@ -1,0 +1,8 @@
+# CodeQL scans the code people write. Generated bundles repeat what their sources already show, and the design export
+# and specifications run nowhere.
+name: XOS CodeQL
+paths-ignore:
+  - supabase/functions/_vendor
+  - design
+  - docs
+  - legal

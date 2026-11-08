@@ -3,7 +3,15 @@
  */
 
 /** Status page components (Section 5.1): one row per component and region. */
-export const COMPONENTS = ["atlas", "gateway", "api", "realtime", "sync", "notifications"] as const;
+export const COMPONENTS = [
+  "atlas",
+  "gateway",
+  "api",
+  "docs",
+  "realtime",
+  "sync",
+  "notifications",
+] as const;
 export type ComponentId = (typeof COMPONENTS)[number];
 
 /**

@@ -58,12 +58,12 @@ The team's plan includes Rolling Releases for one project, and the owner gave it
 
 When enabled, they use these settings:
 
-| Setting                              | Value                                           |
-| ------------------------------------ | ----------------------------------------------- |
-| Project, Settings, Rolling Releases  | Enabled for the Production environment          |
-| Stages                               | 5 percent, then 25 percent, then 100 percent    |
-| Advancement                          | Manual approval (the gate decides, see below)   |
-| Skew protection (Settings, Advanced) | Enabled, so one session stays on one deployment |
+| Setting                                                 | Value                                           |
+| ------------------------------------------------------- | ----------------------------------------------- |
+| Project, Settings, Build & Deployment, Rolling Releases | Enabled for the Production environment          |
+| Stages                                                  | 5 percent, then 25 percent, then 100 percent    |
+| Advancement                                             | Manual approval (the gate decides, see below)   |
+| Skew protection (Settings, Advanced)                    | Enabled, so one session stays on one deployment |
 
 `gateway`, `docs` and `console` have no slot. They promote directly and roll back with Instant Rollback, as described at the end of this section.
 

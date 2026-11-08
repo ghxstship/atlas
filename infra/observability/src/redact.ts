@@ -159,11 +159,12 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   // (/share/view/xshv_...) and display screens (/share/screen/xscr_...), their device grants
   // (xlgr_) and their Realtime channel keys (xlch_). B3 (ADR 0142): so do showcaller links
   // (/share/showcaller/xscl_...), their device grants (xcgr_) and their channel keys (xcch_).
+  // A127 (ADR 0106): so do one-tap action links (/auth/act/xact_...), whose token is a nonce, a dot and a signature.
   // No leading word boundary: a token right after a percent escape (%22, %2F) is still a token,
   // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
     pattern:
-      /(?:xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
+      /(?:xact|xadv|xagr|xcal|xcch|xcgr|xcrw|xdlt|xdoc|xfrg|xfrm|xinv|xkio|xlch|xlgr|xlnk|xpkg|xpkl|xpku|xscl|xscr|xshr|xshv|xspn|xspu|xvig|xvin|xos_pat|xos_scim)_[0-9a-f]{16,}(?:\.[0-9a-f]{16,})?\b/gi,
     replace: "[token]",
   },
   // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,

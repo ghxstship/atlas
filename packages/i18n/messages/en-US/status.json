@@ -1,12 +1,13 @@
 {
   "title": "XOS status",
-  "description": "Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.",
+  "description": "Availability of XOS, checked from outside every few minutes. This page updates when a failure is confirmed or ends, and about once an hour. A component marked No data is not checked yet.",
   "skipLink": "Skip to components",
   "overall": {
     "operational": "All systems operational",
-    "degraded": "Some systems are slower than normal. We are watching them.",
+    "degraded": "Some systems are slower than normal or missed a check. We are watching them.",
     "outage": "Some systems are unavailable. We are working on it; updates appear below.",
-    "unknown": "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly."
+    "unknown": "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly.",
+    "partial": "The components we check are operational. Those marked No data are not checked yet."
   },
   "state": {
     "operational": "Operational",
@@ -18,6 +19,7 @@
     "atlas": "Atlas",
     "gateway": "Gateway",
     "api": "API",
+    "docs": "Documentation",
     "realtime": "Realtime",
     "sync": "Compass sync",
     "notifications": "Notifications"
@@ -40,5 +42,5 @@
     "resolved": "Resolved {time} UTC",
     "ongoing": "Ongoing"
   },
-  "footer": "Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API."
+  "footer": "Measured by synthetic checks against the live service. One failed check shows as Degraded; two in a row, at least 4 minutes apart, show as Outage. The uptime figure counts only those confirmed failures. Target: 99.9 percent monthly availability for Atlas, Gateway and the API."
 }
