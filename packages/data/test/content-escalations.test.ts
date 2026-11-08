@@ -85,33 +85,26 @@ describe("reported content an org left undecided, in the console (6196)", () => 
     expect(await getContentEscalations(db, false)).toEqual({ ok: true, data: [] });
     expect(stepsOf(calls[1], "args")[0]?.[0]).toEqual({ p_open: false });
 
-    const detail = await getEscalationDetail(db, { kind: "Chat Message", id: "m1" });
+    const detail = await getEscalationDetail(db, "m1");
     expect(detail.ok && detail.data.subject.body).toBe("Send me your address.");
     expect(detail.ok && detail.data.reports[0]).toMatchObject({
       excerpt: "Send me your address.",
       open: true,
     });
     expect(detail.ok && detail.data.decisions[0]?.byPlatform).toBe(false);
-    expect(stepsOf(calls[2], "args")[0]?.[0]).toEqual({
-      p_subject_kind: "Chat Message",
-      p_subject_id: "m1",
-    });
+    expect(stepsOf(calls[2], "args")[0]?.[0]).toEqual({ p_subject_id: "m1" });
 
     expect(
-      await decideEscalation(
-        db,
-        { kind: "Chat Message", id: "m1" },
-        {
-          action: "Removed",
-          ground: "Terms Violation",
-          ruleReference: "Acceptable Use Policy 1",
-          facts: "A threat.",
-          statement: "We removed the message.",
-        },
-      ),
+      await decideEscalation(db, "m1", {
+        action: "Removed",
+        ground: "Terms Violation",
+        ruleReference: "Acceptable Use Policy 1",
+        facts: "A threat.",
+        statement: "We removed the message.",
+      }),
     ).toEqual({ ok: true, data: "d1" });
     expect(stepsOf(calls[3], "args")[0]?.[0]).toMatchObject({
-      p_subject_kind: "Chat Message",
+      p_subject_id: "m1",
       p_action: "Removed",
       p_rule_reference: "Acceptable Use Policy 1",
     });

@@ -53,7 +53,7 @@ select pg_temp.as_platform();
 select is(private.escalate_content_reports_to_platform(), 0, 'a report inside its 24 hours stays with the org');
 select pg_temp.as_op('tess');
 select is((select count(*)::int from app.console_content_escalations()), 0, 'and the console lists nothing');
-select throws_ok($$select app.console_content_escalation_detail('Feed Post', (select id from k where key = 'post'))$$,
+select throws_ok($$select app.console_content_escalation_detail((select id from k where key = 'post'))$$,
   '42501', null, 'nor opens a report the org decided in time');
 
 -- Past its due time --------------------------------------------------------------------------------------------------------
@@ -81,23 +81,23 @@ select is((select open_reports::int from app.console_content_escalations() where
   'Trust and Safety lists the item with its open report');
 select is((select org_name from app.console_content_escalations()), 'Northwind Live', 'and its org');
 select is((select reasons::text from app.console_content_escalations()), '{Violence}', 'and why it was reported');
-select is((app.console_content_escalation_detail('Chat Message', (select id from k where key = 'msg')) -> 'subject' ->> 'body'),
+select is((app.console_content_escalation_detail((select id from k where key = 'msg')) -> 'subject' ->> 'body'),
   'Send me your home address or else.', 'the detail shows the message');
-select is((app.console_content_escalation_detail('Chat Message', (select id from k where key = 'msg')) -> 'reports' -> 0 ->> 'details'),
+select is((app.console_content_escalation_detail((select id from k where key = 'msg')) -> 'reports' -> 0 ->> 'details'),
   'He keeps asking.', 'and the report');
-select ok(not ((app.console_content_escalation_detail('Chat Message', (select id from k where key = 'msg')) -> 'reports' -> 0) ? 'reporter_name'),
+select ok(not ((app.console_content_escalation_detail((select id from k where key = 'msg')) -> 'reports' -> 0) ? 'reporter_name'),
   'but never who reported');
 select ok((select count(*) >= 1 from app.platform_operator_actions where action = 'content_report.viewed'
            and target_org_id = pg_temp.id('org_a')), 'each view is logged in the console ledger');
 
 -- Deciding ------------------------------------------------------------------------------------------------------------------
-select throws_ok($$select app.console_decide_content_escalation('Chat Message', (select id from k where key = 'msg'),
+select throws_ok($$select app.console_decide_content_escalation((select id from k where key = 'msg'),
   'Removed', 'No Violation', 'Acceptable Use Policy 1', 'A threat.', 'We removed the message.')$$,
   '23514', null, 'a removal needs a violation as its ground');
-select lives_ok($$insert into k select 'd1', app.console_decide_content_escalation('Chat Message', (select id from k where key = 'msg'),
+select lives_ok($$insert into k select 'd1', app.console_decide_content_escalation((select id from k where key = 'msg'),
   'Removed', 'Terms Violation', 'Acceptable Use Policy 1', 'The message threatens a crew member.',
   'We removed the message because it threatens a crew member.')$$, 'Trust and Safety removes the message');
-select throws_ok($$select app.console_decide_content_escalation('Chat Message', (select id from k where key = 'msg'),
+select throws_ok($$select app.console_decide_content_escalation((select id from k where key = 'msg'),
   'No Action', 'No Violation', 'Acceptable Use Policy 1', 'Again.', 'Again.')$$,
   'XR001', 'content_moderation_nothing_open: Every report about this was already decided.', 'once');
 select is((select count(*)::int from app.console_content_escalations()), 0, 'the open list is empty');

@@ -72206,13 +72206,7 @@ export type Database = {
         Args: { p_override_id: string; p_reason: string };
         Returns: string;
       };
-      console_content_escalation_detail: {
-        Args: {
-          p_subject_id: string;
-          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-        };
-        Returns: Json;
-      };
+      console_content_escalation_detail: { Args: { p_subject_id: string }; Returns: Json };
       console_content_escalations: {
         Args: { p_open?: boolean };
         Returns: {
@@ -72251,7 +72245,6 @@ export type Database = {
           p_rule_reference: string;
           p_statement: string;
           p_subject_id: string;
-          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
         };
         Returns: string;
       };

@@ -123,31 +123,29 @@ comment on function app.console_content_escalations(boolean) is 'Operator consol
 revoke all on function app.console_content_escalations(boolean) from public, anon;
 grant execute on function app.console_content_escalations(boolean) to authenticated, service_role;
 
-create or replace function private.require_escalated_content(p_subject_kind app.content_subject_kind, p_subject_id uuid)
-returns uuid
+create or replace function private.require_escalated_content(p_subject_id uuid)
+returns table (org_id uuid, subject_kind app.content_subject_kind)
 language plpgsql
 stable
 security definer
 set search_path = ''
 as $$
-declare
-  v_org uuid;
 begin
-  select r.org_id into v_org from app.content_reports r
-  where r.deleted_at is null and r.platform_escalated_at is not null and r.subject_kind = p_subject_kind
+  return query
+  select r.org_id, r.subject_kind from app.content_reports r
+  where r.deleted_at is null and r.platform_escalated_at is not null
     and coalesce(r.feed_post_id, r.comment_id, r.chat_message_id) = p_subject_id
   limit 1;
-  if v_org is null then
+  if not found then
     raise exception using errcode = '42501', message = 'no escalated report about this item';
   end if;
-  return v_org;
 end;
 $$;
 
-comment on function private.require_escalated_content(app.content_subject_kind, uuid) is 'The org of an item with a report escalated to GHXSTSHIP (6196); refuses 42501 for any other item, so the console never opens content an org decided in time.';
-revoke all on function private.require_escalated_content(app.content_subject_kind, uuid) from public, anon, authenticated;
+comment on function private.require_escalated_content(uuid) is 'The org and kind of an item (a post, comment or message, by id) with a report escalated to GHXSTSHIP (6196); refuses 42501 for any other item, so the console never opens content an org decided in time.';
+revoke all on function private.require_escalated_content(uuid) from public, anon, authenticated;
 
-create or replace function app.console_content_escalation_detail(p_subject_kind app.content_subject_kind, p_subject_id uuid)
+create or replace function app.console_content_escalation_detail(p_subject_id uuid)
 returns jsonb
 language plpgsql
 volatile
@@ -156,13 +154,14 @@ set search_path = ''
 as $$
 declare
   v_org uuid;
+  v_kind app.content_subject_kind;
   v_item record;
   v_context text;
 begin
   perform private.require_platform_operator('moderation.decide');
-  v_org := private.require_escalated_content(p_subject_kind, p_subject_id);
-  select * into v_item from private.reported_content(p_subject_kind, p_subject_id);
-  v_context := case p_subject_kind
+  select e.org_id, e.subject_kind into v_org, v_kind from private.require_escalated_content(p_subject_id) e;
+  select * into v_item from private.reported_content(v_kind, p_subject_id);
+  v_context := case v_kind
     when 'Feed Post' then (select coalesce(p.title, p.post_kind::text) from app.feed_posts p where p.id = p_subject_id)
     when 'Comment' then (select coalesce(p.title, p.post_kind::text) from app.comments c
                          join app.comment_threads t on t.id = c.comment_thread_id
@@ -174,9 +173,9 @@ begin
   perform private.log_operator_action('content_report.viewed', v_org, 'app.content_reports', (
     select r.id from app.content_reports r where r.deleted_at is null and r.platform_escalated_at is not null
       and coalesce(r.feed_post_id, r.comment_id, r.chat_message_id) = p_subject_id
-    order by r.reported_at limit 1), null, jsonb_build_object('subject_kind', p_subject_kind, 'subject_id', p_subject_id));
+    order by r.reported_at limit 1), null, jsonb_build_object('subject_kind', v_kind, 'subject_id', p_subject_id));
   return jsonb_build_object(
-    'subject', jsonb_build_object('kind', p_subject_kind, 'id', p_subject_id, 'context', v_context,
+    'subject', jsonb_build_object('kind', v_kind, 'id', p_subject_id, 'context', v_context,
       'org_id', v_org, 'org_name', (select o.name from app.organizations o where o.id = v_org),
       'author_person_id', v_item.author_person_id,
       'author_name', (select pe.full_name from app.people pe where pe.id = v_item.author_person_id),
@@ -199,12 +198,11 @@ begin
 end;
 $$;
 
-comment on function app.console_content_escalation_detail(app.content_subject_kind, uuid) is 'Operator console (moderation.decide): one item with a report escalated to GHXSTSHIP (6196): its text while not removed, where it was posted, its org and author, every report on it with the snapshot but never the reporter, and every decision, the org''s or GHXSTSHIP''s, without who decided. Logs content_report.viewed in the console ledger. Any other item is refused 42501.';
-revoke all on function app.console_content_escalation_detail(app.content_subject_kind, uuid) from public, anon;
-grant execute on function app.console_content_escalation_detail(app.content_subject_kind, uuid) to authenticated, service_role;
+comment on function app.console_content_escalation_detail(uuid) is 'Operator console (moderation.decide): one item (a post, comment or message, by id) with a report escalated to GHXSTSHIP (6196): its text while not removed, where it was posted, its org and author, every report on it with the snapshot but never the reporter, and every decision, the org''s or GHXSTSHIP''s, without who decided. Logs content_report.viewed in the console ledger. Any other item is refused 42501.';
+revoke all on function app.console_content_escalation_detail(uuid) from public, anon;
+grant execute on function app.console_content_escalation_detail(uuid) to authenticated, service_role;
 
 create or replace function app.console_decide_content_escalation(
-  p_subject_kind app.content_subject_kind,
   p_subject_id uuid,
   p_action app.content_moderation_action,
   p_ground app.moderation_ground,
@@ -220,13 +218,15 @@ set search_path = ''
 as $$
 declare
   v_operator uuid := private.require_platform_operator('moderation.decide');
-  v_org uuid := private.require_escalated_content(p_subject_kind, p_subject_id);
+  v_org uuid;
+  v_kind app.content_subject_kind;
   v_item record;
   v_id uuid;
   v_reporter uuid;
   v_conversation uuid;
 begin
-  select * into v_item from private.reported_content(p_subject_kind, p_subject_id);
+  select e.org_id, e.subject_kind into v_org, v_kind from private.require_escalated_content(p_subject_id) e;
+  select * into v_item from private.reported_content(v_kind, p_subject_id);
   if v_item.author_person_id = v_operator then
     perform private.refuse('content_moderation_own', 'Another moderator decides reports about your own post, comment or message.');
   end if;
@@ -238,21 +238,21 @@ begin
 
   insert into app.content_moderation_decisions (org_id, subject_kind, feed_post_id, comment_id, chat_message_id,
     author_person_id, action, ground, rule_reference, facts, statement_of_reasons, decided_by, decided_by_platform)
-  values (v_org, p_subject_kind,
-    case when p_subject_kind = 'Feed Post' then p_subject_id end,
-    case when p_subject_kind = 'Comment' then p_subject_id end,
-    case when p_subject_kind = 'Chat Message' then p_subject_id end,
+  values (v_org, v_kind,
+    case when v_kind = 'Feed Post' then p_subject_id end,
+    case when v_kind = 'Comment' then p_subject_id end,
+    case when v_kind = 'Chat Message' then p_subject_id end,
     v_item.author_person_id, p_action, p_ground, btrim(p_rule_reference), btrim(p_facts), btrim(p_statement), v_operator,
     true)
   returning id into v_id;
 
   if p_action = 'Removed' and not v_item.removed then
-    if p_subject_kind = 'Feed Post' then
+    if v_kind = 'Feed Post' then
       update app.feed_posts set hidden_at = now(), hidden_reason = btrim(left(btrim(p_statement), 500)), pinned_at = null
       where id = p_subject_id;
       perform private.emit_event(v_org, 'feed_post.hidden', 'feed_posts', p_subject_id, v_item.project_id,
         jsonb_build_object('reason', btrim(left(btrim(p_statement), 500)), 'content_moderation_decision_id', v_id));
-    elsif p_subject_kind = 'Comment' then
+    elsif v_kind = 'Comment' then
       update app.comments set deleted_at = now() where id = p_subject_id;
     else
       update app.chat_messages set deleted_at = now() where id = p_subject_id
@@ -266,31 +266,31 @@ begin
   where org_id = v_org and deleted_at is null and content_moderation_decision_id is null
     and coalesce(feed_post_id, comment_id, chat_message_id) = p_subject_id;
   perform private.emit_event(v_org, 'content.moderated', 'content_moderation_decisions', v_id, v_item.project_id,
-    jsonb_build_object('subject_kind', p_subject_kind, 'action', p_action, 'ground', p_ground, 'decided_by_platform', true));
+    jsonb_build_object('subject_kind', v_kind, 'action', p_action, 'ground', p_ground, 'decided_by_platform', true));
 
   -- The notices name GHXSTSHIP, as an org's decision names the org, never the operator.
   for v_reporter in
     select distinct r.reporter_person_id from app.content_reports r where r.content_moderation_decision_id = v_id
   loop
     perform private.notify(v_org, v_reporter, 'content_report.decided', 'app.content_moderation_decisions', v_id,
-      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(p_subject_kind), 'action', p_action,
+      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(v_kind), 'action', p_action,
         'statement', btrim(p_statement), 'actorName', 'GHXSTSHIP'));
   end loop;
   if p_action = 'Removed' and v_item.author_person_id is not null then
     perform private.notify(v_org, v_item.author_person_id, 'content.removed', 'app.content_moderation_decisions', v_id,
-      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(p_subject_kind), 'ground', p_ground,
+      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(v_kind), 'ground', p_ground,
         'ruleReference', btrim(p_rule_reference), 'statement', btrim(p_statement), 'actorName', 'GHXSTSHIP'));
   end if;
   perform private.log_operator_action('content_report.decided', v_org, 'app.content_moderation_decisions', v_id,
-    btrim(p_statement), jsonb_build_object('subject_kind', p_subject_kind, 'subject_id', p_subject_id, 'action', p_action,
+    btrim(p_statement), jsonb_build_object('subject_kind', v_kind, 'subject_id', p_subject_id, 'action', p_action,
       'ground', p_ground));
   return v_id;
 end;
 $$;
 
-comment on function app.console_decide_content_escalation(app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) is 'Operator console (moderation.decide): GHXSTSHIP decides an item whose reports were escalated to it (6196) with a statement of reasons in parts, as an org moderator does with app.decide_content_report: Removed hides a post, deletes a comment or deletes a message; No Action leaves it. Decides every open report on the item, records decided_by_platform, tells each reporter the outcome (content_report.decided) and, on removal, sends the author the statement (content.removed), both naming GHXSTSHIP; logs content_report.decided in the console ledger. Refuses an item with no open report. Returns the decision id.';
-revoke all on function app.console_decide_content_escalation(app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) from public, anon;
-grant execute on function app.console_decide_content_escalation(app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) to authenticated, service_role;
+comment on function app.console_decide_content_escalation(uuid, app.content_moderation_action, app.moderation_ground, text, text, text) is 'Operator console (moderation.decide): GHXSTSHIP decides an item (a post, comment or message, by id) whose reports were escalated to it (6196) with a statement of reasons in parts, as an org moderator does with app.decide_content_report: Removed hides a post, deletes a comment or deletes a message; No Action leaves it. Decides every open report on the item, records decided_by_platform, tells each reporter the outcome (content_report.decided) and, on removal, sends the author the statement (content.removed), both naming GHXSTSHIP; logs content_report.decided in the console ledger. Refuses an item with no open report. Returns the decision id.';
+revoke all on function app.console_decide_content_escalation(uuid, app.content_moderation_action, app.moderation_ground, text, text, text) from public, anon;
+grant execute on function app.console_decide_content_escalation(uuid, app.content_moderation_action, app.moderation_ground, text, text, text) to authenticated, service_role;
 
 -- The org's moderators read a decision GHXSTSHIP made as GHXSTSHIP's, never under the operator's name (1630's detail,
 -- with decided_by_name and decided_by_platform).

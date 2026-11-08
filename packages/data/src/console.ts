@@ -9,7 +9,6 @@ import type {
   ContentModerationGround,
   ContentReportReason,
   ContentSubjectKind,
-  ContentTarget,
 } from "./content-safety.ts";
 
 /**
@@ -1016,15 +1015,15 @@ export function parseEscalationDetail(raw: unknown): EscalationDetail {
   };
 }
 
-/** One escalated item; each read is logged in the console ledger. Any item never escalated is refused. */
+/** One escalated item, by id; each read is logged in the console ledger. Any item never escalated is refused. */
 export async function getEscalationDetail(
   db: XosClient,
-  target: ContentTarget,
+  subjectId: string,
 ): Promise<Result<EscalationDetail>> {
   return rpc(
     db,
     "console_content_escalation_detail",
-    { p_subject_kind: target.kind, p_subject_id: target.id },
+    { p_subject_id: subjectId },
     parseEscalationDetail,
   );
 }
@@ -1036,15 +1035,14 @@ export async function getEscalationDetail(
  */
 export async function decideEscalation(
   db: XosClient,
-  target: ContentTarget,
+  subjectId: string,
   decision: ContentDecision,
 ): Promise<Result<string>> {
   return rpc(
     db,
     "console_decide_content_escalation",
     {
-      p_subject_kind: target.kind,
-      p_subject_id: target.id,
+      p_subject_id: subjectId,
       p_action: decision.action,
       p_ground: decision.ground,
       p_rule_reference: decision.ruleReference,
