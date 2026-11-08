@@ -37,17 +37,7 @@ export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "contact", title: "Legal Contact", version: "1.0.0-draft", accept: false },
 ];
 
-/** Settings, Account: where a person deletes their account (Delete Your Account, Section 1). */
-export const ACCOUNT_DELETION_PATH = "/settings/account";
-
-/**
- * True when `next` is the account deletion page. The terms step lets it through unaccepted: deleting an
- * account never waits on accepting anything (Worker Terms 13), so a person who declines can still leave.
- */
-export function skipsTermsStep(next: string): boolean {
-  const path = next.split(/[?#]/, 1)[0] ?? "";
-  return path === ACCOUNT_DELETION_PATH || path.startsWith(`${ACCOUNT_DELETION_PATH}/`);
-}
+export { ACCOUNT_DELETION_PATH, skipsTermsStep } from "@/lib/auth/deletion-path";
 
 /** A document Gateway publishes at /legal/{slug}, or undefined. */
 export function gatewayLegalDocument(slug: string): GatewayLegalDocument | undefined {

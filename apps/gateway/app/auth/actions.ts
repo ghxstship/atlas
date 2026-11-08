@@ -23,6 +23,7 @@ import {
   PENDING_ACCEPTANCES,
   recordPendingAcceptances,
   signUpAcceptances,
+  skipsTermsStep,
 } from "@/lib/auth/legal";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import {
@@ -86,7 +87,7 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
   if (holdsFactor) redirect(secondFactorRedirect(next, "") as Route);
   // Likewise anyone who has not answered at 18: an earlier 16, or a provider's account (ADR 0156). The terms page asks itself.
-  const asksItself = next.split("?")[0] === "/auth/terms";
+  const asksItself = next.split("?")[0] === "/auth/terms" || skipsTermsStep(next);
   redirect(
     (!asksItself && (await owesAgeAnswer(db))
       ? `/auth/age?next=${encodeURIComponent(next)}`

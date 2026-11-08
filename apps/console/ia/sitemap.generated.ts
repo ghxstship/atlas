@@ -12,6 +12,7 @@ export const sitemap: Sitemap = {
     opportunityId: { type: "uuid" },
     itemId: { type: "uuid" },
     subjectId: { type: "uuid" },
+    disputeId: { type: "uuid" },
   },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
   chrome: {

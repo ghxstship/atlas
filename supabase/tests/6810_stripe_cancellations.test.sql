@@ -61,8 +61,7 @@ select throws_ok($$select * from app.stripe_cancellation_status(pg_temp.id('org_
 
 -- The lifecycle --------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
-select throws_ok($$update private.stripe_cancellations set cancellation_state = 'Withdrawn' where stripe_subscription_id = 'sub_N0rth';
-                   update private.stripe_cancellations set cancellation_state = 'Queued' where stripe_subscription_id = 'sub_N0rth'$$, 'XR001',
+select throws_ok($$update private.stripe_cancellations set cancellation_state = 'Withdrawn' where stripe_subscription_id = 'sub_N0rth'; update private.stripe_cancellations set cancellation_state = 'Queued' where stripe_subscription_id = 'sub_N0rth'$$, 'XR001',
   'stripe_cancellation_transition_not_allowed: A Stripe cancellation cannot move from Withdrawn to Queued.', 'a withdrawn cancel stays withdrawn');
 select is(pg_temp.cancel_state('sub_N0rth', 'At Period End'), 'Queued', 'the refused change left it queued');
 

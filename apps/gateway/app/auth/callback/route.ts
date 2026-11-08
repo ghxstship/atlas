@@ -59,6 +59,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
   // Anyone else who has not answered at 18 does so now, however the account was made (ADR 0156). A failed read carries on:
   // the proxy asks at the next page.
-  if (await owesAgeAnswer(db)) return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  // Deleting the account never waits on it (Worker Terms 13).
+  if (!skipsTermsStep(next) && (await owesAgeAnswer(db))) {
+    return goTo(`/auth/age?next=${encodeURIComponent(next)}`);
+  }
   return goTo(next);
 }

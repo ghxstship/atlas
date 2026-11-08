@@ -363,7 +363,7 @@ describe("the disclosure contact", () => {
 
   it("meets RFC 9116 and has not expired", () => {
     const body = text(route("atlas"));
-    expect(body).toMatch(/^Contact: mailto:security@ghxstship\.tech$/m);
+    expect(body).toMatch(/^Contact: mailto:support@ghxstship\.pro$/m);
     const expires = /^Expires: (.+)$/m.exec(body)?.[1] ?? "";
     expect(
       Date.parse(expires),
