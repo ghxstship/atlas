@@ -4299,7 +4299,7 @@ export const COMPASS_HELP: HelpContent = {
               [
                 {
                   t: "text",
-                  v: "Si tu organización activó la lectura de recibos y permitiste las funciones de IA, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina. La primera vez, Compass te pregunta si permites las funciones de IA, porque leerla envía la foto a un proveedor externo de IA; hasta que las permitas, Aurora no la lee y escribes los datos. Puedes cambiarlo en ",
+                  v: "Si tu organización activó la lectura de recibos y permitiste las funciones de IA, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina. La primera vez, Compass te pregunta si las permites, porque leerla envía la foto a un proveedor externo de IA; sin permiso, escribes los datos tú. Puedes cambiarlo en ",
                 },
                 { t: "strong", v: "Configuración" },
                 { t: "text", v: ", " },
@@ -4358,12 +4358,12 @@ export const COMPASS_HELP: HelpContent = {
               { t: "strong", v: "No adeudado" },
               {
                 t: "text",
-                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró contra tu gasto, así que uno acreditado por completo puede seguir diciendo ",
+                v: " significa que se rechazó o se canceló. Compass no ve los créditos que finanzas registró, así que un gasto acreditado puede seguir diciendo ",
               },
               { t: "strong", v: "Te lo deben" },
               {
                 t: "text",
-                v: "; pregunta a finanzas si el importe no parece correcto. XOS registra el reembolso y no mueve dinero.",
+                v: "; pregunta a finanzas si algo no cuadra. XOS registra el reembolso y no mueve dinero.",
               },
             ],
           },

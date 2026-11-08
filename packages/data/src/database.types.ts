@@ -2730,6 +2730,7 @@ export type Database = {
       };
       onboarding_items: {
         Row: {
+          awaiting_review: boolean | null;
           engagement_id: string | null;
           expires_on: string | null;
           id: string | null;
@@ -3449,9 +3450,11 @@ export type Database = {
         Row: {
           comment: string | null;
           id: string | null;
+          is_of_individual: boolean | null;
           rated_organization_id: string | null;
           rated_person_id: string | null;
           rater_organization_id: string | null;
+          rater_organization_name: string | null;
           rater_side: Database["app"]["Enums"]["rating_side"] | null;
           replied_at: string | null;
           reply: string | null;
@@ -19760,6 +19763,10 @@ export type Database = {
           issued_at: string;
           message: string;
           org_id: string;
+          people_not_sent: number | null;
+          people_told: number | null;
+          people_told_on_site: number | null;
+          people_waiting: number | null;
           project_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -19775,6 +19782,10 @@ export type Database = {
           issued_at?: string;
           message: string;
           org_id: string;
+          people_not_sent?: number | null;
+          people_told?: number | null;
+          people_told_on_site?: number | null;
+          people_waiting?: number | null;
           project_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -19789,6 +19800,10 @@ export type Database = {
           issued_at?: string;
           message?: string;
           org_id?: string;
+          people_not_sent?: number | null;
+          people_told?: number | null;
+          people_told_on_site?: number | null;
+          people_waiting?: number | null;
           project_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -28809,6 +28824,142 @@ export type Database = {
           },
         ];
       };
+      guest_care_needs: {
+        Row: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string | null;
+          allergies: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string | null;
+          guest_email: string | null;
+          guest_list_entry_id: string;
+          guest_person_id: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes?: string | null;
+          allergies?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes?: string | null;
+          guest_email?: string | null;
+          guest_list_entry_id: string;
+          guest_person_id?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes?: string | null;
+          allergies?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes?: string | null;
+          guest_email?: string | null;
+          guest_list_entry_id?: string;
+          guest_person_id?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_care_needs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_guest_person_id_fkey";
+            columns: ["guest_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_place_facts";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_site_windows";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_care_needs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       guest_check_ins: {
         Row: {
           checked_in_by_membership_id: string | null;
@@ -35629,6 +35780,133 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      legal_queue_items: {
+        Row: {
+          closed_at: string | null;
+          court_action_filed: boolean;
+          created_at: string;
+          created_by: string | null;
+          details: string | null;
+          due_at: string;
+          earliest_action_at: string | null;
+          extended_at: string | null;
+          extension_reason: string | null;
+          first_response_at: string | null;
+          first_response_due_at: string | null;
+          id: string;
+          item_state: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id: string | null;
+          outside_reviewer_id: string | null;
+          re_review_same_person: boolean | null;
+          received_at: string;
+          reference: string;
+          related_item_id: string | null;
+          requester_contact: string | null;
+          rule_code: string;
+          source_id: string | null;
+          source_table: string | null;
+          subject_person_id: string | null;
+          tenant_org_id: string | null;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          closed_at?: string | null;
+          court_action_filed?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          details?: string | null;
+          due_at: string;
+          earliest_action_at?: string | null;
+          extended_at?: string | null;
+          extension_reason?: string | null;
+          first_response_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id?: string | null;
+          outside_reviewer_id?: string | null;
+          re_review_same_person?: boolean | null;
+          received_at: string;
+          reference: string;
+          related_item_id?: string | null;
+          requester_contact?: string | null;
+          rule_code: string;
+          source_id?: string | null;
+          source_table?: string | null;
+          subject_person_id?: string | null;
+          tenant_org_id?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          closed_at?: string | null;
+          court_action_filed?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          details?: string | null;
+          due_at?: string;
+          earliest_action_at?: string | null;
+          extended_at?: string | null;
+          extension_reason?: string | null;
+          first_response_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          item_state?: Database["app"]["Enums"]["legal_queue_state"];
+          legal_hold_id?: string | null;
+          outside_reviewer_id?: string | null;
+          re_review_same_person?: boolean | null;
+          received_at?: string;
+          reference?: string;
+          related_item_id?: string | null;
+          requester_contact?: string | null;
+          rule_code?: string;
+          source_id?: string | null;
+          source_table?: string | null;
+          subject_person_id?: string | null;
+          tenant_org_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "legal_queue_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_legal_hold_id_fkey";
+            columns: ["legal_hold_id"];
+            isOneToOne: false;
+            referencedRelation: "legal_holds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_related_item_id_fkey";
+            columns: ["related_item_id"];
+            isOneToOne: false;
+            referencedRelation: "legal_queue_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_subject_person_id_fkey";
+            columns: ["subject_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "legal_queue_items_tenant_org_id_fkey";
+            columns: ["tenant_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
@@ -50515,6 +50793,205 @@ export type Database = {
           },
         ];
       };
+      rating_dispute_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id: string;
+          org_id: string;
+          rating_dispute_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id?: string;
+          org_id: string;
+          rating_dispute_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rating_dispute_state"] | null;
+          id?: string;
+          org_id?: string;
+          rating_dispute_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_dispute_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_rating_dispute_id_fkey";
+            columns: ["rating_dispute_id"];
+            isOneToOne: false;
+            referencedRelation: "rating_disputes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_dispute_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rating_disputes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_ground: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement: string | null;
+          deleted_at: string | null;
+          disputant_person_id: string;
+          dispute_details: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at: string;
+          id: string;
+          org_id: string;
+          org_responded_at: string | null;
+          org_responded_by: string | null;
+          org_response: string | null;
+          rating_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement?: string | null;
+          deleted_at?: string | null;
+          disputant_person_id: string;
+          dispute_details: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at?: string;
+          id?: string;
+          org_id: string;
+          org_responded_at?: string | null;
+          org_responded_by?: string | null;
+          org_response?: string | null;
+          rating_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_ground?: Database["app"]["Enums"]["rating_dispute_ground"] | null;
+          decision_statement?: string | null;
+          deleted_at?: string | null;
+          disputant_person_id?: string;
+          dispute_details?: string;
+          dispute_ground?: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_state?: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at?: string;
+          id?: string;
+          org_id?: string;
+          org_responded_at?: string | null;
+          org_responded_by?: string | null;
+          org_response?: string | null;
+          rating_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_disputes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_disputant_person_id_fkey";
+            columns: ["disputant_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_org_responded_by_fkey";
+            columns: ["org_responded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_rating_id_fkey";
+            columns: ["rating_id"];
+            isOneToOne: false;
+            referencedRelation: "crew_ratings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_rating_id_fkey";
+            columns: ["rating_id"];
+            isOneToOne: false;
+            referencedRelation: "ratings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_disputes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       rating_replies: {
         Row: {
           body: string;
@@ -50591,6 +51068,74 @@ export type Database = {
           },
           {
             foreignKeyName: "rating_replies_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rating_sharing_consents: {
+        Row: {
+          captured_at: string;
+          captured_ip: unknown;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          notice_version: string;
+          person_id: string;
+          source: Database["app"]["Enums"]["consent_source"];
+          updated_at: string;
+          updated_by: string | null;
+          withdrawn_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          captured_at?: string;
+          captured_ip?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          notice_version: string;
+          person_id: string;
+          source: Database["app"]["Enums"]["consent_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          captured_at?: string;
+          captured_ip?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          notice_version?: string;
+          person_id?: string;
+          source?: Database["app"]["Enums"]["consent_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rating_sharing_consents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_sharing_consents_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rating_sharing_consents_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -60672,6 +61217,201 @@ export type Database = {
           },
         ];
       };
+      sensitive_data_consents: {
+        Row: {
+          account_id: string | null;
+          authority_confirmed: boolean;
+          basis: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip: unknown;
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at: string;
+          given_at: string;
+          given_by: string;
+          guest_list_entry_id: string | null;
+          id: string;
+          locale: string;
+          notice_confirmed: boolean;
+          notice_version: string;
+          org_id: string | null;
+          person_id: string | null;
+          surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at: string;
+          values_saved: boolean;
+          withdrawn_at: string | null;
+          withdrawn_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          authority_confirmed?: boolean;
+          basis: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip?: unknown;
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at?: string;
+          given_at?: string;
+          given_by: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          locale: string;
+          notice_confirmed?: boolean;
+          notice_version: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at?: string;
+          values_saved?: boolean;
+          withdrawn_at?: string | null;
+          withdrawn_by?: string | null;
+        };
+        Update: {
+          account_id?: string | null;
+          authority_confirmed?: boolean;
+          basis?: Database["app"]["Enums"]["sensitive_consent_basis"];
+          captured_ip?: unknown;
+          category?: Database["app"]["Enums"]["sensitive_data_category"];
+          created_at?: string;
+          given_at?: string;
+          given_by?: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          locale?: string;
+          notice_confirmed?: boolean;
+          notice_version?: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
+          updated_at?: string;
+          values_saved?: boolean;
+          withdrawn_at?: string | null;
+          withdrawn_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sensitive_data_consents_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_given_by_fkey";
+            columns: ["given_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_data_consents_withdrawn_by_fkey";
+            columns: ["withdrawn_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sensitive_field_records: {
+        Row: {
+          account_id: string | null;
+          awaiting_notified_at: string | null;
+          awaiting_since: string | null;
+          changed_at: string;
+          cleared_at: string | null;
+          consent_id: string | null;
+          entered_at: string;
+          entered_by: string | null;
+          field_code: string;
+          guest_list_entry_id: string | null;
+          id: string;
+          person_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          awaiting_notified_at?: string | null;
+          awaiting_since?: string | null;
+          changed_at?: string;
+          cleared_at?: string | null;
+          consent_id?: string | null;
+          entered_at?: string;
+          entered_by?: string | null;
+          field_code: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          person_id?: string | null;
+        };
+        Update: {
+          account_id?: string | null;
+          awaiting_notified_at?: string | null;
+          awaiting_since?: string | null;
+          changed_at?: string;
+          cleared_at?: string | null;
+          consent_id?: string | null;
+          entered_at?: string;
+          entered_by?: string | null;
+          field_code?: string;
+          guest_list_entry_id?: string | null;
+          id?: string;
+          person_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sensitive_field_records_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_consent_id_fkey";
+            columns: ["consent_id"];
+            isOneToOne: false;
+            referencedRelation: "sensitive_data_consents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_entered_by_fkey";
+            columns: ["entered_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_guest_list_entry_id_fkey";
+            columns: ["guest_list_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "guest_list_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sensitive_field_records_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_accounts: {
         Row: {
           created_at: string;
@@ -65768,47 +66508,62 @@ export type Database = {
       stripe_subscription_links: {
         Row: {
           billing_interval: Database["app"]["Enums"]["billing_interval"];
+          cancel_at: string | null;
           created_at: string;
           created_by: string | null;
+          currency_code: string | null;
           current_period_end: string | null;
           deleted_at: string | null;
           id: string;
           livemode: boolean;
           org_id: string;
+          recurring_amount_minor: number | null;
           stripe_customer_id: string;
+          stripe_ended_at: string | null;
           stripe_subscription_id: string;
           subscription_id: string;
+          terms_event_at: string | null;
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
           billing_interval: Database["app"]["Enums"]["billing_interval"];
+          cancel_at?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string | null;
           current_period_end?: string | null;
           deleted_at?: string | null;
           id?: string;
           livemode: boolean;
           org_id: string;
+          recurring_amount_minor?: number | null;
           stripe_customer_id: string;
+          stripe_ended_at?: string | null;
           stripe_subscription_id: string;
           subscription_id: string;
+          terms_event_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
           billing_interval?: Database["app"]["Enums"]["billing_interval"];
+          cancel_at?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string | null;
           current_period_end?: string | null;
           deleted_at?: string | null;
           id?: string;
           livemode?: boolean;
           org_id?: string;
+          recurring_amount_minor?: number | null;
           stripe_customer_id?: string;
+          stripe_ended_at?: string | null;
           stripe_subscription_id?: string;
           subscription_id?: string;
+          terms_event_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -82822,6 +83577,43 @@ export type Database = {
           },
         ];
       };
+      rating_release_times: {
+        Row: {
+          engagement_id: string | null;
+          released_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       reconciliation_gaps: {
         Row: {
           is_critical: boolean | null;
@@ -84724,6 +85516,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      ai_declined_by_me: { Args: Record<PropertyKey, never>; Returns: boolean };
       ai_enabled_features: {
         Args: { p_org_id: string };
         Returns: Database["app"]["Enums"]["ai_feature"][];
@@ -84989,6 +85782,18 @@ export type Database = {
           version: number;
         }[];
       };
+      attest_roster_meal_preference: {
+        Args: {
+          p_authority_confirmed?: boolean;
+          p_client_ip?: unknown;
+          p_locale: string;
+          p_notice_confirmed?: boolean;
+          p_notice_version: string;
+          p_roster_entry_id: string;
+          p_surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
+      };
       aurora_intake_scope: { Args: { p_kind: string; p_project_id: string }; Returns: Json };
       authenticate_api_key: {
         Args: { p_secret: string };
@@ -85108,6 +85913,17 @@ export type Database = {
           current_period_end: string;
           has_stripe_customer: boolean;
           paid_through_stripe: boolean;
+        }[];
+      };
+      billing_alerts_to_send: {
+        Args: { p_limit?: number };
+        Returns: {
+          alert_id: string;
+          alert_kind: string;
+          detail: string;
+          raised_at: string;
+          stripe_subscription_id: string;
+          subject_org_id: string;
         }[];
       };
       billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
@@ -85243,6 +86059,7 @@ export type Database = {
       can_add_per_diems: { Args: { p_project_id: string }; Returns: boolean };
       can_export_org: { Args: { p_org_id: string }; Returns: boolean };
       can_read_engagement_costs: { Args: { p_project_id: string }; Returns: boolean };
+      can_read_guest_care_needs: { Args: { p_project_id: string }; Returns: boolean };
       can_read_payments_due: { Args: { p_org_id: string }; Returns: boolean };
       can_read_reimbursements: { Args: { p_org_id: string }; Returns: boolean };
       can_record_payments: { Args: { p_org_id: string }; Returns: boolean };
@@ -85629,6 +86446,15 @@ export type Database = {
           recipient_person_id: string;
         }[];
       };
+      claim_stripe_cancellations: {
+        Args: { p_limit?: number; p_livemode: boolean; p_worker: string };
+        Returns: {
+          attempt: number;
+          cancel_mode: Database["app"]["Enums"]["stripe_cancel_mode"];
+          cancellation_id: string;
+          stripe_subscription_id: string;
+        }[];
+      };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -85665,6 +86491,7 @@ export type Database = {
           url: string;
         }[];
       };
+      clear_guest_care_needs: { Args: { p_guest_list_entry_id: string }; Returns: undefined };
       clear_per_diem_payment: {
         Args: { p_per_diem_id: string; p_reason: string };
         Returns: string;
@@ -85793,6 +86620,28 @@ export type Database = {
           target_org_name: string;
         }[];
       };
+      console_add_legal_alert_contact: {
+        Args: { p_email: string; p_name: string };
+        Returns: string;
+      };
+      console_add_legal_queue_item: {
+        Args: {
+          p_details?: string;
+          p_due_local?: string;
+          p_org_slug?: string;
+          p_received_local: string;
+          p_related_reference?: string;
+          p_requester_contact?: string;
+          p_rule_code: string;
+          p_subject_email?: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
+      console_appoint_outside_reviewer: {
+        Args: { p_email: string; p_name: string; p_organization: string; p_reason: string };
+        Returns: string;
+      };
       console_banners: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -85810,6 +86659,20 @@ export type Database = {
           message_es: string;
           severity: Database["app"]["Enums"]["system_banner_severity"];
           starts_at: string;
+        }[];
+      };
+      console_billing_alerts: {
+        Args: { p_limit?: number };
+        Returns: {
+          alert_id: string;
+          alert_kind: string;
+          detail: string;
+          occurrences: number;
+          org_name: string;
+          raised_at: string;
+          sent_at: string;
+          stripe_subscription_id: string;
+          subject_org_id: string;
         }[];
       };
       console_clear_flag_override: {
@@ -85842,6 +86705,8 @@ export type Database = {
           p_facts?: string;
           p_ground?: Database["app"]["Enums"]["moderation_ground"];
           p_outcome: Database["app"]["Enums"]["moderation_appeal_state"];
+          p_outside_reviewer_decided?: boolean;
+          p_re_review_notes: string;
           p_rule_reference?: string;
           p_statement: string;
         };
@@ -85870,9 +86735,26 @@ export type Database = {
         };
         Returns: string;
       };
+      console_decide_rating_dispute: {
+        Args: {
+          p_dispute_id: string;
+          p_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          p_outcome: Database["app"]["Enums"]["rating_dispute_state"];
+          p_statement: string;
+        };
+        Returns: undefined;
+      };
       console_end_banner: { Args: { p_banner_id: string }; Returns: string };
+      console_end_outside_reviewer: {
+        Args: { p_reason: string; p_reviewer_id: string };
+        Returns: undefined;
+      };
       console_end_plan_override: {
         Args: { p_override_id: string; p_reason: string };
+        Returns: string;
+      };
+      console_extend_legal_queue_item: {
+        Args: { p_item_id: string; p_reason: string };
         Returns: string;
       };
       console_flags: {
@@ -85905,6 +86787,9 @@ export type Database = {
         };
         Returns: string;
       };
+      console_legal_queue: { Args: { p_open?: boolean }; Returns: Json };
+      console_legal_queue_item: { Args: { p_item_id: string }; Returns: Json };
+      console_legal_queue_overdue: { Args: Record<PropertyKey, never>; Returns: number };
       console_list_territories: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -85957,6 +86842,10 @@ export type Database = {
           total_reports: number;
         }[];
       };
+      console_note_legal_queue_item: {
+        Args: { p_item_id: string; p_note: string };
+        Returns: string;
+      };
       console_operators: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -85985,6 +86874,14 @@ export type Database = {
           uses_atlas: boolean;
         }[];
       };
+      console_partner_client_grant: {
+        Args: { p_org_id: string };
+        Returns: {
+          allowed: boolean;
+          granted_at: string;
+          reason: string;
+        }[];
+      };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_price_book_currencies: {
         Args: Record<PropertyKey, never>;
@@ -85993,6 +86890,30 @@ export type Database = {
         }[];
       };
       console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
+      console_rating_dispute_detail: { Args: { p_dispute_id: string }; Returns: Json };
+      console_rating_dispute_queue: {
+        Args: { p_open?: boolean };
+        Returns: {
+          decided_at: string;
+          disputant_name: string;
+          dispute_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          dispute_id: string;
+          dispute_state: Database["app"]["Enums"]["rating_dispute_state"];
+          filed_at: string;
+          org_answered: boolean;
+          org_id: string;
+          org_name: string;
+        }[];
+      };
+      console_record_legal_first_response: {
+        Args: { p_item_id: string; p_note: string };
+        Returns: string;
+      };
+      console_remove_legal_alert_contact: { Args: { p_contact_id: string }; Returns: undefined };
+      console_resolve_billing_alert: {
+        Args: { p_alert_id: string; p_reason: string };
+        Returns: string;
+      };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
@@ -86060,6 +86981,10 @@ export type Database = {
         Args: { p_flag_key: string; p_kill: boolean; p_reason: string };
         Returns: string;
       };
+      console_set_partner_clients: {
+        Args: { p_allowed: boolean; p_org_id: string; p_reason: string };
+        Returns: boolean;
+      };
       console_set_plan_override: {
         Args: {
           p_expires_at: string;
@@ -86097,6 +87022,20 @@ export type Database = {
           p_support_session_id: string;
         };
         Returns: Json;
+      };
+      console_transition_legal_queue_item: {
+        Args: {
+          p_court_action_filed?: boolean;
+          p_expected: Database["app"]["Enums"]["legal_queue_state"];
+          p_item_id: string;
+          p_next: Database["app"]["Enums"]["legal_queue_state"];
+          p_outside_reviewer_decided?: boolean;
+          p_re_review_notes?: string;
+          p_reason: string;
+          p_same_person?: boolean;
+          p_told_how?: string;
+        };
+        Returns: string;
       };
       console_whoami: {
         Args: Record<PropertyKey, never>;
@@ -86870,6 +87809,7 @@ export type Database = {
         Args: { p_inbound_message_id: string; p_reason?: string };
         Returns: undefined;
       };
+      disown_sensitive_entry: { Args: { p_consent_id: string }; Returns: undefined };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -87231,6 +88171,14 @@ export type Database = {
         Args: { p_grounds: string; p_moderation_action_id: string };
         Returns: string;
       };
+      file_rating_dispute: {
+        Args: {
+          p_details: string;
+          p_ground: Database["app"]["Enums"]["rating_dispute_ground"];
+          p_rating_id: string;
+        };
+        Returns: string;
+      };
       fill_position: {
         Args: { p_membership_id?: string; p_position_id: string; p_roster_entry_id?: string };
         Returns: Json;
@@ -87342,6 +88290,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      finish_stripe_cancellation: {
+        Args: { p_accepted: boolean; p_error?: string; p_id: string; p_stripe_status?: string };
+        Returns: Database["app"]["Enums"]["stripe_cancellation_state"];
+      };
       finish_stripe_event: {
         Args: { p_error?: string; p_stripe_event_row_id: string };
         Returns: undefined;
@@ -87411,6 +88363,19 @@ export type Database = {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
       };
+      give_sensitive_consent: {
+        Args: {
+          p_account_id?: string;
+          p_authority_confirmed?: boolean;
+          p_category: Database["app"]["Enums"]["sensitive_data_category"];
+          p_client_ip?: unknown;
+          p_locale: string;
+          p_notice_confirmed?: boolean;
+          p_notice_version: string;
+          p_surface: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
+      };
       give_weather_all_clear: {
         Args: { p_device_at?: string; p_hold_id: string; p_id?: string; p_message: string };
         Returns: string;
@@ -87444,6 +88409,16 @@ export type Database = {
       grant_support_session: {
         Args: { p_hours: number; p_org_id: string; p_reason: string };
         Returns: string;
+      };
+      guest_care_needs_states: {
+        Args: { p_project_id: string };
+        Returns: {
+          categories: Database["app"]["Enums"]["sensitive_data_category"][];
+          given_at: string;
+          given_by_name: string;
+          guest_list_entry_id: string;
+          has_email: boolean;
+        }[];
       };
       guest_email_send_summary: {
         Args: { p_send_id: string };
@@ -87690,6 +88665,7 @@ export type Database = {
         };
         Returns: string;
       };
+      mark_billing_alert_sent: { Args: { p_alert_id: string }; Returns: undefined };
       mark_communicated: {
         Args: { p_note?: string; p_subject_ids: string[]; p_subject_table: string };
         Returns: number;
@@ -87918,6 +88894,7 @@ export type Database = {
           source: Database["app"]["Enums"]["credential_photo_source"];
         }[];
       };
+      my_legal_standing: { Args: Record<PropertyKey, never>; Returns: Json };
       my_mandatory_reads: {
         Args: { p_org_id: string };
         Returns: {
@@ -88073,6 +89050,23 @@ export type Database = {
           this_session: boolean;
         }[];
       };
+      my_sensitive_consents: {
+        Args: { p_account_id?: string };
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          given_at: string;
+          notice_version: string;
+        }[];
+      };
+      my_sensitive_states: {
+        Args: { p_account_id?: string };
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          held: boolean;
+          meal_preferences: string[];
+          waiting: boolean;
+        }[];
+      };
       my_sessions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -88144,6 +89138,15 @@ export type Database = {
           voided: boolean;
         }[];
       };
+      my_work_detail_needs: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string;
+        }[];
+      };
       my_work_detail_sharing: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -88175,6 +89178,27 @@ export type Database = {
           ends_on: string;
           starts_on: string;
         }[];
+      };
+      note_stripe_charge: {
+        Args: {
+          p_amount_minor: number;
+          p_billing_reason: string;
+          p_currency_code: string;
+          p_paid_at: string;
+          p_stripe_invoice_id: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: boolean;
+      };
+      note_stripe_subscription_terms: {
+        Args: {
+          p_amount_minor: number;
+          p_cancel_at: string;
+          p_currency_code: string;
+          p_event_created_at: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: boolean;
       };
       notify_import_finished: {
         Args: { p_import_batch_id: string; p_import_job_id: string; p_review_url: string };
@@ -88390,6 +89414,7 @@ export type Database = {
           project_key: string;
         }[];
       };
+      partner_client_creation_allowed: { Args: { p_partner_org_id: string }; Returns: boolean };
       partner_client_orgs: {
         Args: { p_partner_org_id: string };
         Returns: {
@@ -88774,11 +89799,36 @@ export type Database = {
           worked_role: boolean;
         }[];
       };
+      rating_dispute_subjects: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          dispute_id: string;
+          engagement_id: string;
+          org_name: string;
+          party_name: string;
+          project_name: string;
+          rating_comment: string;
+          rating_score: number;
+          rating_submitted_at: string;
+        }[];
+      };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
       };
       reactivate_organization: { Args: { p_org_id: string }; Returns: string };
+      read_guest_care_needs: {
+        Args: { p_for_export?: boolean; p_project_id: string };
+        Returns: {
+          accessibility_needs: Database["app"]["Enums"]["accessibility_need"][];
+          accessibility_notes: string;
+          allergies: string;
+          dietary_needs: Database["app"]["Enums"]["dietary_need"][];
+          dietary_notes: string;
+          guest_list_entry_id: string;
+          guest_name: string;
+        }[];
+      };
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
       read_notification_action: {
@@ -88854,6 +89904,17 @@ export type Database = {
         Returns: string;
       };
       reconcile_project: { Args: { p_note?: string; p_project_id: string }; Returns: string };
+      reconcile_stripe_subscription: {
+        Args: {
+          p_event_created_at: string;
+          p_livemode: boolean;
+          p_org_id: string;
+          p_stripe_customer_id: string;
+          p_stripe_status: string;
+          p_stripe_subscription_id: string;
+        };
+        Returns: string;
+      };
       record_addon_purchase_from_stripe: {
         Args: {
           p_addon_code: string;
@@ -88864,6 +89925,15 @@ export type Database = {
           p_paid_at: string;
           p_quantity: number;
           p_stripe_checkout_session_id: string;
+        };
+        Returns: string;
+      };
+      record_ai_choice: {
+        Args: {
+          p_choice: string;
+          p_client_ip?: unknown;
+          p_disclosure_version: string;
+          p_surface: string;
         };
         Returns: string;
       };
@@ -89248,6 +90318,22 @@ export type Database = {
         Args: { p_org_id: string; p_subject_id: string; p_subject_table: string };
         Returns: boolean;
       };
+      record_renewal_consent: {
+        Args: {
+          p_amount_minor: number;
+          p_billing_interval: Database["app"]["Enums"]["billing_interval"];
+          p_currency_code: string;
+          p_initials: string;
+          p_livemode: boolean;
+          p_locale: string;
+          p_next_charge_on: string;
+          p_org_id: string;
+          p_plan_code: string;
+          p_statement: string;
+          p_text_version: string;
+        };
+        Returns: string;
+      };
       record_rfq_response: {
         Args: {
           p_currency_code: string;
@@ -89430,6 +90516,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      refuse_minimum_age: { Args: { p_surface: string }; Returns: Json };
       regenerate_form_link: {
         Args: { p_id: string };
         Returns: {
@@ -89544,6 +90631,7 @@ export type Database = {
         Args: { p_org_id: string; p_person_id: string };
         Returns: string[];
       };
+      remove_sensitive_entry: { Args: { p_consent_id: string }; Returns: undefined };
       remove_stakeholder_pack_item: { Args: { p_item_id: string }; Returns: undefined };
       reopen_project_debrief: { Args: { p_project_debrief_id: string }; Returns: undefined };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
@@ -89708,6 +90796,14 @@ export type Database = {
         Args: { p_confirm_name: string; p_org_id: string; p_reason: string };
         Returns: string;
       };
+      request_plan_end: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: {
+          cancellation_id: string;
+          cancellation_state: Database["app"]["Enums"]["stripe_cancellation_state"];
+          stripe_subscription_id: string;
+        }[];
+      };
       request_record_review: {
         Args: { p_note?: string; p_record_id: string; p_reviewer_person_id?: string };
         Returns: string;
@@ -89834,6 +90930,10 @@ export type Database = {
           p_sponsor_asset_id: string;
         };
         Returns: string;
+      };
+      respond_to_rating_dispute: {
+        Args: { p_dispute_id: string; p_response: string };
+        Returns: undefined;
       };
       respond_to_settlement: {
         Args: { p_accept: boolean; p_reason: string; p_settlement_id: string };
@@ -89979,6 +91079,7 @@ export type Database = {
           starts_on: string;
         }[];
       };
+      roster_meal_consent_stands: { Args: { p_roster_entry_id: string }; Returns: boolean };
       roster_project_fact_status: {
         Args: { p_engagement_id: string };
         Returns: {
@@ -90430,6 +91531,33 @@ export type Database = {
         Args: { p_pack_id: string; p_recipient_ids?: string[] };
         Returns: number;
       };
+      sensitive_consent_report: {
+        Args: { p_org_id: string };
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          field_code: string;
+          given_at: string;
+          given_by_name: string;
+          notice_version: string;
+          standing: Database["app"]["Enums"]["sensitive_consent_standing"];
+          subject_id: string;
+          subject_kind: string;
+          subject_name: string;
+          withdrawn_at: string;
+        }[];
+      };
+      sensitive_entries_about_me: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          category: Database["app"]["Enums"]["sensitive_data_category"];
+          consent_id: string;
+          details: Json;
+          given_at: string;
+          given_by_name: string;
+          guest_name: string;
+          org_name: string;
+        }[];
+      };
       set_account_notification_defaults: {
         Args: { p_account_id: string; p_defaults: Json };
         Returns: undefined;
@@ -90456,6 +91584,26 @@ export type Database = {
       set_departments_in_use: {
         Args: { p_dept_codes: string[]; p_disc_codes: string[]; p_org_id: string };
         Returns: undefined;
+      };
+      set_guest_care_needs: {
+        Args: {
+          p_accessibility_needs?: Database["app"]["Enums"]["accessibility_need"][];
+          p_accessibility_notes?: string;
+          p_accessibility_notice_version?: string;
+          p_allergies?: string;
+          p_authority_confirmed?: boolean;
+          p_clear_guest_email?: boolean;
+          p_client_ip?: unknown;
+          p_dietary_needs?: Database["app"]["Enums"]["dietary_need"][];
+          p_dietary_notes?: string;
+          p_dietary_notice_version?: string;
+          p_guest_email?: string;
+          p_guest_list_entry_id: string;
+          p_locale?: string;
+          p_notice_confirmed?: boolean;
+          p_surface?: Database["app"]["Enums"]["sensitive_consent_surface"];
+        };
+        Returns: string;
       };
       set_kiosk_pin: { Args: { p_membership_id: string; p_pin: string }; Returns: undefined };
       set_location_defaults: {
@@ -90513,6 +91661,14 @@ export type Database = {
           p_rate_type: Database["app"]["Enums"]["rate_type"];
         };
         Returns: undefined;
+      };
+      set_rating_sharing: {
+        Args: {
+          p_notice_version?: string;
+          p_opt_in: boolean;
+          p_source?: Database["app"]["Enums"]["consent_source"];
+        };
+        Returns: boolean;
       };
       set_roster_lock: {
         Args: { p_engagement_id: string; p_locks_at: string };
@@ -90864,6 +92020,25 @@ export type Database = {
       store_warehouse_credential: {
         Args: { p_destination_id: string; p_secret: string };
         Returns: undefined;
+      };
+      stripe_cancellation_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          accepted_at: string;
+          cancel_mode: Database["app"]["Enums"]["stripe_cancel_mode"];
+          cancellation_id: string;
+          cancellation_state: Database["app"]["Enums"]["stripe_cancellation_state"];
+          ends_at: string;
+          requested_at: string;
+          source: Database["app"]["Enums"]["stripe_cancel_source"];
+          stripe_subscription_id: string;
+        }[];
+      };
+      stripe_checkouts_to_close: {
+        Args: { p_livemode: boolean };
+        Returns: {
+          stripe_checkout_session_id: string;
+        }[];
       };
       submit_advance_answer: {
         Args: {
@@ -91556,6 +92731,21 @@ export type Database = {
         Returns: string;
       };
       vacate_position: { Args: { p_position_id: string; p_reason: string }; Returns: Json };
+      vendor_certificate_uploads: {
+        Args: { p_org_id: string };
+        Returns: {
+          engagement_id: string;
+          item_name: string;
+          onboarding_item_id: string;
+          review_passed: boolean;
+          scan_status: string;
+          storage_uri: string;
+          submitted_at: string;
+          total_count: number;
+          vendor_id: string;
+          vendor_name: string;
+        }[];
+      };
       vendor_intake_org: {
         Args: { p_client_address?: string; p_grant: string; p_token: string };
         Returns: string;
@@ -91705,6 +92895,13 @@ export type Database = {
       withdraw_roster_entry: {
         Args: { p_reason: string; p_roster_entry_id: string };
         Returns: undefined;
+      };
+      withdraw_sensitive_consent: {
+        Args: {
+          p_account_id?: string;
+          p_category: Database["app"]["Enums"]["sensitive_data_category"];
+        };
+        Returns: boolean;
       };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       withdraw_shift_no_show: { Args: { p_no_show_id: string; p_reason: string }; Returns: string };
@@ -92050,6 +93247,37 @@ export type Database = {
       labor_segment: "Regular" | "Overtime" | "Double Time";
       labor_team_kind: "Own Team" | "Agency" | "Engaged";
       language_proficiency: "Basic" | "Conversational" | "Fluent" | "Native";
+      legal_queue_basis: "Statute" | "Published Promise" | "Internal Target" | "Customer Clock";
+      legal_queue_clock_unit: "Hours" | "Days" | "Business Days" | "Months Or 30 Days";
+      legal_queue_event_kind:
+        | "Received"
+        | "First Response"
+        | "Note"
+        | "State Changed"
+        | "Extended"
+        | "Source Changed"
+        | "Alert Sent"
+        | "Re-Review"
+        | "Person Told"
+        | "Hold Placed"
+        | "Hold Released";
+      legal_queue_matter:
+        | "Data Subject Request"
+        | "Privacy Complaint"
+        | "DMCA Notice"
+        | "DMCA Counter-Notice"
+        | "Repeat Infringer Review"
+        | "Abuse Report"
+        | "Moderation Appeal"
+        | "Security Report"
+        | "Personal Data Breach"
+        | "Accessibility Complaint"
+        | "Government Data Request"
+        | "Other Promise"
+        | "Undelivered Notice"
+        | "Queue Failure";
+      legal_queue_state:
+        "Received" | "In Progress" | "Waiting" | "Completed" | "Refused" | "Withdrawn";
       listing_report_reason:
         | "Illegal Content"
         | "Discrimination"
@@ -92205,6 +93433,9 @@ export type Database = {
       quote_version_state: "Draft" | "Sent" | "Accepted" | "Declined" | "Withdrawn" | "Superseded";
       rate_type: "Hourly" | "Day" | "Flat" | "Milestone" | "Bid";
       rate_unit: "Hour" | "Day" | "Week" | "Project";
+      rating_dispute_ground:
+        "Wrong Person" | "False Statement" | "Abusive Content" | "Personal Data" | "Other";
+      rating_dispute_state: "Open" | "Upheld" | "Not Upheld";
       rating_side: "Organization" | "Party";
       reconciliation_result: "Met" | "Gap" | "Unknown";
       registration_page_state: "Draft" | "Open" | "Closed";
@@ -92250,6 +93481,10 @@ export type Database = {
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       seat_preference: "Window" | "Aisle" | "No Preference";
       seen_surface: "Today" | "Itinerary" | "Show Day";
+      sensitive_consent_basis: "Own Consent" | "Attested Authority";
+      sensitive_consent_standing: "Consent Given" | "Attested" | "Withdrawn" | "No Record";
+      sensitive_consent_surface: "Atlas" | "Gateway" | "Compass" | "API";
+      sensitive_data_category: "Dietary and Allergies" | "Accessibility" | "Supplier Diversity";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
       setting_source: "Personal" | "Project" | "Team" | "Workspace" | "Organization" | "Default";
       setting_value_type: "Text" | "Boolean" | "Integer" | "Choice";
@@ -92292,6 +93527,15 @@ export type Database = {
       sponsor_asset_kind: "Logo" | "Artwork" | "Copy" | "Video" | "Other";
       sponsor_asset_source: "Org Supplied" | "Sponsor Supplied";
       staffing_basis: "Ratio" | "Fixed" | "Declared";
+      stripe_cancel_mode: "Immediately" | "At Period End";
+      stripe_cancel_source:
+        | "Organization Canceled"
+        | "Organization Deleted"
+        | "Plan Ended"
+        | "Stripe Portal"
+        | "Reconciliation"
+        | "Ended In Stripe";
+      stripe_cancellation_state: "Queued" | "Accepted" | "Withdrawn";
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
       subscription_pause_end:
@@ -98803,6 +100047,45 @@ export const Constants = {
       labor_segment: ["Regular", "Overtime", "Double Time"],
       labor_team_kind: ["Own Team", "Agency", "Engaged"],
       language_proficiency: ["Basic", "Conversational", "Fluent", "Native"],
+      legal_queue_basis: ["Statute", "Published Promise", "Internal Target", "Customer Clock"],
+      legal_queue_clock_unit: ["Hours", "Days", "Business Days", "Months Or 30 Days"],
+      legal_queue_event_kind: [
+        "Received",
+        "First Response",
+        "Note",
+        "State Changed",
+        "Extended",
+        "Source Changed",
+        "Alert Sent",
+        "Re-Review",
+        "Person Told",
+        "Hold Placed",
+        "Hold Released",
+      ],
+      legal_queue_matter: [
+        "Data Subject Request",
+        "Privacy Complaint",
+        "DMCA Notice",
+        "DMCA Counter-Notice",
+        "Repeat Infringer Review",
+        "Abuse Report",
+        "Moderation Appeal",
+        "Security Report",
+        "Personal Data Breach",
+        "Accessibility Complaint",
+        "Government Data Request",
+        "Other Promise",
+        "Undelivered Notice",
+        "Queue Failure",
+      ],
+      legal_queue_state: [
+        "Received",
+        "In Progress",
+        "Waiting",
+        "Completed",
+        "Refused",
+        "Withdrawn",
+      ],
       listing_report_reason: [
         "Illegal Content",
         "Discrimination",
@@ -98985,6 +100268,14 @@ export const Constants = {
       quote_version_state: ["Draft", "Sent", "Accepted", "Declined", "Withdrawn", "Superseded"],
       rate_type: ["Hourly", "Day", "Flat", "Milestone", "Bid"],
       rate_unit: ["Hour", "Day", "Week", "Project"],
+      rating_dispute_ground: [
+        "Wrong Person",
+        "False Statement",
+        "Abusive Content",
+        "Personal Data",
+        "Other",
+      ],
+      rating_dispute_state: ["Open", "Upheld", "Not Upheld"],
       rating_side: ["Organization", "Party"],
       reconciliation_result: ["Met", "Gap", "Unknown"],
       registration_page_state: ["Draft", "Open", "Closed"],
@@ -99037,6 +100328,10 @@ export const Constants = {
       scope_kind: ["Engagement Root", "Standing Venue", "Show"],
       seat_preference: ["Window", "Aisle", "No Preference"],
       seen_surface: ["Today", "Itinerary", "Show Day"],
+      sensitive_consent_basis: ["Own Consent", "Attested Authority"],
+      sensitive_consent_standing: ["Consent Given", "Attested", "Withdrawn", "No Record"],
+      sensitive_consent_surface: ["Atlas", "Gateway", "Compass", "API"],
+      sensitive_data_category: ["Dietary and Allergies", "Accessibility", "Supplier Diversity"],
       setting_scope: ["Organization", "Workspace", "Team", "Project"],
       setting_source: ["Personal", "Project", "Team", "Workspace", "Organization", "Default"],
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
@@ -99085,6 +100380,16 @@ export const Constants = {
       sponsor_asset_kind: ["Logo", "Artwork", "Copy", "Video", "Other"],
       sponsor_asset_source: ["Org Supplied", "Sponsor Supplied"],
       staffing_basis: ["Ratio", "Fixed", "Declared"],
+      stripe_cancel_mode: ["Immediately", "At Period End"],
+      stripe_cancel_source: [
+        "Organization Canceled",
+        "Organization Deleted",
+        "Plan Ended",
+        "Stripe Portal",
+        "Reconciliation",
+        "Ended In Stripe",
+      ],
+      stripe_cancellation_state: ["Queued", "Accepted", "Withdrawn"],
       submittal_kind: [
         "Shop Drawing",
         "Product Data",

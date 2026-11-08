@@ -267,6 +267,22 @@ var NOTIFICATION_KINDS = [
     channels: ["In App", "Email", "SMS", "Push"],
   },
   {
+    kind: "crisis_alert.issued",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "crisis_alert.ended",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
     kind: "account.security_changed",
     category: "account",
     emailTemplate: "notification",
@@ -292,6 +308,22 @@ var NOTIFICATION_KINDS = [
   },
   {
     kind: "account.work_details_moved",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "account.sensitive_data_attested",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "account.sensitive_consent_needed",
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
@@ -350,6 +382,46 @@ var NOTIFICATION_KINDS = [
     kind: "billing.resumed",
     category: "account",
     emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.purchase_confirmed",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.renewal_reminder",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.cancellation_confirmed",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.plan_ending",
+    category: "account",
+    emailTemplate: "billing_notice",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "billing.cancellation_delayed",
+    category: "account",
+    emailTemplate: "billing_notice",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
@@ -436,6 +508,22 @@ var NOTIFICATION_KINDS = [
   },
   {
     kind: "moderation_appeal.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "rating_dispute.filed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+  },
+  {
+    kind: "rating_dispute.decided",
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
@@ -864,7 +952,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/6799_notification_kind_seed.sql"
+"supabase/migrations/6999_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

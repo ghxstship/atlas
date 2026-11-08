@@ -23,6 +23,8 @@ var TEMPLATE_CODES = [
   "party_invitation",
   "approval_link_code",
   "guest_message",
+  "legal_clock_alert",
+  "moderation_notice",
 ];
 //#endregion
 //#region ../email/src/render.ts
