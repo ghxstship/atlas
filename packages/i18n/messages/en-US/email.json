@@ -318,13 +318,13 @@
       },
       "decided": {
         "subject": "{action, select, Removed {The {subject, select, comment {comment} message {message} other {post}} you reported was removed} other {Your report was reviewed}}",
-        "body": "Your organization's moderators reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
+        "body": "{actorName} reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
       }
     },
     "content": {
       "removed": {
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
-        "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+        "body": "{actorName} removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
       }
     },
     "agent": {
