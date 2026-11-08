@@ -1019,7 +1019,9 @@
       "org_records": "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
       "billing_consent": "Los términos de renovación que aceptaste al comprar un plan de pago para una organización, con tu correo de acceso y tus iniciales, conservados 7 años y durante un año después de que termine ese plan, como prueba de lo acordado.",
       "audit_trail": "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
-      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo."
+      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo.",
+      "rating_sharing": "Tu registro de haber decidido mostrar tus calificaciones, con su hora y dirección IP, conservado 7 años después de cerrarse como prueba de lo que elegiste.",
+      "rating_disputes": "Las impugnaciones de calificaciones que presentaste, conservadas con el registro de la calificación para poder mostrar la decisión."
     },
     "emailLabel": "Escribe tu correo de acceso para confirmar",
     "emailHelp": "Inicias sesión como {email}.",

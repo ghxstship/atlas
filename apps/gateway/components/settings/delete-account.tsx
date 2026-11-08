@@ -13,6 +13,8 @@ const KEPT: readonly KeptCategory[] = [
   "billing_consent",
   "audit_trail",
   "erasure_request",
+  "rating_sharing",
+  "rating_disputes",
 ];
 
 /**

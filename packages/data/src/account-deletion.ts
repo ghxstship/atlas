@@ -31,11 +31,13 @@ export type KeptCategory =
   | "org_records"
   | "billing_consent"
   | "audit_trail"
-  | "erasure_request";
+  | "erasure_request"
+  | "rating_sharing"
+  | "rating_disputes";
 
 export interface KeptRecord {
   readonly category: KeptCategory;
-  /** "7 years", or "org" when the org keeps the record as its own. */
+  /** "7 years", "org" when the org keeps the record as its own, or "rating" for as long as the rating. */
   readonly retention: string;
 }
 

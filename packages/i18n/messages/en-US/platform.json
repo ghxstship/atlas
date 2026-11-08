@@ -856,6 +856,10 @@
       "moderation_appeal": {
         "decided": "Appeal decided"
       },
+      "rating_dispute": {
+        "filed": "Rating disputed",
+        "decided": "Rating dispute decided"
+      },
       "occupancy": {
         "threshold": "Occupancy threshold reached"
       },

@@ -186,7 +186,7 @@
     },
     "ratingsEnabled": {
       "label": "Pedir a los miembros que valoren a las partes",
-      "help": "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación."
+      "help": "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y cualquier otra persona que pueda leer una valoración ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales, una declaración falsa o sobre la persona equivocada), sea cual sea la puntuación."
     },
     "messageRetention": {
       "label": "Retención de mensajes en días",

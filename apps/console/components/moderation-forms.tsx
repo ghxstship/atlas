@@ -4,7 +4,11 @@ import { Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
-import { decideAppealAction, decideListingAction } from "@/lib/actions/operations";
+import {
+  decideAppealAction,
+  decideListingAction,
+  decideRatingDisputeAction,
+} from "@/lib/actions/operations";
 import type { Database } from "@xos/data/database.types";
 import * as enums from "@xos/data/enums";
 
@@ -161,6 +165,57 @@ export function DecideAppealForm({
           />
         </fieldset>
       ) : null}
+    </ActionForm>
+  );
+}
+
+/**
+ * The decision on a rating dispute (ADR 0158): upheld needs a named ground; not upheld has none. "Other" stays a filing
+ * ground only, so it is not offered here.
+ */
+export function DecideRatingDisputeForm({ disputeId }: { disputeId: string }) {
+  const t = useTranslations("console");
+  const [outcome, setOutcome] = useState<"Upheld" | "Not Upheld">("Not Upheld");
+  const grounds = enums.ratingDisputeGround.filter((g) => g !== "Other");
+  return (
+    <ActionForm
+      action={decideRatingDisputeAction}
+      hidden={{ disputeId }}
+      submitLabel={t("ratingDisputes.decide")}
+      successLabel={t("ratingDisputes.decided")}
+      label={t("ratingDisputes.decideTitle")}
+      testId="decide-rating-dispute"
+    >
+      <Select
+        id={`dispute-${disputeId}-outcome`}
+        name="outcome"
+        label={t("ratingDisputes.outcome")}
+        value={outcome}
+        options={[
+          { value: "Not Upheld", label: t("ratingDisputes.notUphold") },
+          { value: "Upheld", label: t("ratingDisputes.uphold") },
+        ]}
+        onChange={(e) => setOutcome(e.target.value === "Upheld" ? "Upheld" : "Not Upheld")}
+      />
+      {outcome === "Upheld" ? (
+        <Select
+          id={`dispute-${disputeId}-ground`}
+          name="ground"
+          label={t("ratingDisputes.decisionGround")}
+          value={grounds[0] ?? "Wrong Person"}
+          options={grounds.map((g) => ({ value: g, label: t(`ratingDisputeGrounds.${g}`) }))}
+        />
+      ) : null}
+      <Textarea
+        id={`dispute-${disputeId}-statement`}
+        name="statement"
+        label={t("ratingDisputes.statement")}
+        help={t("ratingDisputes.statementHelp")}
+        maxLength={4000}
+        rows={4}
+        required
+        width="100%"
+      />
     </ActionForm>
   );
 }

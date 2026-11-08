@@ -33,7 +33,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * work) adds the crisis alert and its all-clear, crisis_alert.issued and crisis_alert.ended (6800), and the auto-renewal notices and the truth about a
  * Stripe cancel: (billing.purchase_confirmed, billing.renewal_reminder, billing.cancellation_confirmed, billing.plan_ending and
  * billing.cancellation_delayed; 6810, 6811, ADR 0161), with the transactional billing_notice email no setting or
- * unsubscribe stops, and carries 6799's. Each sits at the top of its train's block so the highest
+ * unsubscribe stops, the rating dispute notices rating_dispute.filed and
+ * rating_dispute.decided (6821, ADR 0158), and carries 6799's. Each sits at the top of its train's block so the highest
  * seed carries every kind.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =

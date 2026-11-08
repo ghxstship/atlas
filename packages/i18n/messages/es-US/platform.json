@@ -856,6 +856,10 @@
       "moderation_appeal": {
         "decided": "Apelación decidida"
       },
+      "rating_dispute": {
+        "filed": "Calificación impugnada",
+        "decided": "Impugnación de calificación decidida"
+      },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
       },

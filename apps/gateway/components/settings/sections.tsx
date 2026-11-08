@@ -1,10 +1,12 @@
 import {
   APP_ENUMS,
+  getRatingSharing,
   listAccountMembers,
   listMyAccounts,
   listPayoutAccounts,
   listRepresentations,
   listTaxForms,
+  RATING_SHARING_NOTICE_VERSION,
   readView,
   representationStanding,
 } from "@xos/data/gateway";
@@ -45,6 +47,7 @@ import {
   removeProfileItemAction,
   saveCompanyProfileAction,
   saveNameAction,
+  saveRatingSharingAction,
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
@@ -434,12 +437,13 @@ async function ProfileSection(props: SectionProps) {
 
 async function PrivacySection(props: SectionProps) {
   const { ctx, t, locale } = props;
-  const [profile, sections, shares] = await Promise.all([
+  const [profile, sections, shares, ratingSharing] = await Promise.all([
     getMyProfile(ctx.db),
     listSectionVisibility(ctx.db, ctx.personId),
     readView(ctx.db, "my_profile_shares", { order: ["shared_at", "desc"] }),
+    getRatingSharing(ctx.db),
   ]);
-  if (!profile.ok || !sections.ok || !shares.ok) return <RegionError />;
+  if (!profile.ok || !sections.ok || !shares.ok || !ratingSharing.ok) return <RegionError />;
   const visibility = APP_ENUMS.profile_visibility.map((v) => ({
     value: v,
     label: t(enumLabelKey("profileVisibility", v)),
@@ -487,6 +491,29 @@ async function PrivacySection(props: SectionProps) {
           })),
         ]}
       />
+      <Section title={t("gateway.settings.privacy.ratings.title")}>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.privacy.ratings.body")}
+        </p>
+        <SimpleForm
+          id="rating-sharing"
+          action={saveRatingSharingAction}
+          hidden={{ noticeVersion: RATING_SHARING_NOTICE_VERSION }}
+          label={t("gateway.settings.privacy.ratings.title")}
+          errorsNamespace="gateway.profile.errors"
+          submitLabel={t("gateway.settings.privacy.ratings.save")}
+          doneLabel={t("settings.saved")}
+          variant="secondary"
+          fields={[
+            {
+              name: "shareRatings",
+              label: t("gateway.settings.privacy.ratings.choice"),
+              kind: "checkbox",
+              defaultChecked: ratingSharing.data,
+            },
+          ]}
+        />
+      </Section>
       <Section title={t("gateway.profile.shares.title")}>
         <p className="m-0 text-text-13 text-text-secondary">
           {t("gateway.settings.privacy.sharesBody")}

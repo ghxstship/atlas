@@ -124,6 +124,12 @@
     "operator_last_administrator": "The platform team keeps at least one Administrator. Grant another first.",
     "funnel_alert_missing": "That funnel alert no longer exists. Reload the page.",
     "funnel_alert_resolved": "The funnel recovered and its alert is closed.",
+    "rating_dispute_own": "Another operator decides this dispute: it is your own.",
+    "sod_rating_dispute_decide": "Another operator decides this dispute: you belong to the organization that gave the rating.",
+    "rating_dispute_outcome": "Uphold the dispute or do not.",
+    "rating_dispute_decision_ground": "Upholding needs a named ground: the wrong person, a false statement, abuse or personal data. A low score or an unfavorable opinion is not one.",
+    "rating_dispute_statement": "Write the reasons the person and the organization receive, in up to 4,000 characters.",
+    "rating_dispute_transition_not_allowed": "This dispute has already been decided.",
     "billing_alert_reason": "Say what was done about it, in up to 500 characters.",
     "billing_alert_unknown": "This alert is already closed."
   },
@@ -704,7 +710,9 @@
     "system_banner_ended": "Ended a banner",
     "platform_operator_granted": "Granted an operator role",
     "platform_operator_revoked": "Revoked an operator role",
-    "funnel_alert_acknowledge": "Acknowledged a funnel alert"
+    "funnel_alert_acknowledge": "Acknowledged a funnel alert",
+    "rating_dispute_viewed": "Opened a rating dispute",
+    "rating_dispute_decided": "Decided a rating dispute"
   },
   "notFound": {
     "title": "Not found",
@@ -715,6 +723,51 @@
     "title": "This page did not load",
     "body": "Something went wrong while loading it. Try again; if it keeps failing, reload the page.",
     "action": "Try again"
+  },
+  "ratingDisputes": {
+    "title": "Rating disputes",
+    "intro": "People disputing a rating an organization gave them. The score is not shown, because it cannot decide a dispute. Uphold only on a named ground; the reasons go to the person and the organization.",
+    "link": "Rating disputes",
+    "backToListings": "Reported listings",
+    "none": "No dispute waits for a decision.",
+    "noneDecided": "No decided dispute yet.",
+    "person": "Person",
+    "org": "Org",
+    "ground": "Ground given",
+    "state": "State",
+    "answered": "Org answered",
+    "waiting": "Filed",
+    "decidedAt": "Decided",
+    "detailIntro": "{person} disputes a rating from {org}, project {project}, given on {when}.",
+    "what": "What the person says",
+    "comment": "The rating's comment",
+    "noComment": "The rating has no comment.",
+    "reply": "The person's reply",
+    "orgAnswer": "The organization's answer",
+    "noAnswer": "The organization has not answered.",
+    "decideTitle": "Decide",
+    "outcome": "Outcome",
+    "uphold": "Uphold and remove the rating",
+    "notUphold": "Do not uphold; the rating stays",
+    "decisionGround": "Ground for upholding",
+    "statement": "Reasons sent to the person and the organization",
+    "statementHelp": "Sent as written. Say what you decided and why, without using the score or an opinion as a reason.",
+    "decide": "Record the decision",
+    "decided": "Decision recorded and sent.",
+    "own": "This dispute is your own, or you belong to the organization that gave the rating, so another operator decides it.",
+    "decidedBy": "{state} on {when} by {name}"
+  },
+  "ratingDisputeGrounds": {
+    "Wrong Person": "About the wrong person",
+    "False Statement": "False statement",
+    "Abusive Content": "Abusive content",
+    "Personal Data": "Personal data",
+    "Other": "Other"
+  },
+  "ratingDisputeStates": {
+    "Open": "Open",
+    "Upheld": "Upheld",
+    "Not Upheld": "Not upheld"
   },
   "billingAlerts": {
     "cancel_delayed": "Stripe has not accepted a cancel",

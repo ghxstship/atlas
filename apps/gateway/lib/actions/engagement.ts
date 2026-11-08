@@ -2,7 +2,9 @@
 
 import {
   acceptRepresentation,
+  APP_ENUMS,
   decideApplication,
+  fileRatingDispute,
   rateEngagement,
   replyToRating,
   revokeProfileShare,
@@ -198,4 +200,25 @@ export async function declineDocumentTextAction(
     reason: parsed.data.reason,
   });
   return textDocumentAnswer(result, parsed.data.path);
+}
+
+/** The rated person disputes a rating of them; the database checks it is theirs and released (ADR 0158). */
+export async function fileRatingDisputeAction(
+  _: RatingFormState,
+  form: FormData,
+): Promise<RatingFormState> {
+  const parsed = z
+    .object({
+      ratingId: z.uuid(),
+      ground: z.enum(APP_ENUMS.rating_dispute_ground),
+      details: z.string().trim().min(1).max(4000),
+    })
+    .safeParse({
+      ratingId: form.get("ratingId"),
+      ground: form.get("ground"),
+      details: form.get("details"),
+    });
+  if (!parsed.success) return { outcome: "invalid" };
+  const result = toAction(await fileRatingDispute(await createServerSupabase(), parsed.data));
+  return result.ok ? { done: true } : { outcome: result.outcome };
 }

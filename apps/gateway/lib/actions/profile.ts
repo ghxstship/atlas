@@ -8,7 +8,9 @@ import {
   createAvailabilityCalendar,
   createExternalAccount,
   endAccountMembership,
+  RATING_SHARING_NOTICE_VERSION,
   removeAvailabilityBlock,
+  setRatingSharing,
 } from "@xos/data/gateway";
 import {
   fetchProfilePhoto,
@@ -35,7 +37,7 @@ import {
 } from "@xos/data/profiles";
 import { z } from "zod";
 import type { SimpleFormState } from "@/components/forms/simple-form";
-import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
+import { outcomeFor, refusalOutcome, toAction, type ActionResult } from "@/lib/action-result";
 import { parseMoneyInput } from "@/lib/format";
 import { getGatewayContext } from "@/lib/shell/context";
 
@@ -89,6 +91,25 @@ export async function saveProfileAction(
     rateCurrency: rateMinor === null ? null : currency || "USD",
     rateUnit: rateMinor === null ? null : rateUnit.success ? rateUnit.data : "Day",
   });
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+/**
+ * The person's own choice to show every rating of them on their profile (ADR 0158). Turning it on records the notice
+ * version the page rendered with the form. A page older than the current notice is refused, so a record never names a
+ * notice the person did not see. Turning it off takes effect at once, from any page.
+ */
+export async function saveRatingSharingAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
+  const ctx = await ctxOr();
+  const optIn = form.get("shareRatings") === "on";
+  const noticeVersion = text(form, "noticeVersion");
+  if (optIn && noticeVersion !== RATING_SHARING_NOTICE_VERSION) {
+    return { outcome: refusalOutcome("rating_sharing_notice") };
+  }
+  const result = await setRatingSharing(ctx.db, optIn, optIn ? noticeVersion : null);
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 

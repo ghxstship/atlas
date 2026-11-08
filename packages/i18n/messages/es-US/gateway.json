@@ -183,6 +183,10 @@
       "roster_entry_not_working": "Esta entrada del equipo está retirada o su contratación no está activa, así que no admite tiempo nuevo.",
       "roster_training_not_due": "Esta formación no está pendiente en tu entrada del equipo.",
       "sod_roster_training": "Una persona no puede verificar su propia formación. La verifica otra persona de la producción.",
+      "rating_dispute_ground": "Elige por qué impugnas esta calificación.",
+      "rating_dispute_details": "Di qué está mal en esta calificación, en un máximo de 4,000 caracteres.",
+      "rating_dispute_exists": "Ya impugnaste esta calificación. Puedes ver cómo va debajo de la calificación.",
+      "rating_sharing_notice": "Vuelve a cargar la página y elige de nuevo para que registremos el aviso que viste.",
       "quote_expired": "Esta cotización venció y ya no se puede aceptar. Pide una versión nueva.",
       "quote_not_sent": "Esta versión de la cotización ya no espera una firma.",
       "quote_client_engagement": "La contratación del cliente de esta cotización está cerrada, así que ya no se puede aceptar.",
@@ -687,7 +691,7 @@
         "done": "Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."
       },
       "reply": {
-        "label": "Respuesta pública",
+        "label": "Tu respuesta",
         "submit": "Responder",
         "done": "Respuesta publicada."
       },
@@ -1477,6 +1481,18 @@
       "productionOffice": "Oficina de producción",
       "hospitalitySuite": "Suite de hospitalidad",
       "other": "Otro"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "No se refiere a mí",
+      "falseStatement": "Dice algo falso",
+      "abusiveContent": "Es ofensiva",
+      "personalData": "Muestra datos personales",
+      "other": "Otra cosa"
+    },
+    "ratingDisputeState": {
+      "open": "Abierta",
+      "upheld": "Aceptada",
+      "notUpheld": "No aceptada"
     }
   },
   "explore": {
@@ -1998,7 +2014,20 @@
     },
     "ratings": {
       "title": "Calificaciones",
-      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican."
+      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican.",
+      "who": "Solo tú y la organización que la dio pueden leer una calificación sobre ti, salvo que decidas mostrar tus calificaciones en tu perfil. La calificación de una empresa de la que eres el contacto la puede leer cualquiera con sesión iniciada.",
+      "whoAction": "Elige si quieres mostrarlas en tu perfil.",
+      "dispute": {
+        "open": "Impugnar esta calificación",
+        "help": "Cuéntanos qué está mal. La organización puede responder y nuestro equipo decide. Una calificación se retira solo si se refiere a otra persona, es falsa, ofensiva o muestra datos personales, nunca por ser baja. Hasta entonces sigue en su lugar.",
+        "ground": "Por qué la impugnas",
+        "details": "Qué está mal",
+        "submit": "Enviar impugnación",
+        "standing": "Tu impugnación: {state}. {ground}.",
+        "removed": "Se retiró una calificación de {org} en {project} tras tu impugnación.",
+        "orgResponse": "La organización respondió: {response}",
+        "decision": "Decisión: {statement}"
+      }
     },
     "representation": {
       "title": "Representación",
@@ -2045,7 +2074,11 @@
       "organizations": "Ha trabajado con",
       "links": "Enlaces",
       "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
-      "ownerAction": "Configuración de privacidad"
+      "ownerAction": "Configuración de privacidad",
+      "ratingsShared": "Se muestran porque esta persona lo decidió. Aquí está cada calificación publicada, salvo las que nuestro equipo de la plataforma retiró tras una impugnación. No sirven para decidir a quién contratar o reservar.",
+      "ratingsOwnerShared": "Las personas con sesión iniciada pueden leerlas aquí, salvo quienes tengan acceso de contratación, reserva o asignación de personal en XOS. Alguien que contrate fuera de XOS aún podría leerlas. Puedes cambiarlo en tu configuración de privacidad.",
+      "ratingsOwnerPrivate": "Solo tú y la organización que te calificó pueden leerlas. Nadie más las ve aquí.",
+      "disputed": "Impugnada por esta persona"
     },
     "errors": {
       "handle": "Usa de 1 a 40 letras minúsculas, números y guiones en tu usuario.",
@@ -2387,6 +2420,12 @@
         "references": "Referencias",
         "links": "Enlaces",
         "organizations": "Organizaciones"
+      },
+      "ratings": {
+        "title": "Calificaciones sobre ti",
+        "body": "La calificación que te da una organización solo pueden leerla esa organización y tú. Si activas esta opción, las personas con sesión iniciada podrán leer todas tus calificaciones en tu perfil, incluidas las bajas. No puedes elegir cuáles. Quienes tengan acceso de contratación, reserva o asignación de personal en XOS seguirán sin verlas, y nunca aparecen en una solicitud, en una búsqueda ni en una pantalla de equipo. No podemos saber quién contrata fuera de XOS, así que alguien así con una cuenta gratuita podría leerlas. Desactívala cuando quieras y dejarán de mostrarse al instante. Solo tú puedes cambiar esto, desde tu propia sesión; una aplicación conectada no puede.",
+        "choice": "Mostrar todas mis calificaciones en mi perfil",
+        "save": "Guardar esta elección"
       }
     },
     "account": {

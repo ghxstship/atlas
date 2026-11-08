@@ -833,6 +833,115 @@ export function groundsFor(action: ModerationAction): readonly ModerationGround[
     : ["No Violation"];
 }
 
+// Rating disputes (ADR 0158). The score never comes through here: what a rating scored cannot decide its dispute. ------
+
+export type RatingDisputeState = Database["app"]["Enums"]["rating_dispute_state"];
+export type RatingDisputeGround = Database["app"]["Enums"]["rating_dispute_ground"];
+
+export interface RatingDisputeRow {
+  readonly disputeId: string;
+  readonly orgName: string;
+  readonly disputantName: string | null;
+  readonly ground: RatingDisputeGround;
+  readonly state: RatingDisputeState;
+  readonly orgAnswered: boolean;
+  readonly filedAt: string;
+  readonly decidedAt: string | null;
+}
+
+export async function getRatingDisputeQueue(
+  db: XosClient,
+  open = true,
+): Promise<Result<RatingDisputeRow[]>> {
+  return rpc(db, "console_rating_dispute_queue", { p_open: open }, (data) =>
+    arr(data).map((d) => {
+      const r = obj(d);
+      return {
+        disputeId: str(r["dispute_id"]),
+        orgName: str(r["org_name"]),
+        disputantName: strOrNull(r["disputant_name"]),
+        ground: str(r["dispute_ground"]) as RatingDisputeGround,
+        state: str(r["dispute_state"]) as RatingDisputeState,
+        orgAnswered: bool(r["org_answered"]),
+        filedAt: str(r["filed_at"]),
+        decidedAt: strOrNull(r["decided_at"]),
+      };
+    }),
+  );
+}
+
+export interface RatingDisputeDetail {
+  readonly id: string;
+  readonly state: RatingDisputeState;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly filedAt: string;
+  readonly disputantName: string | null;
+  readonly orgName: string;
+  readonly projectName: string | null;
+  readonly comment: string | null;
+  readonly submittedAt: string;
+  readonly reply: string | null;
+  readonly orgResponse: string | null;
+  readonly orgRespondedAt: string | null;
+  readonly decisionGround: RatingDisputeGround | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+  readonly decidedByName: string | null;
+  readonly decidableByMe: boolean;
+}
+
+export async function getRatingDisputeDetail(
+  db: XosClient,
+  disputeId: string,
+): Promise<Result<RatingDisputeDetail>> {
+  return rpc(db, "console_rating_dispute_detail", { p_dispute_id: disputeId }, (data) => {
+    const r = obj(data);
+    return {
+      id: str(r["id"]),
+      state: str(r["state"]) as RatingDisputeState,
+      ground: str(r["ground"]) as RatingDisputeGround,
+      details: str(r["details"]),
+      filedAt: str(r["filed_at"]),
+      disputantName: strOrNull(r["disputant_name"]),
+      orgName: str(r["org_name"]),
+      projectName: strOrNull(r["project_name"]),
+      comment: strOrNull(r["comment"]),
+      submittedAt: str(r["submitted_at"]),
+      reply: strOrNull(r["reply"]),
+      orgResponse: strOrNull(r["org_response"]),
+      orgRespondedAt: strOrNull(r["org_responded_at"]),
+      decisionGround: strOrNull(r["decision_ground"]) as RatingDisputeGround | null,
+      decisionStatement: strOrNull(r["decision_statement"]),
+      decidedAt: strOrNull(r["decided_at"]),
+      decidedByName: strOrNull(r["decided_by_name"]),
+      decidableByMe: bool(r["decidable_by_me"]),
+    };
+  });
+}
+
+export async function decideRatingDispute(
+  db: XosClient,
+  input: {
+    readonly disputeId: string;
+    readonly outcome: "Upheld" | "Not Upheld";
+    readonly ground: RatingDisputeGround | null;
+    readonly statement: string;
+  },
+): Promise<Result<null>> {
+  return rpc(
+    db,
+    "console_decide_rating_dispute",
+    {
+      p_dispute_id: input.disputeId,
+      p_outcome: input.outcome,
+      p_ground: input.ground,
+      p_statement: input.statement,
+    },
+    () => null,
+  );
+}
+
 export async function decideListing(
   db: XosClient,
   input: StatementOfReasons & { readonly opportunityId: string; readonly reportId?: string | null },

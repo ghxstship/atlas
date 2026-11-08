@@ -183,6 +183,10 @@
       "roster_entry_not_working": "This roster entry is withdrawn or its engagement is not active, so it takes no new time.",
       "roster_training_not_due": "This training is not due on your roster entry.",
       "sod_roster_training": "A person cannot verify their own training. Someone else at the production verifies it.",
+      "rating_dispute_ground": "Choose why you dispute this rating.",
+      "rating_dispute_details": "Say what is wrong with this rating, in up to 4,000 characters.",
+      "rating_dispute_exists": "You have already disputed this rating. You can see where it stands under the rating.",
+      "rating_sharing_notice": "Reload the page and choose again, so we can record the notice you saw.",
       "quote_expired": "This quote expired, so it can no longer be accepted. Ask for a new version.",
       "quote_not_sent": "This quote version is no longer waiting for a signature.",
       "quote_client_engagement": "This quote's client engagement is closed, so it can no longer be accepted.",
@@ -687,7 +691,7 @@
         "done": "Rating sent. It appears when the organization rates too, or after 14 days."
       },
       "reply": {
-        "label": "Public reply",
+        "label": "Your reply",
         "submit": "Reply",
         "done": "Reply posted."
       },
@@ -1477,6 +1481,18 @@
       "productionOffice": "Production office",
       "hospitalitySuite": "Hospitality suite",
       "other": "Other"
+    },
+    "ratingDisputeGround": {
+      "wrongPerson": "It is not about me",
+      "falseStatement": "It says something false",
+      "abusiveContent": "It is abusive",
+      "personalData": "It shows personal data",
+      "other": "Something else"
+    },
+    "ratingDisputeState": {
+      "open": "Open",
+      "upheld": "Upheld",
+      "notUpheld": "Not upheld"
     }
   },
   "explore": {
@@ -1998,7 +2014,20 @@
     },
     "ratings": {
       "title": "Ratings",
-      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate."
+      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate.",
+      "who": "Only you and the organization that gave it can read a rating of you, unless you choose to show your ratings on your profile. A rating of a company you are the contact for can be read by anyone signed in.",
+      "whoAction": "Choose whether to show them on your profile.",
+      "dispute": {
+        "open": "Dispute this rating",
+        "help": "Tell us what is wrong. The organization can answer and our team decides. A rating comes down only if it is about the wrong person, false, abusive or shows personal data, never because it is low. It stays in place until then.",
+        "ground": "Why you dispute it",
+        "details": "What is wrong",
+        "submit": "Send dispute",
+        "standing": "Your dispute: {state}. {ground}.",
+        "removed": "A rating from {org} on {project} was removed after your dispute.",
+        "orgResponse": "The organization answered: {response}",
+        "decision": "Decision: {statement}"
+      }
     },
     "representation": {
       "title": "Representation",
@@ -2045,7 +2074,11 @@
       "organizations": "Worked with",
       "links": "Links",
       "ownerNote": "This is your profile as others see it. Visibility: {visibility}.",
-      "ownerAction": "Privacy settings"
+      "ownerAction": "Privacy settings",
+      "ratingsShared": "Shown because this person chose to. Every released rating is here, except any our platform team removed after a dispute. Not for deciding who to hire or book.",
+      "ratingsOwnerShared": "Signed-in people can read these here, unless they have hiring, booking or staffing access in XOS. Someone who hires outside XOS could still read them. Change this in your privacy settings.",
+      "ratingsOwnerPrivate": "Only you and the organization that rated you can read these. Nobody else sees them here.",
+      "disputed": "Disputed by this person"
     },
     "errors": {
       "handle": "Use 1 to 40 lowercase letters, numbers and hyphens for your handle.",
@@ -2387,6 +2420,12 @@
         "references": "References",
         "links": "Links",
         "organizations": "Organizations"
+      },
+      "ratings": {
+        "title": "Ratings about you",
+        "body": "An organization's rating of you can be read only by that organization and by you. If you turn this on, signed-in people can read all your ratings on your profile page, low scores included. You cannot choose which ones. People with hiring, booking or staffing access in XOS still will not see them, and they never appear on an application, in search or on a crew screen. We cannot see who hires outside XOS, so someone like that with a free account could read them. Turn it off at any time and they stop showing at once. Only you can change this, from your own session; a connected app cannot.",
+        "choice": "Show all my ratings on my profile",
+        "save": "Save this choice"
       }
     },
     "account": {

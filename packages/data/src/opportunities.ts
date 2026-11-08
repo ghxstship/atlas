@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { readRatingDisputeSubjects, type RatingDisputeSubject } from "./rating-dispute-subjects.ts";
 import * as enums from "./enums.generated.ts";
 
 /**
@@ -1514,6 +1515,73 @@ export async function listRatings(db: XosClient, orgId: string): Promise<Result<
   );
 }
 
+export type RatingDisputeState = Enums["rating_dispute_state"];
+export type RatingDisputeGround = Enums["rating_dispute_ground"];
+
+export interface RatingDispute {
+  readonly id: string;
+  readonly ratingId: string;
+  readonly ground: RatingDisputeGround;
+  readonly details: string;
+  readonly state: RatingDisputeState;
+  readonly filedAt: string;
+  readonly orgResponse: string | null;
+  readonly decisionStatement: string | null;
+  readonly decidedAt: string | null;
+  /** What the dispute is about, so the org knows what it is answering; null only if the read failed to match. */
+  readonly subject: RatingDisputeSubject | null;
+}
+
+/** Disputes of the ratings this org gave people, open ones first in filing order (ADR 0158). */
+export async function listRatingDisputes(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<RatingDispute[]>> {
+  const [{ data, error }, subjects] = await Promise.all([
+    db
+      .from("rating_disputes")
+      .select(
+        "id, rating_id, dispute_ground, dispute_details, dispute_state, filed_at, org_response, decision_statement, decided_at",
+      )
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("filed_at", { ascending: false }),
+    readRatingDisputeSubjects(db),
+  ]);
+  if (error) return fail(toDataError(error));
+  if (!subjects.ok) return subjects;
+  return ok(
+    data
+      .map((row) => ({
+        id: row.id,
+        ratingId: row.rating_id,
+        ground: row.dispute_ground,
+        details: row.dispute_details,
+        state: row.dispute_state,
+        filedAt: row.filed_at,
+        orgResponse: row.org_response,
+        decisionStatement: row.decision_statement,
+        decidedAt: row.decided_at,
+        subject: subjects.data.get(row.id) ?? null,
+      }))
+      .sort((a, b) => Number(b.state === "Open") - Number(a.state === "Open")),
+  );
+}
+
+/** The org that gave a rating answers a dispute of it once while it is open. A platform operator decides (ADR 0158). */
+export async function respondToRatingDispute(
+  db: XosClient,
+  disputeId: string,
+  response: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("respond_to_rating_dispute", {
+    p_dispute_id: disputeId,
+    p_response: response,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
 /** The org rates the party of a completed engagement; both ratings release together (ADR 0019 item 6). */
 export async function rateParty(
   db: XosClient,
@@ -1529,7 +1597,7 @@ export async function rateParty(
   return ok(null);
 }
 
-/** The org replies once, publicly, to the party's released rating. */
+/** The org replies once to the party's released rating. */
 export async function replyToRating(
   db: XosClient,
   ratingId: string,

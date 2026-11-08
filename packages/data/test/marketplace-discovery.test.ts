@@ -156,6 +156,14 @@ describe("ranked marketplace search (A89, 1460)", () => {
   it("publishes weights that add up to 100", () => {
     expect(Object.values(RECOMMENDATION_WEIGHTS).reduce((a, b) => a + b, 0)).toBe(100);
   });
+
+  it("ranks by the person's own profile and never by ratings of people (ADR 0158)", () => {
+    // Atlas and Gateway list these keys as the ranking factors, so a ratings factor here would tell hiring admins
+    // that ratings decide who gets work.
+    expect(Object.keys(RECOMMENDATION_WEIGHTS).sort()).toEqual(
+      ["availability", "certifications", "location", "skills"].sort(),
+    );
+  });
 });
 
 describe("places, passing and alerts", () => {

@@ -1019,7 +1019,9 @@
       "org_records": "Records you created for an organization, such as incident reports, kept by that organization without your name.",
       "billing_consent": "The renewal terms you agreed to when you bought a paid plan for an organization, with your sign-in email and initials, kept 7 years and for a year after that plan ends, as proof of what was agreed.",
       "audit_trail": "The security audit trail, kept 7 years. Your personal details in it are removed after 90 days.",
-      "erasure_request": "A record that you asked for this erasure, so each organization can show it was done."
+      "erasure_request": "A record that you asked for this erasure, so each organization can show it was done.",
+      "rating_sharing": "Your record of choosing to show your ratings, with its time and IP address, kept 7 years after it closed as evidence of what you chose.",
+      "rating_disputes": "Any rating dispute you filed, kept with the rating's record so the decision can be shown."
     },
     "emailLabel": "Type your sign-in email to confirm",
     "emailHelp": "You sign in as {email}.",
