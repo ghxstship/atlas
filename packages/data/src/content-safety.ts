@@ -10,7 +10,10 @@ import * as enums from "./enums.generated.ts";
  * moderators, and blocks the person behind a membership: a block hides that person's posts, comments on posts,
  * shout-outs and messages from the blocker in every read, so nothing here filters. The moderators (members holding
  * org.communication.write) read their queue in Atlas and decide each item with a statement of reasons in parts, as
- * A90's console does for listings. Listing and lifting blocks are access-controls' listMyBlocks and unblock.
+ * A90's console does for listings. A report still undecided past its 24 hours also goes to GHXSTSHIP's Trust and
+ * Safety team in the operator console (6196, console.ts getContentEscalations), which may decide it. Text with a slur
+ * never gets this far: the database refuses it (6195, content-filter.ts). Listing and lifting blocks are
+ * access-controls' listMyBlocks and unblock.
  */
 
 export type ContentSubjectKind = Database["app"]["Enums"]["content_subject_kind"];
