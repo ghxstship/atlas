@@ -301,7 +301,7 @@ describe("legal queue copy", () => {
   });
 
   it.each(["en-US", "es-US"])("names every refusal the queue raises in %s", (locale) => {
-    const sql = ["6165_legal_queue", "6166_legal_queue_console", "6168_one_person_appeal_rule"]
+    const sql = ["6860_legal_queue", "6861_legal_queue_console", "6863_one_person_appeal_rule"]
       .map((file) => readFileSync(join(repoRoot, `supabase/migrations/${file}.sql`), "utf8"))
       .join("\n");
     const raised = new Set(
