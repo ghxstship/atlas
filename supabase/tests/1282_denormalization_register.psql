@@ -53,6 +53,7 @@ insert into register_json values
   ('app.vendor_intake_requests.invoice_draft', 'registered'),
   ('private.account_deletions.result', 'audit-diff'),
   ('private.account_security_events.detail', 'audit-diff'),
+  ('private.crisis_alert_sends.message_args', 'provider-payload'),
   ('private.platform_emails.args', 'provider-payload');
 create temporary table register_arrays (column_name text not null, kind text not null, primary key (column_name));
 insert into register_arrays values

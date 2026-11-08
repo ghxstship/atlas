@@ -826,6 +826,10 @@
       "incident": {
         "reported": "Incidente reportado"
       },
+      "crisis_alert": {
+        "issued": "Alerta de crisis",
+        "ended": "Fin de la alerta de crisis"
+      },
       "invoice": {
         "approved": "Factura aprobada",
         "submitted": "Factura enviada",

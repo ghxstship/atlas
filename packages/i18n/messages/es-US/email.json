@@ -99,6 +99,16 @@
         "body": "{actorName} reportó {title}. Ábrelo para ver los detalles y la respuesta."
       }
     },
+    "crisis_alert": {
+      "issued": {
+        "subject": "Alerta de crisis en {project}: {title}",
+        "body": "{message} Anunciada por {actorName}. XOS no avisa a los servicios de emergencia. En una emergencia, llama a tu número local de emergencias."
+      },
+      "ended": {
+        "subject": "Fin de la alerta en {project}: {title}",
+        "body": "{actorName} dio por terminada la alerta {title} en {project}."
+      }
+    },
     "account": {
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
@@ -205,8 +215,8 @@
     },
     "occupancy": {
       "threshold": {
-        "subject": "{title} está al {percent} % de su aforo permitido",
-        "body": "{title} tiene {count} personas adentro, el {percent} % del aforo permitido de {permitted_load}."
+        "subject": "{title} está al {percent} % de su aforo",
+        "body": "{title} tiene {count} personas adentro, el {percent} % de su aforo de {permitted_load}."
       }
     },
     "weather": {

@@ -175,7 +175,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Organizations request certificates during onboarding, and you upload them there. Choose ",
+            v: "Organizations ask for certificates on an engagement, and you upload them under its ",
+          },
+          { t: "strong", v: "Compliance" },
+          {
+            t: "text",
+            v: " tab. An upload shows as received and waiting for review until the organization records the certificate. Choose ",
           },
           { t: "strong", v: "See engagements" },
           { t: "text", v: " to find the engagement asking for one. Each engagement's " },
@@ -4389,7 +4394,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las organizaciones piden los certificados durante la incorporación, y los cargas allí. Elige ",
+            v: "Las organizaciones piden los certificados en una contratación, y los subes en su pestaña ",
+          },
+          { t: "strong", v: "Cumplimiento" },
+          {
+            t: "text",
+            v: ". Un archivo subido aparece como recibido y en espera de revisión hasta que la organización registra el certificado. Elige ",
           },
           { t: "strong", v: "Ver contrataciones" },
           { t: "text", v: " para encontrar la contratación que pide uno. La " },

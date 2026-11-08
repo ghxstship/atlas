@@ -14,4 +14,4 @@ Each certificate on file for the company, with its coverage, insurer and the dat
 
 Your company's prequalification with organizations, with its scope, the date it is valid to and the decision.
 
-Organizations request certificates during onboarding, and you upload them there. Choose **See engagements** to find the engagement asking for one. Each engagement's [Compliance tab](help:engagement-compliance) shows the additional insureds a certificate names.
+Organizations ask for certificates on an engagement, and you upload them under its **Compliance** tab. An upload shows as received and waiting for review until the organization records the certificate. Choose **See engagements** to find the engagement asking for one. Each engagement's [Compliance tab](help:engagement-compliance) shows the additional insureds a certificate names.

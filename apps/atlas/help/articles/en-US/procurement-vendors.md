@@ -19,6 +19,6 @@ The **Catalog** binds canon items to your vendors and their prices.
 
 - **Directory** and **Classes**: the vendors you work with and what they supply.
 - **Prequalification**: vet a vendor before you engage them. Someone other than the requester decides.
-- **Insurance Certificates**: collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm.
+- **Insurance Certificates**: collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm. Files vendors upload for onboarding items wait at the top of this page, where you can open one and record it as a certificate; recording does not verify the onboarding item.
 - **Scorecards**: score vendors after each engagement.
 - **Sponsor Entitlements**: list what each sponsor is owed and track its fulfillment.

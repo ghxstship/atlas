@@ -635,7 +635,7 @@
     "noSpace": "No space",
     "spaceOption": "{name} ({area} sq ft, capacity {capacity})",
     "factor": "Occupant load factor",
-    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives the permitted load.",
+    "factorHelp": "From the Bible capacity metrics: the space's area divided by this factor gives a calculated load, not a permitted one.",
     "noFactor": "No load factor",
     "factorOption": "{item}: {feet} sq ft per person",
     "permit": "Permitted load from a permit",
@@ -647,7 +647,7 @@
       "Permit": "Permit"
     },
     "inside": "Inside",
-    "load": "Permitted load",
+    "load": "Occupant load",
     "percent": "Percent",
     "ratio": "{count} of {load} ({percent}%)",
     "counting": "Counting",
@@ -916,7 +916,7 @@
     "support_ticket_closed": "This request is closed. Open a new one.",
     "occupancy_count_negative": "That would take the count below zero. Check the door count.",
     "occupancy_counter_closed": "This counter is closed.",
-    "occupancy_load_unknown": "Give a permitted load, pick a load factor, or set the space's capacity first.",
+    "occupancy_load_unknown": "Enter the load from a permit, pick a load factor, or set the space's capacity first.",
     "occupancy_space_area": "The space needs its area before a load factor can size it.",
     "occupancy_load_factor": "Pick an occupant load factor from the Bible capacity metrics.",
     "guest_not_approved": "Only approved guests are checked in. Ask the guest list owner.",
@@ -1203,10 +1203,20 @@
       "add": "Add {n}",
       "remove": "Remove {n}",
       "count": "{count} of {permitted}",
-      "percent": "{percent} percent of the permitted load",
-      "level80": "80 percent of the permitted load. Slow entry.",
-      "level90": "90 percent of the permitted load. Hold entry and call your supervisor.",
-      "level100": "At the permitted load. Stop entry now."
+      "percent": "{percent} percent of the {load}",
+      "level80": "80 percent of the {load}. Slow entry.",
+      "level90": "90 percent of the {load}. Hold entry and call your supervisor.",
+      "level100": "At the {load}. Stop entry now.",
+      "loadName": {
+        "Permit": "permitted load",
+        "OccupantLoadFactor": "calculated load",
+        "SpaceCapacity": "space capacity"
+      },
+      "basis": {
+        "Permit": "Load set by a permit.",
+        "OccupantLoadFactor": "Calculated load: the space's area divided by its occupant load factor. No permit set it.",
+        "SpaceCapacity": "Load from the space's stated capacity. No permit set it."
+      }
     },
     "weather": {
       "title": "Weather",

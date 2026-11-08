@@ -1,8 +1,11 @@
 import { listCurrencies } from "@xos/data/procurement";
 import {
   certificateStanding,
+  isOnboardingUploadUri,
   listInsuranceCertificates,
+  listVendorCertificateUploads,
   listVendors,
+  onboardingUploadLink,
   type CertificateStanding,
   type InsuranceCertificate,
 } from "@xos/data/vendors";
@@ -61,7 +64,10 @@ function standingOf(c: InsuranceCertificate, t: Copy, now: string): KitState {
  * Vendors > Insurance certificates: certificates of insurance on file, whether each is current
  * (derived from its validity window at read time), with a calendar of expiries. Recording needs
  * vendors.coi.write. The new-certificate drawer offers Aurora's extraction (journey 36): fields are
- * proposed with confidences and saved only when the person confirms.
+ * proposed with confidences and saved only when the person confirms. Files vendors uploaded for onboarding items wait
+ * at the top for whoever records certificates (6801): opening one and recording it never verifies the onboarding item,
+ * and passing the item records no certificate, so a passed file stays here. A file can be recorded once its reader can
+ * open it, which means the scanner has cleared it.
  */
 export async function InsuranceCertificates({
   ctx,
@@ -90,6 +96,19 @@ export async function InsuranceCertificates({
     );
   }
   const canWrite = ctx.capabilities.has("vendors.coi.write");
+  const uploadsResult = canWrite ? await listVendorCertificateUploads(db, ctx.org.id) : null;
+  const uploads = uploadsResult?.ok ? uploadsResult.data : [];
+  const uploadLinks = new Map(
+    await Promise.all(
+      uploads
+        .filter((u) => u.scanned)
+        .map(async (u) => [u.itemId, await onboardingUploadLink(db, u.storageUri)] as const),
+    ),
+  );
+  const fromUpload =
+    typeof search["upload"] === "string"
+      ? uploads.find((u) => u.itemId === search["upload"] && uploadLinks.get(u.itemId))
+      : undefined;
   const exponent = new Map(
     (currencies.ok ? currencies.data : []).map((c) => [c.code, c.minorUnits]),
   );
@@ -101,7 +120,10 @@ export async function InsuranceCertificates({
       name: "vendorId",
       label: t("fields.vendor"),
       blankLabel: t("fields.chooseVendor"),
-      defaultValue: c?.vendorId ?? (typeof search["vendor"] === "string" ? search["vendor"] : ""),
+      defaultValue:
+        c?.vendorId ??
+        fromUpload?.vendorId ??
+        (typeof search["vendor"] === "string" ? search["vendor"] : ""),
       options: vendors.data.map((v) => ({ value: v.id, label: v.name ?? t("directory.unnamed") })),
     },
     {
@@ -159,15 +181,24 @@ export async function InsuranceCertificates({
       required: true,
       defaultValue: c?.validTo ?? "",
     },
-    {
-      kind: "url",
-      name: "documentUri",
-      label: t("certificates.document"),
-      help: t("certificates.documentHelp"),
-      defaultValue: c?.documentUri ?? "",
-    },
+    // A certificate recorded from a vendor's upload carries the upload as its document, in a hidden input.
+    ...(c || !fromUpload
+      ? ([
+          {
+            kind: "url",
+            name: "documentUri",
+            label: t("certificates.document"),
+            help: t("certificates.documentHelp"),
+            defaultValue: c?.documentUri ?? "",
+          },
+        ] satisfies FieldSpec[])
+      : []),
   ];
   const selected = state.peek ? certs.data.find((c) => c.id === state.peek) : undefined;
+  const selectedFile =
+    selected && isOnboardingUploadUri(selected.documentUri)
+      ? await onboardingUploadLink(db, selected.documentUri)
+      : null;
   const limit = (c: InsuranceCertificate) => (
     <Money
       amount={toMajor(c.coverageLimitMinor, exponent.get(c.currencyCode ?? "") ?? 2)}
@@ -182,7 +213,25 @@ export async function InsuranceCertificates({
     { label: t("certificates.limit"), value: limit(c) },
     { label: t("certificates.validFrom"), value: date(c.validFrom) },
     { label: t("certificates.validTo"), value: date(c.validTo) },
-    { label: t("certificates.document"), value: c.documentUri ?? t("certificates.noDocument") },
+    {
+      label: t("certificates.document"),
+      value: isOnboardingUploadUri(c.documentUri) ? (
+        selectedFile ? (
+          <a
+            className="text-accent-text underline"
+            href={selectedFile}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t("certificates.uploads.uploadedFile")}
+          </a>
+        ) : (
+          t("certificates.uploads.uploadedFile")
+        )
+      ) : (
+        (c.documentUri ?? t("certificates.noDocument"))
+      ),
+    },
   ];
   const controls = (c: InsuranceCertificate) =>
     canWrite ? (
@@ -258,10 +307,31 @@ export async function InsuranceCertificates({
             label: v.name ?? t("directory.unnamed"),
           }))}
         />
+        {fromUpload ? (
+          <p className="m-0 text-text-13">
+            {t("certificates.uploads.fromUpload", {
+              vendor: fromUpload.vendorName ?? t("directory.unnamed"),
+              item: fromUpload.itemName,
+            })}{" "}
+            {uploadLinks.get(fromUpload.itemId) ? (
+              <a
+                className="text-accent-text underline"
+                href={uploadLinks.get(fromUpload.itemId) ?? ""}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("certificates.uploads.open")}
+              </a>
+            ) : null}
+          </p>
+        ) : null}
         <EntityForm
           id="coi-create"
           action={createCertificateAction}
-          hidden={{ org: ctx.org.slug }}
+          hidden={{
+            org: ctx.org.slug,
+            ...(fromUpload ? { documentUri: fromUpload.storageUri } : {}),
+          }}
           refusals={REFUSALS}
           submitLabel={t("certificates.create")}
           successHref={withQuery(path, state, { peek: "{id}" })}
@@ -306,6 +376,88 @@ export async function InsuranceCertificates({
         { key: "standing", label: t("certificates.standingLabel"), type: "state" },
       ]}
       rows={rows}
+      filters={
+        uploadsResult && !uploadsResult.ok ? (
+          <p className="m-0 basis-full text-text-13 text-danger-text" role="alert">
+            {t("certificates.uploads.loadError")}
+          </p>
+        ) : uploads.length > 0 ? (
+          <section
+            aria-labelledby="coi-uploads-heading"
+            className="flex basis-full flex-col gap-8 rounded-card border border-border-subtle p-12"
+          >
+            <h2 id="coi-uploads-heading" className="m-0 text-heading-14 font-semibold">
+              {t("certificates.uploads.heading")}
+            </h2>
+            <p className="m-0 text-text-13 text-text-secondary">{t("certificates.uploads.help")}</p>
+            {(uploads[0]?.total ?? 0) > uploads.length ? (
+              <p className="m-0 text-text-13 text-text-secondary">
+                {t("certificates.uploads.more", {
+                  shown: uploads.length,
+                  total: uploads[0]?.total ?? 0,
+                })}
+              </p>
+            ) : null}
+            <ul role="list" className="m-0 flex list-none flex-col gap-8 p-0">
+              {uploads.map((u) => {
+                const file = uploadLinks.get(u.itemId);
+                return (
+                  <li key={u.itemId} className="flex flex-wrap items-center justify-between gap-8">
+                    <span className="flex flex-col gap-2">
+                      <span className="text-text-14 font-medium">
+                        {u.vendorName ?? t("directory.unnamed")}
+                      </span>
+                      <span className="text-text-13 text-text-secondary">
+                        {t("certificates.uploads.meta", {
+                          item: u.itemName,
+                          date: format.dateTime(new Date(u.submittedAt), { dateStyle: "medium" }),
+                        })}
+                      </span>
+                      <span className="text-text-13 text-text-secondary">
+                        {t(
+                          u.reviewPassed
+                            ? "certificates.uploads.passed"
+                            : "certificates.uploads.waiting",
+                        )}
+                      </span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-8">
+                      {file ? (
+                        <a
+                          className="text-text-13 text-accent-text underline"
+                          href={file}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {t("certificates.uploads.open")}
+                        </a>
+                      ) : null}
+                      <a
+                        className="text-text-13 text-accent-text underline"
+                        href={`/${ctx.org.slug}/opportunities/engagements?id=${u.engagementId}`}
+                      >
+                        {t("certificates.uploads.review")}
+                      </a>
+                      {file ? (
+                        <KitLink
+                          size="sm"
+                          href={withQuery(path, state, { create: "1", upload: u.itemId })}
+                        >
+                          {t("certificates.uploads.record")}
+                        </KitLink>
+                      ) : (
+                        <span className="text-text-13 text-text-secondary">
+                          {t("certificates.uploads.notReady")}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : undefined
+      }
       actions={
         <>
           <KitLink href={withQuery(path, state, { required: "1" })}>

@@ -24,6 +24,10 @@ La compuerta 1 contiene los **Objetivos** del proyecto: una meta por cifra, como
 
 La compuerta 8 contiene la **Medición**: registre las cifras de residuos, energía, agua, transporte, asistencia, audiencia en línea y sentimiento, y agregue cada pieza de cobertura en medios ganados con su enlace. La cantidad de piezas y el alcance salen de la cobertura que agregue. Una cifra que nadie midió aparece como Sin medir, nunca como cero. Para cambiar una cifra, elija **Corregir** e indique un motivo; el registro de correcciones guarda la cifra antes y después.
 
+## Casi accidentes en la compuerta 7
+
+La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.
+
 ## Definiciones
 
 Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.

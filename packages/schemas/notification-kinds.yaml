@@ -334,6 +334,19 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/6257_weather_holds.sql#app.give_weather_all_clear
         test: supabase/tests/6257_weather_holds.test.sql
+  # A crisis alert and its all-clear (6800): the people on the project are told, and the alert records how many.
+  - kind: crisis_alert.issued
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/6070_crisis_alert_notifications.sql#private.notify_crisis_alert_issued
+        test: supabase/tests/6070_crisis_alert_notifications.test.sql
+  - kind: crisis_alert.ended
+    category: safety
+    bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/6070_crisis_alert_notifications.sql#private.notify_crisis_alert_ended
+        test: supabase/tests/6070_crisis_alert_notifications.test.sql
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account

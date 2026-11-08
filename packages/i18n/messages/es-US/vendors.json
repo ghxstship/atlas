@@ -168,7 +168,22 @@
     "delete": "Quitar certificado",
     "deleteTitle": "¿Quitar este certificado?",
     "deleteBody": "Sale de la lista y del cumplimiento del proveedor; el registro de auditoría lo conserva.",
-    "back": "Volver a los certificados de seguro"
+    "back": "Volver a los certificados de seguro",
+    "uploads": {
+      "heading": "Archivos de proveedores sin certificado",
+      "help": "Archivos que los proveedores subieron para elementos de incorporación, sean o no de seguro. Abre uno y, si es un certificado de seguro, regístralo. Registrarlo no verifica el elemento de incorporación: revísalo en la contratación. Aprobar la revisión no registra un certificado. Un archivo que no es de seguro no requiere nada aquí y sale de la lista cuando se cierra la contratación.",
+      "meta": "{item}, subido {date}",
+      "waiting": "En espera de revisión",
+      "passed": "Revisión aprobada, sin certificado registrado",
+      "notReady": "Aún no se puede abrir: todavía se está analizando o no tienes acceso al archivo.",
+      "loadError": "No se pudieron cargar los archivos de proveedores. Actualiza para intentarlo de nuevo.",
+      "more": "Se muestran {shown} de {total}, primero los que aún no se han revisado.",
+      "open": "Abrir archivo",
+      "record": "Registrar certificado",
+      "review": "Revisar en la contratación",
+      "fromUpload": "De {vendor}: {item}.",
+      "uploadedFile": "Subido por el proveedor"
+    }
   },
   "scorecards": {
     "title": "Evaluaciones",

@@ -8,7 +8,7 @@ order: 35
 
 ## Aforo
 
-Configure un contador para cada espacio que cuenta en las puertas. Su aforo permitido viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Atlas avisa al llegar al 90 por ciento del aforo permitido.
+Configure un contador para cada espacio que cuenta en las puertas. Su aforo viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Solo el que viene de un permiso es un aforo permitido; el que sale del área y un factor de carga es un aforo calculado, y el contador indica cuál tiene. Atlas avisa al llegar al 90 por ciento del aforo.
 
 ## Clima
 

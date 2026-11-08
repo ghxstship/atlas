@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:supabase/tests/6799_notification_kind_seed.test.sql
 -- 6799_notification_kind_seed.test.sql
+========
+-- 6079_notification_kind_seed.test.sql
+>>>>>>>> orch-safety-flags:supabase/tests/6079_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -152,6 +156,7 @@ select set_eq(
   ('weather.alert', 'Email', 'safety', 'notification'),
   ('weather.alert', 'SMS', 'safety', null::text),
   ('weather.alert', 'Push', 'safety', null::text),
+<<<<<<<< HEAD:supabase/tests/6799_notification_kind_seed.test.sql
   ('weather.warning', 'In App', 'safety', null::text),
   ('weather.warning', 'Email', 'safety', 'notification'),
   ('weather.warning', 'SMS', 'safety', null::text),
@@ -164,6 +169,16 @@ select set_eq(
   ('weather.all_clear', 'Email', 'safety', 'notification'),
   ('weather.all_clear', 'SMS', 'safety', null::text),
   ('weather.all_clear', 'Push', 'safety', null::text),
+========
+  ('crisis_alert.issued', 'In App', 'safety', null::text),
+  ('crisis_alert.issued', 'Email', 'safety', 'notification'),
+  ('crisis_alert.issued', 'SMS', 'safety', null::text),
+  ('crisis_alert.issued', 'Push', 'safety', null::text),
+  ('crisis_alert.ended', 'In App', 'safety', null::text),
+  ('crisis_alert.ended', 'Email', 'safety', 'notification'),
+  ('crisis_alert.ended', 'SMS', 'safety', null::text),
+  ('crisis_alert.ended', 'Push', 'safety', null::text),
+>>>>>>>> orch-safety-flags:supabase/tests/6079_notification_kind_seed.test.sql
   ('account.security_changed', 'In App', 'account', null::text),
   ('account.security_changed', 'Email', 'account', 'notification'),
   ('account.security_changed', 'SMS', 'account', null::text),
@@ -440,9 +455,14 @@ select set_eq(
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),
+<<<<<<<< HEAD:supabase/tests/6799_notification_kind_seed.test.sql
   ('weather.warning', null::interval),
   ('weather.hold', null::interval),
   ('weather.all_clear', null::interval),
+========
+  ('crisis_alert.issued', null::interval),
+  ('crisis_alert.ended', null::interval),
+>>>>>>>> orch-safety-flags:supabase/tests/6079_notification_kind_seed.test.sql
   ('account.security_changed', null::interval),
   ('account.recovery_code_used', null::interval),
   ('access.break_glass_started', null::interval)$$,

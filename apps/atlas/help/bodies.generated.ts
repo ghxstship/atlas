@@ -841,6 +841,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Near misses at gate 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.",
+          },
+        ],
+      },
       { t: "h2", v: "Definitions" },
       {
         t: "p",
@@ -1431,6 +1441,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS has no near-miss type. Report something that could have hurt someone or caused damage but did not as an incident at Level 5 - Advisory, with What happened starting with the words Near miss. Filter Incidents by that severity to find them later.",
+          },
+        ],
+      },
       { t: "h2", v: "Dispatch board" },
       {
         t: "p",
@@ -1438,6 +1457,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "The dispatch board shows open incidents by state and on the map. Assign responders, move incidents through their states and follow them to close. The table view lists every incident for the keyboard and screen readers.",
+          },
+        ],
+      },
+      { t: "h2", v: "Crisis alerts" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Announcing a crisis alert on the Emergency codes page tells the people clocked in on or assigned to the project and its dispatchers, through their Inbox, email and push, and the alert shows how many were told. It also sends the all-clear to them. XOS does not contact emergency services: in an emergency, call your local emergency number.",
           },
         ],
       },
@@ -2449,7 +2478,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Insurance Certificates" },
             {
               t: "text",
-              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm.",
+              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm. Files vendors upload for onboarding items wait at the top of this page, where you can open one and record it as a certificate; recording does not verify the onboarding item.",
             },
           ],
           [
@@ -3934,7 +3963,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Set up a counter for each space you count at the doors. Its permitted load comes from a permit, the space capacity, or the occupant load factor. Atlas alerts at 90 percent of the permitted load.",
+            v: "Set up a counter for each space you count at the doors. Its load comes from a permit, the space capacity, or the occupant load factor. Only a load from a permit is a permitted load; one from the area and a load factor is a calculated load, and the counter says which it has. Atlas alerts at 90 percent of the load.",
           },
         ],
       },
@@ -5069,6 +5098,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Casi accidentes en la compuerta 7" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La compuerta 7 atestigua que cada incidente, lesión y casi accidente se registró y se resolvió. XOS no tiene un tipo de casi accidente, así que registre un casi accidente como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos.",
+          },
+        ],
+      },
       { t: "h2", v: "Definiciones" },
       {
         t: "p",
@@ -5669,6 +5708,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "XOS no tiene un tipo de casi accidente. Informe algo que pudo lastimar a alguien o causar daños pero no lo hizo como incidente en Level 5 - Advisory, con Qué pasó empezando con las palabras Near miss. Filtre Incidentes por esa severidad para encontrarlos después.",
+          },
+        ],
+      },
       { t: "h2", v: "Tablero de despacho" },
       {
         t: "p",
@@ -5676,6 +5724,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de respuesta y lleve cada incidente hasta su cierre. La vista de tabla los muestra para el teclado y los lectores de pantalla.",
+          },
+        ],
+      },
+      { t: "h2", v: "Alertas de crisis" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Anunciar una alerta de crisis en la página de Códigos de emergencia avisa a quienes tienen entrada marcada en el proyecto o están asignados a él y a sus despachadores, por su Bandeja de entrada, correo y notificaciones push, y la alerta muestra a cuántas personas se avisó. También les envía el fin de la alerta. XOS no contacta a los servicios de emergencia: en una emergencia, llame a su número local de emergencias.",
           },
         ],
       },
@@ -6666,7 +6724,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Certificados de seguro" },
             {
               t: "text",
-              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme.",
+              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme. Los archivos que los proveedores suben para elementos de incorporación esperan arriba en esta página, donde puede abrir uno y registrarlo como certificado; registrarlo no verifica el elemento de incorporación.",
             },
           ],
           [
@@ -8140,7 +8198,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo permitido viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Atlas avisa al llegar al 90 por ciento del aforo permitido.",
+            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Solo el que viene de un permiso es un aforo permitido; el que sale del área y un factor de carga es un aforo calculado, y el contador indica cuál tiene. Atlas avisa al llegar al 90 por ciento del aforo.",
           },
         ],
       },

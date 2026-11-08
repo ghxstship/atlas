@@ -65,7 +65,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     // availability.requested (6123), R11's seven advancing reminders and notices (6221, 6222), and B8's guest.arrived (6254) and
     // three weather kinds (6256, 6257), B15's advance_answer.recorded (6273), B2's vendor_intake.submitted (6505), B9's
     // shift.reconfirm, shift.reconfirm_declined and shift.no_show (6511, 6512), and B10's crew registration and agreement kinds (2999).
-    expect(registry.kinds).toHaveLength(96);
+    // And the crisis alert and its all-clear (6800).
+    expect(registry.kinds).toHaveLength(98);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -101,6 +102,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["weather.warning", null],
       ["weather.hold", null],
       ["weather.all_clear", null],
+      ["crisis_alert.issued", null],
+      ["crisis_alert.ended", null],
       ["account.security_changed", null],
       ["account.recovery_code_used", null],
       ["access.break_glass_started", null],

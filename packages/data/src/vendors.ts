@@ -10,7 +10,7 @@ import {
   touched,
   type Transition,
 } from "./commercial-common.ts";
-import { fail, ok, type Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 import * as enums from "./enums.generated.ts";
 
 /**
@@ -555,6 +555,67 @@ export async function listInsuranceCertificates(
     validTo: row.valid_to,
     documentUri: row.document_uri,
   }));
+}
+
+/** A file a vendor uploaded for an onboarding item, waiting for review with no certificate pointing at it (6801). */
+export interface VendorCertificateUpload {
+  readonly itemId: string;
+  readonly engagementId: string;
+  readonly vendorId: string;
+  readonly vendorName: string | null;
+  readonly itemName: string;
+  readonly submittedAt: string;
+  /** Where the file is; a certificate recorded from it keeps this as its document_uri. */
+  readonly storageUri: string;
+  /** A reviewer passed the onboarding item, which records no certificate. */
+  readonly reviewPassed: boolean;
+  /** The scanner has cleared the file, so a reader can open it. */
+  readonly scanned: boolean;
+  /** How many such files there are, of which the list holds at most 50. */
+  readonly total: number;
+}
+
+/** Uploads waiting for review, for holders of vendors.coi.write (app.vendor_certificate_uploads); others get none. */
+export async function listVendorCertificateUploads(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<VendorCertificateUpload[]>> {
+  const { data, error } = await db.rpc("vendor_certificate_uploads", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      itemId: row.onboarding_item_id,
+      engagementId: row.engagement_id,
+      vendorId: row.vendor_id,
+      vendorName: row.vendor_name,
+      itemName: row.item_name,
+      submittedAt: row.submitted_at,
+      storageUri: row.storage_uri,
+      reviewPassed: row.review_passed,
+      scanned: row.scan_status === "Clean",
+      total: row.total_count,
+    })),
+  );
+}
+
+const ONBOARDING_UPLOAD_PREFIX = "storage://onboarding-uploads/";
+
+/** True for a document_uri that names a vendor's onboarding upload rather than a typed link. */
+export function isOnboardingUploadUri(uri: string | null): uri is string {
+  return uri?.startsWith(ONBOARDING_UPLOAD_PREFIX) ?? false;
+}
+
+/** A short-lived link to a vendor's onboarding upload, under the reader's own access; null when they have none. */
+export async function onboardingUploadLink(
+  db: XosClient,
+  storageUri: string,
+  expiresInSeconds = 3600,
+): Promise<string | null> {
+  if (!isOnboardingUploadUri(storageUri)) return null;
+  const { data, error } = await db.storage
+    .from("onboarding-uploads")
+    .createSignedUrl(storageUri.slice(ONBOARDING_UPLOAD_PREFIX.length), expiresInSeconds);
+  return error ? null : data.signedUrl;
 }
 
 export interface InsuranceCertificateInput {

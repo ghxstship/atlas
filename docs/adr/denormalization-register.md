@@ -77,6 +77,7 @@ ADR 0002 allows JSON columns only for rich text documents, audit diffs and provi
 | `app.vendor_intake_requests.invoice_draft`      | registered       | The requester's first invoice, validated once by app.submit_vendor_intake and submitted whole by app.submit_intake_invoice (derived entry).                  |
 | `private.account_deletions.result`              | audit-diff       | What an account deletion erased and kept, as returned to the person (migration 1112).                                                                        |
 | `private.account_security_events.detail`        | audit-diff       | Facts of a security event in the person's own log (migration 1560).                                                                                          |
+| `private.crisis_alert_sends.message_args`       | provider-payload | The same display arguments as app.notifications.message_args, held for seconds until the worker sends them (migration 6800).                                 |
 | `private.platform_emails.args`                  | provider-payload | Template arguments for the email provider, cleared once sent (migration 1382).                                                                               |
 
 ## Array columns

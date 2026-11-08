@@ -151,7 +151,15 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
     <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] gap-24 max-lg:grid-cols-[minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-16">
         {e.state === "Blocked" ? (
-          <InlineAlert tone="warning">{t("gateway.engagement.overview.blocked")}</InlineAlert>
+          <InlineAlert tone="warning">
+            {t(
+              {
+                "engagement.onboarding": "gateway.engagement.overview.blocked",
+                "engagement.compliance": "gateway.engagement.overview.blockedCompliance",
+                "engagement.overview": "gateway.engagement.overview.blockedHere",
+              }[onboardingTab(view)] ?? "gateway.engagement.overview.blockedHere",
+            )}
+          </InlineAlert>
         ) : null}
         {toSign.length > 0 || open.length > 0 ? (
           <Section title={t("gateway.engagement.overview.next")}>

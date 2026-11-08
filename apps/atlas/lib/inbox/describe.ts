@@ -40,6 +40,9 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "transfer.assigned": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
+  // 6800: the alert's announcement and the project it is on, and the project of its all-clear.
+  "crisis_alert.issued": ["project", "message"],
+  "crisis_alert.ended": ["project"],
   // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
   "account.security_changed": ["change"],
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
@@ -102,6 +105,7 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.content_reports": "people/moderation",
   "app.weather_alerts": "site-ops/weather",
   "app.occupancy_counters": "site-ops/occupancy",
+  "app.crisis_alerts": "safety/emergency-codes",
   invoices: "finance/invoices",
   quote_versions: "finance/quotes",
   "app.invoices": "finance/invoices",

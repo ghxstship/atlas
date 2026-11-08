@@ -6,6 +6,7 @@ import { useCallback, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import {
+  crisisAlertNotice,
   inboxRecordKey,
   inboxTarget,
   type InboxNotificationRow,
@@ -97,7 +98,9 @@ export default function InboxScreen(): ReactElement {
     const target = inboxTarget(n);
     const title = typeof n.args["title"] === "string" ? n.args["title"].trim() : "";
     const org = typeof n.args["orgName"] === "string" ? n.args["orgName"].trim() : "";
+    const crisis = crisisAlertNotice(n);
     const subtitle = [
+      crisis?.message || null,
       inboxRecordKey(n),
       formatDay(n.createdAt),
       n.read ? null : t("compass.inbox.new"),
@@ -106,13 +109,18 @@ export default function InboxScreen(): ReactElement {
       <ListRow
         key={n.id}
         testID={`inbox-notification-${n.id}`}
-        icon="bell"
+        icon={crisis ? "siren" : "bell"}
         title={
-          title !== ""
-            ? title
-            : org !== ""
-              ? t("compass.inbox.updateFrom", { org })
-              : t("compass.inbox.update")
+          crisis
+            ? t(crisis.ended ? "compass.inbox.crisisAllClear" : "compass.inbox.crisisAlert", {
+                project: crisis.project,
+                code: crisis.code,
+              })
+            : title !== ""
+              ? title
+              : org !== ""
+                ? t("compass.inbox.updateFrom", { org })
+                : t("compass.inbox.update")
         }
         subtitle={subtitle.join(" · ")}
         {...(target === null

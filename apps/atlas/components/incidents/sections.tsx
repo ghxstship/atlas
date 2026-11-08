@@ -27,6 +27,7 @@ import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { ActionForm } from "@/components/operations/action-form";
+import { alertReach } from "@/lib/incidents/alert-reach";
 import {
   chooseProjectNotice,
   dateTime,
@@ -392,6 +393,7 @@ async function ReportForm({
   );
   return (
     <RecordSection id="report-incident" title={t("incidents.report")}>
+      <p className="m-0 text-text-13 text-text-secondary">{t("incidents.nearMiss")}</p>
       <ActionForm
         action={reportIncidentAction}
         hidden={{ org: page.ctx.org.slug, projectId: project.id, timeZone: project.timeZone }}
@@ -1147,6 +1149,17 @@ function AlertsPanel({
                     time: dateTime(format, a.issuedAt, projectOf(page, a.projectId)?.timeZone),
                   })}
                 </span>
+                {a.peopleTold !== null ? (
+                  <span
+                    className={
+                      a.peopleTold === 0 || (a.peopleNotSent ?? 0) > 0
+                        ? "text-text-13 font-medium text-danger-text"
+                        : "text-text-13 text-text-secondary"
+                    }
+                  >
+                    {alertReach(t, a)}
+                  </span>
+                ) : null}
               </span>
               {canAlert ? (
                 <ActionForm
@@ -1174,6 +1187,9 @@ function AlertsPanel({
             variant="danger"
             resetOnSuccess
           >
+            <p className="m-0 text-text-13 text-text-secondary">
+              {t("incidents.alerts.reachHelp")}
+            </p>
             <SelectField
               id="alert-code"
               name="emergencyCode"
@@ -1211,6 +1227,7 @@ function AlertsPanel({
                     a.projectKey,
                     a.message,
                     dateTime(format, a.issuedAt),
+                    a.peopleTold !== null ? alertReach(t, a) : null,
                   )}
                 </li>
               ))}

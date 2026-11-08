@@ -24,6 +24,10 @@ Gate 1 holds the project's **Objectives**: one target per figure, such as at lea
 
 Gate 8 holds the **Measurement**: record waste, energy, water, transport, attendance, online audience and sentiment figures, and add each piece of earned media coverage with its link. Coverage counts and reach come from the coverage you add. A figure nobody measured shows as Unmeasured, never as zero. To change a figure, choose **Correct** and give a reason; the correction log keeps the figure before and after.
 
+## Near misses at gate 7
+
+Gate 7 attests that every incident, injury and near miss was logged and dispositioned. XOS has no near-miss type, so log a near miss as an incident at Level 5 - Advisory with What happened starting with the words Near miss. Filter Incidents by that severity to find them.
+
 ## Definitions
 
 Hover over or focus any gate or phase chip to see its definition from the XOS canon. The glossary in Help lists every term.

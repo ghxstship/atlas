@@ -19,6 +19,6 @@ El **Catálogo** vincula artículos del canon con sus proveedores y sus precios.
 
 - **Directorio** y **Clases**: los proveedores con los que trabaja y lo que suministran.
 - **Precalificación**: evalúe a un proveedor antes de contratarlo. Decide alguien distinto de quien lo solicita.
-- **Certificados de seguro**: reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme.
+- **Certificados de seguro**: reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme. Los archivos que los proveedores suben para elementos de incorporación esperan arriba en esta página, donde puede abrir uno y registrarlo como certificado; registrarlo no verifica el elemento de incorporación.
 - **Evaluaciones**: califique a los proveedores después de cada contratación.
 - **Beneficios de patrocinio**: liste lo que se debe a cada patrocinador y siga su cumplimiento.
