@@ -108,6 +108,69 @@ describe("the weekly backup", () => {
     expect(production).not.toContain("steps.gate");
   });
 
+  it("stores no backup on GitHub, only in the private bucket the secrets name", () => {
+    const steps = workflow.replace(/^\s*#.*$/gm, "");
+    for (const store of ["upload-artifact", "actions/cache", "gh release", "git push", "gh gist"]) {
+      expect(steps).not.toContain(store);
+    }
+    const storage = [
+      "BACKUP_ENCRYPTION_RECIPIENT",
+      "BACKUP_S3_ENDPOINT",
+      "BACKUP_S3_REGION",
+      "BACKUP_S3_BUCKET",
+      "BACKUP_S3_ACCESS_KEY_ID",
+      "BACKUP_S3_SECRET_ACCESS_KEY",
+    ];
+    for (const [job, next] of [
+      ["staging", "production"],
+      ["production", "alert"],
+    ] as const) {
+      const section = workflow.slice(
+        workflow.indexOf(`\n  ${job}:\n`),
+        workflow.indexOf(`\n  ${next}:\n`),
+      );
+      expect(section).toContain("environment: production-backup");
+      for (const name of storage) {
+        expect(section).toContain(`${name}: \${{ secrets.${name} }}`);
+      }
+    }
+  });
+
+  it("refuses to store without every bucket setting, and never prints one", () => {
+    const store = join(repo, "infra/ci/backup-store.sh");
+    const missing = spawnSync("bash", [store, "check"], {
+      encoding: "utf8",
+      env: { PATH: process.env["PATH"] },
+    });
+    expect(missing.status).toBe(1);
+    for (const name of [
+      "BACKUP_S3_ENDPOINT",
+      "BACKUP_S3_REGION",
+      "BACKUP_S3_BUCKET",
+      "BACKUP_S3_ACCESS_KEY_ID",
+      "BACKUP_S3_SECRET_ACCESS_KEY",
+    ]) {
+      expect(missing.stderr).toContain(`The secret ${name} is empty`);
+    }
+    const values = {
+      BACKUP_S3_ENDPOINT: "http://storage.not-a-real-host.test",
+      BACKUP_S3_REGION: "region-not-a-real-value",
+      BACKUP_S3_BUCKET: "Bucket_Not_A_Real_Value",
+      BACKUP_S3_ACCESS_KEY_ID: "key-not-a-real-value",
+      BACKUP_S3_SECRET_ACCESS_KEY: "secret-not-a-real-value",
+    };
+    const wrong = spawnSync("bash", [store, "put", "/nonexistent", "production"], {
+      encoding: "utf8",
+      env: { PATH: process.env["PATH"], ...values },
+    });
+    expect(wrong.status).toBe(1);
+    expect(wrong.stderr).toContain("BACKUP_S3_ENDPOINT is not an https:// address");
+    expect(wrong.stderr).toContain("BACKUP_S3_BUCKET is not a bucket name");
+    for (const value of Object.values(values)) {
+      expect(`${wrong.stdout}${wrong.stderr}`).not.toContain(value);
+    }
+  });
+
   it("names every missing piece at once, and never prints the connection string", () => {
     const cwd = mkdtempSync(join(tmpdir(), "xos-backup-"));
     try {
