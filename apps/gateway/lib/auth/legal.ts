@@ -24,15 +24,30 @@ export interface GatewayLegalDocument {
 
 /**
  * The documents Gateway publishes: those it links at account creation, in the order the sign-up
- * form names them, the Cookie Policy the cookie banner links (Section 14.3, A82), and the Legal
- * Contact page someone is sent to when their account cannot be closed yet (ADR 0156).
+ * form names them, the Cookie Policy the cookie banner links (Section 14.3, A82), the Terms of
+ * Service, the one agreement a person on Gateway can be sent to that the Worker Terms do not replace,
+ * and the Legal Contact page a person is sent to when their account cannot be closed yet (ADR 0156).
+ * Only the first is accepted here; the Terms of Service are accepted by an org's owner on Atlas.
  */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "worker-terms", title: "Worker Terms", version: "1.0.0-draft", accept: true },
   { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0-draft", accept: false },
   { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0-draft", accept: false },
+  { slug: "terms-of-service", title: "Terms of Service", version: "1.0.0-draft", accept: false },
   { slug: "contact", title: "Legal Contact", version: "1.0.0-draft", accept: false },
 ];
+
+/** Settings, Account: where a person deletes their account (Delete Your Account, Section 1). */
+export const ACCOUNT_DELETION_PATH = "/settings/account";
+
+/**
+ * True when `next` is the account deletion page. The terms step lets it through unaccepted: deleting an
+ * account never waits on accepting anything (Worker Terms 13), so a person who declines can still leave.
+ */
+export function skipsTermsStep(next: string): boolean {
+  const path = next.split(/[?#]/, 1)[0] ?? "";
+  return path === ACCOUNT_DELETION_PATH || path.startsWith(`${ACCOUNT_DELETION_PATH}/`);
+}
 
 /** A document Gateway publishes at /legal/{slug}, or undefined. */
 export function gatewayLegalDocument(slug: string): GatewayLegalDocument | undefined {

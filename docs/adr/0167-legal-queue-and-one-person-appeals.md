@@ -3,8 +3,8 @@
 - Status: Proposed
 - Date: 2026-11-06
 - Decider: RRR-248, on the owner's instruction to choose the most future-proof, legally defensible option. These calls were made by AI. No attorney has reviewed them.
-- Addresses: review packet Sections 1 item 7 and 6.4 (decisions 38 to 41), audit finding A11Y-06
-- Migrations: 6860 to 6863, and the notification seed 6999 (range 6860 to 6999)
+- Addresses: the owner's legal decisions of 2026-11-06 (decisions 38 to 41), audit finding A11Y-06
+- Migrations: 6860 to 6863, and the notification seed 6999 (train 11, ADR 0022)
 - Amends: ADR 0046 (moderation: another operator decides each appeal)
 
 ## Context

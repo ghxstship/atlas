@@ -220,6 +220,7 @@
     "clients": {
       "intro": "Each client org has its own data, members and brand. You see billing facts only; reading a client's records needs a support session its Owner grants.",
       "create": "Create a client org",
+      "createOff": "Creating client orgs is off for this partner. The platform team turns it on under a signed partner agreement, so write to the support mailbox to ask.",
       "createTitle": "New client org",
       "createSubmit": "Create and invite the Owner",
       "caption": "Client orgs",
@@ -1101,7 +1102,7 @@
   },
   "lifecycle": {
     "title": "Cancel the organization",
-    "description": "Canceling ends any paid subscription in Stripe at once, with no further charges. Time you already paid for is not refunded unless the law requires it. The organization is read-only for 30 days with the full export available, then its data is deleted at day 90.",
+    "description": "Canceling ends any paid subscription in Stripe at once, with no further charges. Time you already paid for is not refunded unless the law requires it. The organization is read-only at once, the Owner can reactivate it for 30 days, the full export stays available until deletion, and its data is deleted on day 90.",
     "loadError": "The organization's status could not be loaded.",
     "ownerOnly": "Only the Owner cancels the organization or takes the full export.",
     "banner": "This organization is canceled and read-only for {days, plural, one {# more day} other {# more days}}, until {until}. The Owner can download the full export in Settings, Danger zone.",
@@ -1111,7 +1112,7 @@
     },
     "cancel": {
       "title": "Cancel the organization",
-      "explain": "Take the full export first if you need a copy now; it stays available for 30 days after canceling.",
+      "explain": "Take the full export first if you need a copy now; it stays available until deletion.",
       "confirm": "Type {name} to confirm",
       "reason": "Why are you canceling?",
       "reasonHelp": "Kept with the cancellation record.",

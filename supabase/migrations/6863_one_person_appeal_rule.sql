@@ -1,5 +1,5 @@
 -- 6863_one_person_appeal_rule.sql
--- The appeal rule, made true for a company of one (RRR-248, review packet decision 39; ADR 0167, amending ADR 0046).
+-- The appeal rule, made true for a company of one (RRR-248, the owner's legal decision 39 of 2026-11-06; ADR 0167, amending ADR 0046).
 -- 1473 had "another operator, never the one who decided" decide each appeal, and AUP 7 promised "a person who was not
 -- involved in the original decision". With one operator that appeal could never be decided at all, and the promise
 -- could never be kept. The Digital Services Act asks for qualified staff and not solely automated means (Article 20(6));

@@ -31,6 +31,7 @@ export {
   TabBar,
   TemplateAuth,
   TemplateDashboard,
+  TemplateDocument,
   TemplateSettings,
 } from "@xos/ui";
 

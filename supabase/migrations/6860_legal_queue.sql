@@ -1,7 +1,7 @@
 -- 6860_legal_queue.sql
 -- One list of the legal and security work a one-person company must not miss because of a full inbox (RRR-248; ADR
 -- 0167). GHXSTSHIP's mailboxes, appeals, DMCA actions, security reports and written promises all route to one person,
--- and nothing tracked their clocks (decision 40 of the review packet). This migration holds the data:
+-- and nothing tracked their clocks (the owner's legal decision 40 of 2026-11-06). This migration holds the data:
 --   * private.legal_queue_rules: every clock, as numbers: when the first response is due, when the work is due, the
 --     earliest it may be done (a DMCA restoration), an allowed extension, and how early alerts start. Each rule names
 --     what it rests on: a statute, a published promise, an internal target, or a Customer's own clock.

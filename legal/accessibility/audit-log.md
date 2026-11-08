@@ -2,13 +2,13 @@
 title: Accessibility Audit Log
 version: 1.1.0-draft
 effective_date: 2026-10-16 (first audit entries)
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal; summarized in the ACRs and the Accessibility Statement
 ---
 
 # Accessibility Audit Log
 
-> **Draft for review by counsel before launch.** Entries 1 to 23 record the Wave 6 independent audit by A23 on main 5f4e839; entries 24 to 28 record A35's fixes and re-verification. Screen reader passes with real assistive technology are still owed; see "Passes still owed" below.
+> **Draft before launch.** Entries 1 to 23 record the Wave 6 independent audit by A23 on main 5f4e839; entries 24 to 28 record A35's fixes and re-verification. Screen reader passes with real assistive technology are still owed; see "Passes still owed" below.
 
 Section 14.1 requires manual keyboard and screen reader passes on every screen in Section 11.5, with VoiceOver on macOS and iOS, NVDA and TalkBack, logged here. **Audits begin in Wave 6**, when A23 (Accessibility Review) runs the independent audit across Atlas, Gateway and Compass. Automated axe-core results are produced by CI on every build and are referenced here, not copied.
 

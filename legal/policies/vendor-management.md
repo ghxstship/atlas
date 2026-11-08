@@ -2,13 +2,13 @@
 title: Vendor Management Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Vendor Management Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose and Scope
 
@@ -16,11 +16,11 @@ This policy governs how GHXSTSHIP Industries LLC ("GHXSTSHIP") selects, contract
 
 ## 2. Vendor Tiers
 
-| Tier | Definition                                                                                      | Examples                                                                                                                                          |
-| ---- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Processes Customer Personal Data or hosts production                                            | Supabase, Vercel, Anthropic, Resend, Twilio, Stripe, Checkr, Sentry, Better Stack, Expo, Apple and Google push services, Google Cloud Translation |
-| 2    | Has access to source code, CI, credentials or internal confidential data, but not Customer Data | Source host and CI, password manager, email and office suite                                                                                      |
-| 3    | No access to confidential data                                                                  | Design tools used with public material, documentation fonts                                                                                       |
+| Tier | Definition                                                                                      | Examples                                                                                                                                                                                           |
+| ---- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Processes Customer Personal Data or hosts production                                            | Supabase, Vercel, Fly.io, GitHub (backup archives), Anthropic, Resend, Twilio, Stripe, Checkr, Sentry, Better Stack, Expo, Apple and Google push services, Google Cloud Translation, Google Wallet |
+| 2    | Has access to source code, CI, credentials or internal confidential data, but not Customer Data | Source host and CI, password manager, email and office suite                                                                                                                                       |
+| 3    | No access to confidential data                                                                  | Design tools used with public material, documentation fonts                                                                                                                                        |
 
 Customer-directed integrations (for example accounting, payroll, calendar and storage connectors) are vendors of the Customer, not of GHXSTSHIP. GHXSTSHIP reviews the security of each connector it builds, but does not onboard the provider as its own vendor.
 
@@ -37,7 +37,7 @@ For Tier 1 and Tier 2 vendors, the Security Lead completes a review that records
 - whether the vendor uses our data to train models or for its own purposes, which is not acceptable for Customer Data
 - exit: how data is returned and deleted
 
-The Privacy Officer confirms that the written contract includes data protection terms no less protective than our Data Processing Agreement, including the EU SCCs and UK Addendum where data leaves the region.
+The Privacy Officer confirms that the written contract imposes in substance the same data protection obligations as our Data Processing Agreement, including the EU SCCs and UK Addendum where data leaves the region. For most vendors that contract is the vendor's own published terms, so it can differ in detail; the Subprocessor List and Section 7.4 of the Data Processing Agreement state the differences GHXSTSHIP knows of.
 
 ## 4. Subprocessor Changes
 
@@ -50,7 +50,7 @@ The Privacy Officer confirms that the written contract includes data protection 
 - Tier 1 vendors are reviewed every year: new assurance reports, any incidents, changes to their subprocessors and terms.
 - Tier 2 vendors are reviewed every two years.
 - Vendor status pages and security advisories for Tier 1 vendors are monitored, and incidents are logged in the risk register.
-- Open source dependencies are pinned, kept current by automated update requests, scanned for vulnerabilities and license compatibility on every change, and listed in the CycloneDX SBOM of each release.
+- Open source dependencies are pinned, scanned for vulnerabilities and license compatibility on every change, and listed in the CycloneDX SBOM of each release. Renovate is configured to keep them current through update requests once its app is installed; until then they are updated by hand.
 
 ## 6. Exit
 

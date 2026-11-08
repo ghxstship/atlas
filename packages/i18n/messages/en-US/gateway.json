@@ -2699,7 +2699,9 @@
     "terms": {
       "title": "Accept the Worker Terms",
       "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
-      "submit": "Continue"
+      "submit": "Continue",
+      "deleteInstead": "You do not have to accept them to delete your account.",
+      "deleteLink": "Delete my account instead"
     },
     "providers": {
       "continueWith": "Continue with {provider}",
@@ -2929,7 +2931,18 @@
     }
   },
   "legal": {
-    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "draftTitle": "Draft, not yet in effect",
+    "draftNotice": "Version {version} of this document is a draft. It is not in effect, and no one may rely on it.",
+    "inEffect": "Version {version}, in effect from {date}",
+    "upcomingTitle": "Not yet in effect",
+    "upcomingNotice": "Version {version} of this document takes effect on {date}. It is shown here ahead of that day and is not in effect before it.",
+    "upcomingEarlier": "Until then, version {version} stays in effect, and the Contact Page lists where to ask for a copy of its text.",
+    "history": "Version history",
+    "versionDraft": "Version {version}: draft, not yet in effect",
+    "versionInEffect": "Version {version}: in effect from {date}",
+    "versionUpcoming": "Version {version}: takes effect on {date}",
+    "contents": "On this page",
+    "englishOnly": "This document is published in English.",
     "back": "Go to Gateway"
   },
   "diversity": {

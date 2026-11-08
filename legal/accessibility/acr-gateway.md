@@ -1,13 +1,13 @@
 ---
 title: Accessibility Conformance Report: Gateway
 version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch; evaluated by A23 on main 5f4e839 (Wave 6), human screen reader passes owed
+effective_date: The date GHXSTSHIP states when it makes this version final
+status: Draft before launch; evaluated by A23 on main 5f4e839 (Wave 6), human screen reader passes owed
 ---
 
 # Accessibility Conformance Report: Gateway
 
-> **Draft for review by counsel before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) on build 5f4e839; human screen reader passes are still owed (see Notes). It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal with completed evaluation results, and its effective date is that date of publication.
+> **Draft before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) on build 5f4e839; human screen reader passes are still owed (see Notes). Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version with completed evaluation results.
 
 This Accessibility Conformance Report follows the structure of the ITI VPAT 2.5 International edition (VPAT 2.5Rev INT), which reports against WCAG 2.x, the Revised Section 508 Standards and EN 301 549 together. Template instructions from the VPAT form are not reproduced here.
 
@@ -32,7 +32,7 @@ GHXSTSHIP Industries LLC. Accessibility questions go to the accessibility mailbo
 - **Status:** Levels A and AA are evaluated from the audit log. Level AAA is not a target and is marked Not Evaluated. Defects are filed as `legal/accessibility/findings/A23-NNN.md`; every A23 finding that affected Gateway (A23-001, A23-003, A23-013) is Fixed (A35 re-ran the sweep on 2026-10-16).
 - **Screen readers:** the evaluator could not run VoiceOver, NVDA or TalkBack. Screen reader semantics were checked by reading the browser accessibility tree. Criteria that depend on spoken output (1.3.1, 3.3.1, 4.1.2, 4.1.3) need the human passes listed under "Passes still owed" in the audit log before any of them can be raised to Supports or confirmed.
 - **Scope:** every Gateway route in `apps/gateway/ia/sitemap.yaml` that the demo crew member (no company account) and the demo vendor contact (Account Owner) may open, with the engagement tabs of the crew and vendor role types, plus public profiles, sign in, sign up and both token flows. The other six engagement role types share the same tab components and were not walked separately. Generated PDFs, emails and the documentation site were not audited in this pass. Supported browsers: the latest two versions of Chrome, Edge, Safari and Firefox, and Safari on iOS and iPadOS.
-- **Target:** WCAG 2.2 Level AA conformance, which XOS uses to address Section 508, ADA Titles II and III, EN 301 549, the European Accessibility Act, the AODA and the Accessible Canada Act.
+- **Target:** WCAG 2.2 Level AA, as a design and test target. It is not a claim of conformance, and this report does not say that XOS meets Section 508, the ADA, EN 301 549, the European Accessibility Act, the AODA or the Accessible Canada Act (Accessibility Statement, Sections 1 and 2).
 
 ## Evaluation Methods Used
 
@@ -43,7 +43,7 @@ Used in this evaluation:
 - reading the browser accessibility tree for landmarks, headings, form labels, table headers, live regions and chart and map names
 - WCAG text spacing overrides on sample pages
 
-Still owed: VoiceOver on macOS, NVDA with Firefox and Chrome, browser zoom to 200 and 400 percent, Windows high contrast mode, and veraPDF review of generated documents.
+Still owed: VoiceOver on macOS, NVDA with Firefox and Chrome, browser zoom to 200 and 400 percent, Windows high contrast mode, and a person's review of generated documents. An automated veraPDF check runs in continuous integration (gate 19), and no person has reviewed its results.
 
 ## Applicable Standards and Guidelines
 
@@ -220,7 +220,7 @@ The WCAG tables also report Section 508 Chapter 5 (501.1) and Chapter 6 (602.3),
 | 503.4.1 Caption Controls                                                            | Not Applicable     | Gateway has no synchronized media player of its own.                                                                                                       |
 | 503.4.2 Audio Description Controls                                                  | Not Applicable     | Gateway has no synchronized media player of its own.                                                                                                       |
 | 504.2 Content Creation or Editing                                                   | Partially Supports | Rich text editing exposes headings, lists and links; the editor itself carries the WCAG gaps listed in the tables.                                         |
-| 504.2.1 Preservation of Information Provided for Accessibility in Format Conversion | Partially Supports | Exports were not audited in this pass; reported conservatively until the veraPDF and export review (see 504.2.2).                                          |
+| 504.2.1 Preservation of Information Provided for Accessibility in Format Conversion | Partially Supports | Exports were not audited in this pass; reported conservatively until a person reviews exports (see 504.2.2).                                               |
 | 504.2.2 PDF Export                                                                  | Partially Supports | Generated documents are designed as tagged PDF (Section 11.9). veraPDF validation is gate 19, owned by A24; A23 did not audit generated PDFs in this pass. |
 | 504.3 Prompts                                                                       | Partially Supports | Image uploads (logos, attachments) do not prompt for a text description.                                                                                   |
 | 504.4 Templates                                                                     | Partially Supports | Document templates (Section 11.9) were not audited in this pass; see 504.2.2.                                                                              |

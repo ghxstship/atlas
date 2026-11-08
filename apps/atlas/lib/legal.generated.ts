@@ -137,7 +137,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
     version: "1.0.0-draft",
     publish: "public",
     requiresAcceptanceAtSignup: true,
-    acceptanceBy: ["external_party_at_account_creation"],
+    acceptanceBy: ["external_party_at_account_creation", "compass_user_at_first_sign_in"],
   },
   {
     slug: "account-deletion",
@@ -150,6 +150,22 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
   {
     slug: "contact",
     title: "Legal Contact",
+    version: "1.0.0-draft",
+    publish: "public",
+    requiresAcceptanceAtSignup: false,
+    acceptanceBy: [],
+  },
+  {
+    slug: "consumer-health-data-privacy-policy",
+    title: "Consumer Health Data Privacy Policy",
+    version: "1.0.0-draft",
+    publish: "public",
+    requiresAcceptanceAtSignup: false,
+    acceptanceBy: [],
+  },
+  {
+    slug: "text-message-terms",
+    title: "Text Message Terms",
     version: "1.0.0-draft",
     publish: "public",
     requiresAcceptanceAtSignup: false,

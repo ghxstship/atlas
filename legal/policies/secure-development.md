@@ -2,13 +2,13 @@
 title: Secure Development Policy
 version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
-status: Draft for review by counsel before launch
+status: Draft before launch
 audience: Internal
 ---
 
 # Secure Development Policy
 
-> **Draft for review by counsel before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
+> **Draft before launch.** This internal policy is a draft. It takes effect when the Owner approves it, and its effective date is that date of approval.
 
 ## 1. Purpose and Scope
 
@@ -25,7 +25,7 @@ This policy sets the secure development life cycle for XOS 4.0 at GHXSTSHIP Indu
 
 - **The database is the boundary.** Authorization, tenancy, state transitions, gate criteria, money rules and refusal semantics are enforced in Postgres. New tables ship with row-level security enabled and policies tested in pgTAP before any feature uses them.
 - **One API contract.** Every mutation has a public API operation defined by Zod schemas that generate the OpenAPI document.
-- **Threat modeling.** New features that add a trust boundary, external access path, file handling or integration are threat-modeled before implementation. The independent security reviewer keeps the platform threat model current.
+- **Threat modeling.** New features that add a trust boundary, external access path, file handling or integration are threat-modeled before implementation. The Security Lead keeps the platform threat model current. No independent security review is under contract today.
 - **Data classification.** Every new column is classified in the column registry. Restricted columns use field-level encryption and masking from the start.
 - **Privacy by design.** New processing of personal data is assessed against the records of processing, and a DPIA is completed where the processing is high risk.
 
@@ -44,7 +44,7 @@ This policy sets the secure development life cycle for XOS 4.0 at GHXSTSHIP Indu
 
 ## 5. Review and Testing Gates
 
-Every pull request must pass, before merge:
+This policy calls for every pull request to pass these gates before merge. Repository settings do not yet require a passing run, so the maintainer who merges checks them:
 
 1. Typecheck, lint and format.
 2. The finish guard.
@@ -54,16 +54,16 @@ Every pull request must pass, before merge:
 6. CodeQL and Semgrep static analysis, dependency audit, secret scanning, license check, and Supabase database advisors with zero errors.
 7. Migration checks: apply cleanly from empty, and generated types up to date.
 8. An OpenAPI breaking-change check against the last release.
-9. Review and approval by a maintainer of the paths changed. The author cannot approve their own pull request.
+9. Review and approval by a maintainer of the paths changed who is not the author, once GHXSTSHIP has a second maintainer. While there is one, the maintainer who merges reviews the change with the automated and AI-assisted checks.
 
-A dynamic scan (OWASP ZAP baseline) runs against staging on every deployment to staging. Findings rated High or Critical block release.
+A dynamic scan (OWASP ZAP baseline) runs nightly against staging, and skips a night when it cannot reach staging. Findings rated High or Critical block release.
 
 ## 6. Supply Chain
 
 - The lockfile is enforced; installs are frozen in CI.
-- Dependencies are pinned and updated by automated pull requests, reviewed like any change.
+- Dependencies are pinned. Renovate is configured to open update pull requests, reviewed like any change, and runs once its app is installed. Until then, updates are made by hand.
 - GitHub Actions are pinned by commit hash.
-- Commits on `main` are signed.
+- This policy calls for signed commits on `main`. Repository settings do not yet require them.
 - Each release ships a CycloneDX SBOM.
 - New dependencies are reviewed for maintenance health, license and security history.
 
@@ -82,7 +82,7 @@ A dynamic scan (OWASP ZAP baseline) runs against staging on every deployment to 
 | Medium   | 90 days                      |
 | Low      | Next planned release         |
 
-Vulnerabilities come from scanners, the independent security reviewer, dependency advisories and researcher reports under the Responsible Disclosure Policy. Each is tracked as an issue with a severity and owner.
+Vulnerabilities come from scanners, the Security Lead, dependency advisories and researcher reports under the Responsible Disclosure Policy. Each is tracked as an issue with a severity and owner.
 
 ## 9. Training
 

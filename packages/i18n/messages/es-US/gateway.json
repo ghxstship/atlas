@@ -2699,7 +2699,9 @@
     "terms": {
       "title": "Acepta los Términos para trabajadores",
       "lead": "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
-      "submit": "Continuar"
+      "submit": "Continuar",
+      "deleteInstead": "No tienes que aceptarlos para eliminar tu cuenta.",
+      "deleteLink": "Eliminar mi cuenta"
     },
     "providers": {
       "continueWith": "Continuar con {provider}",
@@ -2929,7 +2931,18 @@
     }
   },
   "legal": {
-    "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+    "draftTitle": "Borrador, aún no vigente",
+    "draftNotice": "La versión {version} de este documento es un borrador. No está vigente y nadie puede basarse en ella.",
+    "inEffect": "Versión {version}, vigente desde el {date}",
+    "upcomingTitle": "Aún no vigente",
+    "upcomingNotice": "La versión {version} de este documento entra en vigor el {date}. Se muestra aquí antes de ese día y no está vigente antes de él.",
+    "upcomingEarlier": "Hasta entonces, la versión {version} sigue vigente, y la página de contacto indica dónde pedir una copia de su texto.",
+    "history": "Historial de versiones",
+    "versionDraft": "Versión {version}: borrador, aún no vigente",
+    "versionInEffect": "Versión {version}: vigente desde el {date}",
+    "versionUpcoming": "Versión {version}: entra en vigor el {date}",
+    "contents": "En esta página",
+    "englishOnly": "Este documento se publica solo en inglés.",
     "back": "Ir a Gateway"
   },
   "diversity": {

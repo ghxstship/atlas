@@ -1,13 +1,13 @@
 ---
 title: Accessibility Conformance Report: Compass
 version: 1.0.0-draft
-effective_date: The date this version is published at /legal
-status: Draft for review by counsel before launch; evaluated by A23 from source on main 5f4e839 (Wave 6), device and screen reader passes owed
+effective_date: The date GHXSTSHIP states when it makes this version final
+status: Draft before launch; evaluated by A23 from source on main 5f4e839 (Wave 6), device and screen reader passes owed
 ---
 
 # Accessibility Conformance Report: Compass
 
-> **Draft for review by counsel before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) by source and component review of build 5f4e839; no device, VoiceOver or TalkBack pass has taken place yet (see Notes). It takes effect only when GHXSTSHIP Industries LLC publishes it at /legal with completed evaluation results, and its effective date is that date of publication.
+> **Draft before launch.** This report is a draft. Levels A and AA were evaluated in the Wave 6 independent audit (A23) by source and component review of build 5f4e839; no device, VoiceOver or TalkBack pass has taken place yet (see Notes). Showing it at /legal does not put it in effect. It takes effect only on the effective date that GHXSTSHIP Industries LLC states at the top of a final version with completed evaluation results.
 
 This Accessibility Conformance Report follows the structure of the ITI VPAT 2.5 International edition (VPAT 2.5Rev INT), which reports against WCAG 2.x, the Revised Section 508 Standards and EN 301 549 together. Template instructions from the VPAT form are not reproduced here.
 
@@ -32,7 +32,7 @@ GHXSTSHIP Industries LLC. Accessibility questions go to the accessibility mailbo
 - **Status:** Levels A and AA are evaluated from the audit log, applying WCAG to native software as WCAG2ICT describes. Level AAA is not a target and is marked Not Evaluated. Defects are filed as `legal/accessibility/findings/A23-NNN.md`; A23-004 to A23-010 are Fixed in source with tests (A32, A35). The device passes in the audit log (VoiceOver, TalkBack, Dynamic Type, Reduce Motion) are still owed, so criteria that depend on them stay Partially Supports.
 - **Screen readers and devices:** the evaluator could not run VoiceOver, TalkBack, Switch Control or a simulator in this pass. Every conformance level here rests on reading the React Native source (accessibilityLabel, role, state, live regions, font scaling and touch target values) against the native theme tokens. Each level must be confirmed on device with VoiceOver on iOS and TalkBack on Android before publication; the screens to cover are listed under "Passes still owed" in the audit log.
 - **Scope:** the Compass screens in `apps/compass/app` and the ui-native seam in `apps/compass/src/ui` (primitives, layout and Compass components). Live Activities and widgets were not reviewed.
-- **Target:** WCAG 2.2 Level AA conformance, which XOS uses to address Section 508, ADA Titles II and III, EN 301 549, the European Accessibility Act, the AODA and the Accessible Canada Act.
+- **Target:** WCAG 2.2 Level AA, as a design and test target. It is not a claim of conformance, and this report does not say that XOS meets Section 508, the ADA, EN 301 549, the European Accessibility Act, the AODA or the Accessible Canada Act (Accessibility Statement, Sections 1 and 2).
 
 ## Evaluation Methods Used
 

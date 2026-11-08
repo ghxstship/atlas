@@ -388,6 +388,42 @@ export async function endPlanOverride(
   return rpc(db, "console_end_plan_override", { p_override_id: overrideId, p_reason: reason }, str);
 }
 
+// Partner client creation ------------------------------------------------------------------------------------------------
+
+export interface PartnerClientGrant {
+  readonly allowed: boolean;
+  readonly reason: string | null;
+  readonly grantedAt: string | null;
+}
+
+/** Whether the org may create client orgs (migration 6870, tenants.read). Off by default. */
+export async function getPartnerClientGrant(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<PartnerClientGrant>> {
+  return rpc(db, "console_partner_client_grant", { p_org_id: orgId }, (data) => {
+    const r = ((Array.isArray(data) ? data[0] : data) as Raw | null) ?? {};
+    return {
+      allowed: bool(r["allowed"]),
+      reason: strOrNull(r["reason"]),
+      grantedAt: strOrNull(r["granted_at"]),
+    };
+  });
+}
+
+/** An Administrator (plans.write) turns client org creation on or off for a partner, with a reason. */
+export async function setPartnerClients(
+  db: XosClient,
+  input: { readonly orgId: string; readonly allowed: boolean; readonly reason: string },
+): Promise<Result<boolean>> {
+  return rpc(
+    db,
+    "console_set_partner_clients",
+    { p_org_id: input.orgId, p_allowed: input.allowed, p_reason: input.reason },
+    (data) => data === true,
+  );
+}
+
 // Feature flags ----------------------------------------------------------------------------------------------------------
 
 export interface FlagSummary {

@@ -1,9 +1,13 @@
 # security.txt for XOS 4.0 (RFC 9116)
-# Draft for review by counsel before launch. Wave 2 serves this file at
-# /.well-known/security.txt on every XOS domain, adds a Canonical line for each
-# production domain, and renews Expires at every release.
-Contact: https://github.com/ghxstship/atlas/security/advisories/new
-Policy: https://github.com/ghxstship/atlas/blob/main/SECURITY.md
-Acknowledgments: https://github.com/ghxstship/atlas/security/advisories
-Preferred-Languages: en, es
+# Draft before launch. Route handlers in apps/atlas and apps/gateway serve this text at
+# /.well-known/security.txt on atlas, gateway and api.ghxstship.tech, and they must change with it.
+# The documentation site, the console and the status page do not serve it yet. Renew Expires at a
+# release, less than a year ahead. If the repository goes private, Policy must point at the published
+# /legal/responsible-disclosure-policy page instead.
+Contact: mailto:security@ghxstship.tech
 Expires: 2027-09-30T00:00:00.000Z
+Policy: https://github.com/ghxstship/atlas/blob/main/SECURITY.md
+Preferred-Languages: en
+Canonical: https://atlas.ghxstship.tech/.well-known/security.txt
+Canonical: https://gateway.ghxstship.tech/.well-known/security.txt
+Canonical: https://api.ghxstship.tech/.well-known/security.txt

@@ -10,18 +10,18 @@ You can move your organization from XOS to another provider, or to your own depl
 ## What you get
 
 - **Your data and metadata**, in the [full export](guide:full-export): every table of your organization as JSON and CSV, the stored files and a manifest, described column by column in the [data dictionary](dictionary:).
-- **30 days of transition support**, on request: help reading the export, mapping its tables to the new system, and getting anything the archive could not hold, such as stored files over its size limit.
-- **No switching charges from 12 January 2027.** From that date GHXSTSHIP charges no switching fees, for the export, the transition support or anything else switching needs. Your subscription is separate: its cancellation follows Section 11.1 of the Terms.
+- **30 days of transition support**, on request: help reading the export, mapping its tables to the new system, and getting the files and columns the archive leaves out, subject to security checks.
+- **No switching charges from 12 January 2027.** From that date GHXSTSHIP charges no switching fees, for the export, the transition support or anything else switching needs. Your subscription is separate: ending it follows Section 11.1 of the Terms, and Section 5.10 says what happens to fees already paid.
 
 ## Switch
 
-1. **Ask for transition support.** The Owner or an Admin contacts the platform team from **Settings, Help and support** in Atlas, or writes to the support mailbox listed on the contact page published with the Terms. Say that you are switching providers and the day you want the 30 days to start. The platform team never sees your organization's data unless the Owner grants a support session.
+1. **Ask for transition support.** The Owner or an Admin contacts the platform team from **Settings, Help and support** in Atlas, or writes to the support mailbox listed on the contact page published with the Terms. Say that you are switching providers and the day you want the 30 days to start. If your organization is established in the European Union, start the switch by notice to the legal notices mailbox, as Section 11.3 of the Terms says. The platform team opens your organization's data for this only in a support session the Owner grants.
 2. **Take a full export to test with.** The Owner downloads it from **Settings, Danger zone** (see [Full export](guide:full-export)). Load it into the new system and check the counts against `manifest.json`.
 3. **Move the work.** Keep using XOS until the new system is ready. For a deployment of your own, the [self-hosting guide](guide:self-hosting) covers the setup, and the export's tables have the same names and columns as those of a deployment of the same XOS version.
 4. **Take the final export** on the day you stop using XOS, so it holds everything up to that day.
-5. **Cancel.** The Owner cancels in **Settings, Danger zone**. The organization stays read-only for 30 days with the full export available, and the Owner can reactivate it within that time. On day 90 GHXSTSHIP deletes its data from the live service and sends the Owner a deletion certificate.
+5. **Cancel.** The Owner cancels in **Settings, Danger zone**. Canceling ends the subscription in Stripe at once, with no further charge, and we confirm by email once Stripe accepts it. The organization is read-only at once, the Owner can reactivate it on the Access Plan for 30 days, and the full export stays available until deletion. On day 90 GHXSTSHIP deletes its data from the live service and sends the Owner a deletion certificate.
 
-Records the law requires you to keep, such as payroll and tax records, are deleted on day 90 with everything else, so keep them from your export.
+Records the law requires you to keep, such as payroll and tax records, are deleted on day 90 with everything else. Pay amounts, tax identifiers and field media are not in the export, so keep what you can from the export and ask early for the rest by writing to the legal notices mailbox before deletion, as Section 11.2 of the Terms says.
 
 ## Other ways to read your data
 

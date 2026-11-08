@@ -167,6 +167,10 @@ begin
   perform pg_temp.join_org('bob', 'org_a', 'mia', 'field');
   perform pg_temp.join_org('xavier', 'org_b', 'mia', 'viewer');
 
+  -- A partner creates clients only once a platform operator allows it (6870).
+  perform pg_temp.as_platform();
+  insert into private.partner_client_grants (org_id, reason, granted_by)
+  values (pg_temp.id('org_p'), 'Fixture: signed partner agreement.', pg_temp.id('paul'));
   perform pg_temp.as_user('paul');
   select c.org_id, c.invite_token into v_id, v_token
   from app.create_client_organization(pg_temp.id('org_p'), 'Tidewater Events', 'tidewater-events',

@@ -5,7 +5,7 @@ section: operate
 order: 13
 ---
 
-La exportación completa es un archivo ZIP con todo lo que su organización guarda en XOS: cada tabla en JSON y en CSV, los archivos que subieron las personas y un manifiesto que lo enumera todo. Es la exportación que prometen los Términos del servicio al cancelar o cambiar de proveedor, y el Propietario puede descargarla en cualquier momento, en cualquier plan.
+La exportación completa es un archivo ZIP con los registros de su organización en XOS: cada tabla en JSON y en CSV, los archivos que subieron las personas, hasta el límite que se indica abajo, y un manifiesto que lo enumera todo. La sección Lo que no incluye, más abajo, dice lo que deja fuera. Es la exportación que prometen los Términos del servicio al cancelar o cambiar de proveedor, y el Propietario puede descargarla en cualquier momento, en cualquier plan.
 
 ## Descárguela
 
@@ -13,7 +13,7 @@ La exportación completa es un archivo ZIP con todo lo que su organización guar
 2. Elija **Descargar la exportación completa**. El archivo lleva datos restringidos, así que su sesión debe haber pasado un segundo factor. Si no lo ha hecho, Atlas se lo pide primero.
 3. El navegador guarda `<org>-export-<fecha>.zip`, con el identificador de su organización y la fecha de hoy según el calendario de su organización.
 
-Cada exportación queda registrada con su número de tablas, filas y archivos, que **Exportaciones realizadas** muestra en la misma página. Mientras una organización cancelada está en solo lectura, durante los 30 días posteriores a la cancelación, la descarga sigue disponible.
+Cada exportación queda registrada con su número de tablas, filas y archivos, que **Exportaciones realizadas** muestra en la misma página. Después de cancelar una organización, la descarga sigue disponible hasta que se eliminan sus datos.
 
 ## Qué contiene el archivo
 
@@ -62,8 +62,11 @@ Las órdenes de compra, facturas, órdenes de cambio, hojas del día, hojas de l
 
 ## Lo que no incluye
 
-- **Columnas que nadie lee directamente**, como los números completos de cuenta bancaria, los importes de pago y los hashes de tokens o PIN. Se guardan detrás de sus propias vías de acceso y quedan fuera de los archivos de la tabla; el encabezado del CSV muestra exactamente qué columnas tiene cada tabla.
+- **Columnas que nadie lee directamente**, como los números completos de cuenta bancaria, los importes de pago, los identificadores fiscales y los hashes de tokens o PIN. Se guardan detrás de sus propias vías de acceso y quedan fuera de los archivos de la tabla; el encabezado del CSV muestra exactamente qué columnas tiene cada tabla.
+- **Archivos fuera del almacén de adjuntos**, como los medios de campo, las fotos de credenciales y las cargas de incorporación.
 - **Datos de la plataforma** que no son de su organización, como los planes y las plantillas de la Biblioteca estándar. Las copias propias de su organización de los documentos y procedimientos de la Biblioteca estándar sí se incluyen.
 - **La presencia y otros estados en vivo**, que XOS nunca guarda.
+
+Para obtener lo que el archivo deja fuera, el Propietario escribe al buzón de avisos legales antes de la eliminación. GHXSTSHIP lo devuelve en un formato de uso común dentro de los 30 días posteriores a la solicitud, sujeto a controles de seguridad, y la solicitud detiene la eliminación hasta que la devolución se complete. La sección 11.2 de los Términos del servicio lo establece. Los importes de pago, los identificadores fiscales y los medios de campo están entre lo que queda fuera, así que, si debe conservar registros de salarios o impuestos, pídalo pronto.
 
 Para una copia nocturna en su propio bucket en lugar de una descarga, vea [Entrega al almacén de datos](guide:warehouse-delivery). Para leer registros uno a uno o por páginas, use la [referencia de la API](reference:projects).

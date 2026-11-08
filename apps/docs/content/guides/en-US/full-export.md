@@ -5,7 +5,7 @@ section: operate
 order: 13
 ---
 
-The full export is one ZIP archive of everything your organization keeps in XOS: every table as JSON and as CSV, the files people uploaded, and a manifest that lists it all. It is the export the Terms of Service promise when you cancel or switch providers, and the Owner can take it at any time, on every plan.
+The full export is one ZIP archive of your organization's records in XOS: every table as JSON and as CSV, the files people uploaded, up to the limit below, and a manifest that lists it all. The section What is not in it, below, says what it leaves out. It is the export the Terms of Service promise when you cancel or switch providers, and the Owner can take it at any time, on every plan.
 
 ## Download it
 
@@ -13,7 +13,7 @@ The full export is one ZIP archive of everything your organization keeps in XOS:
 2. Choose **Download the full export**. The archive carries Restricted data, so your session must have passed a second factor. If it has not, Atlas asks for one first.
 3. The browser saves `<org>-export-<date>.zip`, named with your organization's slug and today's date on your organization's calendar.
 
-Each export is logged with its table, row and file counts, which **Exports taken** lists on the same page. While a canceled organization is read-only, for 30 days after cancellation, the download stays available.
+Each export is logged with its table, row and file counts, which **Exports taken** lists on the same page. After an organization is canceled, the download stays available until its data is deleted.
 
 ## What is in the archive
 
@@ -62,8 +62,11 @@ Purchase orders, invoices, change orders, day sheets, call sheets, run of show, 
 
 ## What is not in it
 
-- **Columns no one reads directly**, such as full bank account numbers, pay amounts and token or PIN hashes. They are kept behind their own access paths and are left out of the table's files; the CSV header shows exactly which columns a table has.
+- **Columns no one reads directly**, such as full bank account numbers, pay amounts, tax identifiers and token or PIN hashes. They are kept behind their own access paths and are left out of the table's files; the CSV header shows exactly which columns a table has.
+- **Files outside the attachments store**, such as field media, credential photos and onboarding uploads.
 - **Platform data** that is not your organization's, such as plans and the Standard Library templates. Your organization's own copies of Standard Library documents and procedures are included.
 - **Presence and other live state**, which XOS never stores.
+
+To get what the archive leaves out, the Owner writes to the legal notices mailbox before deletion. GHXSTSHIP returns it in a commonly used format within 30 days of the request, subject to security checks, and the request holds the deletion until the return is complete. Section 11.2 of the Terms of Service sets this out. Pay amounts, tax identifiers and field media are among what is left out, so if you must keep wage or tax records, ask early.
 
 For a nightly copy into your own bucket instead of a download, see [Warehouse delivery](guide:warehouse-delivery). For records one at a time or in pages, use the [API reference](reference:projects).

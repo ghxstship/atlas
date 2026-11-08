@@ -827,7 +827,18 @@
     "skipToContent": "Skip to content"
   },
   "legal": {
-    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "draftTitle": "Draft, not yet in effect",
+    "draftNotice": "Version {version} of this document is a draft. It is not in effect, and no one may rely on it.",
+    "inEffect": "Version {version}, in effect from {date}",
+    "upcomingTitle": "Not yet in effect",
+    "upcomingNotice": "Version {version} of this document takes effect on {date}. It is shown here ahead of that day and is not in effect before it.",
+    "upcomingEarlier": "Until then, version {version} stays in effect, and the Contact Page lists where to ask for a copy of its text.",
+    "history": "Version history",
+    "versionDraft": "Version {version}: draft, not yet in effect",
+    "versionInEffect": "Version {version}: in effect from {date}",
+    "versionUpcoming": "Version {version}: takes effect on {date}",
+    "contents": "On this page",
+    "englishOnly": "This document is published in English.",
     "action": "Back to Atlas"
   },
   "home": {

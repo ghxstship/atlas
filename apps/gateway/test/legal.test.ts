@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import {
+  ACCOUNT_DELETION_PATH,
   clientIp,
   GATEWAY_LEGAL_DOCUMENTS,
   gatewayLegalDocument,
   PENDING_ACCEPTANCES,
   pendingAcceptances,
   signUpAcceptances,
+  skipsTermsStep,
 } from "../lib/auth/legal";
 
 /**
@@ -54,6 +56,15 @@ describe("Gateway legal documents", () => {
     }
     expect(gatewayLegalDocument("privacy-policy")?.accept).toBe(false);
     expect(gatewayLegalDocument("data-processing-agreement")).toBeUndefined();
+  });
+
+  it("lets only the account deletion page past the terms step", () => {
+    expect(skipsTermsStep(ACCOUNT_DELETION_PATH)).toBe(true);
+    expect(skipsTermsStep("/settings/account?tab=delete")).toBe(true);
+    expect(skipsTermsStep("/settings/account#delete")).toBe(true);
+    expect(skipsTermsStep("/settings/accountant")).toBe(false);
+    expect(skipsTermsStep("/home")).toBe(false);
+    expect(skipsTermsStep("/auth/claim?next=/settings/account")).toBe(false);
   });
 
   it("reads pending acceptances from user metadata and ignores anything malformed", () => {

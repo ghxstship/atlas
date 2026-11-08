@@ -104,6 +104,22 @@ export async function createClientOrg(
   });
 }
 
+/**
+ * Whether a platform operator has allowed the partner to create client orgs (migration 6870). It is off by
+ * default, and the database refuses a new client org until it is on. Needs org.partner.manage.
+ */
+export async function getClientCreationAllowed(
+  db: XosClient,
+  partnerOrgId: string,
+): Promise<Result<boolean>> {
+  return rpc(
+    db,
+    "partner_client_creation_allowed",
+    { p_partner_org_id: partnerOrgId },
+    (data) => data === true,
+  );
+}
+
 // Default brand -----------------------------------------------------------------------------------------
 
 export interface DefaultBrand {

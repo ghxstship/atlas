@@ -1377,7 +1377,7 @@
       "noAction": "No tomar medidas: no incumple ninguna norma"
     },
     "ruleReference": "Norma aplicada",
-    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable 1, o una sección del código de conducta de tu organización.",
+    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable, sección 1, o una sección del código de conducta de tu organización.",
     "facts": "Hechos",
     "factsHelp": "Lo que el contenido dice o hace y en lo que se basa la decisión.",
     "statement": "Declaración de motivos",

@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
 import { owesAgeAnswer } from "@xos/data/consent";
-import { clientIp, missingSignUpAcceptances, recordPendingAcceptances } from "@/lib/auth/legal";
+import {
+  clientIp,
+  missingSignUpAcceptances,
+  recordPendingAcceptances,
+  skipsTermsStep,
+} from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -47,8 +52,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
   // A new account accepted the Worker Terms at sign-up; the first session writes them to the log.
   await recordPendingAcceptances(db, clientIp(request.headers));
-  // A provider creates the account before any form: it accepts the Worker Terms next (A59-025).
-  if (oauth && (await missingSignUpAcceptances(db)).length > 0) {
+  // A provider creates the account before any form: it accepts the Worker Terms next (A59-025), unless it is
+  // going to delete itself, which never waits on accepting anything (Worker Terms 13).
+  if (oauth && !skipsTermsStep(next) && (await missingSignUpAcceptances(db)).length > 0) {
     return goTo(next === HOME ? "/auth/terms" : `/auth/terms?next=${encodeURIComponent(next)}`);
   }
   // Anyone else who has not answered at 18 does so now, however the account was made (ADR 0156). A failed read carries on:

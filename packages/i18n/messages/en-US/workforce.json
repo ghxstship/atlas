@@ -1377,7 +1377,7 @@
       "noAction": "Take no action: it breaks no rule"
     },
     "ruleReference": "Rule relied on",
-    "ruleReferenceHelp": "For example Acceptable Use Policy 1, or a section of your organization's code of conduct.",
+    "ruleReferenceHelp": "For example Acceptable Use Policy, Section 1, or a section of your organization's code of conduct.",
     "facts": "Facts",
     "factsHelp": "What the content says or does that the decision rests on.",
     "statement": "Statement of reasons",

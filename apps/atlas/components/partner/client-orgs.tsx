@@ -46,6 +46,7 @@ const PLAN_CODES = ["access", "core", "pro", "team", "enterprise"] as const;
 export function ClientOrgsView({
   org,
   rows,
+  canCreate,
   creating,
   detail,
   currencies,
@@ -53,6 +54,8 @@ export function ClientOrgsView({
 }: {
   org: string;
   rows: readonly ClientRow[];
+  /** A platform operator has turned client creation on for this partner (off by default). */
+  canCreate: boolean;
   creating: boolean;
   detail: ClientDetail | null;
   /** The currencies offered now, for a client's price (ADR 0160). */
@@ -71,11 +74,22 @@ export function ClientOrgsView({
         <p className="m-0 max-w-layout-form text-text-13 text-text-secondary">
           {t("partner.clients.intro")}
         </p>
-        <Button variant="primary" onClick={() => go("?create=1")}>
-          {t("partner.clients.create")}
-        </Button>
+        {canCreate ? (
+          <Button variant="primary" onClick={() => go("?create=1")}>
+            {t("partner.clients.create")}
+          </Button>
+        ) : null}
       </div>
-      {rows.length === 0 ? (
+      {canCreate ? null : (
+        <p
+          role="note"
+          data-testid="client-creation-off"
+          className="m-0 max-w-layout-form rounded-card border border-border-subtle p-12 text-text-13 text-text-secondary"
+        >
+          {t("partner.clients.createOff")}
+        </p>
+      )}
+      {rows.length === 0 && !canCreate ? null : rows.length === 0 ? (
         <EmptyPanel
           icon="Building2"
           sentence={t("partner.clients.empty")}

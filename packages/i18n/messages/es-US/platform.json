@@ -220,6 +220,7 @@
     "clients": {
       "intro": "Cada organización cliente tiene sus propios datos, miembros y marca. Usted ve solo datos de facturación; leer los registros de un cliente requiere una sesión de soporte que otorga su Propietario.",
       "create": "Crear una organización cliente",
+      "createOff": "La creación de organizaciones cliente está desactivada para este socio. El equipo de la plataforma la activa con un acuerdo de socio firmado; escriba al buzón de soporte para solicitarla.",
       "createTitle": "Nueva organización cliente",
       "createSubmit": "Crear e invitar al Propietario",
       "caption": "Organizaciones cliente",
@@ -1101,7 +1102,7 @@
   },
   "lifecycle": {
     "title": "Cancelar la organización",
-    "description": "Al cancelar, cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos. El tiempo ya pagado no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
+    "description": "Al cancelar, cualquier suscripción de pago termina de inmediato en Stripe, sin más cargos. El tiempo ya pagado no se reembolsa, salvo que la ley lo exija. La organización queda en solo lectura de inmediato, el Propietario puede reactivarla durante 30 días, la exportación completa sigue disponible hasta la eliminación y sus datos se eliminan el día 90.",
     "loadError": "No se pudo cargar el estado de la organización.",
     "ownerOnly": "Solo el Propietario cancela la organización o descarga la exportación completa.",
     "banner": "Esta organización está cancelada y en solo lectura {days, plural, one {# día más} other {# días más}}, hasta el {until}. El Propietario puede descargar la exportación completa en Configuración, Zona de peligro.",
@@ -1111,7 +1112,7 @@
     },
     "cancel": {
       "title": "Cancelar la organización",
-      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible durante 30 días después de cancelar.",
+      "explain": "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible hasta la eliminación.",
       "confirm": "Escriba {name} para confirmar",
       "reason": "¿Por qué cancela?",
       "reasonHelp": "Se guarda con el registro de cancelación.",

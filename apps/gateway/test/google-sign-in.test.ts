@@ -293,6 +293,10 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     expect(`${home.pathname}${home.search}`).toBe("/auth/terms");
   });
 
+  it("never holds account deletion behind them (Worker Terms 13)", async () => {
+    expect((await signedInWithGoogle("/settings/account")).pathname).toBe("/settings/account");
+  });
+
   it("asks an account that accepted them but never answered the age", async () => {
     accepted = [{ document_slug: "worker-terms" }];
     const to = await signedInWithGoogle("/auth/claim");
