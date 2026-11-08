@@ -34,7 +34,11 @@ export async function passAttachmentScans(worker: string): Promise<void> {
       p_attachment_version_id: job.subject_id,
       p_clean: true,
     });
-    if (scanned.error) throw new Error(`record_attachment_scan: ${scanned.error.message}`);
+    // The worker skips a version no longer being scanned (packages/platform scanning/worker.ts): another
+    // journey's file, scanned or removed already, can leave its job queued.
+    if (scanned.error && !scanned.error.message.startsWith("attachment_not_scanning")) {
+      throw new Error(`record_attachment_scan: ${scanned.error.message}`);
+    }
     await app.rpc("finish_job", { p_job_id: job.id, p_succeeded: true, p_error: null });
   }
 }

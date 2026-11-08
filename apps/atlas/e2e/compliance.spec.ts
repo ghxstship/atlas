@@ -140,11 +140,15 @@ test.describe("share links", () => {
     const linkField = panel.getByRole("textbox", { name: "Link" });
     await slow(linkField).toHaveValue(/\/share\/xshr_[0-9a-f]{64}$/);
     const internalUrl = new URL(await linkField.inputValue());
+    // Every link takes an access code (ADR 0142, 6281), shown once beside the link.
+    const internalCode = await panel.getByRole("textbox", { name: "Access code" }).inputValue();
+    expect(internalCode).toMatch(/^[0-9]{6}$/);
 
     const visitor = await (await plainContext(browser)).newPage();
     await visitor.goto(internalUrl.pathname);
     await slow(visitor.getByRole("heading", { level: 1, name: "Shared file" })).toBeVisible();
     await expectAccessible(visitor);
+    await visitor.getByLabel("Access code").fill(internalCode);
     const download = visitor.waitForEvent("download", { timeout: 120_000 });
     await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
     expect((await download).suggestedFilename()).toBe(`plan-${id}.pdf`);
