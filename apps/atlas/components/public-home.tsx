@@ -38,8 +38,10 @@ export async function PublicHome() {
   ];
   return (
     <div className="flex min-h-dvh flex-col bg-bg-canvas">
-      <header className="flex h-(--ui-topnav) items-center border-b border-border-subtle bg-bg-surface px-16 md:px-24">
-        <span className="text-heading-20 font-semibold text-text-primary">{t("brand")}</span>
+      <header className="border-b border-border-subtle bg-bg-surface">
+        <div className="mx-auto flex h-(--ui-topnav) w-full max-w-layout-wide items-center px-16 md:px-24">
+          <span className="text-heading-20 font-semibold text-text-primary">{t("brand")}</span>
+        </div>
       </header>
       <main
         id="content"
