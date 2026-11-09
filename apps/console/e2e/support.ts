@@ -14,6 +14,7 @@ export const DEMO = {
   org: "01920000-0000-7000-8000-000000000001",
   orgSlug: "demo-productions",
   owner: "01920000-0000-7000-8000-000000000101",
+  admin: "01920000-0000-7000-8000-000000000102",
   crew: "01920000-0000-7000-8000-000000000201",
   project: "01920000-0000-7000-8000-000000001001",
   requisition: "01920000-0000-7000-8000-000000228001",
@@ -208,6 +209,30 @@ export async function reportedListing(): Promise<{ id: string; title: string }> 
     DEMO.crew,
   );
   return { id, title };
+}
+
+/**
+ * A demo org post the demo org's Admin reports, left undecided past its due time and sent on to GHXSTSHIP by the
+ * hourly job (6891), so it opens under Reported content.
+ */
+export async function escalatedReport(): Promise<{ id: string; body: string }> {
+  const body = `Anyone late to the load in is useless ${uniqueId().slice(-4).toUpperCase()}.`;
+  const [post] = await sql<{ id: string }>(
+    `select app.create_feed_post($1, 'Update', $2) as id`,
+    [DEMO.org, body],
+    DEMO.owner,
+  );
+  const id = post?.id as string;
+  const [report] = await sql<{ id: string }>(
+    `select app.report_content('Feed Post', $1, 'Harassment', 'Directed at the crew.') as id`,
+    [id],
+    DEMO.admin,
+  );
+  await sql(`update app.content_reports set due_at = now() - interval '1 minute' where id = $1`, [
+    report?.id,
+  ]);
+  await sql(`select private.escalate_content_reports_to_platform()`);
+  return { id, body };
 }
 
 /** A released rating of the demo crew person, by the demo org, that the person disputes (ADR 0158). */
