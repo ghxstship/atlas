@@ -219,13 +219,14 @@ describe("the committed registry", () => {
     expect(settings.length).toBeGreaterThan(0);
   });
 
+  // Prettier formats the whole generated module: 0.15 s alone, over the 5 s default under CI's parallel turbo run.
   it("matches the generated module", async () => {
     const target = join(packageRoot, GENERATED_PATH);
     const options = (await resolveConfig(target)) ?? {};
     const expected = await format(renderRegistryModule(settings), { ...options, filepath: target });
     expect(readFileSync(target, "utf8")).toBe(expected);
     expect(SETTINGS).toEqual(settings);
-  });
+  }, 30_000);
 
   it("is declared in the database by the migrations", () => {
     const migrations = readdirSync(migrationsDir)
