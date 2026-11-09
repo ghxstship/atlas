@@ -120,6 +120,7 @@ export default async function BadgePhotosPage() {
                           label={t("gateway.badgePhotos.remove")}
                           variant="ghost"
                           done={t("gateway.badgePhotos.removed")}
+                          leaves
                         />
                       ) : null}
                     </span>

@@ -143,7 +143,12 @@ test("the org asks for a badge photo, the holder gives it, it prints, and the ho
 
   // Gateway: the holder removes it; the consent is withdrawn and the photo deleted.
   await (await photoCard(page)).getByRole("button", { name: "Remove" }).click();
-  // The confirmation sits on the button, which leaves with the photo as soon as the page refreshes.
+  // The confirmation reads in the shell's notices, since the refresh takes the Remove button away.
+  await expect(
+    page
+      .getByRole("region", { name: "Undo notifications" })
+      .getByText("Photo removed and your consent withdrawn."),
+  ).toBeVisible();
   await expect((await photoCard(page)).getByRole("button", { name: "Remove" })).toHaveCount(0);
   const [after] = await sql<{ live: number; withdrawn: boolean; objects: number }>(
     `select
