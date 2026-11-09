@@ -33,6 +33,12 @@ function actionLinks(minted, bases) {
 }
 //#endregion
 //#region src/stores.ts
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url) {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
 /** A database call failed; carries the PostgREST message (refusals keep their rule code). */
 var PlatformDbError = class extends Error {
   /** The database's own message, without the operation in front. */
@@ -53,7 +59,7 @@ var PlatformDbError = class extends Error {
  * supabase-js. The Edge Functions use it, so a cold start parses only what the function calls (A85).
  */
 function restDb(options) {
-  const base = `${options.url.replace(/\/+$/, "")}/rest/v1`;
+  const base = `${withoutTrailingSlashes(options.url)}/rest/v1`;
   const send = options.fetch ?? ((url, init) => fetch(url, init));
   const auth = {
     apikey: options.serviceKey,

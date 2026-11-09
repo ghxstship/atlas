@@ -4,6 +4,13 @@ import { actionLinks } from "./notifications/action-links.ts";
 import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications/dispatch.ts";
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
 
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
+
 /**
  * The database operations the platform services use: app schema RPCs and single-row reads, run with
  * the service role. Every store below is built on this seam, so tests pass a fake and production
@@ -80,7 +87,7 @@ export interface RestDbOptions {
  * supabase-js. The Edge Functions use it, so a cold start parses only what the function calls (A85).
  */
 export function restDb(options: RestDbOptions): PlatformDb {
-  const base = `${options.url.replace(/\/+$/, "")}/rest/v1`;
+  const base = `${withoutTrailingSlashes(options.url)}/rest/v1`;
   const send = options.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
   const auth = { apikey: options.serviceKey, Authorization: `Bearer ${options.serviceKey}` };
   const schema = options.schema ?? "app";

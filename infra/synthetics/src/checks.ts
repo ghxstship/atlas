@@ -7,13 +7,20 @@
 
 import type { CheckContext, CheckDefinition, ProbeOutcome } from "./types.ts";
 
+/** The URL without trailing slashes: a loop, which stays linear where `/\/+$/` backtracks over a run of slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  return url.slice(0, end);
+}
+
 const RUNBOOK = "infra/runbooks/incident-response.md";
 
 const ok: ProbeOutcome = { ok: true };
 const failed = (detail: string): ProbeOutcome => ({ ok: false, detail });
 
 function base(url: string | undefined): string {
-  return (url ?? "").replace(/\/+$/, "");
+  return withoutTrailingSlashes(url ?? "");
 }
 
 async function request(

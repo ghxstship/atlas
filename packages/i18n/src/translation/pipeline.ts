@@ -33,6 +33,22 @@ import {
 } from "./surfaces.ts";
 import type { Transport } from "./transport.ts";
 
+/**
+ * The text of a message without its tags, for the character count only (never output). It drops
+ * each `<...>` as `/<[^>]*>/g` did, and leaves a `<` with no closing `>` as text.
+ */
+function withoutTags(html: string): string {
+  let out = "";
+  let at = 0;
+  for (let open = html.indexOf("<"); open !== -1; open = html.indexOf("<", at)) {
+    const close = html.indexOf(">", open);
+    if (close === -1) break;
+    out += html.slice(at, open);
+    at = close + 1;
+  }
+  return out + html.slice(at);
+}
+
 export interface Context {
   readonly setup: Setup;
   /** Undefined: dry run. */
@@ -195,10 +211,7 @@ async function fill(
   }
   const list = [...misses];
   const characters = list.reduce((n, [, m]) => n + codePoints(m.html), 0);
-  const textCharacters = list.reduce(
-    (n, [, m]) => n + codePoints(m.html.replace(/<[^>]*>/g, "")),
-    0,
-  );
+  const textCharacters = list.reduce((n, [, m]) => n + codePoints(withoutTags(m.html)), 0);
   const cost = {
     segments,
     cached,

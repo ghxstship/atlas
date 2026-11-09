@@ -1,8 +1,13 @@
 # CodeQL scans the code people write. Generated bundles repeat what their sources already show, and the design export
-# and specifications run nowhere.
+# and specifications run nowhere. Tests and journeys run only in CI and on developer stacks, never in a product: their
+# made-up ids, fixture keys and fake hosts are not security contexts.
 name: XOS CodeQL
 paths-ignore:
   - supabase/functions/_vendor
   - design
   - docs
   - legal
+  - "**/test/**"
+  - "**/e2e/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"

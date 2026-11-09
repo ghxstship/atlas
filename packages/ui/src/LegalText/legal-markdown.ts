@@ -58,21 +58,56 @@ export function isDraftVersion(version: string): boolean {
 
 const SECTION_NUMBER = /^(\d+(?:\.\d+)*)\.?\s/;
 const CLAUSE = /^(\d+(?:\.\d+)+)\s/;
-const HEADING = /^(#{1,6})\s+(.+?)\s*$/;
-const LIST_ITEM = /^(\s*)([-*+]|\d+\.)\s+(.*)$/;
-const TABLE_RULE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+const LEADING_SPACE = /^\s*/;
+const HEADING_HASHES = /^#{1,6}/;
+const LIST_MARKER = /^(?:[-*+]|\d+\.)/;
+const RULE_CELL = /^:?-+:?$/;
+
+/*
+ * Headings, list items and table rules are read in steps rather than by one pattern each: a single
+ * pattern with neighbouring optional spaces (`\s+(.+?)\s*$`) backtracks over every way to split a
+ * long run of spaces, so the time grows with the square of the line.
+ */
+
+/** `## Title`: [line, the hashes, the title trimmed], or null for any other line. */
+function heading(line: string): [string, string, string] | null {
+  const hashes = HEADING_HASHES.exec(line)?.[0];
+  if (hashes === undefined) return null;
+  const rest = line.slice(hashes.length);
+  if (!LEADING_SPACE.exec(rest)?.[0]) return null;
+  const title = rest.trim();
+  return title === "" ? null : [line, hashes, title];
+}
+
+/** `- item` or `1. item`: [line, its indent, the marker, the text after it], or null. */
+function listItem(line: string): [string, string, string, string] | null {
+  const indent = LEADING_SPACE.exec(line)?.[0] ?? "";
+  const marker = LIST_MARKER.exec(line.slice(indent.length))?.[0];
+  if (marker === undefined) return null;
+  const rest = line.slice(indent.length + marker.length);
+  if (!LEADING_SPACE.exec(rest)?.[0]) return null;
+  return [line, indent, marker, rest.trimStart()];
+}
+
+/** A table's rule line, `| --- | :-: |`: every cell between the pipes is dashes with optional colons. */
+function isTableRule(line: string): boolean {
+  let row = line.trim();
+  if (row.startsWith("|")) row = row.slice(1);
+  if (row.endsWith("|")) row = row.slice(0, -1);
+  return row.split("|").every((cell) => RULE_CELL.test(cell.trim()));
+}
 const QUOTE = /^>\s?/;
 
 /** Bold, code, a written link, or underscore emphasis that opens and closes on a word edge. */
 const INLINE =
-  /\*\*(.+?)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|(?<![\p{L}\p{N}_])_([^_]+?)_(?![\p{L}\p{N}_])/gu;
+  /\*\*(.+?)\*\*|`([^`]+)`|\[([^\][]+)\]\(([^)\s]+)\)|(?<![\p{L}\p{N}_])_([^_]+?)_(?![\p{L}\p{N}_])/gu;
 
 /**
  * A path to a document, an email address, or a section of this document. A section named with
  * another document ("Section 5 of the Security Overview", "Security Overview, Section 3") stays text.
  */
 const AUTOLINK =
-  /(?<![\w./-])(?:atlas\.ghxstship\.tech)?\/legal\/([a-z0-9-]+)|[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}|(?<![A-Z][a-z]+, )\bSection (\d+(?:\.\d+)*)\b(?!\.\d| of\b)/g;
+  /(?<![\w./-])(?:atlas\.ghxstship\.tech)?\/legal\/([a-z0-9-]+)|(?<![\w.+-])[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}|(?<![A-Z][a-z]+, )\bSection (\d+(?:\.\d+)*)\b(?!\.\d| of\b)/g;
 
 const SAFE_HREF = /^(https?:\/\/|mailto:)/;
 
@@ -197,7 +232,7 @@ function listBlock(
   from: number,
   scope: Scope,
 ): { block: LegalBlock; next: number } {
-  const first = LIST_ITEM.exec(lines[from] ?? "");
+  const first = listItem(lines[from] ?? "");
   const indent = first?.[1]?.length ?? 0;
   const ordered = /\d/.test(first?.[2] ?? "");
   const items: { c: LegalInline[]; children: LegalBlock[] }[] = [];
@@ -211,12 +246,12 @@ function listBlock(
   };
   while (i < lines.length) {
     const line = lines[i] ?? "";
-    const item = LIST_ITEM.exec(line);
+    const item = listItem(line);
     if (line.trim() === "") {
       // A blank line ends the list unless the next line carries on with it.
       let peek = i + 1;
       while (peek < lines.length && (lines[peek] ?? "").trim() === "") peek += 1;
-      const after = LIST_ITEM.exec(lines[peek] ?? "");
+      const after = listItem(lines[peek] ?? "");
       const continues =
         after !== null &&
         ((after[1]?.length ?? 0) > indent ||
@@ -251,16 +286,16 @@ function listBlock(
 }
 
 function startsTable(lines: readonly string[], i: number): boolean {
-  return (lines[i] ?? "").includes("|") && TABLE_RULE.test(lines[i + 1] ?? "");
+  return (lines[i] ?? "").includes("|") && isTableRule(lines[i + 1] ?? "");
 }
 
 function startsBlock(lines: readonly string[], i: number): boolean {
   const line = lines[i] ?? "";
   return (
     line.trim() === "" ||
-    HEADING.test(line) ||
+    heading(line) !== null ||
     QUOTE.test(line) ||
-    LIST_ITEM.test(line) ||
+    listItem(line) !== null ||
     startsTable(lines, i)
   );
 }
@@ -270,17 +305,17 @@ function parseBlocks(lines: readonly string[], scope: Scope): LegalBlock[] {
   let i = 0;
   while (i < lines.length) {
     const line = lines[i] ?? "";
-    const heading = HEADING.exec(line);
+    const title = heading(line);
     if (line.trim() === "") {
       i += 1;
-    } else if (heading) {
-      blocks.push(headingBlock(heading[1] ?? "", heading[2] ?? "", scope));
+    } else if (title) {
+      blocks.push(headingBlock(title[1], title[2], scope));
       i += 1;
     } else if (QUOTE.test(line)) {
       const inner: string[] = [];
       for (; QUOTE.test(lines[i] ?? ""); i += 1) inner.push((lines[i] ?? "").replace(QUOTE, ""));
       blocks.push({ t: "quote", c: parseBlocks(inner, scope) });
-    } else if (LIST_ITEM.test(line)) {
+    } else if (listItem(line) !== null) {
       const { block, next } = listBlock(lines, i, scope);
       blocks.push(block);
       i = next;
@@ -305,8 +340,8 @@ function parseBlocks(lines: readonly string[], scope: Scope): LegalBlock[] {
 function sectionNumbers(lines: readonly string[]): Set<string> {
   const found = new Set<string>();
   for (const line of lines) {
-    const heading = HEADING.exec(line)?.[2];
-    const number = heading ? SECTION_NUMBER.exec(`${heading} `)?.[1] : CLAUSE.exec(line)?.[1];
+    const title = heading(line)?.[2];
+    const number = title ? SECTION_NUMBER.exec(`${title} `)?.[1] : CLAUSE.exec(line)?.[1];
     if (number) found.add(number);
   }
   return found;
