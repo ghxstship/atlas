@@ -1,5 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
-import { Constants, type Json } from "./database.types.ts";
+import { type Json } from "./database.types.ts";
+// Named enum lists, not the whole Constants map: these modules load in the browser (merge train 11, route budget).
+import { projectFactKind, shoeSizeSystem } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import type { GarmentLetterSize, SeatPreference } from "./work-details.ts";
 
@@ -19,8 +21,8 @@ export type ProjectFactKind = Enums["project_fact_kind"];
 export type ShoeSizeSystem = Enums["shoe_size_system"];
 export type ProjectFactStanding = "Person" | "Company" | "Producer";
 
-export const PROJECT_FACT_KINDS: readonly ProjectFactKind[] = Constants.app.Enums.project_fact_kind;
-export const SHOE_SIZE_SYSTEMS: readonly ShoeSizeSystem[] = Constants.app.Enums.shoe_size_system;
+export const PROJECT_FACT_KINDS: readonly ProjectFactKind[] = projectFactKind;
+export const SHOE_SIZE_SYSTEMS: readonly ShoeSizeSystem[] = shoeSizeSystem;
 
 /** Refusal rules of the project fact RPCs; the apps label each with `workDetails.errors.<rule>`. */
 export const ROSTER_FACT_RULES = [

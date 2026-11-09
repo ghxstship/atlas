@@ -1,5 +1,7 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database, type Json } from "./database.types.ts";
+import { type Database, type Json } from "./database.types.ts";
+// Named enum lists, not the whole Constants map: these modules load in the browser (merge train 11, route budget).
+import { sensitiveConsentStanding, sensitiveDataCategory } from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -17,10 +19,8 @@ export type SensitiveCategory = Enums["sensitive_data_category"];
 export type SensitiveSurface = Enums["sensitive_consent_surface"];
 export type SensitiveStanding = Enums["sensitive_consent_standing"];
 
-export const SENSITIVE_CATEGORIES: readonly SensitiveCategory[] =
-  Constants.app.Enums.sensitive_data_category;
-export const SENSITIVE_STANDINGS: readonly SensitiveStanding[] =
-  Constants.app.Enums.sensitive_consent_standing;
+export const SENSITIVE_CATEGORIES: readonly SensitiveCategory[] = sensitiveDataCategory;
+export const SENSITIVE_STANDINGS: readonly SensitiveStanding[] = sensitiveConsentStanding;
 
 /** The catalog key of a category's notice, `workDetails.consent.notices.<key>`. */
 export const SENSITIVE_NOTICE_KEYS: Readonly<Record<SensitiveCategory, string>> = {

@@ -1,5 +1,14 @@
 import type { XosClient } from "./client.ts";
-import { Constants, type Database, type Json } from "./database.types.ts";
+import { type Database, type Json } from "./database.types.ts";
+// Named enum lists, not the whole Constants map: these modules load in the browser (merge train 11, route budget).
+import {
+  accessibilityNeed,
+  dietaryNeed,
+  garmentLetterSize,
+  loyaltyProgramKind,
+  seatPreference,
+  workDetailCategory,
+} from "./enums.generated.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { SENSITIVE_CONSENT_RULES } from "./sensitive-consent.ts";
 
@@ -23,20 +32,16 @@ export type AccessibilityNeed = Enums["accessibility_need"];
 export type SeatPreference = Enums["seat_preference"];
 export type LoyaltyProgramKind = Enums["loyalty_program_kind"];
 
-export const WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
-  Constants.app.Enums.work_detail_category;
+export const WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] = workDetailCategory;
 /** The categories a person can share: all but Uniform Sizes, retired in R6a (4664) and kept for the access log. */
 export const SHAREABLE_WORK_DETAIL_CATEGORIES: readonly WorkDetailCategory[] =
   WORK_DETAIL_CATEGORIES.filter((c) => c !== "Uniform Sizes");
 /** Garment sizes and seat preferences are asked per roster entry since R6a (roster-facts.ts). */
-export const GARMENT_LETTER_SIZES: readonly GarmentLetterSize[] =
-  Constants.app.Enums.garment_letter_size;
-export const DIETARY_NEEDS: readonly DietaryNeed[] = Constants.app.Enums.dietary_need;
-export const ACCESSIBILITY_NEEDS: readonly AccessibilityNeed[] =
-  Constants.app.Enums.accessibility_need;
-export const SEAT_PREFERENCES: readonly SeatPreference[] = Constants.app.Enums.seat_preference;
-export const LOYALTY_PROGRAM_KINDS: readonly LoyaltyProgramKind[] =
-  Constants.app.Enums.loyalty_program_kind;
+export const GARMENT_LETTER_SIZES: readonly GarmentLetterSize[] = garmentLetterSize;
+export const DIETARY_NEEDS: readonly DietaryNeed[] = dietaryNeed;
+export const ACCESSIBILITY_NEEDS: readonly AccessibilityNeed[] = accessibilityNeed;
+export const SEAT_PREFERENCES: readonly SeatPreference[] = seatPreference;
+export const LOYALTY_PROGRAM_KINDS: readonly LoyaltyProgramKind[] = loyaltyProgramKind;
 
 /** Refusal rules of migration 1340 that the apps explain with their own sentence. */
 export const WORK_DETAIL_RULES = [
