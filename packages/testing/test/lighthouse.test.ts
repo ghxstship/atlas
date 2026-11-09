@@ -136,6 +136,42 @@ describe("scorePage", () => {
     expect(scorePage({}).withinBudget).toBe(false);
   });
 
+  it("leaves the Realtime client out of the script budget and holds it to its own 20 KB", () => {
+    const withClient = (scriptBytes: number, clientBytes: number) => {
+      const base = report(1200, scriptBytes);
+      return {
+        ...base,
+        audits: {
+          ...base.audits,
+          "network-requests": {
+            details: {
+              items: [
+                {
+                  resourceType: "Script",
+                  url: "http://x/_next/static/chunks/main.js",
+                  transferSize: 1,
+                },
+                {
+                  resourceType: "Script",
+                  url: "http://x/_next/static/chunks/rt.js?v=1",
+                  transferSize: clientBytes,
+                },
+              ],
+            },
+          },
+        },
+      };
+    };
+    // 212 KB seen, 19 KB of it the client: 193 KB against the 200 KB.
+    const live = scorePage(withClient(212_270, 18_926), 204_800, ["rt.js"]);
+    expect(live).toMatchObject({ scriptBytes: 193_344, realtimeBytes: 18_926, withinBudget: true });
+    // Without knowing the chunk, every byte counts.
+    expect(scorePage(withClient(212_270, 18_926), 204_800).withinBudget).toBe(false);
+    // The rest still answers to the 200 KB, and the client to its own limit.
+    expect(scorePage(withClient(230_000, 18_926), 204_800, ["rt.js"]).withinBudget).toBe(false);
+    expect(scorePage(withClient(200_000, 21_000), 204_800, ["rt.js"]).withinBudget).toBe(false);
+  });
+
   it("marks a page that ended on another URL, which lhci's assertMatrix never matches", () => {
     expect(scorePage(report(1200, 150_000))).toMatchObject({
       finalUrl: "http://x/home",
@@ -152,6 +188,14 @@ describe("runAssertions", () => {
     expect(assert.assertions?.["resource-summary:script:size"]).toEqual([
       "error",
       { maxNumericValue: 204_800 },
+    ]);
+  });
+
+  it("lets lhci, which counts every script, allow the Realtime client's own limit on top", () => {
+    const assert = runAssertions("http://x", ["/a"], {}, 20_480);
+    expect(assert.assertions?.["resource-summary:script:size"]).toEqual([
+      "error",
+      { maxNumericValue: 225_280 },
     ]);
   });
 
