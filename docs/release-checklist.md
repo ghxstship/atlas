@@ -10,6 +10,22 @@ Statuses:
 - **Blocked on owner (OWNER)**: needs a decision, an account, a secret or a paid service that only the owner can provide. Named in the last section.
 - **Not started**.
 
+## XOS 4.7 release (2026-11-09)
+
+4.7 is 4.6 plus merge trains 9 and 10: B4, B7, R11, P9b, B3, B8, B14, B15, B2, B9, B10, B11, B12 and B13, the last launch packages, with the owner's rulings of 2026-11-06 on links, the minimum age of 18 and the showcaller route. As on 4.2, the owner's standing choice skips the staging observation window.
+
+| Step                     | Status | Evidence                                                                                                                                                                                                                                  |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI on the release commit | Done   | Every check of PR #79 passed at `c06cf67d`, after one rerun of a unit test that timed out on a slow runner; the release commit `1d9ce9b7` adds only 4.6's versions and release record                                                     |
+| Release drill            | Done   | `infra/drills/release-drill.sh` on `1d9ce9b7`: 960 tables' row counts and 25 key-table checksums match; restore 27 s against the 4 h RTO                                                                                                  |
+| Migrations, staging      | Done   | Branch `staging` (`rmrzfolncwhnhygmfxnw`): 104 migrations, 6200 to 6799; advisors: no failure, 1,130 accepted                                                                                                                             |
+| Migrations, production   | Done   | `fquuqnzlpobaawucczgq`: point-in-time target 2026-11-09T01:13:28Z; the same 104 migrations (681 applied, none pending, none only remote); `private.ensure_realtime_channel_policies()` created none; advisors: no failure, 1,130 accepted |
+| Edge Functions           | Done   | All 26 deployed from `1d9ce9b7` with local bundling                                                                                                                                                                                       |
+| Apps                     | Done   | `main` fast-forwarded to `1d9ce9b7`, which Vercel deploys to production. Vercel builds now run two static workers and a 6 GB heap, so they fit the 8 GB build container                                                                   |
+| CI                       | Done   | pgTAP has 75 minutes in CI, since these trains took it past 45                                                                                                                                                                            |
+| Packages                 | Ready  | `@ghxstship/xos-sdk`, `@ghxstship/xos-cli` and `xos-sdk` say 4.7.0; the tag starts `publish-packages.yml`, which waits for the owner's approval                                                                                           |
+| Compass                  | OWNER  | Compass ships on its own cadence                                                                                                                                                                                                          |
+
 ## XOS 4.6 release (2026-11-07)
 
 4.6 is 4.5 plus the periods fix (PR #74) and merge train 8: A118, P2, P8, A144 and A145, with the route budget work. As on 4.2, the owner's standing choice skips the staging observation window.
