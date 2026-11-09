@@ -244,6 +244,7 @@ describe("the CI scripts", () => {
     }
   });
 
+  // Two clones, a bare remote and about thirty git processes: 1.2 s alone, over 5 s under CI's parallel turbo run.
   it("keeps incidents on their own ref, refuses a bad list and never overwrites someone else's", () => {
     const script = join(repo, "infra/ci/status-incidents.sh");
     const dir = mkdtempSync(join(tmpdir(), "xos-incidents-"));
@@ -301,7 +302,7 @@ describe("the CI scripts", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
-  });
+  }, 30_000);
 
   it("passes with a warning when there is no alert channel yet", () => {
     const run = spawnSync("bash", [join(repo, "infra/ci/post-alert.sh"), "text"], {
