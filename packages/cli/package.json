@@ -1,6 +1,6 @@
 {
   "name": "@ghxstship/xos-cli",
-  "version": "4.5.0",
+  "version": "4.6.0",
   "description": "xos: the command line for the XOS public API. Sign in, choose an organization, call any operation, import, export, validate canon codes and test webhooks.",
   "license": "MIT",
   "author": "GHXSTSHIP Industries LLC",
