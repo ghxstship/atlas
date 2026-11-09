@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -11,9 +11,10 @@ import {
   type LighthouseApp,
   type PageScore,
 } from "./lighthouse.ts";
-import { webBudgets } from "./budgets.ts";
+import { realtimeClientGzipBytes, webBudgets } from "./budgets.ts";
 import { batches, cookieHeader, landingPaths } from "./lighthouse-landing.ts";
 import { lighthouseRuns } from "./lighthouse-routes.ts";
+import { findRealtimeChunks } from "./realtime-chunk.ts";
 import { signIn } from "./session.ts";
 
 /**
@@ -26,7 +27,9 @@ import { signIn } from "./session.ts";
  * under node_modules/.cache/lighthouse/<app>/<run>[-<n>]/ and each app a summary.json (kept out of
  * formatting and the finish guard). Signed-in runs get the person's session in the browser's cookie
  * jar before each page (src/lighthouse-session.cjs). The run fails when lhci does, and when any page
- * is over a budget or ended on another URL than it asked for. Environment:
+ * is over a budget or ended on another URL than it asked for. The Realtime client's chunks, found in
+ * the app's build (realtime-chunk.ts), are not part of a page's script budget: they answer to their
+ * own 20 KB on the page's line (ADR 0027, owner decision of 2026-11-06). Environment:
  * - SUPABASE_URL and SUPABASE_ANON_KEY: the local stack, for the signed-in pages;
  * - LH_PASSWORD: the demo password (the seed's shared demo password by default);
  * - CHROME_PATH: the Chromium build to drive;
@@ -56,6 +59,11 @@ for (const app of selected) {
   const appDir = join(here, "node_modules/.cache/lighthouse", app);
   rmSync(appDir, { recursive: true, force: true });
   const pages: PageScore[] = [];
+  // The served build's Realtime client (none in docs), so its bytes are counted on their own.
+  const nextDir = join(here, "../../apps", app, ".next");
+  const realtime = existsSync(join(nextDir, "static/chunks"))
+    ? findRealtimeChunks(nextDir).map((c) => c.name)
+    : [];
   const ceilings = Object.fromEntries(
     Object.entries(recorded).flatMap(([key, bytes]) =>
       key.startsWith(`${app}/`) ? [[key.slice(app.length), bytes]] : [],
@@ -86,6 +94,7 @@ for (const app of selected) {
             chromePath: process.env["CHROME_PATH"],
             outputDir,
             ceilings,
+            realtimeClient: realtime.length > 0,
           }),
         ),
       );
@@ -112,7 +121,11 @@ for (const app of selected) {
         };
         const path = new URL(result.requestedUrl).pathname;
         pages.push(
-          scorePage(result, Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0)),
+          scorePage(
+            result,
+            Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0),
+            realtime,
+          ),
         );
       }
     }
@@ -126,8 +139,12 @@ for (const app of selected) {
       : page.withinBudget
         ? "within budget"
         : "OVER BUDGET";
+    const realtimeNote =
+      page.realtimeBytes > 0
+        ? ` (Realtime client ${Math.round(page.realtimeBytes / 1024)} of ${realtimeClientGzipBytes / 1024} KB apart)`
+        : "";
     process.stdout.write(
-      `${app} ${page.url} perf ${page.performance} a11y ${page.accessibility} LCP ${Math.round(page.lcpMs ?? -1)} ms CLS ${page.cls?.toFixed(3)} TBT ${Math.round(page.tbtMs ?? -1)} ms JS ${Math.round((page.scriptBytes ?? 0) / 1024)} KB ${verdict}\n`,
+      `${app} ${page.url} perf ${page.performance} a11y ${page.accessibility} LCP ${Math.round(page.lcpMs ?? -1)} ms CLS ${page.cls?.toFixed(3)} TBT ${Math.round(page.tbtMs ?? -1)} ms JS ${Math.round((page.scriptBytes ?? 0) / 1024)} KB${realtimeNote} ${verdict}\n`,
     );
   }
   // lhci asserts a report by its final URL, so a page that ended elsewhere went unasserted: the
