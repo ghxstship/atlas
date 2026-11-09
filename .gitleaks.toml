@@ -72,3 +72,13 @@ regexes = [
   # Keyboard shortcut chords in the generated shortcut registry
   '''^(Mod|Ctrl)\+Shift\+Tab$''',
 ]
+
+
+[[allowlists]]
+description = "Reviewed fake values on merge train 11 (2026-11-09)"
+regexTarget = "secret"
+regexes = [
+  # The made-up passphrase Gateway's sign-up, registration and compliance journeys type for the throwaway accounts they
+  # make on the local stack (apps/gateway/e2e); no real account has it
+  '''^Tidal\-Copper\-Ladder\-4821$''',
+]
