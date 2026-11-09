@@ -4,6 +4,7 @@ import { Button, InlineAlert, type ButtonProps } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
+import { notify } from "@/components/undo/notices";
 import type { ActionResult } from "@/lib/action-result";
 
 type Translate = (key: string) => string;
@@ -12,6 +13,8 @@ type Translate = (key: string) => string;
  * One button that runs a bound server action (sign, accept, decline, withdraw, revoke). It shows
  * progress without a blocking spinner, refreshes the page on success and, on a refusal, says what
  * happened and how to fix it in one sentence under the button (Section 11.10, rules 9 and 11).
+ * A button the refresh takes away (Remove on the thing it removes) passes `leaves`: its `done`
+ * goes to the shell's one polite region, which outlives the refresh, instead of under the button.
  */
 export function ActionButton({
   action,
@@ -20,14 +23,17 @@ export function ActionButton({
   size = "sm",
   icon,
   done,
+  leaves = false,
 }: {
   action: () => Promise<ActionResult>;
   label: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
   icon?: string;
-  /** Shown after success when the row stays on screen. */
+  /** Shown after success: under the button, or in the shell's notices when it `leaves`. */
   done?: string;
+  /** The refresh after success removes this button, so `done` cannot show under it. */
+  leaves?: boolean;
 }) {
   const router = useRouter();
   const t = useTranslations("gateway.outcomes") as unknown as Translate;
@@ -45,6 +51,7 @@ export function ActionButton({
           start(async () => {
             const next = await action();
             setResult(next);
+            if (next.ok && done && leaves) notify(done);
             if (next.ok) router.refresh();
           })
         }
@@ -56,7 +63,7 @@ export function ActionButton({
           {t(result.outcome)}
         </span>
       ) : null}
-      {result?.ok && done ? (
+      {result?.ok && done && !leaves ? (
         <span role="status" className="text-text-12 text-success-text">
           {done}
         </span>
