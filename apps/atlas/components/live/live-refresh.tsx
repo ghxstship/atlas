@@ -2,7 +2,7 @@
 
 import { useLive, type LivePacing, type LiveTopic } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useTransition } from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 import { forgetWaitingRefresh, holdLiveRefresh, refreshWhenFree } from "./live-hold";
 
 /**
@@ -67,6 +67,36 @@ export function useLiveRefresh(topics: readonly LiveTopic[] | null, pacing?: Liv
       refreshWhenFree(key.current, () => startTransition(() => router.refresh()));
     },
     pacing,
+  );
+}
+
+/** Runs a save; see `useSettledSave`. */
+export type SettledSave = <T>(save: () => Promise<T>) => Promise<T>;
+
+/**
+ * Runs saves whose server action rereads the page (revalidatePath), holding the page's live
+ * refreshes until that reread is on screen. The action's answer already carries the page rendered
+ * after the save, so the caller needs no `router.refresh()` of its own: a second reread, or a live
+ * one for the save's own rows echoing back through Realtime, would make the router wait for it
+ * before showing the saved rows. Changes that arrive meanwhile reread the page once, after. The
+ * transition belongs to the component calling this hook, so a dialog that closes on success can
+ * run its save through its parent's.
+ */
+export function useSettledSave(): SettledSave {
+  const [pending, startTransition] = useTransition();
+  useHoldLiveRefresh(pending);
+  return useCallback(
+    <T,>(save: () => Promise<T>) =>
+      new Promise<T>((resolve, reject) => {
+        startTransition(async () => {
+          try {
+            resolve(await save());
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }),
+    [],
   );
 }
 
