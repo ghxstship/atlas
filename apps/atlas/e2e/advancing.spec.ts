@@ -483,8 +483,15 @@ test("advancing progress", async ({ page, browser }) => {
     .filter({ hasText: title })
     .click();
   await expect(owner.getByText(secondAnswer)).toBeVisible();
-  await owner.getByRole("button", { name: "Return", exact: true }).click();
-  await owner.getByLabel("Why it is returned").fill("The main stage needs a third feed.");
+  // A click before the answer page hydrates is lost (A71, A77); clicking only while the reason is absent keeps it open.
+  const reason = owner.getByLabel("Why it is returned");
+  await expect(async () => {
+    if (!(await reason.isVisible())) {
+      await owner.getByRole("button", { name: "Return", exact: true }).click({ timeout: 2_000 });
+    }
+    await expect(reason).toBeVisible({ timeout: 2_000 });
+  }).toPass();
+  await reason.fill("The main stage needs a third feed.");
   await owner.getByRole("button", { name: "Return to recipient" }).click();
   await expect(owner.getByText(secondAnswer)).toHaveCount(0);
   await owner.goto(`${progress}&pane=tracks`);
