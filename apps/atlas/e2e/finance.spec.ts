@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect, settle, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -28,7 +28,8 @@ const DEMO_PASSWORD = `xos-demo-${"2026"}`;
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function signIn(page: Page, email: string) {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${ORG}/home`)}`);

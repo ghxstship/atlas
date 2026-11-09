@@ -1,5 +1,5 @@
 import pg from "pg";
-import { expect, settle, settledGoto, test } from "./engine-test";
+import { expect as baseExpect, settle, settledGoto, test } from "./engine-test";
 import { expectAccessible } from "./support";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support";
 
@@ -14,7 +14,8 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./operations-support"
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 test("every Advancing page and view renders accessibly", async ({ page }) => {
   await signIn(page, "producer@example.com");

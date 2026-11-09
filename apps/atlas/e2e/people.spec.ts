@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
@@ -18,7 +18,8 @@ import {
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
-expect.configure({ timeout: 20_000 });
+// configure returns a new expect; the file-level timeout applies only through it.
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function settled(page: Page) {
   await page.waitForTimeout(400);
