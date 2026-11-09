@@ -91,6 +91,8 @@ test("a maintenance plan comes due, and Complete moves its next due date", async
     .first()
     .click();
   await page.getByRole("button", { name: "Record maintenance", exact: true }).click();
+  // The dialog closes once the record is saved; leaving before that cancels the save.
+  await expect(page.getByRole("dialog")).toBeHidden();
   await open(page, `/${ORG}/assets/maintenance?section=schedule&status=Completed`);
   await expect(page.getByText(new RegExp(`Inspect ${suffix}`)).first()).toBeVisible();
 });

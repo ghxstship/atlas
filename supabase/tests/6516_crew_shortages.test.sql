@@ -8,6 +8,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
+-- Days are counted in each shift's own time zone, so the suite runs on New York's date: on UTC's, a shift that started
+-- 20 minutes ago falls on the day before between midnight UTC and midnight in New York.
+set local timezone = 'America/New_York';
 \ir 0700_engagement_world.psql
 \ir 4654_project_facts_world.psql
 \ir 4750_agency_world.psql
@@ -40,7 +43,8 @@ with x as (insert into app.shifts (project_id, membership_id, role_code, starts_
   values (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '0000.50.01', now() + interval '5 days', now() + interval '5 days 8 hours', 'America/New_York')
   returning id) insert into world select 'rc_decl', id from x;
 with x as (insert into app.shifts (project_id, membership_id, role_code, starts_at, ends_at, time_zone)
-  values (pg_temp.id('prj_a'), pg_temp.id('erin@org_a'), '0000.50.01', now() - interval '20 minutes', now() + interval '7 hours', 'America/New_York')
+  values (pg_temp.id('prj_a'), pg_temp.id('erin@org_a'), '0000.50.01', greatest(now() - interval '20 minutes', current_date::timestamp at time zone 'America/New_York'),
+    now() + interval '7 hours', 'America/New_York')
   returning id) insert into world select 'ns', id from x;
 select app.publish_shifts(array[pg_temp.id('rc_wait'), pg_temp.id('rc_decl'), pg_temp.id('ns')]);
 select pg_temp.as_user('mia');
