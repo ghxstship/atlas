@@ -125,8 +125,10 @@ export function WorkDetailsForm({
                   title: f.label,
                   meta: f.summary,
                   open: f.open ?? false,
+                  // pt-8: the first row's 16 px boxes sit 8 px under the section's button, so each keeps the
+                  // 24 px of clear space WCAG 2.5.8 asks for around a target smaller than 24 px.
                   content: (
-                    <fieldset className="m-0 flex flex-wrap gap-x-16 gap-y-8 border-0 p-0 text-text-primary">
+                    <fieldset className="m-0 flex flex-wrap gap-x-16 gap-y-8 border-0 p-0 pt-8 text-text-primary">
                       <legend className="sr-only">{f.label}</legend>
                       {f.options.map((o) => (
                         <Checkbox
