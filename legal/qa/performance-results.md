@@ -366,6 +366,46 @@ frame, in each of three runs. The budget is 16.7 ms plus 1 ms for timestamp roun
 slowed tenfold (CDP `Emulation.setCPUThrottlingRate`) the same scroll measures p95 50.1 ms and fails,
 so the check sees a slow table.
 
+### Tablet journeys and frame timing on release 4.7 (RRR-243, 2026-11-09)
+
+A144's WebKit tablet and phone journeys and its frame-timing check had not run on the integrated
+branch: CI's journeys run Chromium only (`E2E_ENGINES: chromium`), and the orchestrator's journey
+tools set the same, so the `ios-safari` and `ipados-safari` projects never existed in those runs.
+Both were run on batch-c 1d9ce9b74 (release 4.7, in production) on the build machine, an Apple M3
+Max on macOS 26.6.2, while other agents' gates and journeys ran (load average 5 to 19).
+
+**10,000 rows at 60 fps.** `storybook:build`, then
+`pnpm --filter @xos/ui test:visual frame-timing --project=chromium` (Playwright 1.64.0, Chromium
+headless shell 1248), three runs:
+
+| Run | Frames | p95 frame time | Max frame time | Missed frames | Verdict |
+| --- | ------ | -------------- | -------------- | ------------- | ------- |
+| 1   | 240    | 16.70 ms       | 16.80 ms       | 0             | Pass    |
+| 2   | 240    | 16.70 ms       | 16.80 ms       | 0             | Pass    |
+| 3   | 240    | 16.80 ms       | 16.80 ms       | 0             | Pass    |
+
+The budget is 17.67 ms (16.7 ms plus the 1 ms tolerance). The same check with the CPU slowed
+tenfold (CDP `Emulation.setCPUThrottlingRate`, a scratch copy of the spec, not committed) measured
+p95 66.7 ms and failed, so it still sees a slow table.
+
+**Tablet and phone journeys in WebKit.** A fresh local stack with the demo seed, production builds of
+Atlas and Gateway served by `next start`, `E2E_ENGINES=webkit E2E_PRODUCTION_BUILD=1`, the
+`ios-safari` (iPhone 17, 402 by 681) and `ipados-safari` (iPad Pro 11, 834 by 1194) projects in
+Playwright's WebKit 27.2 (revision 2370), one worker, no retries, three runs each:
+
+| App     | Project       | Journey                                                                   | Runs passed |
+| ------- | ------------- | ------------------------------------------------------------------------- | ----------- |
+| Atlas   | ios-safari    | Below md, the bottom bar carries Home, Inbox, Search, My Work and Menu    | 3 of 3      |
+| Atlas   | ipados-safari | On a tablet the sidebar opens from the top bar and closes on navigation   | 3 of 3      |
+| Gateway | ios-safari    | Swipe right saves and swipe left passes an Explore card, with buttons too | 3 of 3      |
+| Gateway | ios-safari    | The bottom bar carries the five destinations                              | 3 of 3      |
+| Gateway | ios-safari    | Apply in three taps from Explore                                          | 3 of 3      |
+| Gateway | ipados-safari | On a tablet the five destinations sit in the top bar                      | 3 of 3      |
+
+Nothing failed, so nothing in the apps or the specs changed. The nightly `e2e-engines` job runs
+the same projects in WebKit on Linux; these local runs use the macOS build of the same WebKit
+revision.
+
 ## API latency (A24-010)
 
 Every API response now carries `Server-Timing` (`auth`, `rate`, `validate`, `handler`). Single
